@@ -1,9 +1,9 @@
-# JSHIFT
+# Jshift
 
-[![Circle CI](https://circleci.com/gh/jshiftio/kubernetes-java-plugins/tree/master.svg?style=shield)](https://circleci.com/gh/jshiftio/jshift-kit/tree/master)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jshiftio_kubernetes-java-plugins&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jshiftio_kubernetes-java-plugins)
+[![Circle CI](https://circleci.com/gh/jshiftio/jshift/tree/master.svg?style=shield)](https://circleci.com/gh/jshiftio/jshift-kit/tree/master)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jshiftio_jshift&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jshiftio_jshift)
 [![Gitter](https://badges.gitter.im/jshift-community/community.svg)](https://gitter.im/jshift-community/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jshiftio_kubernetes-java-plugins&metric=coverage)](https://sonarcloud.io/dashboard?id=jshiftio_kubernetes-java-plugins)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jshiftio_jshift&metric=coverage)](https://sonarcloud.io/dashboard?id=jshiftio_jshift)
 
 This project contains various building blocks for the jshift developer toolbox.
 
