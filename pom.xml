@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.jshift</groupId>
-  <artifactId>jshift-java-plugins</artifactId>
+  <artifactId>jshift</artifactId>
   <version>0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <description>Jshift Java Plugins</description>
-  <name>Jshift Java Plugins</name>
+  <description>Jshift</description>
+  <name>Jshift</name>
 
   <modules>
     <module>jshift-kit</module>
