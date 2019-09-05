@@ -1,0 +1,8 @@
+[[goals-overview-develop]]
+# Development Goals
+
+include::_jshift-deploy.adoc[]
+include::_jshift-undeploy.adoc[]
+include::_jshift-log.adoc[]
+include::_jshift-debug.adoc[]
+include::_jshift-watch.adoc[]

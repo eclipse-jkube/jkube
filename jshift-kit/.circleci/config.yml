@@ -1,0 +1,106 @@
+version: 2
+
+jobs:
+  test:
+    machine: true
+    steps:
+    - checkout
+    - restore_cache:
+        key: jshift-kit-{{ checksum "pom.xml" }}
+    - run:
+        command: |
+          # Run maven build
+          mvn test -B -Pjacoco
+          # Run codeocov analysis
+          bash <(curl -s https://codecov.io/bash)
+    - save_cache:
+        key: jshift-kit-{{ checksum "pom.xml" }}
+        paths:
+        - ~/.m2
+
+  build:
+    machine: true
+    steps:
+    - checkout
+    - restore_cache:
+        key: jshift-kit-{{ checksum "pom.xml" }}
+    - run:
+        command: |
+          # Run maven build
+          mvn clean install
+    - save_cache:
+        key: jshift-kit-{{ checksum "pom.xml" }}
+        paths:
+        - ~/.m2
+  
+  javadoc:
+    machine: true
+    steps:
+    - checkout
+    - restore_cache:
+        key: jshift-kit-{{ checksum "pom.xml" }}
+    - run:
+        command: |
+          # Run Maven build
+          mvn clean install -DskipTests
+          # Run javadoc build
+          mvn javadoc:jar
+    - save_cache:
+        key: jshift-kit-{{ checksum "pom.xml" }}
+        paths:
+        - ~/.m2
+  
+  sonar:
+    machine: true
+    steps:
+    - checkout
+    - restore_cache:
+        key: jshift-kit-sonar-{{ checksum "pom.xml" }}
+    - run: |
+        MAVEN_OPTS="-Xmx3000m" mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
+        -Dsonar.projectKey=jshiftio_jshift-kit \
+        -Dsonar.organization=jshiftio \
+        -Dsonar.host.url=https://sonarcloud.io \
+        -Dsonar.login=${SONARQUBE_TOKEN}
+    - save_cache:
+        key: jshift-kit-sonar-{{ checksum "pom.xml" }}
+        paths:
+        - ~/.m2
+                
+  sonar-pr:
+    machine: true
+    steps:
+    - checkout
+    - restore_cache:
+        key: jshift-sonar-pr-{{ checksum "pom.xml" }}
+    - run: |
+        if [ -n "${CIRCLE_PR_NUMBER}" ]; then
+          MAVEN_OPTS="-Xmx3000m" mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
+             -Dsonar.projectKey=jshiftio_jshift-kit \
+             -Dsonar.organization=jshiftio \
+             -Dsonar.pullrequest.key=${CIRCLE_PR_NUMBER} \
+             -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
+             -Dsonar.pullrequest.base=master \
+             -Dsonar.host.url=https://sonarcloud.io \
+             -Dsonar.login=${SONARQUBE_TOKEN}
+
+        else
+          echo "No Sonar PR analysis as this is not a pull request"
+        fi
+    - save_cache:
+        key: jshift-kit-sonar-pr-{{ checksum "pom.xml" }}
+        paths:
+        - ~/.m2
+
+workflows:
+  version: 2
+  all:
+    jobs:
+    - build
+    - javadoc
+    - test
+    - sonar-pr
+    - sonar:
+        filters:
+          branches:
+            only: master

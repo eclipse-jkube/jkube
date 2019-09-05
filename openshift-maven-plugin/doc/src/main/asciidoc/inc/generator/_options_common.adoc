@@ -1,0 +1,34 @@
+There are some configuration options which are shared by all generators:
+
+[[generator-options-common]]
+.Common generator options
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *add*
+| When this set to `true`, then the generator _adds_ to an existing image configuration. By default this is disabled, so that a generator only kicks in when there are no other image configurations in the build, which are either configured directly for a `oc:build` or already added by a generator which has been run previously.
+|
+
+| *alias*
+| An alias name for referencing this image in various other parts of the configuration. This is also used in the log output. The default alias name is the name of the generator.
+| `jshift.generator.alias`
+
+| *from*
+| This is the base image from where to start when creating the images. By default the generators make an opinionated decision for the base image which are described in the respective generator section.
+| `jshift.generator.from`
+
+| *fromMode*
+| Whe using OpenShift S2I builds the base image can be either a plain docker image (mode: `docker`) or a reference to an https://docs.openshift.com/container-platform/3.3/architecture/core_concepts/builds_and_image_streams.html[ ImageStreamTag] (mode: `istag`). In the case of an ImageStreamTag, `from` has to be specified in the form `namespace/image-stream:tag`. The mode takes only effect when running in OpenShift mode.
+| `jshift.generator.fromMode`
+
+| *name*
+| The Docker image name used when doing Docker builds. For OpenShift S2I builds its the name of the image stream. This can be a pattern as descibed in <<image-name-placeholders, Name Placeholders>>. The default is `%g/%a:%l`.
+| `jshift.generator.name`
+
+| *registry*
+| A optional Docker registry used when doing Docker builds. It has no effect for OpenShift S2I builds.
+| `jshift.generator.registry`
+|===
+
+When used as properties they can be directly referenced with the property names above.

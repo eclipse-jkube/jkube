@@ -1,0 +1,43 @@
+#
+# Copyright 2016 Red Hat, Inc.
+#
+# Red Hat licenses this file to you under the Apache License, version
+# 2.0 (the "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.  See the License for the specific language governing
+# permissions and limitations under the License.
+#
+
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: mydockerkey
+    namespace: default
+  data:
+    .dockercfg: eyJkb2NrZXIuaW8iOnsidXNlcm5hbWUiOiJ1c2VybmFtZSIsInBhc3N3b3JkIjoidGhpcy9pcyVhI3Bhc3N3b3JkIiwiZW1haWwiOiJiYXJAYmFyLmNvbSJ9fQ==
+  type: kubernetes.io/dockercfg
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: mydockerkey1
+    namespace: default
+  data:
+    .dockercfg: eyJkb2NrZXIxLmlvIjp7InVzZXJuYW1lIjoidXNlcm5hbWUxIiwicGFzc3dvcmQiOiJ0aGlzL2lzJWEjcGFzc3dvcmQhMSIsImVtYWlsIjoiYmFyMUBiYXIuY29tIn19
+  type: kubernetes.io/dockercfg
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: mydockerkey2
+  data:
+    .dockercfg: eyJkb2NrZXIxLmlvIjp7InVzZXJuYW1lIjoidXNlcm5hbWUxIiwicGFzc3dvcmQiOiJ0aGlzL2lzJWEjcGFzc3dvcmQhMSIsImVtYWlsIjoiYmFyMUBiYXIuY29tIn19
+  type: kubernetes.io/dockercfg

@@ -1,0 +1,8 @@
+[[k8s:push]]
+== *k8s:push*
+
+WARNING: Section needs review and rearrangements
+
+include::../../push/_overview.adoc[]
+
+include::../../push/_configuration.adoc[]

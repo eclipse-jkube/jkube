@@ -1,0 +1,25 @@
+[[generator-quarkus]]
+=== Quarkus
+
+The `Quarkus` generator tried to detect quarkus based projects looking at project `pom.xml`:
+
+The base images chosen are:
+[[generator-quarkus-from]]
+.Webapp Base Images
+[cols="1,4,4"]
+|===
+| | Docker Build | S2I Build
+
+| *Native*
+| `registry.fedoraproject.org/fedora-minimal`
+| ---
+
+| *Normal Build*
+| `openjdk:11`
+| ---
+|===
+
+[IMPORTANT]
+====
+S2I builds are currently not yet supported for the Quarkus generator.
+====

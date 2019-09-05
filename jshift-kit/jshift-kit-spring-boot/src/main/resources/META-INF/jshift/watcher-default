@@ -1,0 +1,2 @@
+# Watcher for spring-boot applications using the spring-boot dev tools
+io.jshift.springboot.watcher.SpringBootWatcher,100

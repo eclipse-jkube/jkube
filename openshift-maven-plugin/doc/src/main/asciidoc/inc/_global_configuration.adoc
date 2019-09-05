@@ -1,0 +1,10 @@
+Global plugin configuration properties are typically apply to all Maven plugin goals.
+
+.Global plugin configuration
+[cols="1,5"]
+|===
+| Property | Description
+
+| `jshift.skip`
+| Skips over executing the goal.  Typically used to disable the Openshift maven plugin when it's configured in a project.
+

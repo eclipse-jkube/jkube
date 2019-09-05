@@ -1,0 +1,6 @@
+[[generator-wildfly-swarm]]
+=== Wildfly Swarm
+
+The WildFly Swarm generator detects a WildFly Swarm build and disables the Prometheus Java agent because of this https://issues.jboss.org/browse/THORN-1859[issue].
+
+Otherwise this generator is identical to the <<generator-java-exec,java-exec generator>>. It supports the  <<generator-options-common, common generator options>> and the <<generator-java-exec-options, `java-exec` options>>.

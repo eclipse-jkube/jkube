@@ -1,0 +1,73 @@
+[[generator-java-exec]]
+=== Java Applications
+
+One of the most generic _Generators_ is the `java-exec` generator.
+It is responsible for starting up arbitrary Java application.
+It knows how to deal with fat-jar applications where the application and all dependencies are included within a single jar and the `MANIFEST.MF` within the jar references a main class.
+But also flat classpath applications, where the dependencies are separate jar files and a main class is given.
+
+If no main class is explicitly configured, the plugin first attempts to locate a fat jar.
+If the Maven build creates a JAR file with a `META-INF/MANIFEST.MF` containing a `Main-Class` entry, then this is considered to be the fat jar to use.
+If there are more than one of such files then the largest one is used.
+
+If a main class is configured (see below) then the image configuration will contain the application jar plus all dependency jars.
+If no main class is configured as well as no fat jar being detected, then this _Generator_ tries to detect a single main class by searching for `public static void main(String args[])` among the application classes. If exactly one class is found this is considered to be the main class. If no or more than one is found the _Generator_ finally does nothing.
+
+It will use the following base image by default, but as explained <<generator-options-common, above>> and can be changed with the `from` configuration.
+
+[[generator-java-exec-from]]
+.Java Base Images
+[cols="1,4,4,4"]
+|===
+| | Docker Build | S2I Build | ImageStream
+
+| *Community*
+| `jshift.java-jboss-openjdk8-jdk`
+| `jshift.s2i-java`
+| `jshift.java`
+
+| *Red Hat*
+| `jboss-fuse-6/fis-java-openshift`
+| `jboss-fuse-6/fis-java-openshift`
+| `fis-java-openshift`
+|===
+
+These images always refer to the latest tag. The _Red Hat_ base images are selected, when the plugin itself is a Red Hat supported version (which is detected by the plugins version number).
+
+When a `fromMode` of `istag` is used to specify an `ImageStreamTag` and when no `from` is given, then as default the `ImageStreamTag` `fis-java-openshift` in the namespace `openshift` is chosen. If you are using a RedHat variation of this plugin (i.e. if the version is ending with `-redhat`), then a `fromMode` of `istag` is the default, otherwise its `fromMode = "docker"` which use the a plain Docker image reference for the S2I builder image.
+
+Beside the common configuration parameters described in the table <<generator-options-common, common generator options>> the following additional configuration options are recognized:
+
+[[generator-java-exec-options]]
+.Java Application configuration options
+[cols="1,6,1"]
+|===
+| Element | Description | Default
+
+| *assemblyRef*
+| If a reference to an assembly is given, then this is used without trying to detect the artifacts to include.
+|
+| *targetDir*
+| Directory within the generated image where to put the detected artefacts into. Change this only if the base image is changed, too.
+| `/deployments`
+
+| *jolokiaPort*
+| Port of the Jolokia agent exposed by the base image. Set this to 0 if you don't want to expose the Jolokia port.
+| 8778
+
+| *mainClass*
+| Main class to call. If not given first a check is performed to detect a fat-jar (see above). Next a class is looked up by scanning `target/classes` for a single class with a main method. If no such class is found or if more than one is found, then this generator does nothing.
+|
+
+| *prometheusPort*
+| Port of the Prometheus jmx_exporter exposed by the base image. Set this to 0 if you don't want to expose the Prometheus port.
+| 9779
+
+| *webPort*
+| Port to expose as service, which is supposed to be the port of a web application. Set this to 0 if you don't want to expose a port.
+| 8080
+|===
+
+The exposed ports are typically later on use by <<enrichers, Enrichers>> to create default Kubernetes or OpenShift services.
+
+You can add additional files to the target image within `baseDir` by placing files into `src/main/jshift-includes`. These will be added with mode `0644`, while everything in `src/main/jshift-includes/bin` will be added with `0755`.

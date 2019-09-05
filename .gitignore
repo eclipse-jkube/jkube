@@ -1,0 +1,14 @@
+.idea
+target
+*.iml
+*.ipr
+*.iws
+notes.md
+.project
+.classpath
+.settings
+.vscode
+velocity.log
+/.metadata/
+/.recommenders/
+.factorypath

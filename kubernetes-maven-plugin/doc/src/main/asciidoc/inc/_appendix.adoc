@@ -1,0 +1,33 @@
+[[appendix]]
+= Appendix
+
+== Kind/Filename Type Mapping
+
+[[appendix-kind-mapping]]
+include::{plugindir}/src/main/resources/META-INF/jshift/kind-filename-type-mapping-default.adoc[]
+
+== Custom Kind/Filename Mapping
+
+You can add your custom `Kind/Filename` mappings.
+To do it you have two approaches:
+
+* Setting an environment variable or system property called `jshift.mapping` pointing out to a `.properties` files with pairs `<kind>=>filename1>, <filename2>`
+By default if no environment variable nor system property is set, scan for a file located at classpath `/META-INF/jshift.kind-filename-type-mapping-default.properties`.
+
+* By embedding in MOJO configuration the mapping:
+
+[source, xml]
+----
+<plugin>
+  <groupId>io.jshift</groupId>
+  <artifactId>k8s-maven-plugin</artifactId>
+  <configuration>
+    <mappings>
+      <mapping>
+        <kind>Var</kind>
+        <filenameTypes>foo, bar</filenameTypes>
+      </mapping>
+    </mappings>
+  </configuration>
+</plugin>
+----

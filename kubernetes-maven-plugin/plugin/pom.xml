@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+      <groupId>io.jshift</groupId>
+      <artifactId>k8s-maven-plugin-build</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <prerequisites>
+        <maven>3.0.3</maven>
+    </prerequisites>
+
+    <groupId>io.jshift</groupId>
+    <artifactId>k8s-maven-plugin</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>maven-plugin</packaging>
+    <name>Kubernetes Maven Plugin :: Plugin</name>
+    <description>Kubernetes Maven Plugin</description>
+
+    <properties>
+        <jshift.kit.version>0.1.0</jshift.kit.version>
+        <maven-plugin-api.version>3.5.4</maven-plugin-api.version>
+        <maven-plugin-annotation.version>3.5.2</maven-plugin-annotation.version>
+        <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
+        <plexus-component-metadata.version>1.7.1</plexus-component-metadata.version>
+        <maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-kit-config-resource</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-kit-build-service-docker</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-maven-enricher-api</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-maven-generator-api</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-maven-generator-java-exec</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-maven-generator-karaf</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-maven-generator-webapp</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-maven-generator-wildfly-swarm</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-maven-enricher-generic</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-maven-enricher-specific</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-kit-thorntail</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-kit-spring-boot</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-kit-quarkus</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-kit-vertx</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-kit-build-maven</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-maven-profiles</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-kit-watcher-api</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jshift</groupId>
+            <artifactId>jshift-watcher-standard</artifactId>
+            <version>${jshift.kit.version}</version>
+        </dependency>
+
+        <!--Maven dependencies-->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>${maven-plugin-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+            <version>${maven-plugin-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>${maven-plugin-annotation.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-archiver</artifactId>
+            <version>3.5</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <configuration>
+                    <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+                </configuration>
+                <version>${maven-plugin-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>mojo-descriptor</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>descriptor</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>help-goal</id>
+                        <goals>
+                            <goal>helpmojo</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-plexus-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/filtered-resources/META-INF/plexus</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources/META-INF/plexus</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-asciidoc</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF/doc/dmp</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/asciidoc</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-component-metadata</artifactId>
+                <version>${plexus-component-metadata.version}</version>
+                <configuration>
+                    <staticMetadataDirectory>${basedir}/target/filtered-resources/META-INF/plexus</staticMetadataDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-metadata</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>

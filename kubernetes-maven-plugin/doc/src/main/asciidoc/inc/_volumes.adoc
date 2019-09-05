@@ -1,0 +1,55 @@
+[[volume-configuration]]
+
+= Volume Configuration
+
+Kubernetes maven plugin supports volume configuration in XML format in pom.xml. These are the volume types which are supported:
+
+.Supported Volume Types
+[cols="1,22"]
+|===
+| Volume Type | Description
+
+| hostPath | Mounts a file or directory from the host node's filesystem into your pod
+
+| emptyDir | Containers in the Pod can all read and write the same files in the emptyDir volume, though that volume can be mounted at the same or different paths in each Container. When a Pod is removed from a node for any reason, the data in the emptyDir is deleted forever.
+
+| gitRepo | It mounts an empty directory and clones a git repository into it for your Pod to use.
+
+| secret | It is used to pass sensitive information, such as passwords, to Pods.
+
+| nfsPath | Allows an existing NFS(Network File System) share to be mounted into your Pod.
+
+| gcePdName | Mounts a Google Compute Engine(GCE) into your Pod. You must create PD using `gcloud` or GCE API or UI before you can use it.
+
+| glusterFsPath | Allows a Glusterfs (an open source networked filesystem) volume to be mounted into your Pod.
+
+| persistentVolumeClaim | Used to mount a PersistentVolume into a Pod.
+
+| awsElasticBlockStore | Mounts an Amazon Web Services(AWS) EBS Volume into your Pod.
+
+| azureDisk | Mounts a Microsoft Azure Data Disk into a Pod
+
+| azureFile | Mounts a Microsoft Azure File Volume(SMB 2.1 and 3.0 into a Pod.
+
+| cephfs | Allows an existing CephFS volume to be mounted into your Pod. You must have your own Ceph server running with the share exported before you can use it.
+
+| fc | Allows existing fibre channel volume to be mounted in a Pod. You must configure FC SAN Zoning to allocate and mask those LUNs (volumes) to the target WWNs beforehand so that Kubernetes hosts can access them.
+
+| flocker | Flocker is an open source clustered Container data volume manager. A `flocker` volume allows a Flocker dataset to be mounted into a Pod. You must have your own Flocker installation running before you can use it.
+
+| iscsi | Allows an existing ISCSI(SCSI over IP) volume to be mounted into your Pod.
+
+| portworxVolume | A portworxVolume is an elastic block storage layer that runs hyperconverged with Kubernetes.
+
+| quobyte | Allows existing `Quobyte` volume to be mounted into your Pod. You must have your own Quobyte setup running the volumes created.
+
+| rbd | Allows a Rados Block Device volume to be mounted into your Pod.
+
+| scaleIO | ScaleIO is a software-based storage platform that can use existing hardware to create clusters of scalable shared block networked storage. The scaleIO volume plugin allows deployed Pods to access existing ScaleIO volumes.
+
+| storageOS | A storageos volume allows an existing StorageOS volume to be mounted into your Pod. You must run the StorageOS container on each node that wants to access StorageOS volumes
+
+| vsphereVolume | Used to mount a vSphere VMDK volume into your Pod.
+
+| downwardAPI | A downwardAPI volume is used to make downward API data available to applications. It mounts a directory and writes the requested data in plain text files.
+|===

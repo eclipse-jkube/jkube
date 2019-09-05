@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2016 Red Hat, Inc.
+
+    Red Hat licenses this file to you under the Apache License, version
+    2.0 (the "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+    implied.  See the License for the specific language governing
+    permissions and limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>jshift-maven-sample-docker-hc</artifactId>
+  <groupId>io.jshift</groupId>
+  <version>3.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>Jshift Maven :: Sample :: Docker Health Check</name>
+  <description>Example using Docker Health Checks (minimum docker version: 1.24) </description>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>io.jshift</groupId>
+        <artifactId>oc-maven-plugin</artifactId>
+        <version>@jshift.version@</version>
+
+        <configuration>
+
+          <resources>
+            <labels>
+              <all>
+                <testProject>docker-health-check-sample</testProject>
+              </all>
+            </labels>
+          </resources>
+
+          <images>
+            <image>
+              <alias>dockerhc1</alias>
+              <name>img1</name>
+              <build>
+                <cmd>nc -ll -e -p 9000</cmd>
+                <healthCheck>
+                  <cmd>echo "hello"</cmd>
+                </healthCheck>
+              </build>
+            </image>
+            <image>
+              <alias>dockerhc2</alias>
+              <name>img2</name>
+              <build>
+                <cmd>nc -ll -e -p 9000</cmd>
+                <healthCheck>
+                  <cmd>echo "hello"</cmd>
+                  <timeout>2h3m1s</timeout>
+                  <interval>45000ms</interval>
+                  <retries>5</retries>
+                </healthCheck>
+              </build>
+            </image>
+          </images>
+
+        </configuration>
+
+        <executions>
+          <execution>
+            <goals>
+              <goal>resource</goal>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

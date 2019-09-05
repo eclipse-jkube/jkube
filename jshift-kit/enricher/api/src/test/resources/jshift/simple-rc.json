@@ -1,0 +1,20 @@
+{
+  "spec": {
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "STRENGTH",
+                "value": "5"
+              }
+            ],
+            "image": "rhuss/jax2016-ping:1",
+            "name": "ping"
+          }
+        ]
+      }
+    }
+  }
+}

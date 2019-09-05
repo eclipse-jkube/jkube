@@ -1,0 +1,66 @@
+[[generator-webapp]]
+=== Web Applications
+
+The `webapp` generator tries to detect WAR builds and selects a base servlet container image based on the configuration found in the `pom.xml`:
+
+* A **Tomcat** base image is selected when a `tomcat6-maven-plugin` or `tomcat7-maven-plugin` is present or when a `META-INF/context.xml` could be found in the classes directory.
+* A **Jetty** base image is selected when a `jetty-maven-plugin` is present or one of the files `WEB-INF/jetty-web.xml` or `WEB-INF/jetty-logging.properties` is found.
+* A **Wildfly** base image is chosen for a given `jboss-as-maven-plugin` or `wildfly-maven-plugin` or when a Wildfly specific deployment descriptor like `jboss-web.xml` is found.
+
+The base images chosen are:
+
+[[generator-webapp-from]]
+.Webapp Base Images
+[cols="1,4,4"]
+|===
+| | Docker Build | S2I Build
+
+| *Tomcat*
+| `jshift.tomcat-8`
+| ---
+
+| *Jetty*
+| `jshift.jetty-9`
+| ---
+
+| *Wildfly*
+| `jboss/wildfly`
+| ---
+|===
+
+[IMPORTANT]
+====
+S2I builds are currently not yet supported for the webapp generator.
+====
+
+In addition to the  <<generator-options-common, common generator options>> this generator can be configured with the following options:
+
+.Webapp configuration options
+[cols="1,6,1"]
+|===
+| Element | Description | Default
+
+| *server*
+| Fix server to use in the base image. Can be either **tomcat**, **jetty** or **wildfly**
+|
+
+| *targetDir*
+| Where to put the war file into the target image. By default its selected by the base image chosen but can be overwritten with this option.
+|
+
+| *user*
+| User and/or group under which the files should be added. The syntax of this options is descriped in <<config-image-build-assembly-user, Assembly Configuration>>.
+|
+
+| *path*
+| Context path with which the application can be reached by default
+| `/` (root context)
+
+| *cmd*
+| Command to use to start the container. By default the base images startup command is used.
+|
+
+| *ports*
+| Comma separated list of ports to expose in the image and which eventually are translated later to Kubernertes services. The ports depend on the base image and are selecte automatically. But they can be overwritten here.
+|
+|===

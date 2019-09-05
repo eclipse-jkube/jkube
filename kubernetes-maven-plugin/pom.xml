@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.jshift</groupId>
+    <artifactId>jshift-java-plugins</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <groupId>io.jshift</groupId>
+  <artifactId>k8s-maven-plugin-build</artifactId>
+  <version>0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Kubernetes Maven Plugin </name>
+  <description>Maven plugin for getting your Java apps on to Kubernetes</description>
+  <url>http://github.com/jshiftio/kubernetes-maven-plugin</url>
+
+  <licenses>
+    <license>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>geeks</id>
+      <name>Jshift Development Team</name>
+      <email>jshift@googlegroups.com</email>
+      <organization>jshift</organization>
+      <organizationUrl>http://jshift.io/</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/jshiftio/kubernetes-maven-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jshiftio/kubernetes-maven-plugin.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>git://github.com/jshiftio/kubernetes-maven-plugin.git</url>
+  </scm>
+
+  <properties>
+    <junit.version>4.11</junit.version>
+    <citrus-core.version>2.6.2</citrus-core.version>
+    <jackson-dataformat-yaml.version>2.9.8</jackson-dataformat-yaml.version>
+    <jdk.version>1.8</jdk.version>
+    <maven-compiler-plugin.version>3.6.2</maven-compiler-plugin.version>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>maven-central-plugin-snapshots</id>
+      <name>Maven Central Plugin Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Nexus Release Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
+
+  <modules>
+    <module>plugin</module>
+    <module>it</module>
+    <module>doc</module>
+  </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.consol.citrus</groupId>
+        <artifactId>citrus-core</artifactId>
+        <version>${citrus-core.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${jackson-dataformat-yaml.version}</version>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
+          <configuration>
+            <source>${jdk.version}</source>
+            <target>${jdk.version}</target>
+            <compilerArgument>-Xlint:deprecation</compilerArgument>
+            <showWarnings>true</showWarnings>
+          </configuration>
+        </plugin>
+	<plugin>
+	  <groupId>org.apache.maven.plugins</groupId>
+	  <artifactId>maven-failsafe-plugin</artifactId>
+	  <version>2.19.1</version>
+	</plugin>
+
+	<plugin>
+	  <groupId>org.apache.maven.plugins</groupId>
+	  <artifactId>maven-invoker-plugin</artifactId>
+	  <version>2.0.0</version>
+	</plugin>
+
+	<plugin>
+	  <groupId>org.apache.maven.plugins</groupId>
+	  <artifactId>maven-gpg-plugin</artifactId>
+	  <version>1.6</version>
+	</plugin>
+	<plugin>
+	  <groupId>org.apache.maven.plugins</groupId>
+	  <artifactId>maven-enforcer-plugin</artifactId>
+	  <version>1.4.1</version>
+	</plugin>
+
+	<plugin>
+	  <groupId>org.apache.maven.plugins</groupId>
+	  <artifactId>maven-javadoc-plugin</artifactId>
+	  <version>3.1.0</version>
+	</plugin>
+
+	<plugin>
+	  <groupId>org.apache.maven.plugins</groupId>
+	  <artifactId>maven-source-plugin</artifactId>
+	  <version>2.4</version>
+	</plugin>
+      </plugins>
+
+
+    </pluginManagement>
+  </build>
+
+  <profiles>
+     <!-- "release" profiles used for deploying with jshift -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+	    <configuration>
+	      <passphrase>${env.GPG_PASSPHRASE}</passphrase>
+	    </configuration>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>enforce-no-snapshots</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireReleaseDeps>
+                      <message>No Snapshots Allowed!</message>
+                    </requireReleaseDeps>
+                  </rules>
+                  <fail>true</fail>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>  
+
+</project>

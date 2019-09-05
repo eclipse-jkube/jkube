@@ -1,0 +1,9 @@
+
+[[goals-overview-build]]
+# Build Goals
+
+include::_jshift-resource.adoc[]
+include::_jshift-build.adoc[]
+include::_jshift-push.adoc[]
+include::_jshift-apply.adoc[]
+include::_jshift-helm.adoc[]

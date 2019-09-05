@@ -1,0 +1,19 @@
+= fabric8io/fabric-build
+Roland Huß;
+:revnumber: {version}
+:revdate: {localdate}
+:toc: macro
+:toclevels: 3
+:toc-title: fabric8-kit
+:doctype: book
+:icons: font
+
+ifndef::ebook-format[:leveloffset: 1]
+
+(C) 2017 The original authors.
+
+ifdef::basebackend-html[toc::[]]
+
+:numbered:
+
+include::inc/_introduction.adoc[]

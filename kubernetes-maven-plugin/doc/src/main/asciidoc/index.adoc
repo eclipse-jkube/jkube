@@ -1,0 +1,43 @@
+= jshiftio/kubernetes-maven-plugin
+Roland Huß, James Strachan;
+:revnumber: {version}
+:revdate: {localdate}
+:toc: macro
+:toclevels: 3
+:toc-title: kubernetes-maven-plugin
+:doctype: book
+:icons: font
+:plugin: jshift
+:plugindir: {plugindir}
+
+ifndef::ebook-format[:leveloffset: 1]
+
+(C) 2016 The original authors.
+
+ifdef::basebackend-html[toc::[]]
+
+:numbered:
+
+include::inc/_introduction.adoc[]
+
+include::inc/_compatibility.adoc[]
+
+include::inc/_installation.adoc[]
+
+include::inc/goals/_goals.adoc[]
+
+include::inc/_generator.adoc[]
+include::inc/_enricher.adoc[]
+include::inc/_profiles.adoc[]
+
+include::inc/_access.adoc[]
+
+include::inc/_registry.adoc[]
+include::inc/_authentication.adoc[]
+include::inc/_volumes.adoc[]
+
+include::inc/_faq.adoc[]
+
+include::inc/_appendix.adoc[]
+
+// include::classpath:/META-INF/doc/dmp/inc/_docker-build.adoc[]

@@ -1,0 +1,103 @@
+# Default enrichers
+# =================
+
+# The order of the enrichers is defined in the active profile
+# (which is the profile "default" by default)
+# You can find the default profiles in "profiles-default.yml"
+
+# ----------------------------------------------------------------
+
+# Add a default name for any resource missing
+io.jshift.enricher.generic.NameEnricher
+
+# Add a default Deployment, ReplicaSet or ReplicationController if none is given
+io.jshift.enricher.generic.DefaultControllerEnricher
+
+# Add a default Namespace or Project if namespace property is specified as an argument
+# to resource mojo or in the xml configuration
+io.jshift.enricher.generic.DefaultNamespaceEnricher
+
+# Add image information such as name, image pull policy, environment variables
+# to a container. Controllers (like Deployment, DeploymentConfig, etc.)
+# must be already present
+io.jshift.enricher.generic.ImageEnricher
+
+# Add a default service if none is given. Enrich also with
+# other information found
+io.jshift.enricher.generic.DefaultServiceEnricher,103
+
+# Add port names from IANA service definitions
+io.jshift.enricher.generic.PortNameEnricher
+
+# Add Maven coordinates as labels
+io.jshift.enricher.generic.ProjectLabelEnricher
+
+# Copy over annotation from a deployment to its pod spec
+io.jshift.enricher.generic.PodAnnotationEnricher
+
+# Add SCM information found in .git as annotations
+io.jshift.enricher.generic.GitEnricher
+
+# Add all objects found in dependencies' jar within META-INF/jshift/kubernetes.yml
+io.jshift.enricher.generic.DependencyEnricher
+
+# Add an enricher for adding an init container fixing volume mount permissions
+io.jshift.enricher.generic.VolumePermissionEnricher
+
+# Add an enricher for enabling debug information
+io.jshift.enricher.generic.DebugEnricher
+
+# Add an enricher for removing build related annotations
+io.jshift.enricher.generic.RemoveBuildAnnotationsEnricher
+
+# Add an enricher for adding Maven SCM metadata based on pom.xml scm details
+io.jshift.enricher.generic.MavenScmEnricher
+
+# Add an enricher for adding Maven SCM metadata based on pom.xml IssueManagement details
+io.jshift.enricher.generic.MavenIssueManagementEnricher
+
+# Add an enricher for Adding Metadata (Labels, Annotations & Selectors) to the generated resources
+io.jshift.enricher.generic.DefaultMetadataEnricher
+
+# Resolve the docker registry things
+io.jshift.enricher.generic.DockerRegistrySecretEnricher
+
+# Add an enricher for adding revision history limit for deployment resources
+io.jshift.enricher.generic.RevisionHistoryEnricher
+
+# Add an enricher for adding trigger annotations to Kubernetes resources
+io.jshift.enricher.generic.TriggersAnnotationEnricher
+
+# Add Config Map enricher
+io.jshift.enricher.generic.ConfigMapEnricher
+
+# Provide cluster generated CERTs to a pod
+# (see https://docs.okd.io/latest/dev_guide/secrets.html#service-serving-certificate-secrets)
+io.jshift.enricher.generic.openshift.AutoTLSEnricher
+
+# Add a service account
+io.jshift.enricher.generic.ServiceAccountEnricher
+
+# Add a route on demand when on OpenShift
+io.jshift.enricher.generic.openshift.RouteEnricher
+
+# Add a deploymentconfig from deployment when on OpenShift
+io.jshift.enricher.generic.openshift.DeploymentConfigEnricher
+
+# Add a Project from Namespace when on OpenShift
+io.jshift.enricher.generic.openshift.ProjectEnricher
+
+# Add an "expose" label to every service (TODO: Combine this with a Route/Ingress enricher)
+io.jshift.enricher.generic.openshift.ExposeEnricher
+
+# Enhance a given controller with the configuration information presented in the plugin configuration.
+io.jshift.enricher.generic.ControllerViaPluginConfigurationEnricher
+
+# Add Secret enricher
+io.jshift.enricher.generic.FileDataSecretEnricher
+
+# ImageChange trigger enrichers for openshift
+io.jshift.enricher.generic.openshift.ImageChangeTriggerEnricher
+
+# Add an ingress on demand when on Kubernetes
+io.jshift.enricher.generic.IngressEnricher

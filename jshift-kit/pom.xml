@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>jshift-kit-build</artifactId>
+  <version>0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <parent>
+    <groupId>io.jshift</groupId>
+    <artifactId>jshift-kit-parent</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <relativePath>parent/pom.xml</relativePath>
+  </parent>
+
+  <name>Jshift Kit </name>
+
+  <modules>
+      <module>parent</module>
+      <module>common</module>
+      <module>doc</module>
+      <module>build/api</module>
+      <module>build/maven</module>
+      <module>build/service/docker</module>
+      <module>config/image</module>
+      <module>config/resource</module>
+      <module>generator/api</module>
+      <module>generator/java-exec</module>
+      <module>generator/wildfly-swarm</module>
+      <module>generator/karaf</module>
+      <module>generator/webapp</module>
+      <module>enricher/api</module>
+      <module>enricher/generic</module>
+      <module>enricher/specific</module>
+      <module>watcher/api</module>
+      <module>watcher/standard</module>
+      <module>profile</module>
+      <module>jshift-kit-spring-boot</module>
+      <module>jshift-kit-thorntail-v2</module>
+      <module>jshift-kit-vertx</module>
+      <module>jshift-kit-quarkus</module>
+  </modules>
+
+</project>

@@ -1,0 +1,145 @@
+#
+# Copyright 2016 Red Hat, Inc.
+#
+# Red Hat licenses this file to you under the Apache License, version
+# 2.0 (the "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.  See the License for the specific language governing
+# permissions and limitations under the License.
+#
+
+# Default profiles delivered with f-m-p
+
+# tag::default[]
+# Default profile which is always activated
+- name: default
+  enricher:
+    # The order given in "includes" is the order in which enrichers are called
+    includes:
+    - jshift-metadata
+    - jshift-name
+    - jshift-controller
+    - jshift-controller-from-configuration
+    - jshift-service
+    - jshift-namespace
+    - jshift-image
+    - jshift-portname
+    - jshift-project-label
+    - jshift-dependency
+    - jshift-pod-annotations
+    - jshift-git
+    - jshift-maven-scm
+    - jshift-serviceaccount
+    - jshift-maven-issue-mgmt
+    # TODO: Documents and verify enrichers below
+    - jshift-debug
+    - jshift-remove-build-annotations
+    - jshift-volume-permission
+    - jshift-configmap-file
+    - jshift-secret-file
+
+    # Route exposure
+    - jshift-openshift-service-expose
+    - jshift-openshift-route
+    - jshift-openshift-deploymentconfig
+    - jshift-openshift-project
+
+    # -----------------------------------------
+    # TODO: Document and verify enrichers below
+    # Health checks
+    - jshift-healthcheck-quarkus
+    - jshift-healthcheck-spring-boot
+    - jshift-healthcheck-wildfly-swarm
+    - jshift-healthcheck-thorntail-v2
+    - jshift-healthcheck-karaf
+    - jshift-healthcheck-vertx
+    - jshift-healthcheck-docker
+    - jshift-healthcheck-webapp
+    - jshift-prometheus
+    # Dependencies shouldn't be enriched anymore, therefor it's last in the list
+    - jshift-dependency
+    - jshift-revision-history
+    - jshift-docker-registry-secret
+    - jshift-triggers-annotation
+    - jshift-openshift-imageChangeTrigger
+
+  generator:
+    # The order given in "includes" is the order in which generators are called
+    includes:
+    - quarkus
+    - spring-boot
+    - wildfly-swarm
+    - thorntail-v2
+    - karaf
+    - vertx
+    - java-exec
+    - webapp
+  watcher:
+    includes:
+    - spring-boot
+    - docker-image
+# end::default[]
+# No enrichment at all
+- name: raw
+  enricher:
+    includes: []
+# No defaults added, useful for explicit configuration
+- name: explicit
+  enricher:
+    excludes:
+    - jshift-image
+    - jshift-controller
+    - jshift-service
+# Only deployment & service
+- name: minimal
+  generator:
+    # The order given in "includes" is the order in which generators are called
+    includes:
+    - spring-boot
+    - wildfly-swarm
+    - thorntail-v2
+    - karaf
+    - vertx
+    - java-exec
+    - webapp
+  enricher:
+    includes:
+    - jshift-name
+    - jshift-controller
+    - jshift-service
+    - jshift-image
+    - jshift-project-label
+    - jshift-debug
+    - jshift-namespace
+    - jshift-metadata
+    - jshift-controller-from-configuration
+    - jshift-openshift-deploymentconfig
+    - jshift-openshift-project
+    - jshift-openshift-service-expose
+    - jshift-openshift-route
+  # Only dependencies, no build, use other resources raw
+- name: aggregate
+  generator:
+    includes: []
+  enricher:
+    includes:
+    - jshift-dependency
+# Use only the Spring Boot generator
+- name: spring-boot
+  generator:
+    includes:
+      - spring-boot
+# does not expose services by default
+- name: internal-microservice
+  extends: default
+  generator:
+    excludes: []
+  enricher:
+    excludes:
+      - jshift-openshift-service-expose
