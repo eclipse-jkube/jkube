@@ -1,18 +1,18 @@
 ## Kubernetes Java Plugins
 
 [![Circle CI](https://circleci.com/gh/jshiftio/kubernetes-java-plugins/tree/master.svg?style=shield)](https://circleci.com/gh/jshiftio/jshift-kit/tree/master)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jshiftio_kubernetes-java-plugins&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jshiftio_jshift-kit)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jshiftio_kubernetes-java-plugins&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jshiftio_kubernetes-java-plugins)
 [![Gitter](https://badges.gitter.im/jshift-community/community.svg)](https://gitter.im/jshift-community/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jshiftio_kubernetes-java-plugins&metric=coverage)](https://sonarcloud.io/dashboard?id=jshiftio_jshift-kit)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jshiftio_kubernetes-java-plugins&metric=coverage)](https://sonarcloud.io/dashboard?id=jshiftio_kubernetes-java-plugins)
 
 This project contains various building blocks for the jshift developer toolbox.
 
 Actually it contains the following abstractions which has been extracted from both projects:
 
-* **Kubernetes Maven Plugin**
+* **Kubernetes Maven Plugin** <br/>
 [![Maven Central](https://img.shields.io/maven-central/v/io.jshift/k8s-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.jshift%22%20AND%20a:%22k8s-maven-plugin%22)
 
-* **Openshift Maven Plugin** 
+* **Openshift Maven Plugin** <br/> 
 [![Maven Central](https://img.shields.io/maven-central/v/io.jshift/oc-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.jshift%22%20AND%20a:%22oc-maven-plugin%22)
 
 * **Generator** framework for automatically generating Docker images by examining project information.<br />
@@ -34,19 +34,3 @@ By moving out common parts it will be now also be possible for the [docker-maven
 
 <div style="text-align:center"><img src ="https://i.imgur.com/1IBIDgB.jpg" /></div>
 
-### Roadmap
-
-* [x] Extract enricher framework from fabric8-maven-plugin
-* [x] Extract Image configuration model from docker-maven-plugin
-* [x] Extract Resource configuration from fabric8-maven-plugin
-* [ ] Extract Generator framework from fabric8-maven-plugin
-* [ ] Extract Profile handling from fabric8-maven-plugin
-* [ ] Extract Spring Boot generators, enricher and watcher in a Github repo `fabric8-kit-spring-boot`
-* [ ] Extract Vert.x generator and enricher in a Github repo `fabric8-kit-vertx`
-* [ ] Extract Wildfly Swarm generator and enricher in a Github repo `fabric8-kit-wildfly-swarm`
-* [ ] Extract all other generators into `fabric8-kit-generator`
-* [ ] Extract all other enrichers into `fabric8-kit-enricher`, separate here between Maven specific and non-Maven specific enrichers
-* [ ] Switch docker-maven-plugin to use this image config model
-* [ ] Add generator functionality to docker-maven-plugin
-* [ ] Switch fabric8-maven-plugin to use this resource config model
-* [ ] Switch fabric8-maven-plugin to use enricher, generators, profiles from here
