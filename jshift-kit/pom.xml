@@ -13,7 +13,7 @@
     <relativePath>parent/pom.xml</relativePath>
   </parent>
 
-  <name>Jshift Kit </name>
+  <name>Jshift Kit</name>
 
   <modules>
       <module>parent</module>

@@ -4,7 +4,7 @@
 
   <parent>
     <groupId>io.jshift</groupId>
-    <artifactId>jshift-java-plugins</artifactId>
+    <artifactId>jshift</artifactId>
     <version>0.1-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
