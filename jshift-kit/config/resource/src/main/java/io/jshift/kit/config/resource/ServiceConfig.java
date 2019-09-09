@@ -40,6 +40,9 @@ public class ServiceConfig {
     // Service type
     private String type;
 
+    // Whether to normalize service port numbering
+    private boolean normalizePort = false;
+
     public String getName() {
         return name;
     }
@@ -59,6 +62,8 @@ public class ServiceConfig {
     public String getType() {
         return type;
     }
+
+    public boolean isNormalizePort() {  return normalizePort; }
 
     // =============================================================
 
@@ -87,6 +92,11 @@ public class ServiceConfig {
 
         public Builder type(String type) {
             config.type = type;
+            return this;
+        }
+
+        public Builder normalizePort(boolean normalize) {
+            config.normalizePort = normalize;
             return this;
         }
 

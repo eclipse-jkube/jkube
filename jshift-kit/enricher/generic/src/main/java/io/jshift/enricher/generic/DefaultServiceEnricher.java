@@ -37,6 +37,7 @@ import io.jshift.kit.config.resource.ServiceConfig;
 import io.jshift.maven.enricher.api.BaseEnricher;
 import io.jshift.maven.enricher.api.MavenEnricherContext;
 import io.jshift.kit.common.util.KubernetesHelper;
+import io.jshift.maven.enricher.handler.HandlerHub;
 import io.jshift.maven.enricher.handler.ServiceHandler;
 import java.util.Properties;
 import org.apache.maven.shared.utils.StringUtils;
@@ -70,6 +71,19 @@ public class DefaultServiceEnricher extends BaseEnricher {
     private static final String PORT_IMAGE_LABEL_PREFIX = "jshift.generator.service.port";
     private static final String PORTS_IMAGE_LABEL_PREFIX = "jshift.generator.service.ports";
 
+    /**
+     *  Port mapping to refer for normalization of port numbering.
+     *  Key -> TargetPort
+     *  Value -> Port
+     */
+    private static final Map<Integer, Integer> PORT_NORMALIZATION_MAPPING = new HashMap<Integer, Integer>() {{
+                                                                                    put(8080, 80);
+                                                                                    put(8081, 80);
+                                                                                    put(8181, 80);
+                                                                                    put(8180, 80);
+                                                                                    put(8443, 443);
+                                                                                    put(443, 443);
+                                                                                }};
 
     // Available configuration keys
     private enum Config implements Configs.Key {
@@ -93,7 +107,10 @@ public class DefaultServiceEnricher extends BaseEnricher {
         multiPort {{ d = "false"; }},
 
         // protocol to use
-        protocol {{ d = "tcp"; }};
+        protocol {{ d = "tcp"; }},
+
+        //  Whether to normalize services port numbers according to PORT_NORMALISATION_MAPPING
+        normalizePort {{ d = "false"; }};
 
         public String def() { return d; } protected String d;
     }
@@ -104,28 +121,49 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        final Service defaultService = getDefaultService();
 
-        if (hasServices(builder)) {
-            mergeInDefaultServiceParameters(builder, defaultService);
+        ResourceConfig xmlConfig = getConfiguration().getResource().orElse(null);
+
+        if (xmlConfig != null && xmlConfig.getServices() != null) {
+            // Add Services configured via XML
+            addServices(builder, xmlConfig.getServices());
+
         } else {
-            addDefaultService(builder, defaultService);
+            final Service defaultService = getDefaultService();
+
+            if (hasServices(builder)) {
+                mergeInDefaultServiceParameters(builder, defaultService);
+            } else {
+                addDefaultService(builder, defaultService);
+            }
+
+            if (Configs.asBoolean(getConfig(Config.normalizePort))) {
+                normalizeServicePorts(builder);
+            }
         }
 
-        // Add Services configured via XML
-        addServices(builder);
+
     }
 
     // =======================================================================================================
 
-    private void addServices(KubernetesListBuilder builder) {
-        ResourceConfig resources = new ResourceConfig();
+    private void normalizeServicePorts(KubernetesListBuilder builder) {
+        builder.accept(new TypedVisitor<ServicePortBuilder>() {
+            @Override
+            public void visit(ServicePortBuilder portBuilder) {
+                PORT_NORMALIZATION_MAPPING.keySet().forEach(key -> {
+                    if (key.intValue() == portBuilder.buildTargetPort().getIntVal()) {
+                        portBuilder.withPort(PORT_NORMALIZATION_MAPPING.get(key));
+                    }
+                });
+            }
+        });
+    }
 
-        if (resources != null && resources.getServices() != null) {
-            List<ServiceConfig> serviceConfig = resources.getServices();
-            ServiceHandler serviceHandler = new ServiceHandler();
-            builder.addToServiceItems(toArray(serviceHandler.getServices(serviceConfig)));
-        }
+    private void addServices(KubernetesListBuilder builder, List<ServiceConfig> services) {
+        HandlerHub handlerHub = new HandlerHub(getContext().getGav(), getContext().getConfiguration().getProperties());
+        ServiceHandler serviceHandler = handlerHub.getServiceHandler();
+        builder.addToServiceItems(toArray(serviceHandler.getServices(services)));
     }
 
     // convert list to array, never returns null.

@@ -80,10 +80,10 @@ public class DefaultServiceEnricherTest {
 
     @Test
     public void portOverrideWithMapping() throws JsonProcessingException {
-        setupExpectations("port", "443:8181/udp", "multiPort", "true");
+        setupExpectations("port", "443:8181/udp", "multiPort", "true", "normalizePort", "true");
 
         String json = enrich();
-        assertPort(json, 0, 443, 8181, "https", "UDP");
+        assertPort(json, 0, 80, 8181, "https", "UDP");
         assertPort(json, 1, 53, 53, "domain", "UDP");
         assertThat(json, hasJsonPath("$.spec.ports[*]", hasSize(2)));
     }
@@ -96,6 +96,17 @@ public class DefaultServiceEnricherTest {
         assertPort(json, 1, 853, 53, "domain-s", "TCP");
         assertThat(json, hasJsonPath("$.spec.ports[*]", hasSize(2)));
     }
+
+    @Test
+    public void portConfigWithMultipleMapping1() throws JsonProcessingException {
+        setupExpectations("port", "8080:8081,8443:8443", "multiPort", "true", "normalizePort", "true");
+
+        String json = enrich();
+        assertPort(json, 0, 80, 8081, "http", "TCP");
+        assertPort(json, 1, 443, 8443, "https", "TCP");
+        assertThat(json, hasJsonPath("$.spec.ports[*]", hasSize(2)));
+    }
+
 
     @Test
     public void portConfigWithMultipleMappingsNoMultiPort() throws Exception {

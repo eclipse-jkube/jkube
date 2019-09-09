@@ -42,6 +42,24 @@ The following configuration parameters can be used to influence the behaviour of
 | *protocol*
 | Default protocol to use for the services. Must be `tcp` or `udp`
 | `tcp`
+
+| *normalizePort*
+| Normalize the port numbering of the service to common and conventional port numbers.
+| `false`
+|===
+
+
+Following is the Port mapping that comes in effect, when normalizePort option is set true.
+
+[cols="1,1"]
+|===
+| Original Port | Normalized Port
+| 8080 | 80
+| 8081 | 80
+| 8181 | 80
+| 8180 | 80
+| 8443 | 443
+| 443 | 443
 |===
 
 You specify the properties like for any enricher within the enrichers configuration like in

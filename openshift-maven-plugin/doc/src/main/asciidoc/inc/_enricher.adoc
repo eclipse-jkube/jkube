@@ -102,7 +102,7 @@ Default enrichers are used for adding missing resources or adding metadata to gi
 [[jshift-controller]]
 ==== jshift-controller
 
-include::enricher/_fmp_service.adoc[]
+include::enricher/_jshift_service.adoc[]
 
 [[jshift-image]]
 ==== jshift-image

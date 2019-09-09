@@ -1,4 +1,5 @@
 
+
 [[enrichers]]
 = Enrichers
 
@@ -73,7 +74,7 @@ kubernetes-maven-plugin comes with a set of enrichers which are enabled by defau
 | Add Maven coordinates as labels to all objects.
 
 | <<jshift-service>>
-| Create a default service if missing and extrac ports from the Docker image configuration.
+| Create a default service if missing and extract ports from the Docker image configuration.
 
 | <<jshift-maven-issue-mgmt-enricher>>
 | Add Maven Issue Management information as annotations to the kubernetes/openshift resources
@@ -102,7 +103,7 @@ Default enrichers are used for adding missing resources or adding metadata to gi
 [[jshift-controller]]
 ==== jshift-controller
 
-include::enricher/_fmp_service.adoc[]
+include::enricher/_jshift_service.adoc[]
 
 [[jshift-image]]
 ==== jshift-image
