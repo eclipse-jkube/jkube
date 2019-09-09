@@ -76,7 +76,7 @@ jobs:
     - run: |
         if [ -n "${CIRCLE_PR_NUMBER}" ]; then
           MAVEN_OPTS="-Xmx3000m" mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
-             -Dsonar.projectKey=jshiftio_jshift-kit \
+             -Dsonar.projectKey=jshiftio_jshift \
              -Dsonar.organization=jshiftio \
              -Dsonar.pullrequest.key=${CIRCLE_PR_NUMBER} \
              -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
