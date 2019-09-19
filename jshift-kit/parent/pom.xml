@@ -57,7 +57,7 @@
     <jmockit.version>1.43</jmockit.version>
     <version.maven>3.3.1</version.maven>
     <version.jacoco>0.8.2</version.jacoco>
-    <version.kubernetes-client>4.3.1</version.kubernetes-client>
+    <version.kubernetes-client>4.5.2</version.kubernetes-client>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
     <version.mockwebserver>0.0.13</version.mockwebserver>
     <version.networknt.validator>0.1.7</version.networknt.validator>
@@ -483,6 +483,12 @@
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-interpolation</artifactId>
         <version>1.24</version>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.validation</groupId>
+        <artifactId>validation-api</artifactId>
+        <version>2.0.1.Final</version>
       </dependency>
 
       <dependency>
