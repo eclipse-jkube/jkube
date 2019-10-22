@@ -1,10 +1,5 @@
 ## jkube-kit
 
-[![Circle CI](https://circleci.com/gh/jkubeio/jkube-kit/tree/master.svg?style=shield)](https://circleci.com/gh/jkubeio/jkube-kit/tree/master)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube-kit&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jkubeio_jkube-kit)
-[![Gitter](https://badges.gitter.im/jkube-community/community.svg)](https://gitter.im/jkube-community/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube-kit&metric=coverage)](https://sonarcloud.io/dashboard?id=jkubeio_jkube-kit)
-
 This project contains various building blocks for the jkube developer toolbox.
 
 Actually it contains the following abstractions which has been extracted from both projects:

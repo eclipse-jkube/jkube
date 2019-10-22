@@ -34,5 +34,4 @@ One intention of extracting these parts from the originating plugins is also to 
 By moving out common parts it will be now also be possible for the [docker-maven-plugin](https://github.com/fabric8io/docker-maven-plugin) to benefit from the generator framework for zero-config creation of Docker images.
 
 
-<div style="text-align:center"><img src ="https://i.imgur.com/1IBIDgB.jpg" /></div>
-
+<div style="text-align:center"><img src ="https://i.imgur.com/DF5bnD2.jpg" /></div>
