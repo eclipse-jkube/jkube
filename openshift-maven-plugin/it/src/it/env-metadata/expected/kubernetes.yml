@@ -22,17 +22,17 @@ items:
   kind: Service
   metadata:
     annotations:
-      jshift.io/git-commit: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
       prometheus.io/scrape: "true"
-      jshift.io/git-branch: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
       prometheus.io/port: "9779"
     labels:
       expose: "true"
-      provider: jshift
-      app: jshift-maven-sample-env-metadata
+      provider: jkube
+      app: jkube-maven-sample-env-metadata
       version: "@ignore@"
-      group: io.jshift
-    name: jshift-maven-sample-env-metadata
+      group: io.jkube
+    name: jkube-maven-sample-env-metadata
   spec:
     ports:
     - name: http
@@ -40,38 +40,38 @@ items:
       protocol: TCP
       targetPort: 8080
     selector:
-      app: jshift-maven-sample-env-metadata
-      provider: jshift
-      group: io.jshift
+      app: jkube-maven-sample-env-metadata
+      provider: jkube
+      group: io.jkube
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
     annotations:
-      jshift.io/git-commit: "@ignore@"
-      jshift.io/git-branch: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
     labels:
-      provider: jshift
-      app: jshift-maven-sample-env-metadata
+      provider: jkube
+      app: jkube-maven-sample-env-metadata
       version: "@ignore@"
-      group: io.jshift
-    name: jshift-maven-sample-env-metadata
+      group: io.jkube
+    name: jkube-maven-sample-env-metadata
   spec:
     replicas: 1
     selector:
       matchLabels:
-        app: jshift-maven-sample-env-metadata
-        provider: jshift
-        group: io.jshift
+        app: jkube-maven-sample-env-metadata
+        provider: jkube
+        group: io.jkube
     template:
       metadata:
         annotations:
-          jshift.io/git-commit: "@ignore@"
-          jshift.io/git-branch: "@ignore@"
+          jkube.io/git-commit: "@ignore@"
+          jkube.io/git-branch: "@ignore@"
         labels:
-          provider: jshift
-          app: jshift-maven-sample-env-metadata
+          provider: jkube
+          app: jkube-maven-sample-env-metadata
           version: "@ignore@"
-          group: io.jshift
+          group: io.jkube
       spec:
         containers:
         - env:
@@ -81,7 +81,7 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          image: "@matches('jshift/jshift-maven-sample-env-metadata:.*$')@"
+          image: "@matches('jkube/jkube-maven-sample-env-metadata:.*$')@"
           imagePullPolicy: IfNotPresent
           name: spring-boot
           ports:

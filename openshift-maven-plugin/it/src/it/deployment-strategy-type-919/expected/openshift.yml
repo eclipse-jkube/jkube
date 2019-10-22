@@ -20,14 +20,14 @@ items:
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
-    name: jshift-docker-registry
+    name: jkube-docker-registry
   spec:
     replicas: 1
     strategy:
       type: Recreate
     selector:
-      provider: jshift
+      provider: jkube
       app: deployment-strategy-type-919
-      group: io.jshift.devops.apps
+      group: io.jkube.devops.apps
     triggers:
     - type: ConfigChange

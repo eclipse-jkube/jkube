@@ -13,7 +13,7 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-import io.jshift.maven.it.Verify
+import io.jkube.maven.it.Verify
 
 /*
  * Copyright 2016 Red Hat, Inc.
@@ -34,11 +34,11 @@ import io.jshift.maven.it.Verify
 
 [ "kubernetes"   ].each {
   Verify.verifyResourceDescriptors(
-          new File(basedir, sprintf("/target/classes/META-INF/jshift/%s.yml",it)),
+          new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml",it)),
           new File(basedir, sprintf("/expected/%s.yml",it)))
 
   // Ensure that there is no  namespace when not explicitly set
-  Verify.verifyAbsent(new File(basedir, sprintf("/target/classes/META-INF/jshift/%s.yml",it)),
+  Verify.verifyAbsent(new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml",it)),
           "\$.items[?(@.kind == 'Secret' && @.metadata.name == 'mydockerkey2')].metadata.namespace")
 
 }

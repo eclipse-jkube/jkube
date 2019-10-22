@@ -2,15 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.jshift</groupId>
-  <artifactId>jshift</artifactId>
+  <groupId>io.jkube</groupId>
+  <artifactId>jkube</artifactId>
   <version>0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <description>Jshift</description>
-  <name>Jshift</name>
+  <description>Jkube</description>
+  <name>Jkube</name>
 
   <modules>
-    <module>jshift-kit</module>
+    <module>jkube-kit</module>
     <module>kubernetes-maven-plugin</module>
     <module>openshift-maven-plugin</module>
   </modules>

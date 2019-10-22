@@ -27,7 +27,7 @@ for running a single test.
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.jshift</groupId>
+    <groupId>io.jkube</groupId>
     <artifactId>k8s-maven-plugin-build</artifactId>
     <version>0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
@@ -41,7 +41,7 @@ for running a single test.
   <description>Integration tests for this maven plugin</description>
 
   <properties>
-    <jshift.version>${project.version}</jshift.version>
+    <jkube.version>${project.version}</jkube.version>
   </properties>
 
   <dependencies>

@@ -1,8 +1,8 @@
 [[goals-overview-develop]]
 # Development Goals
 
-include::_jshift-deploy.adoc[]
-include::_jshift-undeploy.adoc[]
-include::_jshift-log.adoc[]
-include::_jshift-debug.adoc[]
-include::_jshift-watch.adoc[]
+include::_jkube-deploy.adoc[]
+include::_jkube-undeploy.adoc[]
+include::_jkube-log.adoc[]
+include::_jkube-debug.adoc[]
+include::_jkube-watch.adoc[]

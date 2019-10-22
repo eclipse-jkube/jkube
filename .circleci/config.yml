@@ -6,7 +6,7 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: jshift-kit-{{ checksum "pom.xml" }}
+        key: jkube-kit-{{ checksum "pom.xml" }}
     - run:
         command: |
           # Run maven build
@@ -14,7 +14,7 @@ jobs:
           # Run codeocov analysis
           bash <(curl -s https://codecov.io/bash)
     - save_cache:
-        key: jshift-kit-{{ checksum "pom.xml" }}
+        key: jkube-kit-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
 
@@ -23,13 +23,13 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: jshift-kit-{{ checksum "pom.xml" }}
+        key: jkube-kit-{{ checksum "pom.xml" }}
     - run:
         command: |
           # Run maven build
           mvn clean install
     - save_cache:
-        key: jshift-kit-{{ checksum "pom.xml" }}
+        key: jkube-kit-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
   
@@ -38,7 +38,7 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: jshift-kit-{{ checksum "pom.xml" }}
+        key: jkube-kit-{{ checksum "pom.xml" }}
     - run:
         command: |
           # Run Maven build
@@ -46,7 +46,7 @@ jobs:
           # Run javadoc build
           mvn javadoc:jar
     - save_cache:
-        key: jshift-kit-{{ checksum "pom.xml" }}
+        key: jkube-kit-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
   
@@ -55,15 +55,15 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: jshift-kit-sonar-{{ checksum "pom.xml" }}
+        key: jkube-kit-sonar-{{ checksum "pom.xml" }}
     - run: |
         MAVEN_OPTS="-Xmx3000m" mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
-        -Dsonar.projectKey=jshiftio_jshift \
-        -Dsonar.organization=jshiftio \
+        -Dsonar.projectKey=jkubeio_jkube \
+        -Dsonar.organization=jkubeio \
         -Dsonar.host.url=https://sonarcloud.io \
         -Dsonar.login=${SONARQUBE_TOKEN}
     - save_cache:
-        key: jshift-kit-sonar-{{ checksum "pom.xml" }}
+        key: jkube-kit-sonar-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
                 
@@ -72,12 +72,12 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: jshift-sonar-pr-{{ checksum "pom.xml" }}
+        key: jkube-sonar-pr-{{ checksum "pom.xml" }}
     - run: |
         if [ -n "${CIRCLE_PR_NUMBER}" ]; then
           MAVEN_OPTS="-Xmx3000m" mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
-             -Dsonar.projectKey=jshiftio_jshift \
-             -Dsonar.organization=jshiftio \
+             -Dsonar.projectKey=jkubeio_jkube \
+             -Dsonar.organization=jkubeio \
              -Dsonar.pullrequest.key=${CIRCLE_PR_NUMBER} \
              -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
              -Dsonar.pullrequest.base=master \
@@ -88,7 +88,7 @@ jobs:
           echo "No Sonar PR analysis as this is not a pull request"
         fi
     - save_cache:
-        key: jshift-kit-sonar-pr-{{ checksum "pom.xml" }}
+        key: jkube-kit-sonar-pr-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
 

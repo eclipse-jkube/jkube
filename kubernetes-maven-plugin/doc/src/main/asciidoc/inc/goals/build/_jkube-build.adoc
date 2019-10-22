@@ -1,0 +1,372 @@
+
+[[k8s:build]]
+== *k8s:build*
+
+This goal is for building Docker images. Images can be built in two different ways depending on the `mode` configuration (controlled by the `jkube.mode` property).
+By default the mode is set to `auto`. In this case the plugin tries to detect which kind of build should be performed by contacting the API server. If this fails or if no cluster access is configured e.g. with `oc login` then the mode is set to `kubernetes` in which case a standard Docker build is performed. It can also be forced to `openshift` to perform an OpenShift build.
+
+[[build-kubernetes]]
+=== Kubernetes Build
+
+If the mode is set to `kubernetes` then a normal Docker build is performed. The connection configuration to access the Docker daemon is described in <<access-configuration, Access Configuration>>.
+
+In order to make the generated images available to the Kubernetes cluster the generated images need to be pushed to a registry with the goal <<k8s:push>>. This is not necessary for single node clusters, though as there is no need to distribute images.
+
+[[build-openshift]]
+=== OpenShift Build
+
+For the `openshift` mode, OpenShift specific https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html[builds] will be performed. These are so called https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html[Binary Source] builds ("binary builds" in short), where the data specified with the <<build-configuration, build configuration>>  is sent directly to OpenShift as a binary archive.
+
+There are two kind of binary builds supported by this plugin, which can be selected with the `buildStrategy` configuration option (`jkube.build.strategy` property)
+
+.Build Strategies
+[cols="1,6"]
+|===
+| `buildStrategy` | Description
+
+ | `s2i`
+| The https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#source-build[Source-to-Image] (S2I) build strategy uses so called builder images for creating new application images from binary build data. The builder image to use is taken from the base image configuration specified with <<build-config-from, from>> in the image build configuration. See below for a list of builder images which can be used with this plugin.
+
+| `docker`
+| A https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#docker-build[Docker Build] is similar to a normal Docker build except that it is done by the OpenShift cluster and not by a Docker daemon. In addition this build pushes the generated image to the OpenShift internal registry so that it is accessbile in the whole cluster.
+|===
+
+Both build strategies update an https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#image-streams[Image Stream] after the image creation.
+
+The https://docs.openshift.com/enterprise/latest/dev_guide/builds.html#defining-a-buildconfig[Build Config] and https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#image-streams[Image streams] can be managed by this plugin. If they do not exist, they will be automatically created by `k8s:build`. If they do already exist, they are reused, except when the `buildRecreate` configuration option (property `jkube.build.recreate`) is set to a value as described in <<build-goal-configuration, Configuration>>. Also if the provided build strategy is different than the one defined in the existing build configuration, the Build Config is edited to reflect the new type (which in turn removes all build associated with the previous build).
+
+This image stream created can then be directly referenced from https://docs.openshift.com/enterprise/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[Deployment Configuration] objects created by <<k8s:resource>>.
+By default, image streams are created with a local lookup policy, so that they can be used also by other resources such as Deployments or StatefulSets.
+This behavior can be turned off by setting the `jkube.s2i.imageStreamLookupPolicyLocal` property to `false` when building the project.
+
+In order to be able to to create these OpenShift resource objects access to an OpenShift installation is required. The access parameters are described in <<access-configuration, Access Configuration>>.
+
+Regardless of which build mode is used, the images are configured in the same way.
+
+The configuration consists of two parts:
+* a global section which defines the overall behaviour of this plugin
+* and an `<images>` section which defines how the images should be build
+
+Many of the options below are relevant for the <<build-kubernetes, Kubernetes Workflow>> or the <<build-openshift, OpenShift Workflow>> with Docker builds as they influence how the Docker image is build.
+
+For an S2I binary build, on the other hand, the most relevant section is the <<build-assembly, Assembly>> one because the build depends on which buider/base image is used and how it interprets the content of the uploaded `docker.tar`.
+
+[[build-goal-configuration]]
+=== Configuration
+
+The following sections describe the usual configuration, which is similar to the build configuration used in the https://dmp.jkube.io[docker-maven-plugin].
+
+In addition a more automatic way for creating predefined build configuration can be performed with so called <<generators, Generators>>. Generators are very flexible and can be easily created. These are described in an extra <<generators, section>>.
+
+Global configuration parameters specify overall behavior common for all images to build. Some of the configuration options are shared with other goals.
+
+.Global configuration
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+| *apiVersion*
+| Use this variable if you are using an older version of docker not compatible with the current default use to communicate with the server.
+| `docker.apiVersion`
+
+ | *authConfig*
+| Authentication information when pulling from or pushing to Docker registry. There is a dedicated section <<authentication, Authentication>> for how doing security.
+|
+
+| *autoPull*
+a| Decide how to pull missing base images or images to start:
+
+ * `on` : Automatic download any missing images (default)
+ * `off` : Automatic pulling is switched off
+ * `always` : Pull images always even when they are already exist locally
+ * `once` : For multi-module builds images are only checked once and pulled for the whole build.
+
+| `docker.autoPull`
+
+| *buildRecreate*
+a| If the effective <<build-mode,mode>> is `openshift` then this option decides how the OpenShift resource objects associated with the build should be treated when they already exist:
+
+* `buildConfig` or `bc` : Only the BuildConfig is recreated
+* `imageStream` or `is` : Only the ImageStream is recreated
+* `all` : Both, BuildConfig and ImageStream are recreated
+* `none` : Neither BuildConfig nor ImageStream is recreated
+
+The default is `none`. If you provide the property without value then `all` is assumed, so everything gets recreated.
+| `jkube.build.recreate`
+
+| *buildStrategy*
+a| If the effective <<build-mode,mode>> is `openshift` then this option sets the build strategy. This can be:
+
+* `s2i` for a https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#source-build[Source-to-Image build] with a binary source
+* `docker` for a https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#docker-build[Docker build] with a binary source
+
+By default S2I is used.
+| `jkube.build.strategy`
+
+|*forcePull*
+|
+Applicable only for OpenShift, S2I build strategy.
+
+While creating a BuildConfig, By default, if the builder image specified in the
+build configuration is available locally on the node, that image will be used.
+
+Using forcePull will override the local image and refresh it from the registry the image stream points to.
+
+|`jkube.build.forcePull`
+
+
+| *certPath*
+| Path to SSL certificate when SSL is used for communicating with the Docker daemon. These certificates are normally stored in `~/.docker/`. With this configuration the path can be set explicitly. If not set, the fallback is first taken from the environment variable `DOCKER_CERT_PATH` and then as last resort `~/.docker/`. The keys in this are expected with it standard names `ca.pem`, `cert.pem` and `key.pem`. Please refer to the https://docs.docker.com/articles/https[Docker documentation] for more information about SSL security with Docker.
+| `docker.certPath`
+
+| *dockerHost*
+a| The URL of the Docker Daemon. If this configuration option is not given, then the optional `<machine>` configuration section is consulted. The scheme of the URL can be either given directly as `http` or `https`
+depending on whether plain HTTP communication is enabled or SSL should
+be used. Alternatively the scheme could be `tcp` in which case the
+protocol is determined via the IANA assigned port: 2375 for `http`
+and 2376 for `https`. Finally, Unix sockets are supported by using
+the scheme `unix` together with the filesystem path to the unix socket.
+The discovery sequence used by the docker-maven-plugin to determine
+the URL is:
+
+. value of *dockerHost* (`docker.host`)
+. the Docker host associated with the docker-machine named in `<machine>`, i.e. the `DOCKER_HOST` from `docker-machine env`. See <<docker-machine,below>> for more information about Docker machine support.
+. the value of the environment variable `DOCKER_HOST`.
+. `unix:///var/run/docker.sock` if it is a readable socket.
+| `docker.host`
+
+| *image*
+| In order to temporarily restrict the operation of plugin goals this configuration option can be used. Typically this will be set via the system property `docker.image` when Maven is called. The value can be a single image name (either its alias or full name) or it can be a comma separated list with multiple image names. Any name which doesn't refer an image in the configuration will be ignored.
+| `docker.image`
+
+| *machine*
+| Docker machine configuration. See <<docker-machine, Docker Machine>> for possible values
+|
+
+| [[build-mode]] *mode*
+a| The build mode which can be
+
+* `kubernetes` : A Docker image will be created by calling a Docker daemon. See <<build-kubernetes, Kubernetes Build>> for details.
+* `openshift` : An OpenShift Build will be triggered, which can be either a _Docker binary build_ or a _S2I binary build_, depending on the configuration `buildStrategy`. See <<build-openshift, OpenShift Build>> for details.
+* `auto` : The plugin tries to detect the mode by contacting the configured cluster.
+
+`auto` is the default. (_Because of technical reasons, "kubernetes" is currently the default, but will change to "auto" eventually_)
+| `jkube.mode`
+
+| *maxConnections*
+| Number of parallel connections are allowed to be opened to the Docker Host. For parsing log output, a connection needs to be kept open (as well for the wait features), so don't put that number to low. Default is 100 which should be suitable for most of the cases.
+| `docker.maxConnections`
+
+| *access*
+| Group of configuration parameters to connect to Kubernetes/OpenShift cluster
+|
+
+| *outputDirectory*
+| Default output directory to be used by this plugin. The default value is `target/docker` and is only used for the goal `{plugin}:build`.
+| `docker.target.dir`
+
+| *portPropertyFile*
+| Global property file into which the mapped properties should be written to. The format of this file and its purpose are also described in <<start-port-mapping,Port Mapping>>.
+|
+
+| *profile*
+| Profile to which contains enricher and generators configuration. See <<profiles,Profiles>> for details.
+| `jkube.profile`
+
+| *pullSecret*
+| The name to use for naming pullSecret to be created to pull the base image in case pulling from a private registry which requires authentication for Openshift.
+
+  The default value for pull registry will be picked from "docker.pull.registry/docker.registry".
+| `jkube.build.pullSecret`
+
+| *registry*
+| Specify globally a registry to use for pulling and pushing images. See <<registry,Registry handling>> for details.
+| `docker.registry`
+
+| *resourceDir*
+| Directory where jkube.resources are stored. This is also the directory where a custom profile is looked up. Default is `src/main/jkube`.
+| `jkube.resourceDir`
+
+| *environment*
+| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, Jkube  will look at src/main/jkube/dev. If not set then root `resourceDir` directory is used.
+| `jkube.environment`
+
+| *skip*
+| With this parameter the execution of this plugin can be skipped completely.
+| `docker.skip`
+
+| *skipBuild*
+| If set not images will be build (which implies also _skip.tag_) with `{plugin}:build`
+| `docker.skip.build`
+
+| *skipBuildPom*
+| If set the build step will be skipped for modules of type `pom`. If not set, then by default projects of type `pom` will be skipped if there are no image configurations contained.
+| `jkube.skip.build.pom`
+
+| *skipTag*
+| If set to `true` this plugin won't add any tags to images that have been built with `{plugin}:build`
+| `docker.skip.tag`
+
+| *skipMachine*
+| Skip using docker machine in any case
+| `docker.skip.machine`
+
+| *sourceDirectory*
+| Default directory that contains the assembly descriptor(s) used by the plugin. The default value is `src/main/docker`. This option is only relevant for the `{plugin}:build` goal.
+| `docker.source.dir`
+
+| *verbose*
+| Boolean attribute for switching on verbose output like the build steps when doing a Docker build. Default is `false`
+| `docker.verbose`
+|===
+
+=== Kubernetes Access Configuration
+
+You can configure parameters to define how plugin is going to connect to Kubernetes cluster instead of relaying on default parameters.
+
+[source, xml]
+----
+<configuration>
+  <access>
+    <username></username>
+    <password></password>
+    <masterUrl></masterUrl>
+    <apiVersion></apiVersion>
+  </access>
+</configuration>
+----
+
+[cols="1,5,1"]
+|===
+| Element | Description | Property (System property or Maven property)
+
+| *username*
+| Username on which to operate
+| `jkube.username`
+
+| *password*
+| Password on which to operate
+| `jkube.password`
+
+| *namespace*
+| Namespace on which to operate
+| `jkube.namespace`
+
+| *masterUrl*
+| Master URL on which to operate
+| `jkube.masterUrl`
+
+| *apiVersion*
+| Api version on which to operate
+| `jkube.apiVersion`
+
+| *caCertFile*
+| CaCert File on which to operate
+| `jkube.caCertFile`
+
+| *caCertData*
+| CaCert Data on which to operate
+| `jkube.caCertData`
+
+| *clientCertFile*
+| Client Cert File on which to operate
+| `jkube.clientCertFile`
+
+| *clientCertData*
+| Client Cert Data on which to operate
+| `jkube.clientCertData`
+
+| *clientKeyFile*
+| Client Key File on which to operate
+| `jkube.clientKeyFile`
+
+| *clientKeyData*
+| Client Key Data on which to operate
+| `jkube.clientKeyData`
+
+| *clientKeyAlgo*
+| Client Key Algorithm on which to operate
+| `jkube.clientKeyAlgo`
+
+| *clientKeyPassphrase*
+| Client Key Passphrase on which to operate
+| `jkube.clientKeyPassphrase`
+
+| *trustStoreFile*
+| Trust Store File on which to operate
+| `jkube.trustStoreFile`
+
+| *trustStorePassphrase*
+| Trust Store Passphrase on which to operate
+| `jkube.trustStorePassphrase`
+
+| *keyStoreFile*
+| Key Store File on which to operate
+| `jkube.keyStoreFile`
+
+| *keyStorePassphrase*
+| Key Store Passphrase on which to operate
+| `jkube.keyStorePassphrase`
+|===
+
+=== Image Configuration
+
+The configuration how images should be created a defined in a dedicated `<images>` sections. These are specified for each image within the `<images>` element of the configuration with one `<image>` element per image to use.
+
+The `<image>` element can contain the following sub elements:
+
+include::../../image/_configuration.adoc[]
+
+The `<build>` section is mandatory and is explained in <<build-configuration, below>>.
+
+.Example for <image>
+[source,xml]
+----
+<configuration>
+  ....
+  <images>
+    <image> <!--1-->
+      <name>%g/docker-demo:0.1</name> <!--2-->
+      <alias>service</alias> <!--3-->
+      <build>....</build> <!--4-->
+    </image>
+    <image>
+      ....
+    </image>
+  </images>
+</configuration>
+----
+<1> One or more `<image>`` definitions
+<2> The Docker image name used when creating the image.
+<3> An alias which can be used in other parts of the plugin to reference to this image. This alias must be unique.
+<4> A `<build>` section as described in <<buid-configuration, Build Configuration>>
+
+
+[[build-configuration]]
+=== Build Configuration
+
+include::../../build/_overview.adoc[]
+
+include::../../build/_configuration.adoc[]
+
+[[build-assembly]]
+=== Assembly
+
+include::../../build/_assembly.adoc[]
+
+[[misc-env]]
+=== Environment and Labels
+
+include::../../misc/_env.adoc[]
+
+[[misc-startup]]
+=== Startup Arguments
+
+include::../../misc/_startup.adoc[]
+
+INFO:: Startup arguments are not used in S2I builds
+
+[[build-buildargs]]
+=== Build Args
+
+include::../../build/_buildargs.adoc[]

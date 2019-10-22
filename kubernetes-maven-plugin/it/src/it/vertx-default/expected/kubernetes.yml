@@ -30,31 +30,31 @@ items:
       targetPort: 8080
     selector:
       app: vertx-default-sample
-      provider: jshift
-      group: io.jshift
+      provider: jkube
+      group: io.jkube
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
     labels:
-      provider: jshift
+      provider: jkube
       app: vertx-default-sample
       version: "@ignore@"
-      group: io.jshift
+      group: io.jkube
     name: vertx-default-sample
   spec:
     replicas: 1
     selector:
       matchLabels:
         app: vertx-default-sample
-        provider: jshift
-        group: io.jshift
+        provider: jkube
+        group: io.jkube
     template:
       metadata:
         labels:
-          provider: jshift
+          provider: jkube
           app: vertx-default-sample
           version: "@ignore@"
-          group: io.jshift
+          group: io.jkube
       spec:
         containers:
         - env:
@@ -62,7 +62,7 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          image: "@matches('jshift/vertx-default-sample:.*$')@"
+          image: "@matches('jkube/vertx-default-sample:.*$')@"
           imagePullPolicy: IfNotPresent
           name: vertx
           ports:

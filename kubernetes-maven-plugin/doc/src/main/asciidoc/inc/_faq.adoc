@@ -5,7 +5,7 @@
 
 === How do I define an environment variable?
 
-The easiest way is to add a `src/main/jshift/deployment.yml` file to your project containing something like:
+The easiest way is to add a `src/main/jkube/deployment.yml` file to your project containing something like:
 
 [source, yaml]
 ----
@@ -20,15 +20,15 @@ spec:
 
 The above will generate an environment variable `$FOO` of value `bar`
 
-For a full list of the environments used in java base images, https://hub.docker.com/r/jshift.java-jboss-openjdk8-jdk[see this list]
+For a full list of the environments used in java base images, https://hub.docker.com/r/jkube.java-jboss-openjdk8-jdk[see this list]
 
 === How do I define a system property?
 
 The simplest way is to add system properties to the `JAVA_OPTIONS` environment variable.
 
-For a full list of the environments used in java base images, https://hub.docker.com/r/jshift.java-jboss-openjdk8-jdk[see this list]
+For a full list of the environments used in java base images, https://hub.docker.com/r/jkube.java-jboss-openjdk8-jdk[see this list]
 
-e.g. add a `src/main/jshift/deployment.yml` file to your project containing something like:
+e.g. add a `src/main/jkube/deployment.yml` file to your project containing something like:
 
 [source, yaml]
 ----
@@ -45,7 +45,7 @@ The above will define the system properties `foo=bar` and `xyz=abc`
 
 === How do I mount a config file from a ConfigMap?
 
-First you need to create your `ConfigMap` resource via a file `src/main/jshift/configmap.yml`
+First you need to create your `ConfigMap` resource via a file `src/main/jkube/configmap.yml`
 
 [source, yaml]
 ----
@@ -56,13 +56,13 @@ data:
     dummy = some value
 ----
 
-Then mount the entry in the `ConfigMap` into your `Deployment` via a file `src/main/jshift/deployment.yml`
+Then mount the entry in the `ConfigMap` into your `Deployment` via a file `src/main/jkube/deployment.yml`
 
 [source, yaml]
 ----
 metadata:
   annotations:
-    configmap.jshift.io/update-on-change: ${project.artifactId}
+    configmap.jkube.io/update-on-change: ${project.artifactId}
 spec:
   replicas: 1
   template:
@@ -80,13 +80,13 @@ spec:
               mountPath: /deployments/config
 ----
 
-Here is https://github.com/jshift.quickstarts/spring-boot-webmvc/tree/master/src/main/jshift[an example quickstart doing this]
+Here is https://github.com/jkube.quickstarts/spring-boot-webmvc/tree/master/src/main/jkube[an example quickstart doing this]
 
-Note that the annotation `configmap.jshift.io/update-on-change` is optional; its used if your application is not capable of watching for changes in the `/deployments/config/application.properties` file. In this case if you are also running the https://github.com/jshiftio/configmapcontroller[configmapcontroller] then this will cause a rolling upgrade of your application to use the new `ConfigMap` contents as you change it.
+Note that the annotation `configmap.jkube.io/update-on-change` is optional; its used if your application is not capable of watching for changes in the `/deployments/config/application.properties` file. In this case if you are also running the https://github.com/jkubeio/configmapcontroller[configmapcontroller] then this will cause a rolling upgrade of your application to use the new `ConfigMap` contents as you change it.
 
 === How do I use a Persistent Volume?
 
-First you need to create your `PersistentVolumeClaim` resource via a file `src/main/jshift/foo-pvc.yml` where `foo` is the name of the `PersistentVolumeClaim`. It might be your app requires multiple vpersistent volumes so you will need multiple `PersistentVolumeClaim` resources.
+First you need to create your `PersistentVolumeClaim` resource via a file `src/main/jkube/foo-pvc.yml` where `foo` is the name of the `PersistentVolumeClaim`. It might be your app requires multiple vpersistent volumes so you will need multiple `PersistentVolumeClaim` resources.
 
 
 [source, yaml]
@@ -99,7 +99,7 @@ spec:
       storage: 100Mi
 ----
 
-Then to mount the `PersistentVolumeClaim` into your `Deployment` create a file `src/main/jshift/deployment.yml`
+Then to mount the `PersistentVolumeClaim` into your `Deployment` create a file `src/main/jkube/deployment.yml`
 
 [source, yaml]
 ----
@@ -118,5 +118,5 @@ spec:
 
 Where the above defines the `PersistentVolumeClaim` called `foo` which is then mounted into the container at `/whatnot`
 
-Here is https://github.com/jshiftio.jshift-devops/tree/master/gogs/src/main/jshift[an example application]
+Here is https://github.com/jkubeio.jkube-devops/tree/master/gogs/src/main/jkube[an example application]
 

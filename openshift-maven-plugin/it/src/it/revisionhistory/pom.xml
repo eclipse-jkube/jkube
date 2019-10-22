@@ -21,7 +21,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>fabric8-maven-revision-history</artifactId>
-  <groupId>io.jshift</groupId>
+  <groupId>io.jkube</groupId>
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
@@ -31,7 +31,7 @@
     <version>1.5.6.RELEASE</version>
   </parent>
 
-  <name>Jshift Maven :: Sample :: Revision History Test</name>
+  <name>Jkube Maven :: Sample :: Revision History Test</name>
   <description>Minimal Example with Spring Boot to test revision history configuration</description>
 
   <dependencies>
@@ -63,15 +63,15 @@
       </plugin>
 
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
-        <version>@jshift.version@</version>
+        <version>@jkube.version@</version>
         <configuration>
             <enricher>
                 <config>
-                    <jshift-revision-history>
+                    <jkube-revision-history>
                         <limit>8</limit>
-                    </jshift-revision-history>
+                    </jkube-revision-history>
                 </config>
             </enricher>
         </configuration>

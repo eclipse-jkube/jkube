@@ -1,0 +1,5 @@
+# The order of the generators used is defined in the active profile
+# (which is the profile "default" by default)
+# You can find the default profiles in "profiles-default.yml"
+
+io.jkube.generator.javaexec.JavaExecGenerator

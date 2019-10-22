@@ -21,13 +21,13 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.jshift</groupId>
+    <groupId>io.jkube</groupId>
     <artifactId>vertx-default-sample</artifactId>
     <packaging>jar</packaging>
     <version>0.1-SNAPSHOT</version>
 
 
-    <name>Jshift Maven :: Sample :: Vert.x</name>
+    <name>Jkube Maven :: Sample :: Vert.x</name>
     <description>Minimal Example with Eclipse Vert.x</description>
 
     <properties>
@@ -77,13 +77,13 @@
             </plugin>
 
             <plugin>
-                <groupId>io.jshift</groupId>
+                <groupId>io.jkube</groupId>
                 <artifactId>k8s-maven-plugin</artifactId>
-                <version>@jshift.version@</version>
+                <version>@jkube.version@</version>
                 <configuration>
                     <enricher>
                         <config>
-                            <jshift-healthcheck-vertx>
+                            <jkube-healthcheck-vertx>
                                 <path>/</path>
                                 <liveness>
                                     <initial-delay>180</initial-delay>
@@ -91,7 +91,7 @@
                                 <readiness>
                                     <initial-delay>10</initial-delay>
                                 </readiness>
-                            </jshift-healthcheck-vertx>
+                            </jkube-healthcheck-vertx>
                         </config>
                     </enricher>
                 </configuration>

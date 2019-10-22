@@ -1,0 +1,2 @@
+# Healthcheck Enricher
+io.jkube.quarkus.enricher.QuarkusHealthCheckEnricher

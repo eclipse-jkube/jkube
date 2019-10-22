@@ -1,0 +1,18 @@
+# Jkube specific enrichers
+# ==========================
+
+# The order of the enrichers is defined in the active profile
+# (which is the profile "default" by default)
+# You can find the default profiles in "profiles-default.yml"
+
+# ----------------------------------------------------------------
+
+# Healthcheck Enrichers
+io.jkube.maven.enricher.specific.WildFlySwarmHealthCheckEnricher
+io.jkube.maven.enricher.specific.KarafHealthCheckEnricher
+io.jkube.maven.enricher.specific.WebAppHealthCheckEnricher
+io.jkube.maven.enricher.specific.DockerHealthCheckEnricher,510
+
+# Other enrichers
+io.jkube.maven.enricher.specific.PrometheusEnricher
+

@@ -21,8 +21,8 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>jshift-maven-sample-spring-boot</artifactId>
-  <groupId>io.jshift</groupId>
+  <artifactId>jkube-maven-sample-spring-boot</artifactId>
+  <groupId>io.jkube</groupId>
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
@@ -32,7 +32,7 @@
     <version>1.3.6.RELEASE</version>
   </parent>
 
-  <name>Jshift Maven :: Sample :: Spring Boot Web</name>
+  <name>Jkube Maven :: Sample :: Spring Boot Web</name>
   <description>Minimal Example with Spring Boot</description>
 
   <dependencies>
@@ -64,9 +64,9 @@
       </plugin>
 
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
-        <version>@jshift.version@</version>
+        <version>@jkube.version@</version>
 
         <configuration>
 
@@ -90,9 +90,9 @@
               <exclude>build</exclude>
             </excludes>
             <config>
-              <jshift-service>
+              <jkube-service>
                 <type>NodePort</type>
-              </jshift-service>
+              </jkube-service>
             </config>
           </enricher>
         </configuration>

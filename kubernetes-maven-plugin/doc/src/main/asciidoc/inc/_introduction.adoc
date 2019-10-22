@@ -21,7 +21,7 @@ Depending on the operational mode, for building the actual image either a Docker
 
 A special <<k8s:watch>> goal allows for reacting to code changes to automatically recreate images or copy new artifacts into running containers.
 
-These image related features are inherited from the https://github.com/jshiftio/docker-maven-plugin[jshiftio/docker-maven-plugin] which is part of this plugin.
+These image related features are inherited from the https://github.com/jkubeio/docker-maven-plugin[jkubeio/docker-maven-plugin] which is part of this plugin.
 
 [[resource-descriptors]]
 == Kubernetes Resources
@@ -39,7 +39,7 @@ As mentioned already there are three levels of configuration:
 * *Zero-Config* mode makes some very opinionated decisions based on what is present in the pom.xml like what base image to use or which ports to expose.
 This is great for starting up things and for keeping quickstart applications small and tidy.
 
-* *XML plugin configuration* mode is similar to what https://jshiftio.github.io/docker-maven-plugin/#example[docker-maven-plugin] provides.
+* *XML plugin configuration* mode is similar to what https://jkubeio.github.io/docker-maven-plugin/#example[docker-maven-plugin] provides.
 This allows for type-safe configuration with IDE support, but only a subset of possible resource descriptor features is provided.
 
 * *Kubernetes &amp; OpenShift resource fragments* are user provided YAML files that can be _enriched_ by the plugin. This allows expert users to use a plain configuration file with all their capabilities, but also to add project specific build information and avoid boilerplate code.
@@ -56,11 +56,11 @@ The following table gives an overview of the different models
 | Default <<enrichers, Enrichers>> will create a default _Service_ and _Deployment_ (_DeploymentConfig_ for OpenShift) when no other resource objects are provided. Depending on the image they can detect which port to expose in the service. As with Generators, Enrichers support a limited set of configuration options.
 
 | *XML configuration*
-| jshift-m-p inherits the XML based configuration for building images from the https://jshiftio.github.io/docker-maven-plugin/#docker:build[docker-maven-plugin] and provides the same functionality. It supports an http://maven.apache.org/components/plugins/maven-assembly-plugin/assembly.html[assembly descriptor] for specifying the content of the Docker image.
+| jkube-m-p inherits the XML based configuration for building images from the https://jkubeio.github.io/docker-maven-plugin/#docker:build[docker-maven-plugin] and provides the same functionality. It supports an http://maven.apache.org/components/plugins/maven-assembly-plugin/assembly.html[assembly descriptor] for specifying the content of the Docker image.
 | A subset of possible resource objects can be configured with a dedicated XML syntax. With a decent IDE you get autocompletion on most object and inline documentation for the available configuration elements. The provided configuration can be still enhanced by Enhancers which is useful for adding e.g. labels and annotations containing build or other information.
 
 | *Resource Fragments* and *Dockerfiles*
-| Similarly to the docker-maven-plugin, jshift-m-p supports <<external-dockerfile,external Dockerfiles>> too, which are referenced from the plugin configuration.
+| Similarly to the docker-maven-plugin, jkube-m-p supports <<external-dockerfile,external Dockerfiles>> too, which are referenced from the plugin configuration.
 | Resource descriptors can be provided as external YAML files which specify a skeleton. This skeleton is then filled by Enrichers which add labels and more. Maven properties within these files are resolved to thier values. With this model you can use every Kubernetes / OpenShift resource object with all their flexibility, but still get the benefit of adding build information.
 |===
 
@@ -72,7 +72,7 @@ Let's have a look at some code. The following examples will demonstrate all thre
 [[zero-config]]
 === Zero-Config
 
-This minimal but full working example `pom.xml` shows how a simple spring boot application can be dockerized and prepared for Kubernetes. The full example can be found in directory https://github.com/jshiftio/kubernetes-maven-plugin/tree/master/samples/zero-config[samples/zero-config].
+This minimal but full working example `pom.xml` shows how a simple spring boot application can be dockerized and prepared for Kubernetes. The full example can be found in directory https://github.com/jkubeio/kubernetes-maven-plugin/tree/master/samples/zero-config[samples/zero-config].
 
 .Example
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
@@ -80,8 +80,8 @@ This minimal but full working example `pom.xml` shows how a simple spring boot a
 <project>
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.jshift</groupId>
-  <artifactId>jshift-maven-sample-zero-config</artifactId>
+  <groupId>io.jkube</groupId>
+  <artifactId>jkube-maven-sample-zero-config</artifactId>
   <version>{version}</version>
   <packaging>jar</packaging>
 
@@ -105,7 +105,7 @@ This minimal but full working example `pom.xml` shows how a simple spring boot a
         <artifactId>spring-boot-maven-plugin</artifactId> <!--3-->
       </plugin>
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>k8s-maven-plugin</artifactId> <!--4-->
         <version>{version}</version>
       </plugin>
@@ -120,7 +120,7 @@ This minimal but full working example `pom.xml` shows how a simple spring boot a
 
 This setup make some opinionated decisions for you:
 
-* As base image https://github.com/jshiftio-images/java/tree/master/images/jboss/openjdk8/jdk[jshift.java-jboss-openjdk8-jdk] is chosen which enables https://www.jolokia.org[Jolokia] and https://github.com/prometheus/jmx_exporter[jmx_exporter]. It also comes with a sophisticated https://github.com/jshiftio-images/run-java-sh[startup script].
+* As base image https://github.com/jkubeio-images/java/tree/master/images/jboss/openjdk8/jdk[jkube.java-jboss-openjdk8-jdk] is chosen which enables https://www.jolokia.org[Jolokia] and https://github.com/prometheus/jmx_exporter[jmx_exporter]. It also comes with a sophisticated https://github.com/jkubeio-images/run-java-sh[startup script].
 * It will create a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] and a http://kubernetes.io/docs/user-guide/services/[Service] as resource objects
 * It exports port 8080 as the application service port (and 8778 and 9779 for Jolokia and jmx_exporter access, respectively)
 
@@ -144,13 +144,13 @@ mvn k8s:resource k8s:deploy
 
 By default a _Service_ and a _Deployment_ object pointing to the created Docker image is created. When running in OpenShift mode, a _Service_ and _DeploymentConfig_ which refers the _ImageStream_ created with `k8s:build` will be installed.
 
-Of course you can bind all those jshift.goals to execution phases as well, so that they are called along with standard lifecycle goals like `install`. For example, to bind the building of the Kubernetes resource files and the Docker images, add the following goals to the execution of the f-m-p:
+Of course you can bind all those jkube.goals to execution phases as well, so that they are called along with standard lifecycle goals like `install`. For example, to bind the building of the Kubernetes resource files and the Docker images, add the following goals to the execution of the f-m-p:
 
 .Example for lifecycle bindings
 [source, xml, indent=0]
 ----
 <plugin>
-  <groupId>io.jshift</groupId>
+  <groupId>io.jkube</groupId>
   <artifactId>k8s-maven-plugin</artifactId>
 
   <!-- ... -->
@@ -172,7 +172,7 @@ If you'd also like to automatically deploy to Kubernetes each time you do a `mvn
 [source, xml, indent=0]
 ----
 <plugin>
-  <groupId>io.jshift</groupId>
+  <groupId>io.jkube</groupId>
   <artifactId>k8s-maven-plugin</artifactId>
 
   <!-- ... -->
@@ -194,17 +194,17 @@ If you'd also like to automatically deploy to Kubernetes each time you do a `mvn
 WARNING: XML based configuration is only partially implemented and is not recommended for use right now.
 
 Although the Zero-config mode and its generators can be tweaked with options up to a certain degree, many cases require more flexibility. For such instances, an XML-based plugin configuration can be used, in a way similar to the
-https://jshiftio.github.io/docker-maven-plugin/#configuration[XML configuration] used by `docker-maven-plugin`.
+https://jkubeio.github.io/docker-maven-plugin/#configuration[XML configuration] used by `docker-maven-plugin`.
 
 The plugin configuration can be roughly divided into the following sections:
 
 * Global configuration options are responsible for tuning the behaviour of plugin goals
-* `<images>` defines which Docker <<image-configuration,images>> are used and configured. This section is similar to the https://jshiftio.github.io/docker-maven-plugin/#image-configuration[image configuration] of the `docker-maven-plugin`, except that `<run>` and `<external>` sub-elements are ignored)
+* `<images>` defines which Docker <<image-configuration,images>> are used and configured. This section is similar to the https://jkubeio.github.io/docker-maven-plugin/#image-configuration[image configuration] of the `docker-maven-plugin`, except that `<run>` and `<external>` sub-elements are ignored)
 * `<resource>` defines the resource descriptors for deploying on an OpenShift or Kuberneres cluster.
 * `<generator>` configures <<generators,generators>> which are responsible for creating images. Generators are used as an alternative to a dedicated `<images>` section.
 * `<enricher>` configures various aspects of <<enrichers,enrichers>> for creating or enhancing resource descriptors.
 
-A working example can be found in the  https://github.com/jshiftio/kubernetes-maven-plugin/tree/master/samples/xml-config[samples/xml-config] directory. An extract of the plugin configuration is shown below:
+A working example can be found in the  https://github.com/jkubeio/kubernetes-maven-plugin/tree/master/samples/xml-config[samples/xml-config] directory. An extract of the plugin configuration is shown below:
 
 .Example for an XML configuration
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
@@ -217,7 +217,7 @@ A working example can be found in the  https://github.com/jshiftio/kubernetes-ma
       <!-- "alias" is used to correlate to the containers in the pod spec -->
       <alias>camel-app</alias>
       <build>
-        <from>jshift.java</from>
+        <from>jkube.java</from>
         <assembly>
           <basedir>/deployments</basedir>
           <descriptorRef>artifact-with-dependencies</descriptorRef>
@@ -289,11 +289,11 @@ The XML resource configuration is based on plain Kubernetes resource objects. Wh
 
 === Resource Fragments
 
-The third configuration option is to use an external configuration in form of YAML resource descriptors which are located in the  `src/main/jshift` directory. Each resource get its own file, which contains a skeleton of a resource descriptor. The plugin will pick up the resource, enrich it and then combine all to a single `kubernetes.yml` and `openshift.yml` file. Within these descriptor files you are can freely use any Kubernetes feature.
+The third configuration option is to use an external configuration in form of YAML resource descriptors which are located in the  `src/main/jkube` directory. Each resource get its own file, which contains a skeleton of a resource descriptor. The plugin will pick up the resource, enrich it and then combine all to a single `kubernetes.yml` and `openshift.yml` file. Within these descriptor files you are can freely use any Kubernetes feature.
 
 Note: In order to support simultaneously both OpenShift and Kubernetes, there is currently no way to specify OpenShift-only features this way, though this might change in future releases.
 
-Let's have a look at an example from https://github.com/rhuss/kubernetes-maven-plugin/tree/master/samples/external-resources[samples/external-resources]. This is a plain Spring Boot application, whose images are auto generated like in the <<zero-config, Zero-Config>> case. The resource fragments are in `src/main/jshift`.
+Let's have a look at an example from https://github.com/rhuss/kubernetes-maven-plugin/tree/master/samples/external-resources[samples/external-resources]. This is a plain Spring Boot application, whose images are auto generated like in the <<zero-config, Zero-Config>> case. The resource fragments are in `src/main/jkube`.
 
 .Example fragment "deployment.yml"
 [source,yaml,indent=0,subs="verbatim,quotes,attributes"]
@@ -327,7 +327,7 @@ complete list of which (along with associated abbreviations) can be found in the
 
 
 
-NOTE: Now that sidecar containers are supported in this plugin(if `jshift.sidecar` is enabled), be careful whenever you're supplying container name in the resource fragment. If container specified in resource fragment doesn't have a name or it's name is equal to default fmp generated application's container name; it would not be treated as sidecar and it would be merged into main container. However, You can override plugin's default name for main container via `jshift.generator.alias` property.
+NOTE: Now that sidecar containers are supported in this plugin(if `jkube.sidecar` is enabled), be careful whenever you're supplying container name in the resource fragment. If container specified in resource fragment doesn't have a name or it's name is equal to default fmp generated application's container name; it would not be treated as sidecar and it would be merged into main container. However, You can override plugin's default name for main container via `jkube.generator.alias` property.
 
 '''
 

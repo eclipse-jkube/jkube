@@ -10,8 +10,8 @@ This generator named `karaf` kicks in when the build uses a `karaf-maven-plugin`
 | | Docker Build | S2I Build
 
 | *Community*
-| `jshift.s2i-karaf`
-| `jshift.s2i-karaf`
+| `jkube.s2i-karaf`
+| `jkube.s2i-karaf`
 
 | *Red Hat*
 | `jboss-fuse-6/fis-karaf-openshift`

@@ -16,11 +16,11 @@ The base images chosen are:
 | | Docker Build | S2I Build
 
 | *Tomcat*
-| `jshift.tomcat-8`
+| `jkube.tomcat-8`
 | ---
 
 | *Jetty*
-| `jshift.jetty-9`
+| `jkube.jetty-9`
 | ---
 
 | *Wildfly*

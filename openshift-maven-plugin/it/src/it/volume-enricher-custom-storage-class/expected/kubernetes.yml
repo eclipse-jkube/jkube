@@ -22,21 +22,21 @@ items:
   kind: Service
   metadata:
     labels:
-      provider: jshift
+      provider: jkube
       app: volume-enricher-storage-class-835
       version: 0.1-SNAPSHOT
-      group: io.jshift.devops.apps
+      group: io.jkube.devops.apps
       expose: "true"
-    name: jshift-docker-registry
+    name: jkube-docker-registry
   spec:
     ports:
     - port: 80
       protocol: TCP
       targetPort: 5000
     selector:
-      app: jshift-docker-registry
-      provider: jshift
-      group: io.jshift.devops.apps
+      app: jkube-docker-registry
+      provider: jkube
+      group: io.jkube.devops.apps
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -44,10 +44,10 @@ items:
       volume.beta.openshift.io/storage-class: cheese
     labels:
       app: volume-enricher-storage-class-835
-      provider: jshift
+      provider: jkube
       version: 0.1-SNAPSHOT
-      group: io.jshift
-    name: jshift-docker-registry-storage
+      group: io.jkube
+    name: jkube-docker-registry-storage
   spec:
     accessModes:
     - ReadWriteOnce
@@ -58,26 +58,26 @@ items:
   kind: Deployment
   metadata:
     labels:
-      provider: jshift
+      provider: jkube
       app: volume-enricher-storage-class-835
       version: 0.1-SNAPSHOT
-      group: io.jshift.devops.apps
-    name: jshift-docker-registry
+      group: io.jkube.devops.apps
+    name: jkube-docker-registry
   spec:
     replicas: 1
     revisionHistoryLimit: 2
     selector:
       matchLabels:
-        provider: jshift
+        provider: jkube
         app: volume-enricher-storage-class-835
-        group: io.jshift.devops.apps
+        group: io.jkube.devops.apps
     template:
       metadata:
         labels:
-          provider: jshift
+          provider: jkube
           app: volume-enricher-storage-class-835
           version: 0.1-SNAPSHOT
-          group: io.jshift.devops.apps
+          group: io.jkube.devops.apps
       spec:
         containers:
         - env:
@@ -87,7 +87,7 @@ items:
                 fieldPath: metadata.namespace
           image: registry:2
           imagePullPolicy: IfNotPresent
-          name: jshift-docker-registry
+          name: jkube-docker-registry
           ports:
           - containerPort: 5000
             name: http
@@ -100,7 +100,7 @@ items:
               memory: "0"
           volumeMounts:
           - mountPath: /var/lib/registry
-            name: jshift-docker-registry-storage
+            name: jkube-docker-registry-storage
             readOnly: false
         initContainers:
         - command:
@@ -109,12 +109,12 @@ items:
           - /var/lib/registry
           image: busybox
           imagePullPolicy: IfNotPresent
-          name: jshift-volume-permission
+          name: jkube-volume-permission
           volumeMounts:
           - mountPath: /var/lib/registry
-            name: jshift-docker-registry-storage
+            name: jkube-docker-registry-storage
         volumes:
-        - name: jshift-docker-registry-storage
+        - name: jkube-docker-registry-storage
           persistentVolumeClaim:
-            claimName: jshift-docker-registry-storage
+            claimName: jkube-docker-registry-storage
 

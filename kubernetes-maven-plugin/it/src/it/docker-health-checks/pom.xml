@@ -21,21 +21,21 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>jshift-maven-sample-docker-hc</artifactId>
-  <groupId>io.jshift</groupId>
+  <artifactId>jkube-maven-sample-docker-hc</artifactId>
+  <groupId>io.jkube</groupId>
   <version>3.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Jshift Maven :: Sample :: Docker Health Check</name>
+  <name>Jkube Maven :: Sample :: Docker Health Check</name>
   <description>Example using Docker Health Checks (minimum docker version: 1.24) </description>
 
   <build>
     <plugins>
 
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>k8s-maven-plugin</artifactId>
-        <version>@jshift.version@</version>
+        <version>@jkube.version@</version>
 
         <configuration>
 

@@ -16,13 +16,13 @@ Profiles are defined in YAML. The following example shows a simple profiles whic
   enricher: # <3>
     includes: # <4>
       # Default Deployment object
-      - jshift-controller
+      - jkube-controller
       # Add a default service
-      - jshift-service
+      - jkube-service
     excludes: # <5>
-      - jshift-icon
+      - jkube-icon
     config: # <6>
-      jshift-service:
+      jkube-service:
         # Expose service as NodePort
         type: NodePort
   order: 10 # <7>
@@ -80,13 +80,13 @@ The definition of generators and enrichers in the profile follow the same format
 [[profiles-lookup-order]]
 ## Lookup order
 
-Profiles can be defined externally either directly as a build resource in `src/main/jshift/profiles.yml` or provided as part of a plugin's dependency where it is supposed to be included as `META-INF/jshift/profiles.yml`. Multiple profiles can be include in these `profiles.yml` descriptors as a list:
+Profiles can be defined externally either directly as a build resource in `src/main/jkube/profiles.yml` or provided as part of a plugin's dependency where it is supposed to be included as `META-INF/jkube/profiles.yml`. Multiple profiles can be include in these `profiles.yml` descriptors as a list:
 
 If a profile is <<profiles-using, used>> then it is looked up from various places in the following order:
 
-* From the compile and plugin classpath from `META-INF/jshift/profiles-default.yml`. These files are reserved for profiles defined by this plugin
-* From the compile and plugin classpath from `META-INF/jshift/profiles.yml`. Use this location for defining your custom profiles which you want to include via dependencies.
-* From the project in `src/main/jshift/profiles.yml`. The directory can be tuned with the plugin option `resourceDir` (property: `jshift.resourceDir`)
+* From the compile and plugin classpath from `META-INF/jkube/profiles-default.yml`. These files are reserved for profiles defined by this plugin
+* From the compile and plugin classpath from `META-INF/jkube/profiles.yml`. Use this location for defining your custom profiles which you want to include via dependencies.
+* From the project in `src/main/jkube/profiles.yml`. The directory can be tuned with the plugin option `resourceDir` (property: `jkube.resourceDir`)
 
 When multiple profiles of the same name are found, then these profiles are merged. If profile have an order number, then the _higher_ order takes precedences when merging profiles.
 
@@ -136,7 +136,7 @@ Here is an example how the profile can be used in a plugin configuration:
 [source, xml]
 ----
 <plugin>
-  <groupId>io.jshift</groupId>
+  <groupId>io.jkube</groupId>
   <artifactId>k8s-maven-plugin</artifactId>
   <configuration>
     <profile>my-spring-boot-apps</profile> <!--1-->
@@ -152,7 +152,7 @@ Alternatively a profile can be also specified on the command line when calling M
 
 [source, sh]
 ----
-mvn -Djshift.profile=my-spring-boot-apps k8s:build k8s:deploy
+mvn -Djkube.profile=my-spring-boot-apps k8s:build k8s:deploy
 ----
 
 If a configuration for enrichers and generators are provided as part of the plugin's `<configuration>` then this takes precedence over any profile specified.
@@ -160,7 +160,7 @@ If a configuration for enrichers and generators are provided as part of the plug
 [[profiles-resource-fragments]]
 .Profiles for resource fragments
 
-Profiles are also very useful when used together with resource fragments in `src/main/jshift`. By default the resource objects defined here are enriched with the configured profile (if any). A different profile can be selected easily by using a sub directory within `src/main/jshift`. The name of each sub directory is interpreted as a profile name and all resource definition files found in this sub directory are enhanced with the enhancers defined in this profile.
+Profiles are also very useful when used together with resource fragments in `src/main/jkube`. By default the resource objects defined here are enriched with the configured profile (if any). A different profile can be selected easily by using a sub directory within `src/main/jkube`. The name of each sub directory is interpreted as a profile name and all resource definition files found in this sub directory are enhanced with the enhancers defined in this profile.
 
 For example, consider the following directory layout:
 
@@ -196,7 +196,7 @@ This plugin comes with a list of the following predefined profiles:
 | Like default but without adding default objects like controllers and services.
 
 | *aggregate*
-| Includes no generators and only the <<jshift-dependency,jshift-dependency>> enricher for picking up and combining resources from the compile time dependencies.
+| Includes no generators and only the <<jkube-dependency,jkube-dependency>> enricher for picking up and combining resources from the compile time dependencies.
 
 | *internal-microservice*
 | Do not expose a port for the service to generate. Otherwise the same as the _default_ profile.
@@ -216,19 +216,19 @@ A profile can also extend another profile to avoid repetition e.g of generators 
    extends: default
    enricher:
      includes:
-      - jshift-name
-      - jshift-controller
-      - jshift-service
-      - jshift-image
-      - jshift-project-label
-      - jshift-debug
-      - jshift-namespace
-      - jshift-metadata
-      - jshift-controller-from-configuration
-      - jshift-openshift-deploymentconfig
-      - jshift-openshift-project
-      - jshift-openshift-service-expose
-      - jshift-openshift-route
+      - jkube-name
+      - jkube-controller
+      - jkube-service
+      - jkube-image
+      - jkube-project-label
+      - jkube-debug
+      - jkube-namespace
+      - jkube-metadata
+      - jkube-controller-from-configuration
+      - jkube-openshift-deploymentconfig
+      - jkube-openshift-project
+      - jkube-openshift-service-expose
+      - jkube-openshift-route
 
 ----
 one then would not need to repeat all generators as they are inherited from the `default` profile.
@@ -238,5 +238,5 @@ one then would not need to repeat all generators as they are inherited from the 
 
 [source, yaml]
 ----
-include::{plugindir}/src/main/resources/META-INF/jshift/profiles-default.yml[tags=default]
+include::{plugindir}/src/main/resources/META-INF/jkube/profiles-default.yml[tags=default]
 ----

@@ -22,11 +22,11 @@ items:
   kind: Service
   metadata:
     labels:
-      provider: jshift
-      app: jshift-maven-sample-statefulset
+      provider: jkube
+      app: jkube-maven-sample-statefulset
       version: "@ignore@"
-      group: io.jshift
-    name: jshift-maven-sample-statefulset
+      group: io.jkube
+    name: jkube-maven-sample-statefulset
   spec:
     ports:
     - name: http
@@ -34,33 +34,33 @@ items:
       protocol: TCP
       targetPort: 8080
     selector:
-      app: jshift-maven-sample-statefulset
-      provider: jshift
-      group: io.jshift
+      app: jkube-maven-sample-statefulset
+      provider: jkube
+      group: io.jkube
 - apiVersion: apps/v1
   kind: StatefulSet
   metadata:
     labels:
-      provider: jshift
-      app: jshift-maven-sample-statefulset
+      provider: jkube
+      app: jkube-maven-sample-statefulset
       version: "@ignore@"
-      group: io.jshift
-    name: jshift-maven-sample-statefulset
+      group: io.jkube
+    name: jkube-maven-sample-statefulset
   spec:
     replicas: 2
     selector:
       matchLabels:
-        app: jshift-maven-sample-statefulset
-        provider: jshift
-        group: io.jshift
-    serviceName: jshift-maven-sample-statefulset
+        app: jkube-maven-sample-statefulset
+        provider: jkube
+        group: io.jkube
+    serviceName: jkube-maven-sample-statefulset
     template:
       metadata:
         labels:
-          provider: jshift
-          app: jshift-maven-sample-statefulset
+          provider: jkube
+          app: jkube-maven-sample-statefulset
           version: "@ignore@"
-          group: io.jshift
+          group: io.jkube
       spec:
         containers:
         - env:

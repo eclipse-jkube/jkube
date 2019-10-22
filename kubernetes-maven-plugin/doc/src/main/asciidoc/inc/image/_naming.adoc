@@ -7,7 +7,7 @@ When specifying the image name in the configuration with the `<name>` field you 
 | Placeholder | Description
 
 | *%g*
-| The last part of the Maven group name, sanitized so that it can be used as username on GitHub. Only the part after the last dot is used. E.g. for a group id `io.jshift` this placeholder would insert `jshift`
+| The last part of the Maven group name, sanitized so that it can be used as username on GitHub. Only the part after the last dot is used. E.g. for a group id `io.jkube` this placeholder would insert `jkube`
 
 | *%a*
 | A sanitized version of the artefact id so that it can be used as part of an Docker image name. I.e. it is converted to all lower case (as required by Docker)

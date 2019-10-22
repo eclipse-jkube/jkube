@@ -13,7 +13,7 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-import io.jshift.maven.it.Verify
+import io.jkube.maven.it.Verify
 
 import static org.junit.Assert.assertNotNull
 import static org.junit.Assert.assertNull;
@@ -37,12 +37,12 @@ import static org.junit.Assert.assertNull;
 
 [ "kubernetes" ].each {
   Verify.verifyResourceDescriptors(
-          new File(basedir, sprintf("/target/classes/META-INF/jshift/%s.yml",it)),
+          new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml",it)),
           new File(basedir, sprintf("/expected/%s.yml",it)))
 }
 
 Map selector = Verify.readWithPath(
-        new File(basedir,"/target/classes/META-INF/jshift/kubernetes/jshift-maven-sample-config-map-deployment.yml"),
+        new File(basedir,"/target/classes/META-INF/jkube/kubernetes/jkube-maven-sample-config-map-deployment.yml"),
         "spec.selector.matchLabels")
 
 assertNotNull(selector)

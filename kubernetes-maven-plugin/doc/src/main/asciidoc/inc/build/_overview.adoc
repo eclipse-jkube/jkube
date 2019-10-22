@@ -121,12 +121,12 @@ dmp-plugins are enabled by just declaring a dependency in the plugin declaration
 [source, xml]
 ----
 <plugin>
-  <groupId>io.jshift</groupId>
+  <groupId>io.jkube</groupId>
   <artifactId>k8s-maven-plugin</artifactId>
 
   <dependencies>
     <dependency>
-      <groupId>io.jshift</groupId>
+      <groupId>io.jkube</groupId>
       <artifactId>run-java-sh</artifactId>
       <version>1.2.2</version>
     </dependency>
@@ -136,7 +136,7 @@ dmp-plugins are enabled by just declaring a dependency in the plugin declaration
 
 [source]
 ----
-io.jshift.runsh.RunShLoader
+io.jkube.runsh.RunShLoader
 ----
 
 During a build with `docker:build`, those classes are loaded and certain fixed method are called.
@@ -163,7 +163,7 @@ The following official dmp-plugins are known and supported:
 | Name | G,A | Description
 
 | https://github.com/fabric8io-images/run-java-sh[run-java.sh]
-| `jshift.io`, `run-java`
+| `jkube.io`, `run-java`
 | General purpose startup script fo running Java applications. The dmp plugin creates a `target/docker-extra/run-java/run-java.sh` which can be included in a Dockerfile (see the example above). See the https://github.com/fabric8io-images/run-java-sh[run-java.sh Documentation] for more details.
 |===
 

@@ -1,0 +1,17 @@
+
+[[introduction]]
+= Introduction
+
+`jkube-kit` is a set of building blocks for creating awesome Docker, Kubernetes and OpenShift build tools.
+Although its currently somewhat centered around Maven tooling, it's by no means Maven exclusively.
+
+This repository covers the following abstraction which helps you to flexibly create Docker images and Kubernetes / OpenShift resource descriptors:
+
+* **Generators** are used to examine you build configuration and creating Docker image configuration with opinionated defaults.
+* **Enrichers** create default resource objects and enhance existing resource descriptors with various build related informations.
+* **Profiles** combine a set of generator and enrichers with a configuration and give it a name so that the used generators and enrichers can be tuned to the details.
+
+[plantuml,jkube-kit-components]
+....
+include::diagrams/overview.plantuml[tags=uml]
+....

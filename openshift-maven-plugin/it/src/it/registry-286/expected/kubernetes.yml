@@ -26,4 +26,4 @@ items:
     template:
       spec:
         containers:
-        - image: "@matches('jshift/jshift-maven-sample-registry-286:.*$')@"
+        - image: "@matches('jkube/jkube-maven-sample-registry-286:.*$')@"

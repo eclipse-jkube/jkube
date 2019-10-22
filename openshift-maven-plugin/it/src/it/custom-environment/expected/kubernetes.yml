@@ -21,7 +21,7 @@ items:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: jshift-maven-sample-custom-environment
+    name: jkube-maven-sample-custom-environment
   spec:
     ports:
     - name: http
@@ -29,32 +29,32 @@ items:
       protocol: TCP
       targetPort: 8080
     selector:
-      app: jshift-maven-sample-custom-environment
-      provider: jshift
-      group: io.jshift
+      app: jkube-maven-sample-custom-environment
+      provider: jkube
+      group: io.jkube
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
     labels:
-      provider: jshift
-      app: jshift-maven-sample-custom-environment
+      provider: jkube
+      app: jkube-maven-sample-custom-environment
       version: "@ignore@"
-      group: io.jshift
-    name: jshift-maven-sample-custom-environment
+      group: io.jkube
+    name: jkube-maven-sample-custom-environment
   spec:
     replicas: 1
     selector:
       matchLabels:
-        app: jshift-maven-sample-custom-environment
-        provider: jshift
-        group: io.jshift
+        app: jkube-maven-sample-custom-environment
+        provider: jkube
+        group: io.jkube
     template:
       metadata:
         labels:
-          provider: jshift
-          app: jshift-maven-sample-custom-environment
+          provider: jkube
+          app: jkube-maven-sample-custom-environment
           version: "@ignore@"
-          group: io.jshift
+          group: io.jkube
       spec:
         containers:
         - env:

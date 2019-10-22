@@ -5,6 +5,6 @@ Global plugin configuration properties are typically apply to all Maven plugin g
 |===
 | Property | Description
 
-| `jshift.skip`
-| Skips over executing the goal.  Typically used to disable the Jshift Kubernetes maven plugin when it's configured in a project.
+| `jkube.skip`
+| Skips over executing the goal.  Typically used to disable the Jkube Kubernetes maven plugin when it's configured in a project.
 

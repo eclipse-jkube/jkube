@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>jkube-kit-parent</artifactId>
+        <groupId>io.jkube</groupId>
+        <version>0.1-SNAPSHOT</version>
+        <relativePath>../parent/pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>jkube-kit-spring-boot</artifactId>
+    <name>Jkube :: Kit :: Spring-Boot</name>
+    <version>0.1-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.jkube</groupId>
+            <artifactId>jkube-maven-generator-java-exec</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jkube</groupId>
+            <artifactId>jkube-maven-enricher-specific</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jkube</groupId>
+            <artifactId>jkube-kit-watcher-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jmockit</groupId>
+            <artifactId>jmockit</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>

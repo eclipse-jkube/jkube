@@ -1,0 +1,144 @@
+
+[[jkube-service]]
+==== jkube-service
+
+This enricher is used to ensure that a service is present.
+This can be either directly configured with fragments or with the XML configuration, but it can be also automatically inferred by looking at the ports exposed by an image configuration.
+An explicit configuration always takes precedence over auto detection. For enriching an existing service this enricher actually works only on a configured service which matches with the configured (or inferred) service name.
+
+The following configuration parameters can be used to influence the behaviour of this enricher:
+
+[[enricher-jkube-service]]
+.Default service enricher
+[cols="1,6,1"]
+|===
+| Element | Description | Default
+
+| *name*
+| Service name to enrich by default. If not given here or configured elsewhere, the artifactId is used
+|
+
+| *headless*
+| whether a headless service without a port should be configured. A headless service has the `ClusterIP` set to `None` and will be only used if no ports are exposed by the image configuration or by the configuration `port`.
+
+| `false`
+
+| *expose*
+| If set to true, a label `expose` with value `true` is added which can be picked up by the jkube.https://github.com/jkubeio/exposecontroller[expose-controller] to expose the service to the outside by various means. See the documentation of expose-controller for more details.
+| `false`
+
+| *type*
+| Kubernetes / OpenShift service type to set like _LoadBalancer_, _NodePort_ or _ClusterIP_.
+|
+
+| *port*
+| The service port to use. By default the same port as the ports exposed in the image configuration is used, but can be changed with this parameter. See <<jkube-service-ports,below>> for a detailed description of the format which can be put into this variable.
+|
+
+| *multiPort*
+| Set this to `true` if you want all ports to be exposed from an image configuration. Otherwise only the first port is used as a service port.
+| `false`
+
+| *protocol*
+| Default protocol to use for the services. Must be `tcp` or `udp`
+| `tcp`
+
+| *normalizePort*
+| Normalize the port numbering of the service to common and conventional port numbers.
+| `false`
+|===
+
+
+Following is the Port mapping that comes in effect, when normalizePort option is set true.
+
+[cols="1,1"]
+|===
+| Original Port | Normalized Port
+| 8080 | 80
+| 8081 | 80
+| 8181 | 80
+| 8180 | 80
+| 8443 | 443
+| 443 | 443
+|===
+
+You specify the properties like for any enricher within the enrichers configuration like in
+
+.Example
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+-----
+<configuration>
+  ..
+  <enricher>
+    <config>
+      <jkube-service>
+        <name>my-service</name>
+        <type>NodePort</type>
+        <multiPort>true</multiPort>
+      </jkube-service>
+    </config>
+  </enricher>
+</configuration>
+-----
+
+[[jkube-service-ports]]
+.Port specification
+
+With the option `port` you can influence the mapping how ports are mapped from the pod to the service.
+By default and if this option is not given the ports exposed are dictated by the ports exposed from the Docker images contained in the pods.
+Remember, each image configured can be part of the pod.
+However you can expose also completely different ports as the images meta data declare.
+
+The property `port` can contain a comma separated list of mappings of the following format:
+
+[source,text,subs="verbatim,quotes,attributes"]
+-----
+<servicePort1>:<targetPort1>/<protocol>,<servicePort2>:<targetPort2>/<protocol>,....
+-----
+
+where the `targetPort` and `<protocol>` specification is optional. These ports are overlayed over the ports exposed by the images, in the given order.
+
+This is best explained by some examples.
+
+For example if you have a pod which exposes a Microservice on port 8080 and you want to expose it as a service on port 80 (so that it can be accessed with `http://myservice`)  you can simply use the following enricher configuration:
+
+.Example
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+-----
+<configuration>
+  <enricher>
+    <config>
+      <jkube-service>
+        <name>myservice</name>
+        <port>80:8080</port> <!--1-->
+      </jkube-service>
+    </config>
+  </enricher>
+</configuration>
+-----
+<1> 80 is the service port, 8080 the port opened in from the pod's images
+
+If your pod _exposes_ their ports (which e.g. all generator do), then you can even omit the 8080 here (i.e. `<port>80</port>`).
+In this case the _first_ port exposed will be mapped to port 80, all other exposed ports will be omitted.
+
+By default an automatically generated service only exposes the first port, even when more ports are exposed.
+When you want to map multiple ports you need to set the config option `<multiPort>true</multiPort>`.
+In this case you can also provide multiple mappings as a comma separated list in the `<port>` specification where each element of the list are the mapping for the first, second, ... port.
+
+A more (and bit artificially constructed) specification could be `<port>80,9779:9779/udp,443</port>`.
+Assuming that the image exposes ports `8080` and `8778` (either directly or via <<generators,generators>>) and we have switched on multiport mode, then the following service port mappings will be performed for the automatically generated service:
+
+* Pod port 8080 is mapped to service port 80.
+* Pod port 9779 is mapped to service port 9779 with protocol UDP. Note how this second entry overrides the pod exposed port 8778.
+* Pod port 443 is mapped to service port 443.
+
+This example show also the mapping rules:
+
+* Port specification in `port` always override the port meta data of the contained Docker images (i.e. the ports exposed)
+* You can always provide a complete mapping with `port` on your own
+* The ports exposed by the images serve as _default values_ which are used if not specified by this configuration option.
+* You can map ports which are _not_ exposed by the images by specifying them as target ports.
+
+Multiple ports are **only** mapped when _multiPort_ mode is enabled (which is switched off by default). If _multiPort_ mode is disabled, only the first port from the list of mapped ports as calculated like above is taken.
+
+When you set `legacyPortMapping` to true than ports 8080 to 9090 are mapped to port 80 automatically if not explicitly mapped via `_port_`. I.e. when an image exposes port 8080 with a legacy mapping this mapped to a service port 80, not 8080. You _should not_ switch this on for any good reason. In fact it might be that this option can vanish anytime.

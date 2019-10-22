@@ -24,7 +24,7 @@ The <<generator-example,Generator example>> is a good blueprint, simply replace 
 | Holds one or more `<exclude>` elements with enricher names to exclude. This means all the detected enrichers are used except the ones mentioned in this section.
 
 | `<config>`
-| Configuration for all enrichers. Each enricher supports a specific set of configuration values as described in its documentation. The subelements of this section are enricher names. E.g. for enricher `jshift-service`, the sub-element is called `<jshift-service>`. This element then holds the specific enricher configuration like `<name>` for the service name. Configuration coming from profiles are merged into this config, but not overriding the configuration specified here.
+| Configuration for all enrichers. Each enricher supports a specific set of configuration values as described in its documentation. The subelements of this section are enricher names. E.g. for enricher `jkube-service`, the sub-element is called `<jkube-service>`. This element then holds the specific enricher configuration like `<name>` for the service name. Configuration coming from profiles are merged into this config, but not overriding the configuration specified here.
 |===
 
 This plugin comes with a set of default enrichers. In addition custom enrichers can be easily added by providing implementation of the <<enricher-api, Enricher API>> and adding these as a dependency to the build.
@@ -42,55 +42,55 @@ kubernetes-maven-plugin comes with a set of enrichers which are enabled by defau
 |===
 | Enricher | Description
 
-| <<jshift-prometheus>>
+| <<jkube-prometheus>>
 | Add Prometheus annotations.
 
-| <<jshift-maven-scm-enricher>>
+| <<jkube-maven-scm-enricher>>
 | Add Maven SCM information as annotations to the kubernetes/openshift resources
 
-| <<jshift-controller>>
+| <<jkube-controller>>
 | Create default controller (replication controller, replica set or deployment) if missing.
 
-| <<jshift-dependency>>
+| <<jkube-dependency>>
 | Examine build dependencies for `kubernetes.yml` and add the objects found therein.
 
-| <<jshift-git>>
+| <<jkube-git>>
 | Check local `.git` directory and add build information as annotations.
 
-| <<jshift-image>>
+| <<jkube-image>>
 | Add the image name into a `PodSpec` of replication controller, replication sets and deployments, if missing.
 
-| <<jshift-name>>
+| <<jkube-name>>
 | Add a default name to every object which misses a name.
 
-| <<jshift-pod-annotation>>
+| <<jkube-pod-annotation>>
 | Copy over annotations from a `Deployment` to a `Pod`
 
-| <<jshift-portname>>
+| <<jkube-portname>>
 | Add a default portname for commonly known service.
 
-| <<jshift-project-label>>
+| <<jkube-project-label>>
 | Add Maven coordinates as labels to all objects.
 
-| <<jshift-service>>
+| <<jkube-service>>
 | Create a default service if missing and extrac ports from the Docker image configuration.
 
-| <<jshift-maven-issue-mgmt-enricher>>
+| <<jkube-maven-issue-mgmt-enricher>>
 | Add Maven Issue Management information as annotations to the kubernetes/openshift resources
 
-| <<jshift-revision-history-enricher>>
+| <<jkube-revision-history-enricher>>
 | Add revision history limit (https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit[Kubernetes doc]) as a deployment spec property to the Kubernetes/OpenShift resources.
 
-| <<jshift-triggers-annotation>>
+| <<jkube-triggers-annotation>>
 | Add ImageStreamTag change triggers on resources such as StatefulSets, ReplicaSets and DaemonSets using the `image.openshift.io/triggers` annotation.
 
-| <<jshift-configmap-file>>
+| <<jkube-configmap-file>>
 | Add ConfigMap elements defined as XML or as annotation.
 
-| <<jshift-secret-file>>
+| <<jkube-secret-file>>
 | Add Secret elements defined as annotation.
 
-| <<jshift-jshift-serviceaccount>>
+| <<jkube-jkube-serviceaccount>>
 | Add a ServiceAccount defined as XML or mentioned in resource fragement.
 |===
 
@@ -99,29 +99,29 @@ kubernetes-maven-plugin comes with a set of enrichers which are enabled by defau
 
 Default enrichers are used for adding missing resources or adding metadata to given resource objects. The following default enhancers are available out of the box
 
-[[jshift-controller]]
-==== jshift-controller
+[[jkube-controller]]
+==== jkube-controller
 
-include::enricher/_jshift_service.adoc[]
+include::enricher/_jkube_service.adoc[]
 
-[[jshift-image]]
-==== jshift-image
+[[jkube-image]]
+==== jkube-image
 
-[[jshift-name]]
-==== jshift-name
+[[jkube-name]]
+==== jkube-name
 
-[[jshift-portname]]
-==== jshift-portname
+[[jkube-portname]]
+==== jkube-portname
 
-[[jshift-pod-annotation]]
-==== jshift-pod-annotation
+[[jkube-pod-annotation]]
+==== jkube-pod-annotation
 
-[[jshift-project-label]]
-==== jshift-project-label
+[[jkube-project-label]]
+==== jkube-project-label
 
 Enricher that adds standard labels and selectors to generated resources (e.g. `app`, `group`, `provider`, `version`).
 
-The `jshift-project-label` enricher supports the following configuration options:
+The `jkube-project-label` enricher supports the following configuration options:
 
 [cols="2,6,3"]
 |===
@@ -134,12 +134,12 @@ The `jshift-project-label` enricher supports the following configuration options
 
 The project labels which are already specified in the input fragments are not overridden by the enricher.
 
-[[jshift-git]]
-==== jshift-git
+[[jkube-git]]
+==== jkube-git
 
 Enricher that adds info from .git directory as annotations.
 
-The git branch & latest commit on the branch are annotated as jshift.git-branch & jshift.git-commit.
+The git branch & latest commit on the branch are annotated as jkube.git-branch & jkube.git-commit.
 fabrci8/git-url is annotated as the url of your configured remote.
 
 [cols="2,6,3"]
@@ -151,16 +151,16 @@ fabrci8/git-url is annotated as the url of your configured remote.
 | `origin`
 |===
 
-[[jshift-dependency]]
-==== jshift-dependency
+[[jkube-dependency]]
+==== jkube-dependency
 
-[[jshift-volume-permission]]
-==== jshift-volume-permission
+[[jkube-volume-permission]]
+==== jkube-volume-permission
 
 Enricher which fixes the permission of persistent volume mount with the help of an init container.
 
-[[jshift-autotls]]
-==== jshift-openshift-autotls
+[[jkube-autotls]]
+==== jkube-openshift-autotls
 
 Enricher which adds appropriate annotations and volumes to enable OpenShift's automatic https://docs.openshift.org/latest/dev_guide/secrets.html#service-serving-certificate-secrets[Service Serving Certificate Secrets].
 This enricher adds an init container to convert the service serving certificates from PEM (the format that OpenShift generates them in) to
@@ -171,7 +171,7 @@ This enricher is disabled by default. In order to use it, you must configure the
 [source,xml]
 ----
 <plugin>
-  <groupId>io.jshift</groupId>
+  <groupId>io.jkube</groupId>
   <artifactId>oc-maven-plugin</artifactId>
   <version>3.3.0</version>
   <executions>
@@ -184,12 +184,12 @@ This enricher is disabled by default. In order to use it, you must configure the
   <configuration>
     <enricher>
       <includes>
-        <include>jshift-openshift-autotls</include>
+        <include>jkube-openshift-autotls</include>
       </includes>
       <config>
-        <jshift-openshift-autotls>
+        <jkube-openshift-autotls>
           ...
-        </jshift-openshift-autotls>
+        </jkube-openshift-autotls>
       </config>
     </enricher>
   </configuration>
@@ -208,7 +208,7 @@ The auto-TLS enricher supports the following configuration options:
 
 | `tlsSecretVolumeMountPoint`
 | Where the service serving secret should be mounted to in the pod.
-| `/var/run/secrets/jshift.io/tls-pem`
+| `/var/run/secrets/jkube.io/tls-pem`
 
 | `tlsSecretVolumeName`
 | The name of the secret volume.
@@ -216,7 +216,7 @@ The auto-TLS enricher supports the following configuration options:
 
 | `jksVolumeMountPoint`
 | Where the generated keystore volume should be mounted to in the pod.
-| `/var/run/secrets/jshift.io/tls-jks`
+| `/var/run/secrets/jkube.io/tls-jks`
 
 | `jksVolumeName`
 | The name of the keystore volume.
@@ -243,16 +243,16 @@ The auto-TLS enricher supports the following configuration options:
 | `server`
 |===
 
-[[enrichers-jshift.]
-=== Jshift Enrichers
+[[enrichers-jkube.]
+=== Jkube Enrichers
 
-Jshift enrichers are used for providing the connection to other components of the jshift.Microservices platform. They are useful to add icons to to application or links to documentation sites.
+Jkube enrichers are used for providing the connection to other components of the jkube.Microservices platform. They are useful to add icons to to application or links to documentation sites.
 
-[[jshift-healthcheck-karaf]]
-==== jshift-healthcheck-karaf
+[[jkube-healthcheck-karaf]]
+==== jkube-healthcheck-karaf
 
 This enricher adds kubernetes readiness and liveness probes with Apache Karaf. This requires that
- `jshift.karaf-checks` has been enabled in the Karaf startup features.
+ `jkube.karaf-checks` has been enabled in the Karaf startup features.
 
 The enricher will use the following settings by default:
 
@@ -265,8 +265,8 @@ and use paths `/readiness-check` for readiness check and `/health-check` for liv
 
 These options cannot be configured.
 
-[[jshift-prometheus]]
-==== jshift-prometheus
+[[jkube-prometheus]]
+==== jkube-prometheus
 
 This enricher adds Prometheus annotation like:
 
@@ -286,8 +286,8 @@ items:
 By default the enricher inspects the images' BuildConfiguration and add the annotations if the port 9779 is listed.
 You can force the plugin to add annotations by setting enricher's config ```prometheusPort```
 
-[[jshift-healthcheck-webapp]]
-==== jshift-healthcheck-webapp
+[[jkube-healthcheck-webapp]]
+==== jkube-healthcheck-webapp
 
 This enricher adds kubernetes readiness and liveness probes with WebApp. This requires that you have `maven-war-plugin` set.
 
@@ -306,7 +306,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 [source,xml]
 ----
 <plugin>
-  <groupId>io.jshift</groupId>
+  <groupId>io.jkube</groupId>
   <artifactId>oc-maven-plugin</artifactId>
   <version>3.3.0</version>
   <executions>
@@ -322,9 +322,9 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
   <configuration>
     <enricher>
       <config>
-        <jshift-healthcheck-webapp>
+        <jkube-healthcheck-webapp>
           <path>/</path>
-        </jshift-healthcheck-webapp>
+        </jkube-healthcheck-webapp>
       </config>
     </enricher>
   </configuration>
@@ -332,8 +332,8 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 </plugin>
 ----
 
-[[jshift-healthcheck-spring-boot]]
-==== jshift-healthcheck-spring-boot
+[[jkube-healthcheck-spring-boot]]
+==== jkube-healthcheck-spring-boot
 
 This enricher adds kubernetes readiness and liveness probes with Spring Boot. This requires the following dependency
  has been enabled in Spring Boot
@@ -362,7 +362,7 @@ The enricher will use the following settings by default:
 These values can be configured by the enricher in the `kubernetes-maven-plugin` configuration as shown below:
 [source,xml]
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
         <version>3.3.0</version>
         <executions>
@@ -378,12 +378,12 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
         <configuration>
           <enricher>
             <config>
-              <jshift-healthcheck-spring-boot>
+              <jkube-healthcheck-spring-boot>
                 <timeoutSeconds>5</timeoutSeconds>
                 <readinessProbeInitialDelaySeconds>30</readinessProbeInitialDelaySeconds>
                 <failureThreshold>3</failureThreshold>
                 <successThreshold>1</successThreshold>
-              </jshift-healthcheck-spring-boot>
+              </jkube-healthcheck-spring-boot>
             </config>
           </enricher>
         </configuration>
@@ -391,8 +391,8 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 
 
 
-[[jshift-healthcheck-wildfly-swarm]]
-==== jshift-jshift-healthcheck-wildfly-swarm
+[[jkube-healthcheck-wildfly-swarm]]
+==== jkube-jkube-healthcheck-wildfly-swarm
 
 This enricher adds kubernetes readiness and liveness probes with WildFly Swarm. This requires the following fraction
  has been enabled in WildFly Swarm
@@ -414,7 +414,7 @@ The enricher will use the following settings by default:
 These values can be configured by the enricher in the `kubernetes-maven-plugin` configuration as shown below:
 [source,xml]
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
         <version>3.3.0</version>
         <executions>
@@ -430,21 +430,21 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
         <configuration>
           <enricher>
             <config>
-              <jshift-healthcheck-wildfly-swarm>
+              <jkube-healthcheck-wildfly-swarm>
                 <port>4444</port>
                 <scheme>HTTPS</scheme>
                 <path>health/myapp</path>
                 <failureThreshold>3</failureThreshold>
                 <successThreshold>1</successThreshold>
-              </jshift-healthcheck-wildfly-swarm>
+              </jkube-healthcheck-wildfly-swarm>
             </config>
           </enricher>
         </configuration>
       </plugin>
 
 
-[[jshift-healthcheck-thorntail-v2]]
-==== jshift-healthcheck-thorntail-v2
+[[jkube-healthcheck-thorntail-v2]]
+==== jkube-healthcheck-thorntail-v2
 
 This enricher adds kubernetes readiness and liveness probes with Thorntail v2. This requires the following fraction
  has been enabled in Thorntail
@@ -466,7 +466,7 @@ The enricher will use the following settings by default:
 These values can be configured by the enricher in the `kubernetes-maven-plugin` configuration as shown below:
 [source,xml]
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
         <version>3.3.0</version>
         <executions>
@@ -482,20 +482,20 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
         <configuration>
           <enricher>
             <config>
-              <jshift-healthcheck-thorntail>
+              <jkube-healthcheck-thorntail>
                 <port>4444</port>
                 <scheme>HTTPS</scheme>
                 <path>health/myapp</path>
                 <failureThreshold>3</failureThreshold>
                 <successThreshold>1</successThreshold>
-              </jshift-healthcheck-thorntail>
+              </jkube-healthcheck-thorntail>
             </config>
           </enricher>
         </configuration>
       </plugin>
 
-[[jshift-healthcheck-vertx]]
-==== jshift-healthcheck-vertx
+[[jkube-healthcheck-vertx]]
+==== jkube-healthcheck-vertx
 
 This enricher adds kubernetes readiness and liveness probes with Eclipse Vert.x applications. The readiness probe lets Kubernetes
 detects when the application is ready, while the liveness probe allows Kubernetes to verify that the application is
@@ -505,7 +505,7 @@ This enricher allows configuring the readiness and liveness probes. Are supporte
 
 By default, this enricher uses the same configuration for liveness and readiness probes. But specific configurations can be provided. The configurations can be overridden using project's properties.
 
-===== Using the jshift-healthcheck-vertx enricher
+===== Using the jkube-healthcheck-vertx enricher
 
 The enricher is automatically executed if your project uses the `vertx-maven-plugin` or depends on `io.vertx:vertx-core`.
 However, by default, no health check will be added to your deployment.
@@ -517,7 +517,7 @@ The minimal configuration to add health checks is the following:
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
         <version>{version}</version>
         <executions>
@@ -533,9 +533,9 @@ The minimal configuration to add health checks is the following:
         <configuration>
           <enricher>
             <config>
-              <jshift-healthcheck-vertx>
+              <jkube-healthcheck-vertx>
                   <path>/health</path>
-              </jshift-healthcheck-vertx>
+              </jkube-healthcheck-vertx>
             </config>
           </enricher>
         </configuration>
@@ -564,7 +564,7 @@ You can provide two different configuration for the readiness and liveness check
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
         <version>{version}</version>
         <executions>
@@ -580,14 +580,14 @@ You can provide two different configuration for the readiness and liveness check
         <configuration>
           <enricher>
             <config>
-              <jshift-healthcheck-vertx>
+              <jkube-healthcheck-vertx>
                   <readiness>
                     <path>/ready</path>
                   </readiness>
                   <liveness>
                     <path>/health</path>
                   </liveness>
-              </jshift-healthcheck-vertx>
+              </jkube-healthcheck-vertx>
             </config>
           </enricher>
         </configuration>
@@ -609,7 +609,7 @@ Shared (generic) configuration can be set outside of the specific configuration.
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
         <version>{version}</version>
         <executions>
@@ -625,7 +625,7 @@ Shared (generic) configuration can be set outside of the specific configuration.
         <configuration>
           <enricher>
             <config>
-              <jshift-healthcheck-vertx>
+              <jkube-healthcheck-vertx>
                   <port>8081</port>
                   <readiness>
                     <path>/ready</path>
@@ -633,7 +633,7 @@ Shared (generic) configuration can be set outside of the specific configuration.
                   <liveness>
                     <path>/health</path>
                   </liveness>
-              </jshift-healthcheck-vertx>
+              </jkube-healthcheck-vertx>
             </config>
           </enricher>
         </configuration>
@@ -658,7 +658,7 @@ The configuration is structured as follows
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
     <config>
-        <jshift-healthcheck-vertx>
+        <jkube-healthcheck-vertx>
             <!-- Generic configuration, applied to both liveness and readiness -->
             <path>/both</path>
             <liveness>
@@ -669,7 +669,7 @@ The configuration is structured as follows
                 <!-- Specific configuration for the readiness probe -->
                 <port-name>ready</port-name>
             </readiness>
-        </jshift-healthcheck-vertx>
+        </jkube-healthcheck-vertx>
     </config>
 ----
 
@@ -755,7 +755,7 @@ Here is an example of HTTP probe configuration:
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
     <config>
-        <jshift-healthcheck-vertx>
+        <jkube-healthcheck-vertx>
             <initialDelay>3</initialDelay>
             <period>3</period>
             <liveness>
@@ -770,7 +770,7 @@ Here is an example of HTTP probe configuration:
                 <!-- disable the readiness probe -->
                 <port>-1</port>
             </readiness>
-        </jshift-healthcheck-vertx>
+        </jkube-healthcheck-vertx>
     </config>
 ----
 
@@ -795,7 +795,7 @@ For example:
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
     <config>
-        <jshift-healthcheck-vertx>
+        <jkube-healthcheck-vertx>
             <initialDelay>3</initialDelay>
             <period>3</period>
             <liveness>
@@ -807,7 +807,7 @@ For example:
                 <path>/ping</path>
                 <port>8080</port>
             </readiness>
-        </jshift-healthcheck-vertx>
+        </jkube-healthcheck-vertx>
     </config>
 ----
 
@@ -818,7 +818,7 @@ You can also configure the probes to execute a command. If the command succeeds,
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
     <config>
-        <jshift-healthcheck-vertx>
+        <jkube-healthcheck-vertx>
             <initialDelay>3</initialDelay>
             <period>3</period>
             <liveness>
@@ -833,7 +833,7 @@ You can also configure the probes to execute a command. If the command succeeds,
                 <path>/ping</path>
                 <port>8080</port>
             </readiness>
-        </jshift-healthcheck-vertx>
+        </jkube-healthcheck-vertx>
     </config>
 ----
 
@@ -856,8 +856,8 @@ In the first case, you can use project's properties to disable them:
 
 For `http` probes, an empty or not set `path` also disable the probe.
 
-[[jshift-maven-scm-enricher]]
-==== jshift-maven-scm-enricher
+[[jkube-maven-scm-enricher]]
+==== jkube-maven-scm-enricher
 
 This enricher adds additional https://maven.apache.org/pom.html#SCM[SCM] related metadata to all objects supporting annotations.
 These metadata will be added only if https://maven.apache.org/pom.html#SCM[SCM] information is present in the maven `pom.xml` of the project.
@@ -870,19 +870,19 @@ The following annotations will be added to the objects that supports annotations
 | Maven SCM Info | Annotation | Description
 
 | scm/connection
-| jshift.io/scm-con-url
+| jkube.io/scm-con-url
 | The SCM connection that will be used to connect to the project's SCM
 
 | scm/developerConnection
-| jshift.io/scm-devcon-url
+| jkube.io/scm-devcon-url
 | The SCM Developer Connection that will be used to connect to the project's developer SCM
 
 | scm/tag
-| jshift.io/scm-tag
+| jkube.io/scm-tag
 | The SCM tag that will be used to checkout the sources, like HEAD dev-branch etc.,
 
 | scm/url
-| jshift.io/scm-url
+| jkube.io/scm-url
 | The SCM web url that can be used to browse the SCM over web browser
 
 |===
@@ -891,9 +891,9 @@ Lets say you have a maven pom.xml with the following scm information,
 [source,xml]
 ----
 <scm>
-    <connection>scm:git:git://github.com/jshiftio/kubernetes-maven-plugin.git</connection>
-    <developerConnection>scm:git:git://github.com/jshiftio/kubernetes-maven-plugin.git</developerConnection>
-    <url>git://github.com/jshiftio/kubernetes-maven-plugin.git</url>
+    <connection>scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git</connection>
+    <developerConnection>scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git</developerConnection>
+    <url>git://github.com/jkubeio/kubernetes-maven-plugin.git</url>
 </scm>
 
 ----
@@ -905,15 +905,15 @@ This infomation will be enriched as annotations in the generated manifest like,
   kind: Service
   metadata:
     annotations
-      jshift.io/scm-con-url: "scm:git:git://github.com/jshiftio/kubernetes-maven-plugin.git"
-      jshift.io/scm-devcon-url: "scm:git:git://github.com/jshiftio/kubernetes-maven-plugin.git"
-      jshift.io/scm-tag: "HEAD"
-      jshift.io/scm-url: "git://github.com/jshiftio/kubernetes-maven-plugin.git"
+      jkube.io/scm-con-url: "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git"
+      jkube.io/scm-devcon-url: "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git"
+      jkube.io/scm-tag: "HEAD"
+      jkube.io/scm-url: "git://github.com/jkubeio/kubernetes-maven-plugin.git"
 ...
 ----
 
-[[jshift-maven-issue-mgmt-enricher]]
-==== jshift-maven-issue-mgmt
+[[jkube-maven-issue-mgmt-enricher]]
+==== jkube-maven-issue-mgmt
 
 This enricher adds additional https://maven.apache.org/pom.html#Issue_Management[Issue Management] related metadata to all objects supporting annotations.
 These metadata will be added only if the https://maven.apache.org/pom.html#Issue_Management[Issue Management] information in available in maven `pom.xml` of the project.
@@ -926,11 +926,11 @@ The following annotations will be added to the objects that supports annotations
 | Maven Issue Tracker Info | Annotation | Description
 
 | issueManagement/system
-| jshift.io/issue-system
+| jkube.io/issue-system
 | The Issue Management system like Bugzilla, JIRA, GitHub etc.,
 
 | issueManagement/url
-| jshift.io/issue-tracker-url
+| jkube.io/issue-tracker-url
 | The Issue Management url e.g. GitHub Issues Url
 
 |===
@@ -953,13 +953,13 @@ This information will be enriched as annotations in the generated manifest like,
   kind: Service
   metadata:
     annotations:
-      jshift.io/issue-system: "GitHub"
-      jshift.io/issue-tracker-url: "https://github.com/reactiverse/vertx-maven-plugin/issues/"
+      jkube.io/issue-system: "GitHub"
+      jkube.io/issue-tracker-url: "https://github.com/reactiverse/vertx-maven-plugin/issues/"
 ...
 ----
 
-[[jshift-revision-history-enricher]]
-==== jshift-revision-history
+[[jkube-revision-history-enricher]]
+==== jkube-revision-history
 
 This enricher adds `spec.revisionHistoryLimit` property to deployment spec of Kubernetes/OpenShift resources.
 A deployment’s revision history is stored in the replica sets, that specifies the number of old ReplicaSets to retain in order to allow rollback.
@@ -984,9 +984,9 @@ Just as any other enricher you can specify required properties with in the enric
 ...
 <enricher>
     <config>
-        <jshift-revision-history>
+        <jkube-revision-history>
             <limit>8</limit>
-        </jshift-revision-history>
+        </jkube-revision-history>
     </config>
 </enricher>
 ...
@@ -1003,8 +1003,8 @@ spec:
 ...
 ----
 
-[[jshift-triggers-annotation]]
-==== jshift-triggers-annotation
+[[jkube-triggers-annotation]]
+==== jkube-triggers-annotation
 
 This enricher adds ImageStreamTag change triggers on Kubernetes resources that support the `image.openshift.io/triggers` annotation, such as StatefulSets, ReplicaSets and DaemonSets.
 
@@ -1015,16 +1015,16 @@ The trigger is added to all containers that apply, but can be restricted to a li
 ...
 <enricher>
     <config>
-        <jshift-triggers-annotation>
+        <jkube-triggers-annotation>
             <containers>container-name-1,c2</containers>
-        </jshift-triggers-annotation>
+        </jkube-triggers-annotation>
     </config>
 </enricher>
 ...
 ----
 
-[[jshift-configmap-file]]
-==== jshift-configmap-file
+[[jkube-configmap-file]]
+==== jkube-configmap-file
 
 This enricher adds ConfigMap defined as `resources` in plugin configuration and/or resolves file content from an annotation.
 
@@ -1078,13 +1078,13 @@ If you are defining a custom `ConfigMap` file, you can use an annotation to defi
 metadata:
   name: ${project.artifactId}
   annotations:
-    maven.jshift.io/cm/application.properties: src/test/resources/test-application.properties
+    maven.jkube.io/cm/application.properties: src/test/resources/test-application.properties
 ----
 
 This creates a `ConfigMap` data with key `application.properties` (part defined after `cm`) and value the content of `src/test/resources/test-application.properties` file.
 
-[[jshift-secret-file]]
-==== jshift-secret-file
+[[jkube-secret-file]]
+==== jkube-secret-file
 
 This enricher adds Secret defined as file content from an annotation.
 
@@ -1095,7 +1095,7 @@ If you are defining a custom `Secret` file, you can use an annotation to define 
 metadata:
   name: ${project.artifactId}
   annotations:
-    maven.jshift.io/secret/application.properties: src/test/resources/test-application.properties
+    maven.jkube.io/secret/application.properties: src/test/resources/test-application.properties
 ----
 
 This creates a `Secret` data with the key `application.properties` (part defined after `secret`) and value content of `src/test/resources/test-application.properties` file (base64 encoded).

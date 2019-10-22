@@ -6,7 +6,7 @@ This plugin is available from Maven central and can be connected to
 pre- and post-integration phase as seen below. The configuration and
 available goals are described below.
 
-By default, Maven will only search for plugins in the `org.apache.maven.plugins` and `org.codehaus.mojo` packages. In order to resolve the provider for the Jshift plugin goals, you need to edit `~/.m2/settings.xml` and add the `io.jshift` namespace so the `<pluginGroups>` configuration.
+By default, Maven will only search for plugins in the `org.apache.maven.plugins` and `org.codehaus.mojo` packages. In order to resolve the provider for the Jkube plugin goals, you need to edit `~/.m2/settings.xml` and add the `io.jkube` namespace so the `<pluginGroups>` configuration.
 
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ---- 
@@ -14,7 +14,7 @@ By default, Maven will only search for plugins in the `org.apache.maven.plugins`
       ...
 
       <pluginGroups>
-        <pluginGroup>io.jshift</pluginGroup>
+        <pluginGroup>io.jkube</pluginGroup>
       </pluginGroups>
 
       ...
@@ -25,7 +25,7 @@ By default, Maven will only search for plugins in the `org.apache.maven.plugins`
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ---- 
 <plugin>
-  <groupId>io.jshift</groupId>
+  <groupId>io.jkube</groupId>
   <artifactId>oc-maven-plugin</artifactId>
   <version>{version}</version>
 
@@ -46,7 +46,7 @@ By default, Maven will only search for plugins in the `org.apache.maven.plugins`
   <!-- Connect oc:resource, oc:build and oc:helm to lifecycle phases -->
   <executions>
     <execution>
-       <id>jshift</id>
+       <id>jkube</id>
        <goals>
          <goal>resource</goal>
          <goal>build</goal>

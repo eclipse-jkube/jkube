@@ -1,0 +1,11 @@
+# Jkube specific enrichers
+# ==========================
+
+# The order of the enrichers is defined in the active profile
+# (which is the profile "default" by default)
+# You can find the default profiles in "profiles-default.yml"
+
+# ----------------------------------------------------------------
+
+# Healthcheck Enrichers
+io.jkube.springboot.enricher.SpringBootHealthCheckEnricher

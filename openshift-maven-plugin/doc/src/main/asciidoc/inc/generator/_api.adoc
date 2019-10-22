@@ -1,4 +1,4 @@
 [[generators-api]]
 == Generator API
 
-WARNING: The API is still a bit in flux and will be documented later. Please refer to the  https://github.com/jshiftio/kubernetes-maven-plugin/blob/master/generator/api/src/main/java/io.jshift/maven/generator/api/Generator.java[Generator] Interface in the meantime.
+WARNING: The API is still a bit in flux and will be documented later. Please refer to the  https://github.com/jkubeio/kubernetes-maven-plugin/blob/master/generator/api/src/main/java/io.jkube/maven/generator/api/Generator.java[Generator] Interface in the meantime.

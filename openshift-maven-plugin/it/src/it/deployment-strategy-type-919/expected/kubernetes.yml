@@ -22,28 +22,28 @@ items:
   kind: Deployment
   metadata:
     labels:
-      provider: jshift
+      provider: jkube
       app: deployment-strategy-type-919
       version: 0.1-SNAPSHOT
-      group: io.jshift.devops.apps
-    name: jshift-docker-registry
+      group: io.jkube.devops.apps
+    name: jkube-docker-registry
   spec:
     replicas: 1
     revisionHistoryLimit: 2
     selector:
       matchLabels:
-        provider: jshift
+        provider: jkube
         app: deployment-strategy-type-919
-        group: io.jshift.devops.apps
+        group: io.jkube.devops.apps
     strategy:
       type: Recreate
     template:
       metadata:
         labels:
-          provider: jshift
+          provider: jkube
           app: deployment-strategy-type-919
           version: 0.1-SNAPSHOT
-          group: io.jshift.devops.apps
+          group: io.jkube.devops.apps
       spec:
         containers:
         - env:
@@ -53,7 +53,7 @@ items:
                 fieldPath: metadata.namespace
           image: registry:2
           imagePullPolicy: IfNotPresent
-          name: jshift-docker-registry
+          name: jkube-docker-registry
           ports:
           - containerPort: 5000
             name: http
@@ -66,7 +66,7 @@ items:
               memory: "0"
           volumeMounts:
           - mountPath: /var/lib/registry
-            name: jshift-docker-registry-storage
+            name: jkube-docker-registry-storage
             readOnly: false
         initContainers:
         - command:
@@ -75,11 +75,11 @@ items:
           - /var/lib/registry
           image: busybox
           imagePullPolicy: IfNotPresent
-          name: jshift-volume-permission
+          name: jkube-volume-permission
           volumeMounts:
           - mountPath: /var/lib/registry
-            name: jshift-docker-registry-storage
+            name: jkube-docker-registry-storage
         volumes:
-        - name: jshift-docker-registry-storage
+        - name: jkube-docker-registry-storage
           persistentVolumeClaim:
-            claimName: jshift-docker-registry-storage
+            claimName: jkube-docker-registry-storage

@@ -13,11 +13,11 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-import io.jshift.maven.it.Verify
+import io.jkube.maven.it.Verify
 
 [ "openshift"   ].each {
   Verify.verifyResourceDescriptors(
-          new File(basedir, sprintf("/target/classes/META-INF/jshift/%s.yml",it)),
+          new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml",it)),
           new File(basedir, sprintf("/expected/%s.yml",it)))
 }
 true

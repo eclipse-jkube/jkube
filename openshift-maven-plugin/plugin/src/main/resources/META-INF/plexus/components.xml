@@ -76,8 +76,8 @@
     <!-- Components typically detected by annotations, but moved here because of
          https://github.com/codehaus-plexus/plexus-containers/issues/4 -->
     <component>
-      <role>io.jshift.kit.build.service.docker.config.handler.compose.DockerComposeConfigHandler</role>
-      <implementation>io.jshift.kit.build.service.docker.config.handler.compose.DockerComposeConfigHandler</implementation>
+      <role>io.jkube.kit.build.service.docker.config.handler.compose.DockerComposeConfigHandler</role>
+      <implementation>io.jkube.kit.build.service.docker.config.handler.compose.DockerComposeConfigHandler</implementation>
       <requirements>
         <requirement>
           <role>org.apache.maven.shared.filtering.MavenReaderFilter</role>
@@ -87,18 +87,18 @@
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
-      <role>io.jshift.kit.build.service.docker.config.handler.property.PropertyConfigHandler</role>
-      <implementation>io.jshift.kit.build.service.docker.config.handler.property.PropertyConfigHandler</implementation>
+      <role>io.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler</role>
+      <implementation>io.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler</implementation>
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
-      <role>io.jshift.kit.build.service.docker.ServiceHubFactory</role>
-      <implementation>io.jshift.kit.build.service.docker.ServiceHubFactory</implementation>
+      <role>io.jkube.kit.build.service.docker.ServiceHubFactory</role>
+      <implementation>io.jkube.kit.build.service.docker.ServiceHubFactory</implementation>
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
-      <role>io.jshift.kit.build.maven.assembly.DockerAssemblyManager</role>
-      <implementation>io.jshift.kit.build.maven.assembly.DockerAssemblyManager</implementation>
+      <role>io.jkube.kit.build.maven.assembly.DockerAssemblyManager</role>
+      <implementation>io.jkube.kit.build.maven.assembly.DockerAssemblyManager</implementation>
       <requirements>
         <requirement>
           <role>org.codehaus.plexus.archiver.Archiver</role>
@@ -120,13 +120,13 @@
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
-      <role>io.jshift.kit.build.service.docker.DockerAccessFactory</role>
-      <implementation>io.jshift.kit.build.service.docker.DockerAccessFactory</implementation>
+      <role>io.jkube.kit.build.service.docker.DockerAccessFactory</role>
+      <implementation>io.jkube.kit.build.service.docker.DockerAccessFactory</implementation>
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
-      <role>io.jshift.kit.build.service.docker.config.handler.ImageConfigResolver</role>
-      <implementation>io.jshift.kit.build.service.docker.config.handler.ImageConfigResolver</implementation>
+      <role>io.jkube.kit.build.service.docker.config.handler.ImageConfigResolver</role>
+      <implementation>io.jkube.kit.build.service.docker.config.handler.ImageConfigResolver</implementation>
       <isolated-realm>false</isolated-realm>
     </component>
   </components>

@@ -17,7 +17,7 @@ The generator automatically:
 * Force IPv4 stack when `vertx-infinispan` is used.
 * Disable the async DNS resolver to fallback to the regular JVM DNS resolver.
 
-You can pass application parameter by setting the `JAVA_ARGS` env variable. You can pass system properties either using the same variable or using `JAVA_OPTIONS`. For instance, create `src/main/jshift/deployment.yml` with the following content to configure `JAVA_ARGS`:
+You can pass application parameter by setting the `JAVA_ARGS` env variable. You can pass system properties either using the same variable or using `JAVA_OPTIONS`. For instance, create `src/main/jkube/deployment.yml` with the following content to configure `JAVA_ARGS`:
 
 [source, yaml]
 ----

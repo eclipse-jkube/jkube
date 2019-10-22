@@ -23,10 +23,10 @@ items:
   metadata:
     labels:
       expose: "true"
-      provider: jshift
+      provider: jkube
       app: vertx-default-sample
       version: "@ignore@"
-      group: io.jshift
+      group: io.jkube
     name: vertx-default-sample
   spec:
     ports:
@@ -36,30 +36,30 @@ items:
       targetPort: 8080
     selector:
       app: vertx-default-sample
-      provider: jshift
-      group: io.jshift
+      provider: jkube
+      group: io.jkube
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
     labels:
-      provider: jshift
+      provider: jkube
       app: vertx-default-sample
       version: "@ignore@"
-      group: io.jshift
+      group: io.jkube
     name: vertx-default-sample
   spec:
     replicas: 1
     selector:
       app: vertx-default-sample
-      provider: jshift
-      group: io.jshift
+      provider: jkube
+      group: io.jkube
     template:
       metadata:
         labels:
-          provider: jshift
+          provider: jkube
           app: vertx-default-sample
           version: "@ignore@"
-          group: io.jshift
+          group: io.jkube
       spec:
         containers:
         - env:

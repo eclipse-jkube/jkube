@@ -1,0 +1,35 @@
+@startuml
+' tag::uml[]
+package "jkube-kit" {
+
+  package "Config" {
+    [K8s Resource]
+    [Docker Image]
+  }
+
+  package "Generator" {
+    [Generator Maven] --> [Generator API]
+    [Generator API] --> [Docker Image]
+  }
+
+  package "Enricher" {
+    [Enricher Maven] --> [Enricher API]
+    [Enricher API] --> [K8s Resource]
+    [Enricher API] --> [Docker Image]
+  }
+
+  [Profile] --> [Generator API]
+  [Profile] --> [Enricher API]
+}
+
+cloud {
+  [docker-maven-plugin] --> [Generator Maven]
+}
+
+cloud {
+  [kubernetes-maven-plugin] --> [Generator Maven]
+  [kubernetes-maven-plugin] --> [Enricher Maven]
+  [kubernetes-maven-plugin] --> [Profile]
+}
+' end::uml[]
+@enduml

@@ -1,5 +1,0 @@
-# Default watchers
-# =================
-
-# Standard watcher for Kubernetes using the fabric8 docker-maven-plugin
-io.jshift.watcher.standard.DockerImageWatcher,101

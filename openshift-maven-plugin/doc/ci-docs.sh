@@ -25,7 +25,7 @@ export MAVEN_OPTS="-Xmx3000m"
 mvn -B install -DskipTests=true
 cd doc
 mvn -B -Phtml,pdf package
-git clone -b gh-pages https://fabric8cd:$GH_TOKEN@github.com/jshiftio/openshift-maven-plugin gh-pages
+git clone -b gh-pages https://fabric8cd:$GH_TOKEN@github.com/jkubeio/openshift-maven-plugin gh-pages
 cp -rv target/generated-docs/* gh-pages/
 cd gh-pages
 mv index.pdf openshift-maven-plugin.pdf

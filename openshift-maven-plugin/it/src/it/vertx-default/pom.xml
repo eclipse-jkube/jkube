@@ -21,13 +21,13 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.jshift</groupId>
+    <groupId>io.jkube</groupId>
     <artifactId>vertx-default-sample</artifactId>
     <packaging>jar</packaging>
     <version>0.1-SNAPSHOT</version>
 
 
-    <name>Jshift Maven :: Sample :: Vert.x</name>
+    <name>Jkube Maven :: Sample :: Vert.x</name>
     <description>Minimal Example with Eclipse Vert.x</description>
 
     <properties>
@@ -77,9 +77,9 @@
             </plugin>
 
             <plugin>
-                <groupId>io.jshift</groupId>
+                <groupId>io.jkube</groupId>
                 <artifactId>oc-maven-plugin</artifactId>
-                <version>@jshift.version@</version>
+                <version>@jkube.version@</version>
             </plugin>
         </plugins>
     </build>

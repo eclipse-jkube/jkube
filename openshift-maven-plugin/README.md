@@ -1,10 +1,10 @@
 ## Openshift Maven Plugin
 
-[![Circle CI](https://circleci.com/gh/jshiftio/openshift-maven-plugin/tree/master.svg?style=shield)](https://circleci.com/gh/jshiftio/openshift-maven-plugin/tree/master)
-[![Maven Central](https://img.shields.io/maven-central/v/io.jshift/oc-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.jshift%22%20AND%20a:%22oc-maven-plugin%22)
-[![Gitter](https://badges.gitter.im/jshift-community/community.svg)](https://gitter.im/jshift-community/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=jshiftio_openshift-maven-plugin&metric=sqale_index)](https://sonarcloud.io/dashboard?id=jshiftio_openshift-maven-plugin)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jshiftio_openshift-maven-plugin&metric=coverage)](https://sonarcloud.io/dashboard?id=jshiftio_openshift-maven-plugin)
+[![Circle CI](https://circleci.com/gh/jkubeio/openshift-maven-plugin/tree/master.svg?style=shield)](https://circleci.com/gh/jkubeio/openshift-maven-plugin/tree/master)
+[![Maven Central](https://img.shields.io/maven-central/v/io.jkube/oc-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.jkube%22%20AND%20a:%22oc-maven-plugin%22)
+[![Gitter](https://badges.gitter.im/jkube-community/community.svg)](https://gitter.im/jkube-community/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_openshift-maven-plugin&metric=sqale_index)](https://sonarcloud.io/dashboard?id=jkubeio_openshift-maven-plugin)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_openshift-maven-plugin&metric=coverage)](https://sonarcloud.io/dashboard?id=jkubeio_openshift-maven-plugin)
 
 ![Sample Demo](oc-maven-plugin-demo.gif)
 
@@ -19,9 +19,9 @@ To enable Openshift maven plugin on your project just add this to the plugins se
 
 ```
       <plugin>
-        <groupId>io.jshift</groupId>
+        <groupId>io.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
-        <version>${jshift.openshift.version}</version>
+        <version>${jkube.openshift.version}</version>
       </plugin>
 ```
 

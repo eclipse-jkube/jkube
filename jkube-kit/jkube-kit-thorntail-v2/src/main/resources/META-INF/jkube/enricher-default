@@ -1,0 +1,2 @@
+# Healthcheck Enrichers
+io.jkube.thorntail.v2.enricher.ThorntailV2HealthCheckEnricher

@@ -14,4 +14,4 @@
 # permissions and limitations under the License.
 #
 
-io.jshift.maven.doc.ClasspathIncludeExtension
+io.jkube.maven.doc.ClasspathIncludeExtension

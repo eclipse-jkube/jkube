@@ -1,4 +1,4 @@
-= jshiftio/openshift-maven-plugin
+= jkubeio/openshift-maven-plugin
 Roland Huß, James Strachan;
 :revnumber: {version}
 :revdate: {localdate}
@@ -7,7 +7,7 @@ Roland Huß, James Strachan;
 :toc-title: kubernetes-maven-plugin
 :doctype: book
 :icons: font
-:plugin: jshift
+:plugin: jkube
 :plugindir: {plugindir}
 
 ifndef::ebook-format[:leveloffset: 1]

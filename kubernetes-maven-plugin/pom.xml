@@ -3,19 +3,19 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.jshift</groupId>
-    <artifactId>jshift</artifactId>
+    <groupId>io.jkube</groupId>
+    <artifactId>jkube</artifactId>
     <version>0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <groupId>io.jshift</groupId>
+  <groupId>io.jkube</groupId>
   <artifactId>k8s-maven-plugin-build</artifactId>
   <version>0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Kubernetes Maven Plugin </name>
   <description>Maven plugin for getting your Java apps on to Kubernetes</description>
-  <url>http://github.com/jshiftio/kubernetes-maven-plugin</url>
+  <url>http://github.com/jkubeio/kubernetes-maven-plugin</url>
 
   <licenses>
     <license>
@@ -27,18 +27,18 @@
   <developers>
     <developer>
       <id>geeks</id>
-      <name>Jshift Development Team</name>
-      <email>jshift@googlegroups.com</email>
-      <organization>jshift</organization>
-      <organizationUrl>http://jshift.io/</organizationUrl>
+      <name>Jkube Development Team</name>
+      <email>jkube@googlegroups.com</email>
+      <organization>jkube</organization>
+      <organizationUrl>http://jkube.io/</organizationUrl>
     </developer>
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/jshiftio/kubernetes-maven-plugin.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jshiftio/kubernetes-maven-plugin.git</developerConnection>
+    <connection>scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jkubeio/kubernetes-maven-plugin.git</developerConnection>
     <tag>HEAD</tag>
-    <url>git://github.com/jshiftio/kubernetes-maven-plugin.git</url>
+    <url>git://github.com/jkubeio/kubernetes-maven-plugin.git</url>
   </scm>
 
   <properties>
@@ -162,7 +162,7 @@
   </build>
 
   <profiles>
-     <!-- "release" profiles used for deploying with jshift -->
+     <!-- "release" profiles used for deploying with jkube -->
     <profile>
       <id>release</id>
       <build>

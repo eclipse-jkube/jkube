@@ -22,19 +22,19 @@ items:
   kind: Service
   metadata:
     annotations:
-      jshift.io/git-commit: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
       prometheus.io/port: "9779"
-      jshift.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jshift-maven-sample-zero-config
-      jshift.io/git-branch: "@ignore@"
+      jkube.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
+      jkube.io/git-branch: "@ignore@"
       prometheus.io/scrape: "true"
-      jshift.io/scm-tag: HEAD
+      jkube.io/scm-tag: HEAD
     labels:
       expose: "true"
-      app: jshift-maven-sample-zero-config
-      provider: jshift
+      app: jkube-maven-sample-zero-config
+      provider: jkube
       version: 0.1-SNAPSHOT
-      group: io.jshift
-    name: jshift-maven-sample-zero-config
+      group: io.jkube
+    name: jkube-maven-sample-zero-config
   spec:
     ports:
     - name: http
@@ -42,43 +42,43 @@ items:
       protocol: TCP
       targetPort: 8080
     selector:
-      app: jshift-maven-sample-zero-config
-      provider: jshift
-      group: io.jshift
+      app: jkube-maven-sample-zero-config
+      provider: jkube
+      group: io.jkube
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
     annotations:
-      jshift.io/git-commit: "@ignore@"
-      jshift.io/git-branch: "@ignore@"
-      jshift.io/scm-tag: HEAD
-      jshift.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jshift-maven-sample-zero-config
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+      jkube.io/scm-tag: HEAD
+      jkube.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
     labels:
-      app: jshift-maven-sample-zero-config
-      provider: jshift
+      app: jkube-maven-sample-zero-config
+      provider: jkube
       version: 0.1-SNAPSHOT
-      group: io.jshift
-    name: jshift-maven-sample-zero-config
+      group: io.jkube
+    name: jkube-maven-sample-zero-config
   spec:
     replicas: 1
     revisionHistoryLimit: 2
     selector:
       matchLabels:
-        app: jshift-maven-sample-zero-config
-        provider: jshift
-        group: io.jshift
+        app: jkube-maven-sample-zero-config
+        provider: jkube
+        group: io.jkube
     template:
       metadata:
         annotations:
-          jshift.io/git-commit: "@ignore@"
-          jshift.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jshift-maven-sample-zero-config
-          jshift.io/git-branch: "@ignore@"
-          jshift.io/scm-tag: HEAD
+          jkube.io/git-commit: "@ignore@"
+          jkube.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
+          jkube.io/git-branch: "@ignore@"
+          jkube.io/scm-tag: HEAD
         labels:
-          app: jshift-maven-sample-zero-config
-          provider: jshift
+          app: jkube-maven-sample-zero-config
+          provider: jkube
           version: 0.1-SNAPSHOT
-          group: io.jshift
+          group: io.jkube
       spec:
         containers:
         - env:
@@ -86,7 +86,7 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          image: jshift-maven-sample-zero-config:latest
+          image: jkube-maven-sample-zero-config:latest
           imagePullPolicy: IfNotPresent
           name: spring-boot
           ports:

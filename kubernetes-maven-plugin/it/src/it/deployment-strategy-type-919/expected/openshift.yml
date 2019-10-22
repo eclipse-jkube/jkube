@@ -26,8 +26,8 @@ items:
     strategy:
       type: Recreate
     selector:
-      provider: jshift
+      provider: jkube
       app: deployment-strategy-type-919
-      group: io.jshift.devops.apps
+      group: io.jkube.devops.apps
     triggers:
     - type: ConfigChange

@@ -1,0 +1,82 @@
+
+[[k8s:debug]]
+== *k8s:debug*
+
+This goal enables debugging in your Java app and then port forwards from localhost to the latest running pod of your app so that you can easily debug your app from your Java IDE.
+
+[source, sh]
+----
+mvn k8s:debug
+----
+
+Then follow the on screen instructions.
+
+The default debug port is `5005`. If you wish to change the local port to use for debugging then pass in the `jkube.debug.port` parameter:
+
+[source, sh]
+----
+mvn k8s:debug -Djkube.debug.port=8000
+----
+
+Then in your IDE you start a Remote debug execution using this remote port using localhost and you should be able to set breakpoints and step through your code.
+
+This lets you debug your apps while they are running inside a Kubernetes cluster - for example if you wish to debug a REST endpoint while another pod is invoking it.
+
+Debug is enabled via the `JAVA_ENABLE_DEBUG` environment variable being set to `true`. This environment variable is used for all the standard Java docker images used by Spring Boot, flat classpath and executable JAR projects and Wildfly Swarm. If you use your own custom docker base image you may wish to also respect this environment variable too to enable debugging.
+
+### Speeding up debugging
+
+By default the `k8s:debug` goal has to edit your Deployment to enable debugging then wait for a pod to start. It might be in development you frequently want to debug things and want to speed things up a bit.
+
+If so you can enable debug mode for each build via the `jkube.debug.enabled` property.
+
+e.g. you can pass this property on the command line:
+
+[source, sh]
+----
+mvn k8s:deploy -Djkube.debug.enabled=true
+----
+
+Or you can add something like this to your `~/.m2/settings.xml` file so that you enable debug mode for all maven builds on your laptop by using a profile :
+
+[source, xml]
+----
+<?xml version="1.0"?>
+<settings>
+  <profiles>
+    <profile>
+      <id>enable-debug</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <jkube.debug.enabled>true</jkube.debug.enabled>
+      </properties>
+    </profile>
+----
+
+Then whenever you type the `k8s:debug` goal there is no need for the maven goal to edit the `Deployment` and wait for a pod to restart; we can immediately start debugging when you type:
+
+[source, sh]
+----
+mvn k8s:debug
+----
+
+### Debugging with suspension
+
+The `k8s:debug` goal allows to attach a remote debugger to a running container, but the application is free to execute when the debugger is not attached.
+In some cases, you may want to have complete control on the execution, e.g. to investigate the application behavior at startup. This can be done using the `jkube.debug.suspend` flag:
+
+[source, sh]
+----
+mvn k8s:debug -Djkube.debug.suspend
+----
+
+The suspend flag will set the `JAVA_DEBUG_SUSPEND` environment variable to `true` and `JAVA_DEBUG_SESSION` to a random number in your deployment.
+When the `JAVA_DEBUG_SUSPEND` environment variable is set, standard docker images will use `suspend=y` in the JVM startup options for debugging.
+
+The `JAVA_DEBUG_SESSION` environment variable is always set to a random number (each time you run the debug goal with the suspend flag) in order to tell Kubernetes to restart the pod.
+The remote application will start only after a remote debugger is attached. You can use the remote debugging feature of your IDE to connect (on `localhost`, port `5005` by default).
+
+WARNING: The `jkube.debug.suspend` flag will disable readiness probes in the Kubernetes deployment in order to start port-forwarding during the early phases of application startup
+
