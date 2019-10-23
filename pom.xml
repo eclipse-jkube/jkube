@@ -24,11 +24,27 @@
   <description>Jkube</description>
   <name>Jkube</name>
 
+  <properties>
+    <version.jackson>2.10.0</version.jackson>
+  </properties>
+
   <modules>
     <module>jkube-kit</module>
     <module>kubernetes-maven-plugin</module>
     <module>openshift-maven-plugin</module>
   </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <pluginManagement>

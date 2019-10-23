@@ -79,6 +79,7 @@
     <version.jgit>5.3.0.201903130848-r</version.jgit>
     <version.hamcrest-library>1.3</version.hamcrest-library>
     <version.assertj>3.11.1</version.assertj>
+    <version.snakeyaml>1.25</version.snakeyaml>
 
     <!-- =======================================================  -->
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
@@ -132,6 +133,7 @@
     <image.tomcat.upstream>fabric8/tomcat-9:${version.image.tomcat.upstream}</image.tomcat.upstream>
     <image.jetty.upstream>fabric8/jetty-9:${version.image.jetty.upstream}</image.jetty.upstream>
     <image.wildfly.upstream>jboss/wildfly:${version.image.wildfly.upstream}</image.wildfly.upstream>
+    <commons-compress.version>1.19</commons-compress.version>
   </properties>
 
 
@@ -295,7 +297,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
-        <version>1.18</version>
+        <version>${commons-compress.version}</version>
       </dependency>
 
       <dependency>
@@ -313,7 +315,7 @@
       <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
-        <version>1.18</version>
+        <version>${version.snakeyaml}</version>
       </dependency>
 
       <dependency>
@@ -356,24 +358,6 @@
         <groupId>org.jboss.shrinkwrap</groupId>
         <artifactId>shrinkwrap-impl-base</artifactId>
         <version>1.2.6</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.fasterxml.jackson.dataformat</groupId>
-        <artifactId>jackson-dataformat-yaml</artifactId>
-        <version>2.9.8</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>2.9.9</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>2.9.8</version>
       </dependency>
 
       <dependency>
