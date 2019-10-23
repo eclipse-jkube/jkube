@@ -59,7 +59,6 @@
   <properties>
     <junit.version>4.11</junit.version>
     <citrus-core.version>2.6.2</citrus-core.version>
-    <jackson-dataformat-yaml.version>2.9.8</jackson-dataformat-yaml.version>
     <jdk.version>1.8</jdk.version>
     <maven-compiler-plugin.version>3.6.2</maven-compiler-plugin.version>
   </properties>
@@ -117,7 +116,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-yaml</artifactId>
-        <version>${jackson-dataformat-yaml.version}</version>
+        <version>${version.jackson}</version>
       </dependency>
 
     </dependencies>
