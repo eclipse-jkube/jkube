@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.jkube.kit.build.service.docker.ImageConfiguration;
 import io.jkube.kit.build.service.docker.access.PortMapping;
 import io.jkube.kit.common.util.EnvUtil;
+import io.jkube.kit.common.util.KubernetesHelper;
 import io.jkube.kit.config.image.ImageName;
 import io.jkube.kit.config.image.build.BuildConfiguration;
 import io.jkube.kit.config.resource.GroupArtifactVersion;
@@ -84,7 +85,7 @@ public class ContainerHandler {
     }
 
     private List<EnvVar> getEnvVars(ResourceConfig config) {
-        List<EnvVar> envVars = KubernetesResourceUtil.convertToEnvVarList(config.getEnv().orElse(Collections.emptyMap()));
+        List<EnvVar> envVars = KubernetesHelper.convertToEnvVarList(config.getEnv().orElse(Collections.emptyMap()));
 
         // TODO: This should go into an extra enricher so that this behaviour can be switched on / off
         envVars.removeIf(obj -> obj.getName().equals("KUBERNETES_NAMESPACE"));

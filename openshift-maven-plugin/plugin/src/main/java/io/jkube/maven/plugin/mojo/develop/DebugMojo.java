@@ -163,7 +163,7 @@ public class DebugMojo extends ApplyMojo {
         podWaitLog = createExternalProcessLogger("[[Y]][W][[Y]] ");
         PodList list = pods.list();
         if (list != null) {
-            Pod latestPod = KubernetesResourceUtil.getNewestPod(list.getItems());
+            Pod latestPod = KubernetesHelper.getNewestPod(list.getItems());
             if (latestPod != null && podHasEnvVars(latestPod, envVars)) {
                 return getName(latestPod);
             }
@@ -260,12 +260,12 @@ public class DebugMojo extends ApplyMojo {
                     if (env == null) {
                         env = new ArrayList<>();
                     }
-                    remoteDebugPort = KubernetesResourceUtil.getEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_PORT, DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT);
-                    if (KubernetesResourceUtil.setEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG, "true")) {
+                    remoteDebugPort = KubernetesHelper.getEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_PORT, DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT);
+                    if (KubernetesHelper.setEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG, "true")) {
                         container.setEnv(env);
                         enabled = true;
                     }
-                    if (KubernetesResourceUtil.setEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_SUSPEND, String.valueOf(debugSuspend))) {
+                    if (KubernetesHelper.setEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_SUSPEND, String.valueOf(debugSuspend))) {
                         container.setEnv(env);
                         enabled = true;
                     }
@@ -280,7 +280,7 @@ public class DebugMojo extends ApplyMojo {
                     if (debugSuspend) {
                         // Setting a random session value to force pod restart
                         this.debugSuspendValue = String.valueOf(new Random().nextLong());
-                        KubernetesResourceUtil.setEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_SESSION, this.debugSuspendValue);
+                        KubernetesHelper.setEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_SESSION, this.debugSuspendValue);
                         container.setEnv(env);
                         if (container.getReadinessProbe() != null) {
                             log.info("Readiness probe will be disabled on " + KubernetesHelper.getKind(entity) + " " + getName(entity) + " to allow attaching a remote debugger during suspension");
@@ -288,7 +288,7 @@ public class DebugMojo extends ApplyMojo {
                         }
                         enabled = true;
                     } else {
-                        if (KubernetesResourceUtil.removeEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_SESSION)) {
+                        if (KubernetesHelper.removeEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_SESSION)) {
                             container.setEnv(env);
                             enabled = true;
                         }

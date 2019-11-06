@@ -28,7 +28,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +42,8 @@ import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.Context;
 import io.fabric8.kubernetes.api.model.DoneablePod;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -758,6 +762,72 @@ public class KubernetesHelper {
                 .filter(template -> template instanceof Template)
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Convert a map of env vars to a list of K8s EnvVar objects.
+     * @param envVars the name-value map containing env vars which must not be null
+     * @return list of converted env vars
+     */
+    public static List<EnvVar> convertToEnvVarList(Map<String, String> envVars) {
+        List<EnvVar> envList = new LinkedList<>();
+        for (Map.Entry<String, String> entry : envVars.entrySet()) {
+            String name = entry.getKey();
+            String value = entry.getValue();
+
+            if (name != null) {
+                EnvVar env = new EnvVarBuilder().withName(name).withValue(value).build();
+                envList.add(env);
+            }
+        }
+        return envList;
+    }
+
+    public static boolean setEnvVar(List<EnvVar> envVarList, String name, String value) {
+        for (EnvVar envVar : envVarList) {
+            String envVarName = envVar.getName();
+            if (Objects.equals(name, envVarName)) {
+                String oldValue = envVar.getValue();
+                if (Objects.equals(value, oldValue)) {
+                    return false;
+                } else {
+                    envVar.setValue(value);
+                    return true;
+                }
+            }
+        }
+        EnvVar env = new EnvVarBuilder().withName(name).withValue(value).build();
+        envVarList.add(env);
+        return true;
+    }
+
+    public static String getEnvVar(List<EnvVar> envVarList, String name, String defaultValue) {
+        String answer = defaultValue;
+        if (envVarList != null) {
+            for (EnvVar envVar : envVarList) {
+                String envVarName = envVar.getName();
+                if (Objects.equals(name, envVarName)) {
+                    String value = envVar.getValue();
+                    if (StringUtils.isNotBlank(value)) {
+                        return value;
+                    }
+                }
+            }
+        }
+        return answer;
+    }
+
+    public static boolean removeEnvVar(List<EnvVar> envVarList, String name) {
+        boolean removed = false;
+        for (Iterator<EnvVar> it = envVarList.iterator(); it.hasNext(); ) {
+            EnvVar envVar = it.next();
+            String envVarName = envVar.getName();
+            if (name.equals(envVarName)) {
+                it.remove();
+                removed = true;
+            }
+        }
+        return removed;
     }
 }
 
