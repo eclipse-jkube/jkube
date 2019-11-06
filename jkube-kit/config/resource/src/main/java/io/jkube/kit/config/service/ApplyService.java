@@ -792,9 +792,9 @@ public class ApplyService {
                 } else {
                     log.info("Updating " + kind + " " + name + " from " + sourceName);
                     copyAllImageStreamTags(entity, old);
-                    patchService.compareAndPatchEntity(namespace, entity, old);
+                    entity = patchService.compareAndPatchEntity(namespace, entity, old);
+                    openShiftClient.resource(entity).inNamespace(namespace).createOrReplace();
                 }
-                openShiftClient.resource(entity).inNamespace(namespace).createOrReplace();
             } catch (Exception e) {
                 onApplyError("Failed to create " + kind + " from " + sourceName + ". " + e, e);
             }
