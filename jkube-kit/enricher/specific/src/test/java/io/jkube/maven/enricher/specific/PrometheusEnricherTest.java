@@ -42,7 +42,8 @@ public class PrometheusEnricherTest {
     ImageConfiguration imageConfiguration;
 
     private enum Config implements Configs.Key {
-        prometheusPort;
+        prometheusPort,
+        prometheusPath;
         public String def() { return d; } protected String d;
     }
 
@@ -147,5 +148,46 @@ public class PrometheusEnricherTest {
         Map<String, String> annotations = builder.buildFirstItem().getMetadata().getAnnotations();
 
         assertEquals(Collections.emptyMap(), annotations);
+    }
+
+    @Test
+    public void testCustomPrometheusPath() throws Exception {
+        final ProcessorConfig config = new ProcessorConfig(
+                null,
+                null,
+                Collections.singletonMap(
+                        PrometheusEnricher.ENRICHER_NAME,
+                        new TreeMap(Collections.singletonMap(
+                                Config.prometheusPath.name(),
+                                "/prometheus")
+                        )
+                )
+        );
+
+        final BuildConfiguration imageConfig = new BuildConfiguration.Builder()
+                .ports(Arrays.asList(PrometheusEnricher.PROMETHEUS_PORT))
+                .build();
+
+
+        // Setup mock behaviour
+        new Expectations() {{
+            context.getConfiguration();
+            result = new Configuration.Builder()
+                    .processorConfig(config)
+                    .images(Arrays.asList(imageConfiguration))
+                    .build();
+
+            imageConfiguration.getBuildConfiguration(); result = imageConfig;
+        }};
+
+        KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new ServiceBuilder().withNewMetadata().withName("foo").endMetadata().build());
+        PrometheusEnricher enricher = new PrometheusEnricher(context);
+        enricher.create(PlatformMode.kubernetes, builder);
+        Map<String, String> annotations = builder.buildFirstItem().getMetadata().getAnnotations();
+
+        assertEquals(3, annotations.size());
+        assertEquals("9779", annotations.get(PrometheusEnricher.ANNOTATION_PROMETHEUS_PORT));
+        assertEquals("true", annotations.get(PrometheusEnricher.ANNOTATION_PROMETHEUS_SCRAPE));
+        assertEquals("/prometheus", annotations.get(PrometheusEnricher.ANNOTATION_PROMETHEUS_PATH));
     }
 }
