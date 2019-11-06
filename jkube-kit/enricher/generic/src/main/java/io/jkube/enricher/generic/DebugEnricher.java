@@ -134,9 +134,9 @@ public class DebugEnricher extends BaseEnricher {
                         env = new ArrayList<>();
                     }
                     String remoteDebugPort =
-                        KubernetesResourceUtil.getEnvVar(env, ENV_VAR_JAVA_DEBUG_PORT, ENV_VAR_JAVA_DEBUG_PORT_DEFAULT);
+                        KubernetesHelper.getEnvVar(env, ENV_VAR_JAVA_DEBUG_PORT, ENV_VAR_JAVA_DEBUG_PORT_DEFAULT);
                     boolean enabled = false;
-                    if (KubernetesResourceUtil.setEnvVar(env, ENV_VAR_JAVA_DEBUG, "true")) {
+                    if (KubernetesHelper.setEnvVar(env, ENV_VAR_JAVA_DEBUG, "true")) {
                         container.setEnv(env);
                         enabled = true;
                     }

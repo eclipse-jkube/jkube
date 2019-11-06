@@ -15,6 +15,7 @@ package io.jkube.kit.config.service.openshift;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
@@ -61,6 +62,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -300,6 +303,7 @@ public class OpenshiftBuildService implements BuildService {
                     .withName(fromName)
                     .withNamespace(StringUtils.isEmpty(fromNamespace) ? null : fromNamespace)
                     .endFrom()
+                    .withEnv(checkForEnv(imageConfig))
                     .withNoCache(checkForNocache(imageConfig))
                     .endDockerStrategy().build();
 
@@ -355,6 +359,15 @@ public class OpenshiftBuildService implements BuildService {
             BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
             return buildConfig.getNoCache();
         }
+    }
+
+    private List<EnvVar> checkForEnv(ImageConfiguration imageConfiguration) {
+        BuildConfiguration buildImageConfiguration = imageConfiguration.getBuildConfiguration();
+        if (buildImageConfiguration.getArgs() != null) {
+            return KubernetesHelper.convertToEnvVarList(buildImageConfiguration.getArgs());
+        }
+
+        return Collections.emptyList();
     }
 
     private Boolean checkOrCreatePullSecret(BuildServiceConfig config, OpenShiftClient client, KubernetesListBuilder builder, String pullSecretName, ImageConfiguration imageConfig)
