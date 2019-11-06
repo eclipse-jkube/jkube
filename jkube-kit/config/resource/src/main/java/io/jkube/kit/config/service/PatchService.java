@@ -89,6 +89,10 @@ public class PatchService {
         if (dispatcher == null) {
             throw new IllegalArgumentException("Internal: No patcher for " + newDto.getKind() + " found");
         }
+        /**
+         * This is done in order to fix https://github.com/openshift/origin/issues/19905
+         */
+        newDto.getMetadata().setResourceVersion(oldDto.getMetadata().getResourceVersion());
         return dispatcher.patch(kubernetesClient, namespace, newDto, oldDto);
     }
 
