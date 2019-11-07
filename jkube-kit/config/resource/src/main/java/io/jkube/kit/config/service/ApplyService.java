@@ -70,9 +70,11 @@ import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static io.jkube.kit.common.util.KubernetesHelper.getKind;
 import static io.jkube.kit.common.util.KubernetesHelper.getName;
@@ -103,6 +105,8 @@ public class ApplyService {
     private boolean rollingUpgradePreserveScale = true;
     private boolean recreateMode;
     private PatchService patchService;
+    // This map is to track projects created.
+    private static Set<String> projectsCreated = new HashSet<>();
 
     public ApplyService(KubernetesClient kubernetesClient, KitLogger log) {
         this.kubernetesClient = kubernetesClient;
@@ -1072,6 +1076,10 @@ public class ApplyService {
      * Returns true if the ProjectRequest is created
      */
     public boolean applyProjectRequest(ProjectRequest entity) {
+        // Check whether project creation attempted before
+        if (projectsCreated.contains(getName(entity))) {
+            return false;
+        }
         String namespace = getOrCreateMetadata(entity).getName();
         log.info("Using project: " + namespace);
         String name = getName(entity);
@@ -1086,6 +1094,8 @@ public class ApplyService {
         if (!exists) {
             try {
                 Object answer = openshiftClient.projectrequests().create(entity);
+                // Add project to created projects
+                projectsCreated.add(name);
                 logGeneratedEntity("Created ProjectRequest: ", namespace, entity, answer);
                 return true;
             } catch (Exception e) {
