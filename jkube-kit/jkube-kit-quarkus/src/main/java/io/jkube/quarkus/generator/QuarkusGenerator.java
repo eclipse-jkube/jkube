@@ -29,6 +29,7 @@ import org.apache.maven.plugins.assembly.model.FileSet;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static io.jkube.kit.config.image.build.util.BuildLabelUtil.addSchemaLabels;
 
@@ -84,8 +85,9 @@ public class QuarkusGenerator extends BaseGenerator {
 
         boolean isNative = Boolean.parseBoolean(getConfig(Config.nativeImage, "false"));
 
+        Optional<String> fromConfigured = Optional.ofNullable(getFromAsConfigured());
         if (isNative) {
-            buildBuilder.from("registry.fedoraproject.org/fedora-minimal")
+            buildBuilder.from(fromConfigured.orElse("registry.fedoraproject.org/fedora-minimal"))
                         .entryPoint(new Arguments.Builder()
                                         .withParam("./" + findSingleFileThatEndsWith("-runner"))
                                         .withParam("-Dquarkus.http.host=0.0.0.0")
@@ -98,7 +100,7 @@ public class QuarkusGenerator extends BaseGenerator {
                         "/", this::getNativeFileToInclude));
             }
         } else {
-            buildBuilder.from("openjdk:11")
+            buildBuilder.from(fromConfigured.orElse("openjdk:11"))
                         .entryPoint(new Arguments.Builder()
                                         .withParam("java")
                                         .withParam("-Dquarkus.http.host=0.0.0.0")
