@@ -15,6 +15,7 @@ package io.jkube.maven.plugin.mojo.build;
 
 import io.jkube.kit.build.service.docker.helper.AnsiLogger;
 import io.jkube.kit.common.KitLogger;
+import io.jkube.kit.common.util.EnvUtil;
 import io.jkube.kit.config.access.ClusterConfiguration;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -23,6 +24,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.apache.maven.shared.utils.logging.MessageUtils;
 
 public abstract class AbstractJkubeMojo extends AbstractMojo {
 
@@ -77,7 +79,16 @@ public abstract class AbstractJkubeMojo extends AbstractMojo {
     }
 
     protected KitLogger createLogger(String prefix) {
-        return new AnsiLogger(getLog(), useColor, verbose, !settings.getInteractiveMode(), "k8s:" + prefix);
+        return new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), "k8s:" + prefix);
+    }
+
+    /**
+     * Determine whether to enable colorized log messages
+     * @return true if log statements should be colorized
+     */
+    private boolean useColorForLogging() {
+        return useColor && MessageUtils.isColorEnabled()
+                && !(EnvUtil.isWindows() && !EnvUtil.isMaven350OrLater(session));
     }
 
     protected ClusterConfiguration getClusterConfiguration() {
