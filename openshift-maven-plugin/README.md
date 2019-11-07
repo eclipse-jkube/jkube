@@ -33,7 +33,7 @@ To enable Openshift maven plugin on your project just add this to the plugins se
 
 * Dealing with S2I images and hence inherits its flexible and powerful configuration.
 * Supports both OpenShift descriptors
-* OpenShift Docker builds with a binary source (as an alternative to a direct image build agains a Docker daemon)
+* OpenShift Docker builds with a binary source (as an alternative to a direct image build against a Docker daemon)
 * Various configuration styles:
   * **Zero Configuration** for a quick ramp-up where opinionated defaults will be pre-selected.
   * **Inline Configuration** within the plugin configuration in an XML syntax.

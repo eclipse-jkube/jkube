@@ -226,7 +226,7 @@ public class ImageName {
     }
 
     /**
-     * Check whether the given name validates agains the Docker rules for names
+     * Check whether the given name validates against the Docker rules for names
      *
      * @param image image name to validate
      * d@throws IllegalArgumentException if the name doesnt validate
