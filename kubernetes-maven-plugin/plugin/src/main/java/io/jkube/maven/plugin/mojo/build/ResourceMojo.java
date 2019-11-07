@@ -636,6 +636,8 @@ public class ResourceMojo extends AbstractJkubeMojo {
         File file =
             writeResourcesIndividualAndComposite(resources, resourceFileBase, this.resourceFileType, log, generateRoute);
 
+        KubernetesHelper.resolveTemplateVariablesIfAny(resources, this.targetDir);
+
         // Attach it to the Maven reactor so that it will also get deployed
         projectHelper.attachArtifact(project, this.resourceFileType.getArtifactType(), classifier.getValue(), file);
     }

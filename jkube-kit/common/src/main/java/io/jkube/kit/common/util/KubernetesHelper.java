@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -80,7 +81,9 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.Template;
 import io.jkube.kit.common.KitLogger;
 import io.jkube.kit.common.ResourceFileType;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 
 /**
  * @author roland
@@ -711,6 +714,50 @@ public class KubernetesHelper {
             return -1;
         });
         return sortedPods.get(sortedPods.size() - 1);
+    }
+
+    public static void resolveTemplateVariablesIfAny(KubernetesList resources, File targetDir) throws IllegalStateException {
+        Template template = findTemplate(resources);
+        if (template != null) {
+            List<io.fabric8.openshift.api.model.Parameter> parameters = template.getParameters();
+            if (parameters == null || parameters.isEmpty()) {
+                return;
+            }
+            File kubernetesYaml = new File(targetDir, "kubernetes.yml");
+            resolveTemplateVariables(parameters, kubernetesYaml);
+        }
+    }
+
+    public static void resolveTemplateVariables(List<io.fabric8.openshift.api.model.Parameter> parameters, File kubernetesYaml) throws IllegalStateException {
+        String text;
+        try {
+            text = FileUtils.readFileToString(kubernetesYaml, Charset.defaultCharset());
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to load " + kubernetesYaml + " so we can replace template expressions " + e, e);
+        }
+        String original = text;
+        for (io.fabric8.openshift.api.model.Parameter parameter : parameters) {
+            String from = "${" + parameter.getName() + "}";
+            String to = parameter.getValue();
+            if (to == null) {
+                throw new IllegalStateException("Missing value for HELM template parameter " + from + " in " + kubernetesYaml);
+            }
+            text = text.replace(from, to);
+        }
+        if (!original.equals(text)) {
+            try {
+                FileUtils.writeStringToFile(kubernetesYaml, text, Charset.defaultCharset());
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to save " + kubernetesYaml + " after replacing template expressions " +e, e);
+            }
+        }
+    }
+
+    public static Template findTemplate(KubernetesList resources) {
+        return (Template) resources.getItems().stream()
+                .filter(template -> template instanceof Template)
+                .findFirst()
+                .orElse(null);
     }
 }
 
