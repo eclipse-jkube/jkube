@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -132,6 +133,21 @@ public class AutoTLSEnricher extends BaseEnricher {
                     }
                 }
                 return false;
+            }
+        });
+
+        builder.accept(new TypedVisitor<ServiceBuilder>() {
+            @Override
+            public void visit(ServiceBuilder service) {
+                /*
+                 * Set the service.alpha.openshift.io/serving-cert-secret-name annotation on your
+                 * service with the value set to the name you want to use for your secret.
+                 *
+                 * https://docs.openshift.com/online/dev_guide/secrets.html#service-serving-certificate-secrets
+                 */
+                service.editOrNewMetadata()
+                        .addToAnnotations(AUTOTLS_ANNOTATION_KEY, secretName)
+                        .endMetadata();
             }
         });
     }
