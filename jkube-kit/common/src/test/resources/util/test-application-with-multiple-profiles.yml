@@ -12,28 +12,24 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+spring:
+  application:
+    name: spring-boot-k8-recipes
 
 management:
-  port: 8081
-
-
+  endpoints:
+    web:
+      base-path: '/'
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+    metrics:
+      enabled: true
+---
 spring:
-  datasource:
-    url:      jdbc:mysql://127.0.0.1:3306
-
-
-example:
-  nested:
-    items:
-      - name: item0
-        value: value0
-      - name: item1
-        value: value1
-      - name: item2
-        elements:
-        - element:
-          - subelement: sub0
-          - subelement: sub1
-  1: integerKeyElement
-
-
+  profiles: kubernetes
+cloud:
+  kubernetes:
+    reload:
+      enabled: true
