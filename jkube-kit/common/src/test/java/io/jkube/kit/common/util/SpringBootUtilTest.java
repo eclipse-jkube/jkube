@@ -17,6 +17,8 @@ import java.util.Properties;
 
 import org.junit.Test;
 
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -39,6 +41,7 @@ public class SpringBootUtilTest {
         assertEquals("value1", props.getProperty("example.nested.items[1].value"));
         assertEquals("sub0", props.getProperty("example.nested.items[2].elements[0].element[0].subelement"));
         assertEquals("sub1", props.getProperty("example.nested.items[2].elements[0].element[1].subelement"));
+        assertEquals("integerKeyElement", props.getProperty("example.1"));
 
     }
 
@@ -76,6 +79,21 @@ public class SpringBootUtilTest {
         assertNotNull(props);
         assertEquals(0, props.size());
 
+    }
+
+    @Test
+    public void testMultipleProfilesParsing() {
+        Properties props = SpringBootUtil.getPropertiesFromApplicationYamlResource(null, getClass().getResource("/util/test-application-with-multiple-profiles.yml"));
+        assertTrue(props.size() > 0);
+
+        assertEquals("spring-boot-k8-recipes", props.get("spring.application.name"));
+        assertEquals("false", props.get("management.endpoints.enabled-by-default"));
+        assertEquals("true", props.get("management.endpoint.health.enabled"));
+        assertNull(props.get("cloud.kubernetes.reload.enabled"));
+
+        props = SpringBootUtil.getPropertiesFromApplicationYamlResource("kubernetes", getClass().getResource("/util/test-application-with-multiple-profiles.yml"));
+        assertEquals("true", props.get("cloud.kubernetes.reload.enabled"));
+        assertNull(props.get("spring.application.name"));
     }
 
 }

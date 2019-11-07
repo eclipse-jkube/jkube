@@ -89,7 +89,9 @@ public class SpringBootGenerator extends JavaExecGenerator {
         Map<String, String> res = super.getEnv(prePackagePhase);
         if (getContext().getGeneratorMode() == GeneratorMode.WATCH) {
             // adding dev tools token to env variables to prevent override during recompile
-            String secret = SpringBootUtil.getSpringBootApplicationProperties(MavenUtil.getCompileClassLoader(getProject())).getProperty(DEV_TOOLS_REMOTE_SECRET);
+            String secret = SpringBootUtil.getSpringBootApplicationProperties(
+                    SpringBootUtil.getSpringBootActiveProfile(getProject()),
+                    MavenUtil.getCompileClassLoader(getProject())).getProperty(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET);
             if (secret != null) {
                 res.put(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET_ENV, secret);
             }
@@ -118,7 +120,9 @@ public class SpringBootGenerator extends JavaExecGenerator {
     @Override
     protected List<String> extractPorts() {
         List<String> answer = new ArrayList<>();
-        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(MavenUtil.getCompileClassLoader(this.getProject()));
+        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
+                SpringBootUtil.getSpringBootActiveProfile(getProject()),
+                MavenUtil.getCompileClassLoader(this.getProject()));
         SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getProject()));
         String port = properties.getProperty(propertyHelper.getServerPortPropertyKey(), DEFAULT_SERVER_PORT);
         addPortIfValid(answer, getConfig(JavaExecGenerator.Config.webPort, port));
@@ -130,7 +134,9 @@ public class SpringBootGenerator extends JavaExecGenerator {
     // =============================================================================
 
     private void ensureSpringDevToolSecretToken() throws MojoExecutionException {
-        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(MavenUtil.getCompileClassLoader(getProject()));
+        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
+                SpringBootUtil.getSpringBootActiveProfile(getProject()),
+                MavenUtil.getCompileClassLoader(getProject()));
         String remoteSecret = properties.getProperty(DEV_TOOLS_REMOTE_SECRET);
         if (Strings.isNullOrEmpty(remoteSecret)) {
             addSecretTokenToApplicationProperties();
