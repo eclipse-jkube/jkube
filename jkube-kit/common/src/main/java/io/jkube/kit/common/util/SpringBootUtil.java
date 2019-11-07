@@ -39,25 +39,38 @@ public class SpringBootUtil {
 
     /**
      * Returns the spring boot configuration (supports `application.properties` and `application.yml`)
-     * or an empty properties object if not found
+     * or an empty properties object if not found, it assumes first profile as default profile.
      *
-     * @param compileClassLoader URLClassLoader for resource access
-     * @return spring boot configuration as Properties
+     * @param compileClassLoader compile class loader
+     * @return properties object
      */
     public static Properties getSpringBootApplicationProperties(URLClassLoader compileClassLoader) {
+        return getSpringBootApplicationProperties(null, compileClassLoader);
+    }
+
+    /**
+     * Returns the spring boot configuration (supports `application.properties` and `application.yml`)
+     * or an empty properties object if not found
+     *
+     * @param springActiveProfile currently active spring-boot profile
+     * @param compileClassLoader compile class loader
+     * @return properties object
+     */
+    public static Properties getSpringBootApplicationProperties(String springActiveProfile, URLClassLoader compileClassLoader) {
         URL ymlResource = compileClassLoader.findResource("application.yml");
         URL propertiesResource = compileClassLoader.findResource("application.properties");
 
-        Properties props = YamlUtil.getPropertiesFromYamlResource(ymlResource);
+        Properties props = getPropertiesFromApplicationYamlResource(springActiveProfile, ymlResource);
         props.putAll(getPropertiesResource(propertiesResource));
         return props;
     }
 
+    public static Properties getPropertiesFromApplicationYamlResource(String springActiveProfile, URL ymlResource) {
+        return YamlUtil.getPropertiesFromYamlResource(springActiveProfile, ymlResource);
+    }
+
     /**
      * Returns the given properties resource on the project classpath if found or an empty properties object if not
-     *
-     * @param resource URL of the resource
-     * @return Properties resource
      */
     protected static Properties getPropertiesResource(URL resource) {
         Properties answer = new Properties();
@@ -73,9 +86,6 @@ public class SpringBootUtil {
 
     /**
      * Determine the spring-boot devtools version for the current project
-     *
-     * @param mavenProject MavenProject of that project
-     * @return optional string having spring boot devtools version
      */
     public static Optional<String> getSpringBootDevToolsVersion(MavenProject mavenProject) {
         return getSpringBootVersion(mavenProject);
@@ -83,15 +93,18 @@ public class SpringBootUtil {
 
     /**
      * Determine the spring-boot major version for the current project
-     *
-     * @param mavenProject Maven Project
-     * @return optional string having spring boot version
      */
     public static Optional<String> getSpringBootVersion(MavenProject mavenProject) {
         return Optional.ofNullable(MavenUtil.getDependencyVersion(mavenProject, SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID));
     }
 
-
-
+    public static String getSpringBootActiveProfile(MavenProject mavenProject) {
+        if (mavenProject != null && mavenProject.getProperties() != null) {
+            if (mavenProject.getProperties().get("spring.profiles.active") != null) {
+                return mavenProject.getProperties().get("spring.profiles.active").toString();
+            }
+        }
+        return null;
+    }
 }
 
