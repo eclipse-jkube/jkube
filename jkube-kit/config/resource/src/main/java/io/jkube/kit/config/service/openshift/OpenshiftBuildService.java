@@ -61,7 +61,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +74,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 21/02/17
  */
 public class OpenshiftBuildService implements BuildService {
+
+    private static final String DEFAULT_S2I_BUILD_SUFFIX = "-s2i";
 
     private final OpenShiftClient client;
     private final KitLogger log;
@@ -301,7 +302,7 @@ public class OpenshiftBuildService implements BuildService {
                     .endFrom()
                     .withNoCache(checkForNocache(imageConfig))
                     .endDockerStrategy().build();
-            
+
             if (openshiftPullSecret != null) {
                 buildStrategy.getDockerStrategy().setPullSecret(new LocalObjectReferenceBuilder()
                 .withName(openshiftPullSecret)
@@ -682,7 +683,13 @@ public class OpenshiftBuildService implements BuildService {
     // == Utility methods ==========================
 
     private String getS2IBuildName(BuildServiceConfig config, ImageName imageName) {
-        return imageName.getSimpleName() + config.getS2iBuildNameSuffix();
+        final StringBuilder s2IBuildName = new StringBuilder(imageName.getSimpleName());
+        if (!StringUtils.isEmpty(config.getS2iBuildNameSuffix())) {
+            s2IBuildName.append(config.getS2iBuildNameSuffix());
+        } else if (config.getOpenshiftBuildStrategy() == OpenShiftBuildStrategy.s2i) {
+            s2IBuildName.append(DEFAULT_S2I_BUILD_SUFFIX);
+        }
+        return s2IBuildName.toString();
     }
 
     private String getImageStreamName(ImageName name) {
