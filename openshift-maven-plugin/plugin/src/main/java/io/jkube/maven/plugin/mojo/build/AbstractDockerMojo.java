@@ -299,7 +299,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
      * The S2I binary builder BuildConfig name suffix appended to the image name to avoid
      * clashing with the underlying BuildConfig for the Jenkins pipeline
      */
-    @Parameter(property = "jkube.s2i.buildNameSuffix", defaultValue = "-s2i")
+    @Parameter(property = "jkube.s2i.buildNameSuffix", defaultValue = "")
     protected String s2iBuildNameSuffix;
 
     /**
