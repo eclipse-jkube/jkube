@@ -23,6 +23,7 @@ import java.util.jar.Attributes;
 import com.fasterxml.jackson.databind.util.ClassUtil;
 import io.jkube.kit.build.service.docker.ImageConfiguration;
 import io.jkube.kit.common.KitLogger;
+import io.jkube.kit.common.util.FatJarDetector;
 import io.jkube.kit.config.image.build.AssemblyConfiguration;
 import io.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import io.jkube.kit.config.resource.ProcessorConfig;

@@ -66,9 +66,7 @@
     <version.mockwebserver>0.0.13</version.mockwebserver>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <!-- latest release version of this plugin. Used in the docs.-->
-    <fabric8.maven.plugin.version>4.1.0</fabric8.maven.plugin.version>
-
+    <jib.version>0.10.0</jib.version>
     <jmockit.version>1.43</jmockit.version>
     <version.maven>3.3.1</version.maven>
     <version.jacoco>0.8.2</version.jacoco>
@@ -134,6 +132,8 @@
     <image.jetty.upstream>fabric8/jetty-9:${version.image.jetty.upstream}</image.jetty.upstream>
     <image.wildfly.upstream>jboss/wildfly:${version.image.wildfly.upstream}</image.wildfly.upstream>
     <commons-compress.version>1.19</commons-compress.version>
+    <guava.version>27.0.1-jre</guava.version>
+    <jib-maven-plugin.version>1.6.1</jib-maven-plugin.version>
   </properties>
 
 
@@ -303,7 +303,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>27.0-jre</version>
+        <version>${guava.version}</version>
       </dependency>
 
       <dependency>
@@ -383,6 +383,18 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>1.7.25</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-core</artifactId>
+        <version>${jib.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>${jib-maven-plugin.version}</version>
       </dependency>
 
       <!-- == maven ===================================== -->

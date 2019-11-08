@@ -21,6 +21,7 @@ import java.util.Map;
 
 import io.jkube.kit.build.service.docker.ImageConfiguration;
 import io.jkube.kit.common.Configs;
+import io.jkube.kit.common.util.FatJarDetector;
 import io.jkube.kit.common.util.MavenUtil;
 import io.jkube.kit.config.image.build.AssemblyConfiguration;
 import io.jkube.kit.config.image.build.BuildConfiguration;

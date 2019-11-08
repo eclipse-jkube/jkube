@@ -11,11 +11,12 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package io.jkube.generator.javaexec;
+package io.jkube.kit.common.util;
 
 import java.io.File;
 import java.net.URL;
 
+import io.jkube.kit.common.util.FatJarDetector;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 

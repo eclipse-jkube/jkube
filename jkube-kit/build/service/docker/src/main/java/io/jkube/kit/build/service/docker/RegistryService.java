@@ -20,14 +20,12 @@ import java.util.Map;
 
 import io.jkube.kit.build.api.auth.AuthConfig;
 import io.jkube.kit.build.service.docker.access.DockerAccess;
-import io.jkube.kit.build.service.docker.access.DockerAccessException;
 import io.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import io.jkube.kit.common.KitLogger;
 import io.jkube.kit.common.util.EnvUtil;
 import io.jkube.kit.config.image.ImageName;
 import io.jkube.kit.config.image.build.BuildConfiguration;
 import io.jkube.kit.config.image.build.ImagePullPolicy;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.settings.Settings;
 
 /**
@@ -90,10 +88,9 @@ public class RegistryService {
      * @param pullManager image pull manager
      * @param registryConfig registry configuration
      * @param hasImage boolean variable indicating it has image or not
-     * @throws Exception exception
+     * @throws IOException exception
      */
-    public void pullImageWithPolicy(String image, ImagePullManager pullManager, RegistryConfig registryConfig, boolean hasImage)
-        throws Exception {
+    public void pullImageWithPolicy(String image, ImagePullManager pullManager, RegistryConfig registryConfig, boolean hasImage) throws IOException {
 
         // Already pulled, so we don't need to take care
         if (pullManager.hasAlreadyPulled(image)) {
@@ -150,7 +147,7 @@ public class RegistryService {
     }
 
     private AuthConfig createAuthConfig(boolean isPush, String user, String registry, RegistryConfig config)
-            throws Exception {
+            throws IOException {
 
         return config.getAuthConfigFactory().createAuthConfig(
             isPush, config.isSkipExtendedAuth(), config.getAuthConfig(),

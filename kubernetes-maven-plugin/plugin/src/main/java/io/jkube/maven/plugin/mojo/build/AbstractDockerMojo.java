@@ -20,6 +20,7 @@ import io.jkube.kit.build.service.docker.BuildService;
 import io.jkube.kit.build.service.docker.DockerAccessFactory;
 import io.jkube.kit.build.service.docker.ImageConfiguration;
 import io.jkube.kit.build.service.docker.ImagePullManager;
+import io.jkube.kit.build.service.docker.JibBuildService;
 import io.jkube.kit.build.service.docker.RegistryService;
 import io.jkube.kit.build.service.docker.ServiceHub;
 import io.jkube.kit.build.service.docker.ServiceHubFactory;
@@ -335,6 +336,15 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     @Parameter(property = "jkube.useProjectClasspath", defaultValue = "false")
     protected boolean useProjectClasspath = false;
 
+    @Parameter(property = "jkube.build.jib", defaultValue = "false")
+    protected boolean isJib;
+
+    /**
+     * Skip building tags
+     */
+    @Parameter(property = "docker.skip.tag", defaultValue = "false")
+    protected boolean skipTag;
+
     /**
      * Resource config for getting annotation and labels to be applied to enriched build objects
      */
@@ -497,6 +507,10 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         return referenceDate != null ? referenceDate : new Date();
     }
 
+    private String determinePullPolicy(BuildConfiguration buildConfig) {
+        return buildConfig != null && buildConfig.getImagePullPolicy() != null ? buildConfig.getImagePullPolicy() : imagePullPolicy;
+    }
+
     // used for storing a timestamp
     protected File getBuildTimestampFile() {
         return new File(project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP);
@@ -650,7 +664,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     protected boolean isDockerAccessRequired() {
-        return true; // True in case of kubernetes maven plugin
+        return Boolean.FALSE.equals(isJib); // True in case of kubernetes maven plugin and if jib mode unset
     }
 
     protected void executeBuildGoal(ServiceHub hub) throws IOException, MojoExecutionException {
@@ -687,16 +701,22 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     protected void buildAndTag(ServiceHub hub, ImageConfiguration imageConfig)
-            throws MojoExecutionException, DockerAccessException {
+            throws MojoExecutionException, IOException {
 
-        try {
-            // TODO need to refactor d-m-p to avoid this call
-            EnvUtil.storeTimestamp(getBuildTimestampFile(), getBuildTimestamp());
+        EnvUtil.storeTimestamp(getBuildTimestampFile(), getBuildTimestamp());
 
-            jkubeServiceHub.getBuildService().build(imageConfig);
+        BuildService.BuildContext buildContext = getBuildContext();
+        ImagePullManager pullManager = getImagePullManager(determinePullPolicy(imageConfig.getBuildConfiguration()), autoPull);
 
-        } catch (Exception ex) {
-            throw new MojoExecutionException("Failed to execute the build", ex);
+        if (Boolean.TRUE.equals(isJib)) {
+            log.info("Building Container image with [[B]]JIB(Java Image Builder)[[B]] mode");
+            new JibBuildService(buildContext, createMojoParameters(), log).buildImage(imageConfig, true);
+        } else {
+            BuildService buildService = hub.getBuildService();
+            buildService.buildImage(imageConfig, pullManager, buildContext);
+            if (!skipTag) {
+                buildService.tagImage(imageConfig.getName(), imageConfig);
+            }
         }
     }
 

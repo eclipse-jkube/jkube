@@ -123,10 +123,10 @@ public class AuthConfigFactory {
      * @param registry registry to use, might be null in which case a default registry is checked,
      * @return the authentication configuration or <code>null</code> if none could be found
      *
-     * @throws MojoFailureException mojo failure exception
+     * @throws IOException exception
      */
     public AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, Settings settings, String user, String registry)
-            throws Exception {
+            throws IOException {
 
         AuthConfig ret = createStandardAuthConfig(isPush, authConfig, settings, user, registry);
         if (ret != null) {
@@ -202,7 +202,7 @@ public class AuthConfigFactory {
      * @throws MojoFailureException
      */
     private AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, Settings settings, String user, String registry)
-            throws Exception {
+            throws IOException {
         AuthConfig ret;
 
         // Check first for specific configuration based on direction (pull or push), then for a default value
@@ -319,7 +319,7 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromSystemProperties(LookupMode lookupMode) throws Exception {
+    private AuthConfig getAuthConfigFromSystemProperties(LookupMode lookupMode) throws IOException {
         Properties props = System.getProperties();
         String userKey = lookupMode.asSysProperty(AUTH_USERNAME);
         String passwordKey = lookupMode.asSysProperty(AUTH_PASSWORD);
@@ -336,7 +336,7 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) throws MojoExecutionException {
+    private AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) {
         Properties props = System.getProperties();
         String useOpenAuthModeProp = lookupMode.asSysProperty(AUTH_USE_OPENSHIFT_AUTH);
         // Check for system property
@@ -359,12 +359,12 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map authConfig) throws Exception {
+    private AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map authConfig) throws IllegalStateException {
         Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfig);
 
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USERNAME)) {
             if (!mapToCheck.containsKey(AUTH_PASSWORD)) {
-                throw new MojoExecutionException("No 'password' given while using <authConfig> in configuration for mode " + lookupMode);
+                throw new IllegalStateException("No 'password' given while using <authConfig> in configuration for mode " + lookupMode);
             }
             Map<String, String> cloneConfig = new HashMap<>(mapToCheck);
             cloneConfig.put(AUTH_PASSWORD, decrypt(cloneConfig.get(AUTH_PASSWORD)));
@@ -374,7 +374,7 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromSettings(Settings settings, String user, String registry) throws Exception {
+    private AuthConfig getAuthConfigFromSettings(Settings settings, String user, String registry) {
         Server defaultServer = null;
         Server found;
         for (Server server : settings.getServers()) {
@@ -520,13 +520,13 @@ public class AuthConfigFactory {
                               token, null, null);
     }
 
-    private AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) throws MojoExecutionException {
+    private AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) throws IllegalStateException {
         if (openShiftAuthConfig != null) {
             return openShiftAuthConfig;
         }
         // No login found
         String kubeConfigEnv = System.getenv("KUBECONFIG");
-        throw new MojoExecutionException(
+        throw new IllegalStateException(
             String.format("System property %s set, but not active user and/or token found in %s. " +
                           "Please use 'oc login' for connecting to OpenShift.",
                           useOpenAuthModeProp, kubeConfigEnv != null ? kubeConfigEnv : "~/.kube/config"));
@@ -545,20 +545,20 @@ public class AuthConfigFactory {
         return null;
     }
 
-    private String decrypt(String password) throws Exception {
+    private String decrypt(String password) throws IllegalStateException {
         try {
             // Done by reflection since I have classloader issues otherwise
             Object secDispatcher = container.lookup(SecDispatcher.ROLE, "maven");
             Method method = secDispatcher.getClass().getMethod("decrypt",String.class);
             return (String) method.invoke(secDispatcher,password);
         } catch (ComponentLookupException e) {
-            throw new Exception("Error looking security dispatcher",e);
+            throw new IllegalStateException("Error looking security dispatcher",e);
         } catch (ReflectiveOperationException e) {
-            throw new Exception("Cannot decrypt password: " + e.getCause(),e);
+            throw new IllegalStateException("Cannot decrypt password: " + e.getCause(),e);
         }
     }
 
-    private AuthConfig createAuthConfigFromServer(Server server) throws Exception {
+    private AuthConfig createAuthConfigFromServer(Server server) {
         return new AuthConfig(
                 server.getUsername(),
                 decrypt(server.getPassword()),

@@ -17,7 +17,6 @@ import io.jkube.kit.build.service.docker.DockerAccessFactory;
 import io.jkube.kit.build.service.docker.ServiceHub;
 import io.jkube.kit.build.service.docker.access.DockerAccess;
 import io.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
-import io.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import io.jkube.kit.build.service.docker.config.ConfigHelper;
 import io.jkube.kit.build.service.docker.helper.AnsiLogger;
 import io.jkube.kit.config.access.ClusterAccess;
@@ -27,10 +26,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.codehaus.plexus.PlexusConstants;
-import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.context.Context;
-import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 
 import java.io.IOException;

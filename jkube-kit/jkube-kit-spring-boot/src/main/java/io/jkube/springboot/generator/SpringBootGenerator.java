@@ -33,7 +33,7 @@ import java.util.zip.ZipOutputStream;
 import com.google.common.base.Strings;
 import io.jkube.generator.api.GeneratorContext;
 import io.jkube.generator.api.GeneratorMode;
-import io.jkube.generator.javaexec.FatJarDetector;
+import io.jkube.kit.common.util.FatJarDetector;
 import io.jkube.generator.javaexec.JavaExecGenerator;
 import io.jkube.kit.build.service.docker.ImageConfiguration;
 import io.jkube.kit.common.Configs;

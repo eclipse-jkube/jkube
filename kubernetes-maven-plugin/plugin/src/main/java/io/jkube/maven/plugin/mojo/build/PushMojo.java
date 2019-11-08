@@ -14,6 +14,8 @@
 package io.jkube.maven.plugin.mojo.build;
 
 
+import io.jkube.kit.build.service.docker.ImageConfiguration;
+import io.jkube.kit.build.service.docker.JibBuildService;
 import io.jkube.kit.build.service.docker.ServiceHub;
 import io.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import io.jkube.kit.config.access.ClusterAccess;
@@ -27,6 +29,8 @@ import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
+
+import java.util.List;
 
 /**
  * Uploads the built Docker images to a Docker registry
@@ -74,7 +78,17 @@ public class PushMojo extends AbstractDockerMojo {
         }
 
         try {
-            serviceHub.getRegistryService().pushImages(getResolvedImages(), retries, getRegistryConfig(pushRegistry), skipTag);
+            List<ImageConfiguration> imageConfigurationList = getResolvedImages();
+            if (Boolean.TRUE.equals(isJib)) {
+                log.info("Building Container image with [[B]]JIB(Java Image Builder)[[B]] mode");
+                JibBuildService jibBuildService = new JibBuildService(getBuildContext(), createMojoParameters(), log);
+                for (ImageConfiguration imageConfig : imageConfigurationList) {
+                    jibBuildService.buildImage(imageConfig, false);
+                }
+            } else {
+                serviceHub.getRegistryService().pushImages(imageConfigurationList, retries, getRegistryConfig(pushRegistry), skipTag);
+            }
+
         } catch (Exception exp) {
             throw new MojoExecutionException(exp.getMessage());
         }

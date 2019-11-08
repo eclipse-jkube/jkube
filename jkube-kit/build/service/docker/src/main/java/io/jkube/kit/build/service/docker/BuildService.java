@@ -65,10 +65,10 @@ public class BuildService {
      * @param imageConfig the image configuration
      * @param imagePullManager the image pull manager
      * @param buildContext the build context
-     * @throws Exception in case of any problems
+     * @throws IOException in case of any problems
      */
     public void buildImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, BuildContext buildContext)
-            throws Exception {
+            throws IOException {
 
         if (imagePullManager != null) {
             autoPullBaseImage(imageConfig, imagePullManager, buildContext);
@@ -238,8 +238,7 @@ public class BuildService {
         return buildArgs;
     }
 
-    private void autoPullBaseImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, BuildContext buildContext)
-            throws Exception {
+    private void autoPullBaseImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, BuildContext buildContext) throws DockerAccessException, IOException {
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
         if (buildConfig.getDockerArchive() != null) {

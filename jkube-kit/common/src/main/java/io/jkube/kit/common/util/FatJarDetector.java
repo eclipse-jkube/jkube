@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package io.jkube.generator.javaexec;
+package io.jkube.kit.common.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,11 +32,11 @@ public class FatJarDetector {
     private File directory;
     private Result result;
 
-    FatJarDetector(String dir) {
+    public FatJarDetector(String dir) {
         this.directory = new File(dir);
     }
 
-    Result scan() throws MojoExecutionException {
+    public Result scan() throws MojoExecutionException {
         // Scanning is lazy ...
         if (result == null) {
             if (!directory.exists()) {
