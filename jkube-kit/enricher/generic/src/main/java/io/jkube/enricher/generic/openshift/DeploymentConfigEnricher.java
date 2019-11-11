@@ -50,10 +50,11 @@ public class DeploymentConfigEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        if(platformMode == PlatformMode.openshift) {
-            for(HasMetadata item : builder.buildItems()) {
 
-                if(item instanceof Deployment) {
+        if(platformMode == PlatformMode.openshift) {
+
+            for(HasMetadata item : builder.buildItems()) {
+                if(item instanceof Deployment && !useDeploymentforOpenShift()) {
                     DeploymentConfig deploymentConfig = convert(item);
                     removeItemFromKubernetesBuilder(builder, item);
                     builder.addToDeploymentConfigItems(deploymentConfig);
