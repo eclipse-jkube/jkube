@@ -239,9 +239,6 @@ public class ResourceMojo extends AbstractJkubeMojo {
     @Parameter(property = "jkube.openshift.trimImageInContainerSpec", defaultValue = "false")
     private Boolean trimImageInContainerSpec;
 
-    @Parameter(property = "jkube.openshift.generateRoute", defaultValue = "true")
-    private Boolean generateRoute;
-
     @Parameter(property = "jkube.openshift.enableAutomaticTrigger", defaultValue = "true")
     private Boolean enableAutomaticTrigger;
 
@@ -285,24 +282,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
     }
 
     public static File writeResourcesIndividualAndComposite(KubernetesList resources, File resourceFileBase,
-        ResourceFileType resourceFileType, KitLogger log, Boolean generateRoute) throws MojoExecutionException {
-
-        //Creating a new items list. This will be used to generate openshift.yml
-        List<HasMetadata> newItemList = new ArrayList<>();
-
-        if (!generateRoute) {
-
-            //if flag is set false, this will remove the Route resource from resources list
-            for (HasMetadata item : resources.getItems()) {
-                if (item.getKind().equalsIgnoreCase("Route")) {
-                    continue;
-                }
-                newItemList.add(item);
-            }
-
-            //update the resource with new list
-            resources.setItems(newItemList);
-        }
+        ResourceFileType resourceFileType, KitLogger log) throws MojoExecutionException {
 
         // entity is object which will be sent to writeResource for openshift.yml
         // if generateRoute is false, this will be set to resources with new list
@@ -321,12 +301,12 @@ public class ResourceMojo extends AbstractJkubeMojo {
 
         // write separate files, one for each resource item
         // resources passed to writeIndividualResources is also new one.
-        writeIndividualResources(resources, resourceFileBase, resourceFileType, log, generateRoute);
+        writeIndividualResources(resources, resourceFileBase, resourceFileType, log);
         return file;
     }
 
     private static void writeIndividualResources(KubernetesList resources, File targetDir,
-        ResourceFileType resourceFileType, KitLogger log, Boolean generateRoute) throws MojoExecutionException {
+        ResourceFileType resourceFileType, KitLogger log) throws MojoExecutionException {
         for (HasMetadata item : resources.getItems()) {
             String name = KubernetesHelper.getName(item);
             if (StringUtils.isBlank(name)) {
@@ -336,12 +316,8 @@ public class ResourceMojo extends AbstractJkubeMojo {
             String itemFile = KubernetesResourceUtil.getNameWithSuffix(name, item.getKind());
 
             // Here we are writing individual file for all the resources.
-            // if generateRoute is false and resource is route, we should not generate it.
-
-            if (!(item.getKind().equalsIgnoreCase("Route") && !generateRoute)) {
-                File itemTarget = new File(targetDir, itemFile);
-                writeResource(itemTarget, item, resourceFileType);
-            }
+            File itemTarget = new File(targetDir, itemFile);
+            writeResource(itemTarget, item, resourceFileType);
         }
     }
 
@@ -373,7 +349,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
                             : ResourceClassifier.OPENSHIFT;
 
                     resources = generateResources(platformMode, resolvedImages);
-                    writeResources(resources, resourceClassifier, generateRoute);
+                    writeResources(resources, resourceClassifier);
                     File resourceDir = new File(this.targetDir, resourceClassifier.getValue());
                     validateIfRequired(resourceDir, resourceClassifier);
                 }
@@ -628,13 +604,13 @@ public class ResourceMojo extends AbstractJkubeMojo {
         return "pom".equals(project.getPackaging());
     }
 
-    protected void writeResources(KubernetesList resources, ResourceClassifier classifier, Boolean generateRoute)
+    protected void writeResources(KubernetesList resources, ResourceClassifier classifier)
         throws MojoExecutionException {
         // write kubernetes.yml / openshift.yml
         File resourceFileBase = new File(this.targetDir, classifier.getValue());
 
         File file =
-            writeResourcesIndividualAndComposite(resources, resourceFileBase, this.resourceFileType, log, generateRoute);
+            writeResourcesIndividualAndComposite(resources, resourceFileBase, this.resourceFileType, log);
 
         KubernetesHelper.resolveTemplateVariablesIfAny(resources, this.targetDir);
 
