@@ -52,6 +52,7 @@ public class BaseEnricher implements Enricher {
     public static final String SIDECAR = "jkube.sidecar";
     public static final String ENRICH_ALL_WITH_IMAGE_TRIGGERS = "jkube.openshift.enrichAllWithImageChangeTrigger";
     public static final String OPENSHIFT_DEPLOY_TIMEOUT_SECONDS = "jkube.openshift.deployTimeoutSeconds";
+    private static final String SWITCH_TO_DEPLOYMENT = "jkube.build.switchToDeployment";
 
     protected KitLogger log;
 
@@ -200,6 +201,10 @@ public class BaseEnricher implements Enricher {
      */
     protected Boolean getValueFromConfig(String propertyName, Boolean defaultValue) {
         return Boolean.parseBoolean(getValueFromConfig(propertyName, defaultValue.toString()));
+    }
+
+    protected boolean useDeploymentforOpenShift() {
+        return getValueFromConfig(SWITCH_TO_DEPLOYMENT, false);
     }
 
     /**
