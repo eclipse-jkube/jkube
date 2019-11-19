@@ -44,7 +44,7 @@ public class SpringBootConfigurationHelper {
     private static final String[] SERVLET_PATH = {"server.servlet-path", "server.servlet.path"};
     private static final String[] SERVER_CONTEXT_PATH = {"server.context-path", "server.servlet.context-path"};
     private static final String[] MANAGEMENT_CONTEXT_PATH = {"management.context-path", "management.server.servlet.context-path"};
-    private static final String[] ACTUATOR_BASE_PATH = {null, "management.endpoints.web.base-path"};
+    private static final String[] ACTUATOR_BASE_PATH = {"", "management.endpoints.web.base-path"};
     private static final String[] ACTUATOR_DEFAULT_BASE_PATH = {"", "/actuator"};
 
     private int propertyOffset;
