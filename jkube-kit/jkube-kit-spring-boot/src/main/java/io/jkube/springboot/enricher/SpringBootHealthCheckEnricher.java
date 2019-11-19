@@ -118,7 +118,7 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
         // lets default to adding a spring boot actuator health check
         ProbeBuilder probeBuilder = new ProbeBuilder().
-                withNewHttpGet().withNewPort(port).withPath(prefix + actuatorBasePath + Configs.asString(getConfig(Config.path))).withScheme(scheme).endHttpGet();
+                withNewHttpGet().withNewPort(port).withPath(normalizeMultipleSlashes(prefix + actuatorBasePath + Configs.asString(getConfig(Config.path)))).withScheme(scheme).endHttpGet();
 
         if (initialDelay != null) {
             probeBuilder = probeBuilder.withInitialDelaySeconds(initialDelay);
@@ -139,5 +139,9 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
         return probeBuilder.build();
     }
 
+    private String normalizeMultipleSlashes(String s) {
+        //substitute multiple consecutive "/" with a single occurrence (i.e. ////a//b///c////////d -> /a/b/c/d)
+        return s.replaceAll("/{2,}","/");
+    }
 }
 
