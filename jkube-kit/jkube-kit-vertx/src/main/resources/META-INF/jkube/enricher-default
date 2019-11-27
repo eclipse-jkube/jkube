@@ -8,4 +8,4 @@
 # ----------------------------------------------------------------
 
 # Healthcheck Enrichers
-io.jkube.vertx.enricher.VertxHealthCheckEnricher
+org.eclipse.jkube.vertx.enricher.VertxHealthCheckEnricher

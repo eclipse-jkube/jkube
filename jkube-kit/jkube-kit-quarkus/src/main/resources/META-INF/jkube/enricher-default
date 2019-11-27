@@ -1,2 +1,2 @@
 # Healthcheck Enricher
-io.jkube.quarkus.enricher.QuarkusHealthCheckEnricher
+org.eclipse.jkube.quarkus.enricher.QuarkusHealthCheckEnricher

@@ -1,6 +1,6 @@
 ## Openshift Maven Plugin
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.jkube/oc-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.jkube%22%20AND%20a:%22oc-maven-plugin%22)
+[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/oc-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22oc-maven-plugin%22)
 
 ![Sample Demo](oc-maven-plugin-demo.gif)
 
@@ -15,7 +15,7 @@ To enable Openshift maven plugin on your project just add this to the plugins se
 
 ```
       <plugin>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
         <version>${jkube.openshift.version}</version>
       </plugin>

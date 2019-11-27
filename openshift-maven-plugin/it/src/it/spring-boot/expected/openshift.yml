@@ -25,7 +25,7 @@ items:
       provider: jkube
       app: jkube-maven-sample-spring-boot
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-spring-boot
   spec:
     ports:
@@ -36,7 +36,7 @@ items:
     selector:
       app: jkube-maven-sample-spring-boot
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
     type: NodePort
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
@@ -46,14 +46,14 @@ items:
       provider: jkube
       app: jkube-maven-sample-spring-boot
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-spring-boot
   spec:
     replicas: 1
     selector:
       app: jkube-maven-sample-spring-boot
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
     template:
       metadata:
         labels:
@@ -61,7 +61,7 @@ items:
           provider: jkube
           app: jkube-maven-sample-spring-boot
           version: "@ignore@"
-          group: io.jkube
+          group: org.eclipse.jkube
       spec:
         containers:
         - env:

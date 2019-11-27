@@ -80,7 +80,7 @@ This minimal but full working example `pom.xml` shows how a simple spring boot a
 <project>
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>jkube-maven-sample-zero-config</artifactId>
   <version>{version}</version>
   <packaging>jar</packaging>
@@ -105,7 +105,7 @@ This minimal but full working example `pom.xml` shows how a simple spring boot a
         <artifactId>spring-boot-maven-plugin</artifactId> <!--3-->
       </plugin>
       <plugin>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId> <!--4-->
         <version>{version}</version>
       </plugin>
@@ -150,7 +150,7 @@ Of course you can bind all those jkube.goals to execution phases as well, so tha
 [source, xml, indent=0]
 ----
 <plugin>
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>oc-maven-plugin</artifactId>
 
   <!-- ... -->
@@ -172,7 +172,7 @@ If you'd also like to automatically deploy to Kubernetes each time you do a `mvn
 [source, xml, indent=0]
 ----
 <plugin>
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>oc-maven-plugin</artifactId>
 
   <!-- ... -->

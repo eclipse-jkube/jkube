@@ -118,5 +118,5 @@ spec:
 
 Where the above defines the `PersistentVolumeClaim` called `foo` which is then mounted into the container at `/whatnot`
 
-Here is https://github.com/jkubeio.jkube-devops/tree/master/gogs/src/main/jkube[an example application]
+Here is https://github.com/jkubeorg.eclipse.jkube-devops/tree/master/gogs/src/main/jkube[an example application]
 

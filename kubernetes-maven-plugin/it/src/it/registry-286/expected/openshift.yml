@@ -24,4 +24,4 @@ items:
     template:
       spec:
         containers:
-        - image: "@matches('fabric8.io.jkube/jkube-maven-sample-registry-286:.*$')@"
+        - image: "@matches('fabric8.org.eclipse.jkube/jkube-maven-sample-registry-286:.*$')@"

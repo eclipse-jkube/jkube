@@ -17,12 +17,12 @@ apiVersion: "extensions/v1beta1"
 kind: "Deployment"
 metadata:
   annotations:
-    jkube.io/iconUrl: "https://cdn.rawgit.com/jkubeio.jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png"
+    jkube.io/iconUrl: "https://cdn.rawgit.com/jkubeorg.eclipse.jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png"
   labels:
     provider: "jkube"
     app: "${project.artifactId}"
     version: "${project.version}"
-    group: "io.jkube.devops.apps"
+    group: "org.eclipse.jkube.devops.apps"
   name: "jkube-docker-registry"
 spec:
   replicas: 1
@@ -32,14 +32,14 @@ spec:
     matchLabels:
       provider: "jkube"
       app: "${project.artifactId}"
-      group: "io.jkube.devops.apps"
+      group: "org.eclipse.jkube.devops.apps"
   template:
     metadata:
       labels:
         provider: "jkube"
         app: "${project.artifactId}"
         version: "${project.version}"
-        group: "io.jkube.devops.apps"
+        group: "org.eclipse.jkube.devops.apps"
     spec:
       containers:
       - env:

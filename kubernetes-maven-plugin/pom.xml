@@ -18,13 +18,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.jkube</groupId>
+    <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
     <version>0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>k8s-maven-plugin-build</artifactId>
   <version>0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
