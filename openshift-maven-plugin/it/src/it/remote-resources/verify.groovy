@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-import io.jkube.maven.it.Verify
+import org.eclipse.jkube.maven.it.Verify
 
 
 [ "openshift"   ].each {

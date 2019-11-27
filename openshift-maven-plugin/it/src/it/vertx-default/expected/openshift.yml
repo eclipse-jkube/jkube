@@ -24,7 +24,7 @@ items:
       provider: jkube
       app: vertx-default-sample
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: vertx-default-sample
   spec:
     ports:
@@ -35,7 +35,7 @@ items:
     selector:
       app: vertx-default-sample
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
@@ -43,21 +43,21 @@ items:
       provider: jkube
       app: vertx-default-sample
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: vertx-default-sample
   spec:
     replicas: 1
     selector:
       app: vertx-default-sample
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
     template:
       metadata:
         labels:
           provider: jkube
           app: vertx-default-sample
           version: "@ignore@"
-          group: io.jkube
+          group: org.eclipse.jkube
       spec:
         containers:
         - env:

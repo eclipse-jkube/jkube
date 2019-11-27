@@ -23,7 +23,7 @@ items:
       provider: jkube
       app: deployment-strategy-type-919
       version: 0.1-SNAPSHOT
-      group: io.jkube.devops.apps
+      group: org.eclipse.jkube.devops.apps
     name: jkube-docker-registry
   spec:
     replicas: 1
@@ -32,7 +32,7 @@ items:
       matchLabels:
         provider: jkube
         app: deployment-strategy-type-919
-        group: io.jkube.devops.apps
+        group: org.eclipse.jkube.devops.apps
     strategy:
       type: Recreate
     template:
@@ -41,7 +41,7 @@ items:
           provider: jkube
           app: deployment-strategy-type-919
           version: 0.1-SNAPSHOT
-          group: io.jkube.devops.apps
+          group: org.eclipse.jkube.devops.apps
       spec:
         containers:
         - env:

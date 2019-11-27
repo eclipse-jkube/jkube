@@ -1,2 +1,2 @@
 # Healthcheck Enrichers
-io.jkube.thorntail.v2.enricher.ThorntailV2HealthCheckEnricher
+org.eclipse.jkube.thorntail.v2.enricher.ThorntailV2HealthCheckEnricher

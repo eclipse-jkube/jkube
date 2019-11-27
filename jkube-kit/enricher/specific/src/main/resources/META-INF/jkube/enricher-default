@@ -8,11 +8,12 @@
 # ----------------------------------------------------------------
 
 # Healthcheck Enrichers
-io.jkube.maven.enricher.specific.WildFlySwarmHealthCheckEnricher
-io.jkube.maven.enricher.specific.KarafHealthCheckEnricher
-io.jkube.maven.enricher.specific.WebAppHealthCheckEnricher
-io.jkube.maven.enricher.specific.DockerHealthCheckEnricher,510
+org.eclipse.jkube.maven.enricher.specific.WildFlySwarmHealthCheckEnricher
+org.eclipse.jkube.maven.enricher.specific.KarafHealthCheckEnricher
+org.eclipse.jkube.maven.enricher.specific.WebAppHealthCheckEnricher
+org.eclipse.jkube.maven.enricher.specific.DockerHealthCheckEnricher,510
 
 # Other enrichers
-io.jkube.maven.enricher.specific.PrometheusEnricher
+org.eclipse.jkube.maven.enricher.specific.PrometheusEnricher
+
 

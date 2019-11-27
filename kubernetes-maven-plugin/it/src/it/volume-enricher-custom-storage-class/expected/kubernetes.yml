@@ -23,7 +23,7 @@ items:
       provider: jkube
       app: volume-enricher-storage-class-835
       version: 0.1-SNAPSHOT
-      group: io.jkube.devops.apps
+      group: org.eclipse.jkube.devops.apps
       expose: "true"
     name: jkube-docker-registry
   spec:
@@ -34,7 +34,7 @@ items:
     selector:
       app: jkube-docker-registry
       provider: jkube
-      group: io.jkube.devops.apps
+      group: org.eclipse.jkube.devops.apps
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -44,7 +44,7 @@ items:
       app: volume-enricher-storage-class-835
       provider: jkube
       version: 0.1-SNAPSHOT
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-docker-registry-storage
   spec:
     accessModes:
@@ -59,7 +59,7 @@ items:
       provider: jkube
       app: volume-enricher-storage-class-835
       version: 0.1-SNAPSHOT
-      group: io.jkube.devops.apps
+      group: org.eclipse.jkube.devops.apps
     name: jkube-docker-registry
   spec:
     replicas: 1
@@ -68,14 +68,14 @@ items:
       matchLabels:
         provider: jkube
         app: volume-enricher-storage-class-835
-        group: io.jkube.devops.apps
+        group: org.eclipse.jkube.devops.apps
     template:
       metadata:
         labels:
           provider: jkube
           app: volume-enricher-storage-class-835
           version: 0.1-SNAPSHOT
-          group: io.jkube.devops.apps
+          group: org.eclipse.jkube.devops.apps
       spec:
         containers:
         - env:

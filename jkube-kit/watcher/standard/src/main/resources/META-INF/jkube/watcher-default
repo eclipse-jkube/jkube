@@ -2,4 +2,4 @@
 # =================
 
 # Standard watcher for Kubernetes using the fabric8 docker-maven-plugin
-io.jkube.watcher.standard.DockerImageWatcher,101
+org.eclipse.jkube.watcher.standard.DockerImageWatcher,101

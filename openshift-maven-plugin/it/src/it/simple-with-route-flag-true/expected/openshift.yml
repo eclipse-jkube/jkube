@@ -31,7 +31,7 @@ items:
       app: jkube-maven-sample-zero-config
       provider: jkube
       version: 0.1-SNAPSHOT
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-zero-config
   spec:
     ports:
@@ -42,7 +42,7 @@ items:
     selector:
       app: jkube-maven-sample-zero-config
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
@@ -55,7 +55,7 @@ items:
       app: jkube-maven-sample-zero-config
       provider: jkube
       version: 0.1-SNAPSHOT
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-zero-config
   spec:
     replicas: 1
@@ -63,7 +63,7 @@ items:
     selector:
       app: jkube-maven-sample-zero-config
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
     strategy:
       rollingParams:
         timeoutSeconds: 3600
@@ -79,7 +79,7 @@ items:
           app: jkube-maven-sample-zero-config
           provider: jkube
           version: 0.1-SNAPSHOT
-          group: io.jkube
+          group: org.eclipse.jkube
       spec:
         containers:
         - env:
@@ -120,7 +120,7 @@ items:
       app: jkube-maven-sample-zero-config
       provider: jkube
       version: 0.1-SNAPSHOT
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-zero-config
   spec:
     port:

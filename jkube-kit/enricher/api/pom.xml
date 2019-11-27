@@ -18,7 +18,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.jkube</groupId>
+    <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
     <version>0.1-SNAPSHOT</version>
     <relativePath>../../parent/pom.xml</relativePath>
@@ -36,12 +36,12 @@
     </dependency>
 
     <dependency>
-      <groupId>io.jkube</groupId>
+      <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-config-image</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>io.jkube</groupId>
+      <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-config-resource</artifactId>
     </dependency>
 

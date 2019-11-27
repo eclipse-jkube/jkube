@@ -18,7 +18,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.jkube</groupId>
+    <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
     <version>0.1-SNAPSHOT</version>
     <relativePath>../../parent/pom.xml</relativePath>
@@ -31,12 +31,12 @@
 
   <dependencies>
     <dependency>
-      <groupId>io.jkube</groupId>
+      <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-maven-generator-api</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>io.jkube</groupId>
+      <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-maven-generator-java-exec</artifactId>
     </dependency>
   </dependencies>

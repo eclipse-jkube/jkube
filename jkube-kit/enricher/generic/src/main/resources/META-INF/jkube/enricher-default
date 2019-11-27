@@ -8,96 +8,96 @@
 # ----------------------------------------------------------------
 
 # Add a default name for any resource missing
-io.jkube.enricher.generic.NameEnricher
+org.eclipse.jkube.enricher.generic.NameEnricher
 
 # Add a default Deployment, ReplicaSet or ReplicationController if none is given
-io.jkube.enricher.generic.DefaultControllerEnricher
+org.eclipse.jkube.enricher.generic.DefaultControllerEnricher
 
 # Add a default Namespace or Project if namespace property is specified as an argument
 # to resource mojo or in the xml configuration
-io.jkube.enricher.generic.DefaultNamespaceEnricher
+org.eclipse.jkube.enricher.generic.DefaultNamespaceEnricher
 
 # Add image information such as name, image pull policy, environment variables
 # to a container. Controllers (like Deployment, DeploymentConfig, etc.)
 # must be already present
-io.jkube.enricher.generic.ImageEnricher
+org.eclipse.jkube.enricher.generic.ImageEnricher
 
 # Add a default service if none is given. Enrich also with
 # other information found
-io.jkube.enricher.generic.DefaultServiceEnricher,103
+org.eclipse.jkube.enricher.generic.DefaultServiceEnricher,103
 
 # Add port names from IANA service definitions
-io.jkube.enricher.generic.PortNameEnricher
+org.eclipse.jkube.enricher.generic.PortNameEnricher
 
 # Add Maven coordinates as labels
-io.jkube.enricher.generic.ProjectLabelEnricher
+org.eclipse.jkube.enricher.generic.ProjectLabelEnricher
 
 # Copy over annotation from a deployment to its pod spec
-io.jkube.enricher.generic.PodAnnotationEnricher
+org.eclipse.jkube.enricher.generic.PodAnnotationEnricher
 
 # Add SCM information found in .git as annotations
-io.jkube.enricher.generic.GitEnricher
+org.eclipse.jkube.enricher.generic.GitEnricher
 
 # Add all objects found in dependencies' jar within META-INF/jkube/kubernetes.yml
-io.jkube.enricher.generic.DependencyEnricher
+org.eclipse.jkube.enricher.generic.DependencyEnricher
 
 # Add an enricher for adding an init container fixing volume mount permissions
-io.jkube.enricher.generic.VolumePermissionEnricher
+org.eclipse.jkube.enricher.generic.VolumePermissionEnricher
 
 # Add an enricher for enabling debug information
-io.jkube.enricher.generic.DebugEnricher
+org.eclipse.jkube.enricher.generic.DebugEnricher
 
 # Add an enricher for removing build related annotations
-io.jkube.enricher.generic.RemoveBuildAnnotationsEnricher
+org.eclipse.jkube.enricher.generic.RemoveBuildAnnotationsEnricher
 
 # Add an enricher for adding Maven SCM metadata based on pom.xml scm details
-io.jkube.enricher.generic.MavenScmEnricher
+org.eclipse.jkube.enricher.generic.MavenScmEnricher
 
 # Add an enricher for adding Maven SCM metadata based on pom.xml IssueManagement details
-io.jkube.enricher.generic.MavenIssueManagementEnricher
+org.eclipse.jkube.enricher.generic.MavenIssueManagementEnricher
 
 # Add an enricher for Adding Metadata (Labels, Annotations & Selectors) to the generated resources
-io.jkube.enricher.generic.DefaultMetadataEnricher
+org.eclipse.jkube.enricher.generic.DefaultMetadataEnricher
 
 # Resolve the docker registry things
-io.jkube.enricher.generic.DockerRegistrySecretEnricher
+org.eclipse.jkube.enricher.generic.DockerRegistrySecretEnricher
 
 # Add an enricher for adding revision history limit for deployment resources
-io.jkube.enricher.generic.RevisionHistoryEnricher
+org.eclipse.jkube.enricher.generic.RevisionHistoryEnricher
 
 # Add an enricher for adding trigger annotations to Kubernetes resources
-io.jkube.enricher.generic.TriggersAnnotationEnricher
+org.eclipse.jkube.enricher.generic.TriggersAnnotationEnricher
 
 # Add Config Map enricher
-io.jkube.enricher.generic.ConfigMapEnricher
+org.eclipse.jkube.enricher.generic.ConfigMapEnricher
 
 # Provide cluster generated CERTs to a pod
 # (see https://docs.okd.io/latest/dev_guide/secrets.html#service-serving-certificate-secrets)
-io.jkube.enricher.generic.openshift.AutoTLSEnricher
+org.eclipse.jkube.enricher.generic.openshift.AutoTLSEnricher
 
 # Add a service account
-io.jkube.enricher.generic.ServiceAccountEnricher
+org.eclipse.jkube.enricher.generic.ServiceAccountEnricher
 
 # Add a route on demand when on OpenShift
-io.jkube.enricher.generic.openshift.RouteEnricher
+org.eclipse.jkube.enricher.generic.openshift.RouteEnricher
 
 # Add a deploymentconfig from deployment when on OpenShift
-io.jkube.enricher.generic.openshift.DeploymentConfigEnricher
+org.eclipse.jkube.enricher.generic.openshift.DeploymentConfigEnricher
 
 # Add a Project from Namespace when on OpenShift
-io.jkube.enricher.generic.openshift.ProjectEnricher
+org.eclipse.jkube.enricher.generic.openshift.ProjectEnricher
 
 # Add an "expose" label to every service (TODO: Combine this with a Route/Ingress enricher)
-io.jkube.enricher.generic.openshift.ExposeEnricher
+org.eclipse.jkube.enricher.generic.openshift.ExposeEnricher
 
 # Enhance a given controller with the configuration information presented in the plugin configuration.
-io.jkube.enricher.generic.ControllerViaPluginConfigurationEnricher
+org.eclipse.jkube.enricher.generic.ControllerViaPluginConfigurationEnricher
 
 # Add Secret enricher
-io.jkube.enricher.generic.FileDataSecretEnricher
+org.eclipse.jkube.enricher.generic.FileDataSecretEnricher
 
 # ImageChange trigger enrichers for openshift
-io.jkube.enricher.generic.openshift.ImageChangeTriggerEnricher
+org.eclipse.jkube.enricher.generic.openshift.ImageChangeTriggerEnricher
 
 # Add an ingress on demand when on Kubernetes
-io.jkube.enricher.generic.IngressEnricher
+org.eclipse.jkube.enricher.generic.IngressEnricher

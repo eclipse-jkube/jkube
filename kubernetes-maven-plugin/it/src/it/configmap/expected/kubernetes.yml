@@ -29,7 +29,7 @@ items:
       provider: jkube
       app: jkube-maven-sample-config-map
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-config-map
   spec:
     ports:
@@ -40,7 +40,7 @@ items:
     selector:
       app: jkube-maven-sample-config-map
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
 - apiVersion: v1
   kind: ConfigMap
   metadata:
@@ -48,7 +48,7 @@ items:
       app: jkube-maven-sample-config-map
       provider: jkube
       version: 0.1-SNAPSHOT
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-config-map
   data:
     A: B
@@ -62,7 +62,7 @@ items:
       provider: jkube
       app: jkube-maven-sample-config-map
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-config-map
   spec:
     replicas: 1
@@ -70,7 +70,7 @@ items:
       matchLabels:
         app: jkube-maven-sample-config-map
         provider: jkube
-        group: io.jkube
+        group: org.eclipse.jkube
     template:
       metadata:
         annotations:
@@ -80,7 +80,7 @@ items:
           provider: jkube
           app: jkube-maven-sample-config-map
           version: "@ignore@"
-          group: io.jkube
+          group: org.eclipse.jkube
       spec:
         containers:
         - env:

@@ -32,7 +32,7 @@ the generation of such resources.
 [source, xml, indent=0]
 ----
 <plugin>
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>oc-maven-plugin</artifactId>
 
   <!-- ... -->

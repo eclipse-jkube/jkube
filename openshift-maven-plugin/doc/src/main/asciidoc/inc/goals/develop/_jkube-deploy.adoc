@@ -14,7 +14,7 @@ This goal is designed to run <<oc:build>> and <<oc:resource>> before the deploy 
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>oc-maven-plugin</artifactId>
   <version>{version}</version>
 
@@ -45,7 +45,7 @@ By default the behaviour of resource goal is it generates `route.yml` for a serv
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
-    <groupId>io.jkube</groupId>
+    <groupId>org.eclipse.jkube</groupId>
     <artifactId>oc-maven-plugin</artifactId>
     <version>{version}</version>
     <configuration>

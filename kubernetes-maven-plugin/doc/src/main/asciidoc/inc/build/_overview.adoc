@@ -121,12 +121,12 @@ dmp-plugins are enabled by just declaring a dependency in the plugin declaration
 [source, xml]
 ----
 <plugin>
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>k8s-maven-plugin</artifactId>
 
   <dependencies>
     <dependency>
-      <groupId>io.jkube</groupId>
+      <groupId>org.eclipse.jkube</groupId>
       <artifactId>run-java-sh</artifactId>
       <version>1.2.2</version>
     </dependency>
@@ -136,7 +136,7 @@ dmp-plugins are enabled by just declaring a dependency in the plugin declaration
 
 [source]
 ----
-io.jkube.runsh.RunShLoader
+org.eclipse.jkube.runsh.RunShLoader
 ----
 
 During a build with `docker:build`, those classes are loaded and certain fixed method are called.

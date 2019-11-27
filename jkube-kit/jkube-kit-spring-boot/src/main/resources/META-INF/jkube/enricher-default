@@ -8,4 +8,4 @@
 # ----------------------------------------------------------------
 
 # Healthcheck Enrichers
-io.jkube.springboot.enricher.SpringBootHealthCheckEnricher
+org.eclipse.jkube.springboot.enricher.SpringBootHealthCheckEnricher
