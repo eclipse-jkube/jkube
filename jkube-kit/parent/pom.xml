@@ -103,7 +103,7 @@
 
     <!-- =======================================================  -->
     <!-- Servlet container images -->
-    <version.image.tomcat.upstream>1.2.0</version.image.tomcat.upstream>
+    <version.image.tomcat.upstream>1.2.1</version.image.tomcat.upstream>
     <version.image.jetty.upstream>1.5.1</version.image.jetty.upstream>
     <version.image.wildfly.upstream>10.1.0.Final</version.image.wildfly.upstream>
 
@@ -414,7 +414,7 @@
         <version>2.4.1</version>
         <scope>test</scope>
       </dependency>
-      
+
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>mockwebserver</artifactId>
