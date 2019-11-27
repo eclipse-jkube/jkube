@@ -1,5 +1,5 @@
-io.jkube.kit.common.util.PluginServiceFactoryTest$Test1,1000
-io.jkube.kit.common.util.PluginServiceFactoryTest$Test2
-io.jkube.kit.common.util.PluginServiceFactoryTest$Test5,200
-io.jkube.kit.common.util.PluginServiceFactoryTest$Test4
-io.jkube.kit.common.util.PluginServiceFactoryTest$Test3,5
+org.eclipse.jkube.kit.common.util.PluginServiceFactoryTest$Test1,1000
+org.eclipse.jkube.kit.common.util.PluginServiceFactoryTest$Test2
+org.eclipse.jkube.kit.common.util.PluginServiceFactoryTest$Test5,200
+org.eclipse.jkube.kit.common.util.PluginServiceFactoryTest$Test4
+org.eclipse.jkube.kit.common.util.PluginServiceFactoryTest$Test3,5

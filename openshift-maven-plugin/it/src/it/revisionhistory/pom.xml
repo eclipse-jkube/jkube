@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>fabric8-maven-revision-history</artifactId>
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
@@ -61,7 +61,7 @@
       </plugin>
 
       <plugin>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
         <version>@jkube.version@</version>
         <configuration>

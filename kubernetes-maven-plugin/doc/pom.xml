@@ -18,7 +18,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.jkube</groupId>
+    <groupId>org.eclipse.jkube</groupId>
     <artifactId>k8s-maven-plugin-build</artifactId>
     <version>0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
@@ -96,7 +96,7 @@
           </configuration>
           <dependencies>
             <dependency>
-              <groupId>io.jkube</groupId>
+              <groupId>org.eclipse.jkube</groupId>
               <artifactId>kubernetes-maven-doc</artifactId>
               <version>${project.version}</version>
             </dependency>

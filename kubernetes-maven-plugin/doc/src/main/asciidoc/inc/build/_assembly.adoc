@@ -132,9 +132,9 @@ If the assembly references the artifact to build with this pom, it is required t
 
 [source]
 ----
-[WARNING] Cannot include project artifact: io.jkube:helloworld:jar:0.20.0; it doesn't have an associated file or directory.
+[WARNING] Cannot include project artifact: org.eclipse.jkube:helloworld:jar:0.20.0; it doesn't have an associated file or directory.
 [WARNING] The following patterns were never triggered in this artifact inclusion filter:
-o  'io.jkube:helloworld'
+o  'org.eclipse.jkube:helloworld'
 
 [ERROR] DOCKER> Failed to create assembly for docker image  (with mode 'dir'): Error creating assembly archive docker: You must set at least one file.
 ----

@@ -31,7 +31,7 @@ items:
       provider: jkube
       app: jkube-maven-sample-zero-config
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-zero-config
   spec:
     ports:
@@ -42,7 +42,7 @@ items:
     selector:
       app: jkube-maven-sample-zero-config
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
@@ -53,7 +53,7 @@ items:
       provider: jkube
       app: jkube-maven-sample-zero-config
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-zero-config
   spec:
     replicas: 1
@@ -61,7 +61,7 @@ items:
       matchLabels:
         app: jkube-maven-sample-zero-config
         provider: jkube
-        group: io.jkube
+        group: org.eclipse.jkube
     template:
       metadata:
         annotations:
@@ -71,7 +71,7 @@ items:
           provider: jkube
           app: jkube-maven-sample-zero-config
           version: "@ignore@"
-          group: io.jkube
+          group: org.eclipse.jkube
       spec:
         containers:
         - env:

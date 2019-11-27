@@ -19,7 +19,7 @@ By default if no environment variable nor system property is set, scan for a fil
 [source, xml]
 ----
 <plugin>
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>oc-maven-plugin</artifactId>
   <configuration>
     <mappings>

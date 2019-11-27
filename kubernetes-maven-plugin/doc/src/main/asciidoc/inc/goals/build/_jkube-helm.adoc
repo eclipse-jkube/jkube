@@ -80,7 +80,7 @@ To add the `helm` goal to your project so that it is automatically executed just
 [source, xml, indent=0]
 ----
 <plugin>
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>k8s-maven-plugin</artifactId>
 
   <!-- ... -->

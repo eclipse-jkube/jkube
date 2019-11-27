@@ -19,7 +19,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-      <groupId>io.jkube</groupId>
+      <groupId>org.eclipse.jkube</groupId>
       <artifactId>oc-maven-plugin-build</artifactId>
       <version>0.1-SNAPSHOT</version>
       <relativePath>../pom.xml</relativePath>
@@ -29,7 +29,7 @@
         <maven>3.0.3</maven>
     </prerequisites>
 
-    <groupId>io.jkube</groupId>
+    <groupId>org.eclipse.jkube</groupId>
     <artifactId>oc-maven-plugin</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
@@ -47,109 +47,109 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-config-resource</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-build-service-docker</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-maven-enricher-api</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-maven-generator-api</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-maven-generator-java-exec</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-maven-generator-karaf</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-maven-generator-webapp</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-maven-generator-wildfly-swarm</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-maven-enricher-generic</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-maven-enricher-specific</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-thorntail</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-spring-boot</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-quarkus</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-vertx</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-build-maven</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-maven-profiles</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-watcher-api</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.jkube</groupId>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-watcher-standard</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>

@@ -23,7 +23,7 @@ items:
       provider: jkube
       app: jkube-maven-sample-statefulset
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-statefulset
   spec:
     ports:
@@ -34,7 +34,7 @@ items:
     selector:
       app: jkube-maven-sample-statefulset
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
 - apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
@@ -42,7 +42,7 @@ items:
       provider: jkube
       app: jkube-maven-sample-statefulset
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-statefulset
   spec:
     port:
@@ -57,7 +57,7 @@ items:
       provider: jkube
       app: jkube-maven-sample-statefulset
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-statefulset
   spec:
     replicas: 2
@@ -65,7 +65,7 @@ items:
       matchLabels:
         app: jkube-maven-sample-statefulset
         provider: jkube
-        group: io.jkube
+        group: org.eclipse.jkube
     serviceName: jkube-maven-sample-statefulset
     template:
       metadata:
@@ -73,7 +73,7 @@ items:
           provider: jkube
           app: jkube-maven-sample-statefulset
           version: "@ignore@"
-          group: io.jkube
+          group: org.eclipse.jkube
       spec:
         containers:
         - env:

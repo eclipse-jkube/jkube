@@ -14,4 +14,4 @@
 # permissions and limitations under the License.
 #
 
-io.jkube.maven.doc.ClasspathIncludeExtension
+org.eclipse.jkube.maven.doc.ClasspathIncludeExtension

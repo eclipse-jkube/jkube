@@ -29,7 +29,7 @@ items:
     selector:
       app: jkube-maven-sample-spring-boot
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
     type: NodePort
 - apiVersion: apps/v1
   kind: Deployment
@@ -39,7 +39,7 @@ items:
       provider: jkube
       app: jkube-maven-sample-spring-boot
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-spring-boot
   spec:
     replicas: 1
@@ -47,7 +47,7 @@ items:
       matchLabels:
         app: jkube-maven-sample-spring-boot
         provider: jkube
-        group: io.jkube
+        group: org.eclipse.jkube
     template:
       metadata:
         labels:
@@ -55,7 +55,7 @@ items:
           provider: jkube
           app: jkube-maven-sample-spring-boot
           version: "@ignore@"
-          group: io.jkube
+          group: org.eclipse.jkube
       spec:
         containers:
         - env:

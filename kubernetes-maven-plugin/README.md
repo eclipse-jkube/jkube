@@ -1,6 +1,6 @@
 ## Kubernetes Maven Plugin
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.jkube/k8s-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.jkube%22%20AND%20a:%22k8s-maven-plugin%22)
+[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/k8s-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22k8s-maven-plugin%22)
 
 ![Sample Demo](k8s-maven-plugin-demo.gif)
 
@@ -15,7 +15,7 @@ To enable kubernetes maven plugin on your project just add this to the plugins s
 
 ```
       <plugin>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>k8s-maven-plugin</artifactId>
         <version>${jkube.kubernetes.version}</version>
       </plugin>

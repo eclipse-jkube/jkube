@@ -2,4 +2,4 @@
 # (which is the profile "default" by default)
 # You can find the default profiles in "profiles-default.yml"
 
-io.jkube.quarkus.generator.QuarkusGenerator
+org.eclipse.jkube.quarkus.generator.QuarkusGenerator

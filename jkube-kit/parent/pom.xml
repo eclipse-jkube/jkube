@@ -18,13 +18,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.jkube</groupId>
+    <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
     <version>0.1-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>jkube-kit-parent</artifactId>
   <version>0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -32,7 +32,7 @@
   <name>Jkube Kit :: Parent</name>
   <description>${project.name}</description>
 
-  <url>http://github.com/jkubeio/jkube-kit</url>
+  <url>http://github.com/jkubeorg.eclipse.jkube-kit</url>
 
   <licenses>
     <license>
@@ -52,10 +52,10 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/jkubeio/jkube-kit.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jkubeio/jkube-kit.git</developerConnection>
+    <connection>scm:git:git://github.com/jkubeorg.eclipse.jkube-kit.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jkubeorg.eclipse.jkube-kit.git</developerConnection>
     <tag>HEAD</tag>
-    <url>git://github.com/jkubeio/jkube-kit.git</url>
+    <url>git://github.com/jkubeorg.eclipse.jkube-kit.git</url>
   </scm>
 
   <properties>
@@ -170,85 +170,85 @@
       <!-- == Internal modules ==================================== -->
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-common</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-config-image</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-config-resource</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-build-api</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-build-maven</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-build-docker</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-build-service-docker</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-watcher-api</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-generator-api</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-generator-maven</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-maven-generator-api</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-maven-generator-java-exec</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-maven-enricher-api</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>io.jkube</groupId>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-maven-enricher-specific</artifactId>
         <version>${project.version}</version>
       </dependency>

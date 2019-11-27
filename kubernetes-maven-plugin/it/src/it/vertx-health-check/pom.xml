@@ -19,7 +19,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.jkube</groupId>
+    <groupId>org.eclipse.jkube</groupId>
     <artifactId>vertx-default-sample</artifactId>
     <packaging>jar</packaging>
     <version>0.1-SNAPSHOT</version>
@@ -75,7 +75,7 @@
             </plugin>
 
             <plugin>
-                <groupId>io.jkube</groupId>
+                <groupId>org.eclipse.jkube</groupId>
                 <artifactId>k8s-maven-plugin</artifactId>
                 <version>@jkube.version@</version>
                 <configuration>

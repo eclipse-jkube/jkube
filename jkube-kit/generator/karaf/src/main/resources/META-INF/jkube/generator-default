@@ -2,4 +2,4 @@
 # (which is the profile "default" by default)
 # You can find the default profiles in "profiles-default.yml"
 
-io.jkube.generator.karaf.KarafGenerator
+org.eclipse.jkube.generator.karaf.KarafGenerator

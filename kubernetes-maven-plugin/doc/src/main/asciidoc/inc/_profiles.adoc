@@ -136,7 +136,7 @@ Here is an example how the profile can be used in a plugin configuration:
 [source, xml]
 ----
 <plugin>
-  <groupId>io.jkube</groupId>
+  <groupId>org.eclipse.jkube</groupId>
   <artifactId>k8s-maven-plugin</artifactId>
   <configuration>
     <profile>my-spring-boot-apps</profile> <!--1-->

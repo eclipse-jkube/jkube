@@ -29,7 +29,7 @@ items:
       provider: jkube
       app: jkube-maven-sample-env-metadata
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-env-metadata
   spec:
     ports:
@@ -40,7 +40,7 @@ items:
     selector:
       app: jkube-maven-sample-env-metadata
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
@@ -51,14 +51,14 @@ items:
       provider: jkube
       app: jkube-maven-sample-env-metadata
       version: "@ignore@"
-      group: io.jkube
+      group: org.eclipse.jkube
     name: jkube-maven-sample-env-metadata
   spec:
     replicas: 1
     selector:
       app: jkube-maven-sample-env-metadata
       provider: jkube
-      group: io.jkube
+      group: org.eclipse.jkube
     template:
       metadata:
         annotations:
@@ -68,7 +68,7 @@ items:
           provider: jkube
           app: jkube-maven-sample-env-metadata
           version: "@ignore@"
-          group: io.jkube
+          group: org.eclipse.jkube
       spec:
         containers:
         - env:

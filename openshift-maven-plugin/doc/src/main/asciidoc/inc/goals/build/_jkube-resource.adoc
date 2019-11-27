@@ -212,7 +212,7 @@ If you do not want to generate a Route descriptor, you can also specify so in th
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
-    <groupId>io.jkube</groupId>
+    <groupId>org.eclipse.jkube</groupId>
     <artifactId>oc-maven-plugin</artifactId>
     <version>{version}</version>
     <configuration>
