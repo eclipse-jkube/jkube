@@ -18,7 +18,7 @@ echo ============================================
 
 cd doc && \
 mvn -Phtml,pdf package && \
-git clone -b gh-pages https://rhuss:${GITHUB_TOKEN}@github.com/jkubeorg.eclipse.jkube-kit.git gh-pages && \
+git clone -b gh-pages https://rhuss:${GITHUB_TOKEN}@github.com/jkubeio/jkube-kit.git gh-pages && \
 git config --global user.email "travis@jkube.io" && \
 git config --global user.name "Travis" && \
 cp -rv target/generated-docs/* gh-pages/ && \
