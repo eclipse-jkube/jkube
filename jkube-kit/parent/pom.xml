@@ -32,7 +32,7 @@
   <name>Jkube Kit :: Parent</name>
   <description>${project.name}</description>
 
-  <url>http://github.com/jkubeorg.eclipse.jkube-kit</url>
+  <url>http://github.com/jkubeio/jkube-kit</url>
 
   <licenses>
     <license>
@@ -52,10 +52,10 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/jkubeorg.eclipse.jkube-kit.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jkubeorg.eclipse.jkube-kit.git</developerConnection>
+    <connection>scm:git:git://github.com/jkubeio/jkube-kit.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jkubeio/jkube-kit.git</developerConnection>
     <tag>HEAD</tag>
-    <url>git://github.com/jkubeorg.eclipse.jkube-kit.git</url>
+    <url>git://github.com/jkubeio/jkube-kit.git</url>
   </scm>
 
   <properties>
