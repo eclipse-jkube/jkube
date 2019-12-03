@@ -1,0 +1,107 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+name: JKube Integration Tests
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 1 * * *' # Everyday at 1
+
+env:
+  JKUBE_IT_REPOSITORY: https://github.com/jshiftio/jkube-integration-tests.git
+  JKUBE_IT_REVISION: master
+  JKUBE_IT_DIR: jkube-integration-tests
+
+jobs:
+  minikube:
+    name: Integration Tests in Minikube Cluster
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        minikube: [v1.5.1]
+        kubernetes: [v1.16.2,v1.12.0]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Minikube-Kubernetes
+        uses: manusa/actions-setup-minikube@v1.0.0
+        with:
+          minikube version: ${{ matrix.minikube }}
+          kubernetes version: ${{ matrix.kubernetes }}
+      - name: Setup Java 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Install JKube
+        run: mvn -f pom.xml -B -DskipTests clean install
+      - name: Checkout JKube Integration Tests Repository
+        run: |
+          git clone "$JKUBE_IT_REPOSITORY" \
+          && cd $JKUBE_IT_DIR \
+          && git checkout "$JKUBE_IT_REVISION"
+      - name: Install and Run Integration Tests
+        run: |
+          cd $JKUBE_IT_DIR \
+          && ./mvnw -B -PKubernetes clean verify
+      - name: Consolidate reports
+        run: |
+          mkdir -p ./reports/zero-config/spring-boot \
+          && cp -R ./$JKUBE_IT_DIR/it/target/failsafe-reports ./reports \
+          && cp -R ./$JKUBE_IT_DIR/projects-to-be-tested/zero-config/spring-boot/target/docker ./reports/zero-config/spring-boot \
+          && cp -R ./$JKUBE_IT_DIR/projects-to-be-tested/zero-config/spring-boot/target/classes/META-INF ./reports/zero-config/spring-boot
+      - name: Save reports as artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: Test reports (Minikube ${{ matrix.minikube }}-${{ matrix.kubernetes }})
+          path: ./reports
+  openshift:
+    name: Integration Tests in OpenShift Cluster
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        openshift: [v3.11.0,v3.9.0]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup OpenShift
+        uses: manusa/actions-setup-openshift@v1.0.1
+        with:
+          oc version: ${{ matrix.openshift }}
+      - name: Setup Java 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Install JKube
+        run: mvn -f pom.xml -B -DskipTests clean install
+      - name: Checkout JKube Integration Tests Repository
+        run: |
+          git clone "$JKUBE_IT_REPOSITORY" \
+          && cd $JKUBE_IT_DIR \
+          && git checkout "$JKUBE_IT_REVISION"
+      - name: Install and Run Integration Tests
+        run: |
+          cd $JKUBE_IT_DIR \
+          && ./mvnw -B -POpenShift clean verify
+      - name: Consolidate reports
+        run: |
+          mkdir -p ./reports/zero-config/spring-boot \
+          && cp -R ./$JKUBE_IT_DIR/it/target/failsafe-reports ./reports \
+          && cp -R ./$JKUBE_IT_DIR/projects-to-be-tested/zero-config/spring-boot/target/docker ./reports/zero-config/spring-boot \
+          && cp -R ./$JKUBE_IT_DIR/projects-to-be-tested/zero-config/spring-boot/target/classes/META-INF ./reports/zero-config/spring-boot
+      - name: Save reports as artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: Test reports (OpenShift ${{ matrix.openshift }})
+          path: ./reports
