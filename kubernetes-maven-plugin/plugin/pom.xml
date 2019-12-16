@@ -37,7 +37,7 @@
     <description>Kubernetes Maven Plugin</description>
 
     <properties>
-        <jkube.kit.version>0.1-SNAPSHOT</jkube.kit.version>
+        <jkube.kit.version>${project.version}</jkube.kit.version>
         <maven-plugin-api.version>3.5.4</maven-plugin-api.version>
         <maven-plugin-annotation.version>3.5.2</maven-plugin-annotation.version>
         <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
