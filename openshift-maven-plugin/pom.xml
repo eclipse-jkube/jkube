@@ -20,13 +20,13 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>oc-maven-plugin-build</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1-SNAPSHOT</version>
 
   <packaging>pom</packaging>
   <name>Openshift Maven Plugin Parent</name>
