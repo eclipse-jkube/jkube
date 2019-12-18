@@ -26,12 +26,12 @@ for running a single test.
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>oc-maven-plugin-build</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>oc-maven-it</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1.0</version>
   <packaging>jar</packaging>
 
   <name>Openshift Maven :: Integration Tests</name>
