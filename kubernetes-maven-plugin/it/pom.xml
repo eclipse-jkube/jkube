@@ -26,12 +26,12 @@ for running a single test.
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>k8s-maven-plugin-build</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>kubernetes-maven-it</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1.0</version>
   <packaging>jar</packaging>
 
   <name>Kubernetes Maven :: Integration Tests</name>

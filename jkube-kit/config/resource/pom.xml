@@ -20,12 +20,12 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
   <artifactId>jkube-kit-config-resource</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1.0</version>
 
   <name>Jkube Kit :: Config :: Resource</name>
 
@@ -39,7 +39,7 @@
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-build-service-docker</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
 
     <dependency>

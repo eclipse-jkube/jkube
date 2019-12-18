@@ -20,13 +20,13 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>k8s-maven-plugin-build</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1.0</version>
   <packaging>pom</packaging>
   <name>Kubernetes Maven Plugin </name>
   <description>Maven plugin for getting your Java apps on to Kubernetes</description>
