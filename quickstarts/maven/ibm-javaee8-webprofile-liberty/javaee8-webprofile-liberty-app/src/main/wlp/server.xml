@@ -1,0 +1,34 @@
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<server>
+    <featureManager>
+        <feature>webProfile-8.0</feature>
+    </featureManager>
+
+    <httpEndpoint id="defaultHttpEndpoint"
+                  host="${default.server.host}"
+                  httpPort="${default.http.port}">
+        <tcpOptions soReuseAddr="true"/>
+    </httpEndpoint>
+    <webContainer trustHostHeaderPort='true' extractHostHeaderPort='true'/>
+    <httpDispatcher enableWelcomePage='true'/>
+    <applicationMonitor dropinsEnabled='false' updateTrigger='mbean'/>
+    <config updateTrigger='mbean'/>
+    <cdi12 enableImplicitBeanArchives='false'/>
+
+    <webApplication id="javaee8-webprofile-liberty-app" name="javaee8-webprofile-liberty-app" context-root="/${libertyapi.context.root}" 
+    				location="javaee8-webprofile-liberty-app.war"/>
+</server>
