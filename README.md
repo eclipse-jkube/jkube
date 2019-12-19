@@ -3,7 +3,7 @@
 [![Circle CI](https://circleci.com/gh/eclipse/jkube/tree/master.svg?style=shield)](https://circleci.com/gh/eclipse/jkube/tree/master)
 [![License](https://img.shields.io/badge/License-EPL%202.0-red.svg?label=license&logo=eclipse)](https://www.eclipse.org/legal/epl-2.0/)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jkubeio_jkube)
-[![Gitter](https://badges.gitter.im/jkube-community/community.svg)](https://gitter.im/jkube-community/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Gitter](https://badges.gitter.im/eclipse/jkube.svg)](https://gitter.im/eclipse/jkube?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube&metric=coverage)](https://sonarcloud.io/dashboard?id=jkubeio_jkube)
 
 This project contains various building blocks for the jkube developer toolbox.

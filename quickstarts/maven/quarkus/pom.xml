@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>jkube-maven-sample-quarkus</artifactId>
+  <version>0.1.0</version>
+
+  <groupId>org.eclipse.jkube</groupId>
+  <name>Eclipse Jkube Maven :: Sample :: Quarkus</name>
+
+  <properties>
+    <quarkus.version>0.11.0</quarkus.version>
+    <surefire-plugin.version>2.22.0</surefire-plugin.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-bom</artifactId>
+        <version>${quarkus.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy</artifactId>
+    </dependency>
+
+     <dependency>
+       <groupId>io.quarkus</groupId>
+       <artifactId>quarkus-resteasy-jsonb</artifactId>
+     </dependency>
+
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-arc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-health</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <finalName>random-generator</finalName>
+    <plugins>
+      <plugin>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+        <version>${quarkus.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>k8s-maven-plugin</artifactId>
+        <version>${project.version}</version>
+      </plugin>
+
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>native</id>
+      <activation>
+        <property>
+          <name>native</name>
+        </property>
+      </activation>
+
+      <properties>
+        <jkube.generator.name>k8spatterns/random-generator-native</jkube.generator.name>
+        <jkube.generator.quarkus.nativeImage>true</jkube.generator.quarkus.nativeImage>
+      </properties>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-maven-plugin</artifactId>
+            <version>${quarkus.version}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>native-image</goal>
+                </goals>
+                <configuration>
+                  <enableHttpUrlHandler>true</enableHttpUrlHandler>
+                  <dockerBuild>true</dockerBuild>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.eclipse.jkube</groupId>
+    <artifactId>javaee8-webprofile-liberty</artifactId>
+    <version>0.1.0</version>
+    <packaging>pom</packaging>
+
+    <name>Eclipse Jkube Maven :: Sample :: JavaEE 8 WebProfile</name>
+    <description>
+        Demo project for Java EE 8 WebProfile, IBM WebSphere Liberty is used as a Java EE implementation
+        On Windows or Mac if VirtualBox is used, run the tests using:
+        $ mvn clean verify -DtestProxyHost=192.168.99.100
+    </description>
+
+    <modules>
+        <module>javaee8-webprofile-liberty-app</module>
+        <module>javaee8-webprofile-liberty-app-it</module>
+    </modules>
+
+    <properties>
+        <docker.user>jkube</docker.user>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <javaee.api.version>8.0</javaee.api.version>
+        <jersey.version>2.26</jersey.version>
+        <jkube.plugin.version>${project.version}</jkube.plugin.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.eclipse.jkube</groupId>
+                <artifactId>javaee8-webprofile-liberty-app</artifactId>
+                <version>0.1.0</version>
+                <type>war</type>
+            </dependency>
+            <dependency>
+                <groupId>javax</groupId>
+                <artifactId>javaee-api</artifactId>
+                <version>8.0</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.11</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>javax.json</artifactId>
+                <version>1.0.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-client</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.inject</groupId>
+                <artifactId>jersey-hk2</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.cloudant</groupId>
+                <artifactId>cloudant-client</artifactId>
+                <version>${cloudant.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.eclipse.jkube</groupId>
+                    <artifactId>k8s-maven-plugin</artifactId>
+                    <version>${jkube.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.gmaven</groupId>
+                    <artifactId>groovy-maven-plugin</artifactId>
+                    <version>2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.20</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>2.20</version>
+                </plugin>
+                <plugin>
+                    <groupId>net.wasdev.wlp.maven.plugins</groupId>
+                    <artifactId>liberty-maven-plugin</artifactId>
+                    <version>2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.6.1</version>
+                    <configuration>
+                        <source>${maven.compile.source}</source>
+                        <target>${maven.compile.target}</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

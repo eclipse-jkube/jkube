@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>jkube-maven-sample-vertx</artifactId>
+  <groupId>org.eclipse.jkube</groupId>
+  <version>0.1.0</version>
+  <packaging>jar</packaging>
+
+  <name>Eclipse Jkube Maven :: Sample :: Vertx Web</name>
+  <description>Minimal Example with Vertx Web</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <vertx.version>3.6.3</vertx.version>
+
+    <vertx.verticle>io.vertx.example.SimpleWebVerticle</vertx.verticle>
+    <vertx-maven-plugin.version>1.0.18</vertx-maven-plugin.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-dependencies</artifactId>
+        <version>${vertx.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+
+    <!-- vertx -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-dropwizard-metrics</artifactId>
+    </dependency>
+
+
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- vert.x maven plugin to generate the fat-jar -->
+      <plugin>
+        <groupId>io.reactiverse</groupId>
+        <artifactId>vertx-maven-plugin</artifactId>
+        <version>${vertx-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>vmp</id>
+            <phase>package</phase>
+            <goals>
+              <goal>package</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>kubernetes</id>
+      <build>
+	<plugins>
+	  <plugin>
+	    <groupId>org.eclipse.jkube</groupId>
+	    <artifactId>k8s-maven-plugin</artifactId>
+	    <version>${project.version}</version>
+	    <executions>
+	      <execution>
+		<id>jkube</id>
+		<goals>
+		  <goal>resource</goal>
+		  <goal>build</goal>
+		</goals>
+	      </execution>
+	    </executions>
+	    <configuration>
+	      <generator>
+		<config>
+		  <java-exec>
+		    <mainClass>io.vertx.core.Launcher</mainClass>
+		  </java-exec>
+		</config>
+	      </generator>
+	      <resources>
+		<labels>
+		  <service>
+		    <expose>true</expose>
+		  </service>
+		</labels>
+	      </resources>
+	    </configuration>
+	  </plugin>
+
+	</plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>openshift</id>
+      <build>
+	<plugins>
+	  <plugin>
+	    <groupId>org.eclipse.jkube</groupId>
+	    <artifactId>oc-maven-plugin</artifactId>
+	    <version>${project.version}</version>
+	    <executions>
+	      <execution>
+		<id>jkube</id>
+		<goals>
+		  <goal>resource</goal>
+		  <goal>build</goal>
+		</goals>
+	      </execution>
+	    </executions>
+	    <configuration>
+	      <generator>
+		<config>
+		  <java-exec>
+		    <mainClass>io.vertx.core.Launcher</mainClass>
+		  </java-exec>
+		</config>
+	      </generator>
+	      <resources>
+		<labels>
+		  <service>
+		    <expose>true</expose>
+		  </service>
+		</labels>
+	      </resources>
+	    </configuration>
+	  </plugin>
+
+	</plugins>
+      </build>
+    </profile>
+  </profiles>
+
+
+</project>
