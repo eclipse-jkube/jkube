@@ -53,8 +53,9 @@ jobs:
           && git checkout "$JKUBE_IT_REVISION"
       - name: Install and Run Integration Tests
         run: |
-          cd $JKUBE_IT_DIR \
-          && ./mvnw -B -PKubernetes clean verify
+          JKUBE_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) \
+          && cd $JKUBE_IT_DIR \
+          && ./mvnw -B -PKubernetes clean verify -Djkube.version="$JKUBE_VERSION"
       - name: Consolidate reports
         run: |
           mkdir -p ./reports/zero-config/spring-boot \
@@ -92,8 +93,9 @@ jobs:
           && git checkout "$JKUBE_IT_REVISION"
       - name: Install and Run Integration Tests
         run: |
-          cd $JKUBE_IT_DIR \
-          && ./mvnw -B -POpenShift clean verify
+          JKUBE_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) \
+          && cd $JKUBE_IT_DIR \
+          && ./mvnw -B -POpenShift clean verify -Djkube.version="$JKUBE_VERSION"
       - name: Consolidate reports
         run: |
           mkdir -p ./reports/zero-config/spring-boot \
