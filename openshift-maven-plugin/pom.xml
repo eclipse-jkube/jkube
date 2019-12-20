@@ -20,76 +20,24 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>oc-maven-plugin-build</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1.1-SNAPSHOT</version>
 
   <packaging>pom</packaging>
   <name>Openshift Maven Plugin Parent</name>
   <description>Maven plugin for getting your Java apps on to Openshift</description>
-  <url>http://github.com/jkubeio/openshift-maven-plugin</url>
-
-  <licenses>
-    <license>
-      <url>https://www.eclipse.org/legal/epl-2.0/</url>
-      <comments>A business-friendly OSS license</comments>
-    </license>
-  </licenses>
-
-   <developers>
-    <developer>
-      <id>geeks</id>
-      <name>Jkube Development Team</name>
-      <email>jkube@googlegroups.com</email>
-      <organization>jkube</organization>
-      <organizationUrl>http://jkube.io/</organizationUrl>
-    </developer>
-  </developers>
-
-   <scm>
-    <connection>scm:git:git://github.com/jkubeio/openshift-maven-plugin.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jkubeio/openshift-maven-plugin.git</developerConnection>
-    <tag>HEAD</tag>
-    <url>git://github.com/jkubeio/openshift-maven-plugin.git</url>
-  </scm>
-
+  
   <properties>
     <jdk.version>1.8</jdk.version>
     <junit.version>4.11</junit.version>
     <citrus-core.version>2.6.2</citrus-core.version>
     <maven-compiler-plugin.version>3.6.2</maven-compiler-plugin.version>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>maven-central-plugin-snapshots</id>
-      <name>Maven Central Plugin Snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
-   <distributionManagement>
-    <snapshotRepository>
-      <id>sonatype-nexus-snapshots</id>
-      <name>Sonatype Nexus Snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </snapshotRepository>
-    <repository>
-      <id>sonatype-nexus-staging</id>
-      <name>Nexus Release Repository</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
 
   <modules>
     <module>plugin</module>
@@ -175,76 +123,5 @@
       </plugins>
     </pluginManagement>
   </build>
-
-  <profiles>
-     <!-- "release" profiles used for deploying with jkube -->
-    <profile>
-      <id>release</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-	    <configuration>
-	      <passphrase>${env.GPG_PASSPHRASE}</passphrase>
-	    </configuration>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-enforcer-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>enforce-no-snapshots</id>
-                <goals>
-                  <goal>enforce</goal>
-                </goals>
-                <configuration>
-                  <rules>
-                    <requireReleaseDeps>
-                      <message>No Snapshots Allowed!</message>
-                    </requireReleaseDeps>
-                  </rules>
-                  <fail>true</fail>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
 </project>
