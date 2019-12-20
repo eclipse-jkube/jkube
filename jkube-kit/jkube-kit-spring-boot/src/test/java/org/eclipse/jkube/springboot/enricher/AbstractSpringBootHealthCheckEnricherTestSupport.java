@@ -27,7 +27,7 @@ import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
-import org.eclipse.jkube.maven.enricher.api.util.ProjectClassLoaders;
+import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import mockit.Expectations;
 import mockit.Mock;
 import mockit.MockUp;

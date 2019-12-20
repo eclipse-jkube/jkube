@@ -68,6 +68,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.eclipse.jkube.kit.build.maven.ResourceMojoUtil.DEFAULT_RESOURCE_LOCATION;
+import static org.eclipse.jkube.kit.build.maven.ResourceMojoUtil.useDekorate;
 import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
 import static org.eclipse.jkube.maven.plugin.mojo.build.BuildMojo.CONTEXT_KEY_BUILD_TIMESTAMP;
 
@@ -257,6 +259,10 @@ public class ResourceMojo extends AbstractJkubeMojo {
     @Parameter(property = "jkube.resourceType")
     private ResourceFileType resourceFileType = yaml;
 
+    // When resource generation is delegated to Dekorate, should JKube resources be merged with Dekorate's
+    @Parameter(property = "jkube.mergeWithDekorate", defaultValue = "false")
+    private Boolean mergeWithDekorate;
+
     @Component
     private MavenProjectHelper projectHelper;
 
@@ -331,6 +337,15 @@ public class ResourceMojo extends AbstractJkubeMojo {
 
     public void executeInternal() throws MojoExecutionException, MojoFailureException {
         if (skipResource) {
+            return;
+        }
+        if (useDekorate(project) && mergeWithDekorate) {
+            log.info("Dekorate detected, merging JKube and Dekorate resources");
+            System.setProperty("dekorate.input.dir", DEFAULT_RESOURCE_LOCATION);
+            System.setProperty("dekorate.output.dir", DEFAULT_RESOURCE_LOCATION);
+        } else if (useDekorate(project)) {
+            log.info("Dekorate detected, delegating resource build");
+            System.setProperty("dekorate.output.dir", DEFAULT_RESOURCE_LOCATION);
             return;
         }
 

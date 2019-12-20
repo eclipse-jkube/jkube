@@ -32,7 +32,7 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.maven.enricher.api.model.Dependency;
 import org.eclipse.jkube.maven.enricher.api.util.MavenConfigurationExtractor;
-import org.eclipse.jkube.maven.enricher.api.util.ProjectClassLoaders;
+import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;

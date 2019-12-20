@@ -1,0 +1,46 @@
+
+[[integrations]]
+= Integrations
+
+[[integrations.dekorate]]
+== Dekorate
+
+*openshift-maven-plugin* provides a Zero Configuration approach to delegate deployment manifests
+generation to https://github.com/dekorateio/dekorate[Dekorate].
+
+Just by adding a dependency to Dekorate library in the `pom.xml` file, all manifest
+generation will be delegated to Dekorate.
+
+[source, xml, indent=2]
+----
+<dependencies>
+  <!-- ... -->
+  <dependency>
+      <groupId>io.dekorate</groupId>
+      <artifactId>option-annotations</artifactId>
+      <version>${dekorate.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dekorate</groupId>
+      <artifactId>openshift-annotations</artifactId>
+      <version>${dekorate.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dekorate</groupId>
+      <artifactId>kubernetes-annotations</artifactId>
+      <version>${dekorate.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dekorate</groupId>
+      <artifactId>dekorate-spring-boot</artifactId>
+      <version>${dekorate.version}</version>
+    </dependency>
+</dependencies>
+----
+
+A full example of the integration can be found in the directory
+https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot-dekorate[quickstarts/maven/spring-boot-dekorate].
+
+An *experimental* feature is also provided to merge resources generated both by *openshift-maven-plugin*
+and Dekorate. Yoy can activate this feature by using the following flag `-Djkube.mergeWithDekorate`
+in the command-line, or setting it up as a property (`<jkube.mergeWithDekorate>true</jkube.mergeWithDekorate>`).
