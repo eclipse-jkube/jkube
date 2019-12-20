@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,6 +44,10 @@ public class ResourceUtil {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public static <T> List<T> loadList(File file, Class<T> clazz) throws IOException {
+        return getObjectMapper(ResourceFileType.fromFile(file)).readerFor(clazz).<T>readValues(file).readAll();
     }
 
     public static <T> T load(File file, Class<T> clazz) throws IOException {

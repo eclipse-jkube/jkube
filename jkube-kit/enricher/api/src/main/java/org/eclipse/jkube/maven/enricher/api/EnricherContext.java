@@ -21,7 +21,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.maven.enricher.api.model.Dependency;
-import org.eclipse.jkube.maven.enricher.api.util.ProjectClassLoaders;
+import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 
 public interface EnricherContext {
 

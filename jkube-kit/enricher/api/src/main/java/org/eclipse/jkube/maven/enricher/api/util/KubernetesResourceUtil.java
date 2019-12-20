@@ -776,18 +776,17 @@ public class KubernetesResourceUtil {
     }
 
     public static Set<HasMetadata> loadResources(File manifest) throws IOException {
-        Object dto = ResourceUtil.load(manifest, KubernetesResource.class);
-        if (dto == null) {
-            throw new IllegalStateException("Cannot load kubernetes manifest " + manifest);
+        final Set<HasMetadata> entities = new TreeSet<>(new HasMetadataComparator());
+        for (KubernetesResource dto : ResourceUtil.loadList(manifest, KubernetesResource.class)) {
+            if (dto == null) {
+                throw new IllegalStateException("Cannot load kubernetes manifest " + manifest);
+            }
+            if (dto instanceof Template) {
+                Template template = (Template) dto;
+                dto = OpenshiftHelper.processTemplatesLocally(template, false);
+            }
+            entities.addAll(KubernetesHelper.toItemList(dto));
         }
-
-        if (dto instanceof Template) {
-            Template template = (Template) dto;
-            dto = OpenshiftHelper.processTemplatesLocally(template, false);
-        }
-
-        Set<HasMetadata> entities = new TreeSet<>(new HasMetadataComparator());
-        entities.addAll(KubernetesHelper.toItemList(dto));
         return entities;
     }
 

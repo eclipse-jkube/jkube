@@ -38,7 +38,6 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.CleanupMode;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
-import org.apache.maven.plugin.MojoExecutionException;
 
 
 public class DockerBuildService implements BuildService {
@@ -114,7 +113,7 @@ public class DockerBuildService implements BuildService {
     }
 
 
-    private void autoPullBaseImageIfRequested(ImageConfiguration imageConfig, BuildContext buildContext) throws IOException, MojoExecutionException {
+    private void autoPullBaseImageIfRequested(ImageConfiguration imageConfig, BuildContext buildContext) throws IOException {
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
         if (buildConfig.getDockerArchive() != null) {

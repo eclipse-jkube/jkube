@@ -35,6 +35,7 @@ include::inc/_access.adoc[]
 include::inc/_registry.adoc[]
 include::inc/_authentication.adoc[]
 include::inc/_volumes.adoc[]
+include::inc/_integrations.adoc[]
 
 include::inc/_faq.adoc[]
 

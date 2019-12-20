@@ -14,7 +14,7 @@
 package org.eclipse.jkube.thorntail.v2.enricher;
 
 import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.util.ProjectClassLoaders;
+import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Assert;
