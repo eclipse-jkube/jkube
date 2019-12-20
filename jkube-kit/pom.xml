@@ -55,6 +55,7 @@
       <module>jkube-kit-thorntail-v2</module>
       <module>jkube-kit-vertx</module>
       <module>jkube-kit-quarkus</module>
+      <module>jkube-kit-openliberty</module>
   </modules>
 
 </project>

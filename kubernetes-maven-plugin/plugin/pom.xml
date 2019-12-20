@@ -105,6 +105,12 @@
             <artifactId>jkube-kit-quarkus</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-openliberty</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
