@@ -1,4 +1,4 @@
-= jkubeio/kubernetes-maven-plugin
+= org.eclipse.jkube/kubernetes-maven-plugin
 Roland Huß, James Strachan;
 :revnumber: {version}
 :revdate: {localdate}

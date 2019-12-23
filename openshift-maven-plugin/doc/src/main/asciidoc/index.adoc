@@ -1,4 +1,4 @@
-= jkubeio/openshift-maven-plugin
+= org.eclipse.jkube/openshift-maven-plugin
 Roland Huß, James Strachan;
 :revnumber: {version}
 :revdate: {localdate}
