@@ -24,10 +24,9 @@
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
-  <artifactId>jkube-maven-generator-api</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <artifactId>jkube-kit-generator-api</artifactId>
 
-  <name>Jkube Maven :: Generator :: API</name>
+  <name>Jkube Kit :: Generator :: API</name>
 
   <properties>
     <!-- Default images used in Java based generators -->
@@ -38,15 +37,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-kit-config-image</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
@@ -57,12 +47,6 @@
       <groupId>org.jboss.shrinkwrap</groupId>
       <artifactId>shrinkwrap-api</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-
 
     <dependency>
       <groupId>org.jboss.shrinkwrap</groupId>
@@ -88,18 +72,8 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-yaml</artifactId>
-    </dependency>
   </dependencies>
 
   <build>

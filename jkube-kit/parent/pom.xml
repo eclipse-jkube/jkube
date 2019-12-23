@@ -24,9 +24,7 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <groupId>org.eclipse.jkube</groupId>
   <artifactId>jkube-kit-parent</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Jkube Kit :: Parent</name>
@@ -36,24 +34,47 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <version.maven>3.5.4</version.maven>
+    <version.asciidoctor-maven-plugin>1.5.5</version.asciidoctor-maven-plugin>
+    <version.asciidoctorj>1.5.4</version.asciidoctorj>
+    <version.assertj-core>2.4.1</version.assertj-core>
+    <version.bouncycastle.bcpkix>1.61</version.bouncycastle.bcpkix>
+    <version.commons-codec>1.13</version.commons-codec>
+    <version.commons-compress>1.19</version.commons-compress>
+    <version.commons-io>2.6</version.commons-io>
+    <version.commons-lang3>3.8.1</version.commons-lang3>
+    <version.commons-text>1.1</version.commons-text>
+    <version.gson>2.8.5</version.gson>
+    <version.guava>27.0-jre</version.guava>
+    <version.hamcrest-library>1.3</version.hamcrest-library>
+    <version.httpclient>4.5.6</version.httpclient>
+    <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
+    <version.jansi>1.16</version.jansi>
+    <version.javassist>3.20.0-GA</version.javassist>
+    <version.jgit>5.3.0.201903130848-r</version.jgit>
     <version.jmockit>1.43</version.jmockit>
-    <version.mockwebserver>0.0.13</version.mockwebserver>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-    <!-- latest release version of this plugin. Used in the docs.-->
-    <fabric8.maven.plugin.version>4.1.0</fabric8.maven.plugin.version>
-
-    <jmockit.version>1.43</jmockit.version>
-    <version.maven>3.3.1</version.maven>
+    <version.jnr-unixsocket>0.12</version.jnr-unixsocket>
+    <version.jruby-complete>1.7.26</version.jruby-complete>
+    <version.json-path-assert>2.2.0</version.json-path-assert>
+    <version.jsr305>3.0.2</version.jsr305>
+    <version.JUnitParams>1.0.5</version.JUnitParams>
     <version.kubernetes-client>4.6.2</version.kubernetes-client>
-    <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
+    <version.maven-assembly-plugin>3.1.1</version.maven-assembly-plugin>
+    <version.maven-common-artifact-filters>3.1.0</version.maven-common-artifact-filters>
+    <version.maven-core>3.5.4</version.maven-core>
+    <version.maven-plugin-annotations>3.6.0</version.maven-plugin-annotations>
+    <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>
     <version.mockwebserver>0.0.13</version.mockwebserver>
     <version.networknt.validator>0.1.7</version.networknt.validator>
-    <version.jgit>5.3.0.201903130848-r</version.jgit>
-    <version.hamcrest-library>1.3</version.hamcrest-library>
-    <version.assertj>3.11.1</version.assertj>
+    <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
+    <version.plexus-archiver>3.5</version.plexus-archiver>
+    <version.plexus-interpolation>1.24</version.plexus-interpolation>
+    <version.plexus-utils>3.0.24</version.plexus-utils>
+    <version.shrinkwrap>1.2.6</version.shrinkwrap>
+    <version.slf4j-api>1.7.25</version.slf4j-api>
     <version.snakeyaml>1.25</version.snakeyaml>
+    <version.validation-api>2.0.1.Final</version.validation-api>
+    <version.vertx-infinispan>3.4.2</version.vertx-infinispan>
+    <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
 
     <!-- =======================================================  -->
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
@@ -107,14 +128,12 @@
     <image.tomcat.upstream>fabric8/tomcat-9:${version.image.tomcat.upstream}</image.tomcat.upstream>
     <image.jetty.upstream>fabric8/jetty-9:${version.image.jetty.upstream}</image.jetty.upstream>
     <image.wildfly.upstream>jboss/wildfly:${version.image.wildfly.upstream}</image.wildfly.upstream>
-    <commons-compress.version>1.19</commons-compress.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
 
       <!-- == Internal modules ==================================== -->
-
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-common</artifactId>
@@ -177,34 +196,53 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-maven-generator-api</artifactId>
+        <artifactId>jkube-kit-generator-java-exec</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-maven-generator-java-exec</artifactId>
+        <artifactId>jkube-kit-enricher-api</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-maven-enricher-api</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-maven-enricher-specific</artifactId>
+        <artifactId>jkube-kit-enricher-specific</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <!-- == jkube ===================================== -->
-
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>kubernetes-client</artifactId>
         <version>${version.kubernetes-client}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -216,46 +254,80 @@
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>ianaservicehelper</artifactId>
-        <version>0.0.1</version>
+        <version>${version.ianaservicehelper}</version>
       </dependency>
 
-
       <!-- == libs ====================================== -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${version.jackson}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${version.jackson}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${version.jackson}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.8.1</version>
+        <version>${version.commons-lang3}</version>
       </dependency>
 
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
-        <version>1.1</version>
+        <version>${version.commons-text}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>${version.commons-codec}</version>
       </dependency>
 
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.6</version>
+        <version>${version.commons-io}</version>
       </dependency>
 
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
-        <version>${commons-compress.version}</version>
+        <version>${version.commons-compress}</version>
       </dependency>
 
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>27.0-jre</version>
+        <version>${version.guava}</version>
       </dependency>
 
       <dependency>
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.8.5</version>
+        <version>${version.gson}</version>
       </dependency>
 
       <dependency>
@@ -267,97 +339,240 @@
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.5.6</version>
+        <version>${version.httpclient}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
 
       <dependency>
         <groupId>com.github.jnr</groupId>
         <artifactId>jnr-unixsocket</artifactId>
-        <version>0.12</version>
+        <version>${version.jnr-unixsocket}</version>
       </dependency>
 
       <dependency>
         <groupId>org.bouncycastle</groupId>
         <artifactId>bcpkix-jdk15on</artifactId>
-        <version>1.57</version>
+        <version>${version.bouncycastle.bcpkix}</version>
       </dependency>
 
       <dependency>
         <groupId>org.fusesource.jansi</groupId>
         <artifactId>jansi</artifactId>
-        <version>1.16</version>
+        <version>${version.jansi}</version>
       </dependency>
 
       <dependency>
         <groupId>org.jboss.shrinkwrap</groupId>
         <artifactId>shrinkwrap-api</artifactId>
-        <version>1.2.6</version>
+        <version>${version.shrinkwrap}</version>
       </dependency>
 
       <dependency>
         <groupId>org.jboss.shrinkwrap</groupId>
         <artifactId>shrinkwrap-spi</artifactId>
-        <version>1.2.6</version>
+        <version>${version.shrinkwrap}</version>
       </dependency>
 
       <dependency>
         <groupId>org.jboss.shrinkwrap</groupId>
         <artifactId>shrinkwrap-impl-base</artifactId>
-        <version>1.2.6</version>
+        <version>${version.shrinkwrap}</version>
       </dependency>
-
-      <dependency>
-        <groupId>org.apache.maven.plugin-tools</groupId>
-        <artifactId>maven-plugin-annotations</artifactId>
-        <version>3.6.0</version>
-      </dependency>
-
 
       <dependency>
         <groupId>org.javassist</groupId>
         <artifactId>javassist</artifactId>
-        <version>3.20.0-GA</version>
+        <version>${version.javassist}</version>
       </dependency>
 
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>jsr305</artifactId>
-        <version>3.0.2</version>
+        <version>${version.jsr305}</version>
       </dependency>
 
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
-        <version>1.7.25</version>
+        <version>${version.slf4j-api}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-infinispan</artifactId>
+        <version>${version.vertx-infinispan}</version>
       </dependency>
 
       <!-- == maven ===================================== -->
-
       <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-core</artifactId>
-        <version>${version.maven}</version>
+        <version>${version.maven-core}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-component-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>${version.maven-assembly-plugin}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-compat</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-common-artifact-filters</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-shared-utils</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-archiver</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-component-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-interpolation</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-io</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.maven.plugin-tools</groupId>
+        <artifactId>maven-plugin-annotations</artifactId>
+        <version>${version.maven-plugin-annotations}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.maven.shared</groupId>
+        <artifactId>maven-common-artifact-filters</artifactId>
+        <version>${version.maven-common-artifact-filters}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-shared-utils</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-classworlds</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- == test ====================================== -->
-
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.11</version>
+        <version>${version.junit}</version>
         <scope>test</scope>
       </dependency>
 
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>2.4.1</version>
+        <version>${version.assertj-core}</version>
         <scope>test</scope>
       </dependency>
 
@@ -377,7 +592,7 @@
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-all</artifactId>
-        <version>1.3</version>
+        <version>${version.hamcrest-library}</version>
         <scope>test</scope>
       </dependency>
 
@@ -391,14 +606,7 @@
       <dependency>
         <groupId>com.jayway.jsonpath</groupId>
         <artifactId>json-path-assert</artifactId>
-        <version>2.2.0</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>kubernetes-server-mock</artifactId>
-        <version>${version.kubernetes-client}</version>
+        <version>${version.json-path-assert}</version>
         <scope>test</scope>
       </dependency>
 
@@ -407,61 +615,95 @@
         <artifactId>openshift-server-mock</artifactId>
         <version>${version.kubernetes-client}</version>
         <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
         <groupId>pl.pragmatists</groupId>
         <artifactId>JUnitParams</artifactId>
-        <version>1.0.5</version>
+        <version>${version.JUnitParams}</version>
         <scope>test</scope>
       </dependency>
 
       <!-- == doc ====================================== -->
-
       <dependency>
         <groupId>org.asciidoctor</groupId>
         <artifactId>asciidoctorj</artifactId>
-        <version>1.5.4</version>
+        <version>${version.asciidoctorj}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctorj-diagram</artifactId>
+        <version>${version.asciidoctorj}</version>
       </dependency>
 
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-interpolation</artifactId>
-        <version>1.24</version>
+        <version>${version.plexus-interpolation}</version>
       </dependency>
 
       <dependency>
         <groupId>javax.validation</groupId>
         <artifactId>validation-api</artifactId>
-        <version>2.0.1.Final</version>
+        <version>${version.validation-api}</version>
       </dependency>
 
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
         <scope>provided</scope>
-        <version>3.0.24</version>
+        <version>${version.plexus-utils}</version>
       </dependency>
 
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-archiver</artifactId>
-        <version>3.5</version>
+        <version>${version.plexus-archiver}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
-
 
       <dependency>
         <groupId>org.eclipse.jgit</groupId>
         <artifactId>org.eclipse.jgit</artifactId>
-        <version>5.3.0.201903130848-r</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.jacoco</groupId>
-        <artifactId>org.jacoco.agent</artifactId>
-        <classifier>runtime</classifier>
-        <scope>test</scope>
-        <version>${version.jacoco}</version>
+        <version>${version.jgit}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -470,8 +712,16 @@
         <version>${version.networknt.validator}</version>
         <exclusions>
           <exclusion>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -487,108 +737,78 @@
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>2.5.3</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-gpg-plugin</artifactId>
-          <version>1.6</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-enforcer-plugin</artifactId>
-          <version>1.4.1</version>
-        </plugin>
-
-         <plugin>
-           <groupId>org.apache.maven.plugins</groupId>
-           <artifactId>maven-javadoc-plugin</artifactId>
-           <version>3.1.0</version>
-         </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-source-plugin</artifactId>
-          <version>2.4</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.codehaus.plexus</groupId>
-          <artifactId>plexus-component-metadata</artifactId>
-          <version>1.6</version>
-        </plugin>
-
-        <plugin>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>3.0.0</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.asciidoctor</groupId>
-          <artifactId>asciidoctor-maven-plugin</artifactId>
-          <version>1.5.5</version>
-          <dependencies>
-            <dependency>
-              <groupId>org.jruby</groupId>
-              <artifactId>jruby-complete</artifactId>
-              <version>1.7.26</version>
-            </dependency>
-            <dependency>
-              <groupId>org.asciidoctor</groupId>
-              <artifactId>asciidoctorj</artifactId>
-              <version>1.5.5</version>
-            </dependency>
-             <dependency>
-               <groupId>org.asciidoctor</groupId>
-               <artifactId>asciidoctorj-diagram</artifactId>
-               <version>1.5.4</version>
-             </dependency>
-          </dependencies>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-invoker-plugin</artifactId>
-          <version>2.0.0</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <version>2.19.1</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.19.1</version>
-          <configuration>
-            <argLine>
-              -javaagent:${settings.localRepository}/org/jmockit/jmockit/${version.jmockit}/jmockit-${version.jmockit}.jar
-            </argLine>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.jacoco</groupId>
-          <artifactId>jacoco-maven-plugin</artifactId>
-          <version>${version.jacoco}</version>
-        </plugin>
-
-
-
-        <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.1.1</version>
           <configuration>
             <descriptorRefs>
               <descriptorRef>jar-with-dependencies</descriptorRef>
             </descriptorRefs>
           </configuration>
         </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${version.maven-compiler-plugin}</version>
+          <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+            <compilerArgument>-Xlint:deprecation</compilerArgument>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${version.maven-enforcer-plugin}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${version.maven-failsafe-plugin}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${version.maven-surefire-plugin}</version>
+          <configuration>
+            <argLine>
+              -javaagent:"${settings.localRepository}/org/jmockit/jmockit/${version.jmockit}/jmockit-${version.jmockit}.jar"
+            </argLine>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.jmockit</groupId>
+              <artifactId>jmockit</artifactId>
+              <version>${version.jmockit}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>org.asciidoctor</groupId>
+          <artifactId>asciidoctor-maven-plugin</artifactId>
+          <version>${version.asciidoctor-maven-plugin}</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.jruby</groupId>
+              <artifactId>jruby-complete</artifactId>
+              <version>${version.jruby-complete}</version>
+            </dependency>
+            <dependency>
+              <groupId>org.asciidoctor</groupId>
+              <artifactId>asciidoctorj</artifactId>
+              <version>${version.asciidoctorj}</version>
+            </dependency>
+             <dependency>
+               <groupId>org.asciidoctor</groupId>
+               <artifactId>asciidoctorj-diagram</artifactId>
+               <version>${version.asciidoctorj}</version>
+             </dependency>
+          </dependencies>
+        </plugin>
+
       </plugins>
     </pluginManagement>
 
@@ -596,12 +816,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-          <compilerArgument>-Xlint:deprecation</compilerArgument>
-        </configuration>
       </plugin>
     </plugins>
 
@@ -609,7 +823,7 @@
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
         <artifactId>wagon-ssh-external</artifactId>
-        <version>2.3</version>
+        <version>${version.wagon-ssh-external}</version>
       </extension>
     </extensions>
   </build>

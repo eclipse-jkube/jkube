@@ -24,25 +24,14 @@
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
-  <artifactId>jkube-watcher-standard</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <artifactId>jkube-kit-watcher-standard</artifactId>
 
-  <name>Jkube :: Watcher :: Standard</name>
+  <name>Jkube Kit :: Watcher :: Standard</name>
 
   <dependencies>
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-watcher-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-core</artifactId>
     </dependency>
 
     <dependency>

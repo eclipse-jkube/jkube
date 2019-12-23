@@ -261,7 +261,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
         File file = new File(getProject().getBasedir(), path);
         file.getParentFile().mkdirs();
         String text = String.format("%s" +
-                        "# Remote secret added by jkube-maven-plugin\n" +
+                        "# Remote secret added by jkube-kit-plugin\n" +
                         "%s=%s\n",
                 file.exists() ? "\n" : "", DEV_TOOLS_REMOTE_SECRET, token);
 

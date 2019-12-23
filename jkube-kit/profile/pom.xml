@@ -25,8 +25,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jkube-maven-profiles</artifactId>
-    <name>Jkube Maven :: Profile</name>
+    <artifactId>jkube-kit-profiles</artifactId>
+    <name>Jkube Kit :: Profile</name>
 
     <dependencies>
         <dependency>
@@ -35,14 +35,8 @@
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

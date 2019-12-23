@@ -25,13 +25,11 @@
   </parent>
 
   <artifactId>kubernetes-maven-doc</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Kubernetes Maven :: Documentation</name>
+  <name>Kubernetes Maven Plugin :: Documentation</name>
 
   <properties>
-    <maven-resources-plugin.version>3.0.0</maven-resources-plugin.version>
     <asciidoctor-maven-plugin.version>1.6.0</asciidoctor-maven-plugin.version>
     <asciidoctorj.version>2.1.0</asciidoctorj.version>
     <asciidoctorj-pdf.version>1.5.0-alpha.18</asciidoctorj-pdf.version>
@@ -52,9 +50,26 @@
 
   <build>
     <plugins>
+      <!-- Disable dependencyConvergence -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>dependency-convergence</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration combine.self="override">
+              <rules></rules>
+              <skip>true</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>${maven-resources-plugin.version}</version>
+        <version>${version.maven-resources-plugin}</version>
         <executions>
           <execution>
             <id>copy-asciidoc</id>

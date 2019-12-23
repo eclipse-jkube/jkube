@@ -24,35 +24,19 @@
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
-  <artifactId>jkube-maven-enricher-generic</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <artifactId>jkube-kit-enricher-generic</artifactId>
 
-  <name>Jkube Maven :: Enricher :: Generic</name>
+  <name>Jkube Kit :: Enricher :: Generic</name>
 
   <dependencies>
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-maven-enricher-api</artifactId>
+      <artifactId>jkube-kit-enricher-api</artifactId>
     </dependency>
 
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>ianaservicehelper</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
     </dependency>
 
     <!-- == Test =============================================== -->
@@ -85,12 +69,6 @@
     <dependency>
       <groupId>com.jayway.jsonpath</groupId>
       <artifactId>json-path-assert</artifactId>
-    </dependency>
-
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
     </dependency>
 
   </dependencies>

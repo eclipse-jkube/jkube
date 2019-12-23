@@ -12,5 +12,6 @@ After this we will switch probably to real [Semantic Versioning 2.0.0](http://se
 
 ### 0.1.1-SNAPSHOT
 
+* Refactor #29: Add Maven Enforcer Plugin
 
 ### 0.1.0 (19-12-2019)
