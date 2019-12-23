@@ -49,8 +49,8 @@ public class JavaExecGenerator extends BaseGenerator {
 
     // Plugins indicating a plain java build
     private static final String[][] JAVA_EXEC_MAVEN_PLUGINS = new String[][] {
-        new String[] { "org.codehaus.mojo", "exec-maven-plugin" },
-        new String[] { "org.apache.maven.plugins", "maven-shade-plugin" }
+            new String[] { "org.codehaus.mojo", "exec-maven-plugin" },
+            new String[] { "org.apache.maven.plugins", "maven-shade-plugin" }
     };
 
     private final FatJarDetector fatJarDetector;
@@ -64,8 +64,8 @@ public class JavaExecGenerator extends BaseGenerator {
         super(context, name, new FromSelector.Default(context, "java"));
         fatJarDetector = new FatJarDetector(getProject().getBuildDirectory());
         mainClassDetector = new MainClassDetector(getConfig(Config.mainClass),
-                                                  new File(getProject().getOutputDirectory()),
-                                                  context.getLogger());
+                new File(getProject().getOutputDirectory()),
+                context.getLogger());
     }
 
     public enum Config implements Configs.Key {
@@ -81,11 +81,11 @@ public class JavaExecGenerator extends BaseGenerator {
         // Basedirectory where to put the application data into (within the Docker image
         targetDir {{d = "/deployments"; }},
 
-        // The name of the main class for non-far jars. If not speficied it is tried
+        // The name of the main class for non-fat jars. If not specified it is tried
         // to find a main class within target/classes.
         mainClass,
 
-        // Reference to a predefined assembly descriptor to use. By defult it is tried to be detected
+        // Reference to a predefined assembly descriptor to use. By default it is tried to be detected
         assemblyRef;
 
         public String def() { return d; } protected String d;
@@ -127,10 +127,10 @@ public class JavaExecGenerator extends BaseGenerator {
         buildBuilder.env(envMap);
         addLatestTagIfSnapshot(buildBuilder);
         imageBuilder
-            .name(getImageName())
-            .registry(getRegistry())
-            .alias(getAlias())
-            .buildConfig(buildBuilder.build());
+                .name(getImageName())
+                .registry(getRegistry())
+                .alias(getAlias())
+                .buildConfig(buildBuilder.build());
         configs.add(imageBuilder.build());
         return configs;
     }
@@ -197,14 +197,14 @@ public class JavaExecGenerator extends BaseGenerator {
         }
     }
 
-    private List<JKubeAssemblyFileSet> addAdditionalFiles(JKubeProject project) {
+    public List<JKubeAssemblyFileSet> addAdditionalFiles(JKubeProject project) {
         List<JKubeAssemblyFileSet> fileSets = new ArrayList<>();
-        fileSets.add(createFileSet(project, "src/main/jkube-includes/bin","0755"));
-        fileSets.add(createFileSet(project, "src/main/jkube-includes","0644"));
+        fileSets.add(createFileSet(project, "src/main/jkube-includes/bin","bin", "0755"));
+        fileSets.add(createFileSet(project, "src/main/jkube-includes",".", "0644"));
         return fileSets;
     }
 
-    private JKubeAssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JKubeProject project) {
+    public JKubeAssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JKubeProject project) {
         File buildDir = new File(project.getBuildDirectory());
         return new JKubeAssemblyFileSet.Builder()
                 .directory(getRelativePath(project.getBaseDirectory(), buildDir).getPath())
@@ -214,10 +214,11 @@ public class JavaExecGenerator extends BaseGenerator {
                 .build();
     }
 
-    private JKubeAssemblyFileSet createFileSet(JKubeProject project, String sourceDir, String fileMode) {
+    public JKubeAssemblyFileSet createFileSet(JKubeProject project, String sourceDir, String outputDir, String fileMode) {
         return new JKubeAssemblyFileSet.Builder()
                 .directory(project.getBaseDirectory().getAbsolutePath())
                 .includes(Collections.singletonList(sourceDir))
+                .outputDirectory(outputDir)
                 .fileMode(fileMode)
                 .build();
     }
