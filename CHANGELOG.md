@@ -22,6 +22,7 @@ Usage:
 ```
 ### 0.2-SNAPSHOT
 * Fix #71: script to extract changelog information for notifications
+* Fix #34: Ported OpenLiberty support: https://github.com/fabric8io/fabric8-maven-plugin/pull/1711
 * Fix #76: Github actions checkout v2
 * Updated Kubernetes-Client Version to 4.7.1 #70
 * Fix #30: Decouple JKube-kit from maven

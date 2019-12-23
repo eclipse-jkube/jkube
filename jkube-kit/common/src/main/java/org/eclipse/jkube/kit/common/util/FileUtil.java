@@ -354,7 +354,7 @@ public class FileUtil {
 
     public static void createDirectory(File directory) throws IOException {
         if (!directory.exists()) {
-            boolean isCreated = directory.mkdir();
+            boolean isCreated = directory.mkdirs();
             if (!isCreated) {
                 throw new IOException("Failed to create directory: " + directory.getAbsolutePath());
             }

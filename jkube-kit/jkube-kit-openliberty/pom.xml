@@ -20,42 +20,32 @@
     <parent>
         <artifactId>jkube-kit-parent</artifactId>
         <groupId>org.eclipse.jkube</groupId>
-        <version>0.1.1-SNAPSHOT</version>
+        <version>0.2-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>jkube-kit-openliberty</artifactId>
+    <name>JKube Kit :: Open Liberty</name>
 
     <dependencies>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-api</artifactId>
+            <artifactId>jkube-kit-enricher-api</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-specific</artifactId>
+            <artifactId>jkube-kit-enricher-specific</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-java-exec</artifactId>
+            <artifactId>jkube-kit-generator-java-exec</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-config-image</artifactId>
         </dependency>
 
         <dependency>

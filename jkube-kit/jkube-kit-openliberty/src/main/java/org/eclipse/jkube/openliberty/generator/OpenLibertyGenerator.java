@@ -13,25 +13,19 @@
  */
 package org.eclipse.jkube.openliberty.generator;
 
-
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.assembly.model.Assembly;
-import org.apache.maven.plugins.assembly.model.DependencySet;
-import org.apache.maven.plugins.assembly.model.FileSet;
-import org.apache.maven.project.MavenProject;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
+import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 
 public class OpenLibertyGenerator extends JavaExecGenerator {
 
@@ -49,7 +43,7 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddImageConfiguration(configs)
-                && MavenUtil.hasPlugin(getProject(), "io.openliberty.tools", "liberty-maven-plugin");
+                && JKubeProjectUtil.hasPlugin(getProject(), "io.openliberty.tools", "liberty-maven-plugin");
                 
     }
 
@@ -65,7 +59,7 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
 
   
     @Override
-    protected Map<String, String> getEnv(boolean prePackagePhase) throws MojoExecutionException {
+    protected Map<String, String> getEnv(boolean prePackagePhase) {
     	Map<String,String> ret = super.getEnv(prePackagePhase);
     	if ( runnableJarName != null) {
     		ret.put(LIBERTY_RUNNABLE_JAR, runnableJarName);
@@ -74,68 +68,46 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
     	return ret;
     }
     @Override
-    protected AssemblyConfiguration createAssembly() throws MojoExecutionException {
-        AssemblyConfiguration.Builder builder = new AssemblyConfiguration.Builder().targetDir(getConfig(Config.targetDir));
+    protected JKubeAssemblyConfiguration createAssembly() {
+        final JKubeAssemblyConfiguration.Builder builder = new JKubeAssemblyConfiguration.Builder();
+        builder.targetDir(getConfig(Config.targetDir));
         addAssembly(builder);
         return builder.build();
     }
     
     @Override
-    protected void addAssembly(AssemblyConfiguration.Builder builder) throws MojoExecutionException {
+    protected void addAssembly(JKubeAssemblyConfiguration.Builder builder) {
         String assemblyRef = getConfig(Config.assemblyRef);
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
         } else {
-            Assembly assembly = new Assembly();
-            addAdditionalFiles(assembly);
+            JKubeProjectAssembly.Builder assemblyBuilder = new JKubeProjectAssembly.Builder()
+                    .fileSets(addAdditionalFiles(getProject()));
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
-                MavenProject project = getProject();
-                if (fatJar == null) {
-                    DependencySet dependencySet = new DependencySet();
-                    dependencySet.addInclude(project.getGroupId() + ":" + project.getArtifactId());
-                    assembly.addDependencySet(dependencySet);
-                } else {
-                    FileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
+                JKubeProject project = getProject();
+                if (fatJar != null) {
+                    JKubeAssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
                     if ( LIBERTY_SELF_EXTRACTOR.equals(fatJar.getMainClass())) {
-                    	this.runnableJarName = fatJar.getArchiveFile().getName();
+                        this.runnableJarName = fatJar.getArchiveFile().getName();
                     }
-                    assembly.addFileSet(fileSet);
+                    assemblyBuilder.fileSet(fileSet);
                 }
             } else {
                 builder.descriptorRef("artifact-with-dependencies");
             }
-            builder.assemblyDef(assembly);
+            builder.assemblyDef(assemblyBuilder.build());
         }
     }
 
-    private void addAdditionalFiles(Assembly assembly) {
-        assembly.addFileSet(createFileSet("src/main/fabric8-includes/bin","bin","0755","0755"));
-        assembly.addFileSet(createFileSet("src/main/fabric8-includes",".","0644","0755"));
+    @Override
+    public List<JKubeAssemblyFileSet> addAdditionalFiles(JKubeProject project) {
+        List<JKubeAssemblyFileSet> fileSets = new ArrayList<>();
+        fileSets.add(createFileSet(project, "src/main/jkube-includes/bin","bin", "0755"));
+        fileSets.add(createFileSet(project, "src/main/jkube-includes",".", "0644"));
         // Add server.xml file
-        assembly.addFileSet(createFileSet("src/main/liberty/config","src/wlp/config","0644", "0755"));
-      
-    }
-    
-    private FileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, MavenProject project) {
-        FileSet fileSet = new FileSet();
-        File buildDir = new File(project.getBuild().getDirectory());
-        fileSet.setDirectory(getRelativePath(project.getBasedir(), buildDir).getPath());
-        fileSet.addInclude(getRelativePath(buildDir, fatJar.getArchiveFile()).getPath());
-        fileSet.setOutputDirectory(".");
-        fileSet.setFileMode("0640");
-        return fileSet;
+        fileSets.add(createFileSet(project, "src/main/liberty/config","src/wlp/config", "0644"));
+        return fileSets;
     }
 
-    private FileSet createFileSet(String sourceDir, String outputDir, String fileMode, String directoryMode) {
-        FileSet fileSet = new FileSet();
-        fileSet.setDirectory(sourceDir);
-        fileSet.setOutputDirectory(outputDir);
-        fileSet.setFileMode(fileMode);
-        fileSet.setDirectoryMode(directoryMode);
-        return fileSet;
-    }
-    
-  
-  
 }
