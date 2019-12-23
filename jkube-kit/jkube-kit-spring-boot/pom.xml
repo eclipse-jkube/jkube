@@ -26,18 +26,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jkube-kit-spring-boot</artifactId>
-    <name>Jkube :: Kit :: Spring-Boot</name>
-    <version>0.1.1-SNAPSHOT</version>
+    <name>Jkube Kit :: Spring-Boot</name>
 
     <dependencies>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-java-exec</artifactId>
+            <artifactId>jkube-kit-generator-java-exec</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-specific</artifactId>
+            <artifactId>jkube-kit-enricher-specific</artifactId>
         </dependency>
 
         <dependency>

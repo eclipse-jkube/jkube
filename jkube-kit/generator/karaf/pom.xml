@@ -24,20 +24,14 @@
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
-  <artifactId>jkube-maven-generator-karaf</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <artifactId>jkube-kit-generator-karaf</artifactId>
 
-  <name>Jkube Maven :: Generator :: Karaf</name>
+  <name>Jkube Kit :: Generator :: Karaf</name>
 
   <dependencies>
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-maven-generator-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
+      <artifactId>jkube-kit-generator-api</artifactId>
     </dependency>
 
   </dependencies>

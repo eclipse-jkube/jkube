@@ -25,7 +25,6 @@
   </parent>
 
   <artifactId>jkube-kit-config-image</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
 
   <name>Jkube Kit :: Config :: Image</name>
 
@@ -33,16 +32,6 @@
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-common</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
     </dependency>
 
     <dependency>

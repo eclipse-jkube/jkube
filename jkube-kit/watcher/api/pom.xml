@@ -25,39 +25,14 @@
   </parent>
 
   <artifactId>jkube-kit-watcher-api</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
 
   <name>Jkube Kit :: Watcher :: API</name>
 
   <dependencies>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>kubernetes-client</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-kit-common</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-config-resource</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-kit-config-image</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.eclipse.jgit</groupId>
-      <artifactId>org.eclipse.jgit</artifactId>
     </dependency>
 
   </dependencies>

@@ -24,39 +24,24 @@
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
-  <artifactId>jkube-maven-generator-java-exec</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <artifactId>jkube-kit-generator-java-exec</artifactId>
 
-  <name>Jkube Maven :: Generator :: Java Exec</name>
+  <name>Jkube Kit :: Generator :: Java Exec</name>
 
   <dependencies>
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-maven-generator-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
+      <artifactId>jkube-kit-generator-api</artifactId>
     </dependency>
 
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
     </dependency>
-
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-    </dependency>
-
-
 
     <dependency>
       <groupId>org.jmockit</groupId>
       <artifactId>jmockit</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 

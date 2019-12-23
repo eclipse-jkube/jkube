@@ -26,34 +26,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jkube-kit-vertx</artifactId>
-    <groupId>org.eclipse.jkube</groupId>
-    <version>0.1.1-SNAPSHOT</version>
+    <name>Jkube Kit :: Vert.x</name>
 
     <dependencies>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-api</artifactId>
+            <artifactId>jkube-kit-enricher-specific</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-specific</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-common</artifactId>
-            <version>0.1.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-java-exec</artifactId>
+            <artifactId>jkube-kit-generator-java-exec</artifactId>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -74,7 +60,6 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-infinispan</artifactId>
-            <version>3.4.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

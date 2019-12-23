@@ -24,20 +24,15 @@
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
-  <artifactId>jkube-maven-generator-wildfly-swarm</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <artifactId>jkube-kit-generator-wildfly-swarm</artifactId>
 
-  <name>Jkube Maven :: Generator :: WildFly Swarm</name>
+  <name>Jkube Kit :: Generator :: WildFly Swarm</name>
 
   <dependencies>
-    <dependency>
-      <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-maven-generator-api</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-maven-generator-java-exec</artifactId>
+      <artifactId>jkube-kit-generator-java-exec</artifactId>
     </dependency>
   </dependencies>
 

@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
 /**
- * A profile is a named configuration with ernicher and generator configs.
+ * A profile is a named configuration with enricher and generator configs.
  *
  * @author roland
  * @since 24/07/16

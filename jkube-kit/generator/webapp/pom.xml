@@ -23,22 +23,20 @@
     <version>0.1.1-SNAPSHOT</version>
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
-  <artifactId>jkube-maven-generator-webapp</artifactId>
 
-  <version>0.1.1-SNAPSHOT</version>
+  <artifactId>jkube-kit-generator-webapp</artifactId>
 
-  <name>Jkube Maven :: Generator :: WebApp</name>
+  <name>Jkube Kit :: Generator :: WebApp</name>
 
   <dependencies>
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-maven-generator-api</artifactId>
+      <artifactId>jkube-kit-generator-api</artifactId>
     </dependency>
 
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
     </dependency>
 
   </dependencies>

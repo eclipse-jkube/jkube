@@ -36,24 +36,6 @@
       <artifactId>jkube-kit-build-api</artifactId>
     </dependency>
 
-
-    <!-- ================================================================= -->
-
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-assembly-plugin</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>org.jmockit</groupId>
       <artifactId>jmockit</artifactId>

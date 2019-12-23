@@ -27,16 +27,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jkube-kit-thorntail</artifactId>
+    <name>Jkube Kit :: Thorntail</name>
 
     <dependencies>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-api</artifactId>
+            <artifactId>jkube-kit-generator-java-exec</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-java-exec</artifactId>
+            <artifactId>jkube-kit-enricher-specific</artifactId>
         </dependency>
 
         <dependency>
@@ -47,16 +48,6 @@
         <dependency>
             <groupId>org.jmockit</groupId>
             <artifactId>jmockit</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-specific</artifactId>
         </dependency>
     </dependencies>
 
