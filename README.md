@@ -6,16 +6,24 @@
 [![Gitter](https://badges.gitter.im/eclipse/jkube.svg)](https://gitter.im/eclipse/jkube?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube&metric=coverage)](https://sonarcloud.io/dashboard?id=jkubeio_jkube)
 
+<p align="center">
+  <a href="https://www.eclipse.org/jkube/">
+  	<img src="https://i.imgur.com/EWL66xC.png" width="350" alt="Eclipse Jkube"/>
+  </a>
+</p>
+
 This project contains various building blocks for the jkube developer toolbox.
 
 Actually it contains the following abstractions which has been extracted from both projects:
 
 * **Kubernetes Maven Plugin** <br/>
 [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/k8s-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22k8s-maven-plugin%22)
+[![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://htmlpreview.github.io/?https://github.com/eclipse/jkube/blob/master/kubernetes-maven-plugin/doc/index.html)
 ![Sample Demo](kubernetes-maven-plugin/k8s-maven-plugin-demo.gif)
 
 * **Openshift Maven Plugin** <br/> 
 [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/oc-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22oc-maven-plugin%22)
+[![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://htmlpreview.github.io/?https://github.com/eclipse/jkube/blob/master/openshift-maven-plugin/doc/index.html)
 ![Sample Demo](openshift-maven-plugin/oc-maven-plugin-demo.gif)
 
 * **Jkube-kit**, which consists of the following:
