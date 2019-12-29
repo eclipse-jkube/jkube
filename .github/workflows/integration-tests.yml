@@ -34,7 +34,7 @@ jobs:
         kubernetes: [v1.16.2,v1.12.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Setup Minikube-Kubernetes
         uses: manusa/actions-setup-minikube@v1.0.0
         with:
@@ -75,7 +75,7 @@ jobs:
         openshift: [v3.11.0,v3.9.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Setup OpenShift
         uses: manusa/actions-setup-openshift@v1.0.1
         with:
