@@ -108,9 +108,8 @@ public class DockerImageWatcher extends BaseWatcher {
     protected void restartContainer(WatchService.ImageWatcher watcher, Set<HasMetadata> resources) throws IllegalStateException {
         ImageConfiguration imageConfig = watcher.getImageConfiguration();
         String imageName = imageConfig.getName();
-        try {
-            ClusterAccess clusterAccess = new ClusterAccess(getContext().getClusterConfiguration());
-            KubernetesClient client = clusterAccess.createDefaultClient(log);
+        ClusterAccess clusterAccess = new ClusterAccess(getContext().getClusterConfiguration());
+        try (KubernetesClient client = clusterAccess.createDefaultClient(log)) {
 
             String namespace = clusterAccess.getNamespace();
 
