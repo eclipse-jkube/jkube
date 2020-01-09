@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.WatchImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -172,7 +173,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         throws IllegalArgumentException {
         Map<String, String> externalConfig = fromConfig.getExternalConfig();
         String prefix = getPrefix(externalConfig);
-        Properties properties = EnvUtil.getPropertiesWithSystemOverrides(project);
+        Properties properties = MavenUtil.getPropertiesWithSystemOverrides(project);
         PropertyMode propertyMode = getMode(externalConfig);
         ValueProvider valueProvider = new ValueProvider(prefix, properties, propertyMode);
 

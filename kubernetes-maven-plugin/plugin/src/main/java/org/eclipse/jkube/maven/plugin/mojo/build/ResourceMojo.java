@@ -61,7 +61,6 @@ import org.apache.maven.shared.filtering.MavenFilteringException;
 import javax.validation.ConstraintViolationException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;

@@ -33,6 +33,7 @@ import com.google.common.base.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.tar.TarArchiver;
@@ -40,6 +41,8 @@ import org.codehaus.plexus.archiver.tar.TarLongFileMode;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.eclipse.jkube.kit.common.util.EnvUtil.greaterOrEqualsVersion;
 
 /**
  * @author roland
@@ -272,6 +275,27 @@ public class MavenUtil {
 
         }
         return version;
+    }
+
+    /**
+     * Return all properties in Maven project, merged with all System properties (-D flags sent to Maven).
+     * <p>
+     * System properties always takes precedence.
+     *
+     * @param project Project to extract Properties from
+     * @return Properties merged
+     */
+    public static Properties getPropertiesWithSystemOverrides(MavenProject project) {
+        Properties properties = new Properties(project.getProperties());
+        properties.putAll(System.getProperties());
+        return properties;
+    }
+
+    public static boolean isMaven350OrLater(MavenSession mavenSession) {
+        // Maven enforcer and help:evaluate goals both use mavenSession.getSystemProperties(),
+        // and it turns out that System.getProperty("maven.version") does not return the value.
+        String mavenVersion = mavenSession.getSystemProperties().getProperty("maven.version", "3");
+        return greaterOrEqualsVersion(mavenVersion, "3.5.0");
     }
 
     public static Optional<List<String>> getCompileClasspathElementsIfRequested(MavenProject project, boolean useProjectClasspath) throws IOException {

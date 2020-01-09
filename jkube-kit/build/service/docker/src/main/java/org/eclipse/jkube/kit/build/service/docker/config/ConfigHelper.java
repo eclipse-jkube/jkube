@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.StringUtils;
+import org.eclipse.jkube.kit.common.util.MavenUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,7 +102,7 @@ public class ConfigHelper {
     }
 
     public static String getExternalConfigActivationProperty(MavenProject project) {
-        Properties properties = EnvUtil.getPropertiesWithSystemOverrides(project);
+        Properties properties = MavenUtil.getPropertiesWithSystemOverrides(project);
         String value = properties.getProperty(EXTERNALCONFIG_ACTIVATION_PROPERTY);
 
         // This can be used to disable in a more "local" context, if set globally

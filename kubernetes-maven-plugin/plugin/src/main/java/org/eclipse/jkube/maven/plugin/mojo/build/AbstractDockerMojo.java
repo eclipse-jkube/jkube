@@ -37,6 +37,7 @@ import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
@@ -593,7 +594,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
 
     protected ImageConfiguration createSimpleDockerfileConfig(File dockerFile) {
         // No configured name, so create one from maven GAV
-        String name = EnvUtil.getPropertiesWithSystemOverrides(project).getProperty("docker.name");
+        String name = MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("docker.name");
         if (name == null) {
             // Default name group/artifact:version (or 'latest' if SNAPSHOT)
             name = "%g/%a:%l";
@@ -867,7 +868,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
      */
     protected boolean useColorForLogging() {
         return useColor && MessageUtils.isColorEnabled()
-                && !(EnvUtil.isWindows() && !EnvUtil.isMaven350OrLater(session));
+                && !(EnvUtil.isWindows() && !MavenUtil.isMaven350OrLater(session));
     }
 
     protected ClusterConfiguration getClusterConfiguration() {

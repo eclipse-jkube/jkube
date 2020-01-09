@@ -23,7 +23,7 @@ public class ThorntailUtilTest {
 
     @Test
     public void testReadThorntailPort() {
-        Properties props = YamlUtil.getPropertiesFromYamlResource(SpringBootUtilTest.class.getResource("/util/project-default.yml"));
+        Properties props = YamlUtil.getPropertiesFromYamlResource(ThorntailUtilTest.class.getResource("/util/project-default.yml"));
         assertNotNull(props);
         assertEquals("8082", props.getProperty("thorntail.http.port"));
 

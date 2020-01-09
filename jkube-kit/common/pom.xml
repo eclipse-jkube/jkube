@@ -25,7 +25,6 @@
   </parent>
 
   <artifactId>jkube-kit-common</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
 
   <name>Jkube Kit :: Common</name>
 
@@ -92,11 +91,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-core</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
     </dependency>
@@ -107,23 +101,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-archiver</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>org.fusesource.jansi</groupId>
       <artifactId>jansi</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-assembly-plugin</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven.shared</groupId>
-      <artifactId>maven-common-artifact-filters</artifactId>
     </dependency>
 
     <dependency>
@@ -135,6 +114,11 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jmockit</groupId>
+      <artifactId>jmockit</artifactId>
     </dependency>
 
     <dependency>

@@ -20,15 +20,13 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.utils.io.FileUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -221,20 +219,6 @@ public class EnvUtil {
             first = false;
         }
         return ret.toString();
-    }
-
-    /**
-     * Return all properties in Maven project, merged with all System properties (-D flags sent to Maven).
-     * <p>
-     * System properties always takes precedence.
-     *
-     * @param project Project to extract Properties from
-     * @return Properties merged
-     */
-    public static Properties getPropertiesWithSystemOverrides(MavenProject project) {
-        Properties properties = new Properties(project.getProperties());
-        properties.putAll(System.getProperties());
-        return properties;
     }
 
     /**
@@ -438,7 +422,7 @@ public class EnvUtil {
                     throw new IOException("Cannot create directory " + dir);
                 }
             }
-            FileUtils.fileWrite(tsFile, StandardCharsets.US_ASCII.name(), Long.toString(buildDate.getTime()));
+            Files.write(tsFile.toPath(), Long.toString(buildDate.getTime()).getBytes(StandardCharsets.US_ASCII));
         } catch (IOException e) {
             throw new IOException("Cannot create " + tsFile + " for storing time " + buildDate.getTime(), e);
         }
@@ -447,7 +431,7 @@ public class EnvUtil {
     public static Date loadTimestamp(File tsFile) throws IOException {
         try {
             if (tsFile.exists()) {
-                String ts = FileUtils.fileRead(tsFile);
+                final String ts = new String(Files.readAllBytes(tsFile.toPath()), StandardCharsets.US_ASCII);
                 return new Date(Long.parseLong(ts));
             } else {
                 return null;
@@ -459,13 +443,6 @@ public class EnvUtil {
 
     public static boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().contains("windows");
-    }
-
-    public static boolean isMaven350OrLater(MavenSession mavenSession) {
-        // Maven enforcer and help:evaluate goals both use mavenSession.getSystemProperties(),
-        // and it turns out that System.getProperty("maven.version") does not return the value.
-        String mavenVersion = mavenSession.getSystemProperties().getProperty("maven.version", "3");
-        return greaterOrEqualsVersion(mavenVersion, "3.5.0");
     }
 
     public static String getEnvVarOrSystemProperty(String varName, String defaultValue) {
