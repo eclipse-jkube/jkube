@@ -142,6 +142,12 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-common-maven</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-config-image</artifactId>
         <version>${project.version}</version>
       </dependency>

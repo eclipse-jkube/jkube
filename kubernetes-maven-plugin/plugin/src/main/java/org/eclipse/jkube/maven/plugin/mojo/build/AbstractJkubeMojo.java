@@ -16,6 +16,7 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 import org.eclipse.jkube.kit.build.service.docker.helper.AnsiLogger;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -88,7 +89,7 @@ public abstract class AbstractJkubeMojo extends AbstractMojo {
      */
     private boolean useColorForLogging() {
         return useColor && MessageUtils.isColorEnabled()
-                && !(EnvUtil.isWindows() && !EnvUtil.isMaven350OrLater(session));
+                && !(EnvUtil.isWindows() && !MavenUtil.isMaven350OrLater(session));
     }
 
     protected ClusterConfiguration getClusterConfiguration() {
