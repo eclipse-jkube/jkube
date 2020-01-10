@@ -31,12 +31,12 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
 import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
 import org.eclipse.jkube.kit.build.maven.assembly.ArchiverCustomizer;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.RegistryService;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.service.BuildService;
@@ -128,7 +128,7 @@ public class OpenshiftBuildServiceTest {
 
         image = new ImageConfiguration.Builder()
                 .name(projectName)
-                .buildConfig(new BuildConfiguration.Builder()
+                .buildConfig(new MavenBuildConfiguration.Builder()
                         .from(projectName)
                         .build()
                 ).build();
@@ -289,7 +289,7 @@ public class OpenshiftBuildServiceTest {
                     "namespace", "my-project");
             ImageConfiguration fromExtImage = new ImageConfiguration.Builder()
                     .name(projectName)
-                    .buildConfig(new BuildConfiguration.Builder()
+                    .buildConfig(new MavenBuildConfiguration.Builder()
                             .fromExt(fromExt)
                             .nocache(Boolean.TRUE)
                             .build()
@@ -375,7 +375,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, dockerServiceHub, config);
 
             ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new BuildConfiguration.Builder(image.getBuildConfiguration())
+                    .buildConfig(new MavenBuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -419,7 +419,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, dockerServiceHub, config);
 
             ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new BuildConfiguration.Builder(image.getBuildConfiguration())
+                    .buildConfig(new MavenBuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();

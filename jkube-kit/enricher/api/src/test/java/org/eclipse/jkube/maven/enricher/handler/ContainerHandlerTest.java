@@ -15,14 +15,15 @@ package org.eclipse.jkube.maven.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import mockit.Mocked;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.project.MavenProject;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -41,39 +42,55 @@ public class ContainerHandlerTest {
 
     private List<Container> containers;
 
-    MavenProject project = new MavenProject();
+    private MavenProject project;
 
-    MavenProject project1 = new MavenProject();
+    private MavenProject project1;
 
-    MavenProject project2 = new MavenProject();
+    private MavenProject project2;
 
-    ResourceConfig config = new ResourceConfig.Builder()
-            .imagePullPolicy("IfNotPresent")
-            .controllerName("testing")
-            .withReplicas(5)
-            .build();
+    private ResourceConfig config;
 
     //policy is set in config
-    ResourceConfig config1 = new ResourceConfig.Builder()
-            .imagePullPolicy("IfNotPresent").build();
+    private ResourceConfig config1;
 
-    List<String> ports = new ArrayList<>();
+    private List<String> ports;
 
-    List<String> tags = new ArrayList<>();
+    private List<String> tags;
 
-    List<ImageConfiguration> images = new ArrayList<>();
+    private List<ImageConfiguration> images;
 
     //volumes with volumeconfigs
-    List<VolumeConfig> volumes1 = new ArrayList<>();
+    private List<VolumeConfig> volumes1;
 
     //empty volume, no volumeconfigs
-    List<VolumeConfig> volumes2 = new ArrayList<>();
+    private List<VolumeConfig> volumes2;
 
     //a sample image configuration
-    BuildConfiguration buildImageConfiguration1 = new BuildConfiguration.Builder()
-            .from("fabric8/maven:latest").build();
-    ImageConfiguration imageConfiguration1 = new ImageConfiguration.Builder().
-            name("test").alias("test-app").buildConfig(buildImageConfiguration1).registry("docker.io").build();
+    MavenBuildConfiguration buildImageConfiguration1;
+    ImageConfiguration imageConfiguration1;
+
+    @Before
+    public void setUp() {
+        project = new MavenProject();
+        project1 = new MavenProject();
+        project2 = new MavenProject();
+        config = new ResourceConfig.Builder()
+                .imagePullPolicy("IfNotPresent")
+                .controllerName("testing")
+                .withReplicas(5)
+                .build();
+        config1 = new ResourceConfig.Builder()
+                .imagePullPolicy("IfNotPresent").build();
+        ports = new ArrayList<>();
+        tags = new ArrayList<>();
+        images = new ArrayList<>();
+        volumes1 = new ArrayList<>();
+        volumes2 = new ArrayList<>();
+        buildImageConfiguration1 = new MavenBuildConfiguration.Builder()
+                .from("fabric8/maven:latest").build();
+        imageConfiguration1 = new ImageConfiguration.Builder().
+                name("test").alias("test-app").buildConfig(buildImageConfiguration1).registry("docker.io").build();
+    }
 
     @Test
     public void getContainersWithAliasTest() {
@@ -90,8 +107,8 @@ public class ContainerHandlerTest {
         ContainerHandler handler = new ContainerHandler(project.getProperties(), new GroupArtifactVersion("test-group", "test-artifact", "0"), probeHandler);
 
         //container name with alias
-        BuildConfiguration buildImageConfiguration = new BuildConfiguration.Builder().
-                ports(ports).from("fabric8/maven:latest").cleanup("try").tags(tags).compression("gzip").build();
+        final MavenBuildConfiguration buildImageConfiguration = new MavenBuildConfiguration.Builder()
+                .ports(ports).from("fabric8/maven:latest").cleanup("try").tags(tags).compression("gzip").build();
 
         ImageConfiguration imageConfiguration = new ImageConfiguration.Builder().
                 name("docker.io/test/test-app:1.2").alias("test-app").buildConfig(buildImageConfiguration).registry("docker-alternate.io").build();
@@ -110,7 +127,7 @@ public class ContainerHandlerTest {
     public void registryHandling() {
 
         //container name with alias
-        BuildConfiguration buildImageConfiguration = new BuildConfiguration.Builder().build();
+        final MavenBuildConfiguration buildImageConfiguration = new MavenBuildConfiguration.Builder().build();
 
 
 
@@ -192,8 +209,8 @@ public class ContainerHandlerTest {
 
         ContainerHandler handler = new ContainerHandler(project.getProperties(), new GroupArtifactVersion("test-group", "test-artifact", "0"), probeHandler);
         //container name with group id and aritact id without alias and user
-        BuildConfiguration buildImageConfiguration = new BuildConfiguration.Builder().
-                ports(ports).from("fabric8/").cleanup("try").tags(tags)
+        final MavenBuildConfiguration buildImageConfiguration = new MavenBuildConfiguration.Builder()
+                .ports(ports).from("fabric8/").cleanup("try").tags(tags)
                 .compression("gzip").dockerFile("testFile").dockerFileDir("/demo").build();
 
         ImageConfiguration imageConfiguration = new ImageConfiguration.Builder().
@@ -222,8 +239,8 @@ public class ContainerHandlerTest {
         //container name with user and image with tag
         ContainerHandler handler = new ContainerHandler(project.getProperties(), new GroupArtifactVersion("test-group", "test-artifact", "0"), probeHandler);
 
-        BuildConfiguration buildImageConfiguration = new BuildConfiguration.Builder().
-                ports(ports).from("fabric8/").cleanup("try").tags(tags)
+        final MavenBuildConfiguration buildImageConfiguration = new MavenBuildConfiguration.Builder()
+                .ports(ports).from("fabric8/").cleanup("try").tags(tags)
                 .compression("gzip").dockerFile("testFile").dockerFileDir("/demo").build();
 
         ImageConfiguration imageConfiguration = new ImageConfiguration.Builder().
@@ -379,7 +396,7 @@ public class ContainerHandlerTest {
         ResourceConfig config2 = new ResourceConfig.Builder().volumes(volumes1).build();
         containers = handler.getContainers(config2, images);
         assertEquals(1, containers.get(0).getVolumeMounts().size());
-        assertEquals(null, containers.get(0).getVolumeMounts().get(0).getName());
+        assertNull(containers.get(0).getVolumeMounts().get(0).getName());
         assertEquals("/path/etc", containers.get(0).getVolumeMounts().get(0).getMountPath());
     }
 
@@ -458,8 +475,8 @@ public class ContainerHandlerTest {
         ContainerHandler handler = createContainerHandler(project);
 
         //without Ports
-        BuildConfiguration buildImageConfiguration2 = new BuildConfiguration.Builder().
-                from("fabric8/maven:latest").cleanup("try").compression("gzip").build();
+        final MavenBuildConfiguration buildImageConfiguration2 = new MavenBuildConfiguration.Builder()
+                .from("fabric8/maven:latest").cleanup("try").compression("gzip").build();
 
         ImageConfiguration imageConfiguration2 = new ImageConfiguration.Builder().
                 name("test").alias("test-app").buildConfig(buildImageConfiguration2).registry("docker.io").build();
@@ -484,8 +501,8 @@ public class ContainerHandlerTest {
         ports.add("9091");
         ports.add("9092/udp");
 
-        buildImageConfiguration1 = new BuildConfiguration.Builder().
-                ports(ports).from("fabric8/maven:latest").cleanup("try").compression("gzip").build();
+        buildImageConfiguration1 = new MavenBuildConfiguration.Builder()
+                .ports(ports).from("fabric8/maven:latest").cleanup("try").compression("gzip").build();
 
         imageConfiguration1 = new ImageConfiguration.Builder().
                 name("test").alias("test-app").buildConfig(buildImageConfiguration1).registry("docker.io").build();

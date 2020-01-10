@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import org.eclipse.jkube.kit.build.api.BuildContext;
 import org.eclipse.jkube.kit.build.api.RegistryContext;
 import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyConfigurationSource;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
@@ -40,7 +41,7 @@ import org.codehaus.plexus.interpolation.fixed.FixedStringSearchInterpolator;
  * @author roland
  * @since 16.10.18
  */
-public class MavenBuildContext implements BuildContext {
+public class MavenBuildContext implements BuildContext<MavenBuildConfiguration> {
 
     private String sourceDirectory;
     private String outputDirectory;
@@ -82,7 +83,9 @@ public class MavenBuildContext implements BuildContext {
     }
 
     @Override
-    public File createImageContentArchive(String imageName, BuildConfiguration buildConfig, KitLogger log) throws IOException {
+    public File createImageContentArchive(String imageName, MavenBuildConfiguration buildConfig, KitLogger log)
+            throws IOException {
+
         try {
             return archiveService.createArchive(imageName, buildConfig, this, log);
         } catch (Exception e) {

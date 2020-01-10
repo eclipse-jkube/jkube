@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.helper.AutoPullMode;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 import mockit.Mocked;
 import mockit.VerificationsInOrder;
@@ -46,7 +46,7 @@ public class DockerBuildServiceTest {
         final String imageName = "image-name";
         final ImageConfiguration image = new ImageConfiguration.Builder()
                 .name(imageName)
-                .buildConfig(new BuildConfiguration.Builder()
+                .buildConfig(new MavenBuildConfiguration.Builder()
                         .from("from")
                         .build()
                 ).build();

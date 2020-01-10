@@ -20,7 +20,9 @@ import java.util.Properties;
 
 import javax.annotation.Nonnull;
 
+import org.apache.maven.plugins.assembly.model.Assembly;
 import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
+import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -41,7 +43,7 @@ import org.codehaus.plexus.interpolation.fixed.PropertiesBasedValueSource;
  */
 public class DockerAssemblyConfigurationSource implements AssemblerConfigurationSource {
 
-    private final AssemblyConfiguration assemblyConfig;
+    private final MavenAssemblyConfiguration assemblyConfig;
     private final MavenBuildContext context;
     private final BuildDirs buildDirs;
 
@@ -52,7 +54,9 @@ public class DockerAssemblyConfigurationSource implements AssemblerConfiguration
     private FixedStringSearchInterpolator rootInterpolator;
     private FixedStringSearchInterpolator mainProjectInterpolator;
 
-    public DockerAssemblyConfigurationSource(MavenBuildContext context, BuildDirs buildDirs, AssemblyConfiguration assemblyConfig) {
+    public DockerAssemblyConfigurationSource(
+            MavenBuildContext context, BuildDirs buildDirs, MavenAssemblyConfiguration assemblyConfig) {
+
         this.context = context;
         this.assemblyConfig = assemblyConfig;
         this.buildDirs = buildDirs;

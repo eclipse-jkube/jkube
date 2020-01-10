@@ -20,6 +20,8 @@ import java.util.List;
 import org.eclipse.jkube.kit.build.maven.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.maven.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyManager;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.maven.config.MavenImageConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -53,7 +55,7 @@ public class MavenArchiveService {
      * @return file for holding the sources
      * @throws IOException if during creation of the tar an error occurs.
      */
-    public File createDockerBuildArchive(ImageConfiguration imageConfig, MavenBuildContext params)
+    public File createDockerBuildArchive(MavenImageConfiguration imageConfig, MavenBuildContext params)
         throws IOException {
         return createDockerBuildArchive(imageConfig, params, null);
     }
@@ -68,7 +70,7 @@ public class MavenArchiveService {
      * @return file for holding the sources
      * @throws IOException if during creation of the tar an error occurs.
      */
-    public File createDockerBuildArchive(ImageConfiguration imageConfig, MavenBuildContext context, ArchiverCustomizer customizer)
+    public File createDockerBuildArchive(MavenImageConfiguration imageConfig, MavenBuildContext context, ArchiverCustomizer customizer)
         throws IOException {
         File ret = createArchive(imageConfig.getName(), imageConfig.getBuildConfiguration(), context, log, customizer);
         log.info("%s: Created docker source tar %s",imageConfig.getDescription(), ret);
@@ -86,7 +88,7 @@ public class MavenArchiveService {
      * @return mapping of assembly files
      * @throws IOException IOException in case of any input/output error
      */
-    public AssemblyFiles getAssemblyFiles(ImageConfiguration imageConfig, MavenBuildContext context)
+    public AssemblyFiles getAssemblyFiles(MavenImageConfiguration imageConfig, MavenBuildContext context)
         throws IOException, MojoExecutionException {
 
         String name = imageConfig.getName();
@@ -111,12 +113,12 @@ public class MavenArchiveService {
 
     // =============================================
 
-    public File createArchive(String imageName, BuildConfiguration buildConfig, MavenBuildContext ctx, KitLogger log)
+    public File createArchive(String imageName, MavenBuildConfiguration buildConfig, MavenBuildContext ctx, KitLogger log)
         throws IOException {
         return createArchive(imageName, buildConfig, ctx, log, null);
     }
 
-    File createArchive(String imageName, BuildConfiguration buildConfig, MavenBuildContext ctx, KitLogger log, ArchiverCustomizer customizer)
+    File createArchive(String imageName, MavenBuildConfiguration buildConfig, MavenBuildContext ctx, KitLogger log, ArchiverCustomizer customizer)
         throws IOException {
         return dockerAssemblyManager.createDockerTarArchive(imageName, ctx, buildConfig, log, customizer);
     }

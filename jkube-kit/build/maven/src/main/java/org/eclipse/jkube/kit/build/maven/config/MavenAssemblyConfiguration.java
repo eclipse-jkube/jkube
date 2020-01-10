@@ -32,23 +32,15 @@ public class MavenAssemblyConfiguration extends AssemblyConfiguration {
         return inline;
     }
 
-    public static class Builder extends AssemblyConfiguration.Builder {
-
-        private final MavenAssemblyConfiguration mavenConfig;
+    public static class Builder extends AssemblyConfiguration.TypedBuilder<MavenAssemblyConfiguration> {
 
         public Builder() {
-            mavenConfig = new MavenAssemblyConfiguration();
-            config = mavenConfig;
+            super(new MavenAssemblyConfiguration());
         }
 
         public Builder assemblyDef(Assembly descriptor) {
-            mavenConfig.inline = set(descriptor);
+            ((MavenAssemblyConfiguration)config).inline = set(descriptor);
             return this;
-        }
-
-        @Override
-        public MavenAssemblyConfiguration build() {
-            return mavenConfig;
         }
     }
 }

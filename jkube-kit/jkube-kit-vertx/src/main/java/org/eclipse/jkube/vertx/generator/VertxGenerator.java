@@ -48,7 +48,7 @@ public class VertxGenerator extends JavaExecGenerator {
   }
 
   @Override
-  public boolean isApplicable(List<ImageConfiguration> configs) throws MojoExecutionException {
+  public boolean isApplicable(List<ImageConfiguration> configs) {
     return shouldAddImageConfiguration(configs)
         && (MavenUtil.hasPlugin(getProject(), Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT)
         || MavenUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, null));

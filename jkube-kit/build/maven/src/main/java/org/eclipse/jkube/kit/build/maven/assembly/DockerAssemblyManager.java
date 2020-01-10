@@ -14,6 +14,8 @@
 package org.eclipse.jkube.kit.build.maven.assembly;
 
 import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
+import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.build.ArchiveCompression;
@@ -97,8 +99,10 @@ public class DockerAssemblyManager {
      * @return file holding the path to the created assembly tar file
      * @throws IOException IO exception
      */
-    public File createDockerTarArchive(String imageName, MavenBuildContext params, BuildConfiguration buildConfig, KitLogger log)
+    public File createDockerTarArchive(
+            String imageName, MavenBuildContext params, MavenBuildConfiguration buildConfig,KitLogger log)
             throws IOException {
+
         return createDockerTarArchive(imageName, params, buildConfig, log, null);
     }
 
@@ -114,11 +118,12 @@ public class DockerAssemblyManager {
      * @return file holding the path to the created assembly tar file
      * @throws IOException IO exception
      */
-    public File createDockerTarArchive(String imageName, final MavenBuildContext params, final BuildConfiguration buildConfig, KitLogger log, ArchiverCustomizer finalCustomizer)
-            throws IOException {
+    public File createDockerTarArchive(
+            String imageName, final MavenBuildContext params, final MavenBuildConfiguration buildConfig, KitLogger log,
+            ArchiverCustomizer finalCustomizer) throws IOException {
 
         final BuildDirs buildDirs = createBuildDirs(imageName, params);
-        final AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        final MavenAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
 
         final List<ArchiverCustomizer> archiveCustomizers = new ArrayList<>();
 
@@ -260,12 +265,12 @@ public class DockerAssemblyManager {
      * @throws AssemblyFormattingException
      * @throws IOException
      */
-    public AssemblyFiles getAssemblyFiles(String name, BuildConfiguration buildConfig, MavenBuildContext mojoParams, KitLogger log)
+    public AssemblyFiles getAssemblyFiles(String name, MavenBuildConfiguration buildConfig, MavenBuildContext mojoParams, KitLogger log)
             throws InvalidAssemblerConfigurationException, ArchiveCreationException, AssemblyFormattingException, IOException {
 
         BuildDirs buildDirs = createBuildDirs(name, mojoParams);
 
-        AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        MavenAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
         String assemblyName = assemblyConfig.getName();
         DockerAssemblyConfigurationSource source =
                         new DockerAssemblyConfigurationSource(mojoParams, buildDirs, assemblyConfig);
@@ -287,14 +292,14 @@ public class DockerAssemblyManager {
         return buildDirs;
     }
 
-    private boolean hasAssemblyConfiguration(AssemblyConfiguration assemblyConfig) {
+    private boolean hasAssemblyConfiguration(MavenAssemblyConfiguration assemblyConfig) {
         return assemblyConfig != null &&
                 (assemblyConfig.getInline() != null ||
                  assemblyConfig.getDescriptor() != null ||
                  assemblyConfig.getDescriptorRef() != null);
     }
 
-    private boolean isArchive(AssemblyConfiguration assemblyConfig) {
+    private boolean isArchive(MavenAssemblyConfiguration assemblyConfig) {
         return hasAssemblyConfiguration(assemblyConfig) &&
                assemblyConfig.getMode() != null &&
                assemblyConfig.getMode().isArchive();
@@ -326,7 +331,7 @@ public class DockerAssemblyManager {
 
     // Create final tar-ball to be used for building the archive to send to the Docker daemon
     private File createBuildTarBall(BuildDirs buildDirs, List<ArchiverCustomizer> archiverCustomizers,
-                                    AssemblyConfiguration assemblyConfig, ArchiveCompression compression) throws IOException {
+                                    MavenAssemblyConfiguration assemblyConfig, ArchiveCompression compression) throws IOException {
         File archive = new File(buildDirs.getTemporaryRootDirectory(), "docker-build." + compression.getFileSuffix());
         try {
             TarArchiver archiver = createBuildArchiver(buildDirs.getOutputDirectory(), archive, assemblyConfig);
@@ -335,7 +340,8 @@ public class DockerAssemblyManager {
                     archiver = customizer.customize(archiver);
                 }
             }
-            archiver.setCompression(compression.getTarCompressionMethod());
+            archiver.setCompression(
+                    TarArchiver.TarCompressionMethod.valueOf(compression.getTarCompressionMethod().name()));
             archiver.createArchive();
             return archive;
         } catch (NoSuchArchiverException e) {
@@ -460,9 +466,6 @@ public class DockerAssemblyManager {
 
         if (buildConfig.getCmd() != null){
             builder.cmd(buildConfig.getCmd());
-        } else if (buildConfig.getCommand() != null) {
-            Arguments args = Arguments.Builder.get().withShell(buildConfig.getCommand()).build();
-            builder.cmd(args);
         }
 
         if (buildConfig.getEntryPoint() != null){
@@ -476,7 +479,7 @@ public class DockerAssemblyManager {
         return builder;
     }
 
-    private void createAssemblyArchive(AssemblyConfiguration assemblyConfig, MavenBuildContext params, BuildDirs buildDirs)
+    private void createAssemblyArchive(MavenAssemblyConfiguration assemblyConfig, MavenBuildContext params, BuildDirs buildDirs)
             throws IOException {
         // TODO: Need to convert MojoParams to MavenEnricherContext
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
@@ -546,7 +549,7 @@ public class DockerAssemblyManager {
         }
     }
 
-    private Assembly getAssemblyConfig(AssemblyConfiguration assemblyConfig, DockerAssemblyConfigurationSource source)
+    private Assembly getAssemblyConfig(MavenAssemblyConfiguration assemblyConfig, DockerAssemblyConfigurationSource source)
             throws IOException {
         Assembly assembly = assemblyConfig.getInline();
         if (assembly == null) {

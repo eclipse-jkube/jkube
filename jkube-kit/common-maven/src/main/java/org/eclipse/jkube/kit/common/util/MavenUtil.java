@@ -34,7 +34,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.DistributionManagement;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.Site;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.codehaus.plexus.archiver.tar.TarLongFileMode;
@@ -296,6 +298,26 @@ public class MavenUtil {
         // and it turns out that System.getProperty("maven.version") does not return the value.
         String mavenVersion = mavenSession.getSystemProperties().getProperty("maven.version", "3");
         return greaterOrEqualsVersion(mavenVersion, "3.5.0");
+    }
+
+    /**
+     * Retrieves the URL used for documentation from the provided {@link MavenProject}.
+     *
+     * @param project MavenProject from which to retrieve the documentation URL
+     * @return the documentation URL
+     */
+    public static String getDocumentationUrl (MavenProject project) {
+        while (project != null) {
+            DistributionManagement distributionManagement = project.getDistributionManagement();
+            if (distributionManagement != null) {
+                Site site = distributionManagement.getSite();
+                if (site != null) {
+                    return site.getUrl();
+                }
+            }
+            project = project.getParent();
+        }
+        return null;
     }
 
     public static Optional<List<String>> getCompileClasspathElementsIfRequested(MavenProject project, boolean useProjectClasspath) throws IOException {

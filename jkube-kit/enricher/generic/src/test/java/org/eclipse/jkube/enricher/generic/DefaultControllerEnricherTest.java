@@ -16,8 +16,8 @@ package org.eclipse.jkube.enricher.generic;
 import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -64,10 +64,9 @@ public class DefaultControllerEnricherTest {
 
     protected void enrichAndAssert(int sizeOfObjects, int replicaCount) throws com.fasterxml.jackson.core.JsonProcessingException {
         // Setup a sample docker build configuration
-        final BuildConfiguration buildConfig =
-                new BuildConfiguration.Builder()
-                        .ports(Arrays.asList("8080"))
-                        .build();
+        final MavenBuildConfiguration buildConfig = new MavenBuildConfiguration.Builder()
+            .ports(Arrays.asList("8080"))
+            .build();
 
         final TreeMap controllerConfig = new TreeMap();
         controllerConfig.put("replicaCount", String.valueOf(replicaCount));
@@ -87,7 +86,7 @@ public class DefaultControllerEnricherTest {
         assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.replicas", Matchers.equalTo(replicaCount)));
     }
 
-    protected void setupExpectations(final BuildConfiguration buildConfig, final TreeMap controllerConfig) {
+    protected void setupExpectations(final MavenBuildConfiguration buildConfig, final TreeMap controllerConfig) {
 
         new Expectations() {{
 

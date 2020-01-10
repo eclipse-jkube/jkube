@@ -20,41 +20,19 @@ import org.apache.commons.lang3.SerializationUtils;
  * @author roland
  * @since 19.10.18
  */
-public class MavenBuildConfiguration extends BuildConfiguration {
+public class MavenBuildConfiguration extends BuildConfiguration<MavenAssemblyConfiguration> {
 
-    private MavenAssemblyConfiguration assembly;
-
-    @Override
-    public MavenAssemblyConfiguration getAssemblyConfiguration() {
-        return assembly;
-    }
-
-    public static class Builder extends BuildConfiguration.Builder {
-
-        private MavenBuildConfiguration mavenConfig;
+    public static class Builder
+            extends BuildConfiguration.TypedBuilder<MavenAssemblyConfiguration, MavenBuildConfiguration> {
 
         public Builder() {
             this(null);
         }
 
         public Builder(MavenBuildConfiguration that) {
-            if (that == null) {
-                this.mavenConfig = new MavenBuildConfiguration();
-                this.config =  mavenConfig;
-            } else {
-                this.config = SerializationUtils.clone(that);
-            }
+            super(that == null ? new MavenBuildConfiguration() : SerializationUtils.clone(that));
         }
 
-        public Builder assembly(MavenAssemblyConfiguration assembly) {
-            this.mavenConfig.assembly = assembly;
-            return this;
-        }
-
-        @Override
-        public MavenBuildConfiguration build() {
-            return mavenConfig;
-        }
     }
 
 }

@@ -19,11 +19,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
@@ -36,7 +36,6 @@ import org.apache.maven.plugins.assembly.model.Assembly;
 import org.apache.maven.plugins.assembly.model.DependencySet;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
-import static org.eclipse.jkube.kit.config.image.build.util.BuildLabelUtil.addSchemaLabels;
 
 
 /**
@@ -95,7 +94,7 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     @Override
-    public boolean isApplicable(List<ImageConfiguration> configs) throws MojoExecutionException {
+    public boolean isApplicable(List<ImageConfiguration> configs) {
         if (shouldAddImageConfiguration(configs)) {
             // If a main class is configured, we always kick in
             if (getConfig(Config.mainClass) != null) {
@@ -113,12 +112,12 @@ public class JavaExecGenerator extends BaseGenerator {
 
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) throws MojoExecutionException {
-        ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
-        BuildConfiguration.Builder buildBuilder = null;
-        buildBuilder = new BuildConfiguration.Builder()
-            .ports(extractPorts());
+        final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
+        final MavenBuildConfiguration.Builder buildBuilder = new MavenBuildConfiguration.Builder();
 
-        addSchemaLabels(buildBuilder, getContext().getProject(), log);
+        buildBuilder.ports(extractPorts());
+
+        addSchemaLabels(buildBuilder, log);
         addFrom(buildBuilder);
         if (!prePackagePhase) {
             // Only add assembly if not in a pre-package phase where the referenced files
@@ -172,13 +171,14 @@ public class JavaExecGenerator extends BaseGenerator {
         return new ArrayList<>();
     }
 
-    protected AssemblyConfiguration createAssembly() throws MojoExecutionException {
-        AssemblyConfiguration.Builder builder = new AssemblyConfiguration.Builder().targetDir(getConfig(Config.targetDir));
+    protected MavenAssemblyConfiguration createAssembly() throws MojoExecutionException {
+        final MavenAssemblyConfiguration.Builder builder = new MavenAssemblyConfiguration.Builder();
+        builder.targetDir(getConfig(Config.targetDir));
         addAssembly(builder);
         return builder.build();
     }
 
-    protected void addAssembly(AssemblyConfiguration.Builder builder) throws MojoExecutionException {
+    protected void addAssembly(MavenAssemblyConfiguration.Builder builder) throws MojoExecutionException {
         String assemblyRef = getConfig(Config.assemblyRef);
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);

@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
+import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -30,8 +30,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
-import static org.eclipse.jkube.kit.config.image.build.util.BuildLabelUtil.addSchemaLabels;
 
 
 public class QuarkusGenerator extends BaseGenerator {
@@ -76,12 +74,11 @@ public class QuarkusGenerator extends BaseGenerator {
         return existingConfigs;
     }
 
-    private BuildConfiguration createBuildConfig(boolean prePackagePhase) throws MojoExecutionException {
-        BuildConfiguration.Builder buildBuilder =
-            new BuildConfiguration.Builder()
-                // TODO: Check application.properties for a port
-                .ports(Collections.singletonList(getConfig(Config.webPort)));
-        addSchemaLabels(buildBuilder, getContext().getProject(), log);
+    private MavenBuildConfiguration createBuildConfig(boolean prePackagePhase) throws MojoExecutionException {
+        final MavenBuildConfiguration.Builder buildBuilder = new MavenBuildConfiguration.Builder();
+        // TODO: Check application.properties for a port
+        buildBuilder.ports(Collections.singletonList(getConfig(Config.webPort)));
+        addSchemaLabels(buildBuilder, log);
 
         boolean isNative = Boolean.parseBoolean(getConfig(Config.nativeImage, "false"));
 
@@ -95,9 +92,7 @@ public class QuarkusGenerator extends BaseGenerator {
                         .workdir("/");
 
             if (!prePackagePhase) {
-                buildBuilder.assembly(
-                    createAssemblyConfiguration(
-                        "/", this::getNativeFileToInclude));
+                buildBuilder.assembly(createAssemblyConfiguration("/", this::getNativeFileToInclude));
             }
         } else {
             buildBuilder.from(fromConfigured.orElse("openjdk:11"))
@@ -122,9 +117,9 @@ public class QuarkusGenerator extends BaseGenerator {
         FileSet createFileSet() throws MojoExecutionException;
     }
 
-    private AssemblyConfiguration createAssemblyConfiguration(String targetDir, FileSetCreator fsCreator) throws MojoExecutionException {
-        AssemblyConfiguration.Builder builder =
-            new AssemblyConfiguration.Builder().targetDir(targetDir);
+    private MavenAssemblyConfiguration createAssemblyConfiguration(String targetDir, FileSetCreator fsCreator) throws MojoExecutionException {
+        final MavenAssemblyConfiguration.Builder builder = new MavenAssemblyConfiguration.Builder();
+        builder.targetDir(targetDir);
         Assembly assembly = new Assembly();
         FileSet fileSet = fsCreator.createFileSet();
         fileSet.setOutputDirectory(".");

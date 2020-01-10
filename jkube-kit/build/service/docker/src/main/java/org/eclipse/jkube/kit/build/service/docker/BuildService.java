@@ -28,6 +28,7 @@ import com.google.gson.JsonObject;
 import com.google.common.collect.ImmutableMap;
 
 import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyManager;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -108,7 +109,7 @@ public class BuildService {
         String imageName = imageConfig.getName();
         ImageName.validate(imageName);
 
-        BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+        MavenBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
         String oldImageId = null;
 
@@ -120,7 +121,7 @@ public class BuildService {
         long time = System.currentTimeMillis();
 
         if (buildConfig.getDockerArchive() != null) {
-            docker.loadImage(imageName, buildConfig.getAbsoluteDockerTarPath(params.getSourceDirectory(), params.getProject().getBasedir() != null 
+            docker.loadImage(imageName, buildConfig.getAbsoluteDockerTarPath(params.getSourceDirectory(), params.getProject().getBasedir() != null
                     ? params.getProject().getBasedir().toString() : null));
             log.info("%s: Loaded tarball in %s", buildConfig.getDockerArchive(), EnvUtil.formatDurationTill(time));
             return;
@@ -184,7 +185,7 @@ public class BuildService {
         Map<String, String> buildArgsFromDockerConfig = addBuildArgsFromDockerConfig();
         return ImmutableMap.<String, String>builder()
                 .putAll(buildArgsFromDockerConfig)
-                .putAll(buildContext.getBuildArgs() != null ? buildContext.getBuildArgs() : Collections.<String, String>emptyMap())
+                .putAll(buildContext.getBuildArgs() != null ? buildContext.getBuildArgs() : Collections.emptyMap())
                 .putAll(buildArgsFromProject)
                 .putAll(buildArgsFromSystem)
                 .build();

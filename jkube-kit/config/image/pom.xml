@@ -31,7 +31,7 @@
   <dependencies>
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-kit-common-maven</artifactId>
+      <artifactId>jkube-kit-common</artifactId>
     </dependency>
 
     <dependency>
