@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.config.image.build;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
-import org.codehaus.plexus.archiver.tar.TarArchiver;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -28,16 +27,16 @@ import java.io.OutputStream;
  */
 public enum ArchiveCompression {
 
-    none(TarArchiver.TarCompressionMethod.none, "tar"),
+    none(TarCompressionMethod.none, "tar"),
 
-    gzip(TarArchiver.TarCompressionMethod.gzip,"tar.gz") {
+    gzip(TarCompressionMethod.gzip,"tar.gz") {
         @Override
         public OutputStream wrapOutputStream(OutputStream out) throws IOException {
             return new ArchiveCompression.GZIPOutputStream(out);
         }
     },
 
-    bzip2(TarArchiver.TarCompressionMethod.bzip2,"tar.bz") {
+    bzip2(TarCompressionMethod.bzip2,"tar.bz") {
         @Override
         public OutputStream wrapOutputStream(OutputStream out) throws IOException {
             return new BZip2CompressorOutputStream(out);
@@ -46,15 +45,15 @@ public enum ArchiveCompression {
 
     // ====================================================================
 
-    private final TarArchiver.TarCompressionMethod tarCompressionMethod;
+    private final TarCompressionMethod tarCompressionMethod;
     private final String fileSuffix;
 
-    ArchiveCompression(TarArchiver.TarCompressionMethod tarCompressionMethod, String fileSuffix) {
+    ArchiveCompression(TarCompressionMethod tarCompressionMethod, String fileSuffix) {
         this.tarCompressionMethod = tarCompressionMethod;
         this.fileSuffix = fileSuffix;
     }
 
-    public TarArchiver.TarCompressionMethod getTarCompressionMethod() {
+    public TarCompressionMethod getTarCompressionMethod() {
         return tarCompressionMethod;
     }
 
@@ -64,6 +63,17 @@ public enum ArchiveCompression {
 
     public OutputStream wrapOutputStream(OutputStream outputStream) throws IOException {
         return outputStream;
+    }
+
+    /**
+     * Valid Modes for Compression
+     */
+    public enum TarCompressionMethod {
+        none,
+        gzip,
+        bzip2,
+        snappy,
+        xz
     }
 
     public static ArchiveCompression fromFileName(String filename) {

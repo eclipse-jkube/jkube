@@ -20,10 +20,10 @@ import java.util.Collections;
 import java.util.Date;
 
 import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
+import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 import mockit.Expectations;
 import mockit.Injectable;
@@ -73,8 +73,8 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testNoAssembly() {
-        BuildConfiguration buildConfig = new BuildConfiguration();
-        AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        MavenBuildConfiguration buildConfig = new MavenBuildConfiguration.Builder().build();
+        MavenAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
 
         DockerFileBuilder builder = assemblyManager.createDockerFileBuilder(buildConfig, assemblyConfig);
         String content = builder.content();
@@ -104,14 +104,14 @@ public class DockerAssemblyManagerTest {
 
         }};
 
-        BuildConfiguration buildConfig = createBuildConfig();
+        MavenBuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.getAssemblyFiles("testImage", buildConfig, mojoParams, prefixedLogger);
     }
 
     @Test
     public void testCopyValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        BuildConfiguration buildConfig = createBuildConfig();
+        MavenBuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
@@ -127,7 +127,7 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testCopyInvalidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        BuildConfiguration buildConfig = createBuildConfig();
+        MavenBuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_invalid.test").getPath()),
@@ -142,7 +142,7 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testCopyChownValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        BuildConfiguration buildConfig = createBuildConfig();
+        MavenBuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_chown_valid.test").getPath()),
@@ -156,15 +156,15 @@ public class DockerAssemblyManagerTest {
 
     }
 
-    private BuildConfiguration createBuildConfig() {
-        return new BuildConfiguration.Builder()
-                .assembly(new AssemblyConfiguration.Builder()
+    private MavenBuildConfiguration createBuildConfig() {
+        return new MavenBuildConfiguration.Builder()
+                .assembly(new MavenAssemblyConfiguration.Builder()
                         .descriptorRef("artifact")
                         .build())
                 .build();
     }
 
-    private FixedStringSearchInterpolator createInterpolator(BuildConfiguration buildConfig) {
+    private FixedStringSearchInterpolator createInterpolator(MavenBuildConfiguration buildConfig) {
         MavenProject project = new MavenProject();
         project.setArtifactId("docker-maven-plugin");
 

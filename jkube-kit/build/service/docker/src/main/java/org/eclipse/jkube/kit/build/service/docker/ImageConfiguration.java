@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
 import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
@@ -38,7 +39,7 @@ public class ImageConfiguration implements StartOrderResolver.Resolvable, Serial
 
     private RunImageConfiguration run;
 
-    private BuildConfiguration build;
+    private MavenBuildConfiguration build;
 
     private WatchImageConfiguration watch;
 
@@ -82,7 +83,7 @@ public class ImageConfiguration implements StartOrderResolver.Resolvable, Serial
         return (run == null) ? RunImageConfiguration.DEFAULT : run;
     }
 
-    public BuildConfiguration getBuildConfiguration() {
+    public MavenBuildConfiguration getBuildConfiguration() {
         return build;
     }
 
@@ -207,7 +208,7 @@ public class ImageConfiguration implements StartOrderResolver.Resolvable, Serial
             return this;
         }
 
-        public Builder buildConfig(BuildConfiguration buildConfig) {
+        public Builder buildConfig(MavenBuildConfiguration buildConfig) {
             config.build = buildConfig;
             return this;
         }
@@ -222,13 +223,14 @@ public class ImageConfiguration implements StartOrderResolver.Resolvable, Serial
             return this;
         }
 
-        public ImageConfiguration build() {
-            return config;
-        }
 
         public Builder watchConfig(WatchImageConfiguration watchConfig) {
             config.watch = watchConfig;
             return this;
+        }
+
+        public ImageConfiguration build() {
+            return config;
         }
     }
 }

@@ -22,9 +22,9 @@ import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -53,7 +53,7 @@ public class DockerHealthCheckEnricherTest {
         new Expectations() {{
             List<ImageConfiguration> images =  Arrays.asList(new ImageConfiguration.Builder()
                             .alias("myImage")
-                            .buildConfig(new BuildConfiguration.Builder()
+                            .buildConfig(new MavenBuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/bin/check"))
@@ -65,7 +65,7 @@ public class DockerHealthCheckEnricherTest {
                             .build(),
                                                    new ImageConfiguration.Builder()
                             .alias("myImage2")
-                            .buildConfig(new BuildConfiguration.Builder()
+                            .buildConfig(new MavenBuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/xxx/check"))
@@ -96,7 +96,7 @@ public class DockerHealthCheckEnricherTest {
         new Expectations() {{
             List<ImageConfiguration> images = Arrays.asList(new ImageConfiguration.Builder()
                             .alias("myImage")
-                            .buildConfig(new BuildConfiguration.Builder()
+                            .buildConfig(new MavenBuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/bin/check"))
@@ -108,7 +108,7 @@ public class DockerHealthCheckEnricherTest {
                             .build(),
                     new ImageConfiguration.Builder()
                             .alias("myImage2")
-                            .buildConfig(new BuildConfiguration.Builder()
+                            .buildConfig(new MavenBuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/xxx/check"))
@@ -144,7 +144,7 @@ public class DockerHealthCheckEnricherTest {
         new Expectations() {{
             List<ImageConfiguration> images = Arrays.asList(new ImageConfiguration.Builder()
                     .alias("myImage")
-                    .buildConfig(new BuildConfiguration.Builder()
+                    .buildConfig(new MavenBuildConfiguration.Builder()
                             .healthCheck(new HealthCheckConfiguration.Builder()
                                     .mode(HealthCheckMode.none)
                                     .build())
@@ -170,7 +170,7 @@ public class DockerHealthCheckEnricherTest {
         new Expectations() {{
             List<ImageConfiguration> images = Arrays.asList(new ImageConfiguration.Builder()
                     .alias("myImage")
-                    .buildConfig(new BuildConfiguration.Builder()
+                    .buildConfig(new MavenBuildConfiguration.Builder()
                             .healthCheck(new HealthCheckConfiguration.Builder()
                                     .mode(HealthCheckMode.cmd)
                                     .cmd(new Arguments("/bin/check"))

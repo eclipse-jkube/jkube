@@ -25,7 +25,7 @@ import org.apache.commons.lang3.SerializationUtils;
  * @author roland
  * @since 02.09.14
  */
-public class ImageConfiguration implements Serializable {
+public class ImageConfiguration<B extends BuildConfiguration<?>> implements Serializable {
 
     private String name;
 
@@ -33,10 +33,9 @@ public class ImageConfiguration implements Serializable {
 
     private String registry;
 
-    private BuildConfiguration build;
+    private B build;
 
-    // Used for injection
-    public ImageConfiguration() {}
+    protected ImageConfiguration() {}
 
     public String getName() {
         return name;
@@ -47,7 +46,7 @@ public class ImageConfiguration implements Serializable {
         return alias;
     }
 
-    public BuildConfiguration getBuildConfiguration() {
+    public B getBuildConfiguration() {
         return build;
     }
 
@@ -76,44 +75,47 @@ public class ImageConfiguration implements Serializable {
 
     // =========================================================================
     // Builder for image configurations
+    public static class TypedBuilder<B extends BuildConfiguration<?>, I extends ImageConfiguration<B>> {
 
-    public static class Builder {
-        protected ImageConfiguration config;
+        protected final ImageConfiguration<B> config;
 
-        public Builder()  {
-            this(null);
+        protected TypedBuilder(I config) {
+            this.config = config;
         }
 
-        public Builder(ImageConfiguration that) {
-            if (that == null) {
-                this.config = new ImageConfiguration();
-            } else {
-                this.config = SerializationUtils.clone(that);
-            }
-        }
-
-        public Builder name(String name) {
+        public TypedBuilder<B, I> name(String name) {
             config.name = name;
             return this;
         }
 
-        public Builder alias(String alias) {
+        public TypedBuilder<B, I> alias(String alias) {
             config.alias = alias;
             return this;
         }
 
-        public Builder buildConfig(BuildConfiguration buildConfig) {
+        public TypedBuilder<B, I> buildConfig(B buildConfig) {
             config.build = buildConfig;
             return this;
         }
 
-        public Builder registry(String registry) {
+        public TypedBuilder<B, I> registry(String registry) {
             config.registry = registry;
             return this;
         }
 
-        public ImageConfiguration build() {
-            return config;
+        public I build() {
+            return (I)config;
+        }
+
+    }
+
+    public static class Builder extends TypedBuilder<BuildConfiguration<?>, ImageConfiguration<BuildConfiguration<?>>>{
+        public Builder() {
+            this(null);
+        }
+
+        public Builder(ImageConfiguration<BuildConfiguration<?>> that) {
+            super(that == null ? new ImageConfiguration<>() : SerializationUtils.clone(that));
         }
     }
 

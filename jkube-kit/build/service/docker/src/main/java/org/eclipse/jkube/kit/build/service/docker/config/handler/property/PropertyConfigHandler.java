@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.property;
 
+import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.LogConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
@@ -178,7 +180,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         ValueProvider valueProvider = new ValueProvider(prefix, properties, propertyMode);
 
         RunImageConfiguration run = extractRunConfiguration(fromConfig, valueProvider);
-        BuildConfiguration build = extractBuildConfiguration(fromConfig, valueProvider, project);
+        MavenBuildConfiguration build = extractBuildConfiguration(fromConfig, valueProvider, project);
         WatchImageConfiguration watch = extractWatchConfig(fromConfig, valueProvider);
         String name = valueProvider.getString(NAME, fromConfig.getName());
         String alias = valueProvider.getString(ALIAS, fromConfig.getAlias());
@@ -231,13 +233,13 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
 
-    private BuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, MavenProject project) {
-        BuildConfiguration config = fromConfig.getBuildConfiguration();
+    private MavenBuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, MavenProject project) {
+        MavenBuildConfiguration config = fromConfig.getBuildConfiguration();
         if (!buildConfigured(config, valueProvider, project)) {
             return null;
         }
 
-        return new BuildConfiguration.Builder()
+        return new MavenBuildConfiguration.Builder()
                 .cmd(extractArguments(valueProvider, CMD, config == null ? null : config.getCmd()))
                 .cleanup(valueProvider.getString(CLEANUP, config == null ? null : config.getCleanup()))
                 .nocache(valueProvider.getBoolean(NOCACHE, config == null ? null : config.getNoCache()))
@@ -335,8 +337,8 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     @SuppressWarnings("deprecation")
-    private AssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
-        return new AssemblyConfiguration.Builder()
+    private MavenAssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
+        return new MavenAssemblyConfiguration.Builder()
                 .targetDir(valueProvider.getString(ASSEMBLY_BASEDIR, config == null ? null : config.getTargetDir()))
                 .descriptor(valueProvider.getString(ASSEMBLY_DESCRIPTOR, config == null ? null : config.getDescriptor()))
                 .descriptorRef(valueProvider.getString(ASSEMBLY_DESCRIPTOR_REF, config == null ? null : config.getDescriptorRef()))

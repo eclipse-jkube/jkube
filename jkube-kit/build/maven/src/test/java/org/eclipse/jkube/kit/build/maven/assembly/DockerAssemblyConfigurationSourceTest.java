@@ -17,6 +17,7 @@ import java.io.File;
 import java.util.Arrays;
 
 import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
+import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.apache.maven.project.MavenProject;
 import org.junit.Assert;
@@ -30,19 +31,18 @@ import static org.junit.Assert.assertTrue;
 
 public class DockerAssemblyConfigurationSourceTest {
 
-    private AssemblyConfiguration assemblyConfig;
+    private MavenAssemblyConfiguration assemblyConfig;
 
     @Before
     public void setup() {
         // set 'ignorePermissions' to something other then default
-        this.assemblyConfig = new AssemblyConfiguration.Builder()
+        this.assemblyConfig = new MavenAssemblyConfiguration.Builder()
                 .descriptor("assembly.xml")
                 .descriptorRef("project")
                 .permissions("keep")
                 .build();
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void permissionMode() {
         try {

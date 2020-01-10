@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.compose;
 
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandlerException;
 import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenFilteringException;
@@ -148,7 +148,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
                 new FileReader(path),
                 true,
                 project,
-                Collections.<String>emptyList(),
+                Collections.emptyList(),
                 false,
                 session,
                 null);
@@ -156,11 +156,11 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         return readerFilter.filter(request);
     }
 
-    private BuildConfiguration createBuildImageConfiguration(DockerComposeServiceWrapper mapper,
+    private MavenBuildConfiguration createBuildImageConfiguration(DockerComposeServiceWrapper mapper,
                                                                   File composeParent,
                                                                   ImageConfiguration imageConfig,
                                                                   DockerComposeConfiguration handlerConfig) {
-        BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+        final MavenBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
         if (handlerConfig.isIgnoreBuild() || !mapper.requiresBuild()) {
             if (serviceMatchesAlias(mapper, imageConfig)) {
                 // Only when the specified image name maps to the current docker-compose service
@@ -171,10 +171,10 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         }
 
         // Build from the specification as given in the docker-compose file
-        BuildConfiguration.Builder builder = new BuildConfiguration.Builder(buildConfig)
+        return new MavenBuildConfiguration.Builder(buildConfig)
                 .dockerFile(extractDockerFilePath(mapper, composeParent))
-                .args(mapper.getBuildArgs());
-        return builder.build();
+                .args(mapper.getBuildArgs())
+                .build();
     }
 
     private boolean serviceMatchesAlias(DockerComposeServiceWrapper mapper, ImageConfiguration imageConfig) {

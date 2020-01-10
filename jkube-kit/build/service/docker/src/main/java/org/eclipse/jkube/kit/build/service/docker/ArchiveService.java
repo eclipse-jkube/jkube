@@ -17,8 +17,8 @@ import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
 import org.eclipse.jkube.kit.build.maven.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.maven.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyManager;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.apache.maven.plugins.assembly.InvalidAssemblerConfigurationException;
 import org.apache.maven.plugins.assembly.archive.ArchiveCreationException;
 import org.apache.maven.plugins.assembly.format.AssemblyFormattingException;
@@ -113,12 +113,12 @@ public class ArchiveService {
 
     // =============================================
 
-    File createArchive(String imageName, BuildConfiguration buildConfig, MavenBuildContext params, KitLogger log)
+    File createArchive(String imageName, MavenBuildConfiguration buildConfig, MavenBuildContext params, KitLogger log)
             throws IOException {
         return createArchive(imageName, buildConfig, params, log, null);
     }
 
-    File createArchive(String imageName, BuildConfiguration buildConfig, MavenBuildContext params, KitLogger log, ArchiverCustomizer customizer)
+    File createArchive(String imageName, MavenBuildConfiguration buildConfig, MavenBuildContext params, KitLogger log, ArchiverCustomizer customizer)
             throws IOException {
         return dockerAssemblyManager.createDockerTarArchive(imageName, params, buildConfig, log, customizer);
     }

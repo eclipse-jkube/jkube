@@ -18,19 +18,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
 import org.eclipse.jkube.generator.webapp.handler.CustomAppServerHandler;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-
-import static org.eclipse.jkube.kit.config.image.build.util.BuildLabelUtil.addSchemaLabels;
 
 
 /**
@@ -89,15 +87,16 @@ public class WebAppGenerator extends BaseGenerator {
 
         log.info("Using %s as base image for webapp",handler.getFrom());
 
-        ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
+        final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
 
-        BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder()
-            .from(getFrom(handler))
+        final MavenBuildConfiguration.Builder buildBuilder = new MavenBuildConfiguration.Builder();
+
+        buildBuilder.from(getFrom(handler))
             .ports(handler.exposedPorts())
             .cmd(new Arguments(getDockerRunCommand(handler)))
             .env(getEnv(handler));
 
-        addSchemaLabels(buildBuilder, getContext().getProject(), log);
+        addSchemaLabels(buildBuilder, log);
         if (!prePackagePhase) {
             buildBuilder.assembly(createAssembly(handler));
         }
@@ -135,15 +134,16 @@ public class WebAppGenerator extends BaseGenerator {
         return defaultEnv;
     }
 
-    private AssemblyConfiguration createAssembly(AppServerHandler handler) {
+    private MavenAssemblyConfiguration createAssembly(AppServerHandler handler) {
         String path = getConfig(Config.path);
         if (path.equals("/")) {
             path = "ROOT";
         }
         getProject().getProperties().setProperty("jkube.generator.webapp.path",path);
-        AssemblyConfiguration.Builder builder = new AssemblyConfiguration.Builder()
-                .targetDir(getDeploymentDir(handler))
-                .descriptorRef("webapp");
+        final MavenAssemblyConfiguration.Builder builder = new MavenAssemblyConfiguration.Builder();
+
+        builder.targetDir(getDeploymentDir(handler)).descriptorRef("webapp");
+
         String user = getUser(handler);
         if (user != null) {
             builder.user(user);

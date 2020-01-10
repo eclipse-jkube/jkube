@@ -31,7 +31,7 @@ import org.apache.commons.lang3.SerializationUtils;
  * @author roland
  * @since 02.09.14
  */
-public class BuildConfiguration implements Serializable {
+public class BuildConfiguration<A extends AssemblyConfiguration> implements Serializable {
     public static final String DEFAULT_FILTER = "${*}";
     public static final String DEFAULT_CLEANUP = "try";
 
@@ -58,9 +58,6 @@ public class BuildConfiguration implements Serializable {
      * How interpolation of a dockerfile should be performed
      */
     private String filter;
-
-    @Deprecated
-    private String command;
 
     /**
      * Base Image
@@ -116,7 +113,7 @@ public class BuildConfiguration implements Serializable {
 
     private HealthCheckConfiguration healthCheck;
 
-    private AssemblyConfiguration assembly;
+    private A assembly;
 
     private Boolean skip;
 
@@ -134,7 +131,7 @@ public class BuildConfiguration implements Serializable {
     // Path to Dockerfile to use, initialized lazily ....
     private File dockerFileFile, dockerArchiveFile;
 
-    public BuildConfiguration() {}
+    protected BuildConfiguration() {}
 
     public boolean isDockerFileMode() {
         return dockerFile != null || contextDir != null;
@@ -203,7 +200,7 @@ public class BuildConfiguration implements Serializable {
         return workdir;
     }
 
-    public AssemblyConfiguration getAssemblyConfiguration() {
+    public A getAssemblyConfiguration() {
         return assembly;
     }
 
@@ -283,12 +280,6 @@ public class BuildConfiguration implements Serializable {
         return optimise != null ? optimise : false;
     }
 
-
-    @Deprecated
-    public String getCommand() {
-        return command;
-    }
-
     public String getCleanup() {
         return cleanup;
     }
@@ -316,131 +307,122 @@ public class BuildConfiguration implements Serializable {
 
 
     // ===========================================================================================
-    public static class Builder {
+    public static class TypedBuilder<A extends AssemblyConfiguration, B extends BuildConfiguration<A>> {
 
+        protected final BuildConfiguration<A> config;
 
-        protected BuildConfiguration config;
-
-        public Builder() {
-            this(null);
+        protected TypedBuilder(B config) {
+            this.config = config;
         }
 
-        public Builder(BuildConfiguration that) {
-            if (that == null) {
-                this.config = new BuildConfiguration();
-            } else {
-                this.config = SerializationUtils.clone(that);
-            }
-        }
-
-        public Builder contextDir(String dir) {
+        public TypedBuilder<A, B> contextDir(String dir) {
             config.contextDir = dir;
             return this;
         }
 
-        public Builder dockerFile(String file) {
+        public TypedBuilder<A, B> dockerFile(String file) {
             config.dockerFile = file;
             return this;
         }
 
-        public Builder dockerArchive(String archive) {
+        public TypedBuilder<A, B> dockerArchive(String archive) {
             config.dockerArchive = archive;
             return this;
         }
 
-        public Builder dockerFileDir(String dir) {
+        public TypedBuilder<A, B> dockerFileDir(String dir) {
             config.dockerFileDir = dir;
             return this;
         }
 
-        public Builder filter(String filter) {
+        public TypedBuilder<A, B> filter(String filter) {
             config.filter = filter;
             return this;
         }
 
-        public Builder from(String from) {
+        public TypedBuilder<A, B> from(String from) {
             config.from = from;
             return this;
         }
 
-        public Builder fromExt(Map<String, String> fromExt) {
+        public TypedBuilder<A, B> fromExt(Map<String, String> fromExt) {
             config.fromExt = fromExt;
             return this;
         }
 
-        public Builder registry(String registry) {
+        public TypedBuilder<A, B> registry(String registry) {
             config.registry = registry;
             return this;
         }
 
-        public Builder maintainer(String maintainer) {
+        public TypedBuilder<A, B> maintainer(String maintainer) {
             config.maintainer = maintainer;
             return this;
         }
 
-        public Builder workdir(String workdir) {
+        public TypedBuilder<A, B> workdir(String workdir) {
             config.workdir = workdir;
             return this;
         }
 
-        public Builder assembly(AssemblyConfiguration assembly) {
+        public TypedBuilder<A, B> assembly(A assembly) {
             config.assembly = assembly;
             return this;
         }
 
-        public Builder ports(List<String> ports) {
+        public TypedBuilder<A, B> ports(List<String> ports) {
             config.ports = ports;
             return this;
         }
 
-        public Builder imagePullPolicy(String imagePullPolicy) {
+        public TypedBuilder<A, B> imagePullPolicy(String imagePullPolicy) {
             config.imagePullPolicy = imagePullPolicy;
             return this;
         }
 
-        public Builder runCmds(List<String> theCmds) {
+        public TypedBuilder<A, B> runCmds(List<String> theCmds) {
             config.runCmds = theCmds;
             return this;
         }
 
-        public Builder volumes(List<String> volumes) {
+        public TypedBuilder<A, B> volumes(List<String> volumes) {
             config.volumes = volumes;
             return this;
         }
 
-        public Builder tags(List<String> tags) {
+        public TypedBuilder<A, B> tags(List<String> tags) {
             config.tags = tags;
             return this;
         }
 
-        public Builder env(Map<String, String> env) {
+        public TypedBuilder<A, B> env(Map<String, String> env) {
             config.env = env;
             return this;
         }
 
-        public Builder args(Map<String, String> args) {
+        public TypedBuilder<A, B> args(Map<String, String> args) {
             config.args = args;
             return this;
         }
 
-        public Builder labels(Map<String, String> labels) {
+        public TypedBuilder<A, B> labels(Map<String, String> labels) {
             config.labels = labels;
             return this;
         }
 
-        public Builder cmd(Arguments cmd) {
+        public TypedBuilder<A, B> cmd(Arguments cmd) {
             if (cmd != null) {
                 config.cmd = cmd;
             }
             return this;
         }
 
-        public Builder cleanup(String cleanup) {
+        public TypedBuilder<A, B> cleanup(String cleanup) {
             config.cleanup = cleanup;
             return this;
         }
 
-        public Builder compression(String compression) {
+        public TypedBuilder<A, B> compression(String compression) {
             if (compression == null) {
                 config.compression = null;
             } else {
@@ -449,44 +431,44 @@ public class BuildConfiguration implements Serializable {
             return this;
         }
 
-        public Builder nocache(Boolean nocache) {
+        public TypedBuilder<A, B> nocache(Boolean nocache) {
             config.nocache = nocache;
             return this;
         }
 
-        public Builder optimise(Boolean optimise) {
+        public TypedBuilder<A, B> optimise(Boolean optimise) {
             config.optimise = optimise;
             return this;
         }
 
-        public Builder entryPoint(Arguments entryPoint) {
+        public TypedBuilder<A, B> entryPoint(Arguments entryPoint) {
             if (entryPoint != null) {
                 config.entryPoint = entryPoint;
             }
             return this;
         }
 
-        public Builder user(String user) {
+        public TypedBuilder<A, B> user(String user) {
             config.user = user;
             return this;
         }
 
-        public Builder healthCheck(HealthCheckConfiguration healthCheck) {
+        public TypedBuilder<A, B> healthCheck(HealthCheckConfiguration healthCheck) {
             config.healthCheck = healthCheck;
             return this;
         }
 
-        public Builder skip(Boolean skip) {
+        public TypedBuilder<A, B> skip(Boolean skip) {
             config.skip = skip;
             return this;
         }
 
-        public Builder buildOptions(Map<String,String> buildOptions) {
+        public TypedBuilder<A, B> buildOptions(Map<String,String> buildOptions) {
             config.buildOptions = buildOptions;
             return this;
         }
 
-        public Builder shell(Arguments shell) {
+        public TypedBuilder<A, B> shell(Arguments shell) {
             if(shell != null) {
                 config.shell = shell;
             }
@@ -494,8 +476,19 @@ public class BuildConfiguration implements Serializable {
             return this;
         }
 
-        public BuildConfiguration build() {
-            return config;
+        public B build() {
+            return (B)config;
+        }
+    }
+
+    public static class Builder extends TypedBuilder<AssemblyConfiguration, BuildConfiguration<AssemblyConfiguration>> {
+
+        public Builder() {
+            this(null);
+        }
+
+        public Builder(BuildConfiguration<AssemblyConfiguration> that) {
+            super(that == null ? new BuildConfiguration<>() : SerializationUtils.clone(that));
         }
     }
 
@@ -509,20 +502,6 @@ public class BuildConfiguration implements Serializable {
         }
         if (healthCheck != null) {
             healthCheck.validate();
-        }
-
-        if (command != null) {
-            log.warn("<command> in the <build> configuration is deprecated and will be be removed soon");
-            log.warn("Please use <cmd> with nested <shell> or <exec> sections instead.");
-            log.warn("");
-            log.warn("More on this is explained in the user manual: ");
-            log.warn("https://github.com/fabric8io/docker-maven-plugin/blob/master/doc/manual.md#start-up-arguments");
-            log.warn("");
-            log.warn("Migration is trivial, see changelog to version 0.12.0 -->");
-            log.warn("https://github.com/fabric8io/docker-maven-plugin/blob/master/doc/changelog.md");
-            log.warn("");
-            log.warn("For now, the command is automatically translated for you to the shell form:");
-            log.warn("   <cmd>%s</cmd>", command);
         }
 
         initDockerFileFile(log);
@@ -568,14 +547,11 @@ public class BuildConfiguration implements Serializable {
                     }
                     return new File(contextDir, dockerFile);
                 }
-
-                if (dockerFileDir != null) {
-                    if (dFile.isAbsolute()) {
-                        throw new IllegalArgumentException("<dockerFile> can not be absolute path if <dockerFileDir> also set.");
-                    }
-                    log.warn("dockerFileDir parameter is deprecated, please migrate to contextDir");
-                    return new File(dockerFileDir, dockerFile);
+                if (dFile.isAbsolute()) {
+                    throw new IllegalArgumentException("<dockerFile> can not be absolute path if <dockerFileDir> also set.");
                 }
+                log.warn("dockerFileDir parameter is deprecated, please migrate to contextDir");
+                return new File(dockerFileDir, dockerFile);
             }
         }
 

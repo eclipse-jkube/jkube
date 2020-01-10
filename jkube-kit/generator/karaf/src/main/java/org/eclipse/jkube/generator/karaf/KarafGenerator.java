@@ -16,18 +16,16 @@ package org.eclipse.jkube.generator.karaf;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
 import org.apache.commons.lang3.StringUtils;
-
-import static org.eclipse.jkube.kit.config.image.build.util.BuildLabelUtil.addSchemaLabels;
 
 public class KarafGenerator extends BaseGenerator {
 
@@ -49,11 +47,12 @@ public class KarafGenerator extends BaseGenerator {
 
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
-        ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
-        BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder()
-            .ports(extractPorts())
-            .cmd(new Arguments(getConfig(Config.cmd)));
-        addSchemaLabels(buildBuilder, getContext().getProject(), log);
+        final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
+        final MavenBuildConfiguration.Builder buildBuilder = new MavenBuildConfiguration.Builder();
+
+        buildBuilder.ports(extractPorts()).cmd(new Arguments(getConfig(Config.cmd)));
+
+        addSchemaLabels(buildBuilder, log);
         addFrom(buildBuilder);
         if (!prePackagePhase) {
             buildBuilder.assembly(createAssembly());
@@ -86,8 +85,8 @@ public class KarafGenerator extends BaseGenerator {
         }
     }
 
-    private AssemblyConfiguration createAssembly() {
-        return new AssemblyConfiguration.Builder()
+    private MavenAssemblyConfiguration createAssembly() {
+        return new MavenAssemblyConfiguration.Builder()
             .targetDir(getConfig(Config.baseDir))
             .user(getConfig(Config.user))
             .descriptorRef("karaf")

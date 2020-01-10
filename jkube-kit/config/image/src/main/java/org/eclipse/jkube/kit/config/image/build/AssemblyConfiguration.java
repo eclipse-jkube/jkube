@@ -13,9 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
-
-import org.apache.maven.plugins.assembly.model.Assembly;
-
 import java.io.Serializable;
 
 public class AssemblyConfiguration implements Serializable {
@@ -33,8 +30,6 @@ public class AssemblyConfiguration implements Serializable {
     private String name = "maven";
 
     private String descriptor;
-
-    private Assembly inline;
 
     private String descriptorRef;
 
@@ -61,6 +56,9 @@ public class AssemblyConfiguration implements Serializable {
     private String user;
 
     private String tarLongFileMode;
+
+    protected AssemblyConfiguration() {
+    }
 
     public Boolean getExportTargetDir() {
         return exportTargetDir;
@@ -116,10 +114,6 @@ public class AssemblyConfiguration implements Serializable {
         return name;
     }
 
-    public Assembly getInline() {
-        return inline;
-    }
-
     @Deprecated
     public Boolean getIgnorePermissions() {
         return ignorePermissions;
@@ -133,47 +127,36 @@ public class AssemblyConfiguration implements Serializable {
         return permissions != null ? permissions.name() : null;
     }
 
-    public static class Builder {
+    public static class TypedBuilder<A extends AssemblyConfiguration> {
 
         protected AssemblyConfiguration config;
-
-        public Builder() {
-            config = new AssemblyConfiguration();
-        }
-
         private boolean isEmpty = true;
 
-        public AssemblyConfiguration build() {
-            return isEmpty ? null : config;
+        public TypedBuilder(A config) {
+            this.config = config;
         }
 
-
-        public Builder assemblyDef(Assembly descriptor) {
-            config.inline = set(descriptor);
-            return this;
-        }
-
-        public Builder exportTargetDir(Boolean exportTargetDir) {
+        public TypedBuilder<A> exportTargetDir(Boolean exportTargetDir) {
             config.exportTargetDir = exportTargetDir;
             return this;
         }
 
-        public Builder targetDir(String targetDir) {
+        public TypedBuilder<A> targetDir(String targetDir) {
             config.targetDir = set(targetDir);
             return this;
         }
 
-        public Builder descriptor(String descriptorFile) {
+        public TypedBuilder<A> descriptor(String descriptorFile) {
             config.descriptor = set(descriptorFile);
             return this;
         }
 
-        public Builder descriptorRef(String descriptorRef) {
+        public TypedBuilder<A> descriptorRef(String descriptorRef) {
             config.descriptorRef = set(descriptorRef);
             return this;
         }
 
-        public Builder permissions(String permissions) {
+        public TypedBuilder<A> permissions(String permissions) {
             if (permissions != null) {
                 config.permissions = PermissionMode.valueOf(permissions.toLowerCase());
                 isEmpty = false;
@@ -181,12 +164,12 @@ public class AssemblyConfiguration implements Serializable {
             return this;
         }
 
-        public Builder user(String user) {
+        public TypedBuilder<A> user(String user) {
             config.user = set(user);
             return this;
         }
 
-        public Builder mode(String mode) {
+        public TypedBuilder<A> mode(String mode) {
             if (mode != null) {
                 config.mode = AssemblyMode.valueOf(mode.toLowerCase());
                 isEmpty = false;
@@ -194,23 +177,23 @@ public class AssemblyConfiguration implements Serializable {
             return this;
         }
 
-        public Builder tarLongFileMode(String tarLongFileMode) {
+        public TypedBuilder<A> tarLongFileMode(String tarLongFileMode) {
             config.tarLongFileMode = set(tarLongFileMode);
             return this;
         }
 
-        public Builder dockerFileDir(String dockerFileDir) {
+        public TypedBuilder<A> dockerFileDir(String dockerFileDir) {
             config.dockerFileDir = set(dockerFileDir);
             return this;
         }
 
-        public Builder exportBasedir(Boolean export) {
+        public TypedBuilder<A> exportBasedir(Boolean export) {
             config.exportBasedir = set(export);
             return this;
         }
 
         @Deprecated
-        public Builder ignorePermissions(Boolean ignorePermissions) {
+        public TypedBuilder<A> ignorePermissions(Boolean ignorePermissions) {
             config.ignorePermissions = set(ignorePermissions);
             return this;
         }
@@ -220,6 +203,16 @@ public class AssemblyConfiguration implements Serializable {
                 isEmpty = false;
             }
             return prop;
+        }
+
+        public A build() {
+            return isEmpty ? null : (A)config;
+        }
+    }
+
+    public static final class Builder extends TypedBuilder<AssemblyConfiguration> {
+        public Builder() {
+            super(new AssemblyConfiguration());
         }
     }
 

@@ -26,7 +26,7 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
  * @author roland
  * @since 16.10.18
  */
-public interface BuildContext {
+public interface BuildContext<B extends BuildConfiguration> {
 
     String getSourceDirectory();
 
@@ -38,7 +38,7 @@ public interface BuildContext {
 
     Function<String, String> createInterpolator(String filter);
 
-    File createImageContentArchive(String imageName, BuildConfiguration buildConfig, KitLogger log) throws IOException;
+    File createImageContentArchive(String imageName, B buildConfig, KitLogger log) throws IOException;
 
     RegistryContext getRegistryContext();
 

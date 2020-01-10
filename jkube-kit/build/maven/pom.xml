@@ -25,11 +25,14 @@
   </parent>
 
   <artifactId>jkube-kit-build-maven</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
 
   <name>Jkube Kit :: Build :: Maven</name>
 
   <dependencies>
+    <dependency>
+      <groupId>org.eclipse.jkube</groupId>
+      <artifactId>jkube-kit-common-maven</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
