@@ -34,6 +34,10 @@
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-config-resource</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.jkube</groupId>
+      <artifactId>jkube-kit-resource-service</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.jmockit</groupId>
