@@ -32,7 +32,9 @@
 
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-kit-config-resource</artifactId>
+      <!-- <artifactId>jkube-kit-config-resource</artifactId> -->
+      <!-- TODO: vvv Don't use implementation, ^^^ use model instead -->
+      <artifactId>jkube-kit-resource-service</artifactId>
     </dependency>
 
   </dependencies>

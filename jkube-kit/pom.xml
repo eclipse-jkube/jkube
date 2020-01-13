@@ -48,9 +48,10 @@
       <module>enricher/api</module>
       <module>enricher/generic</module>
       <module>enricher/specific</module>
+      <module>profile</module>
+      <module>resource/service</module>
       <module>watcher/api</module>
       <module>watcher/standard</module>
-      <module>profile</module>
       <module>jkube-kit-spring-boot</module>
       <module>jkube-kit-thorntail-v2</module>
       <module>jkube-kit-vertx</module>
