@@ -28,9 +28,9 @@ import java.util.Properties;
 
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -55,7 +55,7 @@ public class QuarkusGeneratorTest {
     private GeneratorContext ctx;
 
     @Mocked
-    private MavenProject project;
+    private JkubeProject project;
 
     @Mocked
     private ProcessorConfig config;
@@ -68,7 +68,7 @@ public class QuarkusGeneratorTest {
         // @formatter:off
         new Expectations() {{
             project.getVersion(); result = "0.0.1-SNAPSHOT";
-            project.getBuild().getDirectory(); result = new File("target/tmp").getAbsolutePath();
+            project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
             // project.getPlugin(QUARKUS_GROUP + ":" + QUARKUS_MAVEN_PLUGIN); result = quarkusPlugin;
         }};
         // @formatter:on

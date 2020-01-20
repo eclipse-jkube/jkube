@@ -17,11 +17,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.Template;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -373,7 +375,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
                     validateIfRequired(resourceDir, resourceClassifier);
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | DependencyResolutionRequiredException e) {
             throw new MojoExecutionException("Failed to generate openshift descriptor", e);
         }
     }
@@ -544,18 +546,19 @@ public class ResourceMojo extends AbstractJkubeMojo {
     // ==================================================================================
 
     private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log)
-        throws MojoExecutionException {
+        throws MojoExecutionException, DependencyResolutionRequiredException {
         List<ImageConfiguration> ret;
+        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project);
         ret = ConfigHelper.resolveImages(
             log,
             images,
-            (ImageConfiguration image) -> imageConfigResolver.resolve(image, project, session),
+            (ImageConfiguration image) -> imageConfigResolver.resolve(image, jkubeProject),
             null,  // no filter on image name yet (TODO: Maybe add this, too ?)
                 (List<ImageConfiguration> configs) -> {
                     try {
                         GeneratorContext ctx = new GeneratorContext.Builder()
                                 .config(extractGeneratorConfig())
-                                .project(project)
+                                .project(jkubeProject)
                                 .runtimeMode(runtimeMode)
                                 .logger(log)
                                 .strategy(OpenShiftBuildStrategy.docker)
@@ -570,7 +573,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
         Date now = getBuildReferenceDate();
         storeReferenceDateInPluginContext(now);
         String minimalApiVersion = ConfigHelper.initAndValidate(ret, null /* no minimal api version */,
-            new ImageNameFormatter(project, now), log);
+            new ImageNameFormatter(MavenUtil.convertMavenProjectToJkubeProject(project), now), log);
         return ret;
     }
 

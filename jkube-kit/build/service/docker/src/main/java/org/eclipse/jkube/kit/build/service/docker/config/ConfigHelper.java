@@ -16,12 +16,10 @@ package org.eclipse.jkube.kit.build.service.docker.config;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyMode;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.utils.StringUtils;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,12 +66,12 @@ public class ConfigHelper {
                 imageNames.add(image.getName());
             }
             logger.warn("None of the resolved images [%s] match the configured filter '%s'",
-                        StringUtils.join(imageNames.iterator(), ","), imageNameFilter);
+                        String.join(",", imageNames), imageNameFilter);
         }
         return filtered;
     }
 
-    public static void validateExternalPropertyActivation(MavenProject project, List<ImageConfiguration> images) throws MojoFailureException {
+    public static void validateExternalPropertyActivation(JkubeProject project, List<ImageConfiguration> images) throws IllegalStateException {
         String prop = getExternalConfigActivationProperty(project);
         if(prop == null) {
             return;
@@ -97,12 +95,12 @@ public class ConfigHelper {
         }
 
         if(imagesWithoutExternalConfig > 1) {
-            throw new MojoFailureException("Configuration error: Cannot use property "+EXTERNALCONFIG_ACTIVATION_PROPERTY+" on projects with multiple images without explicit image external configuration.");
+            throw new IllegalStateException("Configuration error: Cannot use property "+EXTERNALCONFIG_ACTIVATION_PROPERTY+" on projects with multiple images without explicit image external configuration.");
         }
     }
 
-    public static String getExternalConfigActivationProperty(MavenProject project) {
-        Properties properties = MavenUtil.getPropertiesWithSystemOverrides(project);
+    public static String getExternalConfigActivationProperty(JkubeProject project) {
+        Properties properties = JkubeProjectUtil.getPropertiesWithSystemOverrides(project);
         String value = properties.getProperty(EXTERNALCONFIG_ACTIVATION_PROPERTY);
 
         // This can be used to disable in a more "local" context, if set globally

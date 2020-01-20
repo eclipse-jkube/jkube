@@ -17,8 +17,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 import java.util.jar.JarEntry;
@@ -29,8 +27,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DistributionManagement;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Site;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
@@ -38,10 +38,11 @@ import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.codehaus.plexus.archiver.tar.TarLongFileMode;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.eclipse.jkube.kit.common.util.ClassUtil.createClassLoader;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.greaterOrEqualsVersion;
 
 /**
@@ -97,36 +98,6 @@ public class MavenUtil {
 
     // ====================================================
 
-    private static URLClassLoader createClassLoader(List<String> classpathElements, String... paths) {
-        List<URL> urls = new ArrayList<>();
-        for (String path : paths) {
-            URL url = pathToUrl(path);
-            urls.add(url);
-        }
-        for (Object object : classpathElements) {
-            if (object != null) {
-                String path = object.toString();
-                URL url = pathToUrl(path);
-                urls.add(url);
-            }
-        }
-        return createURLClassLoader(urls);
-    }
-
-    private static URLClassLoader createURLClassLoader(Collection<URL> jars) {
-        return new URLClassLoader(jars.toArray(new URL[jars.size()]));
-    }
-
-    private static URL pathToUrl(String path) {
-        try {
-            File file = new File(path);
-            return file.toURI().toURL();
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException(String.format("Cannot convert %s to a an URL: %s",path,e.getMessage()),e);
-        }
-    }
-
-
     /**
      * Returns true if the maven project has a dependency with the given groupId and artifactId (if not null)
      *
@@ -176,6 +147,43 @@ public class MavenUtil {
 
     public static Plugin getPluginOfAnyGroupId(MavenProject project, String pluginArtifact) {
         return getPlugin(project, null, pluginArtifact);
+    }
+
+    /**
+     * Returns a comma separated string with dependency list in format
+     *  groupId,artifactId,version,configuration,execution1|execution2|execution3
+     *
+     * @param project Maven project
+     * @return list of dependencies in comma separated strings
+     */
+    public static List<String> getPluginsAsString(MavenProject project) {
+        List<String> pluginsAsString = new ArrayList<>();
+        for (Plugin plugin : project.getBuildPlugins()) {
+            String pluginAsString = plugin.getGroupId() + "," + plugin.getArtifactId() + ","
+                    + plugin.getVersion() + "," + plugin.getConfiguration();
+            if (plugin.getExecutions() != null && !plugin.getExecutions().isEmpty()) {
+                pluginAsString +=  ("," + String.join("|", getPluginExecutionsAsList(plugin)));
+            }
+
+            pluginsAsString.add(pluginAsString);
+        }
+        return pluginsAsString;
+    }
+
+    public static List<String> getPluginExecutionsAsList(Plugin plugin) {
+        List<String> pluginExecutions = new ArrayList<>();
+        for (PluginExecution pluginExecution : plugin.getExecutions()) {
+            pluginExecutions.addAll(pluginExecution.getGoals());
+        }
+        return pluginExecutions;
+    }
+
+    public static List<String> getDependenciesAsString(MavenProject project) {
+        List<String> dependenciesAsString = new ArrayList<>();
+        for (Dependency dependency : project.getDependencies()) {
+            dependenciesAsString.add(dependency.getGroupId() + "," + dependency.getArtifactId() + "," + dependency.getVersion());
+        }
+        return dependenciesAsString;
     }
 
     /**
@@ -341,6 +349,33 @@ public class MavenUtil {
             }
         }
         return registryServersMap;
+    }
+
+    public static JkubeProject convertMavenProjectToJkubeProject(MavenProject mavenProject) throws DependencyResolutionRequiredException {
+        JkubeProject.Builder builder = new JkubeProject.Builder();
+
+        builder.name(mavenProject.getName())
+                .description(mavenProject.getDescription())
+                .groupId(mavenProject.getGroupId())
+                .artifactId(mavenProject.getArtifactId())
+                .version(mavenProject.getVersion())
+                .baseDirectory(mavenProject.getBasedir())
+                .documentationUrl(getDocumentationUrl(mavenProject))
+                .compileClassPathElements(mavenProject.getCompileClasspathElements())
+                .properties(mavenProject.getProperties())
+                .dependencies(MavenUtil.getDependenciesAsString(mavenProject))
+                .plugins(MavenUtil.getPluginsAsString(mavenProject));
+        if (mavenProject.getOrganization() != null) {
+            builder.site(mavenProject.getOrganization().getUrl())
+                    .organization(mavenProject.getOrganization().getName());
+        }
+
+        if (mavenProject.getBuildPlugins() != null) {
+            builder.outputDirectory(mavenProject.getBuild().getOutputDirectory())
+                    .buildDirectory(mavenProject.getBuild().getDirectory());
+        }
+
+        return builder.build();
     }
 }
 

@@ -18,7 +18,7 @@ import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
@@ -59,7 +59,7 @@ public class QuarkusGenerator extends BaseGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddImageConfiguration(configs)
-               && MavenUtil.hasPlugin(getProject(), "io.quarkus", "quarkus-maven-plugin");
+               && JkubeProjectUtil.hasPlugin(getProject(), "io.quarkus", "quarkus-maven-plugin");
     }
 
     @Override
@@ -145,7 +145,7 @@ public class QuarkusGenerator extends BaseGenerator {
     private FileSet getFileSetWithFileFromBuildThatEndsWith(String suffix) throws MojoExecutionException {
         FileSet fileSet = new FileSet();
         fileSet.setDirectory(
-            FileUtil.getRelativePath(getProject().getBasedir(), getBuildDir()).getPath());
+            FileUtil.getRelativePath(getProject().getBaseDirectory(), getBuildDir()).getPath());
         fileSet.addInclude(findSingleFileThatEndsWith(suffix));
         return fileSet;
     }
@@ -160,7 +160,7 @@ public class QuarkusGenerator extends BaseGenerator {
     }
 
     private File getBuildDir() {
-        return new File(getProject().getBuild().getDirectory());
+        return new File(getProject().getBuildDirectory());
     }
 
 }

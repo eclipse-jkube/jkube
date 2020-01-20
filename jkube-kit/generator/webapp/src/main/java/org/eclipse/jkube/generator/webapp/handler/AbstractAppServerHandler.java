@@ -17,8 +17,8 @@ import java.io.File;
 
 import org.eclipse.jkube.generator.api.DefaultImageLookup;
 import org.eclipse.jkube.generator.webapp.AppServerHandler;
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
+import org.eclipse.jkube.kit.common.JkubeProject;
 
 /**
  * @author kameshs
@@ -26,10 +26,10 @@ import org.apache.maven.shared.utils.io.DirectoryScanner;
 public abstract class AbstractAppServerHandler implements AppServerHandler {
 
     protected final DefaultImageLookup imageLookup;
-    protected final MavenProject project;
+    protected final JkubeProject project;
     private final String name;
 
-    protected AbstractAppServerHandler(String name, MavenProject project) {
+    protected AbstractAppServerHandler(String name, JkubeProject project) {
         this.project = project;
         this.name = name;
         this.imageLookup = new DefaultImageLookup(this.getClass());
@@ -47,7 +47,7 @@ public abstract class AbstractAppServerHandler implements AppServerHandler {
      * @return list of files found
      */
     protected String[] scanFiles(String... patterns) {
-        String buildOutputDir = project.getBuild().getDirectory();
+        String buildOutputDir = project.getBuildDirectory();
         if (buildOutputDir != null && new File(buildOutputDir).exists()) {
             DirectoryScanner directoryScanner = new DirectoryScanner();
             directoryScanner.setBasedir(buildOutputDir);

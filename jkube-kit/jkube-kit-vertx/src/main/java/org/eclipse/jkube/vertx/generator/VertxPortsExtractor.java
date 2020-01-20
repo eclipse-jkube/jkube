@@ -13,11 +13,19 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
+import org.codehaus.plexus.util.xml.XmlStreamReader;
+import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 
 public class VertxPortsExtractor extends AbstractPortsExtractor {
 
@@ -32,17 +40,22 @@ public class VertxPortsExtractor extends AbstractPortsExtractor {
     }
 
     @Override
-    public String getConfigPathFromProject(MavenProject project) {
-        Plugin plugin = project.getPlugin(Constants.VERTX_MAVEN_PLUGIN_GROUP + ":" + Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
-        if (plugin == null) {
-            return null;
-        }
+    public String getConfigPathFromProject(JkubeProject project) {
+        JkubeProjectPlugin plugin = JkubeProjectUtil.getPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
 
-        Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
-        if (configuration == null) {
-            return null;
+        if (plugin != null) {
+            try {
+                Object pluginConfiguration = plugin.getConfiguration();
+                Xpp3Dom configuration = Xpp3DomBuilder.build(new StringReader(pluginConfiguration.toString()));
+                if (configuration == null) {
+                    return null;
+                }
+                Xpp3Dom config = configuration.getChild("config");
+                return config != null ? config.getValue() : null;
+            } catch (IOException | XmlPullParserException exception) {
+                log.warn("Error in parsing plugin configuration: ", exception);
+            }
         }
-        Xpp3Dom config = configuration.getChild("config");
-        return config != null ? config.getValue() : null;
+        return null;
     }
 }

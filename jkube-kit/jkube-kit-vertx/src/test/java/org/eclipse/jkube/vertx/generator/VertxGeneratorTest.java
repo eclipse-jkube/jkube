@@ -14,20 +14,19 @@
 package org.eclipse.jkube.vertx.generator;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableSet;
+import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JkubeProjectDependency;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,16 +43,15 @@ public class VertxGeneratorTest {
     private DefaultArtifactHandler handler = new DefaultArtifactHandler("jar");
 
 
-    private final Artifact dropwizard = new DefaultArtifact("io.vertx", "vertx-dropwizard-metrics", "3.4.2", null, "jar", "", null);
-    private final Artifact core = new DefaultArtifact("io.vertx", "vertx-core", "3.4.2", null, "jar", "", null);
-    private final Artifact infinispan = new DefaultArtifact("io.vertx", "vertx-infinispan", "3.4.2", null, "jar", "", handler);
-
+    private final JkubeProjectDependency dropwizard = new JkubeProjectDependency("io.vertx", "vertx-dropwizard-metrics", "3.4.2");
+    private final JkubeProjectDependency core = new JkubeProjectDependency("io.vertx", "vertx-core", "3.4.2");
+    private final JkubeProjectDependency infinispan = new JkubeProjectDependency("io.vertx", "vertx-infinispan", "3.4.2");
 
     @Test
-    public void testDefaultOptions(@Mocked final MavenProject project) {
+    public void testDefaultOptions(@Mocked final JkubeProject project) {
         new Expectations() {{
-            project.getBuild().getDirectory(); result = new File("target/tmp").getAbsolutePath();
-            project.getBuild().getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
+            project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
+            project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
         }};
 
         GeneratorContext context = new GeneratorContext.Builder()
@@ -67,12 +65,12 @@ public class VertxGeneratorTest {
     }
 
     @Test
-    public void testWithMetrics(@Mocked final MavenProject project) {
+    public void testWithMetrics(@Mocked final JkubeProject project) {
 
         new Expectations() {{
-            project.getBuild().getDirectory(); result = new File("target/tmp").getAbsolutePath();
-            project.getBuild().getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
-            project.getArtifacts(); result = ImmutableSet.of(dropwizard, core);
+            project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
+            project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
+            project.getDependencies(); result = Arrays.asList(dropwizard, core);
         }};
 
         GeneratorContext context = new GeneratorContext.Builder()
@@ -90,11 +88,12 @@ public class VertxGeneratorTest {
     }
 
     @Test
-    public void testWithInfinispanClusterManager(@Mocked final MavenProject project) throws MojoExecutionException {
+    public void testWithInfinispanClusterManager(@Mocked final JkubeProject project) throws MojoExecutionException {
         new Expectations() {{
-            project.getBuild().getDirectory(); result = new File("target/tmp").getAbsolutePath();
-            project.getBuild().getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
-            project.getArtifacts(); result = ImmutableSet.of(infinispan, core);
+            project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
+            project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
+            project.getDependencies(); result = Arrays.asList(infinispan, core);
+            //project.getArtifacts(); result = ImmutableSet.of(infinispan, core);
         }};
 
         GeneratorContext context = new GeneratorContext.Builder()

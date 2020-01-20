@@ -38,7 +38,6 @@ import org.eclipse.jkube.kit.build.service.docker.wait.WaitTimeoutException;
 import org.eclipse.jkube.kit.build.service.docker.wait.WaitUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.commons.text.StrSubstitutor;
-import org.apache.maven.shared.utils.StringUtils;
 
 /**
  * @author roland
@@ -100,7 +99,7 @@ public class WaitService {
         for (WaitChecker checker : checkers) {
             logOut.add(checker.getLogLabel());
         }
-        return StringUtils.join(logOut.toArray(), " and ");
+        return logOut.toArray() + " and ";
     }
 
     private List<WaitChecker> prepareWaitCheckers(ImageConfiguration imageConfig, Properties projectProperties, String containerId) throws IOException {

@@ -16,11 +16,6 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
-import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyConfigurationSource;
-import org.apache.maven.plugins.assembly.interpolation.AssemblyInterpolator;
-import org.apache.maven.plugins.assembly.io.DefaultAssemblyReader;
-import org.codehaus.plexus.interpolation.fixed.FixedStringSearchInterpolator;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.BufferedReader;
@@ -30,12 +25,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.util.stream.Collectors;
 
 /**
  * Utility class for dealing with dockerfiles
@@ -44,6 +42,7 @@ import java.util.regex.Pattern;
  */
 public class DockerFileUtil {
 
+
     private DockerFileUtil() {}
 
     /**
@@ -51,19 +50,25 @@ public class DockerFileUtil {
      * taken.
      *
      * @param dockerFile file from where to extract the base image
-     * @param interpolator interpolator for replacing properties
      * @return LinkedList of base images name or empty collection if none is found.
-     * @throws IOException in case of any I/O exception
      */
-    public static List<String> extractBaseImages(File dockerFile, FixedStringSearchInterpolator interpolator) throws IOException {
-        List<String[]> fromLines = extractLines(dockerFile, "FROM", interpolator);
-        LinkedList<String> result = new LinkedList<>();
+    public static List<String> extractBaseImages(File dockerFile, Properties properties) throws IOException {
+        List<String[]> fromLines = extractLines(dockerFile, "FROM", properties);
+        Set<String> result = new LinkedHashSet<>();
+        Set<String> fromAlias = new HashSet<>();
         for (String[] fromLine :  fromLines) {
             if (fromLine.length > 1) {
-                result.add(fromLine[1]);
+                if (fromLine.length == 2) { // FROM image:tag use case
+                    result.add(fromLine[1]);
+                } else if (fromLine.length == 4) { // FROM image:tag AS alias use case
+                    if (!fromAlias.contains(fromLine[1])) {
+                        result.add(fromLine[1]);
+                    }
+                    fromAlias.add(fromLine[3]);
+                }
             }
         }
-        return result;
+        return result.stream().collect(Collectors.toList());
     }
 
     /**
@@ -71,16 +76,14 @@ public class DockerFileUtil {
      *
      * @param dockerFile dockerfile to examine
      * @param keyword keyword to extract the lines for
-     * @param interpolator interpolator for replacing properties
      * @return list of matched lines or an empty list
-     * @throws IOException IO Exception
      */
-    public static List<String[]> extractLines(File dockerFile, String keyword, FixedStringSearchInterpolator interpolator) throws IOException {
+    public static List<String[]> extractLines(File dockerFile, String keyword, Properties properties) throws IOException {
         List<String[]> ret = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(dockerFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String lineInterpolated = interpolator.interpolate(line);
+                String lineInterpolated = JkubeDockerfileInterpolator.interpolate(line, properties);
                 String[] lineParts = lineInterpolated.split("\\s+");
                 if (lineParts.length > 0 && lineParts[0].equalsIgnoreCase(keyword)) {
                     ret.add(lineParts);
@@ -94,44 +97,19 @@ public class DockerFileUtil {
      * Interpolate a docker file with the given properties and filter
      *
      * @param dockerFile docker file to interpolate
-     * @param interpolator interpolator for replacing properties
      * @return The interpolated contents of the file.
-     * @throws IOException in case of any I/O error
+     * @throws IOException
      */
-    public static String interpolate(File dockerFile, FixedStringSearchInterpolator interpolator) throws IOException {
+    public static String interpolate(File dockerFile, Properties properties) throws IOException {
         StringBuilder ret = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(dockerFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                ret.append(interpolator.interpolate(line)).append(System.lineSeparator());
+                ret.append(JkubeDockerfileInterpolator.interpolate(line, properties)).append(System.lineSeparator());
             }
         }
         return ret.toString();
     }
-
-    /**
-     * Create an interpolator for the given maven parameters and filter configuration.
-     *
-     * @param params The maven parameters.
-     * @param filter The filter configuration.
-     * @return An interpolator for replacing maven properties.
-     */
-    public static FixedStringSearchInterpolator createInterpolator(MavenBuildContext params, String filter) {
-        String[] delimiters = extractDelimiters(filter);
-        if (delimiters == null) {
-            // Don't interpolate anything
-            return FixedStringSearchInterpolator.create();
-        }
-
-        DockerAssemblyConfigurationSource configSource = new DockerAssemblyConfigurationSource(params, null, null);
-        // Patterned after org.apache.maven.plugins.assembly.interpolation.AssemblyExpressionEvaluator
-        return AssemblyInterpolator
-                .fullInterpolator(params.getProject(),
-                        DefaultAssemblyReader.createProjectInterpolator(params.getProject())
-                          .withExpressionMarkers(delimiters[0], delimiters[1]), configSource)
-                .withExpressionMarkers(delimiters[0], delimiters[1]);
-    }
-
 
     private static Reader getFileReaderFromDir(File file) {
         if (file.exists() && file.length() != 0) {
@@ -157,8 +135,8 @@ public class DockerFileUtil {
 
     public static String[] extractDelimiters(String filter) {
         if (filter == null ||
-            filter.equalsIgnoreCase("false") ||
-            filter.equalsIgnoreCase("none")) {
+                filter.equalsIgnoreCase("false") ||
+                filter.equalsIgnoreCase("none")) {
             return null;
         }
         if (filter.contains("*")) {

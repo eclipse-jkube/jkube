@@ -25,14 +25,13 @@ import org.eclipse.jkube.kit.build.service.docker.config.UlimitConfig;
 import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.WatchImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.CollectionUtils;
 
 import java.io.File;
@@ -171,11 +170,11 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     @Override
-    public List<ImageConfiguration> resolve(ImageConfiguration fromConfig, MavenProject project, MavenSession session)
+    public List<ImageConfiguration> resolve(ImageConfiguration fromConfig, JkubeProject project)
         throws IllegalArgumentException {
         Map<String, String> externalConfig = fromConfig.getExternalConfig();
         String prefix = getPrefix(externalConfig);
-        Properties properties = MavenUtil.getPropertiesWithSystemOverrides(project);
+        Properties properties = JkubeProjectUtil.getPropertiesWithSystemOverrides(project);
         PropertyMode propertyMode = getMode(externalConfig);
         ValueProvider valueProvider = new ValueProvider(prefix, properties, propertyMode);
 
@@ -203,7 +202,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         return valueProvider.getString(key, config == null ? null : supplier.get()) != null;
     }
     // Enable build config only when a `.from.`, `.dockerFile.`, or `.dockerFileDir.` is configured
-    private boolean buildConfigured(BuildConfiguration config, ValueProvider valueProvider, MavenProject project) {
+    private boolean buildConfigured(BuildConfiguration config, ValueProvider valueProvider, JkubeProject project) {
 
 
         if (isStringValueNull(valueProvider, config, FROM, () -> config.getFrom())) {
@@ -229,11 +228,11 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         }
 
         // Simple Dockerfile mode
-        return new File(project.getBasedir(),"Dockerfile").exists();
+        return new File(project.getBaseDirectory(),"Dockerfile").exists();
     }
 
 
-    private MavenBuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, MavenProject project) {
+    private MavenBuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, JkubeProject project) {
         MavenBuildConfiguration config = fromConfig.getBuildConfiguration();
         if (!buildConfigured(config, valueProvider, project)) {
             return null;

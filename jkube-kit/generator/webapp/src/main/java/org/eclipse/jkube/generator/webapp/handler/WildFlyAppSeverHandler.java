@@ -16,8 +16,8 @@ package org.eclipse.jkube.generator.webapp.handler;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 
 /**
  * Handler for wildfly
@@ -26,15 +26,15 @@ import org.apache.maven.project.MavenProject;
  */
 public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
-    public WildFlyAppSeverHandler(MavenProject project) {
+    public WildFlyAppSeverHandler(JkubeProject project) {
         super("wildfly", project);
     }
 
     @Override
     public boolean isApplicable() {
         return
-            !MavenUtil.hasPlugin(project, "org.wildfly.swarm", "wildfly-swarm-plugin") &&
-            !MavenUtil.hasPlugin(project, "io.thorntail", "thorntail-maven-plugin") &&
+            !JkubeProjectUtil.hasPlugin(project, "org.wildfly.swarm", "wildfly-swarm-plugin") &&
+            !JkubeProjectUtil.hasPlugin(project, "io.thorntail", "thorntail-maven-plugin") &&
             (hasOneOf("**/WEB-INF/jboss-deployment-structure.xml",
                      "**/META-INF/jboss-deployment-structure.xml",
                      "**/WEB-INF/jboss-web.xml", "**/WEB-INF/ejb-jar.xml",
@@ -43,8 +43,8 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
                      "**/META-INF/*-ds.xml", "**/WEB-INF/*-ds.xml",
                      "**/WEB-INF/jboss-ejb-client.xml", "**/META-INF/jbosscmp-jdbc.xml",
                      "**/WEB-INF/jboss-webservices.xml") ||
-            MavenUtil.hasPlugin(project, "org.jboss.as.plugins", "jboss-as-maven-plugin") ||
-            MavenUtil.hasPlugin(project, "org.wildfly.plugins", "wildfly-maven-plugin"));
+            JkubeProjectUtil.hasPlugin(project, "org.jboss.as.plugins", "jboss-as-maven-plugin") ||
+            JkubeProjectUtil.hasPlugin(project, "org.wildfly.plugins", "wildfly-maven-plugin"));
     }
 
     @Override

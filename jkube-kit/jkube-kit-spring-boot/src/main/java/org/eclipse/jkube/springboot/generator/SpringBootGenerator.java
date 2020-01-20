@@ -37,14 +37,14 @@ import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
+import org.eclipse.jkube.kit.common.util.ClassUtil;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
 import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.color;
@@ -70,7 +70,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddImageConfiguration(configs)
-               && MavenUtil.hasPluginOfAnyGroupId(getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+               && JkubeProjectUtil.hasPluginOfAnyArtifactId(getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
             // adding dev tools token to env variables to prevent override during recompile
             String secret = SpringBootUtil.getSpringBootApplicationProperties(
                     SpringBootUtil.getSpringBootActiveProfile(getProject()),
-                    MavenUtil.getCompileClassLoader(getProject())).getProperty(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET);
+                    ClassUtil.createClassLoader(getProject().getCompileClassPathElements(), getProject().getOutputDirectory())).getProperty(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET);
             if (secret != null) {
                 res.put(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET_ENV, secret);
             }
@@ -122,7 +122,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
         List<String> answer = new ArrayList<>();
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
                 SpringBootUtil.getSpringBootActiveProfile(getProject()),
-                MavenUtil.getCompileClassLoader(this.getProject()));
+                ClassUtil.createClassLoader(this.getProject().getCompileClassPathElements(), this.getProject().getOutputDirectory()));
         SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getProject()));
         String port = properties.getProperty(propertyHelper.getServerPortPropertyKey(), DEFAULT_SERVER_PORT);
         addPortIfValid(answer, getConfig(JavaExecGenerator.Config.webPort, port));
@@ -136,7 +136,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
     private void ensureSpringDevToolSecretToken() throws MojoExecutionException {
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
                 SpringBootUtil.getSpringBootActiveProfile(getProject()),
-                MavenUtil.getCompileClassLoader(getProject()));
+                ClassUtil.createClassLoader(getProject().getCompileClassPathElements(), getProject().getOutputDirectory()));
         String remoteSecret = properties.getProperty(DEV_TOOLS_REMOTE_SECRET);
         if (Strings.isNullOrEmpty(remoteSecret)) {
             addSecretTokenToApplicationProperties();
@@ -149,7 +149,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
             File target = getFatJarFile();
             try {
                 File devToolsFile = getSpringBootDevToolsJar();
-                File applicationPropertiesFile = new File(getProject().getBasedir(), "target/classes/application.properties");
+                File applicationPropertiesFile = new File(getProject().getBaseDirectory(), "target/classes/application.properties");
                 copyFilesToFatJar(Collections.singletonList(devToolsFile), Collections.singletonList(applicationPropertiesFile), target);
             } catch (Exception e) {
                 throw new MojoExecutionException("Failed to add devtools files to fat jar " + target + ". " + e, e);
@@ -256,8 +256,8 @@ public class SpringBootGenerator extends JavaExecGenerator {
         appendSecretTokenToFile("src/main/resources/application.properties", newToken);
     }
 
-    private void appendSecretTokenToFile(String path, String token) throws MojoExecutionException {
-        File file = new File(getProject().getBasedir(), path);
+    private void appendSecretTokenToFile(String path, String token) throws IllegalStateException {
+        File file = new File(getProject().getBaseDirectory(), path);
         file.getParentFile().mkdirs();
         String text = String.format("%s" +
                         "# Remote secret added by jkube-kit-plugin\n" +
@@ -267,22 +267,19 @@ public class SpringBootGenerator extends JavaExecGenerator {
         try (FileWriter writer = new FileWriter(file, true)) {
             writer.append(text);
         } catch (IOException e) {
-            throw new MojoExecutionException("Failed to append to file: " + file + ". " + e, e);
+            throw new IllegalStateException("Failed to append to file: " + file + ". " + e, e);
         }
     }
 
     private boolean isSpringBootRepackage() {
-        MavenProject project = getProject();
-        Plugin plugin = MavenUtil.getPluginOfAnyGroupId(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        JkubeProject project = getProject();
+        JkubeProjectPlugin plugin = JkubeProjectUtil.getPluginOfAnyArtifactId(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
         if (plugin != null) {
-            Map<String, PluginExecution> executionsAsMap = plugin.getExecutionsAsMap();
-            if (executionsAsMap != null) {
-                for (PluginExecution execution : executionsAsMap.values()) {
-                    List<String> goals = execution.getGoals();
-                    if (goals.contains("repackage")) {
-                        log.verbose("Using fat jar packaging as the spring boot plugin is using `repackage` goal execution");
-                        return true;
-                    }
+            List<String> executions = plugin.getExecutions();
+            if (executions != null) {
+                if (executions.contains("repackage")) {
+                    log.verbose("Using fat jar packaging as the spring boot plugin is using `repackage` goal execution");
+                    return true;
                 }
             }
         }

@@ -17,10 +17,6 @@ import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyManager;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.BuildPluginManager;
-import org.apache.maven.project.MavenProject;
-import org.eclipse.jkube.kit.common.util.MojoExecutionService;
 
 /**
  * A service hub responsible for creating and managing services which are used by
@@ -37,19 +33,17 @@ public class ServiceHub {
     private final RunService runService;
     private final RegistryService registryService;
     private final BuildService buildService;
-    private final MojoExecutionService mojoExecutionService;
     private final ArchiveService archiveService;
     private final VolumeService volumeService;
     private final WatchService watchService;
     private final WaitService waitService;
 
-    ServiceHub(DockerAccess dockerAccess, ContainerTracker containerTracker, BuildPluginManager pluginManager,
-               DockerAssemblyManager dockerAssemblyManager, MavenProject project, MavenSession session,
+    ServiceHub(DockerAccess dockerAccess, ContainerTracker containerTracker,
+               DockerAssemblyManager dockerAssemblyManager,
                KitLogger logger, LogOutputSpecFactory logSpecFactory) {
 
         this.dockerAccess = dockerAccess;
 
-        mojoExecutionService = new MojoExecutionService(project, session, pluginManager);
         archiveService = new ArchiveService(dockerAssemblyManager, logger);
 
         if (dockerAccess != null) {
@@ -58,7 +52,7 @@ public class ServiceHub {
             runService = new RunService(dockerAccess, queryService, containerTracker, logSpecFactory, logger);
             buildService = new BuildService(dockerAccess, queryService, registryService, archiveService, logger);
             volumeService = new VolumeService(dockerAccess);
-            watchService = new WatchService(archiveService, buildService, dockerAccess, mojoExecutionService, queryService, runService, logger);
+            watchService = new WatchService(archiveService, buildService, dockerAccess, queryService, runService, logger);
             waitService = new WaitService(dockerAccess, queryService, logger);
         } else {
             queryService = null;
@@ -160,15 +154,6 @@ public class ServiceHub {
      */
     public ArchiveService getArchiveService() {
         return archiveService;
-    }
-
-    /**
-     * Get a service for executing goals on other Maven mojos
-     *
-     * @return service for calling other mojos
-     */
-    public MojoExecutionService getMojoExecutionService() {
-        return mojoExecutionService;
     }
 
     private synchronized void checkDockerAccessInitialization() {

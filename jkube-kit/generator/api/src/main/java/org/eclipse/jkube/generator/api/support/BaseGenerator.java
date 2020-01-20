@@ -28,16 +28,15 @@ import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.GitUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.image.build.util.BuildLabelAnnotations;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.project.MavenProject;
 
 import static org.eclipse.jkube.kit.common.util.MavenUtil.getDocumentationUrl;
 
@@ -87,7 +86,7 @@ abstract public class BaseGenerator implements Generator {
         this.log = new PrefixedLogger(name, context.getLogger());
     }
 
-    protected MavenProject getProject() {
+    protected JkubeProject getProject() {
         return context.getProject();
     }
 
@@ -217,7 +216,7 @@ abstract public class BaseGenerator implements Generator {
     }
 
     protected void addLatestTagIfSnapshot(BuildConfiguration.TypedBuilder buildBuilder) {
-        MavenProject project = getProject();
+        JkubeProject project = getProject();
         if (project.getVersion().endsWith("-SNAPSHOT")) {
             buildBuilder.tags(Collections.singletonList("latest"));
         }
@@ -233,10 +232,10 @@ abstract public class BaseGenerator implements Generator {
     }
 
     protected void addSchemaLabels(BuildConfiguration.TypedBuilder buildBuilder, PrefixedLogger log) {
-        final MavenProject project = getProject();
+        final JkubeProject project = getProject();
         String LABEL_SCHEMA_VERSION = "1.0";
         String GIT_REMOTE = "origin";
-        String docURL = getDocumentationUrl(project);
+        String docURL = project.getDocumentationUrl();
         Map<String, String> labels = new HashMap<>();
 
         labels.put(BuildLabelAnnotations.BUILD_DATE.value(), LocalDateTime.now().toString());
@@ -245,17 +244,17 @@ abstract public class BaseGenerator implements Generator {
         if (docURL != null) {
             labels.put(BuildLabelAnnotations.USAGE.value(), docURL);
         }
-        if (project.getUrl() != null) {
-            labels.put(BuildLabelAnnotations.URL.value(), project.getUrl());
+        if (project.getSite() != null) {
+            labels.put(BuildLabelAnnotations.URL.value(), project.getSite());
         }
-        if (project.getOrganization() != null && project.getOrganization().getName() != null) {
-            labels.put(BuildLabelAnnotations.VENDOR.value(), project.getOrganization().getName());
+        if (project.getOrganizationName() != null && project.getOrganizationName() != null) {
+            labels.put(BuildLabelAnnotations.VENDOR.value(), project.getOrganizationName());
         }
         labels.put(BuildLabelAnnotations.VERSION.value(), project.getVersion());
         labels.put(BuildLabelAnnotations.SCHEMA_VERSION.value(), LABEL_SCHEMA_VERSION);
 
         try {
-            Repository repository = GitUtil.getGitRepository(project.getBasedir());
+            Repository repository = GitUtil.getGitRepository(project.getBaseDirectory());
             if (repository != null) {
                 String commitID = GitUtil.getGitCommitId(repository);
                 labels.put(BuildLabelAnnotations.VCS_REF.value(), commitID);

@@ -22,14 +22,13 @@ import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
 import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
 import org.eclipse.jkube.generator.webapp.handler.CustomAppServerHandler;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-
 
 /**
  * A generator for WAR apps
@@ -69,7 +68,7 @@ public class WebAppGenerator extends BaseGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddImageConfiguration(configs) &&
-               MavenUtil.hasPlugin(getProject(), "org.apache.maven.plugins", "maven-war-plugin");
+               JkubeProjectUtil.hasPlugin(getProject(), "org.apache.maven.plugins", "maven-war-plugin");
     }
 
     @Override

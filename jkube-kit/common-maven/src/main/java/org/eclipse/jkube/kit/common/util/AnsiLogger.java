@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.helper;
+package org.eclipse.jkube.kit.common.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;

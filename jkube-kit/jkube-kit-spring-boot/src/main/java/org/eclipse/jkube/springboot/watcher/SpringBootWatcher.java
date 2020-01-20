@@ -35,10 +35,12 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.IoUtil;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
@@ -77,7 +79,7 @@ public class SpringBootWatcher extends BaseWatcher {
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) {
-        return MavenUtil.hasPluginOfAnyGroupId(getContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        return getContext().getProject().getPlugins().contains(SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
     }
 
     @Override
@@ -111,7 +113,7 @@ public class SpringBootWatcher extends BaseWatcher {
             return null;
         }
 
-        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(MavenUtil.getCompileClassLoader(getContext().getProject()));
+        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(ClassUtil.createClassLoader(getContext().getProject().getCompileClassPathElements(), getContext().getProject().getOutputDirectory()));
         SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getContext().getProject()));
 
         int port = IoUtil.getFreeRandomPort();
@@ -179,7 +181,7 @@ public class SpringBootWatcher extends BaseWatcher {
             URLClassLoader pluginClassLoader = (URLClassLoader) classLoader;
             try(
                     URLClassLoader projectClassLoader =
-                            ClassUtil.createProjectClassLoader(getContext().getProject().getCompileClasspathElements(), log)) {
+                            ClassUtil.createProjectClassLoader(getContext().getProject().getCompileClassPathElements(), log)) {
 
                 URLClassLoader[] classLoaders = {projectClassLoader, pluginClassLoader};
 
@@ -241,8 +243,6 @@ public class SpringBootWatcher extends BaseWatcher {
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to run RemoteSpringApplication: " + e, e);
                 }
-            } catch (DependencyResolutionRequiredException e) {
-                log.warn("Instructed to use project classpath, but cannot. Continuing build if we can: ", e);
             } catch (IOException e) {
                 log.warn("Instructed to use project classpath, but cannot. Continuing build if we can: ", e);
             }
@@ -281,19 +281,19 @@ public class SpringBootWatcher extends BaseWatcher {
         return printer;
     }
 
-    private File getSpringBootDevToolsJar(MavenProject project) throws IOException {
+    private File getSpringBootDevToolsJar(JkubeProject project) throws IOException {
         String version = SpringBootUtil.getSpringBootDevToolsVersion(project).orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
         return getContext().getFabric8ServiceHub().getArtifactResolverService().resolveArtifact(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
     }
 
     private String validateSpringBootDevtoolsSettings() throws IllegalStateException {
-        String configuration = MavenUtil.getPlugin(getContext().getProject(), null, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID).getConfiguration().toString();
+        String configuration = JkubeProjectUtil.getPlugin(getContext().getProject(), null, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID).getConfiguration().toString();
         if(!configuration.contains("<excludeDevtools>false</excludeDevtools>")) {
             log.warn("devtools need to be included in repacked archive, please set <excludeDevtools> to false in plugin configuration");
             throw new IllegalStateException("devtools needs to be included in fat jar");
         }
 
-        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(MavenUtil.getCompileClassLoader(getContext().getProject()));
+        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(ClassUtil.createClassLoader(getContext().getProject().getCompileClassPathElements(), getContext().getProject().getOutputDirectory()));
         String remoteSecret = properties.getProperty(DEV_TOOLS_REMOTE_SECRET, System.getProperty(DEV_TOOLS_REMOTE_SECRET));
         if (StringUtils.isBlank(remoteSecret)) {
             log.warn("There is no `%s` property defined in your src/main/resources/application.properties. Please add one!", DEV_TOOLS_REMOTE_SECRET);

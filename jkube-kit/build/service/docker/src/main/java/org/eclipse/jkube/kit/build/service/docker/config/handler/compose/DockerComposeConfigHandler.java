@@ -19,19 +19,13 @@ import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandlerException;
 import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.filtering.MavenFilteringException;
-import org.apache.maven.shared.filtering.MavenReaderFilter;
-import org.apache.maven.shared.filtering.MavenReaderFilterRequest;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -53,19 +47,15 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         return "compose";
     }
 
-    // Enable later when issue above is fixed. In the meantime its declared in the components.xml, too
-    // @Requirement(role = MavenReaderFilter.class)
-    MavenReaderFilter readerFilter;
-
     @Override
     @SuppressWarnings("unchecked")
-    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, MavenProject project, MavenSession session) {
+    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JkubeProject project) {
         List<ImageConfiguration> resolved = new ArrayList<>();
 
         DockerComposeConfiguration handlerConfig = new DockerComposeConfiguration(unresolvedConfig.getExternalConfig());
-        File composeFile = resolveComposeFileAbsolutely(handlerConfig.getBasedir(), handlerConfig.getComposeFile(), project);
+        File composeFile = resolveComposeFileAbsolutely(handlerConfig.getBasedir(), handlerConfig.getComposeFile(), (project == null && project.getBaseDirectory() == null)? null : project.getBaseDirectory().getAbsolutePath());
 
-        for (Object composeO : getComposeConfigurations(composeFile, project, session)) {
+        for (Object composeO : getComposeConfigurations(composeFile)) {
             Map<String, Object> compose = (Map<String, Object>) composeO;
             validateVersion(compose, composeFile);
             Map<String, Object> services = (Map<String, Object>) compose.get("services");
@@ -73,7 +63,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
                 String serviceName = entry.getKey();
                 Map<String, Object> serviceDefinition = (Map<String, Object>) entry.getValue();
 
-                DockerComposeServiceWrapper mapper = new DockerComposeServiceWrapper(serviceName, composeFile, serviceDefinition, unresolvedConfig, resolveAbsolutely(handlerConfig.getBasedir(), project));
+                DockerComposeServiceWrapper mapper = new DockerComposeServiceWrapper(serviceName, composeFile, serviceDefinition, unresolvedConfig, resolveAbsolutely(handlerConfig.getBasedir(), (project == null && project.getBaseDirectory() == null)? null : project.getBaseDirectory().getAbsolutePath()));
                 resolved.add(buildImageConfiguration(mapper, composeFile.getParentFile(), unresolvedConfig, handlerConfig));
             }
         }
@@ -132,28 +122,14 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         }
     }
 
-    private Iterable<Object> getComposeConfigurations(File composePath, MavenProject project, MavenSession session) {
+    private Iterable<Object> getComposeConfigurations(File composePath) {
         try {
             Yaml yaml = new Yaml();
-            return yaml.loadAll(getFilteredReader(composePath, project, session));
+            return yaml.loadAll(new FileReader(composePath));
         }
-        catch (FileNotFoundException | MavenFilteringException e) {
+        catch (FileNotFoundException e) {
             throw new ExternalConfigHandlerException("failed to load external configuration: " + composePath, e);
         }
-    }
-
-    private Reader getFilteredReader(File path, MavenProject project, MavenSession session) throws FileNotFoundException, MavenFilteringException {
-        MavenReaderFilterRequest request =
-            new MavenReaderFilterRequest(
-                new FileReader(path),
-                true,
-                project,
-                Collections.emptyList(),
-                false,
-                session,
-                null);
-        //request.setEscapeString("$");
-        return readerFilter.filter(request);
     }
 
     private MavenBuildConfiguration createBuildImageConfiguration(DockerComposeServiceWrapper mapper,

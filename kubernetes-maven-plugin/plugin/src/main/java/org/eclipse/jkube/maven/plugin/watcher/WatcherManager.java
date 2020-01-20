@@ -39,7 +39,7 @@ public class WatcherManager {
 
         PluginServiceFactory<WatcherContext> pluginFactory =
                 watcherCtx.isUseProjectClasspath() ?
-            new PluginServiceFactory<>(watcherCtx, ClassUtil.createProjectClassLoader(watcherCtx.getProject().getCompileClasspathElements(), watcherCtx.getLogger())) :
+            new PluginServiceFactory<>(watcherCtx, ClassUtil.createProjectClassLoader(watcherCtx.getProject().getCompileClassPathElements(), watcherCtx.getLogger())) :
             new PluginServiceFactory<>(watcherCtx);
 
         boolean isOpenshift = OpenshiftHelper.isOpenShift(watcherCtx.getKubernetesClient());

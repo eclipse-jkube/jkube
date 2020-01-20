@@ -40,12 +40,9 @@ public class GeneratorManager {
 
         PluginServiceFactory<GeneratorContext> pluginFactory =
             null;
-        try {
-            pluginFactory = genCtx.isUseProjectClasspath() ?
-            new PluginServiceFactory<GeneratorContext>(genCtx, ClassUtil.createProjectClassLoader(genCtx.getProject().getCompileClasspathElements(), genCtx.getLogger())) :
-            new PluginServiceFactory<GeneratorContext>(genCtx);
-        } catch (DependencyResolutionRequiredException e) {
-        }
+        pluginFactory = genCtx.isUseProjectClasspath() ?
+                new PluginServiceFactory<GeneratorContext>(genCtx, ClassUtil.createProjectClassLoader(genCtx.getProject().getCompileClassPathElements(), genCtx.getLogger())) :
+                new PluginServiceFactory<GeneratorContext>(genCtx);
 
         List<Generator> generators =
             pluginFactory.createServiceObjects("META-INF/jkube/generator-default",

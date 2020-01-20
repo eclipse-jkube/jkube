@@ -16,6 +16,7 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.build.service.docker.BuildService;
@@ -23,8 +24,9 @@ import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
-import org.eclipse.jkube.kit.build.service.docker.helper.AnsiLogger;
+import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
@@ -237,13 +239,13 @@ public class WatchMojo extends AbstractDockerMojo {
                     .newPodLogger(createLogger("[[C]][NEW][[C]] "))
                     .oldPodLogger(createLogger("[[R]][OLD][[R]] "))
                     .mode(mode)
-                    .project(project)
+                    .project(MavenUtil.convertMavenProjectToJkubeProject(project))
                     .useProjectClasspath(useProjectClasspath)
                     .clusterConfiguration(getClusterConfiguration())
                     .kubernetesClient(kubernetes)
                     .fabric8ServiceHub(getJkubeServiceHub())
                     .build();
-        } catch(IOException exception) {
+        } catch(IOException | DependencyResolutionRequiredException exception) {
             throw new MojoExecutionException(exception.getMessage());
         }
     }
@@ -265,7 +267,7 @@ public class WatchMojo extends AbstractDockerMojo {
             JkubeServiceHub serviceHub = getJkubeServiceHub();
             GeneratorContext ctx = new GeneratorContext.Builder()
                     .config(extractGeneratorConfig())
-                    .project(project)
+                    .project(MavenUtil.convertMavenProjectToJkubeProject(project))
                     .logger(log)
                     .runtimeMode(mode)
                     .strategy(buildStrategy)
@@ -276,6 +278,8 @@ public class WatchMojo extends AbstractDockerMojo {
             return GeneratorManager.generate(configs, ctx, false);
         } catch (MojoExecutionException e) {
             throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
+        } catch (DependencyResolutionRequiredException de) {
+            throw new IllegalArgumentException("Instructed to use project classpath, but cannot. Continuing build if we can: ", de);
         }
     }
 

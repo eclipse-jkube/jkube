@@ -16,11 +16,11 @@ package org.eclipse.jkube.generator.api.support;
 import java.util.Map;
 
 import org.eclipse.jkube.generator.api.PortsExtractor;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.apache.maven.project.MavenProject;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasEntry;
@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThat;
 public class AbstractPortsExtractorTest {
 
     @Mocked
-    MavenProject project;
+    JkubeProject project;
 
     @Mocked
     PrefixedLogger logger;
@@ -122,7 +122,7 @@ public class AbstractPortsExtractorTest {
             }
 
             @Override
-            public String getConfigPathFromProject(MavenProject project) {
+            public String getConfigPathFromProject(JkubeProject project) {
                 // working on Windows: https://stackoverflow.com/a/31957696/3309168
                 return path != null ? FileUtil.getAbsolutePath(getClass().getResource(path)) : null;
             }
