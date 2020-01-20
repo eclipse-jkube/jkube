@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.build.service.docker.auth;
 import com.google.common.net.UrlEscapers;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.eclipse.jkube.kit.build.service.docker.config.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.EcrExtendedAuth;
@@ -29,10 +30,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.settings.Server;
-import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -123,9 +120,9 @@ public class AuthConfigFactory {
      * @param registry registry to use, might be null in which case a default registry is checked,
      * @return the authentication configuration or <code>null</code> if none could be found
      *
-     * @throws MojoFailureException mojo failure exception
+     * @throws Exception mojo failure exception
      */
-    public AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, Settings settings, String user, String registry)
+    public AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, List<RegistryServerConfiguration> settings, String user, String registry)
             throws Exception {
 
         AuthConfig ret = createStandardAuthConfig(isPush, authConfig, settings, user, registry);
@@ -160,7 +157,6 @@ public class AuthConfigFactory {
      * @return The given credentials, if registry does not need extended authentication;
      * else, the credentials after authentication.
      * @throws IOException
-     * @throws MojoExecutionException
      */
     private AuthConfig extendedAuthentication(AuthConfig standardAuthConfig, String registry) throws IOException {
         EcrExtendedAuth ecr = new EcrExtendedAuth(log, registry);
@@ -199,9 +195,9 @@ public class AuthConfigFactory {
      * @param registry registry to use, might be null in which case a default registry is checked,
      * @return the authentication configuration or <code>null</code> if none could be found
      *
-     * @throws MojoFailureException
+     * @throws Exception
      */
-    private AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, Settings settings, String user, String registry)
+    private AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry)
             throws Exception {
         AuthConfig ret;
 
@@ -336,7 +332,7 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) throws MojoExecutionException {
+    private AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) throws IllegalStateException {
         Properties props = System.getProperties();
         String useOpenAuthModeProp = lookupMode.asSysProperty(AUTH_USE_OPENSHIFT_AUTH);
         // Check for system property
@@ -364,7 +360,7 @@ public class AuthConfigFactory {
 
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USERNAME)) {
             if (!mapToCheck.containsKey(AUTH_PASSWORD)) {
-                throw new MojoExecutionException("No 'password' given while using <authConfig> in configuration for mode " + lookupMode);
+                throw new IllegalStateException("No 'password' given while using <authConfig> in configuration for mode " + lookupMode);
             }
             Map<String, String> cloneConfig = new HashMap<>(mapToCheck);
             cloneConfig.put(AUTH_PASSWORD, decrypt(cloneConfig.get(AUTH_PASSWORD)));
@@ -374,10 +370,10 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromSettings(Settings settings, String user, String registry) throws Exception {
-        Server defaultServer = null;
-        Server found;
-        for (Server server : settings.getServers()) {
+    private AuthConfig getAuthConfigFromSettings(List<RegistryServerConfiguration> settings, String user, String registry) throws Exception {
+        RegistryServerConfiguration defaultServer = null;
+        RegistryServerConfiguration found;
+        for (RegistryServerConfiguration server : settings) {
             String id = server.getId();
 
             // Remember a default server without user as fallback for later
@@ -520,13 +516,13 @@ public class AuthConfigFactory {
                               token, null, null);
     }
 
-    private AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) throws MojoExecutionException {
+    private AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) throws IllegalStateException {
         if (openShiftAuthConfig != null) {
             return openShiftAuthConfig;
         }
         // No login found
         String kubeConfigEnv = System.getenv("KUBECONFIG");
-        throw new MojoExecutionException(
+        throw new IllegalStateException(
             String.format("System property %s set, but not active user and/or token found in %s. " +
                           "Please use 'oc login' for connecting to OpenShift.",
                           useOpenAuthModeProp, kubeConfigEnv != null ? kubeConfigEnv : "~/.kube/config"));
@@ -534,7 +530,7 @@ public class AuthConfigFactory {
     }
 
 
-    private Server checkForServer(Server server, String id, String registry, String user) {
+    private RegistryServerConfiguration checkForServer(RegistryServerConfiguration server, String id, String registry, String user) {
 
         String[] registries = registry != null ? new String[] { registry } : DEFAULT_REGISTRIES;
         for (String reg : registries) {
@@ -558,7 +554,7 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig createAuthConfigFromServer(Server server) throws Exception {
+    private AuthConfig createAuthConfigFromServer(RegistryServerConfiguration server) throws Exception {
         return new AuthConfig(
                 server.getUsername(),
                 decrypt(server.getPassword()),

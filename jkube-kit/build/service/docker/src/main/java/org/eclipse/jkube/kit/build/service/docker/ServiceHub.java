@@ -20,6 +20,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.kit.common.util.MojoExecutionService;
 
 /**
  * A service hub responsible for creating and managing services which are used by

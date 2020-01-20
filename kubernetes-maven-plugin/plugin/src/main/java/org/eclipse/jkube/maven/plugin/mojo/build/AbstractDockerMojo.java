@@ -570,7 +570,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
 
     protected RegistryService.RegistryConfig getRegistryConfig(String specificRegistry) throws MojoExecutionException {
         return new RegistryService.RegistryConfig.Builder()
-                .settings(settings)
+                .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                 .authConfig(authConfig != null ? authConfig.toMap() : null)
                 .authConfigFactory(authConfigFactory)
                 .skipExtendedAuth(skipExtendedAuth)

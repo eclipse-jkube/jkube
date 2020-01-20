@@ -38,9 +38,8 @@ import org.eclipse.jkube.kit.build.service.docker.helper.StartContainerExecutor;
 import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.jkube.kit.common.util.MojoExecutionService;
 
 /**
  * Watch service for monitoring changes and restarting containers
@@ -279,8 +278,7 @@ public class WatchService {
         return null;
     }
 
-    private void callPostGoal(ImageWatcher watcher) throws MojoFailureException,
-            MojoExecutionException {
+    private void callPostGoal(ImageWatcher watcher) throws IllegalStateException{
         String postGoal = watcher.getPostGoal();
         if (postGoal != null) {
             mojoExecutionService.callPluginGoal(postGoal);

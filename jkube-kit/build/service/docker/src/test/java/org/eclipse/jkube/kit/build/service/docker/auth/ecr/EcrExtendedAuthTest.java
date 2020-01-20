@@ -28,7 +28,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -75,7 +74,7 @@ public class EcrExtendedAuthTest {
     public void testClientClosedAndCredentialsDecoded(@Mocked final CloseableHttpClient closeableHttpClient,
             @Mocked final CloseableHttpResponse closeableHttpResponse,
             @Mocked final StatusLine statusLine)
-        throws IOException, MojoExecutionException {
+        throws IOException, IllegalStateException {
 
         final HttpEntity entity = new StringEntity("{\"authorizationData\": [{"
                                                    + "\"authorizationToken\": \"QVdTOnBhc3N3b3Jk\","
