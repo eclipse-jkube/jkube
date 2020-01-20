@@ -27,8 +27,6 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerMachine;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.DockerAccessWithHcClient;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.component.annotations.Component;
 
 /**
@@ -37,7 +35,7 @@ import org.codehaus.plexus.component.annotations.Component;
 @Component(role = DockerAccessFactory.class, instantiationStrategy = "singleton")
 public class DockerAccessFactory {
 
-    public DockerAccess createDockerAccess(DockerAccessContext dockerAccessContext) throws MojoExecutionException, MojoFailureException {
+    public DockerAccess createDockerAccess(DockerAccessContext dockerAccessContext) throws IllegalStateException {
 
         try {
             DockerConnectionDetector dockerConnectionDetector = createDockerConnectionDetector(dockerAccessContext, dockerAccessContext.getLog());
@@ -51,7 +49,7 @@ public class DockerAccessFactory {
             setDockerHostAddressProperty(dockerAccessContext, connectionParam.getUrl());
             return access;
         } catch (IOException e) {
-            throw new MojoExecutionException("Cannot create docker access object ", e);
+            throw new IllegalStateException("Cannot create docker access object ", e);
         }
 
     }
@@ -96,7 +94,7 @@ public class DockerAccessFactory {
     }
 
     // Registry for managed containers
-    private void setDockerHostAddressProperty(DockerAccessContext dockerAccessContext, String dockerUrl) throws MojoFailureException {
+    private void setDockerHostAddressProperty(DockerAccessContext dockerAccessContext, String dockerUrl) throws IllegalStateException {
         Properties props = dockerAccessContext.getProjectProperties();
         if (props.getProperty("docker.host.address") == null) {
             final String host;
@@ -108,7 +106,7 @@ public class DockerAccessFactory {
                     host = uri.getHost();
                 }
             } catch (URISyntaxException e) {
-                throw new MojoFailureException("Cannot parse " + dockerUrl + " as URI: " + e.getMessage(), e);
+                throw new IllegalStateException("Cannot parse " + dockerUrl + " as URI: " + e.getMessage(), e);
             }
             props.setProperty("docker.host.address", host == null ? "" : host);
         }

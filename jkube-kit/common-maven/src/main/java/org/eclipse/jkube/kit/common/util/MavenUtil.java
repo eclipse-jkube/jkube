@@ -20,12 +20,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -38,9 +33,12 @@ import org.apache.maven.model.DistributionManagement;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.Site;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Server;
+import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.codehaus.plexus.archiver.tar.TarLongFileMode;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -330,6 +328,19 @@ public class MavenUtil {
         } catch (DependencyResolutionRequiredException e) {
             throw new IOException("Cannot extract compile class path elements", e);
         }
+    }
+
+    public static Map<String, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, Object>> getRegistryServerFromMavenSettings(Settings settings) {
+        // For each server it would hold map as
+        // id -> ((username, password), config)
+        Map<String, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, Object>> registryServersMap = new HashMap<>();
+        for (Server server : settings.getServers()) {
+            if (server.getUsername() != null) {
+                registryServersMap.put(server.getId(), new AbstractMap.SimpleEntry(
+                        new AbstractMap.SimpleEntry(server.getUsername(), server.getPassword()), server.getConfiguration()));
+            }
+        }
+        return registryServersMap;
     }
 }
 

@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker;
+package org.eclipse.jkube.kit.common.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -44,20 +44,20 @@ public class MojoExecutionService {
 
     private final BuildPluginManager pluginManager;
 
-    MojoExecutionService(MavenProject project, MavenSession session, BuildPluginManager pluginManager) {
+    public MojoExecutionService(MavenProject project, MavenSession session, BuildPluginManager pluginManager) {
         this.project = project;
         this.session = session;
         this.pluginManager = pluginManager;
     }
 
     // Call another goal after restart has finished
-    public void callPluginGoal(String fullGoal) throws MojoFailureException, MojoExecutionException {
+    public void callPluginGoal(String fullGoal) throws IllegalStateException {
         String[] parts = splitGoalSpec(fullGoal);
         Plugin plugin = project.getPlugin(parts[0]);
         String goal = parts[1];
 
         if (plugin == null) {
-            throw new MojoFailureException("No goal " + fullGoal + " found in pom.xml");
+            throw new IllegalStateException("No goal " + fullGoal + " found in pom.xml");
         }
 
         try {
@@ -79,7 +79,7 @@ public class MojoExecutionService {
             MojoExecution exec = getMojoExecution(executionId, mojoDescriptor);
             pluginManager.executeMojo(session, exec);
         } catch (Exception e) {
-            throw new MojoExecutionException("Unable to execute mojo", e);
+            throw new IllegalStateException("Unable to execute mojo", e);
         }
     }
 
@@ -115,10 +115,10 @@ public class MojoExecutionService {
         }
     }
 
-    private String[] splitGoalSpec(String fullGoal) throws MojoFailureException {
+    private String[] splitGoalSpec(String fullGoal) throws IllegalStateException {
         String parts[] = StringUtils.split(fullGoal, ":");
         if (parts.length != 3) {
-            throw new MojoFailureException("Cannot parse " + fullGoal + " as a maven plugin goal. " +
+            throw new IllegalStateException("Cannot parse " + fullGoal + " as a maven plugin goal. " +
                                            "It must be fully qualified as in <groupId>:<artifactId>:<goal>");
         }
         return new String[]{parts[0] + ":" + parts[1], parts[2]};

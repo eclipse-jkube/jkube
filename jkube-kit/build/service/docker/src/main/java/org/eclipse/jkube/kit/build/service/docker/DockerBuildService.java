@@ -39,7 +39,6 @@ import org.eclipse.jkube.kit.config.image.build.CleanupMode;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 
-
 public class DockerBuildService implements BuildService {
 
     public static final String DEFAULT_DATA_BASE_IMAGE = "busybox:latest";

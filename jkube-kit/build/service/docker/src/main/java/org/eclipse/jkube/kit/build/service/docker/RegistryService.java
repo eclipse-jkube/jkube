@@ -15,7 +15,9 @@ package org.eclipse.jkube.kit.build.service.docker;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
@@ -26,7 +28,7 @@ import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
-import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.build.service.docker.config.RegistryServerConfiguration;
 
 /**
  * Allows to interact with registries, eg. to push/pull images.
@@ -162,7 +164,7 @@ public class RegistryService {
 
         private String registry;
 
-        private Settings settings;
+        private List<RegistryServerConfiguration> settings;
 
         private AuthConfigFactory authConfigFactory;
 
@@ -177,7 +179,7 @@ public class RegistryService {
             return registry;
         }
 
-        public Settings getSettings() {
+        public List<RegistryServerConfiguration> getSettings() {
             return settings;
         }
 
@@ -210,8 +212,8 @@ public class RegistryService {
                 return this;
             }
 
-            public Builder settings(Settings settings) {
-                context.settings = settings;
+            public Builder settings(Map<String, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, Object>> registryServerSettingsAsMap) {
+                context.settings = RegistryServerConfiguration.fetchListFromMap(registryServerSettingsAsMap);
                 return this;
             }
 
