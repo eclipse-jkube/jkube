@@ -21,6 +21,7 @@ import java.util.Properties;
 
 import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -30,7 +31,6 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -53,7 +53,7 @@ public class BaseGeneratorTest {
     private GeneratorContext ctx;
 
     @Mocked
-    private MavenProject project;
+    private JkubeProject project;
 
     @Mocked
     private ProcessorConfig config;

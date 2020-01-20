@@ -20,7 +20,7 @@ import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
 import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -69,7 +69,7 @@ public class KarafGenerator extends BaseGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddImageConfiguration(configs) &&
-               MavenUtil.hasPluginOfAnyGroupId(getProject(), KARAF_MAVEN_PLUGIN_ARTIFACT_ID);
+                JkubeProjectUtil.hasPluginOfAnyArtifactId(getProject(), KARAF_MAVEN_PLUGIN_ARTIFACT_ID);
     }
 
     protected List<String> extractPorts() {

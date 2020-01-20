@@ -19,8 +19,6 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import org.apache.maven.plugin.MojoExecutionException;
-
 /**
  * Class for finding out the fat jar of a directory and provide
  * some insights into the fat jar
@@ -36,7 +34,7 @@ public class FatJarDetector {
         this.directory = new File(dir);
     }
 
-    Result scan() throws MojoExecutionException {
+    Result scan() throws IllegalStateException {
         // Scanning is lazy ...
         if (result == null) {
             if (!directory.exists()) {
@@ -65,7 +63,7 @@ public class FatJarDetector {
                         }
                     }
                 } catch (IOException e) {
-                    throw new MojoExecutionException("Cannot examine file " + archiveFile + " for the manifest");
+                    throw new IllegalStateException("Cannot examine file " + archiveFile + " for the manifest");
                 }
             }
         }

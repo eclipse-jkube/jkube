@@ -13,13 +13,15 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
-import org.eclipse.jkube.kit.build.service.docker.helper.AnsiLogger;
+import org.eclipse.jkube.kit.common.util.AnsiLogger;
+import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.JkubeServiceHub;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -118,17 +120,17 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
 
             LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(useColor, logStdout, logDate);
 
-            ConfigHelper.validateExternalPropertyActivation(project, images);
 
             DockerAccess access = null;
             try {
+                ConfigHelper.validateExternalPropertyActivation(MavenUtil.convertMavenProjectToJkubeProject(project), images);
                 // The 'real' images configuration to use (configured images + externally resolved images)
                 this.minimalApiVersion = initImageConfiguration(getBuildTimestamp());
                 if (isDockerAccessRequired()) {
                     DockerAccessFactory.DockerAccessContext dockerAccessContext = getDockerAccessContext();
                     access = dockerAccessFactory.createDockerAccess(dockerAccessContext);
                 }
-                ServiceHub serviceHub = serviceHubFactory.createServiceHub(project, session, access, log, logSpecFactory);
+                ServiceHub serviceHub = serviceHubFactory.createServiceHub(access, log, logSpecFactory);
                 executeInternal(serviceHub);
             } catch (IOException exp) {
                 logException(exp);
@@ -136,6 +138,9 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
             } catch (MojoExecutionException exp) {
                 logException(exp);
                 throw exp;
+            } catch (DependencyResolutionRequiredException dependencyException) {
+                logException(dependencyException);
+                throw new MojoExecutionException("Instructed to use project classpath, but cannot. Continuing build if we can: ", dependencyException);
             } finally {
                 if (access != null) {
                     access.shutdown();

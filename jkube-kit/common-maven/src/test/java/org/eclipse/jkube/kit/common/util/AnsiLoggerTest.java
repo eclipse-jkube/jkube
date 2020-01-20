@@ -11,13 +11,14 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.helper;
+package org.eclipse.jkube.kit.common.util;
 
 import static org.junit.Assert.assertEquals;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.maven.monitor.logging.DefaultLog;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
+import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
 import org.junit.AfterClass;

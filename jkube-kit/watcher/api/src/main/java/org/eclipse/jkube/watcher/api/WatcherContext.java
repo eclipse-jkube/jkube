@@ -14,6 +14,7 @@
 package org.eclipse.jkube.watcher.api;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
@@ -22,7 +23,6 @@ import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.service.JkubeServiceHub;
-import org.apache.maven.project.MavenProject;
 
 /**
  * @author nicola
@@ -30,7 +30,7 @@ import org.apache.maven.project.MavenProject;
  */
 public class WatcherContext {
 
-    private MavenProject project;
+    private JkubeProject project;
     private ProcessorConfig config;
     private KitLogger logger;
     private KitLogger newPodLogger;
@@ -47,7 +47,7 @@ public class WatcherContext {
     private WatcherContext() {
     }
 
-    public MavenProject getProject() {
+    public JkubeProject getProject() {
         return project;
     }
 
@@ -105,7 +105,7 @@ public class WatcherContext {
 
         private WatcherContext ctx = new WatcherContext();
 
-        public Builder project(MavenProject project) {
+        public Builder project(JkubeProject project) {
             ctx.project = project;
             return this;
         }

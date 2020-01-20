@@ -19,7 +19,7 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ public class SpringBootGeneratorTest {
     private GeneratorContext context;
 
     @Mocked
-    private MavenProject project;
+    private JkubeProject project;
 
     @Mocked
     private Build build;
@@ -71,14 +71,12 @@ public class SpringBootGeneratorTest {
     private GeneratorContext createGeneratorContext() throws IOException {
         new Expectations() {{
             context.getProject(); result = project;
-            project.getBuild(); result = build;
             String tempDir = Files.createTempDirectory("springboot-test-project").toFile().getAbsolutePath();
 
             // TODO: Prepare more relastic test setup
-            build.getDirectory(); result = tempDir;
-            build.getOutputDirectory(); result = tempDir;
-            project.getPlugin(anyString); result = null; minTimes = 0;
-            project.getBuildPlugins(); result = null;
+            project.getBuildDirectory(); result = tempDir;
+            project.getOutputDirectory(); result = tempDir;
+            project.getPlugins(); result = Collections.EMPTY_LIST; minTimes = 0;
             project.getVersion(); result = "1.0.0"; minTimes = 0;
         }};
         return context;

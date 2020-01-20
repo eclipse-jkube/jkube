@@ -26,7 +26,6 @@ import org.eclipse.jkube.kit.build.api.RegistryContext;
 import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyConfigurationSource;
 import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugins.assembly.interpolation.AssemblyInterpolator;
@@ -73,7 +72,10 @@ public class MavenBuildContext implements BuildContext<MavenBuildConfiguration> 
 
     @Override
     public Properties getProperties() {
-        return project.getProperties();
+        Properties propertiesAll = new Properties(project.getProperties());
+        propertiesAll.putAll(session.getUserProperties());
+        propertiesAll.putAll(session.getSystemProperties());
+        return propertiesAll;
     }
 
     @Override
@@ -135,10 +137,6 @@ public class MavenBuildContext implements BuildContext<MavenBuildConfiguration> 
 
     public MavenReaderFilter getMavenReaderFilter() {
         return mavenReaderFilter;
-    }
-
-    public Settings getSettings() {
-        return settings;
     }
 
 	public List<MavenProject> getReactorProjects() {

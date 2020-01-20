@@ -13,16 +13,17 @@
  */
 package org.eclipse.jkube.generator.api;
 
+import java.util.Collections;
 import java.util.Map;
 
+import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.project.MavenProject;
 import org.junit.Test;
 
 import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.s2i;
@@ -37,10 +38,10 @@ import static org.junit.Assert.assertEquals;
 public class FromSelectorTest {
 
     @Mocked
-    MavenProject project;
+    JkubeProject project;
 
     @Mocked
-    Plugin plugin;
+    JkubeProjectPlugin plugin;
 
     @Mocked
     KitLogger logger;
@@ -81,6 +82,9 @@ public class FromSelectorTest {
 
             final String version = (String) data[i + 2];
             new Expectations() {{
+                project.getPlugins(); result = Collections.singletonList(plugin);
+                plugin.getGroupId(); result = "org.eclipse.jkube";
+                plugin.getArtifactId(); result = "oc-maven-plugin";
                 plugin.getVersion(); result = version;
             }};
 

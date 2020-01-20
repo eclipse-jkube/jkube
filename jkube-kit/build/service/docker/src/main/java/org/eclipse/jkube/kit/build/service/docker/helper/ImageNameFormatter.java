@@ -14,8 +14,8 @@
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import com.google.common.base.Strings;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
-import org.apache.maven.project.MavenProject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,7 +36,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
 
     private final Date now;
 
-    public ImageNameFormatter(MavenProject project, Date now) {
+    public ImageNameFormatter(JkubeProject project, Date now) {
         this.now = now;
         formatParamReplacer = new FormatParameterReplacer(initLookups(project));
     }
@@ -54,7 +54,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
 
 
     // Lookup classes
-    private Map<String, FormatParameterReplacer.Lookup> initLookups(final MavenProject project) {
+    private Map<String, FormatParameterReplacer.Lookup> initLookups(final JkubeProject project) {
         // Sanitized group id
         final Map<String, FormatParameterReplacer.Lookup> lookups = new HashMap<>();
 
@@ -73,9 +73,9 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
     // ==============================================================================================
 
     public static abstract class AbstractLookup implements FormatParameterReplacer.Lookup {
-        protected final MavenProject project;
+        protected final JkubeProject project;
 
-        private AbstractLookup(MavenProject project) {
+        private AbstractLookup(JkubeProject project) {
             this.project = project;
         }
 
@@ -93,7 +93,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
          */
         private static final String DOCKER_IMAGE_USER = "docker.image.user";
 
-        private DefaultUserLookup(MavenProject project) {
+        private DefaultUserLookup(JkubeProject project) {
             super(project);
         }
 
@@ -113,7 +113,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
 
     private static class DefaultNameLookup extends AbstractLookup {
 
-        private DefaultNameLookup(MavenProject project) {
+        private DefaultNameLookup(JkubeProject project) {
             super(project);
         }
 
@@ -144,7 +144,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
             SNAPSHOT_LATEST
         }
 
-        private DefaultTagLookup(MavenProject project, Mode mode, Date now) {
+        private DefaultTagLookup(JkubeProject project, Mode mode, Date now) {
             super(project);
             this.mode = mode;
             this.now = now;

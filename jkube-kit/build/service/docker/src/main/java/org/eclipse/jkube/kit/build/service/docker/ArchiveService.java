@@ -19,9 +19,6 @@ import org.eclipse.jkube.kit.build.maven.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyManager;
 import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.apache.maven.plugins.assembly.InvalidAssemblerConfigurationException;
-import org.apache.maven.plugins.assembly.archive.ArchiveCreationException;
-import org.apache.maven.plugins.assembly.format.AssemblyFormattingException;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,7 +88,7 @@ public class ArchiveService {
         String name = imageConfig.getName();
         try {
             return dockerAssemblyManager.getAssemblyFiles(name, imageConfig.getBuildConfiguration(), mojoParameters, log);
-        } catch (InvalidAssemblerConfigurationException | ArchiveCreationException | AssemblyFormattingException e) {
+        } catch (Exception e) {
             throw new IOException("Cannot extract assembly files for image " + name + ": " + e, e);
         }
     }

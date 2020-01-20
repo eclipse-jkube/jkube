@@ -23,14 +23,14 @@ import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
 import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.assembly.model.FileSet;
-import org.apache.maven.project.MavenProject;
 
 import org.apache.maven.plugins.assembly.model.Assembly;
 import org.apache.maven.plugins.assembly.model.DependencySet;
@@ -64,9 +64,9 @@ public class JavaExecGenerator extends BaseGenerator {
 
     protected JavaExecGenerator(GeneratorContext context, String name) {
         super(context, name, new FromSelector.Default(context, "java"));
-        fatJarDetector = new FatJarDetector(getProject().getBuild().getDirectory());
+        fatJarDetector = new FatJarDetector(getProject().getBuildDirectory());
         mainClassDetector = new MainClassDetector(getConfig(Config.mainClass),
-                                                  new File(getProject().getBuild().getOutputDirectory()),
+                                                  new File(getProject().getOutputDirectory()),
                                                   context.getLogger());
     }
 
@@ -102,7 +102,7 @@ public class JavaExecGenerator extends BaseGenerator {
             }
             // Check for the existing of plugins indicating a plain java exec app
             for (String[] plugin : JAVA_EXEC_MAVEN_PLUGINS) {
-                if (MavenUtil.hasPlugin(getProject(), plugin[0], plugin[1])) {
+                if (JkubeProjectUtil.hasPlugin(getProject(), plugin[0], plugin[1])) {
                     return true;
                 }
             }
@@ -187,7 +187,7 @@ public class JavaExecGenerator extends BaseGenerator {
             addAdditionalFiles(assembly);
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
-                MavenProject project = getProject();
+                JkubeProject project = getProject();
                 if (fatJar == null) {
                     DependencySet dependencySet = new DependencySet();
                     dependencySet.addInclude(project.getGroupId() + ":" + project.getArtifactId());
@@ -208,10 +208,10 @@ public class JavaExecGenerator extends BaseGenerator {
         assembly.addFileSet(createFileSet("src/main/jkube-includes",".","0644","0755"));
     }
 
-    private FileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, MavenProject project) {
+    private FileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JkubeProject project) {
         org.apache.maven.plugins.assembly.model.FileSet fileSet = new org.apache.maven.plugins.assembly.model.FileSet();
-        File buildDir = new File(project.getBuild().getDirectory());
-        fileSet.setDirectory(getRelativePath(project.getBasedir(), buildDir).getPath());
+        File buildDir = new File(project.getBuildDirectory());
+        fileSet.setDirectory(getRelativePath(project.getBaseDirectory(), buildDir).getPath());
         fileSet.addInclude(getRelativePath(buildDir, fatJar.getArchiveFile()).getPath());
         fileSet.setOutputDirectory(".");
         fileSet.setFileMode("0640");
@@ -235,7 +235,7 @@ public class JavaExecGenerator extends BaseGenerator {
         return getConfig(Config.mainClass) != null;
     }
 
-    public FatJarDetector.Result detectFatJar() throws MojoExecutionException {
+    public FatJarDetector.Result detectFatJar() throws IllegalStateException {
         return fatJarDetector.scan();
     }
 

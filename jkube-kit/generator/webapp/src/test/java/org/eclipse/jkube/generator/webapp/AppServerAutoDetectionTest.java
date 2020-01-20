@@ -15,11 +15,9 @@ package org.eclipse.jkube.generator.webapp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
-import org.apache.maven.model.Build;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -82,9 +80,10 @@ public class AppServerAutoDetectionTest {
 
     @Test
     public void testWithSpecifiedServer() throws Exception {
-        Model model = new Model();
-        MavenProject mavenProject = new MavenProject(model);
-        AppServerHandler appServerHandler = new AppServerDetector(mavenProject).detect("tomcat");
+        JkubeProject jkubeProject = new JkubeProject.Builder()
+                .build();
+
+        AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect("tomcat");
         assertEquals("tomcat", appServerHandler.getName());
     }
 
@@ -107,10 +106,14 @@ public class AppServerAutoDetectionTest {
     }
 
     @Test
-    public void testDefaultServer() {
-        Model model = new Model();
-        MavenProject mavenProject = new MavenProject(model);
-        AppServerHandler appServerHandler = new AppServerDetector(mavenProject).detect(null);
+    public void testDefaultServer() throws IOException {
+        File appDir = folder.newFolder("webapp");
+
+        JkubeProject jkubeProject = new JkubeProject.Builder()
+                .buildDirectory(appDir.getAbsolutePath())
+                .plugins(Collections.singletonList("org.apache.tomcat.maven,org.apache.tomcat.maven,testversion,testconfig"))
+                .build();
+        AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
         assertEquals("tomcat", appServerHandler.getName());
     }
 
@@ -124,16 +127,11 @@ public class AppServerAutoDetectionTest {
             new File(appDir, "WEB-INF/").mkdirs();
             new File(appDir, descriptor).createNewFile();
 
-            Model model = new Model();
-
-            Build build = new Build();
-            build.setDirectory(appDir.getPath());
-
-            model.setBuild(build);
-
-            MavenProject mavenProject = new MavenProject(model);
-            mavenProject.setBuild(build);
-            AppServerHandler appServerHandler = new AppServerDetector(mavenProject).detect(null);
+            JkubeProject jkubeProject = new JkubeProject.Builder()
+                    .buildDirectory(appDir.getPath())
+                    .plugins(Collections.emptyList())
+                    .build();
+            AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
 
             String message = String.format("Expected descriptor %s to make isApplicable() return %s", descriptor, expected);
             assertEquals(message, expected, appServerHandler.isApplicable());
@@ -147,21 +145,11 @@ public class AppServerAutoDetectionTest {
             String artifactId = pluginCoordinate.split(":")[1];
             boolean expected = (boolean) plugins[i + 1];
 
-            Model model = new Model();
-
-            Build build = new Build();
-            build.setDirectory(folder.getRoot().getPath());
-
-            Plugin plugin = new Plugin();
-            plugin.setGroupId(groupId);
-            plugin.setArtifactId(artifactId);
-            build.addPlugin(plugin);
-
-            model.setBuild(build);
-
-            MavenProject mavenProject = new MavenProject(model);
-            mavenProject.setBuild(build);
-            AppServerHandler appServerHandler = new AppServerDetector(mavenProject).detect(null);
+            JkubeProject jkubeProject = new JkubeProject.Builder()
+                    .buildDirectory(folder.getRoot().getPath())
+                    .plugins(Collections.singletonList(groupId + "," + artifactId + ",testversion,testconfig"))
+                    .build();
+            AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
 
             String message = String.format("Expected plugin %s to make isApplicable() return %s", pluginCoordinate, expected);
             assertEquals(message, expected, appServerHandler.isApplicable());

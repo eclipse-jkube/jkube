@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import org.eclipse.jkube.kit.build.service.docker.helper.AnsiLogger;
+import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;

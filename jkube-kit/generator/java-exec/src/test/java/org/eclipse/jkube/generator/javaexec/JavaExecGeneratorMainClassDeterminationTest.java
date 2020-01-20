@@ -15,10 +15,13 @@ package org.eclipse.jkube.generator.javaexec;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
@@ -27,9 +30,7 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,9 +49,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Mocked
     private KitLogger log;
     @Mocked
-    private MavenProject mavenProject;
-    @Mocked
-    private Build build;
+    private JkubeProject jkubeProject;
     @Mocked
     private ProcessorConfig processorConfig;
     @Mocked
@@ -63,15 +62,13 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Before
     public void setUp() throws Exception{
         new Expectations() {{
-            mavenProject.getBuild();
-            result = build;
-            mavenProject.getPlugin(anyString);
-            result = null;
-            mavenProject.getVersion();
+            jkubeProject.getPlugins();
+            result = Collections.EMPTY_LIST;
+            jkubeProject.getVersion();
             result = "1.33.7-SNAPSHOT";
-            build.getDirectory();
+            jkubeProject.getBuildDirectory();
             result = "/the/directory";
-            build.getOutputDirectory();
+            jkubeProject.getOutputDirectory();
             result = "/the/output/directory";
         }};
     }
@@ -90,7 +87,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
             result = "TheImageName";
         }};
         final GeneratorContext generatorContext = new GeneratorContext.Builder()
-                .project(mavenProject)
+                .project(jkubeProject)
                 .config(processorConfig)
                 .strategy(OpenShiftBuildStrategy.docker)
                 .logger(log)
@@ -117,7 +114,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Test
     public void testMainClassDeterminationFromDetectionOnNonFatJar(@Injectable File baseDir) throws MojoExecutionException {
         new Expectations() {{
-            mavenProject.getBasedir();
+            jkubeProject.getBaseDirectory();
             result = baseDir;
             fatJarDetector.scan();
             result = null;
@@ -128,7 +125,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
         }};
 
         final GeneratorContext generatorContext = new GeneratorContext.Builder()
-                .project(mavenProject)
+                .project(jkubeProject)
                 .config(processorConfig)
                 .strategy(OpenShiftBuildStrategy.docker)
                 .logger(log)
@@ -156,7 +153,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     public void testMainClassDeterminationFromFatJar(
             @Mocked FileUtil fileUtil, @Injectable File baseDir, @Injectable File fatJarArchive) throws MojoExecutionException {
         new Expectations() {{
-            mavenProject.getBasedir();
+            jkubeProject.getBaseDirectory();
             result = baseDir;
             fileUtil.getRelativePath(withInstanceOf(File.class), withInstanceOf(File.class));
             result = baseDir;
@@ -168,7 +165,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
             result = "TheFatJarImageName";
         }};
         final GeneratorContext generatorContext = new GeneratorContext.Builder()
-                .project(mavenProject)
+                .project(jkubeProject)
                 .config(processorConfig)
                 .strategy(OpenShiftBuildStrategy.docker)
                 .logger(log)

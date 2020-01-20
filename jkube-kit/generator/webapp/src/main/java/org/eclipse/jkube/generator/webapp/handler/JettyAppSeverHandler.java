@@ -16,8 +16,8 @@ package org.eclipse.jkube.generator.webapp.handler;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 
 /**
  * Jetty handler
@@ -27,16 +27,16 @@ import org.apache.maven.project.MavenProject;
 public class JettyAppSeverHandler extends AbstractAppServerHandler {
 
 
-    public JettyAppSeverHandler(MavenProject mavenProject) {
-        super("jetty", mavenProject);
+    public JettyAppSeverHandler(JkubeProject jkubeProject) {
+        super("jetty", jkubeProject);
     }
 
     @Override
     public boolean isApplicable() {
         return hasOneOf("**/WEB-INF/jetty-web.xml",
                         "**/META-INF/jetty-logging.properties") ||
-               MavenUtil.hasPlugin(project, "org.mortbay.jetty", "jetty-maven-plugin") ||
-               MavenUtil.hasPlugin(project, "org.eclipse.jetty", "jetty-maven-plugin");
+               JkubeProjectUtil.hasPlugin(project, "org.mortbay.jetty", "jetty-maven-plugin") ||
+               JkubeProjectUtil.hasPlugin(project, "org.eclipse.jetty", "jetty-maven-plugin");
     }
 
     @Override

@@ -20,7 +20,7 @@ import java.net.URLClassLoader;
 import java.util.Optional;
 import java.util.Properties;
 
-import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,24 +87,24 @@ public class SpringBootUtil {
      * @param mavenProject Maven project
      * @return devtools version or null
      */
-    public static Optional<String> getSpringBootDevToolsVersion(MavenProject mavenProject) {
+    public static Optional<String> getSpringBootDevToolsVersion(JkubeProject mavenProject) {
         return getSpringBootVersion(mavenProject);
     }
 
     /**
      * Determine the spring-boot major version for the current project
      *
-     * @param mavenProject maven project
+     * @param mavenProject  project
      * @return spring boot version or null
      */
-    public static Optional<String> getSpringBootVersion(MavenProject mavenProject) {
-        return Optional.ofNullable(MavenUtil.getDependencyVersion(mavenProject, SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID));
+    public static Optional<String> getSpringBootVersion(JkubeProject mavenProject) {
+        return Optional.ofNullable(JkubeProjectUtil.getDependencyVersion(mavenProject, SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID));
     }
 
-    public static String getSpringBootActiveProfile(MavenProject mavenProject) {
-        if (mavenProject != null && mavenProject.getProperties() != null) {
-            if (mavenProject.getProperties().get("spring.profiles.active") != null) {
-                return mavenProject.getProperties().get("spring.profiles.active").toString();
+    public static String getSpringBootActiveProfile(JkubeProject jkubeProject) {
+        if (jkubeProject != null && jkubeProject.getProperties() != null) {
+            if (jkubeProject.getProperties().get("spring.profiles.active") != null) {
+                return jkubeProject.getProperties().get("spring.profiles.active").toString();
             }
         }
         return null;

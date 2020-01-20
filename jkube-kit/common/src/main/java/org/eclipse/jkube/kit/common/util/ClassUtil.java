@@ -18,9 +18,11 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -125,7 +127,36 @@ public class ClassUtil {
         return ret;
     }
 
+    public static URLClassLoader createClassLoader(List<String> classpathElements, String... paths) {
+        List<URL> urls = new ArrayList<>();
+        for (String path : paths) {
+            URL url = pathToUrl(path);
+            urls.add(url);
+        }
+        for (Object object : classpathElements) {
+            if (object != null) {
+                String path = object.toString();
+                URL url = pathToUrl(path);
+                urls.add(url);
+            }
+        }
+        return createURLClassLoader(urls);
+    }
+
     // ========================================================================
+
+    private static URL pathToUrl(String path) {
+        try {
+            File file = new File(path);
+            return file.toURI().toURL();
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(String.format("Cannot convert %s to a an URL: %s",path,e.getMessage()),e);
+        }
+    }
+
+    private static URLClassLoader createURLClassLoader(Collection<URL> jars) {
+        return new URLClassLoader(jars.toArray(new URL[jars.size()]));
+    }
 
     private static final FileFilter DIR_FILTER = pathname -> pathname.isDirectory() && !pathname.getName().startsWith(".");
 

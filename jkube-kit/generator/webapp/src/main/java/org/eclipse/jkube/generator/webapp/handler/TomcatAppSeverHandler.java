@@ -16,8 +16,8 @@ package org.eclipse.jkube.generator.webapp.handler;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 
 /**
  * Detector for tomat app servers.
@@ -26,15 +26,15 @@ import org.apache.maven.project.MavenProject;
  */
 public class TomcatAppSeverHandler extends AbstractAppServerHandler {
 
-    public TomcatAppSeverHandler(MavenProject project) {
+    public TomcatAppSeverHandler(JkubeProject project) {
         super("tomcat", project);
     }
 
     @Override
     public boolean isApplicable() {
         return hasOneOf("**/META-INF/context.xml") ||
-                MavenUtil.hasPlugin(project, "org.apache.tomcat.maven", "tomcat6-maven-plugin") ||
-                MavenUtil.hasPlugin(project, "org.apache.tomcat.maven", "tomcat7-maven-plugin");
+                JkubeProjectUtil.hasPlugin(project, "org.apache.tomcat.maven", "org.apache.tomcat.maven") ||
+                JkubeProjectUtil.hasPlugin(project, "org.apache.tomcat.maven", "tomcat7-maven-plugin");
     }
 
     @Override

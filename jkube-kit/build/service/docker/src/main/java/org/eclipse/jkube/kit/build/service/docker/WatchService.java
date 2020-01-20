@@ -39,7 +39,6 @@ import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.codehaus.plexus.util.StringUtils;
-import org.eclipse.jkube.kit.common.util.MojoExecutionService;
 
 /**
  * Watch service for monitoring changes and restarting containers
@@ -49,17 +48,15 @@ public class WatchService {
     private final ArchiveService archiveService;
     private final BuildService buildService;
     private final DockerAccess dockerAccess;
-    private final MojoExecutionService mojoExecutionService;
     private final QueryService queryService;
     private final RunService runService;
     private final KitLogger log;
 
-    public WatchService(ArchiveService archiveService, BuildService buildService, DockerAccess dockerAccess, MojoExecutionService mojoExecutionService, QueryService queryService, RunService
+    public WatchService(ArchiveService archiveService, BuildService buildService, DockerAccess dockerAccess, QueryService queryService, RunService
             runService, KitLogger log) {
         this.archiveService = archiveService;
         this.buildService = buildService;
         this.dockerAccess = dockerAccess;
-        this.mojoExecutionService = mojoExecutionService;
         this.queryService = queryService;
         this.runService = runService;
         this.log = log;
@@ -191,7 +188,6 @@ public class WatchService {
                         if (doRestart) {
                             restartContainer(watcher);
                         }
-                        callPostGoal(watcher);
                     } catch (Exception e) {
                         log.error("%s: Error when rebuilding - %s", imageConfig.getDescription(), e);
                     }
@@ -214,7 +210,6 @@ public class WatchService {
                     String oldValue = watcher.getAndSetImageId(currentImageId);
                     if (!currentImageId.equals(oldValue)) {
                         restartContainer(watcher);
-                        callPostGoal(watcher);
                     }
                 } catch (Exception e) {
                     log.warn("%s: Error when restarting image - %s", watcher.getImageConfiguration().getDescription(), e);
@@ -277,14 +272,6 @@ public class WatchService {
         }
         return null;
     }
-
-    private void callPostGoal(ImageWatcher watcher) throws IllegalStateException{
-        String postGoal = watcher.getPostGoal();
-        if (postGoal != null) {
-            mojoExecutionService.callPluginGoal(postGoal);
-        }
-    }
-
 
     // ===============================================================================================================
 

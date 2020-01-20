@@ -26,9 +26,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.eclipse.jkube.generator.api.PortsExtractor;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.project.MavenProject;
 
 public abstract class AbstractPortsExtractor implements PortsExtractor {
 
@@ -46,7 +46,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
     private static final String PORT_REGEX = "([a-zA-Z0-9_]+)(([\\.-_]+p)|([P]))ort";
     private static final Pattern PORT_PATTERN = Pattern.compile(PORT_REGEX);
 
-    private final PrefixedLogger log;
+    protected final PrefixedLogger log;
 
     public AbstractPortsExtractor(PrefixedLogger log) {
         this.log = log;
@@ -58,14 +58,14 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
     public abstract String getConfigPathPropertyName();
 
     /**
-     * Finds the name of the configuration file from the {@link MavenProject}.
-     * @param project   The {@link MavenProject} to use.
+     * Finds the name of the configuration file from the {@link JkubeProject}.
+     * @param project   The {@link JkubeProject} to use.
      * @return          The path to the configuration file or null if none has been found
      */
-    public abstract String getConfigPathFromProject(MavenProject project);
+    public abstract String getConfigPathFromProject(JkubeProject project);
 
 
-    public File getConfigLocation(MavenProject project) {
+    public File getConfigLocation(JkubeProject project) {
         String propertyName = getConfigPathPropertyName();
         if (StringUtils.isBlank(propertyName)) {
             return null;
@@ -82,7 +82,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
     }
 
     @Override
-    public Map<String, Integer> extract(MavenProject project) {
+    public Map<String, Integer> extract(JkubeProject project) {
         Map<String, Integer> answer = new HashMap<>();
         File configFile = getConfigLocation(project);
         if (configFile == null) {

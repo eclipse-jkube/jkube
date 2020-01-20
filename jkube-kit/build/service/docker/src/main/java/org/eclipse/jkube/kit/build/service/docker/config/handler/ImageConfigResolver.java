@@ -19,9 +19,8 @@ import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.compose.DockerComposeConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
@@ -76,12 +75,11 @@ public class ImageConfigResolver implements Initializable {
      *
      * @param unresolvedConfig the configuration to resolve
      * @param project project used for resolving
-     * @param session maven session
      * @return list of resolved image configurations
      * @throws IllegalArgumentException if no type is given when an external reference configuration is provided
      * or when the type is not known (i.e. no handler is registered for this type).
      */
-    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, MavenProject project, MavenSession session) {
+    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JkubeProject project) {
         injectExternalConfigActivation(unresolvedConfig, project);
         Map<String,String> externalConfig = unresolvedConfig.getExternalConfig();
         if (externalConfig != null) {
@@ -93,13 +91,13 @@ public class ImageConfigResolver implements Initializable {
             if (handler == null) {
                 throw new IllegalArgumentException(unresolvedConfig.getDescription() + ": No handler for type " + type + " given");
             }
-            return handler.resolve(unresolvedConfig, project, session);
+            return handler.resolve(unresolvedConfig, project);
         } else {
             return Collections.singletonList(unresolvedConfig);
         }
     }
 
-    private void injectExternalConfigActivation(ImageConfiguration unresolvedConfig, MavenProject project) {
+    private void injectExternalConfigActivation(ImageConfiguration unresolvedConfig, JkubeProject project) {
         // Allow external activation of property configuration
         String mode = ConfigHelper.getExternalConfigActivationProperty(project);
 
