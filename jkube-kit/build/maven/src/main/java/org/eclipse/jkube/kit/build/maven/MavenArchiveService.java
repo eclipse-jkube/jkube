@@ -49,20 +49,6 @@ public class MavenArchiveService {
      * uploading to a Docker daemon for creating the image
      *
      * @param imageConfig the image configuration
-     * @param params mojo params for the project
-     * @return file for holding the sources
-     * @throws IOException if during creation of the tar an error occurs.
-     */
-    public File createDockerBuildArchive(MavenImageConfiguration imageConfig, MavenBuildContext params)
-        throws IOException {
-        return createDockerBuildArchive(imageConfig, params, null);
-    }
-
-    /**
-     * Create the tar file container the source for building an image. This tar can be used directly for
-     * uploading to a Docker daemon for creating the image
-     *
-     * @param imageConfig the image configuration
      * @param context mojo params for the project
      * @param customizer final customizer to be applied to the tar before being generated
      * @return file for holding the sources

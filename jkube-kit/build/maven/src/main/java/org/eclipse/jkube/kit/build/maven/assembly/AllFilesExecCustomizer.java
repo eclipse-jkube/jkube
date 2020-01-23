@@ -22,7 +22,6 @@ import org.codehaus.plexus.archiver.ResourceIterator;
 import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.codehaus.plexus.archiver.tar.TarLongFileMode;
 import org.codehaus.plexus.components.io.resources.PlexusIoResource;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * @author roland
@@ -53,7 +52,7 @@ class AllFilesExecCustomizer implements ArchiverCustomizer {
             ArchiveEntry ae = resources.next();
             String fileName = ae.getName();
             PlexusIoResource resource = ae.getResource();
-            String name = StringUtils.replace(fileName, File.separatorChar, '/');
+            String name = fileName.replace(File.separator, "/");
 
             // See docker source:
             // https://github.com/docker/docker/blob/3d13fddd2bc4d679f0eaa68b0be877e5a816ad53/pkg/archive/archive_windows.go#L45
