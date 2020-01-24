@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>jkube-maven-sample-spring-boot</artifactId>
+    <groupId>org.eclipse.jkube</groupId>
+    <version>0.1.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.4.1.RELEASE</version>
+    </parent>
+
+    <name>Eclipse Jkube Maven :: Sample :: Spring Boot Web</name>
+    <description>Minimal Example with Spring Boot</description>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Nexus Release Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <dependencies>
+
+        <!-- Boot generator  -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jolokia</groupId>
+            <artifactId>jolokia-core</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.jkube</groupId>
+                <artifactId>k8s-maven-plugin</artifactId>
+                <version>0.1.0</version>
+
+                <configuration>
+
+                    <resources>
+                        <labels>
+                            <all>
+                                <testProject>spring-boot-sample</testProject>
+                            </all>
+                        </labels>
+                    </resources>
+
+                    <generator>
+                        <includes>
+                            <include>spring-boot</include>
+                        </includes>
+                        <config>
+                            <spring-boot>
+                                <color>always</color>
+                            </spring-boot>
+                        </config>
+                    </generator>
+                    <enricher>
+                        <excludes>
+                            <exclude>jkube-expose</exclude>
+                        </excludes>
+                        <config>
+                            <jkube-service>
+                                <type>NodePort</type>
+                            </jkube-service>
+                        </config>
+                    </enricher>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>resource</goal>
+                            <goal>build</goal>
+                            <goal>helm</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>openshift</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.jkube</groupId>
+                        <artifactId>oc-maven-plugin</artifactId>
+                        <version>${project.version}</version>
+
+                        <configuration>
+
+                            <resources>
+                                <labels>
+                                    <all>
+                                        <testProject>spring-boot-sample</testProject>
+                                    </all>
+                                </labels>
+                            </resources>
+
+                            <generator>
+                                <includes>
+                                    <include>spring-boot</include>
+                                </includes>
+                                <config>
+                                    <spring-boot>
+                                        <color>always</color>
+                                    </spring-boot>
+                                </config>
+                            </generator>
+                            <enricher>
+                                <excludes>
+                                    <exclude>jkube-expose</exclude>
+                                </excludes>
+                                <config>
+                                    <jkube-service>
+                                        <type>NodePort</type>
+                                    </jkube-service>
+                                </config>
+                            </enricher>
+                        </configuration>
+
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>resource</goal>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

@@ -1,9 +1,23 @@
+/**
+ * Copyright (c) 2019 Red Hat, Inc.
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at:
+ *
+ *     https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 package org.eclipse.jkube.kit.common.util;
 
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.JkubeProjectDependency;
 import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
 
+import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Properties;
@@ -63,15 +77,16 @@ public class JkubeProjectUtil {
         return null;
     }
 
-    public static boolean hasResource(JkubeProject project, String... paths) {
-        URLClassLoader compileClassLoader = ClassUtil.createClassLoader(project.getCompileClassPathElements(), project.getOutputDirectory());
-        for (String path : paths) {
-            try {
-                if (compileClassLoader.getResource(path) != null) {
-                    return true;
+    public static boolean hasResource(JkubeProject project, String... paths) throws IOException {
+        try (URLClassLoader compileClassLoader = ClassUtil.createClassLoader(project.getCompileClassPathElements(), project.getOutputDirectory())) {
+            for (String path : paths) {
+                try {
+                    if (compileClassLoader.getResource(path) != null) {
+                        return true;
+                    }
+                } catch (Throwable e) {
+                    // ignore
                 }
-            } catch (Throwable e) {
-                // ignore
             }
         }
         return false;

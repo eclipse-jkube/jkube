@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -78,24 +79,28 @@ public class VertxGenerator extends JavaExecGenerator {
 
   @Override
   protected Map<String, String> getEnv(boolean prePackagePhase) throws MojoExecutionException {
-    Map<String, String> map = super.getEnv(prePackagePhase);
+    try {
+      Map<String, String> map = super.getEnv(prePackagePhase);
 
-    String args = map.get("JAVA_ARGS");
-    if (args == null) {
-      args = "";
-    }
-
-    if (JkubeProjectUtil.hasResource(getProject(), Constants.CLUSTER_MANAGER_SPI)) {
-      if (! args.isEmpty()) {
-        args += " ";
+      String args = map.get("JAVA_ARGS");
+      if (args == null) {
+        args = "";
       }
-      args += "-cluster";
-    }
 
-    if (! args.isEmpty()) {
-      map.put("JAVA_ARGS", args);
+      if (JkubeProjectUtil.hasResource(getProject(), Constants.CLUSTER_MANAGER_SPI)) {
+        if (!args.isEmpty()) {
+          args += " ";
+        }
+        args += "-cluster";
+      }
+
+      if (!args.isEmpty()) {
+        map.put("JAVA_ARGS", args);
+      }
+      return map;
+    } catch (IOException ioException) {
+      throw new MojoExecutionException("Error in finding resource", ioException);
     }
-    return map;
   }
 
   private boolean contains(String prefix, List<String> opts) {
