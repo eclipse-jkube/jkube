@@ -53,7 +53,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         List<ImageConfiguration> resolved = new ArrayList<>();
 
         DockerComposeConfiguration handlerConfig = new DockerComposeConfiguration(unresolvedConfig.getExternalConfig());
-        File composeFile = resolveComposeFileAbsolutely(handlerConfig.getBasedir(), handlerConfig.getComposeFile(), (project == null && project.getBaseDirectory() == null)? null : project.getBaseDirectory().getAbsolutePath());
+        File composeFile = resolveComposeFileAbsolutely(handlerConfig.getBasedir(), handlerConfig.getComposeFile(), (project != null && project.getBaseDirectory() != null)? project.getBaseDirectory().getAbsolutePath() : null);
 
         for (Object composeO : getComposeConfigurations(composeFile)) {
             Map<String, Object> compose = (Map<String, Object>) composeO;
@@ -63,7 +63,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
                 String serviceName = entry.getKey();
                 Map<String, Object> serviceDefinition = (Map<String, Object>) entry.getValue();
 
-                DockerComposeServiceWrapper mapper = new DockerComposeServiceWrapper(serviceName, composeFile, serviceDefinition, unresolvedConfig, resolveAbsolutely(handlerConfig.getBasedir(), (project == null && project.getBaseDirectory() == null)? null : project.getBaseDirectory().getAbsolutePath()));
+                DockerComposeServiceWrapper mapper = new DockerComposeServiceWrapper(serviceName, composeFile, serviceDefinition, unresolvedConfig, resolveAbsolutely(handlerConfig.getBasedir(), (project != null && project.getBaseDirectory() != null)? project.getBaseDirectory().getAbsolutePath() : null));
                 resolved.add(buildImageConfiguration(mapper, composeFile.getParentFile(), unresolvedConfig, handlerConfig));
             }
         }

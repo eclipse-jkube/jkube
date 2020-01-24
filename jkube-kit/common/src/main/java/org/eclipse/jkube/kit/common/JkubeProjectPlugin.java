@@ -1,3 +1,16 @@
+/**
+ * Copyright (c) 2019 Red Hat, Inc.
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at:
+ *
+ *     https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 package org.eclipse.jkube.kit.common;
 
 import java.util.ArrayList;
@@ -23,7 +36,7 @@ public class JkubeProjectPlugin extends JkubeProjectDependency {
         if (parts.length == 4) {
             return new JkubeProjectPlugin(parts[0], parts[1], parts[2], parts[3], null);
         } else if (parts.length == 5) {
-            return new JkubeProjectPlugin(parts[0], parts[1], parts[2], parts[3], Arrays.asList(parts[4].split("|")));
+            return new JkubeProjectPlugin(parts[0], parts[1], parts[2], parts[3], Arrays.asList(parts[4].split("\\|")));
         }
         return null;
     }
