@@ -15,7 +15,7 @@ package org.eclipse.jkube.kit.build.service.docker;
 
 import java.util.*;
 
-import org.eclipse.jkube.kit.build.maven.GavLabel;
+import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
 

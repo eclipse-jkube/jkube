@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.maven.assembly;
+package org.eclipse.jkube.kit.build.core.assembly;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

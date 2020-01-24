@@ -11,9 +11,9 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.maven.assembly;
+package org.eclipse.jkube.kit.build.core.assembly;
 
-import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
+import org.eclipse.jkube.kit.build.core.MavenBuildContext;
 import org.apache.maven.plugins.assembly.interpolation.AssemblyInterpolator;
 import org.apache.maven.plugins.assembly.io.DefaultAssemblyReader;
 import org.codehaus.plexus.interpolation.fixed.FixedStringSearchInterpolator;

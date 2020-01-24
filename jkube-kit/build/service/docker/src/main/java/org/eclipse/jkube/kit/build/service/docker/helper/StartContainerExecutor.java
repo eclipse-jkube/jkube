@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.build.api.model.Container;
-import org.eclipse.jkube.kit.build.maven.GavLabel;
+import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.ExecException;

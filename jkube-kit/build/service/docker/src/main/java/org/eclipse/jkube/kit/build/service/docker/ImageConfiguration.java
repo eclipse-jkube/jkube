@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
 import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
@@ -24,7 +24,6 @@ import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import java.io.Serializable;
 import java.util.ArrayList;

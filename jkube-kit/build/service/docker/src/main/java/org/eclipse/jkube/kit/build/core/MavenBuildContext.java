@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.maven;
+package org.eclipse.jkube.kit.build.core;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,8 +23,8 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jkube.kit.build.api.BuildContext;
 import org.eclipse.jkube.kit.build.api.RegistryContext;
-import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyConfigurationSource;
-import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyConfigurationSource;
+import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.execution.MavenSession;

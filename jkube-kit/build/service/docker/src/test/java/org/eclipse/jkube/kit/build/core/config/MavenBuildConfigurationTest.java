@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.maven.config;
+package org.eclipse.jkube.kit.build.core.config;
 
 import mockit.Expectations;
 import mockit.Mocked;

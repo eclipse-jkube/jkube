@@ -11,31 +11,32 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.maven.config;
+package org.eclipse.jkube.kit.build.core.config;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import org.apache.maven.plugins.assembly.model.Assembly;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class MavenImageConfigurationTest {
+public class MavenAssemblyConfigurationTest {
 
     @Test
-    public void testBuilder(@Mocked MavenBuildConfiguration mockMavenBuildConfiguration) {
+    public void testBuilder(@Mocked Assembly mockAssembly) {
         // Given
         new Expectations() {{
-            mockMavenBuildConfiguration.getUser();
-            result = "super-user";
+           mockAssembly.getId();
+           result = "1337";
         }};
         // When
-        final MavenImageConfiguration result = new MavenImageConfiguration.Builder()
-                .name("1337")
-                .buildConfig(mockMavenBuildConfiguration)
+        final MavenAssemblyConfiguration result = new MavenAssemblyConfiguration.Builder()
+                .assemblyDef(mockAssembly)
+                .user("super-user")
                 .build();
         // Then
-        assertThat(result.getName(), equalTo("1337"));
-        assertThat(result.getBuildConfiguration().getUser(), equalTo("super-user"));
+        assertThat(result.getUser(), equalTo("super-user"));
+        assertThat(result.getInline().getId(), equalTo("1337"));
     }
 }

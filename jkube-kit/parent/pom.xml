@@ -166,12 +166,6 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-kit-build-maven</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-build-docker</artifactId>
         <version>${project.version}</version>
       </dependency>

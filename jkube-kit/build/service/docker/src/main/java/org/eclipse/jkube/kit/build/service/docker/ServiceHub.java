@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyManager;
+import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.common.KitLogger;

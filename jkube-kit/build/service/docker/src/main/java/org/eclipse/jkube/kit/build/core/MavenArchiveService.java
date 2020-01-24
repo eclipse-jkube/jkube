@@ -11,17 +11,17 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.maven;
+package org.eclipse.jkube.kit.build.core;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.eclipse.jkube.kit.build.maven.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.maven.assembly.AssemblyFiles;
-import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyManager;
-import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
-import org.eclipse.jkube.kit.build.maven.config.MavenImageConfiguration;
+import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
+import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
+import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
+import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.MavenImageConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.assembly.InvalidAssemblerConfigurationException;
