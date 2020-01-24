@@ -24,9 +24,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.eclipse.jkube.kit.build.maven.GavLabel;
-import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
-import org.eclipse.jkube.kit.build.maven.assembly.AssemblyFiles;
+import org.eclipse.jkube.kit.build.core.GavLabel;
+import org.eclipse.jkube.kit.build.core.MavenBuildContext;
+import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.ExecException;

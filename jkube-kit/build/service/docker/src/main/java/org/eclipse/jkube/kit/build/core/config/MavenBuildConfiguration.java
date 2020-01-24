@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.maven.config;
+package org.eclipse.jkube.kit.build.core.config;
 
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.apache.commons.lang3.SerializationUtils;

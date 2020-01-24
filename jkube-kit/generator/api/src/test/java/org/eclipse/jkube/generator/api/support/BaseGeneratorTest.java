@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;

@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
-import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;

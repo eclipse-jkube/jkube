@@ -13,11 +13,11 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
-import org.eclipse.jkube.kit.build.maven.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.maven.assembly.AssemblyFiles;
-import org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyManager;
-import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.MavenBuildContext;
+import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
+import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
+import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
+import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.io.File;

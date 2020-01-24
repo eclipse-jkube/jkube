@@ -11,13 +11,13 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.maven.assembly;
+package org.eclipse.jkube.kit.build.core.assembly;
 
 import java.io.File;
 import java.util.Arrays;
 
-import org.eclipse.jkube.kit.build.maven.MavenBuildContext;
-import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.MavenBuildContext;
+import org.eclipse.jkube.kit.build.core.config.MavenAssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.apache.maven.project.MavenProject;
 import org.junit.Assert;
@@ -105,7 +105,7 @@ public class DockerAssemblyConfigurationSourceTest {
         String[] descriptorRefs = source.getDescriptorReferences();
 
         assertEquals("count of descriptors", 1, descriptors.length);
-        Assert.assertEquals("directory of assembly", context.inSourceDir("assembly.xml").getAbsolutePath(), descriptors[0]);
+        assertEquals("directory of assembly", context.inSourceDir("assembly.xml").getAbsolutePath(), descriptors[0]);
 
         assertEquals("count of descriptors references", 1, descriptorRefs.length);
         assertEquals("reference must be project", "project", descriptorRefs[0]);

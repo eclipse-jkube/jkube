@@ -16,8 +16,8 @@ package org.eclipse.jkube.generator.karaf;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jkube.kit.build.maven.config.MavenAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.maven.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.MavenAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;

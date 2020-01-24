@@ -18,7 +18,7 @@ import org.eclipse.jkube.kit.build.api.model.Container;
 import org.eclipse.jkube.kit.build.api.model.ContainerDetails;
 import org.eclipse.jkube.kit.build.api.model.Network;
 import org.eclipse.jkube.kit.build.api.model.NetworkCreateConfig;
-import org.eclipse.jkube.kit.build.maven.GavLabel;
+import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.access.ContainerCreateConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.ContainerHostConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.ContainerNetworkingConfig;

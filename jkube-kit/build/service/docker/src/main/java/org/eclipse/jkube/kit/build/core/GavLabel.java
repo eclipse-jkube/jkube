@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.maven;
+package org.eclipse.jkube.kit.build.core;
 
 /**
  * Label used to mark a container belonging to a certain build.
