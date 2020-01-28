@@ -13,12 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config;
 
+import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RegistryServerConfiguration {
+public class RegistryServerConfiguration implements Serializable {
 
     private String id;
     private String username;

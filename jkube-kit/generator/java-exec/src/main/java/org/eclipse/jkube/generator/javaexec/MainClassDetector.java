@@ -19,7 +19,6 @@ import java.util.List;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
-import org.apache.maven.plugin.MojoExecutionException;
 
 /**
  * @author roland
@@ -37,7 +36,7 @@ class MainClassDetector {
         this.log = log;
     }
 
-    String getMainClass() throws MojoExecutionException {
+    String getMainClass() {
         if (mainClass != null) {
             return mainClass;
         }

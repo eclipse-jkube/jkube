@@ -11,11 +11,9 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.maven;
+package org.eclipse.jkube.kit.common.util;
 
 import org.apache.maven.project.MavenProject;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 
 public class ResourceMojoUtil {
 

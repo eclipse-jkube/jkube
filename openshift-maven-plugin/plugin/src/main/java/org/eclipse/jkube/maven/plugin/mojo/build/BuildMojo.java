@@ -107,7 +107,7 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
             executeBuildGoal(hub);
 
             jkubeServiceHub.getBuildService().postProcess(getBuildServiceConfig());
-        } catch (IOException exception) {
+        } catch (IOException | DependencyResolutionRequiredException exception) {
             throw new MojoExecutionException(exception.getMessage());
         }
     }
@@ -123,7 +123,7 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
 
             DockerAccess access = null;
             try {
-                ConfigHelper.validateExternalPropertyActivation(MavenUtil.convertMavenProjectToJkubeProject(project), images);
+                ConfigHelper.validateExternalPropertyActivation(MavenUtil.convertMavenProjectToJkubeProject(project, session), images);
                 // The 'real' images configuration to use (configured images + externally resolved images)
                 this.minimalApiVersion = initImageConfiguration(getBuildTimestamp());
                 if (isDockerAccessRequired()) {

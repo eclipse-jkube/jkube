@@ -460,8 +460,8 @@ public class OpenshiftBuildService implements BuildService {
     private String extractBaseFromDockerfile(BuildConfiguration buildConfig, org.eclipse.jkube.kit.build.service.docker.BuildService.BuildContext buildContext) {
         String fromImage;
         try {
-            File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(buildContext.getMavenBuildContext().getSourceDirectory(), buildContext.getMavenBuildContext().getProject().getBasedir() != null
-              ? buildContext.getMavenBuildContext().getProject().getBasedir().toString() : null);
+            File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(buildContext.getMavenBuildContext().getSourceDirectory(), buildContext.getMavenBuildContext().getProject().getBaseDirectory() != null
+              ? buildContext.getMavenBuildContext().getProject().getBaseDirectory().toString() : null);
             fromImage = DockerFileUtil.extractBaseImages(
                     fullDockerFilePath, buildContext.getMavenBuildContext().getProperties()).stream().findFirst().orElse(null);
         } catch (IOException e) {

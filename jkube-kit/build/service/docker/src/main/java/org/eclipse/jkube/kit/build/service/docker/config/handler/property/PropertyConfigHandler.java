@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.property;
 
-import org.eclipse.jkube.kit.build.core.config.MavenAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.LogConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
@@ -179,7 +179,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         ValueProvider valueProvider = new ValueProvider(prefix, properties, propertyMode);
 
         RunImageConfiguration run = extractRunConfiguration(fromConfig, valueProvider);
-        MavenBuildConfiguration build = extractBuildConfiguration(fromConfig, valueProvider, project);
+        JkubeBuildConfiguration build = extractBuildConfiguration(fromConfig, valueProvider, project);
         WatchImageConfiguration watch = extractWatchConfig(fromConfig, valueProvider);
         String name = valueProvider.getString(NAME, fromConfig.getName());
         String alias = valueProvider.getString(ALIAS, fromConfig.getAlias());
@@ -232,13 +232,13 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
 
-    private MavenBuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, JkubeProject project) {
-        MavenBuildConfiguration config = fromConfig.getBuildConfiguration();
+    private JkubeBuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, JkubeProject project) {
+        JkubeBuildConfiguration config = fromConfig.getBuildConfiguration();
         if (!buildConfigured(config, valueProvider, project)) {
             return null;
         }
 
-        return new MavenBuildConfiguration.Builder()
+        return new JkubeBuildConfiguration.Builder()
                 .cmd(extractArguments(valueProvider, CMD, config == null ? null : config.getCmd()))
                 .cleanup(valueProvider.getString(CLEANUP, config == null ? null : config.getCleanup()))
                 .nocache(valueProvider.getBoolean(NOCACHE, config == null ? null : config.getNoCache()))
@@ -336,8 +336,8 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     @SuppressWarnings("deprecation")
-    private MavenAssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
-        return new MavenAssemblyConfiguration.Builder()
+    private JkubeAssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
+        return new JkubeAssemblyConfiguration.Builder()
                 .targetDir(valueProvider.getString(ASSEMBLY_BASEDIR, config == null ? null : config.getTargetDir()))
                 .descriptor(valueProvider.getString(ASSEMBLY_DESCRIPTOR, config == null ? null : config.getDescriptor()))
                 .descriptorRef(valueProvider.getString(ASSEMBLY_DESCRIPTOR_REF, config == null ? null : config.getDescriptorRef()))

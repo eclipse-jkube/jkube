@@ -13,14 +13,17 @@
  */
 package org.eclipse.jkube.kit.build.core.assembly;
 
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import mockit.Injectable;
-import org.apache.commons.io.FileUtils;
-import org.apache.maven.execution.MavenSession;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -33,7 +36,7 @@ import static org.junit.Assert.assertNotNull;
 public class MappingTrackArchiverTest {
 
     @Injectable
-    private MavenSession session;
+    private JkubeProject session;
 
     private MappingTrackArchiver archiver;
 
@@ -65,7 +68,7 @@ public class MappingTrackArchiverTest {
         List<AssemblyFiles.Entry> entries = files.getUpdatedEntriesAndRefresh();
         assertEquals(0, entries.size());
         Thread.sleep(1000);
-        FileUtils.touch(tempFile);
+        Files.setLastModifiedTime(Paths.get(tempFile.getAbsolutePath()), FileTime.from(Instant.now()));
         entries = files.getUpdatedEntriesAndRefresh();
         assertEquals(1, entries.size());
         AssemblyFiles.Entry entry = entries.get(0);

@@ -13,17 +13,31 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.stream.Stream;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * File related methods which cannot be found elsewhere
@@ -120,6 +134,229 @@ public class FileUtil {
             throw new IllegalArgumentException(String.format("URL %s should contain a name file to be downloaded.", url.toString()));
         }
 
+    }
+
+    public static void cleanDirectory(File directoryFile) throws IOException {
+        Path directory = Paths.get(directoryFile.getAbsolutePath());
+        Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    public static ArrayList<String> fileReadArray(File file) throws IOException {
+        ArrayList<String> lineList = new ArrayList();
+
+        try (Stream<String> lines = Files.lines(Paths.get(file.getAbsolutePath()), Charset.defaultCharset())) {
+            lines.forEachOrdered(line -> lineList.add(line));
+        }
+        return lineList;
+    }
+
+    // Taken from https://github.com/sonatype/plexus-utils/blob/master/src/main/java/org/codehaus/plexus/util/PathTool.java
+    public static final String getRelativeFilePath( final String oldPath, final String newPath )
+    {
+        if ( StringUtils.isEmpty( oldPath ) || StringUtils.isEmpty( newPath ) )
+        {
+            return "";
+        }
+
+        // normalise the path delimiters
+        String fromPath = new File( oldPath ).getPath();
+        String toPath = new File( newPath ).getPath();
+
+        // strip any leading slashes if its a windows path
+        if ( toPath.matches( "^\\[a-zA-Z]:" ) )
+        {
+            toPath = toPath.substring( 1 );
+        }
+        if ( fromPath.matches( "^\\[a-zA-Z]:" ) )
+        {
+            fromPath = fromPath.substring( 1 );
+        }
+
+        // lowercase windows drive letters.
+        if ( fromPath.startsWith( ":", 1 ) )
+        {
+            fromPath = Character.toLowerCase( fromPath.charAt( 0 ) ) + fromPath.substring( 1 );
+        }
+        if ( toPath.startsWith( ":", 1 ) )
+        {
+            toPath = Character.toLowerCase( toPath.charAt( 0 ) ) + toPath.substring( 1 );
+        }
+
+        // check for the presence of windows drives. No relative way of
+        // traversing from one to the other.
+        if ( ( toPath.startsWith( ":", 1 ) && fromPath.startsWith( ":", 1 ) ) && ( !toPath.substring( 0, 1 ).equals(
+                fromPath.substring( 0, 1 ) ) ) )
+        {
+            // they both have drive path element but they dont match, no
+            // relative path
+            return null;
+        }
+
+        if ( ( toPath.startsWith( ":", 1 ) && !fromPath.startsWith( ":", 1 ) ) || ( !toPath.startsWith( ":", 1 )
+                && fromPath.startsWith( ":", 1 ) ) )
+        {
+            // one has a drive path element and the other doesnt, no relative
+            // path.
+            return null;
+        }
+
+        String resultPath = buildRelativePath( toPath, fromPath, File.separatorChar );
+
+        if ( newPath.endsWith( File.separator ) && !resultPath.endsWith( File.separator ) )
+        {
+            return resultPath + File.separator;
+        }
+
+        return resultPath;
+    }
+
+    private static final String buildRelativePath( String toPath, String fromPath, final char separatorChar )
+    {
+        // use tokeniser to traverse paths and for lazy checking
+        StringTokenizer toTokeniser = new StringTokenizer( toPath, String.valueOf( separatorChar ) );
+        StringTokenizer fromTokeniser = new StringTokenizer( fromPath, String.valueOf( separatorChar ) );
+
+        int count = 0;
+
+        // walk along the to path looking for divergence from the from path
+        while ( toTokeniser.hasMoreTokens() && fromTokeniser.hasMoreTokens() )
+        {
+            if ( separatorChar == '\\' )
+            {
+                if ( !fromTokeniser.nextToken().equalsIgnoreCase( toTokeniser.nextToken() ) )
+                {
+                    break;
+                }
+            }
+            else
+            {
+                if ( !fromTokeniser.nextToken().equals( toTokeniser.nextToken() ) )
+                {
+                    break;
+                }
+            }
+
+            count++;
+        }
+
+        // reinitialise the tokenisers to count positions to retrieve the
+        // gobbled token
+
+        toTokeniser = new StringTokenizer( toPath, String.valueOf( separatorChar ) );
+        fromTokeniser = new StringTokenizer( fromPath, String.valueOf( separatorChar ) );
+
+        while ( count-- > 0 )
+        {
+            fromTokeniser.nextToken();
+            toTokeniser.nextToken();
+        }
+
+        String relativePath = "";
+
+        // add back refs for the rest of from location.
+        while ( fromTokeniser.hasMoreTokens() )
+        {
+            fromTokeniser.nextToken();
+
+            relativePath += "..";
+
+            if ( fromTokeniser.hasMoreTokens() )
+            {
+                relativePath += separatorChar;
+            }
+        }
+
+        if ( relativePath.length() != 0 && toTokeniser.hasMoreTokens() )
+        {
+            relativePath += separatorChar;
+        }
+
+        while ( toTokeniser.hasMoreTokens() )
+        {
+            relativePath += toTokeniser.nextToken();
+
+            if ( toTokeniser.hasMoreTokens() )
+            {
+                relativePath += separatorChar;
+            }
+        }
+        return relativePath;
+    }
+
+    public static void copy(File sourceFile, File targetFile) throws IOException {
+        copy(Paths.get(sourceFile.getAbsolutePath()), Paths.get(targetFile.getAbsolutePath()));
+    }
+
+    public static void copy(Path sourcePath, Path targetPath) throws IOException {
+        Files.copy(sourcePath, targetPath, REPLACE_EXISTING);
+    }
+
+    public static void copyDirectory(File sourceDir, File targetDir) throws IOException {
+        try (Stream<Path> stream = Files.walk(sourceDir.toPath())) {
+            stream.forEachOrdered(sourcePath -> {
+                try {
+                    Files.copy(
+                            sourcePath,
+                            sourceDir.toPath().resolve(targetDir.toPath().relativize(sourcePath)));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+
+    public static void setFilePermissions(File file, String fileMode) throws IOException {
+        if (fileMode.length() < 4)
+            return;
+
+        Set<PosixFilePermission> posixFilePermissionSet = new HashSet();
+        // check for user
+        int userPermissionsDigit = fileMode.charAt(1) - '0';
+        if ((userPermissionsDigit & 4) != 0) {
+            posixFilePermissionSet.add(PosixFilePermission.OWNER_READ);
+        }
+        if ((userPermissionsDigit & 2) != 0) {
+            posixFilePermissionSet.add(PosixFilePermission.OWNER_WRITE);
+        }
+        if ((userPermissionsDigit & 1) != 0) {
+            posixFilePermissionSet.add(PosixFilePermission.OWNER_EXECUTE);
+        }
+
+        int groupPermissionsDigit = fileMode.charAt(2) - '0';
+        if ((groupPermissionsDigit & 4) != 0) {
+            posixFilePermissionSet.add(PosixFilePermission.GROUP_READ);
+        }
+        if ((groupPermissionsDigit & 2) != 0) {
+            posixFilePermissionSet.add(PosixFilePermission.GROUP_WRITE);
+        }
+        if ((groupPermissionsDigit & 1) != 0) {
+            posixFilePermissionSet.add(PosixFilePermission.GROUP_EXECUTE);
+        }
+
+        int otherPermissionsDigit = fileMode.charAt(3) - '0';
+        if ((otherPermissionsDigit & 4) != 0) {
+            posixFilePermissionSet.add(PosixFilePermission.OTHERS_READ);
+        }
+        if ((otherPermissionsDigit & 2) != 0) {
+            posixFilePermissionSet.add(PosixFilePermission.OTHERS_WRITE);
+        }
+        if ((otherPermissionsDigit & 1) != 0) {
+            posixFilePermissionSet.add(PosixFilePermission.OTHERS_EXECUTE);
+        }
+
+        Files.setPosixFilePermissions(file.toPath(), posixFilePermissionSet);
     }
 }
 

@@ -16,8 +16,8 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.core.MavenBuildContext;
-import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
+import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
@@ -84,6 +84,7 @@ import java.io.LineNumberReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -438,7 +439,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
 
                 DockerAccess access = null;
                 try {
-                    JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project);
+                    JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project, session);
                     ConfigHelper.validateExternalPropertyActivation(jkubeProject, images);
                     // The 'real' images configuration to use (configured images + externally resolved images)
                     this.minimalApiVersion = initImageConfiguration(getBuildTimestamp());
@@ -473,7 +474,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     protected abstract void executeInternal(ServiceHub serviceHub)
             throws IOException, MojoExecutionException;
 
-    protected BuildService.BuildContext getBuildContext() throws MojoExecutionException {
+    protected BuildService.BuildContext getBuildContext() throws MojoExecutionException, DependencyResolutionRequiredException {
         return new BuildService.BuildContext.Builder()
                 .buildArgs(buildArgs)
                 .mojoParameters(createMojoParameters())
@@ -481,17 +482,13 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                 .build();
     }
 
-    protected MavenBuildContext createMojoParameters() {
-        return new MavenBuildContext.Builder()
-                .session(session)
-                .project(project)
-                .mavenFileFilter(mavenFileFilter)
-                .mavenReaderFilter(mavenFilterReader)
-                .settings(settings)
+    protected JkubeBuildContext createMojoParameters() throws DependencyResolutionRequiredException {
+        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project, session);
+        return new JkubeBuildContext.Builder()
+                .project(jkubeProject)
                 .sourceDirectory(sourceDirectory)
                 .outputDirectory(outputDirectory)
-                .reactorProjects(reactorProjects)
-                .archiveConfiguration(archive)
+                .reactorProjects(Collections.singletonList(jkubeProject))
                 .build();
     }
 
@@ -604,7 +601,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
             name = "%g/%a:%l";
         }
 
-        final MavenBuildConfiguration buildConfig = new MavenBuildConfiguration.Builder()
+        final JkubeBuildConfiguration buildConfig = new JkubeBuildConfiguration.Builder()
                 .dockerFile(dockerFile.getPath())
                 .build();
 
@@ -615,7 +612,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     protected ImageConfiguration addSimpleDockerfileConfig(ImageConfiguration image, File dockerfile) {
-        final MavenBuildConfiguration buildConfig = new MavenBuildConfiguration.Builder()
+        final JkubeBuildConfiguration buildConfig = new JkubeBuildConfiguration.Builder()
                 .dockerFile(dockerfile.getPath())
                 .build();
         return new ImageConfiguration.Builder(image).buildConfig(buildConfig).build();
@@ -703,7 +700,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         }
     }
 
-    protected org.eclipse.jkube.kit.config.service.BuildService.BuildServiceConfig getBuildServiceConfig() throws MojoExecutionException {
+    protected org.eclipse.jkube.kit.config.service.BuildService.BuildServiceConfig getBuildServiceConfig() throws MojoExecutionException, DependencyResolutionRequiredException {
         return new org.eclipse.jkube.kit.config.service.BuildService.BuildServiceConfig.Builder()
                 .dockerBuildContext(getBuildContext())
                 .dockerMavenBuildContext(createMojoParameters())
@@ -757,7 +754,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     protected GeneratorContext getGeneratorContext() throws DependencyResolutionRequiredException {
         return new GeneratorContext.Builder()
                 .config(extractGeneratorConfig())
-                .project(MavenUtil.convertMavenProjectToJkubeProject(project))
+                .project(MavenUtil.convertMavenProjectToJkubeProject(project, session))
                 .logger(log)
                 .runtimeMode(runtimeMode)
                 .strategy(buildStrategy)
@@ -850,7 +847,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                 images,                  // Unresolved images
                 (ImageConfiguration image) -> {
                     try {
-                        return imageConfigResolver.resolve(image, MavenUtil.convertMavenProjectToJkubeProject(project));
+                        return imageConfigResolver.resolve(image, MavenUtil.convertMavenProjectToJkubeProject(project, session));
                     } catch (DependencyResolutionRequiredException exception) {
                         log.warn("Instructed to use project classpath, but cannot.Continuing build if we can: ", exception);
                     }
@@ -870,7 +867,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         }
 
         // Initialize configuration and detect minimal API version
-        return ConfigHelper.initAndValidate(resolvedImages, apiVersion, new ImageNameFormatter(MavenUtil.convertMavenProjectToJkubeProject(project), buildTimeStamp), log);
+        return ConfigHelper.initAndValidate(resolvedImages, apiVersion, new ImageNameFormatter(MavenUtil.convertMavenProjectToJkubeProject(project, session), buildTimeStamp), log);
     }
 
     /**

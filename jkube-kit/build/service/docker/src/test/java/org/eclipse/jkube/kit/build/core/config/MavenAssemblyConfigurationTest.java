@@ -16,7 +16,12 @@ package org.eclipse.jkube.kit.build.core.config;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.maven.plugins.assembly.model.Assembly;
+import org.eclipse.jkube.kit.common.JkubeProjectAssembly;
 import org.junit.Test;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -24,19 +29,14 @@ import static org.junit.Assert.assertThat;
 public class MavenAssemblyConfigurationTest {
 
     @Test
-    public void testBuilder(@Mocked Assembly mockAssembly) {
-        // Given
-        new Expectations() {{
-           mockAssembly.getId();
-           result = "1337";
-        }};
+    public void testBuilder() {
         // When
-        final MavenAssemblyConfiguration result = new MavenAssemblyConfiguration.Builder()
-                .assemblyDef(mockAssembly)
+        final JkubeAssemblyConfiguration result = new JkubeAssemblyConfiguration.Builder()
+                .assemblyDef(Collections.singletonList(new JkubeProjectAssembly(new File("target"), Arrays.asList("docker"), "755")))
                 .user("super-user")
                 .build();
         // Then
         assertThat(result.getUser(), equalTo("super-user"));
-        assertThat(result.getInline().getId(), equalTo("1337"));
+        //assertThat(result.getInline().getId(), equalTo("1337"));
     }
 }

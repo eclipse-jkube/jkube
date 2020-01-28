@@ -17,22 +17,22 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.InvalidArtifactRTException;
-import org.apache.maven.artifact.handler.DefaultArtifactHandler;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.shared.utils.io.DirectoryScanner;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.diags.TrackingArchiver;
@@ -60,30 +60,30 @@ public class MappingTrackArchiver extends TrackingArchiver {
      *
      * @return assembled files
      */
-    public AssemblyFiles getAssemblyFiles(MavenSession session) {
+    public AssemblyFiles getAssemblyFiles(JkubeProject jkubeProject) throws IOException {
         AssemblyFiles ret = new AssemblyFiles(new File(getDestFile().getParentFile(), assemblyName));
+
         // Where the 'real' files are copied to
         for (Addition addition : added) {
             Object resource = addition.resource;
             File target = new File(ret.getAssemblyDirectory(), addition.destination);
             if (resource instanceof File && addition.destination != null) {
-                addFileEntry(ret, session, (File) resource, target);
+                addFileEntry(ret, jkubeProject, (File) resource, target);
             } else if (resource instanceof PlexusIoFileResource) {
-                addFileEntry(ret, session, ((PlexusIoFileResource) resource).getFile(), target);
+                addFileEntry(ret, jkubeProject, ((PlexusIoFileResource) resource).getFile(), target);
             } else if (resource instanceof FileSet) {
-                FileSet fs = (FileSet) resource;
-                DirectoryScanner ds = new DirectoryScanner();
                 File base = addition.directory;
-                ds.setBasedir(base);
-                ds.setIncludes(fs.getIncludes());
-                ds.setExcludes(fs.getExcludes());
-                ds.setCaseSensitive(fs.isCaseSensitive());
-                ds.scan();
-                for (String f : ds.getIncludedFiles()) {
-                    File source = new File(base, f);
-                    File subTarget = new File(target, f);
-                    addFileEntry(ret, session, source, subTarget);
+
+                List<File> filesInFolder = Files.walk(Paths.get(base.getAbsolutePath()))
+                        .filter(Files::isRegularFile)
+                        .map(Path::toFile)
+                        .collect(Collectors.toList());
+                for (File f : filesInFolder) {
+                    File source = new File(base, f.getName());
+                    File subTarget = new File(target, f.getName());
+                    addFileEntry(ret, jkubeProject, source, subTarget);
                 }
+
             } else {
                 throw new IllegalStateException("Unknown resource type " + resource.getClass() + ": " + resource);
             }
@@ -91,13 +91,13 @@ public class MappingTrackArchiver extends TrackingArchiver {
         return ret;
     }
 
-    private void addFileEntry(AssemblyFiles ret, MavenSession session, File source, File target) {
+    private void addFileEntry(AssemblyFiles ret, JkubeProject project, File source, File target) {
         ret.addEntry(source, target);
-        addLocalMavenRepoEntry(ret, session, source, target);
+        addLocalMavenRepoEntry(ret, project, source, target);
     }
 
-    private void addLocalMavenRepoEntry(AssemblyFiles ret, MavenSession session, File source, File target) {
-        File localMavenRepoFile = getLocalMavenRepoFile(session, source);
+    private void addLocalMavenRepoEntry(AssemblyFiles ret, JkubeProject project, File source, File target) {
+        File localMavenRepoFile = getLocalMavenRepoFile(project, source);
         try {
             if (localMavenRepoFile != null &&
                 ! source.getCanonicalFile().equals(localMavenRepoFile.getCanonicalFile())) {
@@ -108,27 +108,22 @@ public class MappingTrackArchiver extends TrackingArchiver {
         }
     }
 
-    private File getLocalMavenRepoFile(MavenSession session, File source) {
-        ArtifactRepository localRepo = session.getLocalRepository();
+    private File getLocalMavenRepoFile(JkubeProject project, File source) {
+        String localRepo = project.getLocalRepositoryBaseDirectory();
         if (localRepo == null) {
             log.warn("No local repo found so not adding any extra watches in the local repository");
             return null;
         }
 
-        Artifact artifact = getArtifactFromJar(source);
+        File artifact = getArtifactFromJar(source);
         if (artifact != null) {
-            try {
-                return new File(localRepo.getBasedir(), localRepo.pathOf(artifact));
-            } catch (InvalidArtifactRTException e) {
-                log.warn("Cannot get the local repository path for %s in base dir %s : %s",
-                         artifact, localRepo.getBasedir(), e.getMessage());
-            }
+                return new File(localRepo, artifact.getAbsolutePath());
         }
         return null;
     }
 
     // look into a jar file and check for pom.properties. The first pom.properties found are returned.
-    private Artifact getArtifactFromJar(File jar) {
+    private File getArtifactFromJar(File jar) {
         // Lets figure the real mvn source of file.
         String type = extractFileType(jar);
         if (type != null) {
@@ -140,7 +135,7 @@ public class MappingTrackArchiver extends TrackingArchiver {
                         if (entry.getName().startsWith("META-INF/maven/") && entry.getName().endsWith("pom.properties")) {
                             byte[] buf = new byte[1024];
                             int len;
-                            ByteArrayOutputStream out = new ByteArrayOutputStream(); //change ouptut stream as required
+                            ByteArrayOutputStream out = new ByteArrayOutputStream(); //change output stream as required
                             while ((len = in.read(buf)) > 0) {
                                 out.write(buf, 0, len);
                             }
@@ -170,16 +165,14 @@ public class MappingTrackArchiver extends TrackingArchiver {
         return matcher.matches() ? matcher.group(1) : null;
     }
 
-    private Artifact getArtifactFromPomProperties(String type, Properties pomProps) {
-        return new DefaultArtifact(
-                pomProps.getProperty("groupId"),
-                pomProps.getProperty("artifactId"),
-                pomProps.getProperty("version"),
-                "runtime",
-                type,
-                pomProps.getProperty("classifier", ""),
-                new DefaultArtifactHandler(type)
-        );
+    private File getArtifactFromPomProperties(String type, Properties pomProps) throws IOException {
+        File pomProperties = new File("pom.properties");
+        try (FileWriter fileWriter = new FileWriter(pomProperties)) {
+            fileWriter.write("version=" + pomProps.getProperty("version"));
+            fileWriter.write("groupId=" + pomProps.getProperty("groupId"));
+            fileWriter.write("artifactId=" + pomProps.getProperty("artifactId"));
+        }
+        return pomProperties;
     }
 
     public void init(KitLogger log, String assemblyName) {

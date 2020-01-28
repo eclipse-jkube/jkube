@@ -17,6 +17,7 @@ import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.JkubeProjectDependency;
 import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.List;
@@ -96,5 +97,13 @@ public class JkubeProjectUtil {
         Properties properties = new Properties(project.getProperties());
         properties.putAll(System.getProperties());
         return properties;
+    }
+
+    public static File getFinalOutputArtifact(JkubeProject jkubeProject) {
+        String nameOfFinalArtifact = jkubeProject.getName() + "-"
+                + jkubeProject.getVersion() + "." + jkubeProject.getPackaging();
+        File outputDirectory = new File(jkubeProject.getBuildDirectory());
+        File finalArtifact = new File(outputDirectory, nameOfFinalArtifact);
+        return finalArtifact.exists() ? finalArtifact : null;
     }
 }

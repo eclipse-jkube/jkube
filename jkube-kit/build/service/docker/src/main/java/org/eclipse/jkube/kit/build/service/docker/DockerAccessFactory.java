@@ -35,7 +35,7 @@ import org.codehaus.plexus.component.annotations.Component;
 @Component(role = DockerAccessFactory.class, instantiationStrategy = "singleton")
 public class DockerAccessFactory {
 
-    public DockerAccess createDockerAccess(DockerAccessContext dockerAccessContext) throws IllegalStateException {
+    public DockerAccess createDockerAccess(DockerAccessContext dockerAccessContext) {
 
         try {
             DockerConnectionDetector dockerConnectionDetector = createDockerConnectionDetector(dockerAccessContext, dockerAccessContext.getLog());
@@ -94,7 +94,7 @@ public class DockerAccessFactory {
     }
 
     // Registry for managed containers
-    private void setDockerHostAddressProperty(DockerAccessContext dockerAccessContext, String dockerUrl) throws IllegalStateException {
+    private void setDockerHostAddressProperty(DockerAccessContext dockerAccessContext, String dockerUrl) {
         Properties props = dockerAccessContext.getProjectProperties();
         if (props.getProperty("docker.host.address") == null) {
             final String host;

@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.build.api;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.function.Function;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -36,11 +35,7 @@ public interface BuildContext<B extends BuildConfiguration> {
 
     Properties getProperties();
 
-    Function<String, String> createInterpolator(String filter);
-
     File createImageContentArchive(String imageName, B buildConfig, KitLogger log) throws IOException;
-
-    RegistryContext getRegistryContext();
 
     File inSourceDir(String path);
 

@@ -16,11 +16,10 @@ package org.eclipse.jkube.kit.build.core.assembly;
 import java.io.File;
 import java.util.Arrays;
 
-import org.eclipse.jkube.kit.build.core.MavenBuildContext;
-import org.eclipse.jkube.kit.build.core.config.MavenAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
+import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.apache.maven.project.MavenProject;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,12 +30,12 @@ import static org.junit.Assert.assertTrue;
 
 public class DockerAssemblyConfigurationSourceTest {
 
-    private MavenAssemblyConfiguration assemblyConfig;
+    private JkubeAssemblyConfiguration assemblyConfig;
 
     @Before
     public void setup() {
         // set 'ignorePermissions' to something other then default
-        this.assemblyConfig = new MavenAssemblyConfiguration.Builder()
+        this.assemblyConfig = new JkubeAssemblyConfiguration.Builder()
                 .descriptor("assembly.xml")
                 .descriptorRef("project")
                 .permissions("keep")
@@ -52,7 +51,7 @@ public class DockerAssemblyConfigurationSourceTest {
         }
 
         AssemblyConfiguration config = new AssemblyConfiguration.Builder().permissions("ignore").build();
-        assertSame(config.getPermissions(), AssemblyConfiguration.PermissionMode.ignore);;
+        assertSame(AssemblyConfiguration.PermissionMode.ignore, config.getPermissions());;
     }
 
     @Test
@@ -68,7 +67,7 @@ public class DockerAssemblyConfigurationSourceTest {
     @Test
     public void testOutputDirHasImage() {
         String image = "image";
-        MavenBuildContext context = buildBuildContetxt(".", "src/docker", "output/docker");
+        JkubeBuildContext context = buildBuildContetxt(".", "src/docker", "output/docker");
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(context,
                 new BuildDirs(image, context), assemblyConfig);
 
@@ -77,11 +76,10 @@ public class DockerAssemblyConfigurationSourceTest {
         assertTrue(containsDir(image, source.getTemporaryRootDirectory()));
     }
 
-    private MavenBuildContext buildBuildContetxt(String projectDir, String sourceDir, String outputDir) {
-        MavenProject mavenProject = new MavenProject();
-        mavenProject.setFile(new File(projectDir));
-        return new MavenBuildContext.Builder()
-                .project(mavenProject)
+    private JkubeBuildContext buildBuildContetxt(String projectDir, String sourceDir, String outputDir) {
+        JkubeProject project = new JkubeProject.Builder().buildDirectory(projectDir).build();
+        return new JkubeBuildContext.Builder()
+                .project(project)
                 .sourceDirectory(sourceDir)
                 .outputDirectory(outputDir)
                 .build();
@@ -89,7 +87,7 @@ public class DockerAssemblyConfigurationSourceTest {
 
     @Test
     public void testEmptyAssemblyConfig() {
-        MavenBuildContext buildContext = new MavenBuildContext.Builder()
+        JkubeBuildContext buildContext = new JkubeBuildContext.Builder()
                 .sourceDirectory("/src/docker")
                 .outputDirectory("/output/docker")
                 .build();
@@ -97,7 +95,7 @@ public class DockerAssemblyConfigurationSourceTest {
         assertEquals(0,source.getDescriptors().length);
     }
 
-    private void testCreateSource(MavenBuildContext context) {
+    private void testCreateSource(JkubeBuildContext context) {
         DockerAssemblyConfigurationSource source =
                 new DockerAssemblyConfigurationSource(context, new BuildDirs("image", context), assemblyConfig);
 
@@ -131,16 +129,14 @@ public class DockerAssemblyConfigurationSourceTest {
 
     @Test
     public void testReactorProjects() {
-        MavenProject reactorProject1 = new MavenProject();
-        reactorProject1.setFile(new File("../reactor-1"));
 
-        MavenProject reactorProject2 = new MavenProject();
-        reactorProject2.setFile(new File("../reactor-2"));
+        JkubeProject jkubeProject1 = new JkubeProject.Builder().build();
+        JkubeProject jkubeProject2 = new JkubeProject.Builder().build();
 
-        MavenBuildContext buildContext = new MavenBuildContext.Builder()
+        JkubeBuildContext buildContext = new JkubeBuildContext.Builder()
                 .sourceDirectory("/src/docker")
                 .outputDirectory("/output/docker")
-                .reactorProjects(Arrays.asList(reactorProject1, reactorProject2))
+                .reactorProjects(Arrays.asList(jkubeProject1, jkubeProject2))
                 .build();
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(buildContext,null,null);
         assertEquals(2,source.getReactorProjects().size());

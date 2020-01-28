@@ -25,6 +25,8 @@ public class JkubeDockerfileInterpolator {
         delimiters.put("${", "}");
     }
 
+    private JkubeDockerfileInterpolator() { }
+
     public static String interpolate(String line, Properties properties) {
         for (String property : properties.stringPropertyNames()) {
             String value = checkPropertyWithDelimiters(line, property, properties);

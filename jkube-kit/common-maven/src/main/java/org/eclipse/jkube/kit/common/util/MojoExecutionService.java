@@ -51,7 +51,7 @@ public class MojoExecutionService {
     }
 
     // Call another goal after restart has finished
-    public void callPluginGoal(String fullGoal) throws IllegalStateException {
+    public void callPluginGoal(String fullGoal) {
         String[] parts = splitGoalSpec(fullGoal);
         Plugin plugin = project.getPlugin(parts[0]);
         String goal = parts[1];
@@ -115,8 +115,8 @@ public class MojoExecutionService {
         }
     }
 
-    private String[] splitGoalSpec(String fullGoal) throws IllegalStateException {
-        String parts[] = StringUtils.split(fullGoal, ":");
+    private String[] splitGoalSpec(String fullGoal) {
+        String[] parts = StringUtils.split(fullGoal, ":");
         if (parts.length != 3) {
             throw new IllegalStateException("Cannot parse " + fullGoal + " as a maven plugin goal. " +
                                            "It must be fully qualified as in <groupId>:<artifactId>:<goal>");

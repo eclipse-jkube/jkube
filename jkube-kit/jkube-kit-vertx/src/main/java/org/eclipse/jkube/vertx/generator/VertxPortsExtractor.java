@@ -46,6 +46,13 @@ public class VertxPortsExtractor extends AbstractPortsExtractor {
         if (plugin != null) {
             try {
                 Object pluginConfiguration = plugin.getConfiguration();
+                /*
+                 * During deserialization into JkubeProjectPlugin null configuration gets converted to null string hence
+                 * this check.
+                 */
+                if (pluginConfiguration == null || pluginConfiguration.toString().equalsIgnoreCase("null")) {
+                    return null;
+                }
                 Xpp3Dom configuration = Xpp3DomBuilder.build(new StringReader(pluginConfiguration.toString()));
                 if (configuration == null) {
                     return null;

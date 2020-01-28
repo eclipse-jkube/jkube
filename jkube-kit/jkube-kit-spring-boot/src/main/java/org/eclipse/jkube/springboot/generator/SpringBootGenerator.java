@@ -44,7 +44,6 @@ import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
 import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.color;
@@ -74,7 +73,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
     }
 
     @Override
-    public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean isPrePackagePhase) throws MojoExecutionException {
+    public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean isPrePackagePhase) {
         if (getContext().getGeneratorMode() == GeneratorMode.WATCH) {
             ensureSpringDevToolSecretToken();
             if (!isPrePackagePhase ) {
@@ -85,7 +84,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
     }
 
     @Override
-    protected Map<String, String> getEnv(boolean prePackagePhase) throws MojoExecutionException {
+    protected Map<String, String> getEnv(boolean prePackagePhase) {
         Map<String, String> res = super.getEnv(prePackagePhase);
         if (getContext().getGeneratorMode() == GeneratorMode.WATCH) {
             // adding dev tools token to env variables to prevent override during recompile
@@ -110,7 +109,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
     }
 
     @Override
-    protected boolean isFatJar() throws MojoExecutionException {
+    protected boolean isFatJar() {
         if (!hasMainClass() && isSpringBootRepackage()) {
             return true;
         }
@@ -133,18 +132,18 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     // =============================================================================
 
-    private void ensureSpringDevToolSecretToken() throws MojoExecutionException {
+    private void ensureSpringDevToolSecretToken() {
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
                 SpringBootUtil.getSpringBootActiveProfile(getProject()),
                 ClassUtil.createClassLoader(getProject().getCompileClassPathElements(), getProject().getOutputDirectory()));
         String remoteSecret = properties.getProperty(DEV_TOOLS_REMOTE_SECRET);
         if (Strings.isNullOrEmpty(remoteSecret)) {
             addSecretTokenToApplicationProperties();
-            throw new MojoExecutionException("No spring.devtools.remote.secret found in application.properties. Plugin has added it, please re-run goals");
+            throw new IllegalStateException("No spring.devtools.remote.secret found in application.properties. Plugin has added it, please re-run goals");
         }
     }
 
-    private void addDevToolsFilesToFatJar(List<ImageConfiguration> configs) throws MojoExecutionException {
+    private void addDevToolsFilesToFatJar(List<ImageConfiguration> configs) {
         if (isFatJar()) {
             File target = getFatJarFile();
             try {
@@ -152,15 +151,15 @@ public class SpringBootGenerator extends JavaExecGenerator {
                 File applicationPropertiesFile = new File(getProject().getBaseDirectory(), "target/classes/application.properties");
                 copyFilesToFatJar(Collections.singletonList(devToolsFile), Collections.singletonList(applicationPropertiesFile), target);
             } catch (Exception e) {
-                throw new MojoExecutionException("Failed to add devtools files to fat jar " + target + ". " + e, e);
+                throw new IllegalStateException("Failed to add devtools files to fat jar " + target + ". " + e, e);
             }
         }
     }
 
-    private File getFatJarFile() throws MojoExecutionException {
+    private File getFatJarFile() {
         FatJarDetector.Result fatJarDetectResult = detectFatJar();
         if (fatJarDetectResult == null) {
-            throw new MojoExecutionException("No fat jar built yet. Please ensure that the 'package' phase has run");
+            throw new IllegalStateException("No fat jar built yet. Please ensure that the 'package' phase has run");
         }
         return fatJarDetectResult.getArchiveFile();
     }
@@ -246,7 +245,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
         }
     }
 
-    private void addSecretTokenToApplicationProperties() throws MojoExecutionException {
+    private void addSecretTokenToApplicationProperties() {
         String newToken = UUID.randomUUID().toString();
         log.verbose("Generating the spring devtools token in property: " + DEV_TOOLS_REMOTE_SECRET);
 

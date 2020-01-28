@@ -20,11 +20,13 @@ import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 
 /**
- * Detector for tomat app servers.
+ * Detector for tomcat app servers.
  *
  * @author kameshs
  */
 public class TomcatAppSeverHandler extends AbstractAppServerHandler {
+
+    private static final String TOMCAT_GROUPID = "org.apache.tomcat.maven";
 
     public TomcatAppSeverHandler(JkubeProject project) {
         super("tomcat", project);
@@ -33,8 +35,8 @@ public class TomcatAppSeverHandler extends AbstractAppServerHandler {
     @Override
     public boolean isApplicable() {
         return hasOneOf("**/META-INF/context.xml") ||
-                JkubeProjectUtil.hasPlugin(project, "org.apache.tomcat.maven", "org.apache.tomcat.maven") ||
-                JkubeProjectUtil.hasPlugin(project, "org.apache.tomcat.maven", "tomcat7-maven-plugin");
+                JkubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat6-maven-plugin") ||
+                JkubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat7-maven-plugin");
     }
 
     @Override

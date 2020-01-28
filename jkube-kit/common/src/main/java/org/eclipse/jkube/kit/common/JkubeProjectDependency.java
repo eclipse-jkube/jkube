@@ -13,10 +13,11 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JkubeProjectDependency {
+public class JkubeProjectDependency implements Serializable {
     private String groupId;
     private String artifactId;
     private String version;
@@ -52,7 +53,7 @@ public class JkubeProjectDependency {
     }
 
     public static JkubeProjectDependency fromString(String jkubeDependencyAsString) {
-        String parts[] = jkubeDependencyAsString.split(",");
+        String[] parts = jkubeDependencyAsString.split(",");
         if (parts.length == 3) {
             return new JkubeProjectDependency(parts[0], parts[1], parts[2]);
         }

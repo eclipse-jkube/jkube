@@ -29,13 +29,14 @@ import io.fabric8.openshift.api.model.NamedTagEventListBuilder;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
-import org.eclipse.jkube.kit.build.core.MavenBuildContext;
+import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
 import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.RegistryService;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
@@ -45,7 +46,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.apache.commons.io.IOUtils;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,10 +90,10 @@ public class OpenshiftBuildServiceTest {
     private KitLogger logger;
 
     @Mocked
-    private MavenBuildContext dockerMojoParameters;
+    private JkubeBuildContext dockerMojoParameters;
 
     @Mocked
-    private MavenProject project;
+    private JkubeProject project;
 
     private ImageConfiguration image;
 
@@ -113,7 +113,7 @@ public class OpenshiftBuildServiceTest {
             dockerServiceHub.getArchiveService();
             result = archiveService;
 
-            archiveService.createDockerBuildArchive(withAny(ImageConfiguration.class.cast(null)), withAny(MavenBuildContext.class.cast(null)));
+            archiveService.createDockerBuildArchive(withAny(ImageConfiguration.class.cast(null)), withAny(JkubeBuildContext.class.cast(null)));
             result = dockerFile;
             minTimes = 0;
 
@@ -128,7 +128,7 @@ public class OpenshiftBuildServiceTest {
 
         image = new ImageConfiguration.Builder()
                 .name(projectName)
-                .buildConfig(new MavenBuildConfiguration.Builder()
+                .buildConfig(new JkubeBuildConfiguration.Builder()
                         .from(projectName)
                         .build()
                 ).build();
@@ -289,7 +289,7 @@ public class OpenshiftBuildServiceTest {
                     "namespace", "my-project");
             ImageConfiguration fromExtImage = new ImageConfiguration.Builder()
                     .name(projectName)
-                    .buildConfig(new MavenBuildConfiguration.Builder()
+                    .buildConfig(new JkubeBuildConfiguration.Builder()
                             .fromExt(fromExt)
                             .nocache(Boolean.TRUE)
                             .build()
@@ -375,7 +375,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, dockerServiceHub, config);
 
             ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new MavenBuildConfiguration.Builder(image.getBuildConfiguration())
+                    .buildConfig(new JkubeBuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -384,7 +384,7 @@ public class OpenshiftBuildServiceTest {
 
             final List<ArchiverCustomizer> customizer = new LinkedList<>();
             new Verifications() {{
-                archiveService.createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(MavenBuildContext.class), withCapture(customizer));
+                archiveService.createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(JkubeBuildContext.class), withCapture(customizer));
 
                 assertTrue(customizer.size() == 1);
             }};
@@ -419,7 +419,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, dockerServiceHub, config);
 
             ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new MavenBuildConfiguration.Builder(image.getBuildConfiguration())
+                    .buildConfig(new JkubeBuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -428,7 +428,7 @@ public class OpenshiftBuildServiceTest {
 
             final List<ArchiverCustomizer> customizer = new LinkedList<>();
             new Verifications() {{
-                archiveService.createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(MavenBuildContext.class), withCapture(customizer));
+                archiveService.createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(JkubeBuildContext.class), withCapture(customizer));
 
                 assertTrue(customizer.size() == 1);
             }};

@@ -15,41 +15,26 @@ package org.eclipse.jkube.kit.build.core.assembly;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
+import java.util.Properties;
 
-import org.eclipse.jkube.kit.build.core.MavenBuildContext;
-import org.eclipse.jkube.kit.build.core.config.MavenAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
+import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 import mockit.Expectations;
 import mockit.Injectable;
-import mockit.Mock;
 import mockit.Mocked;
 import mockit.Tested;
 import mockit.Verifications;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.repository.MavenArtifactRepository;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugins.assembly.AssemblerConfigurationSource;
-import org.apache.maven.plugins.assembly.InvalidAssemblerConfigurationException;
-import org.apache.maven.plugins.assembly.archive.ArchiveCreationException;
-import org.apache.maven.plugins.assembly.archive.AssemblyArchiver;
-import org.apache.maven.plugins.assembly.format.AssemblyFormattingException;
-import org.apache.maven.plugins.assembly.io.AssemblyReadException;
-import org.apache.maven.plugins.assembly.io.AssemblyReader;
-import org.apache.maven.plugins.assembly.model.Assembly;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
-import org.codehaus.plexus.interpolation.fixed.FixedStringSearchInterpolator;
 import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 public class DockerAssemblyManagerTest {
 
@@ -60,12 +45,6 @@ public class DockerAssemblyManagerTest {
     private DockerAssemblyManager assemblyManager;
 
     @Injectable
-    private AssemblyArchiver assemblyArchiver;
-
-    @Injectable
-    private AssemblyReader assemblyReader;
-
-    @Injectable
     private ArchiverManager archiverManager;
 
     @Injectable
@@ -73,8 +52,8 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testNoAssembly() {
-        MavenBuildConfiguration buildConfig = new MavenBuildConfiguration.Builder().build();
-        MavenAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        JkubeBuildConfiguration buildConfig = new JkubeBuildConfiguration.Builder().build();
+        JkubeAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
 
         DockerFileBuilder builder = assemblyManager.createDockerFileBuilder(buildConfig, assemblyConfig);
         String content = builder.content();
@@ -84,39 +63,36 @@ public class DockerAssemblyManagerTest {
     }
 
     @Test
-    public void assemblyFiles(@Injectable final MavenBuildContext mojoParams,
-                              @Injectable final MavenProject project,
-                              @Injectable final Assembly assembly) throws AssemblyFormattingException, ArchiveCreationException, InvalidAssemblerConfigurationException
-            , AssemblyReadException, IllegalAccessException, IOException {
+    public void assemblyFiles(@Injectable final JkubeBuildContext mojoParams,
+                              @Injectable final JkubeProject project,
+                              @Injectable final File assembly) throws IllegalAccessException, IOException {
 
         ReflectionUtils.setVariableValueInObject(assemblyManager, "trackArchiver", trackArchiver);
 
         new Expectations() {{
             mojoParams.getOutputDirectory();
-            result = "target/"; times = 3;
+            result = "target/"; times = 5;
 
             mojoParams.getProject();
-            project.getBasedir();
+            project.getBaseDirectory();
             result = ".";
-
-            assemblyReader.readAssemblies((AssemblerConfigurationSource) any);
-            result = Arrays.asList(assembly);
 
         }};
 
-        MavenBuildConfiguration buildConfig = createBuildConfig();
+        JkubeBuildConfiguration buildConfig = createBuildConfig();
 
-        assemblyManager.getAssemblyFiles("testImage", buildConfig, mojoParams, prefixedLogger);
+        new File("./target/testImage/build/maven").mkdirs();
+        AssemblyFiles assemblyFiles = assemblyManager.getAssemblyFiles("testImage", buildConfig, mojoParams, prefixedLogger);
+        assertNotNull(assemblyFiles);
     }
 
     @Test
     public void testCopyValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        MavenBuildConfiguration buildConfig = createBuildConfig();
+        JkubeBuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
-                buildConfig,
-                createInterpolator(buildConfig),
+                buildConfig, new Properties(),
                 logger);
 
         new Verifications() {{
@@ -127,11 +103,11 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testCopyInvalidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        MavenBuildConfiguration buildConfig = createBuildConfig();
+        JkubeBuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_invalid.test").getPath()),
-                buildConfig, createInterpolator(buildConfig),
+                buildConfig, new Properties(),
                 logger);
 
         new Verifications() {{
@@ -142,53 +118,24 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testCopyChownValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        MavenBuildConfiguration buildConfig = createBuildConfig();
+        JkubeBuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_chown_valid.test").getPath()),
                 buildConfig,
-                createInterpolator(buildConfig),
+                new Properties(),
                 logger);
 
         new Verifications() {{
             logger.warn(anyString, (Object []) any); times = 0;
         }};
-
     }
 
-    private MavenBuildConfiguration createBuildConfig() {
-        return new MavenBuildConfiguration.Builder()
-                .assembly(new MavenAssemblyConfiguration.Builder()
+    private JkubeBuildConfiguration createBuildConfig() {
+        return new JkubeBuildConfiguration.Builder()
+                .assembly(new JkubeAssemblyConfiguration.Builder()
                         .descriptorRef("artifact")
                         .build())
-                .build();
-    }
-
-    private FixedStringSearchInterpolator createInterpolator(MavenBuildConfiguration buildConfig) {
-        MavenProject project = new MavenProject();
-        project.setArtifactId("docker-maven-plugin");
-
-        return InterPolatorHelper.createInterpolator(mockMojoParams(project), buildConfig.getFilter());
-    }
-
-
-    private MavenBuildContext mockMojoParams(MavenProject project) {
-        Settings settings = new Settings();
-        ArtifactRepository localRepository = new MavenArtifactRepository() {
-            @Mock
-            public String getBasedir() {
-                return "repository";
-            }
-        };
-        @SuppressWarnings("deprecation")
-        MavenSession session = new MavenSession(null, settings, localRepository, null, null, Collections.<String>emptyList(), ".", null, null, new Date());
-        return new MavenBuildContext.Builder()
-                .session(session)
-                .project(project)
-                .settings(settings)
-                .sourceDirectory("src")
-                .outputDirectory("target")
-                .reactorProjects(Collections.singletonList(project))
                 .build();
     }
 

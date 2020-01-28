@@ -239,7 +239,7 @@ public class WatchMojo extends AbstractDockerMojo {
                     .newPodLogger(createLogger("[[C]][NEW][[C]] "))
                     .oldPodLogger(createLogger("[[R]][OLD][[R]] "))
                     .mode(mode)
-                    .project(MavenUtil.convertMavenProjectToJkubeProject(project))
+                    .project(MavenUtil.convertMavenProjectToJkubeProject(project, session))
                     .useProjectClasspath(useProjectClasspath)
                     .clusterConfiguration(getClusterConfiguration())
                     .kubernetesClient(kubernetes)
@@ -267,7 +267,7 @@ public class WatchMojo extends AbstractDockerMojo {
             JkubeServiceHub serviceHub = getJkubeServiceHub();
             GeneratorContext ctx = new GeneratorContext.Builder()
                     .config(extractGeneratorConfig())
-                    .project(MavenUtil.convertMavenProjectToJkubeProject(project))
+                    .project(MavenUtil.convertMavenProjectToJkubeProject(project, session))
                     .logger(log)
                     .runtimeMode(mode)
                     .strategy(buildStrategy)
@@ -301,7 +301,7 @@ public class WatchMojo extends AbstractDockerMojo {
         return "k8s: ";
     }
 
-    protected WatchService.WatchContext getWatchContext(ServiceHub hub) throws IOException {
+    protected WatchService.WatchContext getWatchContext(ServiceHub hub) throws IOException, DependencyResolutionRequiredException {
         return new WatchService.WatchContext.Builder()
                 .watchInterval(watchInterval)
                 .watchMode(watchMode)
