@@ -13,11 +13,12 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class JkubeProjectPlugin extends JkubeProjectDependency {
+public class JkubeProjectPlugin extends JkubeProjectDependency implements Serializable {
     public Object getConfiguration() {
         return configuration;
     }
@@ -32,7 +33,7 @@ public class JkubeProjectPlugin extends JkubeProjectDependency {
     }
 
     public static JkubeProjectPlugin fromString(String jkubePluginAsString) {
-        String parts[] = jkubePluginAsString.split(",");
+        String[] parts = jkubePluginAsString.split(",");
         if (parts.length == 4) {
             return new JkubeProjectPlugin(parts[0], parts[1], parts[2], parts[3], null);
         } else if (parts.length == 5) {

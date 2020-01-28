@@ -49,15 +49,13 @@ public class AnsiLogger implements KitLogger {
     private List<LogVerboseCategory> verboseModes = null;
 
     // ANSI escapes for various colors (or empty strings if no coloring is used)
-    static Ansi.Color
-            COLOR_ERROR = RED,
-            COLOR_INFO = GREEN,
-            COLOR_WARNING = YELLOW,
-            COLOR_PROGRESS_ID = YELLOW,
-            COLOR_PROGRESS_STATUS = GREEN,
-            COLOR_PROGRESS_BAR = CYAN,
-            COLOR_EMPHASIS = BLUE;
-
+    static Ansi.Color ERROR = RED;
+    static Ansi.Color INFO = GREEN;
+    static Ansi.Color WARNING = YELLOW;
+    static Ansi.Color PROGRESS_ID = YELLOW;
+    static Ansi.Color PROGRESS_STATUS = GREEN;
+    static Ansi.Color PROGRESS_BAR = CYAN;
+    static Ansi.Color EMPHASIS = BLUE;
 
     // Map remembering lines
     private ThreadLocal<Map<String, Integer>> imageLines = new ThreadLocal<>();
@@ -92,7 +90,7 @@ public class AnsiLogger implements KitLogger {
 
     /** {@inheritDoc} */
     public void info(String message, Object ... params) {
-        log.info(colored(message, COLOR_INFO, true, params));
+        log.info(colored(message, INFO, true, params));
     }
 
     /** {@inheritDoc} */
@@ -104,12 +102,12 @@ public class AnsiLogger implements KitLogger {
 
     /** {@inheritDoc} */
     public void warn(String format, Object ... params) {
-        log.warn(colored(format, COLOR_WARNING, true, params));
+        log.warn(colored(format, WARNING, true, params));
     }
 
     /** {@inheritDoc} */
     public void error(String message, Object ... params) {
-        log.error(colored(message, COLOR_ERROR, true, params));
+        log.error(colored(message, ERROR, true, params));
     }
 
     /**
@@ -119,6 +117,7 @@ public class AnsiLogger implements KitLogger {
         return log.isDebugEnabled();
     }
 
+    @Override
     public boolean isVerboseEnabled() {
         return isVerbose;
     }
@@ -126,6 +125,7 @@ public class AnsiLogger implements KitLogger {
     /**
      * Start a progress bar
      */
+    @Override
     public void progressStart() {
         // A progress indicator is always written out to standard out if a tty is enabled.
         if (!batchMode && log.isInfoEnabled()) {
@@ -139,12 +139,13 @@ public class AnsiLogger implements KitLogger {
     /**
      * Update the progress
      */
+    @Override
     public void progressUpdate(String layerId, String status, String progressMessage) {
         if (!batchMode && log.isInfoEnabled() && StringUtils.isNotEmpty(layerId)) {
             if (useAnsi) {
                 updateAnsiProgress(layerId, status, progressMessage);
             } else {
-                updateNonAnsiProgress(layerId);
+                updateNonAnsiProgress();
             }
             flush();
         }
@@ -172,9 +173,9 @@ public class AnsiLogger implements KitLogger {
         String progress = progressMessage != null ? progressMessage : "";
         String msg =
                 ansi()
-                        .fg(COLOR_PROGRESS_ID).a(imageId).reset().a(": ")
-                        .fg(COLOR_PROGRESS_STATUS).a(StringUtils.rightPad(status,11) + " ")
-                        .fg(COLOR_PROGRESS_BAR).a(progress).toString();
+                        .fg(PROGRESS_ID).a(imageId).reset().a(": ")
+                        .fg(PROGRESS_STATUS).a(StringUtils.rightPad(status,11) + " ")
+                        .fg(PROGRESS_BAR).a(progress).toString();
         println(msg);
 
         if (diff > 0) {
@@ -183,7 +184,7 @@ public class AnsiLogger implements KitLogger {
         }
     }
 
-    private void updateNonAnsiProgress(String imageId) {
+    private void updateNonAnsiProgress() {
         AtomicInteger count = updateCount.get();
         int nr = count.getAndIncrement();
         if (nr % NON_ANSI_UPDATE_PERIOD == 0) {
@@ -197,6 +198,7 @@ public class AnsiLogger implements KitLogger {
     /**
      * Finis progress meter. Must be always called if {@link #progressStart()} has been used.
      */
+    @Override
     public void progressFinished() {
         if (!batchMode && log.isInfoEnabled()) {
             imageLines.remove();
@@ -286,7 +288,7 @@ public class AnsiLogger implements KitLogger {
     private static final Map<String, Ansi.Color> COLOR_MAP = new HashMap<>();
 
     static {
-        COLOR_MAP.put("*", COLOR_EMPHASIS);
+        COLOR_MAP.put("*", EMPHASIS);
         COLOR_MAP.put("B", BLUE);
         COLOR_MAP.put("C", CYAN);
         COLOR_MAP.put("Y", YELLOW);
@@ -301,7 +303,7 @@ public class AnsiLogger implements KitLogger {
     private String getEmphasisColor(String id) {
         Ansi.Color color = COLOR_MAP.get(id.toUpperCase());
         if (color != null) {
-            return id.toLowerCase().equals(id) ?
+            return id.equals(id.toLowerCase()) ?
                     // lower case letter means bright color ...
                     ansi().fgBright(color).toString() :
                     ansi().fg(color).toString();
@@ -328,16 +330,6 @@ public class AnsiLogger implements KitLogger {
 
         this.verboseModes = getVerboseModesFromString(verbose);
         this.isVerbose = true;
-    }
-
-    private Boolean checkBackwardVersionValues(String verbose) {
-        if (verbose.isEmpty()) {
-            return Boolean.TRUE;
-        }
-        if (verbose.equalsIgnoreCase("true") || verbose.equalsIgnoreCase("false")) {
-            return Boolean.parseBoolean(verbose.toLowerCase());
-        }
-        return null;
     }
 
     private List<LogVerboseCategory> getVerboseModesFromString(String groups) {

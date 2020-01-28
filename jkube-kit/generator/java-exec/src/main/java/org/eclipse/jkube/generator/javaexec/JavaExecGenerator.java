@@ -15,25 +15,22 @@ package org.eclipse.jkube.generator.javaexec;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.build.core.config.MavenAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JkubeProjectAssembly;
 import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.assembly.model.FileSet;
-
-import org.apache.maven.plugins.assembly.model.Assembly;
-import org.apache.maven.plugins.assembly.model.DependencySet;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 
@@ -111,9 +108,9 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     @Override
-    public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) throws MojoExecutionException {
+    public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
         final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
-        final MavenBuildConfiguration.Builder buildBuilder = new MavenBuildConfiguration.Builder();
+        final JkubeBuildConfiguration.Builder buildBuilder = new JkubeBuildConfiguration.Builder();
 
         buildBuilder.ports(extractPorts());
 
@@ -143,7 +140,7 @@ public class JavaExecGenerator extends BaseGenerator {
      * @return map with environment variables to use
      * @param prePackagePhase
      */
-    protected Map<String, String> getEnv(boolean prePackagePhase) throws MojoExecutionException {
+    protected Map<String, String> getEnv(boolean prePackagePhase) {
         Map<String, String> ret = new HashMap<>();
         if (!isFatJar()) {
             String mainClass = getConfig(Config.mainClass);
@@ -151,7 +148,7 @@ public class JavaExecGenerator extends BaseGenerator {
                 mainClass = mainClassDetector.getMainClass();
                 if (mainClass == null) {
                     if (!prePackagePhase) {
-                        throw new MojoExecutionException("Cannot extract main class to startup");
+                        throw new IllegalStateException("Cannot extract main class to startup");
                     }
                 }
             }
@@ -171,63 +168,50 @@ public class JavaExecGenerator extends BaseGenerator {
         return new ArrayList<>();
     }
 
-    protected MavenAssemblyConfiguration createAssembly() throws MojoExecutionException {
-        final MavenAssemblyConfiguration.Builder builder = new MavenAssemblyConfiguration.Builder();
+    protected JkubeAssemblyConfiguration createAssembly() {
+        final JkubeAssemblyConfiguration.Builder builder = new JkubeAssemblyConfiguration.Builder();
         builder.targetDir(getConfig(Config.targetDir));
         addAssembly(builder);
         return builder.build();
     }
 
-    protected void addAssembly(MavenAssemblyConfiguration.Builder builder) throws MojoExecutionException {
+    protected void addAssembly(JkubeAssemblyConfiguration.Builder builder) {
         String assemblyRef = getConfig(Config.assemblyRef);
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
         } else {
-            Assembly assembly = new Assembly();
-            addAdditionalFiles(assembly);
+            List<JkubeProjectAssembly> assemblies = new ArrayList<>();
+            assemblies.addAll(addAdditionalFiles(getProject()));
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
                 JkubeProject project = getProject();
-                if (fatJar == null) {
-                    DependencySet dependencySet = new DependencySet();
-                    dependencySet.addInclude(project.getGroupId() + ":" + project.getArtifactId());
-                    assembly.addDependencySet(dependencySet);
-                } else {
-                    FileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
-                    assembly.addFileSet(fileSet);
+                if (fatJar != null) {
+                    JkubeProjectAssembly fileSet = getOutputDirectoryFileSet(fatJar, project);
+                    assemblies.add(fileSet);
                 }
             } else {
                 builder.descriptorRef("artifact-with-dependencies");
             }
-            builder.assemblyDef(assembly);
+            builder.assemblyDef(assemblies);
         }
     }
 
-    private void addAdditionalFiles(Assembly assembly) {
-        assembly.addFileSet(createFileSet("src/main/jkube-includes/bin","bin","0755","0755"));
-        assembly.addFileSet(createFileSet("src/main/jkube-includes",".","0644","0755"));
+    private List<JkubeProjectAssembly> addAdditionalFiles(JkubeProject project) {
+        return Arrays.asList((createFileSet(project, "src/main/jkube-includes/bin","0755")),
+                createFileSet(project, "src/main/jkube-includes","0644"));
     }
 
-    private FileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JkubeProject project) {
-        org.apache.maven.plugins.assembly.model.FileSet fileSet = new org.apache.maven.plugins.assembly.model.FileSet();
+    private JkubeProjectAssembly getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JkubeProject project) {
         File buildDir = new File(project.getBuildDirectory());
-        fileSet.setDirectory(getRelativePath(project.getBaseDirectory(), buildDir).getPath());
-        fileSet.addInclude(getRelativePath(buildDir, fatJar.getArchiveFile()).getPath());
-        fileSet.setOutputDirectory(".");
-        fileSet.setFileMode("0640");
-        return fileSet;
+        return new JkubeProjectAssembly(buildDir, Arrays.asList(getRelativePath(project.getBaseDirectory(), buildDir).getPath(),
+                getRelativePath(buildDir, fatJar.getArchiveFile()).getPath()), "0640");
     }
 
-    private FileSet createFileSet(String sourceDir, String outputDir, String fileMode, String directoryMode) {
-        FileSet fileSet = new FileSet();
-        fileSet.setDirectory(sourceDir);
-        fileSet.setOutputDirectory(outputDir);
-        fileSet.setFileMode(fileMode);
-        fileSet.setDirectoryMode(directoryMode);
-        return fileSet;
+    private JkubeProjectAssembly createFileSet(JkubeProject project, String sourceDir, String fileMode) {
+        return new JkubeProjectAssembly(project.getBaseDirectory(), Arrays.asList(sourceDir), fileMode);
     }
 
-    protected boolean isFatJar() throws MojoExecutionException {
+    protected boolean isFatJar() {
         return !hasMainClass() && detectFatJar() != null;
     }
 
@@ -235,7 +219,7 @@ public class JavaExecGenerator extends BaseGenerator {
         return getConfig(Config.mainClass) != null;
     }
 
-    public FatJarDetector.Result detectFatJar() throws IllegalStateException {
+    public FatJarDetector.Result detectFatJar() {
         return fatJarDetector.scan();
     }
 

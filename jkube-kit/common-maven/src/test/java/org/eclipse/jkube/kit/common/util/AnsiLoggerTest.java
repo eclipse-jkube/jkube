@@ -18,7 +18,6 @@ import static org.junit.Assert.assertEquals;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.maven.monitor.logging.DefaultLog;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
-import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
 import org.junit.AfterClass;
@@ -110,12 +109,12 @@ public class AnsiLoggerTest {
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = Ansi.ansi();
         logger.info("Yet another [[*]]Test[[*]] %s", "emphasis");
-        assertEquals(ansi.fg(AnsiLogger.COLOR_INFO)
+        assertEquals(ansi.fg(AnsiLogger.INFO)
                         .a("T>")
                         .a("Yet another ")
-                        .fgBright(AnsiLogger.COLOR_EMPHASIS)
+                        .fgBright(AnsiLogger.EMPHASIS)
                         .a("Test")
-                        .fg(AnsiLogger.COLOR_INFO)
+                        .fg(AnsiLogger.INFO)
                         .a(" emphasis")
                         .reset().toString(),
                 testLog.getMessage());
@@ -127,12 +126,12 @@ public class AnsiLoggerTest {
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = new Ansi();
         logger.info("Specific [[C]]color[[C]] %s","is possible");
-        assertEquals(ansi.fg(AnsiLogger.COLOR_INFO)
+        assertEquals(ansi.fg(AnsiLogger.INFO)
                         .a("T>")
                         .a("Specific ")
                         .fg(Ansi.Color.CYAN)
                         .a("color")
-                        .fg(AnsiLogger.COLOR_INFO)
+                        .fg(AnsiLogger.INFO)
                         .a(" is possible")
                         .reset().toString(),
                 testLog.getMessage());
@@ -146,12 +145,12 @@ public class AnsiLoggerTest {
         // Note that the closing part of the emphasis does not need to match the opening.
         // E.g. [[b]]Blue[[*]] works just like [[b]]Blue[[b]]
         logger.info("[[b]][[*]]Skip[[*]][[*]]ping [[m]]empty strings[[/]] %s[[*]][[c]][[c]][[*]]","is possible");
-        assertEquals(ansi.fg(AnsiLogger.COLOR_INFO)
+        assertEquals(ansi.fg(AnsiLogger.INFO)
                         .a("T>")
                         .a("Skipping ")
                         .fgBright(Ansi.Color.MAGENTA)
                         .a("empty strings")
-                        .fg(AnsiLogger.COLOR_INFO)
+                        .fg(AnsiLogger.INFO)
                         .a(" is possible")
                         .reset().toString(),
                 testLog.getMessage());
@@ -163,12 +162,12 @@ public class AnsiLoggerTest {
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = new Ansi();
         logger.info("Lowercase enables [[c]]bright version[[c]] of %d colors",Ansi.Color.values().length - 1);
-        assertEquals(ansi.fg(AnsiLogger.COLOR_INFO)
+        assertEquals(ansi.fg(AnsiLogger.INFO)
                         .a("T>")
                         .a("Lowercase enables ")
                         .fgBright(Ansi.Color.CYAN)
                         .a("bright version")
-                        .fg(AnsiLogger.COLOR_INFO)
+                        .fg(AnsiLogger.INFO)
                         .a(" of 8 colors")
                         .reset().toString(),
                 testLog.getMessage());
@@ -189,12 +188,12 @@ public class AnsiLoggerTest {
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = new Ansi();
         logger.warn("%s messages support [[*]]emphasis[[*]] too","Warning");
-        assertEquals(ansi.fg(AnsiLogger.COLOR_WARNING)
+        assertEquals(ansi.fg(AnsiLogger.WARNING)
                         .a("T>")
                         .a("Warning messages support ")
-                        .fgBright(AnsiLogger.COLOR_EMPHASIS)
+                        .fgBright(AnsiLogger.EMPHASIS)
                         .a("emphasis")
-                        .fg(AnsiLogger.COLOR_WARNING)
+                        .fg(AnsiLogger.WARNING)
                         .a(" too")
                         .reset().toString(),
                 testLog.getMessage());
@@ -206,14 +205,14 @@ public class AnsiLoggerTest {
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = new Ansi();
         logger.error("Error [[*]]messages[[*]] could emphasise [[*]]%s[[*]]","many things");
-        assertEquals(ansi.fg(AnsiLogger.COLOR_ERROR)
+        assertEquals(ansi.fg(AnsiLogger.ERROR)
                         .a("T>")
                         .a("Error ")
-                        .fgBright(AnsiLogger.COLOR_EMPHASIS)
+                        .fgBright(AnsiLogger.EMPHASIS)
                         .a("messages")
-                        .fg(AnsiLogger.COLOR_ERROR)
+                        .fg(AnsiLogger.ERROR)
                         .a(" could emphasise ")
-                        .fgBright(AnsiLogger.COLOR_EMPHASIS)
+                        .fgBright(AnsiLogger.EMPHASIS)
                         .a("many things")
                         .reset()
                         .toString(),

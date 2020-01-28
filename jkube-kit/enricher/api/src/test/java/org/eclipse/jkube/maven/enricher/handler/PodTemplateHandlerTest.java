@@ -14,7 +14,7 @@
 package org.eclipse.jkube.maven.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
-import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -63,7 +63,7 @@ public class PodTemplateHandlerTest {
         tags.add("test");
 
         //container name with alias
-        final MavenBuildConfiguration buildImageConfiguration = new MavenBuildConfiguration.Builder()
+        final JkubeBuildConfiguration buildImageConfiguration = new JkubeBuildConfiguration.Builder()
                 .ports(ports).from("fabric8/maven:latest").cleanup("try")
                 .tags(tags).compression("gzip").build();
 

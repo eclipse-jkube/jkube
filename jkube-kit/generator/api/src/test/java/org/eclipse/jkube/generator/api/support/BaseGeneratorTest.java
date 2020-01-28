@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -201,7 +201,7 @@ public class BaseGeneratorTest {
 
     @Test
     public void shouldAddDefaultImage(@Mocked final ImageConfiguration ic1, @Mocked final ImageConfiguration ic2,
-                                      @Mocked final MavenBuildConfiguration bc) {
+                                      @Mocked final JkubeBuildConfiguration bc) {
         new Expectations() {{
             ic1.getBuildConfiguration(); result = bc; minTimes = 0;
             ic2.getBuildConfiguration(); result = null; minTimes = 0;

@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
+import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import com.google.common.base.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
@@ -351,8 +352,26 @@ public class MavenUtil {
         return registryServersMap;
     }
 
-    public static JkubeProject convertMavenProjectToJkubeProject(MavenProject mavenProject) throws DependencyResolutionRequiredException {
+    public static JkubeProject convertMavenProjectToJkubeProject(MavenProject mavenProject, MavenSession mavenSession) throws DependencyResolutionRequiredException {
         JkubeProject.Builder builder = new JkubeProject.Builder();
+
+        Properties properties = new Properties();
+        String localRepositoryBaseDir = null;
+
+        if (mavenProject.getProperties() != null) {
+            properties.putAll(mavenProject.getProperties());
+        }
+        if (mavenSession != null) {
+            if (mavenSession.getLocalRepository().getBasedir() != null) {
+                localRepositoryBaseDir = mavenSession.getLocalRepository().getBasedir();
+            }
+            if (mavenSession.getUserProperties() != null) {
+                properties.putAll(mavenSession.getUserProperties());
+            }
+            if (mavenSession.getSystemProperties() != null) {
+                properties.putAll(mavenSession.getSystemProperties());
+            }
+        }
 
         builder.name(mavenProject.getName())
                 .description(mavenProject.getDescription())
@@ -362,16 +381,20 @@ public class MavenUtil {
                 .baseDirectory(mavenProject.getBasedir())
                 .documentationUrl(getDocumentationUrl(mavenProject))
                 .compileClassPathElements(mavenProject.getCompileClasspathElements())
-                .properties(mavenProject.getProperties())
+                .properties(properties)
+                .packaging(mavenProject.getPackaging())
                 .dependencies(MavenUtil.getDependenciesAsString(mavenProject))
+                .localRepositoryBaseDirectory(localRepositoryBaseDir)
                 .plugins(MavenUtil.getPluginsAsString(mavenProject));
+
         if (mavenProject.getOrganization() != null) {
             builder.site(mavenProject.getOrganization().getUrl())
                     .organization(mavenProject.getOrganization().getName());
         }
 
-        if (mavenProject.getBuildPlugins() != null) {
+        if (mavenProject.getBuild() != null) {
             builder.outputDirectory(mavenProject.getBuild().getOutputDirectory())
+                    .buildFinalName(mavenProject.getBuild().getFinalName())
                     .buildDirectory(mavenProject.getBuild().getDirectory());
         }
 

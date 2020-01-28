@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.core.MavenBuildContext;
+import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
 import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
@@ -126,7 +126,7 @@ public class WatchService {
     }
 
     private Runnable createCopyWatchTask(final ImageWatcher watcher,
-                                         final MavenBuildContext mojoParameters, final String containerBaseDir) throws IOException {
+                                         final JkubeBuildContext mojoParameters, final String containerBaseDir) throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
 
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, mojoParameters);
@@ -159,7 +159,7 @@ public class WatchService {
     }
 
     private Runnable createBuildWatchTask(final ImageWatcher watcher,
-                                          final MavenBuildContext mojoParameters, final boolean doRestart, final BuildService.BuildContext buildContext)
+                                          final JkubeBuildContext mojoParameters, final boolean doRestart, final BuildService.BuildContext buildContext)
             throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, mojoParameters);
@@ -249,7 +249,7 @@ public class WatchService {
                     .portMapping(mappedPorts)
                     .gavLabel(watcher.watchContext.getGavLabel())
                     .projectProperties(watcher.watchContext.mojoParameters.getProject().getProperties())
-                    .basedir(watcher.watchContext.mojoParameters.getProject().getBasedir())
+                    .basedir(watcher.watchContext.mojoParameters.getProject().getBaseDirectory())
                     .imageConfig(imageConfig)
                     .serviceHub(watcher.watchContext.hub)
                     .logOutputSpecFactory(watcher.watchContext.serviceHubFactory.getLogOutputSpecFactory())
@@ -385,7 +385,7 @@ public class WatchService {
      */
     public static class WatchContext implements Serializable {
 
-        private MavenBuildContext mojoParameters;
+        private JkubeBuildContext mojoParameters;
 
         private WatchMode watchMode;
 
@@ -422,7 +422,7 @@ public class WatchService {
         public WatchContext() {
         }
 
-        public MavenBuildContext getMavenBuildContext() {
+        public JkubeBuildContext getMavenBuildContext() {
             return mojoParameters;
         }
 
@@ -490,7 +490,7 @@ public class WatchService {
                 this.context = context;
             }
 
-            public Builder mojoParameters(MavenBuildContext mojoParameters) {
+            public Builder mojoParameters(JkubeBuildContext mojoParameters) {
                 context.mojoParameters = mojoParameters;
                 return this;
             }

@@ -20,7 +20,7 @@ import org.apache.commons.lang3.SerializationUtils;
  * @author roland
  * @since 19.10.18
  */
-public class MavenBuildConfiguration extends BuildConfiguration<MavenAssemblyConfiguration> {
+public class JkubeBuildConfiguration extends BuildConfiguration<JkubeAssemblyConfiguration> {
 
     /**
      * Explicit typed setter is required by Plexus @Parameter injection in order to compute the target value
@@ -41,14 +41,14 @@ public class MavenBuildConfiguration extends BuildConfiguration<MavenAssemblyCon
     }
 
     public static class Builder
-            extends BuildConfiguration.TypedBuilder<MavenAssemblyConfiguration, MavenBuildConfiguration> {
+            extends BuildConfiguration.TypedBuilder<JkubeAssemblyConfiguration, JkubeBuildConfiguration> {
 
         public Builder() {
             this(null);
         }
 
-        public Builder(MavenBuildConfiguration that) {
-            super(that == null ? new MavenBuildConfiguration() : SerializationUtils.clone(that));
+        public Builder(JkubeBuildConfiguration that) {
+            super(that == null ? new JkubeBuildConfiguration() : SerializationUtils.clone(that));
         }
 
     }

@@ -14,32 +14,34 @@
 package org.eclipse.jkube.kit.build.core.config;
 
 
+import org.eclipse.jkube.kit.common.JkubeProjectAssembly;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.apache.maven.plugins.assembly.model.Assembly;
+
+import java.util.List;
 
 /**
  * @author roland
  * @since 19.10.18
  */
-public class MavenAssemblyConfiguration extends AssemblyConfiguration {
+public class JkubeAssemblyConfiguration extends AssemblyConfiguration {
 
     /**
      * Assembly defined inline in the pom.xml
      */
-    private Assembly inline;
+    private List<JkubeProjectAssembly> inline;
 
-    public Assembly getInline() {
+    public List<JkubeProjectAssembly> getInline() {
         return inline;
     }
 
-    public static class Builder extends AssemblyConfiguration.TypedBuilder<MavenAssemblyConfiguration> {
+    public static class Builder extends AssemblyConfiguration.TypedBuilder<JkubeAssemblyConfiguration> {
 
         public Builder() {
-            super(new MavenAssemblyConfiguration());
+            super(new JkubeAssemblyConfiguration());
         }
 
-        public Builder assemblyDef(Assembly descriptor) {
-            ((MavenAssemblyConfiguration)config).inline = set(descriptor);
+        public Builder assemblyDef(List<JkubeProjectAssembly> descriptor) {
+            ((JkubeAssemblyConfiguration)config).inline = set(descriptor);
             return this;
         }
     }

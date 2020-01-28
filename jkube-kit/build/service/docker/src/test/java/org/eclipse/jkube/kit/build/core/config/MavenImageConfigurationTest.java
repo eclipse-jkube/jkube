@@ -23,16 +23,16 @@ import static org.junit.Assert.assertThat;
 public class MavenImageConfigurationTest {
 
     @Test
-    public void testBuilder(@Mocked MavenBuildConfiguration mockMavenBuildConfiguration) {
+    public void testBuilder(@Mocked JkubeBuildConfiguration mockJkubeBuildConfiguration) {
         // Given
         new Expectations() {{
-            mockMavenBuildConfiguration.getUser();
+            mockJkubeBuildConfiguration.getUser();
             result = "super-user";
         }};
         // When
         final MavenImageConfiguration result = new MavenImageConfiguration.Builder()
                 .name("1337")
-                .buildConfig(mockMavenBuildConfiguration)
+                .buildConfig(mockJkubeBuildConfiguration)
                 .build();
         // Then
         assertThat(result.getName(), equalTo("1337"));

@@ -22,6 +22,7 @@ package org.eclipse.jkube.kit.build.core;
 public class GavLabel {
 
     private String mavenCoordinates;
+    public static final String KEY = "jkube.coordinates";
 
     /**
      * Construct from a given label
@@ -47,15 +48,6 @@ public class GavLabel {
      */
     public GavLabel(String groupId, String artifactId, String version) {
         mavenCoordinates = groupId + ":" + artifactId + ":" + version;
-    }
-
-    /**
-     * Get the label name
-     *
-     * @return the label name to use to mark a container belonging to this build
-     */
-    public String getKey() {
-        return "dmp.coordinates";
     }
 
     /**

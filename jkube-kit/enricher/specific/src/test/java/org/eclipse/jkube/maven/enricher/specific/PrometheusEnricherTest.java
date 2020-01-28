@@ -20,7 +20,7 @@ import java.util.TreeMap;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -91,7 +91,7 @@ public class PrometheusEnricherTest {
             )
         );
 
-        final MavenBuildConfiguration imageConfig = new MavenBuildConfiguration.Builder()
+        final JkubeBuildConfiguration imageConfig = new JkubeBuildConfiguration.Builder()
             .ports(Arrays.asList(PrometheusEnricher.PROMETHEUS_PORT))
             .build();
 
@@ -128,7 +128,7 @@ public class PrometheusEnricherTest {
             )
         );
 
-        final MavenBuildConfiguration imageConfig = new MavenBuildConfiguration.Builder()
+        final JkubeBuildConfiguration imageConfig = new JkubeBuildConfiguration.Builder()
             .build();
 
         // Setup mock behaviour
@@ -164,7 +164,7 @@ public class PrometheusEnricherTest {
                 )
         );
 
-        final MavenBuildConfiguration imageConfig = new MavenBuildConfiguration.Builder()
+        final JkubeBuildConfiguration imageConfig = new JkubeBuildConfiguration.Builder()
                 .ports(Arrays.asList(PrometheusEnricher.PROMETHEUS_PORT))
                 .build();
 

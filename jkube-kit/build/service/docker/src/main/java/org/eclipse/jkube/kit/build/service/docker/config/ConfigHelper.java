@@ -71,7 +71,7 @@ public class ConfigHelper {
         return filtered;
     }
 
-    public static void validateExternalPropertyActivation(JkubeProject project, List<ImageConfiguration> images) throws IllegalStateException {
+    public static void validateExternalPropertyActivation(JkubeProject project, List<ImageConfiguration> images) {
         String prop = getExternalConfigActivationProperty(project);
         if(prop == null) {
             return;

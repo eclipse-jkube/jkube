@@ -27,8 +27,8 @@ import com.google.gson.JsonObject;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.eclipse.jkube.kit.build.core.MavenBuildContext;
-import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
+import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -103,13 +103,13 @@ public class BuildService {
      * @throws DockerAccessException docker access exception
      * @throws IOException in case of any I/O exception
      */
-    protected void buildImage(ImageConfiguration imageConfig, MavenBuildContext params, boolean noCache, Map<String, String> buildArgs)
+    protected void buildImage(ImageConfiguration imageConfig, JkubeBuildContext params, boolean noCache, Map<String, String> buildArgs)
             throws DockerAccessException, IOException {
 
         String imageName = imageConfig.getName();
         ImageName.validate(imageName);
 
-        MavenBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+        JkubeBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
         String oldImageId = null;
 
@@ -121,8 +121,8 @@ public class BuildService {
         long time = System.currentTimeMillis();
 
         if (buildConfig.getDockerArchive() != null) {
-            docker.loadImage(imageName, buildConfig.getAbsoluteDockerTarPath(params.getSourceDirectory(), params.getProject().getBasedir() != null
-                    ? params.getProject().getBasedir().toString() : null));
+            docker.loadImage(imageName, buildConfig.getAbsoluteDockerTarPath(params.getSourceDirectory(), params.getProject().getBaseDirectory() != null
+                    ? params.getProject().getBaseDirectory().toString() : null));
             log.info("%s: Loaded tarball in %s", buildConfig.getDockerArchive(), EnvUtil.formatDurationTill(time));
             return;
         }
@@ -279,8 +279,8 @@ public class BuildService {
     private List<String> extractBaseFromDockerfile(BuildConfiguration buildConfig, BuildContext buildContext) {
         List<String> fromImage;
         try {
-            File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(buildContext.getMavenBuildContext().getSourceDirectory(), buildContext.getMavenBuildContext().getProject().getBasedir() != null
-                    ? buildContext.getMavenBuildContext().getProject().getBasedir().toString() : null);
+            File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(buildContext.getMavenBuildContext().getSourceDirectory(), buildContext.getMavenBuildContext().getProject().getBaseDirectory() != null
+                    ? buildContext.getMavenBuildContext().getProject().getBaseDirectory().toString() : null);
 
             fromImage = DockerFileUtil.extractBaseImages(fullDockerFilePath, buildContext.getMavenBuildContext().getProperties());
         } catch (IOException e) {
@@ -311,7 +311,7 @@ public class BuildService {
 
     public static class BuildContext implements Serializable {
 
-        private MavenBuildContext mojoParameters;
+        private JkubeBuildContext mojoParameters;
 
         private Map<String, String> buildArgs;
 
@@ -320,7 +320,7 @@ public class BuildService {
         public BuildContext() {
         }
 
-        public MavenBuildContext getMavenBuildContext() {
+        public JkubeBuildContext getMavenBuildContext() {
             return mojoParameters;
         }
 
@@ -344,7 +344,7 @@ public class BuildService {
                 this.context = context;
             }
 
-            public Builder mojoParameters(MavenBuildContext mojoParameters) {
+            public Builder mojoParameters(JkubeBuildContext mojoParameters) {
                 context.mojoParameters = mojoParameters;
                 return this;
             }

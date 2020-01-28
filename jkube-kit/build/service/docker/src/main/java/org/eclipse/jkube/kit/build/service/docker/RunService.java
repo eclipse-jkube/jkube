@@ -333,7 +333,7 @@ public class RunService {
             ret.putAll(labels);
         }
         if (runIdLabel != null) {
-            ret.put(runIdLabel.getKey(), runIdLabel.getValue());
+            ret.put(GavLabel.KEY, runIdLabel.getValue());
         }
         return ret;
     }

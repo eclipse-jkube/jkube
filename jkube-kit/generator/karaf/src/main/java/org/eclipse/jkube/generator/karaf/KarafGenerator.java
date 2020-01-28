@@ -16,8 +16,8 @@ package org.eclipse.jkube.generator.karaf;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jkube.kit.build.core.config.MavenAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.MavenBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
@@ -48,7 +48,7 @@ public class KarafGenerator extends BaseGenerator {
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
         final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
-        final MavenBuildConfiguration.Builder buildBuilder = new MavenBuildConfiguration.Builder();
+        final JkubeBuildConfiguration.Builder buildBuilder = new JkubeBuildConfiguration.Builder();
 
         buildBuilder.ports(extractPorts()).cmd(new Arguments(getConfig(Config.cmd)));
 
@@ -85,8 +85,8 @@ public class KarafGenerator extends BaseGenerator {
         }
     }
 
-    private MavenAssemblyConfiguration createAssembly() {
-        return new MavenAssemblyConfiguration.Builder()
+    private JkubeAssemblyConfiguration createAssembly() {
+        return new JkubeAssemblyConfiguration.Builder()
             .targetDir(getConfig(Config.baseDir))
             .user(getConfig(Config.user))
             .descriptorRef("karaf")

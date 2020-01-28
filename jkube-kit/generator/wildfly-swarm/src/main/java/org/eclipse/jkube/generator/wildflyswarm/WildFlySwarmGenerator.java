@@ -20,7 +20,6 @@ import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.apache.maven.plugin.MojoExecutionException;
 
 /**
  * Created by ceposta
@@ -38,7 +37,7 @@ public class WildFlySwarmGenerator extends JavaExecGenerator {
     }
 
     @Override
-    protected Map<String, String> getEnv(boolean isPrepackagePhase) throws MojoExecutionException {
+    protected Map<String, String> getEnv(boolean isPrepackagePhase) {
         Map<String, String> ret = super.getEnv(isPrepackagePhase);
         // Switch off Prometheus agent until logging issue with WildFly Swarm is resolved
         // See:

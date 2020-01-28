@@ -14,6 +14,9 @@
 package org.eclipse.jkube.kit.common.util;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.repository.MavenArtifactRepository;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DistributionManagement;
@@ -21,6 +24,7 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.Site;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.junit.Test;
@@ -29,6 +33,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -38,7 +44,7 @@ public class MavenUtilTest {
     public void testJkubeProjectConversion() throws DependencyResolutionRequiredException {
         MavenProject mavenProject = getMavenProject();
 
-        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(mavenProject);
+        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(mavenProject, getMavenSession());
         assertEquals("testProject", jkubeProject.getName());
         assertEquals("org.eclipse.jkube", jkubeProject.getGroupId());
         assertEquals("test-project", jkubeProject.getArtifactId());
@@ -66,7 +72,7 @@ public class MavenUtilTest {
 
         project.setDependencies(Arrays.asList(dependency, dependency1));
 
-        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project);
+        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project, getMavenSession());
         assertEquals(2, jkubeProject.getDependencies().size());
         assertEquals("[org.eclipse.jkube,foo-dependency,0.1.0, org.eclipse.jkube,bar-dependency,0.1.0]", MavenUtil.getDependenciesAsString(project).toString());
     }
@@ -74,7 +80,7 @@ public class MavenUtilTest {
     @Test
     public void testLoadedPomFromFile() throws Exception {
         MavenProject mavenProject = loadMavenProjectFromPom();
-        JkubeProject project = MavenUtil.convertMavenProjectToJkubeProject(mavenProject);
+        JkubeProject project = MavenUtil.convertMavenProjectToJkubeProject(mavenProject, getMavenSession());
 
         assertEquals("Eclipse Jkube Maven :: Sample :: Spring Boot Web", project.getName());
         assertEquals("Minimal Example with Spring Boot", project.getDescription());
@@ -150,5 +156,16 @@ public class MavenUtilTest {
         model = mavenreader.read(reader);
         model.setPomFile(pomfile);
         return new MavenProject(model);
+    }
+
+    private MavenSession getMavenSession() {
+        Settings settings = new Settings();
+        ArtifactRepository localRepository = new MavenArtifactRepository() {
+            public String getBasedir() {
+                return "repository";
+            }
+        };
+
+        return new MavenSession(null, settings, localRepository, null, null, Collections.<String>emptyList(), ".", null, null, new Date(System.currentTimeMillis()));
     }
 }

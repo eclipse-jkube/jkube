@@ -71,9 +71,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.eclipse.jkube.kit.build.maven.ResourceMojoUtil.DEFAULT_RESOURCE_LOCATION;
-import static org.eclipse.jkube.kit.build.maven.ResourceMojoUtil.useDekorate;
 import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
+import static org.eclipse.jkube.kit.common.util.ResourceMojoUtil.DEFAULT_RESOURCE_LOCATION;
+import static org.eclipse.jkube.kit.common.util.ResourceMojoUtil.useDekorate;
 
 
 /**
@@ -548,7 +548,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
     private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log)
         throws MojoExecutionException, DependencyResolutionRequiredException {
         List<ImageConfiguration> ret;
-        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project);
+        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project, session);
         ret = ConfigHelper.resolveImages(
             log,
             images,
@@ -573,7 +573,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
         Date now = getBuildReferenceDate();
         storeReferenceDateInPluginContext(now);
         String minimalApiVersion = ConfigHelper.initAndValidate(ret, null /* no minimal api version */,
-            new ImageNameFormatter(MavenUtil.convertMavenProjectToJkubeProject(project), now), log);
+            new ImageNameFormatter(MavenUtil.convertMavenProjectToJkubeProject(project, session), now), log);
         return ret;
     }
 

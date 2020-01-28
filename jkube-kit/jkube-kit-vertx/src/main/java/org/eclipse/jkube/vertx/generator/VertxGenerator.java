@@ -23,7 +23,6 @@ import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.apache.maven.plugin.MojoExecutionException;
 
 /**
  * Vert.x Generator.
@@ -78,7 +77,7 @@ public class VertxGenerator extends JavaExecGenerator {
   }
 
   @Override
-  protected Map<String, String> getEnv(boolean prePackagePhase) throws MojoExecutionException {
+  protected Map<String, String> getEnv(boolean prePackagePhase) {
     try {
       Map<String, String> map = super.getEnv(prePackagePhase);
 
@@ -99,7 +98,7 @@ public class VertxGenerator extends JavaExecGenerator {
       }
       return map;
     } catch (IOException ioException) {
-      throw new MojoExecutionException("Error in finding resource", ioException);
+      throw new IllegalStateException("Error in finding resource", ioException);
     }
   }
 
@@ -108,7 +107,7 @@ public class VertxGenerator extends JavaExecGenerator {
   }
 
   @Override
-  protected boolean isFatJar() throws MojoExecutionException {
+  protected boolean isFatJar() {
     return !hasMainClass() && isUsingFatJarPlugin() || super.isFatJar();
   }
 

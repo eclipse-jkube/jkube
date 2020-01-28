@@ -14,10 +14,11 @@
 package org.eclipse.jkube.kit.common;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Properties;
 
-public class JkubeProject {
+public class JkubeProject implements Serializable {
     private String name;
     private String groupId;
     private String artifactId;
@@ -33,6 +34,10 @@ public class JkubeProject {
     private String description;
     private String organizationName;
     private String documentationUrl;
+    private String buildFinalName;
+    private File artifact;
+    private String localRepositoryBaseDirectory;
+    private String packaging;
 
     public String getName() {
         return name;
@@ -124,6 +129,22 @@ public class JkubeProject {
         return documentationUrl;
     }
 
+    public String getLocalRepositoryBaseDirectory() {
+        return localRepositoryBaseDirectory;
+    }
+
+    public File getArtifact() {
+        return artifact;
+    }
+
+    public String getBuildFinalName() {
+        return buildFinalName;
+    }
+
+    public String getPackaging() {
+        return packaging;
+    }
+
     public static class Builder {
         private JkubeProject jkubeProject = new JkubeProject();
 
@@ -212,6 +233,26 @@ public class JkubeProject {
 
         public Builder documentationUrl(String documentationUrl) {
             jkubeProject.documentationUrl = documentationUrl;
+            return this;
+        }
+
+        public Builder artifact(File artifact) {
+            jkubeProject.artifact = artifact;
+            return this;
+        }
+
+        public Builder buildFinalName(String buildFinalName) {
+            jkubeProject.buildFinalName = buildFinalName;
+            return this;
+        }
+
+        public Builder localRepositoryBaseDirectory(String localRepositoryBaseDirectory) {
+            jkubeProject.localRepositoryBaseDirectory = localRepositoryBaseDirectory;
+            return this;
+        }
+
+        public Builder packaging(String packaging) {
+            jkubeProject.packaging = packaging;
             return this;
         }
 
