@@ -24,7 +24,7 @@
         <include>${project.groupId}:${project.artifactId}</include>
       </includes>
       <outputDirectory>.</outputDirectory>
-      <outputFileNameMapping>${fabric8.generator.webapp.path}.war</outputFileNameMapping>
+      <outputFileNameMapping>${jkube.generator.webapp.path}.war</outputFileNameMapping>
     </dependencySet>
   </dependencySets>
 </assembly>
