@@ -73,7 +73,7 @@ public class OpenShiftRegistryAuthHandler implements RegistryAuthHandler {
                     .orElse(false);
         if (useOpenShiftAuth) {
             log.debug("AuthConfig: OpenShift credentials");
-            return validateMandatoryOpenShiftLogin(parseOpenShiftConfig());
+            return validateMandatoryOpenShiftLogin(parseOpenShiftConfig());// the input comes out as null
         }
 
         return null;
@@ -85,7 +85,7 @@ public class OpenShiftRegistryAuthHandler implements RegistryAuthHandler {
         }
         // No login found
         String kubeConfigEnv = System.getenv("KUBECONFIG");
-        throw new IllegalArgumentException(
+        throw new IllegalArgumentException(// point of failure
             String.format("OpenShift auth check enabled, but not active user and/or token found in %s. " +
                           "Please use 'oc login' for connecting to OpenShift.", kubeConfigEnv != null ? kubeConfigEnv : "~/.kube/config"));
 
@@ -159,6 +159,7 @@ public class OpenShiftRegistryAuthHandler implements RegistryAuthHandler {
         if (user == null) {
             return null;
         }
+        // WHY S THS NLL
         String token = (String) user.get("token");
         if (token == null) {
             return null;

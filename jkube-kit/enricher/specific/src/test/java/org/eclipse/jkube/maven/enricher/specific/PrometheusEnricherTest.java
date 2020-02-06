@@ -31,6 +31,7 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
 
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 
 public class PrometheusEnricherTest {
@@ -146,7 +147,7 @@ public class PrometheusEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
         Map<String, String> annotations = builder.buildFirstItem().getMetadata().getAnnotations();
 
-        assertEquals(Collections.emptyMap(), annotations);
+        assertNull(annotations);
     }
 
     @Test

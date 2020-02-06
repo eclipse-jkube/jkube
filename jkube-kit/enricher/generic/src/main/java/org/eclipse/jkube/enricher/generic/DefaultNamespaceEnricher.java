@@ -130,14 +130,14 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<NamespaceBuilder>() {
             @Override
             public void visit(NamespaceBuilder builder) {
-                builder.withNewStatus("active").editMetadata().withNamespace(null).endMetadata().build();
+                builder.withNewStatus().withPhase("active").endStatus().editMetadata().withNamespace(null).endMetadata().build();
             }
         });
 
         builder.accept(new TypedVisitor<ProjectBuilder>() {
             @Override
             public void visit(ProjectBuilder builder) {
-                builder.withNewStatus("active").editMetadata().withNamespace(null).endMetadata().build();
+                builder.withNewStatus().withPhase("active").endStatus().editMetadata().withNamespace(null).endMetadata().build();
             }
         });
     }

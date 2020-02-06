@@ -14,7 +14,9 @@
 package org.eclipse.jkube.maven.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.Namespace;
+import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.NamespaceStatus;
+import io.fabric8.kubernetes.api.model.NamespaceStatusBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -24,7 +26,7 @@ public class NamespaceHandler {
     public Namespace getNamespace(String ns) {
         Namespace namespace = new Namespace();
         namespace.setMetadata(createProjectMetaData(ns));
-        namespace.setStatus(new NamespaceStatus("active"));
+        namespace.setStatus(new NamespaceStatusBuilder().withPhase("Active").build());
         return namespace;
     }
 

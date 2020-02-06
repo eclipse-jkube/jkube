@@ -183,7 +183,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
                     pvcBuilder.withNewMetadata().endMetadata();
                 }
                 String storageClass = getConfig(Config.defaultStorageClass);
-                if (StringUtils.isNotBlank(storageClass) && !pvcBuilder.buildMetadata().getAnnotations().containsKey(VOLUME_STORAGE_CLASS_ANNOTATION)) {
+                if (StringUtils.isNotBlank(storageClass)) {
                     pvcBuilder.editMetadata().addToAnnotations(VOLUME_STORAGE_CLASS_ANNOTATION, storageClass).endMetadata();
                 }
             }

@@ -21,7 +21,7 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 public class ProjectHandler {
     public Project getProject(String namespace) {
-        return new ProjectBuilder().withMetadata(createProjectMetaData(namespace)).withNewStatus("active").build();
+        return new ProjectBuilder().withMetadata(createProjectMetaData(namespace)).withNewStatus().withPhase("Active").endStatus().build();
     }
 
     private ObjectMeta createProjectMetaData(String namespace) {

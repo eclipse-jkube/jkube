@@ -20,7 +20,6 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
 import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.kit.config.resource.ConfigMap;
 import org.eclipse.jkube.kit.config.resource.ConfigMapEntry;
 
 import java.io.IOException;
@@ -128,7 +127,7 @@ public class ConfigMapEnricher extends BaseEnricher {
                 }
             }
 
-            if (!configMapBuilder.getData().isEmpty() || !configMapBuilder.getBinaryData().isEmpty()) {
+            if (configMapBuilder.getData() != null && !configMapBuilder.getData().isEmpty() || !configMapBuilder.getBinaryData().isEmpty()) {
                 builder.addToConfigMapItems(configMapBuilder.build());
             }
         } catch (IOException e) {

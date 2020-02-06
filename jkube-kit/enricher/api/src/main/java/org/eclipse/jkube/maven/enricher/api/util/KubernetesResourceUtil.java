@@ -993,16 +993,19 @@ public class KubernetesResourceUtil {
      * when overriding
      */
     private static Map<String, String> mergeMapsAndRemoveEmptyStrings(Map<String, String> overrideMap, Map<String, String> originalMap) {
-        Map<String, String> answer = MapUtil.mergeMaps(overrideMap, originalMap);
-        Set<Map.Entry<String, String>> entries = overrideMap.entrySet();
-        for (Map.Entry<String, String> entry : entries) {
-            String value = entry.getValue();
-            if (value == null || value.isEmpty()) {
-                String key = entry.getKey();
-                answer.remove(key);
+        if (overrideMap != null) {
+            Map<String, String> answer = MapUtil.mergeMaps(overrideMap, originalMap);
+            Set<Map.Entry<String, String>> entries = overrideMap.entrySet();
+            for (Map.Entry<String, String> entry : entries) {
+                String value = entry.getValue();
+                if (value == null || value.isEmpty()) {
+                    String key = entry.getKey();
+                    answer.remove(key);
+                }
             }
+            return answer;
         }
-        return answer;
+        return null;
     }
 
     // lets use presence of an image name as a clue that we are just enriching things a little

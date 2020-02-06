@@ -136,8 +136,14 @@ public class ProjectLabelEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<ObjectMetaBuilder>() {
             @Override
             public void visit(ObjectMetaBuilder element) {
-                Map<String, String> labels = element.getLabels();
-                MapUtil.mergeIfAbsent(labels, createLabels());
+                if (element.getLabels() != null) {
+                    Map<String, String> labels = element.getLabels();
+                    MapUtil.mergeIfAbsent(labels, createLabels());
+                } else {
+                    Map<String, String> newLabels = new HashMap<>();
+                    MapUtil.mergeIfAbsent(newLabels, createLabels());
+                    element.withLabels(newLabels);
+                }
             }
         });
     }
