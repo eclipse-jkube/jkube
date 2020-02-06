@@ -35,6 +35,9 @@ import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 
 import java.io.IOException;
 
+import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.docker;
+import static org.eclipse.jkube.kit.config.resource.RuntimeMode.kubernetes;
+
 /**
  * Builds the docker images configured for this project via a Docker or S2I binary build.
  *
@@ -46,6 +49,18 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
 
     // Handler dealing with authentication credentials
     private AuthConfigFactory authConfigFactory;
+
+    @Override
+    protected boolean isDockerAccessRequired() {
+        boolean ret = false;
+        if (runtimeMode == kubernetes) {
+             ret = true;
+        }
+        if (buildStrategy == docker) {
+            ret = true;
+        }
+        return ret;
+    }
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
