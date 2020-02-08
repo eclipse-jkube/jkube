@@ -58,10 +58,8 @@ jobs:
           && ./mvnw -B -PKubernetes clean verify -Djkube.version="$JKUBE_VERSION"
       - name: Consolidate reports
         run: |
-          mkdir -p ./reports/zero-config/spring-boot \
-          && cp -R ./$JKUBE_IT_DIR/it/target/failsafe-reports ./reports \
-          && cp -R ./$JKUBE_IT_DIR/projects-to-be-tested/zero-config/spring-boot/target/docker ./reports/zero-config/spring-boot \
-          && cp -R ./$JKUBE_IT_DIR/projects-to-be-tested/zero-config/spring-boot/target/classes/META-INF ./reports/zero-config/spring-boot
+          mkdir -p ./reports \
+          && cp -R ./$JKUBE_IT_DIR/it/target/failsafe-reports ./reports
       - name: Save reports as artifact
         uses: actions/upload-artifact@master
         with:
@@ -98,10 +96,8 @@ jobs:
           && ./mvnw -B -POpenShift clean verify -Djkube.version="$JKUBE_VERSION"
       - name: Consolidate reports
         run: |
-          mkdir -p ./reports/zero-config/spring-boot \
-          && cp -R ./$JKUBE_IT_DIR/it/target/failsafe-reports ./reports \
-          && cp -R ./$JKUBE_IT_DIR/projects-to-be-tested/zero-config/spring-boot/target/docker ./reports/zero-config/spring-boot \
-          && cp -R ./$JKUBE_IT_DIR/projects-to-be-tested/zero-config/spring-boot/target/classes/META-INF ./reports/zero-config/spring-boot
+          mkdir -p ./reports \
+          && cp -R ./$JKUBE_IT_DIR/it/target/failsafe-reports ./reports
       - name: Save reports as artifact
         uses: actions/upload-artifact@master
         with:
