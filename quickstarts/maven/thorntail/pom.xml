@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>jkube-maven-sample-thorntail</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1-SNAPSHOT</version>
   <packaging>war</packaging>
 
   <name>Eclipse Jkube Maven :: Sample :: Thorntail</name>
