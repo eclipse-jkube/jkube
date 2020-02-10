@@ -44,6 +44,7 @@ public class ThorntailV2Generator extends JavaExecGenerator {
         // - https://github.com/fabric8io/fabric8-maven-plugin/issues/1173
         // - https://issues.jboss.org/browse/THORN-1859
         ret.put("AB_PROMETHEUS_OFF", "true");
+        ret.put("AB_OFF", "true");
         return ret;
     }
 }
