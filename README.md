@@ -46,3 +46,25 @@ By moving out common parts it will be now also be possible for the [docker-maven
 
 
 <div style="text-align:center"><img src ="https://i.imgur.com/DF5bnD2.jpg" /></div>
+
+## Hello World using Eclipse JKube
+
+- Clone repository and move to quickstart [helloworld](https://github.com/eclipse/jkube/tree/master/quickstarts/maven/hello-world) sample, build project and run JKube goals:
+```
+# 1. Clone repository and move to Hello World Quickstart
+git clone git@github.com:eclipse/jkube.git && cd jkube/quickstarts/maven/hello-world
+
+# 2. Build Project and run JKube goals
+mvn clean install \
+  k8s:build       \ # Build Docker Image
+  k8s:resouce     \ # Generate Kubernetes Manifests
+  k8s:apply         # Apply generated Kubernetes Manifests onto Kubernetes
+```
+- Check created pod logs:
+```
+~/work/repos/jkube/quickstarts/maven/hello-world : $ kubectl get pods
+NAME                                       READY   STATUS        RESTARTS   AGE
+jkube-sample-helloworld-7c4665f464-xwskj   0/1     Completed     2          27s
+~/work/repos/jkube/quickstarts/maven/hello-world : $ kubectl logs jkube-sample-helloworld-7c4665f464-xwskj
+Hello World!
+```
