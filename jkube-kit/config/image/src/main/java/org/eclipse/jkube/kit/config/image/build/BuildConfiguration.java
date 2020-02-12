@@ -204,6 +204,10 @@ public class BuildConfiguration<A extends AssemblyConfiguration> implements Seri
         return assembly;
     }
 
+    public void setAssembly(A assembly) {
+        this.assembly = assembly;
+    }
+
     public List<String> getPorts() {
         return removeEmptyEntries(ports);
     }

@@ -22,6 +22,24 @@ import org.apache.commons.lang3.SerializationUtils;
  */
 public class MavenBuildConfiguration extends BuildConfiguration<MavenAssemblyConfiguration> {
 
+    /**
+     * Explicit typed setter is required by Plexus @Parameter injection in order to compute the target value
+     * object type when reading xml tags
+     *
+     * i.e. The following xml wil be converted to a MavenAssemblyConfiguration:
+     * <pre>{@code
+     *   <assembly>
+     *     <mode>dir</mode>
+     *     <!-- ... -->
+     *   </assembly>
+     * }</pre>
+     * @param assembly to be set
+     */
+    @Override
+    public void setAssembly(MavenAssemblyConfiguration assembly) {
+        super.setAssembly(assembly);
+    }
+
     public static class Builder
             extends BuildConfiguration.TypedBuilder<MavenAssemblyConfiguration, MavenBuildConfiguration> {
 
