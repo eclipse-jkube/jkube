@@ -11,11 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package io.k8spatterns.demo.random;
-
-
-import java.util.HashMap;
-import java.util.Map;
+package org.eclipse.jkube.quickstart.quarkus.rest;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -25,14 +21,18 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/")
-public class RandomResource {
+public class CoolApplicationResource {
 
-    @Inject
-    RandomGeneratorService service;
+  private CoolApplicationService coolApplicationService;
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public RandomResponse random() {
-        return new RandomResponse(service.getUUID(), service.getRandom());
-    }
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response get() {
+    return Response.ok(coolApplicationService.getCoolApplication()).build();
+  }
+
+  @Inject
+  public void setCoolApplicationService(CoolApplicationService coolApplicationService) {
+    this.coolApplicationService = coolApplicationService;
+  }
 }
