@@ -93,7 +93,7 @@ jobs:
         run: |
           JKUBE_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) \
           && cd $JKUBE_IT_DIR \
-          && ./mvnw -B -POpenShift clean verify -Djkube.version="$JKUBE_VERSION"
+          && ./mvnw -B -POpenShift clean verify -Djkube.version="$JKUBE_VERSION" -Djunit.jupiter.execution.parallel.config.fixed.parallelism=2
       - name: Consolidate reports
         run: |
           mkdir -p ./reports \
