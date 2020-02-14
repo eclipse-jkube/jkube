@@ -9,6 +9,8 @@
 |===
 |     KMP     | Kubernetes 1.14.2 | Kubernetes 1.12.2 | Kubernetes 1.11.0 | Kubernetes 1.10.0 | Kubernetes 1.9.0 | Kubernetes 1.8.0 | Kubernetes 1.7.0 | Kubernetes 1.6.0 | Kubernetes 1.5.1 | Kubernetes 1.4.0
 
+| KMP 0.1.1   |        ✓          |        ✓          |        ✓          |        ✓          |        ✓         |        ✓         |        ✓        |        ✓         |        ✓         |        ✓        |
+
 | KMP 0.1.0   |        ✓          |        ✓          |        ✓          |        ✓          |        ✓         |        ✓         |        ✓        |        ✓         |        ✓         |        ✓        |
 
 |===
