@@ -17,10 +17,11 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.eclipse.jkube.kit.common.JkubeProjectDependency;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
-import org.eclipse.jkube.maven.enricher.api.model.Dependency;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 
 public interface EnricherContext {
@@ -78,7 +79,7 @@ public interface EnricherContext {
      * @param transitive if transitive deps should be returned.
      * @return List of dependencies.
      */
-    List<Dependency> getDependencies(boolean transitive);
+    List<JkubeProjectDependency> getDependencies(boolean transitive);
 
     /**
      * Checks if given dependency is defined.
@@ -97,15 +98,15 @@ public interface EnricherContext {
      * @return Version number.
      */
     default Optional<String> getDependencyVersion(String groupId, String artifactId) {
-        List<Dependency> dependencies = getDependencies(true);
-        for (Dependency dep : dependencies) {
+        List<JkubeProjectDependency> dependencies = getDependencies(true);
+        for (JkubeProjectDependency dep : dependencies) {
             String scope = dep.getScope();
             if ("test".equals(scope) ||
-                (artifactId != null && !artifactId.equals(dep.getGav().getArtifactId()))) {
+                (artifactId != null && !artifactId.equals(dep.getArtifactId()))) {
                 continue;
             }
-            if (dep.getGav().getGroupId().equals(groupId)) {
-                return Optional.of(dep.getGav().getVersion());
+            if (dep.getGroupId().equals(groupId)) {
+                return Optional.of(dep.getVersion());
             }
         }
         return Optional.empty();

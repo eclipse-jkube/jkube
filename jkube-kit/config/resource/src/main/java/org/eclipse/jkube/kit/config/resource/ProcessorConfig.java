@@ -25,7 +25,6 @@ import java.util.TreeMap;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.jkube.kit.common.Named;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Configuration for enrichers and generators
@@ -39,14 +38,12 @@ public class ProcessorConfig {
     /**
      * Modules to includes, should hold <code>&lt;include&gt;</code> elements
      */
-    @Parameter
     @JsonProperty(value = "includes")
     List<String> includes = new ArrayList<>();
 
     /**
      * Modules to excludes, should hold <code>&lt;exclude&gt;</code> elements
      */
-    @Parameter
     @JsonProperty(value = "excludes")
     Set<String> excludes = new HashSet<>();
 
@@ -55,7 +52,6 @@ public class ProcessorConfig {
      */
     // See http://stackoverflow.com/questions/38628399/using-map-of-maps-as-maven-plugin-parameters/38642613 why
     // a "TreeMap" is used as parameter and not "Map<String, String>"
-    @Parameter
     @JsonProperty(value = "config")
     Map<String, TreeMap> config = new HashMap<>();
 

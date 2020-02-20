@@ -15,10 +15,10 @@ package org.eclipse.jkube.kit.build.service.docker;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
@@ -28,7 +28,7 @@ import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
-import org.eclipse.jkube.kit.build.service.docker.config.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
 /**
  * Allows to interact with registries, eg. to push/pull images.
@@ -154,7 +154,7 @@ public class RegistryService {
 
         return config.getAuthConfigFactory().createAuthConfig(
             isPush, config.isSkipExtendedAuth(), config.getAuthConfig(),
-            config.getSettings(), user, registry);
+            config.getSettings(), user, registry, config.getPasswordDecryptionMethod());
     }
 
     // ===========================================
@@ -171,6 +171,8 @@ public class RegistryService {
         private boolean skipExtendedAuth;
 
         private Map authConfig;
+
+        private transient UnaryOperator<String> passwordDecryptionMethod;
 
         public RegistryConfig() {
         }
@@ -195,6 +197,10 @@ public class RegistryService {
             return authConfig;
         }
 
+        public UnaryOperator<String> getPasswordDecryptionMethod() {
+            return passwordDecryptionMethod;
+        }
+
         public static class Builder {
 
             private RegistryConfig context = new RegistryConfig();
@@ -212,8 +218,8 @@ public class RegistryService {
                 return this;
             }
 
-            public Builder settings(Map<String, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, Object>> registryServerSettingsAsMap) {
-                context.settings = RegistryServerConfiguration.fetchListFromMap(registryServerSettingsAsMap);
+            public Builder settings(List<RegistryServerConfiguration> registryServerConfigurations) {
+                context.settings = registryServerConfigurations;
                 return this;
             }
 
@@ -229,6 +235,11 @@ public class RegistryService {
 
             public Builder authConfig(Map authConfig) {
                 context.authConfig = authConfig;
+                return this;
+            }
+
+            public Builder passwordDecryptionMethod(UnaryOperator<String> passwordDecrypt) {
+                context.passwordDecryptionMethod =passwordDecrypt;
                 return this;
             }
 

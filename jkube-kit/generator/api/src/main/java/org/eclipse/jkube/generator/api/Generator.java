@@ -17,7 +17,6 @@ import java.util.List;
 
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Named;
-import org.apache.maven.plugin.MojoExecutionException;
 
 /**
  * Generator which can create {@link ImageConfiguration} on the fly by examining the build pom.xml
@@ -32,7 +31,7 @@ public interface Generator extends Named {
      * @return true if the generator is applicable
      * @param configs all configuration already available
      */
-    boolean isApplicable(List<ImageConfiguration> configs) throws MojoExecutionException;
+    boolean isApplicable(List<ImageConfiguration> configs);
 
     /**
      * Provide additional image configurations.
@@ -41,7 +40,7 @@ public interface Generator extends Named {
      * @param prePackagePhase if true this is called in a prepackage phase where no artifacts has been packaged in target/.
      * @return list of image configurations
      */
-    List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) throws MojoExecutionException;
+    List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase);
 }
 
 

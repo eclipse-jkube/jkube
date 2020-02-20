@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.config.resource.ConfigMapEntry;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ConfigMapEnricherTest {
 
     @Mocked
-    private MavenEnricherContext context;
+    private JkubeEnricherContext context;
 
     @Test
     public void should_materialize_file_content_from_annotation() throws Exception {

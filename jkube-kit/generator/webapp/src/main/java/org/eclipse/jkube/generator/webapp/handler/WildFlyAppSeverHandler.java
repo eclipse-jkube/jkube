@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.generator.webapp.handler;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,19 +33,23 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
     @Override
     public boolean isApplicable() {
-        return
-            !JkubeProjectUtil.hasPlugin(project, "org.wildfly.swarm", "wildfly-swarm-plugin") &&
-            !JkubeProjectUtil.hasPlugin(project, "io.thorntail", "thorntail-maven-plugin") &&
-            (hasOneOf("**/WEB-INF/jboss-deployment-structure.xml",
-                     "**/META-INF/jboss-deployment-structure.xml",
-                     "**/WEB-INF/jboss-web.xml", "**/WEB-INF/ejb-jar.xml",
-                     "**/WEB-INF/jboss-ejb3.xml", "**/META-INF/persistence.xml",
-                     "**/META-INF/*-jms.xml", "**/WEB-INF/*-jms.xml",
-                     "**/META-INF/*-ds.xml", "**/WEB-INF/*-ds.xml",
-                     "**/WEB-INF/jboss-ejb-client.xml", "**/META-INF/jbosscmp-jdbc.xml",
-                     "**/WEB-INF/jboss-webservices.xml") ||
-            JkubeProjectUtil.hasPlugin(project, "org.jboss.as.plugins", "jboss-as-maven-plugin") ||
-            JkubeProjectUtil.hasPlugin(project, "org.wildfly.plugins", "wildfly-maven-plugin"));
+        try {
+            return
+                    !JkubeProjectUtil.hasPlugin(project, "org.wildfly.swarm", "wildfly-swarm-plugin") &&
+                            !JkubeProjectUtil.hasPlugin(project, "io.thorntail", "thorntail-maven-plugin") &&
+                            (hasOneOf("**/WEB-INF/jboss-deployment-structure.xml",
+                                    "**/META-INF/jboss-deployment-structure.xml",
+                                    "**/WEB-INF/jboss-web.xml", "**/WEB-INF/ejb-jar.xml",
+                                    "**/WEB-INF/jboss-ejb3.xml", "**/META-INF/persistence.xml",
+                                    "**/META-INF/*-jms.xml", "**/WEB-INF/*-jms.xml",
+                                    "**/META-INF/*-ds.xml", "**/WEB-INF/*-ds.xml",
+                                    "**/WEB-INF/jboss-ejb-client.xml", "**/META-INF/jbosscmp-jdbc.xml",
+                                    "**/WEB-INF/jboss-webservices.xml") ||
+                                    JkubeProjectUtil.hasPlugin(project, "org.jboss.as.plugins", "jboss-as-maven-plugin") ||
+                                    JkubeProjectUtil.hasPlugin(project, "org.wildfly.plugins", "wildfly-maven-plugin"));
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to scan output directory: ", exception);
+        }
     }
 
     @Override

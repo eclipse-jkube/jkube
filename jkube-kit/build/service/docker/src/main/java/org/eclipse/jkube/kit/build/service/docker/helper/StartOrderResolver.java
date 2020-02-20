@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import org.eclipse.jkube.kit.build.service.docker.QueryService;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -106,7 +105,7 @@ public class StartOrderResolver {
             ret.append("* ")
                .append(config.getAlias())
                .append(" depends on ")
-               .append(StringUtils.join(config.getDependencies().toArray(), ","))
+               .append(String.join(",", (String[])config.getDependencies().toArray()))
                .append("\n");
         }
         return ret.toString();

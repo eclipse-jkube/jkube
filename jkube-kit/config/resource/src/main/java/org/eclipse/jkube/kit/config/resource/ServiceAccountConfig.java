@@ -13,13 +13,10 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
-import org.apache.maven.plugins.annotations.Parameter;
 
 public class ServiceAccountConfig {
-    @Parameter
     private String name;
 
-    @Parameter
     private String deploymentRef;
 
     public ServiceAccountConfig(String name) {

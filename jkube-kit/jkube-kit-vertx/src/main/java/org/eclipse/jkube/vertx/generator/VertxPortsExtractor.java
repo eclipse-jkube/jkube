@@ -13,19 +13,13 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
-import org.codehaus.plexus.util.xml.XmlStreamReader;
-import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
+import java.util.Map;
 
 public class VertxPortsExtractor extends AbstractPortsExtractor {
 
@@ -44,24 +38,16 @@ public class VertxPortsExtractor extends AbstractPortsExtractor {
         JkubeProjectPlugin plugin = JkubeProjectUtil.getPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
 
         if (plugin != null) {
-            try {
-                Object pluginConfiguration = plugin.getConfiguration();
-                /*
-                 * During deserialization into JkubeProjectPlugin null configuration gets converted to null string hence
-                 * this check.
-                 */
-                if (pluginConfiguration == null || pluginConfiguration.toString().equalsIgnoreCase("null")) {
-                    return null;
-                }
-                Xpp3Dom configuration = Xpp3DomBuilder.build(new StringReader(pluginConfiguration.toString()));
-                if (configuration == null) {
-                    return null;
-                }
-                Xpp3Dom config = configuration.getChild("config");
-                return config != null ? config.getValue() : null;
-            } catch (IOException | XmlPullParserException exception) {
-                log.warn("Error in parsing plugin configuration: ", exception);
+            Map<String, Object> pluginConfiguration = plugin.getConfiguration();
+            /*
+             * During deserialization into JkubeProjectPlugin null configuration gets converted to null string hence
+             * this check.
+             */
+            if (pluginConfiguration == null) {
+                return null;
             }
+            Map<String, Object> config = (Map<String, Object>)pluginConfiguration.get("config");
+            return config != null ? config.get("vertxConfig").toString() : null;
         }
         return null;
     }

@@ -27,7 +27,7 @@ import io.fabric8.openshift.api.model.RoutePort;
 import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RouteEnricher extends BaseEnricher {
     private Boolean generateRoute;
 
-    public RouteEnricher(MavenEnricherContext buildContext) {
+    public RouteEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-openshift-route");
         this.generateRoute = getValueFromConfig(GENERATE_ROUTE, true);
     }

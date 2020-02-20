@@ -43,7 +43,7 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ import static org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil.e
  */
 public class ImageEnricher extends BaseEnricher {
 
-    public ImageEnricher(MavenEnricherContext buildContext) {
+    public ImageEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-image");
     }
 

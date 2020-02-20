@@ -14,12 +14,13 @@
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import org.apache.commons.io.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Properties;
@@ -71,8 +72,8 @@ public class DockerFileUtilTest {
     private File copyToTempDir(String resource) throws IOException {
         File dir = Files.createTempDirectory("d-m-p").toFile();
         File ret = new File(dir, "Dockerfile");
-        try (FileOutputStream os = new FileOutputStream(ret)) {
-            IOUtil.copy(getClass().getResourceAsStream(resource), os);
+        try (OutputStream os = new FileOutputStream(ret)) {
+            FileUtils.copyFile(new File(getClass().getResource(resource).getPath()), os);
         }
         return ret;
     }

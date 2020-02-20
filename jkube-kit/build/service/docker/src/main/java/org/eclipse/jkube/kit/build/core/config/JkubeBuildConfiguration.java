@@ -36,7 +36,7 @@ public class JkubeBuildConfiguration extends BuildConfiguration<JkubeAssemblyCon
      * @param assembly to be set
      */
     @Override
-    public void setAssembly(MavenAssemblyConfiguration assembly) {
+    public void setAssembly(JkubeAssemblyConfiguration assembly) {
         super.setAssembly(assembly);
     }
 

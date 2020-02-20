@@ -26,19 +26,18 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
 import org.eclipse.jkube.maven.enricher.handler.ServiceHandler;
 import java.util.Properties;
-import org.apache.maven.shared.utils.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -113,7 +112,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         public String def() { return d; } protected String d;
     }
 
-    public DefaultServiceEnricher(MavenEnricherContext buildContext) {
+    public DefaultServiceEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-service");
     }
 
@@ -198,7 +197,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         if (appName != null) {
             return appName;
         } else {
-            return getConfig(Config.name, MavenUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+            return getConfig(Config.name, JkubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
         }
     }
 
@@ -359,7 +358,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         List<ServicePort> ret = new LinkedList<>();
         String ports = getConfig(Config.port);
         if (ports != null) {
-            for (String port : StringUtils.split(ports, ",")) {
+            for (String port : ports.split(",")) {
                 ret.add(parsePortMapping(port));
             }
         }
@@ -473,7 +472,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
             String servicePort= port.getPort() != null ? Integer.toString(port.getPort()) : targetPort;
             p.add(targetPort.equals(servicePort) ? targetPort : servicePort + ":" + targetPort);
         }
-        return StringUtils.join(p.iterator(), ",");
+        return String.join(",", p);
     }
 
     private String getPortValue(IntOrString port) {
@@ -528,7 +527,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
     private String getDefaultServiceName(Service defaultService) {
         String defaultServiceName = KubernetesHelper.getName(defaultService);
-        if (StringUtils.isBlank(defaultServiceName)) {
+        if (defaultServiceName != null && !defaultServiceName.isEmpty()) {
             defaultServiceName = getContext().getGav().getSanitizedArtifactId();
         }
         return defaultServiceName;
@@ -559,7 +558,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
     private String ensureServiceName(ObjectMeta serviceMetadata, ServiceBuilder service, String defaultServiceName) {
         String serviceName = KubernetesHelper.getName(serviceMetadata);
-        if (StringUtils.isBlank(serviceName)) {
+        if (serviceName != null && !serviceName.isEmpty()) {
             service.buildMetadata().setName(defaultServiceName);
             serviceName = KubernetesHelper.getName(service.buildMetadata());
         }
@@ -599,14 +598,14 @@ public class DefaultServiceEnricher extends BaseEnricher {
     }
 
     private void ensurePortName(ServicePort port, String protocol) {
-        if (StringUtils.isBlank(port.getName())) {
+        if (port.getName() != null && !port.getName().isEmpty()) {
             port.setName(getDefaultPortName(port.getPort(), getProtocol(protocol)));
         }
     }
 
     private String ensureProtocol(ServicePort port) {
         String protocol = port.getProtocol();
-        if (StringUtils.isBlank(protocol)) {
+        if (protocol != null && !protocol.isEmpty()) {
             port.setProtocol("TCP");
             return "TCP";
         }

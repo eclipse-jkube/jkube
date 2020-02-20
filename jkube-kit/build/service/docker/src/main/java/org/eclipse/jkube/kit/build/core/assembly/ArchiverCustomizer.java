@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.core.assembly;
 
-import org.codehaus.plexus.archiver.tar.TarArchiver;
-
 import java.io.IOException;
 
 /**
@@ -24,5 +22,5 @@ import java.io.IOException;
  * @since 04/08/2017
  */
 public interface ArchiverCustomizer {
-    TarArchiver customize(TarArchiver archiver) throws IOException;
+    JkubeTarArchiver customize(JkubeTarArchiver archiver) throws IOException;
 }

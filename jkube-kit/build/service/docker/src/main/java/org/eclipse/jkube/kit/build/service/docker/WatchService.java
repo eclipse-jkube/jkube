@@ -38,7 +38,6 @@ import org.eclipse.jkube.kit.build.service.docker.helper.StartContainerExecutor;
 import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Watch service for monitoring changes and restarting containers
@@ -104,7 +103,7 @@ public class WatchService {
                 }
 
                 if (tasks.size() > 0) {
-                    log.info("%s: Watch for %s", imageConfig.getDescription(), StringUtils.join(tasks.toArray(), " and "));
+                    log.info("%s: Watch for %s", imageConfig.getDescription(), String.join(" and ", tasks));
                 }
             }
             log.info("Waiting ...");
@@ -163,7 +162,7 @@ public class WatchService {
             throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, mojoParameters);
-        if (files.isEmpty()) {
+        if (files != null && files.isEmpty()) {
             log.error("No assembly files for %s. Are you sure you invoked together with the `package` goal?", imageConfig.getDescription());
             throw new IOException("No files to watch found for " + imageConfig);
         }

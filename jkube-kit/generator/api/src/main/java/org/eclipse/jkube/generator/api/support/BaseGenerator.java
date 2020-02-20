@@ -38,8 +38,6 @@ import org.eclipse.jkube.kit.config.image.build.util.BuildLabelAnnotations;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.apache.commons.lang3.StringUtils;
 
-import static org.eclipse.jkube.kit.common.util.MavenUtil.getDocumentationUrl;
-
 /**
  * @author roland
  * @since 15/05/16

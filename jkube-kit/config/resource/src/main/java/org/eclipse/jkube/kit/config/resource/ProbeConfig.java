@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
-import org.apache.maven.plugins.annotations.Parameter;
-
 /**
  * @author roland
  * @since 22/03/16
@@ -22,29 +20,22 @@ import org.apache.maven.plugins.annotations.Parameter;
 public class ProbeConfig {
 
     // Initial delay in seconds before the probe is started.
-    @Parameter
     Integer initialDelaySeconds;
 
     // Timeout in seconds how long the probe might take
-    @Parameter
     Integer timeoutSeconds;
 
     // Command to execute for probing
-    @Parameter
     String exec;
 
     // Probe this URL
-    @Parameter
     String getUrl;
 
     // TCP port to probe
-    @Parameter
     String tcpPort;
 
-    @Parameter
     Integer failureThreshold;
 
-    @Parameter
     Integer successThreshold;
 
     public Integer getInitialDelaySeconds() {

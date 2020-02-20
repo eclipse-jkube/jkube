@@ -15,7 +15,7 @@ package org.eclipse.jkube.enricher.generic;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.maven.enricher.api.util.SecretConstants;
 
@@ -28,7 +28,7 @@ public class DockerRegistrySecretEnricher extends SecretEnricher {
     final private static String ENRICHER_NAME = "jkube-docker-registry-secret";
 
 
-    public DockerRegistrySecretEnricher(MavenEnricherContext buildContext) {
+    public DockerRegistrySecretEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
     }
 

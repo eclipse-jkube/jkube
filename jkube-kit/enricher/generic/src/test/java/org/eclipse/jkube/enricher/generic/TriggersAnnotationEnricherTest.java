@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.openshift.api.model.ImageChangeTrigger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -47,7 +47,7 @@ public class TriggersAnnotationEnricherTest {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Mocked
-    private MavenEnricherContext context;
+    private JkubeEnricherContext context;
 
     @Test
     public void testStatefulSetEnrichment() throws IOException {

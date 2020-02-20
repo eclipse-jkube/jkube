@@ -29,7 +29,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
-import org.eclipse.jkube.maven.enricher.api.model.Dependency;
 
 import java.io.IOException;
 
@@ -73,8 +72,7 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
                     .platformMode(mode)
                     .dockerServiceHub(hub)
                     .buildServiceConfig(getBuildServiceConfig())
-                    .repositorySystem(repositorySystem)
-                    .mavenProject(project)
+                    .jkubeProject(MavenUtil.convertMavenProjectToJkubeProject(project, session))
                     .build();
 
             executeBuildGoal(hub);

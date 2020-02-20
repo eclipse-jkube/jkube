@@ -21,16 +21,17 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNotNull;
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.maven.model.Plugin;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -46,7 +47,6 @@ public class QuarkusGeneratorTest {
 
     private static final String QUARKUS_GROUP = "io.quarkus";
     private static final String QUARKUS_MAVEN_PLUGIN = "quarkus-maven-plugin";
-    private final Plugin quarkusPlugin = new Plugin();
 
     private static final String BASE_JAVA_IMAGE = "java:latest";
     private static final String BASE_NATIVE_IMAGE = "fedora:latest";
@@ -63,21 +63,23 @@ public class QuarkusGeneratorTest {
     private Properties projectProps = new Properties();
 
     @Before
-    public void setUp () throws IOException {
+    public void setUp() throws IOException {
         createFakeRunnerJar();
+
         // @formatter:off
         new Expectations() {{
             project.getVersion(); result = "0.0.1-SNAPSHOT";
             project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
             // project.getPlugin(QUARKUS_GROUP + ":" + QUARKUS_MAVEN_PLUGIN); result = quarkusPlugin;
         }};
+
         // @formatter:on
         projectProps.put("jkube.generator.name", "quarkus");
         setupContextOpenShift(projectProps, null, null);
     }
 
     @Test
-    public void testCustomizeReturnsDefaultFrom () throws MojoExecutionException {
+    public void testCustomizeReturnsDefaultFrom () {
         QuarkusGenerator generator = new QuarkusGenerator(ctx);
         List<ImageConfiguration> resultImages = null;
         List<ImageConfiguration> existingImages = new ArrayList<>();
@@ -88,7 +90,7 @@ public class QuarkusGeneratorTest {
     }
 
     @Test
-    public void testCustomizeReturnsDefaultFromWhenNative () throws MojoExecutionException, IOException {
+    public void testCustomizeReturnsDefaultFromWhenNative () throws IOException {
         setNativeConfig();
 
         QuarkusGenerator generator = new QuarkusGenerator(ctx);
@@ -101,7 +103,7 @@ public class QuarkusGeneratorTest {
     }
 
     @Test
-    public void testCustomizeReturnsConfiguredFrom () throws MojoExecutionException {
+    public void testCustomizeReturnsConfiguredFrom () {
         // @formatter:off
         new Expectations() {{
             config.getConfig("quarkus", "from"); result = BASE_JAVA_IMAGE;
@@ -118,7 +120,7 @@ public class QuarkusGeneratorTest {
     }
 
     @Test
-    public void testCustomizeReturnsConfiguredFromWhenNative () throws MojoExecutionException, IOException {
+    public void testCustomizeReturnsConfiguredFromWhenNative () throws IOException {
         setNativeConfig();
         // @formatter:off
         new Expectations() {{
@@ -136,7 +138,7 @@ public class QuarkusGeneratorTest {
     }
 
     @Test
-    public void testCustomizeReturnsPropertiesFrom () throws MojoExecutionException {
+    public void testCustomizeReturnsPropertiesFrom () {
         projectProps.put("jkube.generator.quarkus.from", BASE_JAVA_IMAGE);
 
         QuarkusGenerator generator = new QuarkusGenerator(ctx);
@@ -150,7 +152,7 @@ public class QuarkusGeneratorTest {
 
 
     @Test
-    public void testCustomizeReturnsPropertiesFromWhenNative () throws MojoExecutionException, IOException {
+    public void testCustomizeReturnsPropertiesFromWhenNative () throws IOException {
         setNativeConfig();
         projectProps.put("jkube.generator.quarkus.from", BASE_NATIVE_IMAGE);
 

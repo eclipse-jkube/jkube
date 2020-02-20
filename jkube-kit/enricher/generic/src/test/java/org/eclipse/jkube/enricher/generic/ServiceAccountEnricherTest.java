@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ServiceAccountEnricherTest {
     @Mocked
-    private MavenEnricherContext context;
+    private JkubeEnricherContext context;
 
     @Override
     protected Object clone() throws CloneNotSupportedException {

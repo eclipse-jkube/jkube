@@ -27,7 +27,7 @@ import org.eclipse.jkube.kit.common.util.GitUtil;
 import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
@@ -49,7 +49,7 @@ public class GitEnricher extends BaseEnricher {
 
     private String GIT_REMOTE = "jkube.remoteName";
 
-    public GitEnricher(MavenEnricherContext buildContext) {
+    public GitEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-git");
     }
 

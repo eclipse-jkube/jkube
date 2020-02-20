@@ -16,14 +16,14 @@ package org.eclipse.jkube.maven.enricher.specific;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 
 /**
  * Enriches wildfly-swarm containers with health checks if the monitoring fraction is present.
  */
 public class WildFlySwarmHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
-    public WildFlySwarmHealthCheckEnricher(MavenEnricherContext buildContext) {
+    public WildFlySwarmHealthCheckEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-wildfly-swarm");
     }
 

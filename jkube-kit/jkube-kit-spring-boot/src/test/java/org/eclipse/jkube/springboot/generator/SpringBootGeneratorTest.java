@@ -17,8 +17,6 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.apache.maven.model.Build;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.junit.Test;
 
@@ -46,9 +44,6 @@ public class SpringBootGeneratorTest {
     @Mocked
     private JkubeProject project;
 
-    @Mocked
-    private Build build;
-
     @Test
     public void notApplicable() throws IOException {
         SpringBootGenerator generator = new SpringBootGenerator(createGeneratorContext());
@@ -56,7 +51,7 @@ public class SpringBootGeneratorTest {
     }
 
     @Test
-    public void javaOptions() throws IOException, MojoExecutionException {
+    public void javaOptions() throws IOException {
         SpringBootGenerator generator = new SpringBootGenerator(createGeneratorContext());
         List<String> extraOpts = generator.getExtraJavaOptions();
         assertNotNull(extraOpts);

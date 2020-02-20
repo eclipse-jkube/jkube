@@ -29,6 +29,7 @@ import io.fabric8.openshift.api.model.NamedTagEventListBuilder;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
+import org.eclipse.jkube.kit.build.core.assembly.JkubeTarArchiver;
 import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
 import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
@@ -46,7 +47,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.apache.commons.io.IOUtils;
-import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -84,7 +84,7 @@ public class OpenshiftBuildServiceTest {
     private ArchiveService archiveService;
 
     @Mocked
-    private TarArchiver tarArchiver;
+    private JkubeTarArchiver tarArchiver;
 
     @Mocked
     private KitLogger logger;
@@ -394,7 +394,7 @@ public class OpenshiftBuildServiceTest {
             final List<File> file = new LinkedList<>();
             new Verifications() {{
                 String path;
-                tarArchiver.addFile(withCapture(file), path = withCapture());
+                tarArchiver.includeFile(withCapture(file), path = withCapture());
 
                 assertEquals(".s2i/environment", path);
             }};
@@ -438,7 +438,7 @@ public class OpenshiftBuildServiceTest {
             final List<File> file = new LinkedList<>();
             new Verifications() {{
                 String path;
-                tarArchiver.addFile(withCapture(file), path = withCapture());
+                tarArchiver.includeFile(withCapture(file), path = withCapture());
 
                 assertEquals(".s2i/environment", path);
             }};

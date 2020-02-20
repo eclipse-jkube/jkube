@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.config.service;
 
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -22,8 +23,6 @@ import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.repository.RepositorySystem;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,10 +47,7 @@ public class JkubeServiceHubTest {
     private BuildService.BuildServiceConfig buildServiceConfig;
 
     @Mocked
-    private MavenProject mavenProject;
-
-    @Mocked
-    private RepositorySystem repositorySystem;
+    private JkubeProject jkubeProject;
 
     @Before
     public void init() throws Exception {
@@ -135,8 +131,7 @@ public class JkubeServiceHubTest {
                 .clusterAccess(clusterAccess)
                 .log(logger)
                 .platformMode(RuntimeMode.kubernetes)
-                .mavenProject(mavenProject)
-                .repositorySystem(repositorySystem)
+                .jkubeProject(jkubeProject)
                 .build();
 
         assertNotNull(hub.getArtifactResolverService());

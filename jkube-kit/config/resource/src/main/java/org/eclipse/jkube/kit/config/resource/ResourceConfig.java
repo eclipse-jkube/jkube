@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.config.resource;
 
 import io.fabric8.kubernetes.api.model.extensions.IngressRule;
-import org.apache.maven.plugins.annotations.Parameter;
 
 import java.util.List;
 import java.util.Map;
@@ -26,68 +25,48 @@ import java.util.Optional;
  */
 public class ResourceConfig {
 
-    @Parameter
     private Map<String, String> env;
 
-    @Parameter
     private MetaDataConfig labels = new MetaDataConfig();
 
-    @Parameter
     private MetaDataConfig annotations = new MetaDataConfig();
 
-    @Parameter
     private List<VolumeConfig> volumes;
 
-    @Parameter
     private List<SecretConfig> secrets;
 
-    @Parameter(defaultValue = "${project.artifactId}")
     private String controllerName;
 
-    @Parameter
     private List<ServiceConfig> services;
 
-    @Parameter
     private List<String> remotes;
 
-    @Parameter
     private ConfigMap configMap;
 
-    @Parameter
     private ProbeConfig liveness;
 
-    @Parameter
     private ProbeConfig readiness;
 
-    @Parameter
     private MetricsConfig metrics;
 
     // Run container in privileged mode
-    @Parameter
     private boolean containerPrivileged = false;
 
     // How images should be pulled (maps to ImagePullPolicy)
-    @Parameter
     private String imagePullPolicy;
 
     // Mapping of port to names
-    @Parameter
     private Map<String, Integer> ports;
 
     // Number of replicas to create
-    @Parameter
     private int replicas = 1;
 
-    @Parameter
     private String namespace;
 
-    @Parameter
     private String serviceAccount;
 
-    @Parameter
     private List<String> customResourceDefinitions;
 
-    @Parameter
     private List<ServiceAccountConfig> serviceAccounts;
 
     private List<IngressRule> ingressRules;

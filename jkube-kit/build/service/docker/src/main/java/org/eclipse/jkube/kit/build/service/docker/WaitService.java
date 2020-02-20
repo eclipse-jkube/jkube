@@ -99,7 +99,7 @@ public class WaitService {
         for (WaitChecker checker : checkers) {
             logOut.add(checker.getLogLabel());
         }
-        return logOut.toArray() + " and ";
+        return String.join(" and ", logOut);
     }
 
     private List<WaitChecker> prepareWaitCheckers(ImageConfiguration imageConfig, Properties projectProperties, String containerId) throws IOException {

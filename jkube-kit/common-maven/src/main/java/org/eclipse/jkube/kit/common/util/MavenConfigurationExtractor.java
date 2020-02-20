@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.maven.enricher.api.util;
+package org.eclipse.jkube.kit.common.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;

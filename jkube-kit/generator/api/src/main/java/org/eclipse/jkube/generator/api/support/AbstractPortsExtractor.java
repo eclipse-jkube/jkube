@@ -32,8 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public abstract class AbstractPortsExtractor implements PortsExtractor {
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
-    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    public static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     private static final String DOT = ".";
     private static final String JSON_EXTENSION = ".json";

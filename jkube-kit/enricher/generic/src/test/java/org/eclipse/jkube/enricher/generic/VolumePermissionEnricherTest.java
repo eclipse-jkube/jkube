@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -44,7 +44,7 @@ import static org.junit.Assert.assertNotNull;
 public class VolumePermissionEnricherTest {
 
     @Mocked
-    private MavenEnricherContext context;
+    private JkubeEnricherContext context;
 
     // *******************************
     // Tests

@@ -15,7 +15,6 @@ package org.eclipse.jkube.generator.javaexec;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,7 +29,6 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -63,7 +61,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     public void setUp() throws Exception{
         new Expectations() {{
             jkubeProject.getPlugins();
-            result = Collections.EMPTY_LIST;
+            result = Collections.emptyList();
             jkubeProject.getVersion();
             result = "1.33.7-SNAPSHOT";
             jkubeProject.getBuildDirectory();
@@ -75,10 +73,10 @@ public class JavaExecGeneratorMainClassDeterminationTest {
 
     /**
      * The main class is determined via config in a non-fat-jar deployment
-     * @throws MojoExecutionException
+     *
      */
     @Test
-    public void testMainClassDeterminationFromConfig() throws MojoExecutionException {
+    public void testMainClassDeterminationFromConfig() {
         // Given
         new Expectations() {{
             processorConfig.getConfig("java-exec", "mainClass");
@@ -109,10 +107,10 @@ public class JavaExecGeneratorMainClassDeterminationTest {
 
     /**
      * The main class is determined via main class detection in a non-fat-jar deployment
-     * @throws MojoExecutionException
+     *
      */
     @Test
-    public void testMainClassDeterminationFromDetectionOnNonFatJar(@Injectable File baseDir) throws MojoExecutionException {
+    public void testMainClassDeterminationFromDetectionOnNonFatJar(@Injectable File baseDir) {
         new Expectations() {{
             jkubeProject.getBaseDirectory();
             result = baseDir;
@@ -147,11 +145,11 @@ public class JavaExecGeneratorMainClassDeterminationTest {
 
     /**
      * The main class is determined as the Main-Class of a fat jar
-     * @throws MojoExecutionException
+     *
      */
     @Test
     public void testMainClassDeterminationFromFatJar(
-            @Mocked FileUtil fileUtil, @Injectable File baseDir, @Injectable File fatJarArchive) throws MojoExecutionException {
+            @Mocked FileUtil fileUtil, @Injectable File baseDir, @Injectable File fatJarArchive) {
         new Expectations() {{
             jkubeProject.getBaseDirectory();
             result = baseDir;

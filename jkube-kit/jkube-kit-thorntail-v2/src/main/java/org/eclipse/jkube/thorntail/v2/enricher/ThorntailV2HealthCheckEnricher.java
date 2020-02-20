@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.ThorntailUtil;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.specific.AbstractHealthCheckEnricher;
 
 import java.util.Properties;
@@ -29,7 +29,7 @@ public class ThorntailV2HealthCheckEnricher extends AbstractHealthCheckEnricher 
 
     public static final String IO_THORNTAIL = "io.thorntail";
 
-    public ThorntailV2HealthCheckEnricher(MavenEnricherContext buildContext) {
+    public ThorntailV2HealthCheckEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-thorntail-v2");
     }
 

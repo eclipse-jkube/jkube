@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
-import org.apache.maven.plugins.annotations.Parameter;
-
 import java.util.List;
 
 /**
@@ -24,25 +22,18 @@ import java.util.List;
  */
 public class HelmConfig {
 
-    @Parameter
     private String chart;
 
-    @Parameter
     private String outputDir;
 
-    @Parameter
     private String sourceDir;
 
-    @Parameter
     private List<String> keywords;
 
-    @Parameter
     private String engine;
 
-    @Parameter
     private List<HelmType> type;
 
-    @Parameter
     private String chartExtension;
 
     public String getChart() {

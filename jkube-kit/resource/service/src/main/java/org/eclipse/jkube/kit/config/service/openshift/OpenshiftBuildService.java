@@ -173,7 +173,7 @@ public class OpenshiftBuildService implements BuildService {
                 }
 
                 return tarArchiver -> {
-                    tarArchiver.addFile(environmentFile, ".s2i/environment");
+                    tarArchiver.includeFile(environmentFile, ".s2i/environment");
                     return tarArchiver;
                 };
             } else {
@@ -386,7 +386,7 @@ public class OpenshiftBuildService implements BuildService {
         if (pullRegistry != null) {
             RegistryService.RegistryConfig registryConfig = dockerBuildContext.getRegistryConfig();
             AuthConfig authConfig = registryConfig.getAuthConfigFactory().createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
-                    registryConfig.getSettings(), null, pullRegistry);
+                    registryConfig.getSettings(), null, pullRegistry, registryConfig.getPasswordDecryptionMethod());
 
             if (authConfig != null) {
 

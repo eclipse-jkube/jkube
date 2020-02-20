@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
@@ -26,8 +27,6 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.repository.RepositorySystem;
 
 /**
  * @author nicola
@@ -48,9 +47,7 @@ public class JkubeServiceHub {
 
     private BuildService.BuildServiceConfig buildServiceConfig;
 
-    private RepositorySystem repositorySystem;
-
-    private MavenProject mavenProject;
+    private JkubeProject jkubeProject;
 
     /**
      /*
@@ -106,8 +103,7 @@ public class JkubeServiceHub {
         this.services.putIfAbsent(ArtifactResolverService.class, new LazyBuilder<ArtifactResolverService>() {
             @Override
             protected ArtifactResolverService build() {
-                return new ArtifactResolverServiceMavenImpl(repositorySystem, mavenProject);
-            }
+                return new ArtifactResolverServiceMavenImpl(jkubeProject); }
         });
     }
 
@@ -154,13 +150,8 @@ public class JkubeServiceHub {
             return this;
         }
 
-        public Builder repositorySystem(RepositorySystem repositorySystem) {
-            hub.repositorySystem = repositorySystem;
-            return this;
-        }
-
-        public Builder mavenProject(MavenProject mavenProject) {
-            hub.mavenProject = mavenProject;
+        public Builder jkubeProject(JkubeProject jkubeProject) {
+            hub.jkubeProject = jkubeProject;
             return this;
         }
 

@@ -13,10 +13,11 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler;
 
-import org.eclipse.jkube.kit.build.service.docker.config.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.junit.Test;
 
 import java.util.AbstractMap;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +29,9 @@ import static org.junit.Assert.assertNull;
 public class RegistryServerConfigurationTest {
     @Test
     public void testParsingFromMap() {
-        Map<String, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, Object>> registryServerAsMap = new HashMap<>();
+        Map<String, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, Map<String, Object>>> registryServerAsMap = new HashMap<>();
 
-        registryServerAsMap.put("docker.io", new AbstractMap.SimpleEntry(new AbstractMap.SimpleEntry<>("username", "password"), new Object()));
+        registryServerAsMap.put("docker.io", new AbstractMap.SimpleEntry(new AbstractMap.SimpleEntry<>("username", "password"), Collections.emptyMap()));
         registryServerAsMap.put("quay.io", new AbstractMap.SimpleEntry(new AbstractMap.SimpleEntry("quayUsername", "quayPassword"), null));
         List<RegistryServerConfiguration> registryServerConfiguration = RegistryServerConfiguration.fetchListFromMap(registryServerAsMap);
 

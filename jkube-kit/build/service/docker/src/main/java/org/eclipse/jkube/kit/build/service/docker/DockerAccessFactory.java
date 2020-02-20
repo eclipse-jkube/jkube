@@ -27,12 +27,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerMachine;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.DockerAccessWithHcClient;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.codehaus.plexus.component.annotations.Component;
 
-/**
- *
- */
-@Component(role = DockerAccessFactory.class, instantiationStrategy = "singleton")
 public class DockerAccessFactory {
 
     public DockerAccess createDockerAccess(DockerAccessContext dockerAccessContext) {

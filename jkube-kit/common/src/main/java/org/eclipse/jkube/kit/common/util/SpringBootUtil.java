@@ -98,7 +98,7 @@ public class SpringBootUtil {
      * @return spring boot version or null
      */
     public static Optional<String> getSpringBootVersion(JkubeProject mavenProject) {
-        return Optional.ofNullable(JkubeProjectUtil.getDependencyVersion(mavenProject, SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID));
+        return Optional.ofNullable(JkubeProjectUtil.getAnyDependencyVersionWithGroupId(mavenProject, SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID));
     }
 
     public static String getSpringBootActiveProfile(JkubeProject jkubeProject) {

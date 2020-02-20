@@ -15,17 +15,21 @@ package org.eclipse.jkube.generator.javaexec;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.Properties;
 
+import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.project.MavenProject;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -41,10 +45,10 @@ public class JavaRunGeneratorTest {
     GeneratorContext ctx;
 
     @Mocked
-    MavenProject project;
+    JkubeProject project;
 
     @Mocked
-    Plugin plugin;
+    JkubeProjectPlugin plugin;
 
     @Test
     @Ignore // TODO: Fix this test
@@ -71,9 +75,10 @@ public class JavaRunGeneratorTest {
 
     private Expectations prepareExpectation(final String version, final RuntimeMode mode, final OpenShiftBuildStrategy strategy) {
         return new Expectations() {{
-            ctx.getProject(); result = project;
-            project.getPlugin("org.eclipse.jkube:jkube-kit-parent"); result = plugin;
-            plugin.getVersion(); result = version;
+            ctx.getProject(); result = new JkubeProject.Builder()
+              .plugins(Arrays.asList(new JkubeProjectPlugin.Builder().groupId("org.eclipse.jkube").artifactId("jkube-kit-parent").version(version).configuration(Collections.emptyMap()).build()))
+              .build();
+
             ctx.getRuntimeMode();result = mode;
             ctx.getStrategy(); result = strategy;
         }};

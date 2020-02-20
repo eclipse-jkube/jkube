@@ -20,10 +20,10 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.JkubeProjectDependency;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Dependency;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.KindAndName;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
@@ -76,7 +76,7 @@ public class DependencyEnricher extends BaseEnricher {
         }
     }
 
-    public DependencyEnricher(MavenEnricherContext buildContext) {
+    public DependencyEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-dependency");
 
         addArtifactsWithYaml(kubernetesDependencyArtifacts, DEPENDENCY_KUBERNETES_YAML);
@@ -86,11 +86,11 @@ public class DependencyEnricher extends BaseEnricher {
     }
 
     private void addArtifactsWithYaml(Set<URL> artifactSet, String dependencyYaml) {
-        final List<Dependency> artifacts = getContext().getDependencies(isIncludeTransitive());
+        final List<JkubeProjectDependency> artifacts = getContext().getDependencies(isIncludeTransitive());
 
-        for (Dependency artifact : artifacts) {
+        for (JkubeProjectDependency artifact : artifacts) {
             if ("compile".equals(artifact.getScope()) && "jar".equals(artifact.getType())) {
-                File file = artifact.getLocation();
+                File file = artifact.getFile();
                 try {
                     URL url = new URL("jar:" + file.toURI().toURL() + "!/" + dependencyYaml);
                     artifactSet.add(url);

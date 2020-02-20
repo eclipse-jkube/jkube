@@ -28,7 +28,7 @@ import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -48,7 +48,7 @@ public class PrometheusEnricher extends BaseEnricher {
         public String def() { return d; } protected String d;
     }
 
-    public PrometheusEnricher(MavenEnricherContext buildContext) {
+    public PrometheusEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
     }
 

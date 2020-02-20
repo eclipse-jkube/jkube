@@ -14,19 +14,15 @@
 package org.eclipse.jkube.maven.enricher.specific;
 
 import io.fabric8.kubernetes.api.model.Probe;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
-import org.eclipse.jkube.maven.enricher.api.util.MavenConfigurationExtractor;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class WebAppHealthCeckEnricherTest {
 
     @Mocked
-    private MavenEnricherContext context;
+    private JkubeEnricherContext context;
 
     private void setupExpectations(Map<String, Object> config) {
         new Expectations() {{
@@ -95,18 +91,16 @@ public class WebAppHealthCeckEnricherTest {
 
     private Map<String, Object> createFakeConfig(String config) {
 
-        String content = "<configuration><enricher><config><jkube-healthcheck-webapp>"
-            + config
-            + "</jkube-healthcheck-webapp></config></enricher></configuration>";
-        Xpp3Dom dom;
-        try {
-            dom = Xpp3DomBuilder.build(new StringReader(content));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        Map<String, Object> jkubeHealthCheckWebapp = new HashMap<>();
+        jkubeHealthCheckWebapp.put("jkube-healthcheck-webapp", config);
 
-        return MavenConfigurationExtractor.extract(dom);
+        Map<String, Object> enricherConfigHashMap = new HashMap<>();
+        enricherConfigHashMap.put("config", jkubeHealthCheckWebapp);
 
+        Map<String, Object> configurationHashmap = new HashMap<>();
+        configurationHashmap.put("enricher", enricherConfigHashMap);
+
+        return configurationHashmap;
     }
 
 }

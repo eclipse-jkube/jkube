@@ -29,8 +29,7 @@ import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Tested;
 import mockit.Verifications;
-import org.codehaus.plexus.archiver.manager.ArchiverManager;
-import org.codehaus.plexus.util.ReflectionUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -43,12 +42,6 @@ public class DockerAssemblyManagerTest {
 
     @Tested
     private DockerAssemblyManager assemblyManager;
-
-    @Injectable
-    private ArchiverManager archiverManager;
-
-    @Injectable
-    private MappingTrackArchiver trackArchiver;
 
     @Test
     public void testNoAssembly() {
@@ -67,14 +60,13 @@ public class DockerAssemblyManagerTest {
                               @Injectable final JkubeProject project,
                               @Injectable final File assembly) throws IllegalAccessException, IOException {
 
-        ReflectionUtils.setVariableValueInObject(assemblyManager, "trackArchiver", trackArchiver);
 
         new Expectations() {{
-            mojoParams.getOutputDirectory();
-            result = "target/"; times = 5;
-
             mojoParams.getProject();
             project.getBaseDirectory();
+
+            project.getBuildDirectory();
+            result = "target/";
             result = ".";
 
         }};

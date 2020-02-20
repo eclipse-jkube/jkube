@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckMode;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 
 import java.util.Collections;
@@ -36,7 +36,7 @@ import static org.eclipse.jkube.maven.enricher.api.util.GoTimeUtil.durationSecon
  */
 public class DockerHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
-    public DockerHealthCheckEnricher(MavenEnricherContext buildContext) {
+    public DockerHealthCheckEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-docker");
     }
 

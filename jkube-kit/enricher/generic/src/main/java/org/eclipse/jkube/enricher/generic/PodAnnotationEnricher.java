@@ -24,7 +24,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ import java.util.List;
  * container Pod spec.
  */
 public class PodAnnotationEnricher extends BaseEnricher {
-    public PodAnnotationEnricher(MavenEnricherContext buildContext) {
+    public PodAnnotationEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-pod-annotations");
     }
 

@@ -14,6 +14,11 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.codehaus.plexus.DefaultPlexusContainer;
+import org.codehaus.plexus.PlexusConstants;
+import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.PlexusContainerException;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
@@ -54,7 +59,7 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JkubeServiceHub;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.enricher.api.EnricherContext;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.execution.MavenSession;
@@ -70,12 +75,11 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenReaderFilter;
 import org.apache.maven.shared.utils.logging.MessageUtils;
-import org.codehaus.plexus.PlexusConstants;
-import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.fusesource.jansi.Ansi;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
 import java.io.File;
 import java.io.IOException;
@@ -381,6 +385,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     // Mode which is resolved, also when 'auto' is set
     protected RuntimeMode runtimeMode;
 
+    protected PlexusContainer plexusContainer;
+
     /**
      * Watching mode for rebuilding images
      */
@@ -421,7 +427,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
 
     @Override
     public void contextualize(Context context) throws ContextException {
-        authConfigFactory = new AuthConfigFactory((PlexusContainer) context.get(PlexusConstants.PLEXUS_KEY));
+        plexusContainer = ((PlexusContainer) context.get(PlexusConstants.PLEXUS_KEY));
+        authConfigFactory = new AuthConfigFactory();
     }
 
     @Override
@@ -575,7 +582,22 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                 .authConfigFactory(authConfigFactory)
                 .skipExtendedAuth(skipExtendedAuth)
                 .registry(specificRegistry != null ? specificRegistry : registry)
-                .build();
+                .passwordDecryptionMethod((password) -> {
+                    try {
+                        // Done by reflection since I have classloader issues otherwise
+                        if (plexusContainer != null) {
+                            Object secDispatcher = plexusContainer.lookup(SecDispatcher.ROLE, "maven");
+                            Method method = secDispatcher.getClass().getMethod("decrypt", String.class);
+                            return (String) method.invoke(secDispatcher, password);
+                        } else {
+                            return password;
+                        }
+                    } catch (ComponentLookupException e) {
+                        throw new RuntimeException("Error looking security dispatcher",e);
+                    } catch (ReflectiveOperationException e) {
+                        throw new RuntimeException("Cannot decrypt password: " + e.getCause(),e);
+                    }
+                }).build();
     }
 
     protected void callBuildPlugin(File outputDir, String buildPluginClass) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -737,8 +759,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
 
         try {
             return GeneratorManager.generate(configs, getGeneratorContext(), false);
-        } catch (MojoExecutionException e) {
-            throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
         } catch (DependencyResolutionRequiredException de) {
             throw new IllegalArgumentException("Instructed to use project classpath, but cannot. Continuing build if we can: ", de);
         }
@@ -763,13 +783,12 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                 .build();
     }
 
-    protected JkubeServiceHub getJkubeServiceHub() {
+    protected JkubeServiceHub getJkubeServiceHub() throws DependencyResolutionRequiredException {
         return new JkubeServiceHub.Builder()
                 .log(log)
                 .clusterAccess(clusterAccess)
                 .platformMode(mode)
-                .repositorySystem(repositorySystem)
-                .mavenProject(project)
+                .jkubeProject(MavenUtil.convertMavenProjectToJkubeProject(project, session))
                 .build();
     }
 
@@ -780,19 +799,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
         }
-    }
-
-    // Get enricher context
-    public EnricherContext getEnricherContext() {
-        return new MavenEnricherContext.Builder()
-                .project(project)
-                .properties(project.getProperties())
-                .session(session)
-                .config(extractEnricherConfig())
-                .images(getResolvedImages())
-                .resources(resources)
-                .log(log)
-                .build();
     }
 
     // Get enricher config

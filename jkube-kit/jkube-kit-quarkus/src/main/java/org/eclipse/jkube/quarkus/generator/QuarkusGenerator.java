@@ -17,16 +17,16 @@ import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
 import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.JkubeAssemblyFileSet;
 import org.eclipse.jkube.kit.common.JkubeProjectAssembly;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -63,7 +63,7 @@ public class QuarkusGenerator extends BaseGenerator {
     }
 
     @Override
-    public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) throws MojoExecutionException {
+    public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) {
         ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder()
             .name(getImageName())
             .registry(getRegistry())
@@ -74,7 +74,7 @@ public class QuarkusGenerator extends BaseGenerator {
         return existingConfigs;
     }
 
-    private JkubeBuildConfiguration createBuildConfig(boolean prePackagePhase) throws MojoExecutionException {
+    private JkubeBuildConfiguration createBuildConfig(boolean prePackagePhase) {
         final JkubeBuildConfiguration.Builder buildBuilder = new JkubeBuildConfiguration.Builder();
         // TODO: Check application.properties for a port
         buildBuilder.ports(Collections.singletonList(getConfig(Config.webPort)));
@@ -114,40 +114,58 @@ public class QuarkusGenerator extends BaseGenerator {
     }
 
     interface FileSetCreator {
-        JkubeProjectAssembly createFileSet() throws MojoExecutionException;
+        JkubeProjectAssembly createFileSet();
     }
 
-    private JkubeAssemblyConfiguration createAssemblyConfiguration(String targetDir, JkubeProjectAssembly jkubeProjectAssembly) {
+    private JkubeAssemblyConfiguration createAssemblyConfiguration(String targetDir, JkubeAssemblyFileSet jkubeProjectAssemblyFileSet) {
         final JkubeAssemblyConfiguration.Builder builder = new JkubeAssemblyConfiguration.Builder();
         builder.targetDir(targetDir);
-        builder.assemblyDef(Collections.singletonList(jkubeProjectAssembly));
+        jkubeProjectAssemblyFileSet.setOutputDirectory(".");
+        JkubeProjectAssembly jkubeProjectAssembly = new JkubeProjectAssembly.Builder()
+                .fileSet(jkubeProjectAssemblyFileSet)
+                .build();
+        builder.assemblyDef(jkubeProjectAssembly);
         return builder.build();
     }
 
-    private JkubeProjectAssembly getJvmFilesToInclude() throws MojoExecutionException {
-        JkubeProjectAssembly fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
-        fileSet.add("lib/**");
+    private JkubeAssemblyFileSet getJvmFilesToInclude() {
+        JkubeAssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
+        fileSet.addInclude("lib/**");
+        // We also need to exclude default jar file
+        File defaultJarFile = JkubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
+        if (defaultJarFile != null) {
+            fileSet.addExclude(defaultJarFile.getName());
+        }
         fileSet.setFileMode("0640");
         return fileSet;
     }
 
-    private JkubeProjectAssembly getNativeFileToInclude() throws MojoExecutionException {
-        JkubeProjectAssembly fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner");
+    private JkubeAssemblyFileSet getNativeFileToInclude() {
+        JkubeAssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner");
         fileSet.setFileMode("0755");
 
         return fileSet;
     }
 
-    private JkubeProjectAssembly getFileSetWithFileFromBuildThatEndsWith(String suffix) throws MojoExecutionException {
-        return new JkubeProjectAssembly(FileUtil.getRelativePath(getProject().getBaseDirectory(), getBuildDir()),
-            Arrays.asList(findSingleFileThatEndsWith(suffix)), "0777");
+    private JkubeAssemblyFileSet getFileSetWithFileFromBuildThatEndsWith(String suffix) {
+        List<String> relativePaths = new ArrayList<>();
+
+        String fileToInclude = findSingleFileThatEndsWith(suffix);
+        if (fileToInclude != null && !fileToInclude.isEmpty()) {
+            relativePaths.add(fileToInclude);
+        }
+        return new JkubeAssemblyFileSet.Builder()
+                .directory(FileUtil.getRelativePath(getProject().getBaseDirectory(), getBuildDir()).getPath())
+                .includes(relativePaths)
+                .fileMode("0777")
+                .build();
     }
 
-    private String findSingleFileThatEndsWith(String suffix) throws MojoExecutionException {
+    private String findSingleFileThatEndsWith(String suffix) {
         File buildDir = getBuildDir();
         String[] file = buildDir.list((dir, name) -> name.endsWith(suffix));
         if (file == null || file.length != 1) {
-            throw new MojoExecutionException("Can't find single file with suffix '" + suffix + "' in " + buildDir + " (zero or more than one files found ending with '" + suffix + "')");
+            throw new IllegalStateException("Can't find single file with suffix '" + suffix + "' in " + buildDir + " (zero or more than one files found ending with '" + suffix + "')");
         }
         return file[0];
     }

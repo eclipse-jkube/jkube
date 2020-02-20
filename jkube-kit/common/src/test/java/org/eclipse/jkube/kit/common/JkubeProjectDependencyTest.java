@@ -21,9 +21,9 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 public class JkubeProjectDependencyTest {
-    private List<String> dependencyStr = Arrays.asList("org.eclipse.jkube,foo-dependency,0.1.0",
-            "org.eclipse.jkube,bar-dependency,0.1.0",
-            "org.jolokia,jolokia-core,1.6.2");
+    private List<String> dependencyStr = Arrays.asList("org.eclipse.jkube,foo-dependency,0.1.0,jar,compile,/tmp/foo-dependency.jar",
+            "org.eclipse.jkube,bar-dependency,0.1.0,jar,compile,/tmp/bar-dependency.jar",
+            "org.jolokia,jolokia-core,1.6.2,jar,compile,/tmp/jolokia-core.jar");
 
     @Test
     public void testDependencyStringParsing() {

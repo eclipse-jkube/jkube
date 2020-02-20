@@ -13,12 +13,8 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
-import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.repository.RepositorySystem;
 
 import java.io.File;
 import java.util.Objects;
@@ -28,36 +24,18 @@ import java.util.Objects;
  */
 class ArtifactResolverServiceMavenImpl implements ArtifactResolverService {
 
-    private MavenProject project;
+    private JkubeProject project;
 
-    private RepositorySystem repositorySystem;
-
-    ArtifactResolverServiceMavenImpl(RepositorySystem repositorySystem, MavenProject project) {
-        this.repositorySystem = Objects.requireNonNull(repositorySystem, "repositorySystem");
+    ArtifactResolverServiceMavenImpl(JkubeProject project) {
         this.project = Objects.requireNonNull(project, "project");
     }
 
     @Override
     public File resolveArtifact(String groupId, String artifactId, String version, String type) {
-        String canonicalString = groupId + ":" + artifactId + ":" + type + ":" + version;
-        Artifact art = repositorySystem.createArtifact(groupId, artifactId, version, type);
-        ArtifactResolutionRequest request = new ArtifactResolutionRequest()
-                .setArtifact(art)
-                .setResolveRoot(true)
-                .setOffline(false)
-                .setRemoteRepositories(project.getRemoteArtifactRepositories())
-                .setResolveTransitively(false);
-
-        ArtifactResolutionResult res = repositorySystem.resolve(request);
-
-        if (!res.isSuccess()) {
-            throw new IllegalStateException("Cannot resolve artifact " + canonicalString);
-        }
-
-        for (Artifact artifact : res.getArtifacts()) {
-            if (artifact.getGroupId().equals(groupId) && artifact.getArtifactId().equals(artifactId) && artifact.getVersion().equals(version) && artifact.getType().equals(type)) {
-                return artifact.getFile();
-            }
+        String canonicalString = String.join(File.separator, groupId.split("\\.")) + File.separator + artifactId + File.separator +
+                version + File.separator + artifactId + "-" + version + "." + type;
+        if (project.getLocalRepositoryBaseDirectory() != null) {
+            return new File(project.getLocalRepositoryBaseDirectory(), canonicalString);
         }
 
         throw new IllegalStateException("Cannot find artifact " + canonicalString + " within the resolved resources");

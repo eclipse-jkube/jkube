@@ -28,7 +28,7 @@ import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
@@ -45,7 +45,7 @@ import static org.junit.Assert.assertThat;
 public class DockerHealthCheckEnricherTest {
 
     @Mocked
-    private MavenEnricherContext context;
+    private JkubeEnricherContext context;
 
     @Test
     public void testEnrichFromSingleImage() throws Exception {

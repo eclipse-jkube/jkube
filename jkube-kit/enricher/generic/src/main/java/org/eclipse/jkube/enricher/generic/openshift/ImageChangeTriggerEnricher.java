@@ -23,7 +23,7 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,7 +44,7 @@ public class ImageChangeTriggerEnricher extends BaseEnricher {
         public String def() { return d; } protected String d;
     }
 
-    public ImageChangeTriggerEnricher(MavenEnricherContext context) {
+    public ImageChangeTriggerEnricher(JkubeEnricherContext context) {
         super(context, ENRICHER_NAME);
         this.enableAutomaticTrigger = getValueFromConfig(OPENSHIFT_ENABLE_AUTOMATIC_TRIGGER, true);
         this.enableImageChangeTrigger = getValueFromConfig(IMAGE_CHANGE_TRIGGERS, true);

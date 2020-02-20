@@ -17,14 +17,8 @@ import java.util.*;
 
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.compose.DockerComposeConfigHandler;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationException;
 
 /**
  * Manager holding all config handlers for external configuration
@@ -33,8 +27,7 @@ import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationExce
  * @since 18/11/14
  */
 
-@Component(role = ImageConfigResolver.class, instantiationStrategy = "singleton")
-public class ImageConfigResolver implements Initializable {
+public class ImageConfigResolver {
     // Map type to handler
     private Map<String,ExternalConfigHandler> registry;
 
@@ -43,16 +36,13 @@ public class ImageConfigResolver implements Initializable {
     // So the elements are injected via scalar field injection and collected later.
     // Very ugly, but I dont see any other solution until Plexus is fixed.
 
-    @Requirement(role = PropertyConfigHandler.class)
     private ExternalConfigHandler propertyConfigHandler;
 
-    @Requirement(role = DockerComposeConfigHandler.class)
     private ExternalConfigHandler dockerComposeConfigHandler;
 
     private KitLogger log;
 
-    @Override
-    public void initialize() throws InitializationException {
+    public void initialize() {
         this.registry = new HashMap<>();
         for (ExternalConfigHandler handler : new ExternalConfigHandler[] { propertyConfigHandler, dockerComposeConfigHandler }) {
             if (handler != null) {
