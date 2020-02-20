@@ -13,16 +13,19 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -304,59 +307,58 @@ public class FileUtil {
     }
 
     public static void copyDirectory(File sourceDir, File targetDir) throws IOException {
-        try (Stream<Path> stream = Files.walk(sourceDir.toPath())) {
-            stream.forEachOrdered(sourcePath -> {
-                try {
-                    Files.copy(
-                            sourcePath,
-                            sourceDir.toPath().resolve(targetDir.toPath().relativize(sourcePath)));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
+        if (targetDir.exists() && targetDir.isDirectory() && !isDirEmpty(targetDir.toPath())) {
+            // Directory already exists, return
+            return;
+        }
+
+        Path sourcePath = Paths.get(sourceDir.getAbsolutePath());
+        Path targetPath = Paths.get(targetDir.getAbsolutePath());
+
+        Files.walk(sourcePath).forEach((source) -> {
+            try {
+                Path target = targetPath.resolve(sourcePath.relativize(source));
+                Files.copy(source, target, REPLACE_EXISTING);
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
+        });
+    }
+
+    private static boolean isDirEmpty(final Path directory) throws IOException {
+        try(DirectoryStream<Path> dirStream = Files.newDirectoryStream(directory)) {
+            return !dirStream.iterator().hasNext();
         }
     }
 
-    public static void setFilePermissions(File file, String fileMode) throws IOException {
-        if (fileMode.length() < 4)
-            return;
+    public static String trimWildcardCharactersFromPath(String filePath) {
+        if (!filePath.endsWith("*")) {
+            return filePath;
+        }
+        int charIndex = filePath.length() - 1;
 
-        Set<PosixFilePermission> posixFilePermissionSet = new HashSet();
-        // check for user
-        int userPermissionsDigit = fileMode.charAt(1) - '0';
-        if ((userPermissionsDigit & 4) != 0) {
-            posixFilePermissionSet.add(PosixFilePermission.OWNER_READ);
-        }
-        if ((userPermissionsDigit & 2) != 0) {
-            posixFilePermissionSet.add(PosixFilePermission.OWNER_WRITE);
-        }
-        if ((userPermissionsDigit & 1) != 0) {
-            posixFilePermissionSet.add(PosixFilePermission.OWNER_EXECUTE);
+        while (filePath.charAt(charIndex) == '*') {
+            charIndex--;
         }
 
-        int groupPermissionsDigit = fileMode.charAt(2) - '0';
-        if ((groupPermissionsDigit & 4) != 0) {
-            posixFilePermissionSet.add(PosixFilePermission.GROUP_READ);
-        }
-        if ((groupPermissionsDigit & 2) != 0) {
-            posixFilePermissionSet.add(PosixFilePermission.GROUP_WRITE);
-        }
-        if ((groupPermissionsDigit & 1) != 0) {
-            posixFilePermissionSet.add(PosixFilePermission.GROUP_EXECUTE);
-        }
+        return filePath.substring(0, charIndex);
+    }
 
-        int otherPermissionsDigit = fileMode.charAt(3) - '0';
-        if ((otherPermissionsDigit & 4) != 0) {
-            posixFilePermissionSet.add(PosixFilePermission.OTHERS_READ);
-        }
-        if ((otherPermissionsDigit & 2) != 0) {
-            posixFilePermissionSet.add(PosixFilePermission.OTHERS_WRITE);
-        }
-        if ((otherPermissionsDigit & 1) != 0) {
-            posixFilePermissionSet.add(PosixFilePermission.OTHERS_EXECUTE);
-        }
+    public static List<File> listFilesRecursivelyInDirectory(File directory) {
+        return new ArrayList<>(FileUtils.listFiles(
+                directory,
+                new RegexFileFilter("^(.*?)"),
+                DirectoryFileFilter.DIRECTORY
+        ));
+    }
 
-        Files.setPosixFilePermissions(file.toPath(), posixFilePermissionSet);
+    public static void createDirectory(File directory) throws IOException {
+        if (!directory.exists()) {
+            boolean isCreated = directory.mkdir();
+            if (!isCreated) {
+                throw new IOException("Failed to create directory: " + directory.getAbsolutePath());
+            }
+        }
     }
 }
 

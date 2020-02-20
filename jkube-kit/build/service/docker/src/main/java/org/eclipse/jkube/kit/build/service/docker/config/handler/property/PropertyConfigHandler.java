@@ -28,11 +28,11 @@ import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigH
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
-import org.codehaus.plexus.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -245,7 +245,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .optimise(valueProvider.getBoolean(OPTIMISE, config == null ? null : config.getOptimise()))
                 .entryPoint(extractArguments(valueProvider, ENTRYPOINT, config == null ? null : config.getEntryPoint()))
                 .assembly(extractAssembly(config == null ? null : config.getAssemblyConfiguration(), valueProvider))
-                .env(CollectionUtils.mergeMaps(
+                .env(MapUtil.mergeMaps(
                         valueProvider.getMap(ENV_BUILD, config == null ? null : config.getEnv()),
                         valueProvider.getMap(ENV, Collections.<String, String>emptyMap())
                 ))
@@ -292,7 +292,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .dnsSearch(valueProvider.getList(DNS_SEARCH, config == null ? null : config.getDnsSearch()))
                 .domainname(valueProvider.getString(DOMAINNAME, config == null ? null : config.getDomainname()))
                 .entrypoint(extractArguments(valueProvider, ENTRYPOINT, config == null ? null : config.getEntrypoint()))
-                .env(CollectionUtils.mergeMaps(
+                .env(MapUtil.mergeMaps(
                         valueProvider.getMap(ENV_RUN, config == null ? null : config.getEnv()),
                         valueProvider.getMap(ENV, Collections.<String, String>emptyMap())
                 ))

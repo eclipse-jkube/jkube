@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 
 import java.util.List;
 import java.util.Map;
@@ -31,7 +31,7 @@ import static org.eclipse.jkube.maven.enricher.api.util.Constants.RESOURCE_SOURC
  */
 public class RemoveBuildAnnotationsEnricher extends BaseEnricher {
 
-    public RemoveBuildAnnotationsEnricher(MavenEnricherContext buildContext) {
+    public RemoveBuildAnnotationsEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-remove-build-annotations");
     }
 

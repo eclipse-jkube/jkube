@@ -34,7 +34,7 @@ public class FatJarDetector {
         this.directory = new File(dir);
     }
 
-    Result scan() throws IllegalStateException {
+    Result scan() {
         // Scanning is lazy ...
         if (result == null) {
             if (!directory.exists()) {

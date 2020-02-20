@@ -14,6 +14,7 @@
 package org.eclipse.jkube.vertx.generator;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +26,10 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-import org.apache.maven.artifact.handler.DefaultArtifactHandler;
-import org.apache.maven.plugin.MojoExecutionException;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -40,12 +42,20 @@ public class VertxGeneratorTest {
     @Injectable
     private KitLogger logger;
 
-    private DefaultArtifactHandler handler = new DefaultArtifactHandler("jar");
+    @Rule
+    public TemporaryFolder folder= new TemporaryFolder();
 
 
-    private final JkubeProjectDependency dropwizard = new JkubeProjectDependency("io.vertx", "vertx-dropwizard-metrics", "3.4.2");
-    private final JkubeProjectDependency core = new JkubeProjectDependency("io.vertx", "vertx-core", "3.4.2");
-    private final JkubeProjectDependency infinispan = new JkubeProjectDependency("io.vertx", "vertx-infinispan", "3.4.2");
+    private JkubeProjectDependency dropwizard;
+    private JkubeProjectDependency core;
+    private JkubeProjectDependency infinispan;
+
+    @Before
+    public void init() throws IOException {
+        dropwizard = new JkubeProjectDependency("io.vertx", "vertx-dropwizard-metrics", "3.4.2", "jar", "compile", folder.newFile("vertx-dropwizard-metrics.jar"));
+        core = new JkubeProjectDependency("io.vertx", "vertx-core", "3.4.2","jar", "compile", folder.newFile("vertx-core.jar"));
+        infinispan = new JkubeProjectDependency("io.vertx", "vertx-infinispan", "3.4.2","jar", "compile", folder.newFile("vertx-infinispan.jar"));
+    }
 
     @Test
     public void testDefaultOptions(@Mocked final JkubeProject project) {
@@ -88,7 +98,7 @@ public class VertxGeneratorTest {
     }
 
     @Test
-    public void testWithInfinispanClusterManager(@Mocked final JkubeProject project) throws MojoExecutionException {
+    public void testWithInfinispanClusterManager(@Mocked final JkubeProject project) {
         new Expectations() {{
             project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
             project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();

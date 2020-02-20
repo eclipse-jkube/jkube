@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.generator.webapp.handler;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,9 +35,13 @@ public class TomcatAppSeverHandler extends AbstractAppServerHandler {
 
     @Override
     public boolean isApplicable() {
-        return hasOneOf("**/META-INF/context.xml") ||
-                JkubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat6-maven-plugin") ||
-                JkubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat7-maven-plugin");
+        try {
+            return hasOneOf("**/META-INF/context.xml") ||
+                    JkubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat6-maven-plugin") ||
+                    JkubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat7-maven-plugin");
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to scan output directory: ", exception);
+        }
     }
 
     @Override

@@ -76,7 +76,7 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
 
     @Override
     public void contextualize(Context context) throws ContextException {
-        authConfigFactory = new AuthConfigFactory((PlexusContainer) context.get(PlexusConstants.PLEXUS_KEY));
+        authConfigFactory = new AuthConfigFactory();
     }
 
     @Override
@@ -100,8 +100,7 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
                     .platformMode(mode)
                     .dockerServiceHub(hub)
                     .buildServiceConfig(getBuildServiceConfig())
-                    .repositorySystem(repositorySystem)
-                    .mavenProject(project)
+                    .jkubeProject(MavenUtil.convertMavenProjectToJkubeProject(project, session))
                     .build();
 
             executeBuildGoal(hub);

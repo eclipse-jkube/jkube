@@ -34,7 +34,7 @@ public class JkubeBuildContext implements BuildContext<JkubeBuildConfiguration>,
     private String outputDirectory;
     private JkubeProject project;
     private List<JkubeProject> reactorProjects;
-    private JkubeArchiveService archiveService;
+    private transient JkubeArchiveService archiveService;
 
     private JkubeBuildContext() { }
 

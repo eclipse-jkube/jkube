@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.thorntail.v2.enricher;
 
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -26,7 +26,7 @@ import java.net.URLClassLoader;
 public class ThorntailV2HealthCheckEnricherTest {
 
     @Mocked
-    protected MavenEnricherContext context;
+    protected JkubeEnricherContext context;
 
     private void setupExpectations() {
         new Expectations() {{

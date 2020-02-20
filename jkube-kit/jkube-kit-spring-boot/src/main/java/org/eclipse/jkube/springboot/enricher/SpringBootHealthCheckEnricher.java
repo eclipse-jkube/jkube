@@ -19,7 +19,7 @@ import java.util.Properties;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.specific.AbstractHealthCheckEnricher;
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,7 +52,7 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
         public String def() { return d; } protected String d;
     }
 
-    public SpringBootHealthCheckEnricher(MavenEnricherContext buildContext) {
+    public SpringBootHealthCheckEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
     }
 

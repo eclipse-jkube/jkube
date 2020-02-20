@@ -15,9 +15,11 @@ package org.eclipse.jkube.generator.webapp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.Collections;
 
 import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -111,7 +113,7 @@ public class AppServerAutoDetectionTest {
 
         JkubeProject jkubeProject = new JkubeProject.Builder()
                 .buildDirectory(appDir.getAbsolutePath())
-                .plugins(Collections.singletonList("org.apache.tomcat.maven,org.apache.tomcat.maven,testversion,testconfig"))
+                .plugins(Collections.singletonList(new JkubeProjectPlugin.Builder().groupId("org.apache.tomcat.maven").artifactId("org.apache.tomcat.maven").version("testversion").configuration(Collections.emptyMap()).build()))
                 .build();
         AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
         assertEquals("tomcat", appServerHandler.getName());
@@ -147,7 +149,7 @@ public class AppServerAutoDetectionTest {
 
             JkubeProject jkubeProject = new JkubeProject.Builder()
                     .buildDirectory(folder.getRoot().getPath())
-                    .plugins(Collections.singletonList(groupId + "," + artifactId + ",testversion,testconfig"))
+                    .plugins(Collections.singletonList(new JkubeProjectPlugin.Builder().groupId(groupId).artifactId(artifactId).version("testversion").configuration(Collections.emptyMap()).build()))
                     .build();
             AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
 

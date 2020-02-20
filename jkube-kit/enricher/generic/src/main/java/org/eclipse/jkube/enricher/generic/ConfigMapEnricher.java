@@ -19,8 +19,7 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.kit.config.resource.ConfigMap;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.kit.config.resource.ConfigMapEntry;
 
 import java.io.IOException;
@@ -41,7 +40,7 @@ public class ConfigMapEnricher extends BaseEnricher {
 
     protected static final String PREFIX_ANNOTATION = "maven.jkube.io/cm/";
 
-    public ConfigMapEnricher(MavenEnricherContext enricherContext) {
+    public ConfigMapEnricher(JkubeEnricherContext enricherContext) {
         super(enricherContext, "jkube-configmap-file");
     }
 

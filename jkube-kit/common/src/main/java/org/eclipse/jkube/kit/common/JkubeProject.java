@@ -29,6 +29,7 @@ public class JkubeProject implements Serializable {
     private Properties properties;
     private List<String> compileClassPathElements;
     private List<JkubeProjectDependency> dependencies;
+    private List<JkubeProjectDependency> dependenciesWithTransitive;
     private List<JkubeProjectPlugin> plugins;
     private String site;
     private String description;
@@ -38,6 +39,10 @@ public class JkubeProject implements Serializable {
     private File artifact;
     private String localRepositoryBaseDirectory;
     private String packaging;
+    private String issueManagementSystem;
+    private String issueManagementUrl;
+    private String scmUrl;
+    private String scmTag;
 
     public String getName() {
         return name;
@@ -53,6 +58,10 @@ public class JkubeProject implements Serializable {
 
     public List<JkubeProjectDependency> getDependencies() {
         return dependencies;
+    }
+
+    public List<JkubeProjectDependency> getDependenciesWithTransitive() {
+        return dependenciesWithTransitive;
     }
 
     public void setDependencies(List<JkubeProjectDependency> dependencies) {
@@ -145,6 +154,38 @@ public class JkubeProject implements Serializable {
         return packaging;
     }
 
+    public String getScmUrl() {
+        return scmUrl;
+    }
+
+    public String getScmTag() {
+        return scmTag;
+    }
+
+    public String getIssueManagementSystem() {
+        return issueManagementSystem;
+    }
+
+    public void setIssueManagementSystem(String issueManagementSystem) {
+        this.issueManagementSystem = issueManagementSystem;
+    }
+
+    public String getIssueManagementUrl() {
+        return issueManagementUrl;
+    }
+
+    public void setIssueManagementUrl(String issueManagementUrl) {
+        this.issueManagementUrl = issueManagementUrl;
+    }
+
+    public void setScmUrl(String scmUrl) {
+        this.scmUrl = scmUrl;
+    }
+
+    public void setScmTag(String scmTag) {
+        this.scmTag = scmTag;
+    }
+
     public static class Builder {
         private JkubeProject jkubeProject = new JkubeProject();
 
@@ -186,13 +227,18 @@ public class JkubeProject implements Serializable {
             return this;
         }
 
-        public Builder plugins(List<String> plugins) {
-            jkubeProject.plugins = JkubeProjectPlugin.listFromStringPlugins(plugins);
+        public Builder plugins(List<JkubeProjectPlugin> plugins) {
+            jkubeProject.plugins = plugins;
             return this;
         }
 
         public Builder dependencies(List<String> dependencies) {
             jkubeProject.dependencies = JkubeProjectDependency.listFromStringDependencies(dependencies);
+            return this;
+        }
+
+        public Builder dependenciesWithTransitive(List<String> dependencies) {
+            jkubeProject.dependenciesWithTransitive = JkubeProjectDependency.listFromStringDependencies(dependencies);
             return this;
         }
 
@@ -253,6 +299,26 @@ public class JkubeProject implements Serializable {
 
         public Builder packaging(String packaging) {
             jkubeProject.packaging = packaging;
+            return this;
+        }
+
+        public Builder issueManagementUrl(String issueManagementUrl) {
+            jkubeProject.issueManagementUrl = issueManagementUrl;
+            return this;
+        }
+
+        public Builder issueManagementSystem(String issueManagementSystem) {
+            jkubeProject.issueManagementSystem = issueManagementSystem;
+            return this;
+        }
+
+        public Builder scmUrl(String scmUrl) {
+            jkubeProject.scmUrl = scmUrl;
+            return this;
+        }
+
+        public Builder scmTag(String scmTag) {
+            jkubeProject.scmTag = scmTag;
             return this;
         }
 

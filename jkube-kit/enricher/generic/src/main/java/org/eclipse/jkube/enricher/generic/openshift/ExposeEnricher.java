@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 import java.util.Arrays;
@@ -35,7 +35,7 @@ import java.util.Set;
  */
 public class ExposeEnricher extends BaseEnricher {
 
-    public ExposeEnricher(MavenEnricherContext buildContext) {
+    public ExposeEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-openshift-service-expose");
     }
 

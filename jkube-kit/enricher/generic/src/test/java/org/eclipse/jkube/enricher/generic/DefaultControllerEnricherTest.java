@@ -18,15 +18,15 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.apache.maven.project.MavenProject;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -44,13 +44,13 @@ import static org.junit.Assert.assertThat;
 public class DefaultControllerEnricherTest {
 
     @Mocked
-    private MavenEnricherContext context;
+    private JkubeEnricherContext context;
 
     @Mocked
     ImageConfiguration imageConfiguration;
 
     @Mocked
-    MavenProject project;
+    JkubeProject project;
 
     @Test
     public void checkReplicaCount() throws Exception {

@@ -30,7 +30,7 @@ import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +50,7 @@ public class DebugEnricher extends BaseEnricher {
 
     public static final String ENABLE_DEBUG_MAVEN_PROPERTY = "jkube.debug.enabled";
 
-    public DebugEnricher(MavenEnricherContext buildContext) {
+    public DebugEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-debug");
     }
 

@@ -24,7 +24,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
@@ -64,7 +63,7 @@ public class ImageStreamServiceTest {
     KitLogger log;
 
     @Test
-    public void simple() throws IOException, MojoExecutionException {
+    public void simple() throws Exception {
         ImageStreamService service = new ImageStreamService(client, log);
 
         final ImageStream lookedUpIs = lookupImageStream("ab12cd");

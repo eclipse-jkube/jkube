@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class PortNameEnricher extends BaseEnricher {
                 put(9779, "prometheus");
             }});
 
-    public PortNameEnricher(MavenEnricherContext buildContext) {
+    public PortNameEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-portname");
     }
 

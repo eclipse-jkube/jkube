@@ -14,10 +14,13 @@
 package org.eclipse.jkube.generator.webapp.handler;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.jkube.generator.api.DefaultImageLookup;
 import org.eclipse.jkube.generator.webapp.AppServerHandler;
-import org.apache.maven.shared.utils.io.DirectoryScanner;
 import org.eclipse.jkube.kit.common.JkubeProject;
 
 /**
@@ -46,14 +49,23 @@ public abstract class AbstractAppServerHandler implements AppServerHandler {
      * @param patterns one or more patterns which fit to Maven's include syntax
      * @return list of files found
      */
-    protected String[] scanFiles(String... patterns) {
+    protected String[] scanFiles(String... patterns) throws IOException {
         String buildOutputDir = project.getBuildDirectory();
         if (buildOutputDir != null && new File(buildOutputDir).exists()) {
-            DirectoryScanner directoryScanner = new DirectoryScanner();
-            directoryScanner.setBasedir(buildOutputDir);
-            directoryScanner.setIncludes(patterns);
-            directoryScanner.scan();
-            return directoryScanner.getIncludedFiles();
+            List<String> fileList = new ArrayList<>();
+            Files.walk(new File(buildOutputDir).toPath())
+                    .forEach(path -> {
+                        for (String pattern : patterns) {
+                            // Trim wildcard suffix since last wildcard character
+                            pattern = pattern.substring(pattern.lastIndexOf("*") + 1);
+                            if (path.toUri().toString().contains(pattern)) {
+                                fileList.add(path.toUri().toString());
+                            }
+                        }
+                    });
+            String[] fileListArr = new String[fileList.size()];
+            fileListArr = fileList.toArray(fileListArr);
+            return fileListArr;
         } else {
             return new String[0];
         }
@@ -67,7 +79,7 @@ public abstract class AbstractAppServerHandler implements AppServerHandler {
      * @param patterns patterns to check
      * @return true if the one such file exists least
      */
-    protected boolean hasOneOf(String... patterns) {
+    protected boolean hasOneOf(String... patterns) throws IOException {
         return scanFiles(patterns).length > 0;
     }
 }

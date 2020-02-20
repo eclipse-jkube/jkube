@@ -13,21 +13,20 @@
  */
 package org.eclipse.jkube.vertx.enricher;
 
-import java.io.StringReader;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.BiFunction;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.Probe;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
-import org.eclipse.jkube.maven.enricher.api.util.MavenConfigurationExtractor;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,7 +42,7 @@ public class VertxHealthCheckEnricherTest {
 
 
     @Mocked
-    private MavenEnricherContext context;
+    private JkubeEnricherContext context;
 
     private void setupExpectations(Map<String, Object> config) {
         new Expectations() {{
@@ -148,25 +147,30 @@ public class VertxHealthCheckEnricherTest {
 
 
     private Map<String, Object> createFakeConfig(String config) {
-
-        String content = "<configuration><enricher><config><jkube-healthcheck-vertx>"
-                + config
-                + "</jkube-healthcheck-vertx></config></enricher></configuration>";
-        Xpp3Dom dom;
         try {
-            dom = Xpp3DomBuilder.build(new StringReader(content));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            Map<String, Object> healthCheckVertxMap = AbstractPortsExtractor.JSON_MAPPER.readValue(config, Map.class);
+
+            Map<String, Object> enricherConfigMap = new HashMap<>();
+            enricherConfigMap.put("jkube-healthcheck-vertx", healthCheckVertxMap);
+
+            Map<String, Object> enricherMap = new HashMap<>();
+            enricherMap.put("config", enricherConfigMap);
+
+            Map<String, Object> pluginConfigurationMap = new HashMap<>();
+            pluginConfigurationMap.put("enricher", enricherMap);
+
+            return pluginConfigurationMap;
+        } catch (JsonProcessingException jsonProcessingException) {
+            jsonProcessingException.printStackTrace();
         }
-
-        return MavenConfigurationExtractor.extract(dom);
-
+        return null;
     }
 
     @Test
     public void testWithCustomConfigurationComingFromConf() {
 
-        final Map<String, Object> config = createFakeConfig("<path>health</path><port>1234</port><scheme>https</scheme>");
+        final Map<String, Object> config = createFakeConfig("{\"path\":\"health\",\"port\":\"1234\",\"scheme\":\"https\"}");
+
         setupExpectations(config);
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
@@ -196,10 +200,8 @@ public class VertxHealthCheckEnricherTest {
     @Test
     public void testWithCustomConfigurationForLivenessAndReadinessComingFromConf() {
         final Map<String, Object> config = createFakeConfig(
-                "<path>health</path>" +
-                        "<port>1234</port>" +
-                        "<scheme>https</scheme>" +
-                        "<readiness><path>/ready</path></readiness>");
+                "{\"path\":\"health\",\"port\":\"1234\",\"scheme\":\"https\",\"readiness\":{\"path\":\"/ready\"}}");
+
         setupExpectations(config);
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
@@ -247,8 +249,8 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testWithHttpHeaders() {
-        final Map<String, Object> config = createFakeConfig("<path>health</path>" +
-                "<headers><X-Header>X</X-Header><Y-Header>Y</Y-Header></headers>");
+        final Map<String, Object> config = createFakeConfig("{\"path\":\"health\",\"headers\":{\"X-Header\":\"X\",\"Y-Header\":\"Y\"}}");
+
         setupExpectations(config);
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
@@ -339,8 +341,7 @@ public class VertxHealthCheckEnricherTest {
     @Test
     public void testDisabledUsingNegativePortUsingConfiguration() {
         final Map<String, Object> config = createFakeConfig(
-                "<path>/ping</path>" +
-                        "<port>-1</port>");
+                "{\"path\":\"/ping\",\"port\":\"-1\"}");
 
         setupExpectations(config);
 
@@ -372,8 +373,7 @@ public class VertxHealthCheckEnricherTest {
     public void testReadinessDisabledUsingConfig() {
 
         final Map<String, Object> config = createFakeConfig(
-                "<readiness><path></path></readiness>" +
-                        "<path>/ping</path>");
+                "{\"readiness\":{\"path\":\"\"},\"path\":\"/ping\"}");
 
         setupExpectations(config);
 
@@ -406,8 +406,7 @@ public class VertxHealthCheckEnricherTest {
     @Test
     public void testLivenessDisabledAndReadinessEnabledUsingConfig() {
         final Map<String, Object> config = createFakeConfig(
-                "<readiness><path>/ping</path></readiness>" +
-                        "<path></path>");
+                "{\"readiness\":{\"path\":\"/ping\"},\"path\":\"\"}");
         setupExpectations(config);
 
         context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
@@ -444,9 +443,7 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>tcp</type>" +
-                        "<liveness><port>1234</port></liveness>" +
-                        "<readiness><port>1235</port></readiness>");
+                "{\"type\":\"tcp\",\"liveness\":{\"port\":\"1234\"},\"readiness\":{\"port\":\"1235\"}}");
 
         setupExpectations(config);
 
@@ -481,9 +478,7 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>tcp</type>" +
-                        "<liveness><port-name>health</port-name></liveness>" +
-                        "<readiness><port-name>ready</port-name></readiness>");
+                "{\"type\":\"tcp\",\"liveness\":{\"port-name\":\"health\"},\"readiness\":{\"port-name\":\"ready\"}}");
         setupExpectations(config);
 
         Probe probe = enricher.getLivenessProbe();
@@ -515,8 +510,7 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>tcp</type>" +
-                        "<readiness><port>1235</port></readiness>");
+                "{\"type\":\"tcp\",\"readiness\":{\"port\":\"1235\"}}");
         setupExpectations(config);
 
         Probe probe = enricher.getLivenessProbe();
@@ -548,9 +542,7 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>tcp</type>" +
-                        "<liveness><port>1235</port></liveness>" +
-                        "<readiness><port>-1</port></readiness>");
+                "{\"type\":\"tcp\",\"liveness\":{\"port\":\"1235\"},\"readiness\":{\"port\":\"-1\"}}");
 
         setupExpectations(config);
 
@@ -579,9 +571,9 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>tcp</type>" +
-                        "<liveness><port>1234</port><port-name>foo</port-name></liveness>" +
-                        "<readiness><port>1235</port><port-name>foo</port-name></readiness>");
+                "{\"type\":\"tcp\"," +
+                        "\"liveness\":{\"port\":\"1234\",\"port-name\":\"foo\"}," +
+                        "\"readiness\":{\"port\":\"1235\",\"port-name\":\"foo\"}}");
         setupExpectations(config);
 
 
@@ -620,7 +612,7 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-            "<type>tcp</type>");
+            "{\"type\":\"tcp\"}");
         setupExpectations(config);
 
         Probe probe = enricher.getLivenessProbe();
@@ -634,12 +626,9 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>exec</type>" +
-                        "<command>" +
-                        "<arg>/bin/sh</arg>" +
-                        "<arg>-c</arg>" +
-                        "<arg>touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600</arg>" +
-                        "</command>");
+                "{\"type\":\"exec\"," +
+                        "\"command\": {\"arg\":[\"/bin/sh\", \"-c\",\"touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600\"]}" +
+                        "}");
         setupExpectations(config);
 
         Probe probe = enricher.getLivenessProbe();
@@ -655,13 +644,11 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>exec</type>" +
-                        "<readiness><command>" +
-                        "<arg>/bin/sh</arg>" +
-                        "<arg>-c</arg>" +
-                        "<arg>touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600</arg>" +
-                        "</command></readiness>" +
-                        "<liveness><command/></liveness>");
+                "{\"type\":\"exec\"," +
+                        "\"readiness\":{" +
+                        "\"command\": {\"arg\":[\"/bin/sh\", \"-c\",\"touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600\"]}}," +
+                        "\"liveness\":{}" +
+                        "}");
 
         setupExpectations(config);
 
@@ -677,13 +664,11 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>exec</type>" +
-                        "<liveness><command>" +
-                        "<arg>/bin/sh</arg>" +
-                        "<arg>-c</arg>" +
-                        "<arg>touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600</arg>" +
-                        "</command></liveness>" +
-                        "<readiness><command/></readiness>");
+                "{\"type\":\"exec\"," +
+                        "\"liveness\":{" +
+                        "\"command\": {\"arg\":[\"/bin/sh\", \"-c\",\"touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600\"]}}," +
+                        "\"readiness\":{}" +
+                        "}");
 
         setupExpectations(config);
 
@@ -713,7 +698,7 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>exec</type>");
+                "{\"type\":\"exec\"}");
 
         setupExpectations(config);
 
@@ -752,7 +737,7 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>not a valid type</type>");
+                "{\"type\":\"not a valid type\"}");
 
         setupExpectations(config);
 
@@ -791,14 +776,10 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<liveness>" +
-                        "   <type>exec</type>" +
-                        "   <command><arg>ls</arg></command>" +
-                        "</liveness>" +
-                        "<readiness>" +
-                        "   <path>/ping</path>" +
-                        "</readiness>");
-                setupExpectations(config);
+                "{\"liveness\":{" +
+                        "\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}" +
+                        "},\"readiness\":{\"path\":\"/ping\"}}");
+        setupExpectations(config);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -813,13 +794,10 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<liveness>" +
-                        "   <type>exec</type>" +
-                        "   <command><arg>ls</arg></command>" +
-                        "</liveness>" +
-                        "<readiness>" +
-                        "   <path>/ping</path>" +
-                        "</readiness>");
+                "{\"liveness\":{" +
+                        "\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}" +
+                        "},\"readiness\":{\"path\":\"/ping\"}}");
+
         Properties properties = new Properties();
         properties.put("vertx.health.type", "tcp");
         properties.put("vertx.health.port", "1234");
@@ -844,8 +822,7 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<type>exec</type>" +
-                        "   <command><arg>ls</arg></command>"
+                "{\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}}"
         );
         Properties properties = new Properties();
         properties.put("vertx.health.type", "tcp");
@@ -871,12 +848,8 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<liveness>" +
-                        "   <path>/ping</path>" +
-                        "</liveness>" +
-                        "<readiness>" +
-                        "   <path>/ping</path>" +
-                        "</readiness>");
+                "{\"liveness\":{\"path\":\"/ping\"},\"readiness\":{\"path\":\"/ping\"}}");
+
         Properties properties = new Properties();
         properties.put("vertx.health.readiness.type", "tcp");
         properties.put("vertx.health.readiness.port", "1234");
@@ -901,7 +874,7 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<path>/ping</path><type>http</type>");
+                "{\"path\":\"/ping\",\"type\":\"http\"}");
         Properties properties = new Properties();
         properties.put("vertx.health.readiness.type", "tcp");
         properties.put("vertx.health.readiness.port", "1234");
@@ -926,15 +899,10 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<liveness>" +
-                        "   <path>/live</path>" +
-                        "</liveness>" +
-                        "<readiness>" +
-                        "   <path>/ping</path>" +
-                        "   <port-name>ready</port-name>" +
-                        "</readiness>" +
-                        "<path>/health</path>" +
-                        "<port-name>health</port-name>");
+                "{\"liveness\":{\"path\":\"/live\"}," +
+                        "\"readiness\":{\"path\":\"/ping\",\"port-name\":\"ready\"}," +
+                        "\"path\":\"/health\",\"port-name\":\"health\"}");
+
         setupExpectations(config);
 
         Probe probe = enricher.getReadinessProbe();
@@ -955,7 +923,7 @@ public class VertxHealthCheckEnricherTest {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         final Map<String, Object> config = createFakeConfig(
-                "<path>/ping</path><type>http</type>");
+                "{\"path\":\"/ping\",\"type\":\"http\"}");
         Properties properties = new Properties();
         properties.put("vertx.health.readiness.type", "tcp");
         properties.put("vertx.health.readiness.port", "1234");

@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.common.util.Base64Util;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +33,7 @@ public class FileDataSecretEnricher extends BaseEnricher {
 
     protected static final String PREFIX_ANNOTATION = "maven.jkube.io/secret/";
 
-    public FileDataSecretEnricher(MavenEnricherContext buildContext) {
+    public FileDataSecretEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-secret-file");
     }
 

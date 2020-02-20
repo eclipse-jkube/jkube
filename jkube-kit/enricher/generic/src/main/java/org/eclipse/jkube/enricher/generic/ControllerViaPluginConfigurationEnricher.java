@@ -25,11 +25,11 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetFluent;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.enricher.handler.DeploymentHandler;
 import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
@@ -55,7 +55,7 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
         public String def() { return d; } protected String d;
     }
 
-    public ControllerViaPluginConfigurationEnricher(MavenEnricherContext context) {
+    public ControllerViaPluginConfigurationEnricher(JkubeEnricherContext context) {
         super(context, "jkube-controller-from-configuration");
         HandlerHub handlers = new HandlerHub(
                 getContext().getGav(), getContext().getConfiguration().getProperties());
@@ -65,7 +65,7 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        final String name = getConfig(Config.name, MavenUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+        final String name = getConfig(Config.name, JkubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
         ResourceConfig xmlResourceConfig = getConfiguration().getResource().orElse(null);
         final ResourceConfig config = new ResourceConfig.Builder()
                 .controllerName(name)

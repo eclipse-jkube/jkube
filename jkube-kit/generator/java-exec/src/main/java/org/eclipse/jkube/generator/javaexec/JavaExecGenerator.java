@@ -15,7 +15,7 @@ package org.eclipse.jkube.generator.javaexec;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
 import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.JkubeAssemblyFileSet;
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.JkubeProjectAssembly;
 import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
@@ -180,35 +181,45 @@ public class JavaExecGenerator extends BaseGenerator {
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
         } else {
-            List<JkubeProjectAssembly> assemblies = new ArrayList<>();
-            assemblies.addAll(addAdditionalFiles(getProject()));
+            JkubeProjectAssembly.Builder assemblyBuilder = new JkubeProjectAssembly.Builder()
+                    .fileSets(addAdditionalFiles(getProject()));
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
                 JkubeProject project = getProject();
                 if (fatJar != null) {
-                    JkubeProjectAssembly fileSet = getOutputDirectoryFileSet(fatJar, project);
-                    assemblies.add(fileSet);
+                    JkubeAssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
+                    assemblyBuilder.fileSet(fileSet);
                 }
             } else {
                 builder.descriptorRef("artifact-with-dependencies");
             }
-            builder.assemblyDef(assemblies);
+            builder.assemblyDef(assemblyBuilder.build());
         }
     }
 
-    private List<JkubeProjectAssembly> addAdditionalFiles(JkubeProject project) {
-        return Arrays.asList((createFileSet(project, "src/main/jkube-includes/bin","0755")),
-                createFileSet(project, "src/main/jkube-includes","0644"));
+    private List<JkubeAssemblyFileSet> addAdditionalFiles(JkubeProject project) {
+        List<JkubeAssemblyFileSet> fileSets = new ArrayList<>();
+        fileSets.add(createFileSet(project, "src/main/jkube-includes/bin","0755"));
+        fileSets.add(createFileSet(project, "src/main/jkube-includes","0644"));
+        return fileSets;
     }
 
-    private JkubeProjectAssembly getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JkubeProject project) {
+    private JkubeAssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JkubeProject project) {
         File buildDir = new File(project.getBuildDirectory());
-        return new JkubeProjectAssembly(buildDir, Arrays.asList(getRelativePath(project.getBaseDirectory(), buildDir).getPath(),
-                getRelativePath(buildDir, fatJar.getArchiveFile()).getPath()), "0640");
+        return new JkubeAssemblyFileSet.Builder()
+                .directory(getRelativePath(project.getBaseDirectory(), buildDir).getPath())
+                .addInclude(getRelativePath(buildDir, fatJar.getArchiveFile()).getPath())
+                .outputDirectory(".")
+                .fileMode("0640")
+                .build();
     }
 
-    private JkubeProjectAssembly createFileSet(JkubeProject project, String sourceDir, String fileMode) {
-        return new JkubeProjectAssembly(project.getBaseDirectory(), Arrays.asList(sourceDir), fileMode);
+    private JkubeAssemblyFileSet createFileSet(JkubeProject project, String sourceDir, String fileMode) {
+        return new JkubeAssemblyFileSet.Builder()
+                .directory(project.getBaseDirectory().getAbsolutePath())
+                .includes(Collections.singletonList(sourceDir))
+                .fileMode(fileMode)
+                .build();
     }
 
     protected boolean isFatJar() {

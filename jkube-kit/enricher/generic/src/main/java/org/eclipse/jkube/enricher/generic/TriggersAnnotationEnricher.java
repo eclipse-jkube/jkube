@@ -35,7 +35,7 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public class TriggersAnnotationEnricher extends BaseEnricher {
     }
 
 
-    public TriggersAnnotationEnricher(MavenEnricherContext buildContext) {
+    public TriggersAnnotationEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-triggers-annotation");
     }
 

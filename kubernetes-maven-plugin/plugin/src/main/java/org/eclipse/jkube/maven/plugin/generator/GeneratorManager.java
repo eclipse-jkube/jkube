@@ -20,7 +20,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class GeneratorManager {
 
     public static List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs,
                                                     GeneratorContext genCtx,
-                                                    boolean prePackagePhase) throws MojoExecutionException {
+                                                    boolean prePackagePhase) {
 
         List<ImageConfiguration> ret = imageConfigs;
 

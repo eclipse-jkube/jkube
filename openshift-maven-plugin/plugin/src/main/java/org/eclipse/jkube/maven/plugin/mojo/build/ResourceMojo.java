@@ -27,6 +27,7 @@ import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
@@ -43,7 +44,7 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.profile.Profile;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
 import org.eclipse.jkube.maven.plugin.enricher.EnricherManager;
@@ -436,18 +437,18 @@ public class ResourceMojo extends AbstractJkubeMojo {
     }
 
     private KubernetesList generateResources(PlatformMode platformMode, List<ImageConfiguration> images)
-        throws IOException, MojoExecutionException {
+        throws IOException, MojoExecutionException, DependencyResolutionRequiredException {
 
         if (namespace != null && !namespace.isEmpty()) {
             resources = new ResourceConfig.Builder(resources).withNamespace(namespace).build();
         }
         // Manager for calling enrichers.
-        MavenEnricherContext.Builder ctxBuilder = new MavenEnricherContext.Builder()
-                .project(project)
-                .session(session)
+        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project, session);
+        JkubeEnricherContext.Builder ctxBuilder = new JkubeEnricherContext.Builder()
+                .project(jkubeProject)
                 .config(extractEnricherConfig())
-                .settings(settings)
-                .properties(project.getProperties())
+                .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
+                .properties(jkubeProject.getProperties())
                 .resources(resources)
                 .images(resolvedImages)
                 .log(log);
@@ -526,7 +527,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
 
     private KubernetesListBuilder readResourceFragments(PlatformMode platformMode, File[] resourceFiles) throws IOException, MojoExecutionException {
         KubernetesListBuilder builder;
-        String defaultName = MavenUtil.createDefaultResourceName(project.getArtifactId());
+        String defaultName = JkubeProjectUtil.createDefaultResourceName(project.getArtifactId());
         builder = KubernetesResourceUtil.readResourceFragmentsFrom(
             platformMode,
             KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING,

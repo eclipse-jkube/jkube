@@ -50,8 +50,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.repository.RepositorySystem;
-import org.codehaus.plexus.PlexusConstants;
-import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 
@@ -164,7 +162,7 @@ public class WatchMojo extends AbstractDockerMojo {
 
     @Override
     public void contextualize(Context context) throws ContextException {
-        authConfigFactory = new AuthConfigFactory((PlexusContainer) context.get(PlexusConstants.PLEXUS_KEY));
+        authConfigFactory = new AuthConfigFactory();
     }
 
     @Override
@@ -252,14 +250,14 @@ public class WatchMojo extends AbstractDockerMojo {
         }
     }
 
-    protected JkubeServiceHub getJkubeServiceHub() {
+    @Override
+    protected JkubeServiceHub getJkubeServiceHub() throws DependencyResolutionRequiredException {
         return new JkubeServiceHub.Builder()
                 .log(log)
                 .clusterAccess(clusterAccess)
                 .dockerServiceHub(hub)
                 .platformMode(mode)
-                .repositorySystem(repositorySystem)
-                .mavenProject(project)
+                .jkubeProject(MavenUtil.convertMavenProjectToJkubeProject(project, session))
                 .build();
     }
 
@@ -278,8 +276,6 @@ public class WatchMojo extends AbstractDockerMojo {
                     .generatorMode(GeneratorMode.WATCH)
                     .build();
             return GeneratorManager.generate(configs, ctx, false);
-        } catch (MojoExecutionException e) {
-            throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
         } catch (DependencyResolutionRequiredException de) {
             throw new IllegalArgumentException("Instructed to use project classpath, but cannot. Continuing build if we can: ", de);
         }

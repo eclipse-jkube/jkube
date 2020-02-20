@@ -272,7 +272,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     private boolean isSpringBootRepackage() {
         JkubeProject project = getProject();
-        JkubeProjectPlugin plugin = JkubeProjectUtil.getPluginOfAnyArtifactId(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        JkubeProjectPlugin plugin = JkubeProjectUtil.getPlugin(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
         if (plugin != null) {
             List<String> executions = plugin.getExecutions();
             if (executions != null) {

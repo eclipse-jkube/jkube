@@ -16,7 +16,6 @@ package org.eclipse.jkube.generator.javaexec;
 import java.io.File;
 import java.net.URL;
 
-import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
@@ -30,7 +29,7 @@ import static org.junit.Assert.assertNotNull;
 public class FatJarDetectorTest {
 
     @Test
-    public void simple() throws MojoExecutionException {
+    public void simple() {
         URL testDirUrl = getClass().getResource("/fatjar-simple");
         FatJarDetector detector = new FatJarDetector(getAbsolutePath(testDirUrl));
         FatJarDetector.Result result = detector.scan();

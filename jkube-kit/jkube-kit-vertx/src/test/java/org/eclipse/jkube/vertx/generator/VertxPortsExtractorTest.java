@@ -13,15 +13,15 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
+import java.util.AbstractMap;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jkube.kit.common.JkubeProject;
 import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
-import mockit.Expectations;
 import mockit.Mocked;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.junit.Test;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
@@ -33,13 +33,15 @@ public class VertxPortsExtractorTest {
 
     @Test
     public void testVertxConfigPathFromProject() throws Exception {
-        Xpp3Dom vertxConfig = new Xpp3Dom("config");
-        vertxConfig.setValue(getAbsolutePath(VertxPortsExtractorTest.class.getResource("/config.json")));
-        Xpp3Dom configuration = new Xpp3Dom("configuration");
-        configuration.addChild(vertxConfig);
+        Map<String, Object> vertxConfig = new HashMap<>();
+        vertxConfig.put("vertxConfig", getAbsolutePath(VertxPortsExtractorTest.class.getResource("/config.json")));
+
+        Map<String, Object> configuration = new HashMap<>();
+        configuration.put("config", vertxConfig);
+
 
         JkubeProject project = new JkubeProject.Builder()
-                .plugins(Collections.singletonList(Constants.VERTX_MAVEN_PLUGIN_GROUP + "," + Constants.VERTX_MAVEN_PLUGIN_ARTIFACT + ",testversion,"+ configuration+ ",testexec"))
+                .plugins(Collections.singletonList(new JkubeProjectPlugin.Builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP).artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").executions(Collections.singletonList("testexec")).configuration(configuration).build()))
                 .build();
 
         Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
@@ -49,7 +51,7 @@ public class VertxPortsExtractorTest {
     @Test
     public void testNoVertxConfiguration() throws Exception {
         JkubeProject project = new JkubeProject.Builder()
-                .plugins(Collections.singletonList(Constants.VERTX_MAVEN_PLUGIN_GROUP + "," + Constants.VERTX_MAVEN_PLUGIN_ARTIFACT + ",testversion,,testexec"))
+                .plugins(Collections.singletonList(new JkubeProjectPlugin.Builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP).artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").configuration(Collections.emptyMap()).build()))
                 .build();
         Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
         assertEquals(0,result.size());

@@ -30,7 +30,6 @@ import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -329,7 +328,7 @@ public class BaseGeneratorTest {
         }
 
         @Override
-        public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) throws MojoExecutionException {
+        public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) {
             return existingConfigs;
         }
     }

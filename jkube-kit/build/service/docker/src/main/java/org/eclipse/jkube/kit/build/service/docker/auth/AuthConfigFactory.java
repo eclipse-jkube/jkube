@@ -16,7 +16,7 @@ package org.eclipse.jkube.kit.build.service.docker.auth;
 import com.google.common.net.UrlEscapers;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.eclipse.jkube.kit.build.service.docker.config.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.EcrExtendedAuth;
@@ -30,21 +30,16 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,8 +61,6 @@ public class AuthConfigFactory {
 
     static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
 
-    private final PlexusContainer container;
-
     private KitLogger log;
     private static final String[] DEFAULT_REGISTRIES = new String[]{
             "docker.io", "index.docker.io", "registry.hub.docker.com"
@@ -76,10 +69,8 @@ public class AuthConfigFactory {
     /**
      * Constructor which should be used during startup phase of a plugin
      *
-     * @param container the container used for do decryption of passwords
      */
-    public AuthConfigFactory(PlexusContainer container) {
-        this.container = container;
+    public AuthConfigFactory() {
     }
 
     public void setLog(KitLogger log) {
@@ -122,10 +113,10 @@ public class AuthConfigFactory {
      *
      * @throws Exception mojo failure exception
      */
-    public AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, List<RegistryServerConfiguration> settings, String user, String registry)
+    public AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod)
             throws Exception {
 
-        AuthConfig ret = createStandardAuthConfig(isPush, authConfig, settings, user, registry);
+        AuthConfig ret = createStandardAuthConfig(isPush, authConfig, settings, user, registry, passwordDecryptionMethod);
         if (ret != null) {
             if (registry == null || skipExtendedAuth) {
                 return ret;
@@ -197,14 +188,14 @@ public class AuthConfigFactory {
      *
      * @throws Exception
      */
-    private AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry)
+    private AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod)
             throws Exception {
         AuthConfig ret;
 
         // Check first for specific configuration based on direction (pull or push), then for a default value
         for (LookupMode lookupMode : new LookupMode[] { getLookupMode(isPush), LookupMode.DEFAULT }) {
             // System properties docker.username and docker.password always take precedence
-            ret = getAuthConfigFromSystemProperties(lookupMode);
+            ret = getAuthConfigFromSystemProperties(lookupMode, passwordDecryptionMethod);
             if (ret != null) {
                 log.debug("AuthConfig: credentials from system properties");
                 return ret;
@@ -218,7 +209,7 @@ public class AuthConfigFactory {
             }
 
             // Get configuration from global plugin config
-            ret = getAuthConfigFromPluginConfiguration(lookupMode, authConfigMap);
+            ret = getAuthConfigFromPluginConfiguration(lookupMode, authConfigMap, passwordDecryptionMethod);
             if (ret != null) {
                 log.debug("AuthConfig: credentials from plugin config");
                 return ret;
@@ -229,7 +220,7 @@ public class AuthConfigFactory {
         // These are lookups based on registry only, so the direction (push or pull) doesn't matter:
 
         // Now lets lookup the registry & user from ~/.m2/setting.xml
-        ret = getAuthConfigFromSettings(settings, user, registry);
+        ret = getAuthConfigFromSettings(settings, user, registry, passwordDecryptionMethod);
         if (ret != null) {
             log.debug("AuthConfig: credentials from ~/.m2/setting.xml");
             return ret;
@@ -315,7 +306,7 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromSystemProperties(LookupMode lookupMode) throws Exception {
+    private AuthConfig getAuthConfigFromSystemProperties(LookupMode lookupMode, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
         Properties props = System.getProperties();
         String userKey = lookupMode.asSysProperty(AUTH_USERNAME);
         String passwordKey = lookupMode.asSysProperty(AUTH_PASSWORD);
@@ -324,7 +315,7 @@ public class AuthConfigFactory {
                 throw new IOException("No " + passwordKey + " provided for username " + props.getProperty(userKey));
             }
             return new AuthConfig(props.getProperty(userKey),
-                                  decrypt(props.getProperty(passwordKey)),
+                                  passwordDecryptionMethod.apply(props.getProperty(passwordKey)),
                                   props.getProperty(lookupMode.asSysProperty(AUTH_EMAIL)),
                                   props.getProperty(lookupMode.asSysProperty(AUTH_AUTHTOKEN)));
         } else {
@@ -332,7 +323,7 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) throws IllegalStateException {
+    private AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) {
         Properties props = System.getProperties();
         String useOpenAuthModeProp = lookupMode.asSysProperty(AUTH_USE_OPENSHIFT_AUTH);
         // Check for system property
@@ -355,7 +346,7 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map authConfig) throws Exception {
+    private AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map authConfig, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
         Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfig);
 
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USERNAME)) {
@@ -363,14 +354,14 @@ public class AuthConfigFactory {
                 throw new IllegalStateException("No 'password' given while using <authConfig> in configuration for mode " + lookupMode);
             }
             Map<String, String> cloneConfig = new HashMap<>(mapToCheck);
-            cloneConfig.put(AUTH_PASSWORD, decrypt(cloneConfig.get(AUTH_PASSWORD)));
+            cloneConfig.put(AUTH_PASSWORD, passwordDecryptionMethod.apply(cloneConfig.get(AUTH_PASSWORD)));
             return new AuthConfig(cloneConfig);
         } else {
             return null;
         }
     }
 
-    private AuthConfig getAuthConfigFromSettings(List<RegistryServerConfiguration> settings, String user, String registry) throws Exception {
+    private AuthConfig getAuthConfigFromSettings(List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
         RegistryServerConfiguration defaultServer = null;
         RegistryServerConfiguration found;
         for (RegistryServerConfiguration server : settings) {
@@ -383,10 +374,10 @@ public class AuthConfigFactory {
             // Check for specific server with user part
             found = checkForServer(server, id, registry, user);
             if (found != null) {
-                return createAuthConfigFromServer(found);
+                return createAuthConfigFromServer(found, passwordDecryptionMethod);
             }
         }
-        return defaultServer != null ? createAuthConfigFromServer(defaultServer) : null;
+        return defaultServer != null ? createAuthConfigFromServer(defaultServer, passwordDecryptionMethod) : null;
     }
 
     private AuthConfig getAuthConfigFromDockerConfig(String registry) throws IOException {
@@ -516,7 +507,7 @@ public class AuthConfigFactory {
                               token, null, null);
     }
 
-    private AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) throws IllegalStateException {
+    private AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) {
         if (openShiftAuthConfig != null) {
             return openShiftAuthConfig;
         }
@@ -541,35 +532,18 @@ public class AuthConfigFactory {
         return null;
     }
 
-    private String decrypt(String password) throws Exception {
-        try {
-            // Done by reflection since I have classloader issues otherwise
-            Object secDispatcher = container.lookup(SecDispatcher.ROLE, "maven");
-            Method method = secDispatcher.getClass().getMethod("decrypt",String.class);
-            return (String) method.invoke(secDispatcher,password);
-        } catch (ComponentLookupException e) {
-            throw new Exception("Error looking security dispatcher",e);
-        } catch (ReflectiveOperationException e) {
-            throw new Exception("Cannot decrypt password: " + e.getCause(),e);
-        }
-    }
-
-    private AuthConfig createAuthConfigFromServer(RegistryServerConfiguration server) throws Exception {
+    private AuthConfig createAuthConfigFromServer(RegistryServerConfiguration server, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
         return new AuthConfig(
                 server.getUsername(),
-                decrypt(server.getPassword()),
+                passwordDecryptionMethod.apply(server.getPassword()),
                 extractFromServerConfiguration(server.getConfiguration(), AUTH_EMAIL),
                 extractFromServerConfiguration(server.getConfiguration(), "auth")
         );
     }
 
-    private String extractFromServerConfiguration(Object configuration, String prop) {
-        if (configuration != null) {
-            Xpp3Dom dom = (Xpp3Dom) configuration;
-            Xpp3Dom element = dom.getChild(prop);
-            if (element != null) {
-                return element.getValue();
-            }
+    private String extractFromServerConfiguration(Map<String, Object> configuration, String prop) {
+        if (configuration != null && configuration.containsKey(prop)) {
+            return configuration.get(prop).toString();
         }
         return null;
     }

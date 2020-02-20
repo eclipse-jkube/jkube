@@ -28,7 +28,7 @@ import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class IngressEnricher extends BaseEnricher {
 
-    public IngressEnricher(MavenEnricherContext buildContext) {
+    public IngressEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-ingress");
     }
 

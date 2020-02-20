@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ProbeFluent;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.maven.enricher.specific.AbstractHealthCheckEnricher;
 
@@ -63,11 +63,11 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
             return input == null ? null : input.trim();
         }
     };
-    protected static final String[] jkubePlugins = {"org.eclipse.jkube:k8s-maven-plugin", "org.eclipse.jkube:oc-maven-plugin"};
+    protected static final String[] JKUBE_PLUGINS = {"k8s-maven-plugin", "oc-maven-plugin"};
 
     public static final String ERROR_MESSAGE = "Location of %s should return a String but found %s with value %s";
 
-    public VertxHealthCheckEnricher(MavenEnricherContext buildContext) {
+    public VertxHealthCheckEnricher(JkubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-vertx");
     }
 
@@ -359,7 +359,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
     }
 
     private Optional<Map<String, Object>> getMavenPluginConfiguration() {
-        for(String pluginId : jkubePlugins) {
+        for(String pluginId : JKUBE_PLUGINS) {
             Optional<Map<String, Object>> configuration = getContext().getConfiguration().getPluginConfiguration("maven", pluginId);
             if(configuration != null && configuration.isPresent()) {
                 return configuration;

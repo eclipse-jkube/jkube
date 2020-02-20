@@ -28,8 +28,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,7 +49,6 @@ import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
@@ -88,7 +85,6 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.slf4j.LoggerFactory;
 
 import static org.eclipse.jkube.maven.enricher.api.util.Constants.RESOURCE_APP_CATALOG_ANNOTATION;
@@ -451,24 +447,22 @@ public class KubernetesResourceUtil {
         return true;
     }
 
-    public static void validateKubernetesMasterUrl(URL masterUrl) throws MojoExecutionException {
+    public static void validateKubernetesMasterUrl(URL masterUrl) {
         if (masterUrl == null || StringUtils.isBlank(masterUrl.toString())) {
-            throw new MojoExecutionException("Cannot find Kubernetes master URL. Have you started a cluster via `mvn jkube:cluster-start` or connected to a remote cluster via `kubectl`?");
+            throw new IllegalStateException("Cannot find Kubernetes master URL. Have you started a cluster via `mvn jkube:cluster-start` or connected to a remote cluster via `kubectl`?");
         }
     }
 
-    public static void handleKubernetesClientException(KubernetesClientException e, KitLogger logger) throws MojoExecutionException {
+    public static void handleKubernetesClientException(KubernetesClientException e, KitLogger logger) {
         Throwable cause = e.getCause();
         if (cause instanceof UnknownHostException) {
             logger.error( "Could not connect to kubernetes cluster!");
-            logger.error("Have you started a local cluster via `mvn jkube:cluster-start` or connected to a remote cluster via `kubectl`?");
-            logger.info("For more help see: http://jkube.io/guide/getStarted/");
             logger.error( "Connection error: %s", cause);
 
             String message = "Could not connect to kubernetes cluster. Have you started a cluster via `mvn jkube:cluster-start` or connected to a remote cluster via `kubectl`? Error: " + cause;
-            throw new MojoExecutionException(message, e);
+            throw new IllegalStateException(message, e);
         } else {
-            throw new MojoExecutionException(e.getMessage(), e);
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 

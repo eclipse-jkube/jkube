@@ -13,52 +13,35 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class JkubeProjectPluginTest {
-    private List<String> projectPluginsAsStr = Arrays.asList("org.springframework.boot,spring-boot-maven-plugin,null,null", "org.eclipse.jkube,k8s-maven-plugin,0.1.0,<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-            "<configuration>\n" +
-            "  <resources>\n" +
-            "    <labels>\n" +
-            "      <all>\n" +
-            "        <testProject>spring-boot-sample</testProject>\n" +
-            "      </all>\n" +
-            "    </labels>\n" +
-            "  </resources>\n" +
-            "  <generator>\n" +
-            "    <includes>\n" +
-            "      <include>spring-boot</include>\n" +
-            "    </includes>\n" +
-            "    <config>\n" +
-            "      <spring-boot>\n" +
-            "        <color>always</color>\n" +
-            "      </spring-boot>\n" +
-            "    </config>\n" +
-            "  </generator>\n" +
-            "  <enricher>\n" +
-            "    <excludes>\n" +
-            "      <exclude>jkube-expose</exclude>\n" +
-            "    </excludes>\n" +
-            "    <config>\n" +
-            "      <jkube-service>\n" +
-            "        <type>NodePort</type>\n" +
-            "      </jkube-service>\n" +
-            "    </config>\n" +
-            "  </enricher>\n" +
-            "</configuration>,resource|build|helm");
+    private static List<AbstractMap.SimpleEntry<String, Map<String, Object>>> projectPluginsAsStr;
+
+    @Before
+    public void init() {
+        projectPluginsAsStr = new ArrayList<>();
+        projectPluginsAsStr.add(new AbstractMap.SimpleEntry<>("org.springframework.boot,spring-boot-maven-plugin,null,null", Collections.emptyMap()));
+        projectPluginsAsStr.add(new AbstractMap.SimpleEntry<>("org.eclipse.jkube,k8s-maven-plugin,0.1.0,resource|build|helm", Collections.emptyMap()));
+    }
 
     @Test
     public void testStringToPluginParsing() {
-        JkubeProjectPlugin projectPlugin = JkubeProjectPlugin.fromString(projectPluginsAsStr.get(0));
+        JkubeProjectPlugin projectPlugin = JkubeProjectPlugin.fromString(projectPluginsAsStr.get(0).getKey(), projectPluginsAsStr.get(0).getValue());
         assertSpringBootPlugin(projectPlugin);
 
-        projectPlugin = JkubeProjectPlugin.fromString(projectPluginsAsStr.get(1));
+        projectPlugin = JkubeProjectPlugin.fromString(projectPluginsAsStr.get(1).getKey(), projectPluginsAsStr.get(1).getValue());
         assertEclipseJkubePlugin(projectPlugin);
     }
 

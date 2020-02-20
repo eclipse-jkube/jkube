@@ -17,7 +17,6 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.DownwardAPIVolumeFile;
 import io.fabric8.kubernetes.api.model.KeyToPath;
-import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Configuration for a single volume
@@ -27,143 +26,97 @@ import org.apache.maven.plugins.annotations.Parameter;
  */
 public class VolumeConfig {
 
-    @Parameter
     private String type;
 
-    @Parameter
     private String name;
 
     // List of mount paths of this volume
-    @Parameter
     private List<String> mounts;
 
-    @Parameter
     private String path;
 
-    @Parameter
     private String medium;
 
-    @Parameter
     private String repository;
 
-    @Parameter
     private String revision;
 
-    @Parameter
     private String secretName;
 
-    @Parameter
     private String server;
 
-    @Parameter
     private Boolean readOnly;
 
-    @Parameter
     private String pdName;
 
-    @Parameter
     private String fsType;
 
-    @Parameter
     private Integer partition;
 
-    @Parameter
     private String endpoints;
 
-    @Parameter
     private String claimRef;
 
-    @Parameter
     private String volumeId;
 
-    @Parameter
     private String diskName;
 
-    @Parameter
     private String diskUri;
 
-    @Parameter
     private String kind;
 
-    @Parameter
     private String cachingMode;
 
-    @Parameter
     private String hostPathType;
 
-    @Parameter
     private String shareName;
 
-    @Parameter
     private String user;
 
-    @Parameter
     private String secretFile;
 
-    @Parameter
     private String secretRef;
 
-    @Parameter
     private Integer lun;
 
-    @Parameter
     private List<String> targetWwns;
 
-    @Parameter
     private String datasetName;
 
-    @Parameter
     private List<String> portals;
 
-    @Parameter
     private String targetPortal;
 
-    @Parameter
     private String registry;
 
-    @Parameter
     private String volume;
 
-    @Parameter
     private String group;
 
-    @Parameter
     private String iqn;
 
-    @Parameter
     private List<String> monitors;
 
-    @Parameter
     private String pool;
 
-    @Parameter
     private String keyring;
 
-    @Parameter
     private String image;
 
-    @Parameter
     private String gateway;
 
-    @Parameter
     private String system;
 
-    @Parameter
     private String protectionDomain;
 
-    @Parameter
     private String storagePool;
 
-    @Parameter
     private String volumeName;
 
-    @Parameter
     private String configMapName;
 
-    @Parameter
     private List<KeyToPath> configMapItems;
 
-    @Parameter
     private List<DownwardAPIVolumeFile> items;
 
     public String getType() {
@@ -287,6 +240,11 @@ public class VolumeConfig {
     public String getConfigMapName() { return name; }
 
     public List<KeyToPath> getConfigMapItems() { return configMapItems; }
+
+    public void setConfigMapName(String configMapName) {
+        this.configMapName = configMapName;
+    }
+
 
     public static class Builder {
         private VolumeConfig volumeConfig = new VolumeConfig();
