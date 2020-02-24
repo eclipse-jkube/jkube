@@ -23,6 +23,7 @@ Usage:
 ```
 ### 0.2-SNAPSHOT
 * Fix #71: script to extract changelog information for notifications
+* Fix #76: Github actions checkout v2
 
 ### 0.1.1 (14-02-2020)
 * Refactor: Add Maven Enforcer Plugin #29
