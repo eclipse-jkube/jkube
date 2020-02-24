@@ -11,7 +11,6 @@ We use semantic versioning in some slight variation until our feature set has st
 After this we will switch probably to real [Semantic Versioning 2.0.0](http://semver.org/)
 
 ## Extracting changelog portions
-
 We provide a script to extract changelog portions and automatic link building to send notifications
 (i.e. e-mail) about new releases
 ([scripts/extract-changelog-for-version.sh](https://github.com/eclipse/jkube/blob/master/scripts/extract-changelog-for-version.sh))
@@ -24,6 +23,7 @@ Usage:
 ### 0.2-SNAPSHOT
 * Fix #71: script to extract changelog information for notifications
 * Fix #76: Github actions checkout v2
+* Updated Kubernetes-Client Version to 4.7.1 #70
 
 ### 0.1.1 (14-02-2020)
 * Refactor: Add Maven Enforcer Plugin #29

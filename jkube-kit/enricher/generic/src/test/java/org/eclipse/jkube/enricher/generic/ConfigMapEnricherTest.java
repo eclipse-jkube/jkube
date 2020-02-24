@@ -33,6 +33,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import static junit.framework.TestCase.assertNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConfigMapEnricherTest {
@@ -114,12 +115,10 @@ public class ConfigMapEnricherTest {
 
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
-
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
 
         final Map<String, String> data = configMap.getData();
-        assertThat(data)
-                .isEmpty();
+        assertNull(data);
 
         final Map<String, String> binaryData = configMap.getBinaryData();
         assertThat(binaryData)
