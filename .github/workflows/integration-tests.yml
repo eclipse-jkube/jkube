@@ -11,7 +11,7 @@
 # Contributors:
 #   Red Hat, Inc. - initial API and implementation
 #
-name: JKube Integration Tests
+name: Integration Tests
 
 on:
   push:
@@ -20,25 +20,25 @@ on:
     - cron: '0 1 * * *' # Everyday at 1
 
 env:
-  JKUBE_IT_REPOSITORY: https://github.com/jshiftio/jkube-integration-tests.git
+  JKUBE_IT_REPOSITORY: https://github.com/jkubeio/jkube-integration-tests.git
   JKUBE_IT_REVISION: master
   JKUBE_IT_DIR: jkube-integration-tests
 
 jobs:
   minikube:
-    name: Integration Tests in Minikube Cluster
+    name: K8S
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        minikube: [v1.5.1]
-        kubernetes: [v1.16.2,v1.12.0]
+        kubernetes: [v1.17.2,v1.12.0]
+        suite: ['quarkus','springboot','other']
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Minikube-Kubernetes
         uses: manusa/actions-setup-minikube@v1.0.0
         with:
-          minikube version: ${{ matrix.minikube }}
+          minikube version: v1.5.1
           kubernetes version: ${{ matrix.kubernetes }}
       - name: Setup Java 11
         uses: actions/setup-java@v1
@@ -55,7 +55,7 @@ jobs:
         run: |
           JKUBE_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) \
           && cd $JKUBE_IT_DIR \
-          && ./mvnw -B -PKubernetes clean verify -Djkube.version="$JKUBE_VERSION"
+          && ./mvnw -B -PKubernetes,${{ matrix.suite }} clean verify -Djkube.version="$JKUBE_VERSION"
       - name: Consolidate reports
         run: |
           mkdir -p ./reports \
@@ -63,14 +63,15 @@ jobs:
       - name: Save reports as artifact
         uses: actions/upload-artifact@master
         with:
-          name: Test reports (Minikube ${{ matrix.minikube }}-${{ matrix.kubernetes }})
+          name: Test reports (Minikube ${{ matrix.kubernetes }}-${{ matrix.suite }} )
           path: ./reports
   openshift:
-    name: Integration Tests in OpenShift Cluster
+    name: OpenShift
     runs-on: ubuntu-latest
     strategy:
       matrix:
         openshift: [v3.11.0,v3.9.0]
+        suite: ['quarkus','springboot','other']
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -93,7 +94,7 @@ jobs:
         run: |
           JKUBE_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) \
           && cd $JKUBE_IT_DIR \
-          && ./mvnw -B -POpenShift clean verify -Djkube.version="$JKUBE_VERSION" -Djunit.jupiter.execution.parallel.config.fixed.parallelism=2
+          && ./mvnw -B -POpenShift,${{ matrix.suite }} clean verify -Djkube.version="$JKUBE_VERSION" -Djunit.jupiter.execution.parallel.config.fixed.parallelism=2
       - name: Consolidate reports
         run: |
           mkdir -p ./reports \
@@ -101,5 +102,5 @@ jobs:
       - name: Save reports as artifact
         uses: actions/upload-artifact@master
         with:
-          name: Test reports (OpenShift ${{ matrix.openshift }})
+          name: Test reports (OpenShift ${{ matrix.openshift }}-${{ matrix.suite }})
           path: ./reports
