@@ -103,11 +103,15 @@
               <icons>font</icons>
               <pagenums/>
               <version>${project.version}</version>
-              <plugindir>${project.basedir}/../plugin</plugindir>
               <idprefix/>
               <idseparator>-</idseparator>
               <allow-uri-read>true</allow-uri-read>
             </attributes>
+            <logHandler>
+              <failIf>
+                <severity>DEBUG</severity>
+              </failIf>
+            </logHandler>
           </configuration>
           <dependencies>
             <dependency>

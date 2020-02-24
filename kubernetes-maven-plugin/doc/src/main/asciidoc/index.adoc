@@ -8,11 +8,11 @@ Roland Huß, James Strachan;
 :doctype: book
 :icons: font
 :plugin: jkube
-:plugindir: {plugindir}
+:plugindir: ../../../../../plugin
 
 ifndef::ebook-format[:leveloffset: 1]
 
-(C) 2016 The original authors.
+(C) 2019 The original authors.
 
 ifdef::basebackend-html[toc::[]]
 
