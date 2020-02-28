@@ -1,9 +1,9 @@
-# Migration Guide for projects using Fabric8 Maven Plugin to Eclipse Jkube
+# Migration Guide for projects using Fabric8 Maven Plugin to Eclipse JKube
 
-For any project which is using [Fabric8 Maven Plugin](https://github.com/fabric8io/fabric8-maven-plugin) right now. Migrating to Eclipse Jkube should not be that hard. Fabric8 Maven Plugin used to handle both Kubernetes and Openshift clusters but Eclipse Jkube has separate plugins for these two different environments.
+For any project which is using [Fabric8 Maven Plugin](https://github.com/fabric8io/fabric8-maven-plugin) right now. Migrating to Eclipse JKube should not be that hard. Fabric8 Maven Plugin used to handle both Kubernetes and Openshift clusters but Eclipse JKube has separate plugins for these two different environments.
 
 ## For Project Using Kubernetes
-For any project deploying their applications onto Kubernetes, we need to replace [Fabric8 Maven Plugin](https://github.com/fabric8io/fabric8-maven-plugin) with Eclipse Jkube like this. Let's say in case of zero-configuration, we just need to replace `groupId` and `artifactId` like this:
+For any project deploying their applications onto Kubernetes, we need to replace [Fabric8 Maven Plugin](https://github.com/fabric8io/fabric8-maven-plugin) with Eclipse JKube like this. Let's say in case of zero-configuration, we just need to replace `groupId` and `artifactId` like this:
 
 ### FMP zero configuration mode:
 ```
@@ -14,7 +14,7 @@ For any project deploying their applications onto Kubernetes, we need to replace
     </plugin>
 ```
 
-### Eclipse Jkube zero configuration mode:
+### Eclipse JKube zero configuration mode:
 ```
     <plugin>
         <groupId>org.eclipse.jkube</groupId>
@@ -73,7 +73,7 @@ In cases where XML configuration is used for enrichers and generators. All the e
         </executions>
     </plugin>
 ```
-### Eclipse Jkube XML configuration for enrichers, generators and resources:
+### Eclipse JKube XML configuration for enrichers, generators and resources:
 ```
     <plugin>
         <groupId>org.eclipse.jkube</groupId>
@@ -122,7 +122,7 @@ In cases where XML configuration is used for enrichers and generators. All the e
     </plugin>
 ```
 
-In case you want to customize Kubernetes manifests added by FMP by means other than XML configuration, you usually add yourresources to `src/main/fabric8` directory and FMP used to pick these during enrichment process and merge it alongwith default generated resources. In case of Eclipse Jkube also it's the same, only the `src/main/fabric8` directory is replaced with`src/main/jkube` directory:
+In case you want to customize Kubernetes manifests added by FMP by means other than XML configuration, you usually add yourresources to `src/main/fabric8` directory and FMP used to pick these during enrichment process and merge it alongwith default generated resources. In case of Eclipse JKube also it's the same, only the `src/main/fabric8` directory is replaced with`src/main/jkube` directory:
 
 ### Project making use of old FMP fragment configuration:
 
@@ -131,7 +131,7 @@ In case you want to customize Kubernetes manifests added by FMP by means other t
 deployment.yml  sa.yml  service.yml
 
 ```
-### Project making use of Eclipse Jkube fragment configuration:
+### Project making use of Eclipse JKube fragment configuration:
 ```
 ~/work/repos/jkube/quickstarts/maven/external-resources : $ ls src/main/jkube/
 deployment.yml  sa.yml  service.yml
@@ -139,7 +139,7 @@ deployment.yml  sa.yml  service.yml
 
 
 ## For Project Using OpenShift
-For any project deploying their applications onto OpenShift, we need to replace [Fabric8 Maven Plugin](https://github.com/fabric8io/fabric8-maven-plugin) with Eclipse Jkube like this. Let's say in case of zero-configuration, we just need to replace `groupId` and `artifactId` like this:
+For any project deploying their applications onto OpenShift, we need to replace [Fabric8 Maven Plugin](https://github.com/fabric8io/fabric8-maven-plugin) with Eclipse JKube like this. Let's say in case of zero-configuration, we just need to replace `groupId` and `artifactId` like this:
 
 ### FMP zero configuration mode:
 ```
@@ -150,7 +150,7 @@ For any project deploying their applications onto OpenShift, we need to replace 
     </plugin>
 ```
 
-### Eclipse Jkube zero configuration mode:
+### Eclipse JKube zero configuration mode:
 ```
     <plugin>
         <groupId>org.eclipse.jkube</groupId>
@@ -163,7 +163,7 @@ XML configuration and resource fragment configuration are same as Kubernetes Mav
 
 ## Image Configuration for Docker builds
 
-For projects relying on FMP's `ImageConfiguration` model for building docker images. There isn't any change in Eclipse Jkube in XML configuration. For example, let's consider this simple project's plugin configuration:
+For projects relying on FMP's `ImageConfiguration` model for building docker images. There isn't any change in Eclipse JKube in XML configuration. For example, let's consider this simple project's plugin configuration:
 
 ### FMP Image Configuration:
 ```
@@ -194,7 +194,7 @@ For projects relying on FMP's `ImageConfiguration` model for building docker ima
       </plugin>
 ```
 
-### Eclipse Jkube Image Configuration:
+### Eclipse JKube Image Configuration:
 ```
       <plugin>
         <groupId>org.eclipse.jkube</groupId>

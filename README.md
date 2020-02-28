@@ -1,4 +1,4 @@
-# Jkube
+# JKube
 
 [![Circle CI](https://circleci.com/gh/eclipse/jkube/tree/master.svg?style=shield)](https://circleci.com/gh/eclipse/jkube/tree/master)
 [![License](https://img.shields.io/badge/License-EPL%202.0-red.svg?label=license&logo=eclipse)](https://www.eclipse.org/legal/epl-2.0/)
@@ -8,11 +8,11 @@
 
 <p align="center">
   <a href="https://www.eclipse.org/jkube/">
-  	<img src="https://i.imgur.com/EWL66xC.png" width="350" alt="Eclipse Jkube"/>
+  	<img src="https://i.imgur.com/EWL66xC.png" width="350" alt="Eclipse JKube"/>
   </a>
 </p>
 
-This project contains various building blocks for the jkube developer toolbox.
+This project contains various building blocks for the JKube developer toolbox.
 
 Actually it contains the following abstractions which has been extracted from both projects:
 
@@ -26,7 +26,7 @@ Actually it contains the following abstractions which has been extracted from bo
 [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://htmlpreview.github.io/?https://github.com/eclipse/jkube/blob/master/openshift-maven-plugin/doc/index.html)
 ![Sample Demo](openshift-maven-plugin/oc-maven-plugin-demo.gif)
 
-* **Jkube-kit**, which consists of the following:
+* **JKube-kit**, which consists of the following:
 
   * **Generator** framework for automatically generating Docker images by examining project information.<br />
   [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/jkube-kit-generator-api.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22jkube-kit-generator-api%22) [![Javadocs](http://www.javadoc.io/badge/org.eclipse.jkube/jkube-kit-generator-api.svg?color=blue)](http://www.javadoc.io/doc/org.eclipse.jkube/jkube-kit-generator-api)

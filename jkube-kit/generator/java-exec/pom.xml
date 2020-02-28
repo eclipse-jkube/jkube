@@ -26,7 +26,7 @@
 
   <artifactId>jkube-kit-generator-java-exec</artifactId>
 
-  <name>Jkube Kit :: Generator :: Java Exec</name>
+  <name>JKube Kit :: Generator :: Java Exec</name>
 
   <dependencies>
     <dependency>

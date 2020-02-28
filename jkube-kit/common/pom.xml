@@ -26,7 +26,7 @@
 
   <artifactId>jkube-kit-common</artifactId>
 
-  <name>Jkube Kit :: Common</name>
+  <name>JKube Kit :: Common</name>
 
   <dependencies>
 

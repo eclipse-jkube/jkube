@@ -26,7 +26,7 @@
 
   <artifactId>jkube-kit-enricher-generic</artifactId>
 
-  <name>Jkube Kit :: Enricher :: Generic</name>
+  <name>JKube Kit :: Enricher :: Generic</name>
 
   <dependencies>
     <dependency>
