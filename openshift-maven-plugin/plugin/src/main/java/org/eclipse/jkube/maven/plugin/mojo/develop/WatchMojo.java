@@ -34,7 +34,7 @@ import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.JkubeServiceHub;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
@@ -237,11 +237,11 @@ public class WatchMojo extends AbstractDockerMojo {
                     .newPodLogger(createLogger("[[C]][NEW][[C]] "))
                     .oldPodLogger(createLogger("[[R]][OLD][[R]] "))
                     .mode(mode)
-                    .project(MavenUtil.convertMavenProjectToJkubeProject(project, session))
+                    .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                     .useProjectClasspath(useProjectClasspath)
                     .clusterConfiguration(getClusterConfiguration())
                     .kubernetesClient(kubernetes)
-                    .fabric8ServiceHub(getJkubeServiceHub())
+                    .fabric8ServiceHub(getJKubeServiceHub())
                     .build();
         } catch (IOException exception) {
             throw new MojoExecutionException(exception.getMessage());
@@ -251,23 +251,23 @@ public class WatchMojo extends AbstractDockerMojo {
     }
 
     @Override
-    protected JkubeServiceHub getJkubeServiceHub() throws DependencyResolutionRequiredException {
-        return new JkubeServiceHub.Builder()
+    protected JKubeServiceHub getJKubeServiceHub() throws DependencyResolutionRequiredException {
+        return new JKubeServiceHub.Builder()
                 .log(log)
                 .clusterAccess(clusterAccess)
                 .dockerServiceHub(hub)
                 .platformMode(mode)
-                .jkubeProject(MavenUtil.convertMavenProjectToJkubeProject(project, session))
+                .jkubeProject(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                 .build();
     }
 
     @Override
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
         try {
-            JkubeServiceHub serviceHub = getJkubeServiceHub();
+            JKubeServiceHub serviceHub = getJKubeServiceHub();
             GeneratorContext ctx = new GeneratorContext.Builder()
                     .config(extractGeneratorConfig())
-                    .project(MavenUtil.convertMavenProjectToJkubeProject(project, session))
+                    .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                     .logger(log)
                     .runtimeMode(mode)
                     .strategy(buildStrategy)

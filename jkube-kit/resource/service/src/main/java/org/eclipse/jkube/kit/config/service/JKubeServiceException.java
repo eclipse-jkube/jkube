@@ -17,24 +17,24 @@ package org.eclipse.jkube.kit.config.service;
  * @author nicola
  * @since 17/02/2017
  */
-public class JkubeServiceException extends Exception {
+public class JKubeServiceException extends Exception {
 
-    public JkubeServiceException() {
+    public JKubeServiceException() {
     }
 
-    public JkubeServiceException(String message) {
+    public JKubeServiceException(String message) {
         super(message);
     }
 
-    public JkubeServiceException(String message, Throwable cause) {
+    public JKubeServiceException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public JkubeServiceException(Throwable cause) {
+    public JKubeServiceException(Throwable cause) {
         super(cause);
     }
 
-    public JkubeServiceException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public JKubeServiceException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

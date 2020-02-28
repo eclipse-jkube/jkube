@@ -24,11 +24,11 @@ import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.enricher.handler.DaemonSetHandler;
 import org.eclipse.jkube.maven.enricher.handler.DeploymentConfigHandler;
@@ -82,7 +82,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
         public String def() { return d; } protected String d;
     }
 
-    public DefaultControllerEnricher(JkubeEnricherContext buildContext) {
+    public DefaultControllerEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-controller");
 
         HandlerHub handlers = new HandlerHub(
@@ -98,7 +98,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        final String name = getConfig(Config.name, JkubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+        final String name = getConfig(Config.name, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
         ResourceConfig xmlResourceConfig = getConfiguration().getResource().orElse(null);
         ResourceConfig config = new ResourceConfig.Builder(xmlResourceConfig)
                 .controllerName(name)

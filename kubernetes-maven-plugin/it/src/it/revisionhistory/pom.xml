@@ -29,7 +29,7 @@
     <version>1.5.6.RELEASE</version>
   </parent>
 
-  <name>Jkube Maven :: Sample :: Revision History Test</name>
+  <name>JKube Maven :: Sample :: Revision History Test</name>
   <description>Minimal Example with Spring Boot to test revision history configuration</description>
 
   <dependencies>

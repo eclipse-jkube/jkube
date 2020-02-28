@@ -17,9 +17,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
@@ -67,11 +67,11 @@ public abstract class FromSelector {
     abstract protected String getIstagFrom();
 
     public boolean isRedHat() {
-        JkubeProject project = context.getProject();
-        JkubeProjectPlugin plugin = JkubeProjectUtil.getPlugin(project, "org.eclipse.jkube","oc-maven-plugin");
+        JKubeProject project = context.getProject();
+        JKubeProjectPlugin plugin = JKubeProjectUtil.getPlugin(project, "org.eclipse.jkube","oc-maven-plugin");
         if (plugin == null) {
             // This plugin might be repackaged.
-            plugin = JkubeProjectUtil.getPlugin(project,"org.jboss.redhat-fuse", "oc-maven-plugin");
+            plugin = JKubeProjectUtil.getPlugin(project,"org.jboss.redhat-fuse", "oc-maven-plugin");
         }
         if (plugin == null) {
             // Can happen if not configured in a build section but only in a dependency management section

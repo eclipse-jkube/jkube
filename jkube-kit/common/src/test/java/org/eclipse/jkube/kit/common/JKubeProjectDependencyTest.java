@@ -20,26 +20,26 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class JkubeProjectDependencyTest {
+public class JKubeProjectDependencyTest {
     private List<String> dependencyStr = Arrays.asList("org.eclipse.jkube,foo-dependency,0.1.0,jar,compile,/tmp/foo-dependency.jar",
             "org.eclipse.jkube,bar-dependency,0.1.0,jar,compile,/tmp/bar-dependency.jar",
             "org.jolokia,jolokia-core,1.6.2,jar,compile,/tmp/jolokia-core.jar");
 
     @Test
     public void testDependencyStringParsing() {
-        JkubeProjectDependency projectDependency = JkubeProjectDependency.fromString(dependencyStr.get(0));
+        JKubeProjectDependency projectDependency = JKubeProjectDependency.fromString(dependencyStr.get(0));
         assertDependency(projectDependency, "org.eclipse.jkube", "foo-dependency", "0.1.0");
 
-        projectDependency = JkubeProjectDependency.fromString(dependencyStr.get(1));
+        projectDependency = JKubeProjectDependency.fromString(dependencyStr.get(1));
         assertDependency(projectDependency, "org.eclipse.jkube", "bar-dependency", "0.1.0");
 
-        projectDependency = JkubeProjectDependency.fromString(dependencyStr.get(2));
+        projectDependency = JKubeProjectDependency.fromString(dependencyStr.get(2));
         assertDependency(projectDependency, "org.jolokia", "jolokia-core", "1.6.2");
     }
 
     @Test
     public void testDependencyStringListParsing() {
-        List<JkubeProjectDependency> projectDependencyList = JkubeProjectDependency.listFromStringDependencies(dependencyStr);
+        List<JKubeProjectDependency> projectDependencyList = JKubeProjectDependency.listFromStringDependencies(dependencyStr);
 
         assertEquals(3, projectDependencyList.size());
         assertDependency(projectDependencyList.get(0), "org.eclipse.jkube", "foo-dependency", "0.1.0");
@@ -47,7 +47,7 @@ public class JkubeProjectDependencyTest {
         assertDependency(projectDependencyList.get(2), "org.jolokia", "jolokia-core", "1.6.2");
     }
 
-    private void assertDependency(JkubeProjectDependency dependency, String groupId, String artifactId, String version) {
+    private void assertDependency(JKubeProjectDependency dependency, String groupId, String artifactId, String version) {
         assertEquals(groupId, dependency.getGroupId());
         assertEquals(artifactId, dependency.getArtifactId());
         assertEquals(version, dependency.getVersion());

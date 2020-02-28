@@ -18,7 +18,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Properties;
 
-public class JkubeProject implements Serializable {
+public class JKubeProject implements Serializable {
     private String name;
     private String groupId;
     private String artifactId;
@@ -28,9 +28,9 @@ public class JkubeProject implements Serializable {
     private String buildDirectory;
     private Properties properties;
     private List<String> compileClassPathElements;
-    private List<JkubeProjectDependency> dependencies;
-    private List<JkubeProjectDependency> dependenciesWithTransitive;
-    private List<JkubeProjectPlugin> plugins;
+    private List<JKubeProjectDependency> dependencies;
+    private List<JKubeProjectDependency> dependenciesWithTransitive;
+    private List<JKubeProjectPlugin> plugins;
     private String site;
     private String description;
     private String organizationName;
@@ -56,15 +56,15 @@ public class JkubeProject implements Serializable {
         this.compileClassPathElements = compileClassPathElements;
     }
 
-    public List<JkubeProjectDependency> getDependencies() {
+    public List<JKubeProjectDependency> getDependencies() {
         return dependencies;
     }
 
-    public List<JkubeProjectDependency> getDependenciesWithTransitive() {
+    public List<JKubeProjectDependency> getDependenciesWithTransitive() {
         return dependenciesWithTransitive;
     }
 
-    public void setDependencies(List<JkubeProjectDependency> dependencies) {
+    public void setDependencies(List<JKubeProjectDependency> dependencies) {
         this.dependencies = dependencies;
     }
 
@@ -100,11 +100,11 @@ public class JkubeProject implements Serializable {
         this.properties = properties;
     }
 
-    public List<JkubeProjectPlugin> getPlugins() {
+    public List<JKubeProjectPlugin> getPlugins() {
         return plugins;
     }
 
-    public void setPlugins(List<JkubeProjectPlugin> plugins) {
+    public void setPlugins(List<JKubeProjectPlugin> plugins) {
         this.plugins = plugins;
     }
 
@@ -187,11 +187,11 @@ public class JkubeProject implements Serializable {
     }
 
     public static class Builder {
-        private JkubeProject jkubeProject = new JkubeProject();
+        private JKubeProject jkubeProject = new JKubeProject();
 
         public Builder() { }
 
-        public Builder(JkubeProject project) {
+        public Builder(JKubeProject project) {
             this.jkubeProject.plugins = project.getPlugins();
             this.jkubeProject.groupId = project.getGroupId();
             this.jkubeProject.artifactId = project.getArtifactId();
@@ -227,18 +227,18 @@ public class JkubeProject implements Serializable {
             return this;
         }
 
-        public Builder plugins(List<JkubeProjectPlugin> plugins) {
+        public Builder plugins(List<JKubeProjectPlugin> plugins) {
             jkubeProject.plugins = plugins;
             return this;
         }
 
         public Builder dependencies(List<String> dependencies) {
-            jkubeProject.dependencies = JkubeProjectDependency.listFromStringDependencies(dependencies);
+            jkubeProject.dependencies = JKubeProjectDependency.listFromStringDependencies(dependencies);
             return this;
         }
 
         public Builder dependenciesWithTransitive(List<String> dependencies) {
-            jkubeProject.dependenciesWithTransitive = JkubeProjectDependency.listFromStringDependencies(dependencies);
+            jkubeProject.dependenciesWithTransitive = JKubeProjectDependency.listFromStringDependencies(dependencies);
             return this;
         }
 
@@ -322,7 +322,7 @@ public class JkubeProject implements Serializable {
             return this;
         }
 
-        public JkubeProject build() {
+        public JKubeProject build() {
             return jkubeProject;
         }
     }

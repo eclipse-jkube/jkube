@@ -20,7 +20,7 @@ import java.net.URLClassLoader;
 import java.util.Optional;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +87,7 @@ public class SpringBootUtil {
      * @param mavenProject Maven project
      * @return devtools version or null
      */
-    public static Optional<String> getSpringBootDevToolsVersion(JkubeProject mavenProject) {
+    public static Optional<String> getSpringBootDevToolsVersion(JKubeProject mavenProject) {
         return getSpringBootVersion(mavenProject);
     }
 
@@ -97,11 +97,11 @@ public class SpringBootUtil {
      * @param mavenProject  project
      * @return spring boot version or null
      */
-    public static Optional<String> getSpringBootVersion(JkubeProject mavenProject) {
-        return Optional.ofNullable(JkubeProjectUtil.getAnyDependencyVersionWithGroupId(mavenProject, SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID));
+    public static Optional<String> getSpringBootVersion(JKubeProject mavenProject) {
+        return Optional.ofNullable(JKubeProjectUtil.getAnyDependencyVersionWithGroupId(mavenProject, SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID));
     }
 
-    public static String getSpringBootActiveProfile(JkubeProject jkubeProject) {
+    public static String getSpringBootActiveProfile(JKubeProject jkubeProject) {
         if (jkubeProject != null && jkubeProject.getProperties() != null) {
             if (jkubeProject.getProperties().get("spring.profiles.active") != null) {
                 return jkubeProject.getProperties().get("spring.profiles.active").toString();

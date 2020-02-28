@@ -20,16 +20,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class JkubeProjectPlugin implements Serializable {
+public class JKubeProjectPlugin implements Serializable {
     private String groupId;
     private String artifactId;
     private String version;
     private Map<String, Object> configuration;
     private List<String> executions;
 
-    private JkubeProjectPlugin() { }
+    private JKubeProjectPlugin() { }
 
-    public JkubeProjectPlugin(String groupId, String artifactId, String version, Map<String, Object> configuration, List<String> executions) {
+    public JKubeProjectPlugin(String groupId, String artifactId, String version, Map<String, Object> configuration, List<String> executions) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;
@@ -65,20 +65,20 @@ public class JkubeProjectPlugin implements Serializable {
         this.version = version;
     }
 
-    public static JkubeProjectPlugin fromString(String pluginAsStr, Map<String, Object> pluginConfiguration) {
+    public static JKubeProjectPlugin fromString(String pluginAsStr, Map<String, Object> pluginConfiguration) {
         String[] parts = pluginAsStr.split(",");
         if (parts.length == 3) {
-            return new JkubeProjectPlugin(parts[0], parts[1], parts[2], pluginConfiguration, null);
+            return new JKubeProjectPlugin(parts[0], parts[1], parts[2], pluginConfiguration, null);
         } else if (parts.length == 4) {
-            return new JkubeProjectPlugin(parts[0], parts[1], parts[2], pluginConfiguration, Arrays.asList(parts[3].split("\\|")));
+            return new JKubeProjectPlugin(parts[0], parts[1], parts[2], pluginConfiguration, Arrays.asList(parts[3].split("\\|")));
         }
         return null;
     }
 
-    public static List<JkubeProjectPlugin> listFromStringPlugins(List<AbstractMap.SimpleEntry<String, Map<String, Object>>> jkubePluginsAsStr) {
-        List<JkubeProjectPlugin> plugins = new ArrayList<>();
+    public static List<JKubeProjectPlugin> listFromStringPlugins(List<AbstractMap.SimpleEntry<String, Map<String, Object>>> jkubePluginsAsStr) {
+        List<JKubeProjectPlugin> plugins = new ArrayList<>();
         for (AbstractMap.SimpleEntry<String, Map<String, Object>> commaSeparatedPlugins : jkubePluginsAsStr) {
-            JkubeProjectPlugin jkubeProjectPlugin = JkubeProjectPlugin.fromString(commaSeparatedPlugins.getKey(), commaSeparatedPlugins.getValue());
+            JKubeProjectPlugin jkubeProjectPlugin = JKubeProjectPlugin.fromString(commaSeparatedPlugins.getKey(), commaSeparatedPlugins.getValue());
             if (jkubeProjectPlugin != null) {
                 plugins.add(jkubeProjectPlugin);
             }
@@ -91,13 +91,13 @@ public class JkubeProjectPlugin implements Serializable {
     }
 
     public static class Builder {
-        private JkubeProjectPlugin projectPlugin;
+        private JKubeProjectPlugin projectPlugin;
 
         public Builder() {
-            this.projectPlugin = new JkubeProjectPlugin();
+            this.projectPlugin = new JKubeProjectPlugin();
         }
 
-        public Builder(JkubeProjectPlugin plugin) {
+        public Builder(JKubeProjectPlugin plugin) {
             if (plugin != null) {
                 this.projectPlugin = plugin;
             }
@@ -128,7 +128,7 @@ public class JkubeProjectPlugin implements Serializable {
             return this;
         }
 
-        public JkubeProjectPlugin build() {
+        public JKubeProjectPlugin build() {
             return this.projectPlugin;
         }
     }

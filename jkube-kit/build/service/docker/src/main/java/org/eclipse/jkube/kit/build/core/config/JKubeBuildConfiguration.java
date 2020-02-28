@@ -20,7 +20,7 @@ import org.apache.commons.lang3.SerializationUtils;
  * @author roland
  * @since 19.10.18
  */
-public class JkubeBuildConfiguration extends BuildConfiguration<JkubeAssemblyConfiguration> {
+public class JKubeBuildConfiguration extends BuildConfiguration<JKubeAssemblyConfiguration> {
 
     /**
      * Explicit typed setter is required by Plexus @Parameter injection in order to compute the target value
@@ -36,19 +36,19 @@ public class JkubeBuildConfiguration extends BuildConfiguration<JkubeAssemblyCon
      * @param assembly to be set
      */
     @Override
-    public void setAssembly(JkubeAssemblyConfiguration assembly) {
+    public void setAssembly(JKubeAssemblyConfiguration assembly) {
         super.setAssembly(assembly);
     }
 
     public static class Builder
-            extends BuildConfiguration.TypedBuilder<JkubeAssemblyConfiguration, JkubeBuildConfiguration> {
+            extends BuildConfiguration.TypedBuilder<JKubeAssemblyConfiguration, JKubeBuildConfiguration> {
 
         public Builder() {
             this(null);
         }
 
-        public Builder(JkubeBuildConfiguration that) {
-            super(that == null ? new JkubeBuildConfiguration() : SerializationUtils.clone(that));
+        public Builder(JKubeBuildConfiguration that) {
+            super(that == null ? new JKubeBuildConfiguration() : SerializationUtils.clone(that));
         }
 
     }

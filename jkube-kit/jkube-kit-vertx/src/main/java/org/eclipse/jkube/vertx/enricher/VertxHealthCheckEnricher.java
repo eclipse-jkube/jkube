@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ProbeFluent;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.maven.enricher.specific.AbstractHealthCheckEnricher;
 
@@ -67,7 +67,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     public static final String ERROR_MESSAGE = "Location of %s should return a String but found %s with value %s";
 
-    public VertxHealthCheckEnricher(JkubeEnricherContext buildContext) {
+    public VertxHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-vertx");
     }
 

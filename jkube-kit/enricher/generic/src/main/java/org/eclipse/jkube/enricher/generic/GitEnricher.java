@@ -24,10 +24,10 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.common.util.GitUtil;
-import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
@@ -49,7 +49,7 @@ public class GitEnricher extends BaseEnricher {
 
     private String GIT_REMOTE = "jkube.remoteName";
 
-    public GitEnricher(JkubeEnricherContext buildContext) {
+    public GitEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-git");
     }
 
@@ -63,18 +63,18 @@ public class GitEnricher extends BaseEnricher {
                 if (repository != null) {
                     String branch = repository.getBranch();
                     if (branch != null) {
-                        annotations.put(JkubeAnnotations.GIT_BRANCH.value(), branch);
+                        annotations.put(JKubeAnnotations.GIT_BRANCH.value(), branch);
                     }
                     String id = GitUtil.getGitCommitId(repository);
                     if (id != null) {
-                        annotations.put(JkubeAnnotations.GIT_COMMIT.value(), id);
+                        annotations.put(JKubeAnnotations.GIT_COMMIT.value(), id);
                     }
 
                     String gitRemote = getContext().getConfiguration().getProperties().getProperty(GIT_REMOTE);
                     gitRemote = gitRemote == null? "origin" : gitRemote;
                     String gitRemoteUrl = repository.getConfig().getString("remote", gitRemote, "url");
                     if (gitRemoteUrl != null) {
-                        annotations.put(JkubeAnnotations.GIT_URL.value(), gitRemoteUrl);
+                        annotations.put(JKubeAnnotations.GIT_URL.value(), gitRemoteUrl);
                     } else {
                         log.warn("Could not detect any git remote");
                     }

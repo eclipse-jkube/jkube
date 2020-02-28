@@ -20,7 +20,7 @@ import java.util.List;
 import org.eclipse.jkube.generator.webapp.handler.JettyAppSeverHandler;
 import org.eclipse.jkube.generator.webapp.handler.TomcatAppSeverHandler;
 import org.eclipse.jkube.generator.webapp.handler.WildFlyAppSeverHandler;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 
 /**
  * @author kameshs
@@ -31,7 +31,7 @@ class AppServerDetector {
     private final AppServerHandler defaultHandler;
     private final HashMap<String, AppServerHandler> serverHandlerMap;
 
-    AppServerDetector(JkubeProject project) {
+    AppServerDetector(JKubeProject project) {
         // Add new handlers to this list for new appservers
         serverHandlers =
             Arrays.asList(

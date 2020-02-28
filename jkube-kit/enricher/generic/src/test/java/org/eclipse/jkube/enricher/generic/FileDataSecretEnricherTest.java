@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.common.util.Base64Util;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -39,7 +39,7 @@ public class FileDataSecretEnricherTest {
     private static final String TEST_APPLICATION_PROPERTIES_PATH = "src/test/resources/test-application.properties";
     private static final String TEST_APPLICATION_PROPERTIES = "test-application.properties";
     @Mocked
-    private JkubeEnricherContext context;
+    private JKubeEnricherContext context;
 
     @Test
     public void shouldMaterializeFileContentFromAnnotation() throws IOException {

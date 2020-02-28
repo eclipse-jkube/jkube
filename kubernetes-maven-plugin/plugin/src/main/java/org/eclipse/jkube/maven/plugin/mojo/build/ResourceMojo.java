@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
@@ -27,7 +27,7 @@ import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
@@ -44,7 +44,7 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.profile.Profile;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
 import org.eclipse.jkube.maven.plugin.enricher.EnricherManager;
@@ -82,7 +82,7 @@ import static org.eclipse.jkube.maven.plugin.mojo.build.BuildMojo.CONTEXT_KEY_BU
  * installed and released to maven repositories like other build artifacts.
  */
 @Mojo(name = "resource", defaultPhase = LifecyclePhase.PROCESS_RESOURCES, requiresDependencyResolution = ResolutionScope.COMPILE)
-public class ResourceMojo extends AbstractJkubeMojo {
+public class ResourceMojo extends AbstractJKubeMojo {
 
     // Filename for holding the build timestamp
     public static final String DOCKER_BUILD_TIMESTAMP = "docker/build.timestamp";
@@ -358,7 +358,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
             lateInit();
             // Resolve the Docker image build configuration
             resolvedImages = getResolvedImages(images, log);
-            if (!skip && (!isPomProject() || hasJkubeDir())) {
+            if (!skip && (!isPomProject() || hasJKubeDir())) {
                 // Extract and generate resources which can be a mix of Kubernetes and OpenShift resources
                 KubernetesList resources;
                 for(PlatformMode platformMode : new PlatformMode[] { PlatformMode.kubernetes }) {
@@ -438,8 +438,8 @@ public class ResourceMojo extends AbstractJkubeMojo {
             resources = new ResourceConfig.Builder(resources).withNamespace(namespace).build();
         }
         // Manager for calling enrichers.
-        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project, session);
-        JkubeEnricherContext.Builder ctxBuilder = new JkubeEnricherContext.Builder()
+        JKubeProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        JKubeEnricherContext.Builder ctxBuilder = new JKubeEnricherContext.Builder()
                 .project(jkubeProject)
                 .config(extractEnricherConfig())
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
@@ -522,7 +522,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
 
     private KubernetesListBuilder readResourceFragments(PlatformMode platformMode, File[] resourceFiles) throws IOException, MojoExecutionException {
         KubernetesListBuilder builder;
-        String defaultName = JkubeProjectUtil.createDefaultResourceName(project.getArtifactId());
+        String defaultName = JKubeProjectUtil.createDefaultResourceName(project.getArtifactId());
         builder = KubernetesResourceUtil.readResourceFragmentsFrom(
             platformMode,
             KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING,
@@ -544,7 +544,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
     private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log)
         throws MojoExecutionException, DependencyResolutionRequiredException {
         List<ImageConfiguration> ret;
-        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project, session);
+        JKubeProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         ret = ConfigHelper.resolveImages(
             log,
             images,
@@ -569,7 +569,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
         Date now = getBuildReferenceDate();
         storeReferenceDateInPluginContext(now);
         String minimalApiVersion = ConfigHelper.initAndValidate(ret, null /* no minimal api version */,
-            new ImageNameFormatter(MavenUtil.convertMavenProjectToJkubeProject(project, session), now), log);
+            new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), now), log);
         return ret;
     }
 
@@ -614,7 +614,7 @@ public class ResourceMojo extends AbstractJkubeMojo {
         return ret;
     }
 
-    private boolean hasJkubeDir() {
+    private boolean hasJKubeDir() {
         return realResourceDir.isDirectory();
     }
 

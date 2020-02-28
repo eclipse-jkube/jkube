@@ -17,7 +17,7 @@ import mockit.Expectations;
 import mockit.FullVerifications;
 import mockit.Injectable;
 import mockit.Tested;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.junit.Test;
 
 import java.util.Date;
@@ -37,7 +37,7 @@ import static org.junit.Assert.fail;
 public class ImageNameFormatterTest {
 
     @Injectable
-    private JkubeProject project;
+    private JKubeProject project;
 
     @Injectable
     private Date now = new Date();

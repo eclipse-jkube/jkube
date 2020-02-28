@@ -244,9 +244,9 @@ The auto-TLS enricher supports the following configuration options:
 |===
 
 [[enrichers-jkube.]
-=== Jkube Enrichers
+=== JKube Enrichers
 
-Jkube enrichers are used for providing the connection to other components of the jkube.Microservices platform. They are useful to add icons to to application or links to documentation sites.
+JKube enrichers are used for providing the connection to other components of the jkube.Microservices platform. They are useful to add icons to to application or links to documentation sites.
 
 [[jkube-healthcheck-karaf]]
 ==== jkube-healthcheck-karaf

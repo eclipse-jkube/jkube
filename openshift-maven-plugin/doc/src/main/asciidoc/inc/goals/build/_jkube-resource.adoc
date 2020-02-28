@@ -275,7 +275,7 @@ In case both the label and the property have been set with conflicting values, p
 | `false`
 
 | *jkube.workDir*
-| The Jkube working directory
+| The JKube working directory
 | `${project.build.directory}/jkube`
 
 | *jkube.environment*

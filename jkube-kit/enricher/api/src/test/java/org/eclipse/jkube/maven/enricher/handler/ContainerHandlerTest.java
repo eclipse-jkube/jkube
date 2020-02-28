@@ -15,9 +15,9 @@ package org.eclipse.jkube.maven.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
@@ -42,11 +42,11 @@ public class ContainerHandlerTest {
 
     private List<Container> containers;
 
-    private JkubeProject project;
+    private JKubeProject project;
 
-    private JkubeProject project1;
+    private JKubeProject project1;
 
-    private JkubeProject project2;
+    private JKubeProject project2;
 
     private ResourceConfig config;
 
@@ -66,14 +66,14 @@ public class ContainerHandlerTest {
     private List<VolumeConfig> volumes2;
 
     //a sample image configuration
-    JkubeBuildConfiguration buildImageConfiguration1;
+    JKubeBuildConfiguration buildImageConfiguration1;
     ImageConfiguration imageConfiguration1;
 
     @Before
     public void setUp() {
-        project = new JkubeProject.Builder().properties(new Properties()).build();
-        project1 = new JkubeProject.Builder().properties(new Properties()).build();
-        project2 = new JkubeProject.Builder().properties(new Properties()).build();
+        project = new JKubeProject.Builder().properties(new Properties()).build();
+        project1 = new JKubeProject.Builder().properties(new Properties()).build();
+        project2 = new JKubeProject.Builder().properties(new Properties()).build();
         config = new ResourceConfig.Builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -86,7 +86,7 @@ public class ContainerHandlerTest {
         images = new ArrayList<>();
         volumes1 = new ArrayList<>();
         volumes2 = new ArrayList<>();
-        buildImageConfiguration1 = new JkubeBuildConfiguration.Builder()
+        buildImageConfiguration1 = new JKubeBuildConfiguration.Builder()
                 .from("fabric8/maven:latest").build();
         imageConfiguration1 = new ImageConfiguration.Builder().
                 name("test").alias("test-app").buildConfig(buildImageConfiguration1).registry("docker.io").build();
@@ -107,7 +107,7 @@ public class ContainerHandlerTest {
         ContainerHandler handler = new ContainerHandler(project.getProperties(), new GroupArtifactVersion("test-group", "test-artifact", "0"), probeHandler);
 
         //container name with alias
-        final JkubeBuildConfiguration buildImageConfiguration = new JkubeBuildConfiguration.Builder()
+        final JKubeBuildConfiguration buildImageConfiguration = new JKubeBuildConfiguration.Builder()
                 .ports(ports).from("fabric8/maven:latest").cleanup("try").tags(tags).compression("gzip").build();
 
         ImageConfiguration imageConfiguration = new ImageConfiguration.Builder().
@@ -127,7 +127,7 @@ public class ContainerHandlerTest {
     public void registryHandling() {
 
         //container name with alias
-        final JkubeBuildConfiguration buildImageConfiguration = new JkubeBuildConfiguration.Builder().build();
+        final JKubeBuildConfiguration buildImageConfiguration = new JKubeBuildConfiguration.Builder().build();
 
 
 
@@ -158,7 +158,7 @@ public class ContainerHandlerTest {
         };
 
         for (int i = 0; i < testData.length; i += 5) {
-            JkubeProject testProject = new JkubeProject.Builder().properties(new Properties()).build();
+            JKubeProject testProject = new JKubeProject.Builder().properties(new Properties()).build();
             Properties testProps = new Properties();
             if (testData[i+2] != null) {
                 testProps.put("docker.pull.registry", testData[i + 2]);
@@ -189,7 +189,7 @@ public class ContainerHandlerTest {
         }
     }
 
-    private ContainerHandler createContainerHandler(JkubeProject testProject) {
+    private ContainerHandler createContainerHandler(JKubeProject testProject) {
         return new ContainerHandler(
             testProject.getProperties(),
             new GroupArtifactVersion("g","a","v"),
@@ -211,7 +211,7 @@ public class ContainerHandlerTest {
 
         ContainerHandler handler = new ContainerHandler(project.getProperties(), new GroupArtifactVersion("test-group", "test-artifact", "0"), probeHandler);
         //container name with group id and aritact id without alias and user
-        final JkubeBuildConfiguration buildImageConfiguration = new JkubeBuildConfiguration.Builder()
+        final JKubeBuildConfiguration buildImageConfiguration = new JKubeBuildConfiguration.Builder()
                 .ports(ports).from("fabric8/").cleanup("try").tags(tags)
                 .compression("gzip").dockerFile("testFile").dockerFileDir("/demo").build();
 
@@ -241,7 +241,7 @@ public class ContainerHandlerTest {
         //container name with user and image with tag
         ContainerHandler handler = new ContainerHandler(project.getProperties(), new GroupArtifactVersion("test-group", "test-artifact", "0"), probeHandler);
 
-        final JkubeBuildConfiguration buildImageConfiguration = new JkubeBuildConfiguration.Builder()
+        final JKubeBuildConfiguration buildImageConfiguration = new JKubeBuildConfiguration.Builder()
                 .ports(ports).from("fabric8/").cleanup("try").tags(tags)
                 .compression("gzip").dockerFile("testFile").dockerFileDir("/demo").build();
 
@@ -479,7 +479,7 @@ public class ContainerHandlerTest {
         ContainerHandler handler = createContainerHandler(project);
 
         //without Ports
-        final JkubeBuildConfiguration buildImageConfiguration2 = new JkubeBuildConfiguration.Builder()
+        final JKubeBuildConfiguration buildImageConfiguration2 = new JKubeBuildConfiguration.Builder()
                 .from("fabric8/maven:latest").cleanup("try").compression("gzip").build();
 
         ImageConfiguration imageConfiguration2 = new ImageConfiguration.Builder().
@@ -505,7 +505,7 @@ public class ContainerHandlerTest {
         ports.add("9091");
         ports.add("9092/udp");
 
-        buildImageConfiguration1 = new JkubeBuildConfiguration.Builder()
+        buildImageConfiguration1 = new JKubeBuildConfiguration.Builder()
                 .ports(ports).from("fabric8/maven:latest").cleanup("try").compression("gzip").build();
 
         imageConfiguration1 = new ImageConfiguration.Builder().

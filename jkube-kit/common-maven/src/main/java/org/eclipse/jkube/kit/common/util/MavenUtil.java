@@ -45,8 +45,8 @@ import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.codehaus.plexus.archiver.tar.TarLongFileMode;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,10 +158,10 @@ public class MavenUtil {
      * @param project Maven project
      * @return list of dependencies
      */
-    public static List<JkubeProjectPlugin> getPluginsAsString(MavenProject project) {
-        List<JkubeProjectPlugin> projectPlugins = new ArrayList<>();
+    public static List<JKubeProjectPlugin> getPluginsAsString(MavenProject project) {
+        List<JKubeProjectPlugin> projectPlugins = new ArrayList<>();
         for (Plugin plugin : project.getBuildPlugins()) {
-            JkubeProjectPlugin.Builder jkubeProjectPluginBuilder = new JkubeProjectPlugin.Builder();
+            JKubeProjectPlugin.Builder jkubeProjectPluginBuilder = new JKubeProjectPlugin.Builder();
 
             jkubeProjectPluginBuilder.groupId(plugin.getGroupId())
                     .artifactId(plugin.getArtifactId())
@@ -372,8 +372,8 @@ public class MavenUtil {
         return registryServerConfigurations;
     }
 
-    public static JkubeProject convertMavenProjectToJkubeProject(MavenProject mavenProject, MavenSession mavenSession) throws DependencyResolutionRequiredException {
-        JkubeProject.Builder builder = new JkubeProject.Builder();
+    public static JKubeProject convertMavenProjectToJKubeProject(MavenProject mavenProject, MavenSession mavenSession) throws DependencyResolutionRequiredException {
+        JKubeProject.Builder builder = new JKubeProject.Builder();
 
         Properties properties = new Properties();
         String localRepositoryBaseDir = null;

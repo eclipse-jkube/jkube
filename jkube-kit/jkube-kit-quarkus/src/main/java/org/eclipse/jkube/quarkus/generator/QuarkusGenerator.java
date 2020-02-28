@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
-import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JkubeAssemblyFileSet;
-import org.eclipse.jkube.kit.common.JkubeProjectAssembly;
+import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
+import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
 import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
@@ -59,7 +59,7 @@ public class QuarkusGenerator extends BaseGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddImageConfiguration(configs)
-               && JkubeProjectUtil.hasPlugin(getProject(), "io.quarkus", "quarkus-maven-plugin");
+               && JKubeProjectUtil.hasPlugin(getProject(), "io.quarkus", "quarkus-maven-plugin");
     }
 
     @Override
@@ -74,8 +74,8 @@ public class QuarkusGenerator extends BaseGenerator {
         return existingConfigs;
     }
 
-    private JkubeBuildConfiguration createBuildConfig(boolean prePackagePhase) {
-        final JkubeBuildConfiguration.Builder buildBuilder = new JkubeBuildConfiguration.Builder();
+    private JKubeBuildConfiguration createBuildConfig(boolean prePackagePhase) {
+        final JKubeBuildConfiguration.Builder buildBuilder = new JKubeBuildConfiguration.Builder();
         // TODO: Check application.properties for a port
         buildBuilder.ports(Collections.singletonList(getConfig(Config.webPort)));
         addSchemaLabels(buildBuilder, log);
@@ -114,25 +114,25 @@ public class QuarkusGenerator extends BaseGenerator {
     }
 
     interface FileSetCreator {
-        JkubeProjectAssembly createFileSet();
+        JKubeProjectAssembly createFileSet();
     }
 
-    private JkubeAssemblyConfiguration createAssemblyConfiguration(String targetDir, JkubeAssemblyFileSet jkubeProjectAssemblyFileSet) {
-        final JkubeAssemblyConfiguration.Builder builder = new JkubeAssemblyConfiguration.Builder();
+    private JKubeAssemblyConfiguration createAssemblyConfiguration(String targetDir, JKubeAssemblyFileSet jkubeProjectAssemblyFileSet) {
+        final JKubeAssemblyConfiguration.Builder builder = new JKubeAssemblyConfiguration.Builder();
         builder.targetDir(targetDir);
         jkubeProjectAssemblyFileSet.setOutputDirectory(".");
-        JkubeProjectAssembly jkubeProjectAssembly = new JkubeProjectAssembly.Builder()
+        JKubeProjectAssembly jkubeProjectAssembly = new JKubeProjectAssembly.Builder()
                 .fileSet(jkubeProjectAssemblyFileSet)
                 .build();
         builder.assemblyDef(jkubeProjectAssembly);
         return builder.build();
     }
 
-    private JkubeAssemblyFileSet getJvmFilesToInclude() {
-        JkubeAssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
+    private JKubeAssemblyFileSet getJvmFilesToInclude() {
+        JKubeAssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
         fileSet.addInclude("lib/**");
         // We also need to exclude default jar file
-        File defaultJarFile = JkubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
+        File defaultJarFile = JKubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
         if (defaultJarFile != null) {
             fileSet.addExclude(defaultJarFile.getName());
         }
@@ -140,21 +140,21 @@ public class QuarkusGenerator extends BaseGenerator {
         return fileSet;
     }
 
-    private JkubeAssemblyFileSet getNativeFileToInclude() {
-        JkubeAssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner");
+    private JKubeAssemblyFileSet getNativeFileToInclude() {
+        JKubeAssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner");
         fileSet.setFileMode("0755");
 
         return fileSet;
     }
 
-    private JkubeAssemblyFileSet getFileSetWithFileFromBuildThatEndsWith(String suffix) {
+    private JKubeAssemblyFileSet getFileSetWithFileFromBuildThatEndsWith(String suffix) {
         List<String> relativePaths = new ArrayList<>();
 
         String fileToInclude = findSingleFileThatEndsWith(suffix);
         if (fileToInclude != null && !fileToInclude.isEmpty()) {
             relativePaths.add(fileToInclude);
         }
-        return new JkubeAssemblyFileSet.Builder()
+        return new JKubeAssemblyFileSet.Builder()
                 .directory(FileUtil.getRelativePath(getProject().getBaseDirectory(), getBuildDir()).getPath())
                 .includes(relativePaths)
                 .fileMode("0777")

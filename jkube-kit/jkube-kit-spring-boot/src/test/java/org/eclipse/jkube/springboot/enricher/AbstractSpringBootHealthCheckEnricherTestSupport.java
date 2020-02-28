@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.Probe;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import mockit.Expectations;
@@ -47,7 +47,7 @@ import static org.junit.Assert.assertNull;
 public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
     @Mocked
-    protected JkubeEnricherContext context;
+    protected JKubeEnricherContext context;
 
     protected SpringBootConfigurationHelper propertyHelper;
 

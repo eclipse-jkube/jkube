@@ -39,7 +39,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.config.service.JkubeServiceException;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
 import org.eclipse.jkube.maven.enricher.api.util.DebugConstants;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
@@ -243,7 +243,7 @@ public class DebugMojo extends ApplyMojo {
             log.info("Now you can start a Remote debug execution in your IDE by using localhost and the debug port " + localDebugPort);
             log.info("");
 
-        } catch (JkubeServiceException e) {
+        } catch (JKubeServiceException e) {
             throw new MojoExecutionException("Failed to start port forwarding" + e, e);
         }
     }

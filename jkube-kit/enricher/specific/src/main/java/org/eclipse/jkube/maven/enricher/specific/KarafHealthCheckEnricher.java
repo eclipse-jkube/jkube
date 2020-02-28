@@ -16,7 +16,7 @@ package org.eclipse.jkube.maven.enricher.specific;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 
 import java.util.List;
 import java.util.Map;
@@ -29,7 +29,7 @@ public class KarafHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     private static final int DEFAULT_HEALTH_CHECK_PORT = 8181;
 
-    public KarafHealthCheckEnricher(JkubeEnricherContext buildContext) {
+    public KarafHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-karaf");
     }
 

@@ -24,7 +24,7 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
 
@@ -43,7 +43,7 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
         public String def() { return d; } protected String d;
     }
 
-    public DefaultNamespaceEnricher(JkubeEnricherContext buildContext) {
+    public DefaultNamespaceEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-namespace");
 
         ResourceConfig xmlResourceConfig = getConfiguration().getResource().orElse(null);

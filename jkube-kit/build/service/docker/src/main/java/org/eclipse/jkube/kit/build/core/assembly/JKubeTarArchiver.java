@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JkubeTarArchiver {
+public class JKubeTarArchiver {
     private Map<File, String> filesToIncludeNameMap = new HashMap<>();
     private Map<File, String> fileToPermissionsMap = new HashMap<>();
     private List<String> filesNamesToExclude = new ArrayList<>();

@@ -20,12 +20,12 @@ import java.util.TreeMap;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -37,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 public class PrometheusEnricherTest {
 
     @Mocked
-    private JkubeEnricherContext context;
+    private JKubeEnricherContext context;
     @Mocked
     ImageConfiguration imageConfiguration;
 
@@ -91,7 +91,7 @@ public class PrometheusEnricherTest {
             )
         );
 
-        final JkubeBuildConfiguration imageConfig = new JkubeBuildConfiguration.Builder()
+        final JKubeBuildConfiguration imageConfig = new JKubeBuildConfiguration.Builder()
             .ports(Arrays.asList(PrometheusEnricher.PROMETHEUS_PORT))
             .build();
 
@@ -128,7 +128,7 @@ public class PrometheusEnricherTest {
             )
         );
 
-        final JkubeBuildConfiguration imageConfig = new JkubeBuildConfiguration.Builder()
+        final JKubeBuildConfiguration imageConfig = new JKubeBuildConfiguration.Builder()
             .build();
 
         // Setup mock behaviour
@@ -164,7 +164,7 @@ public class PrometheusEnricherTest {
                 )
         );
 
-        final JkubeBuildConfiguration imageConfig = new JkubeBuildConfiguration.Builder()
+        final JKubeBuildConfiguration imageConfig = new JKubeBuildConfiguration.Builder()
                 .ports(Arrays.asList(PrometheusEnricher.PROMETHEUS_PORT))
                 .build();
 

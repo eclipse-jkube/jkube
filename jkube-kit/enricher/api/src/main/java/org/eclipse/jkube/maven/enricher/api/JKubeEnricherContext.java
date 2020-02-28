@@ -24,12 +24,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectDependency;
-import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectDependency;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -43,7 +43,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author roland
  * @since 01/04/16
  */
-public class JkubeEnricherContext implements EnricherContext {
+public class JKubeEnricherContext implements EnricherContext {
 
     // overall configuration for the build
     private Configuration configuration;
@@ -52,12 +52,12 @@ public class JkubeEnricherContext implements EnricherContext {
 
     private Map<String, String> processingInstruction;
 
-    private JkubeProject project;
+    private JKubeProject project;
     private KitLogger log;
 
     private Properties properties;
 
-    private JkubeEnricherContext() {}
+    private JKubeEnricherContext() {}
 
     @Override
     public Configuration getConfiguration() {
@@ -97,16 +97,16 @@ public class JkubeEnricherContext implements EnricherContext {
     }
 
     @Override
-    public List<JkubeProjectDependency> getDependencies(boolean transitive) {
+    public List<JKubeProjectDependency> getDependencies(boolean transitive) {
         return transitive ? getProject().getDependenciesWithTransitive() : getProject().getDependencies();
     }
 
     @Override
     public boolean hasPlugin(String groupId, String artifactId) {
         if (groupId != null) {
-            return JkubeProjectUtil.hasPlugin(getProject(), groupId, artifactId);
+            return JKubeProjectUtil.hasPlugin(getProject(), groupId, artifactId);
         } else {
-            return JkubeProjectUtil.getPlugin(getProject(), artifactId) != null;
+            return JKubeProjectUtil.getPlugin(getProject(), artifactId) != null;
         }
     }
 
@@ -123,7 +123,7 @@ public class JkubeEnricherContext implements EnricherContext {
 
     // ========================================================================
     // Maven specific methods, only available after casting
-    public JkubeProject getProject() {
+    public JKubeProject getProject() {
         return project;
     }
 
@@ -165,7 +165,7 @@ public class JkubeEnricherContext implements EnricherContext {
     // =======================================================================================================
     public static class Builder {
 
-        private JkubeEnricherContext ctx = new JkubeEnricherContext();
+        private JKubeEnricherContext ctx = new JKubeEnricherContext();
 
         private ResourceConfig resources;
         private List<ImageConfiguration> images;
@@ -176,7 +176,7 @@ public class JkubeEnricherContext implements EnricherContext {
             return this;
         }
 
-        public Builder project(JkubeProject project) {
+        public Builder project(JKubeProject project) {
             ctx.project = project;
             return this;
         }
@@ -211,7 +211,7 @@ public class JkubeEnricherContext implements EnricherContext {
             return this;
         }
 
-        public JkubeEnricherContext build() {
+        public JKubeEnricherContext build() {
             ctx.configuration =
                 new Configuration.Builder()
                     .properties(ctx.project.getProperties())
@@ -223,7 +223,7 @@ public class JkubeEnricherContext implements EnricherContext {
                             if (!"maven".equals(system)) {
                                 return Optional.empty();
                             }
-                            final JkubeProjectPlugin plugin = JkubeProjectUtil.getPlugin(ctx.project, id);
+                            final JKubeProjectPlugin plugin = JKubeProjectUtil.getPlugin(ctx.project, id);
                             if (plugin == null) {
                                 return Optional.empty();
                             }

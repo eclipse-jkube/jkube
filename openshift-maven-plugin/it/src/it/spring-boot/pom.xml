@@ -30,7 +30,7 @@
     <version>1.3.6.RELEASE</version>
   </parent>
 
-  <name>Jkube Maven :: Sample :: Spring Boot Web</name>
+  <name>JKube Maven :: Sample :: Spring Boot Web</name>
   <description>Minimal Example with Spring Boot</description>
 
   <dependencies>

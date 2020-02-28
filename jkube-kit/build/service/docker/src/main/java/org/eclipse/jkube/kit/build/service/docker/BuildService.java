@@ -27,8 +27,8 @@ import com.google.gson.JsonObject;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -103,13 +103,13 @@ public class BuildService {
      * @throws DockerAccessException docker access exception
      * @throws IOException in case of any I/O exception
      */
-    protected void buildImage(ImageConfiguration imageConfig, JkubeBuildContext params, boolean noCache, Map<String, String> buildArgs)
+    protected void buildImage(ImageConfiguration imageConfig, JKubeBuildContext params, boolean noCache, Map<String, String> buildArgs)
             throws DockerAccessException, IOException {
 
         String imageName = imageConfig.getName();
         ImageName.validate(imageName);
 
-        JkubeBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+        JKubeBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
         String oldImageId = null;
 
@@ -311,7 +311,7 @@ public class BuildService {
 
     public static class BuildContext implements Serializable {
 
-        private JkubeBuildContext mojoParameters;
+        private JKubeBuildContext mojoParameters;
 
         private Map<String, String> buildArgs;
 
@@ -320,7 +320,7 @@ public class BuildService {
         public BuildContext() {
         }
 
-        public JkubeBuildContext getMavenBuildContext() {
+        public JKubeBuildContext getMavenBuildContext() {
             return mojoParameters;
         }
 
@@ -344,7 +344,7 @@ public class BuildService {
                 this.context = context;
             }
 
-            public Builder mojoParameters(JkubeBuildContext mojoParameters) {
+            public Builder mojoParameters(JKubeBuildContext mojoParameters) {
                 context.mojoParameters = mojoParameters;
                 return this;
             }

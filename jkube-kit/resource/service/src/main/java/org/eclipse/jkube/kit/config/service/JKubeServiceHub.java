@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
@@ -32,7 +32,7 @@ import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
  * @author nicola
  * @since 17/02/2017
  */
-public class JkubeServiceHub {
+public class JKubeServiceHub {
 
     /*
      * Configured resources
@@ -47,7 +47,7 @@ public class JkubeServiceHub {
 
     private BuildService.BuildServiceConfig buildServiceConfig;
 
-    private JkubeProject jkubeProject;
+    private JKubeProject jkubeProject;
 
     /**
      /*
@@ -60,7 +60,7 @@ public class JkubeServiceHub {
 
     private ConcurrentHashMap<Class<?>, LazyBuilder<?>> services = new ConcurrentHashMap<>();
 
-    private JkubeServiceHub() {
+    private JKubeServiceHub() {
     }
 
     private void init() {
@@ -119,10 +119,10 @@ public class JkubeServiceHub {
 
     public static class Builder {
 
-        private JkubeServiceHub hub;
+        private JKubeServiceHub hub;
 
         public Builder() {
-            this.hub = new JkubeServiceHub();
+            this.hub = new JKubeServiceHub();
         }
 
         public Builder clusterAccess(ClusterAccess clusterAccess) {
@@ -150,12 +150,12 @@ public class JkubeServiceHub {
             return this;
         }
 
-        public Builder jkubeProject(JkubeProject jkubeProject) {
+        public Builder jkubeProject(JKubeProject jkubeProject) {
             hub.jkubeProject = jkubeProject;
             return this;
         }
 
-        public JkubeServiceHub build() {
+        public JKubeServiceHub build() {
             hub.init();
             return hub;
         }

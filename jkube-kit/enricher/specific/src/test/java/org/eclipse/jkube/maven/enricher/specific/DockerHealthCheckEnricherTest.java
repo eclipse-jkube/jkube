@@ -22,13 +22,13 @@ import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
@@ -45,7 +45,7 @@ import static org.junit.Assert.assertThat;
 public class DockerHealthCheckEnricherTest {
 
     @Mocked
-    private JkubeEnricherContext context;
+    private JKubeEnricherContext context;
 
     @Test
     public void testEnrichFromSingleImage() throws Exception {
@@ -53,7 +53,7 @@ public class DockerHealthCheckEnricherTest {
         new Expectations() {{
             List<ImageConfiguration> images =  Arrays.asList(new ImageConfiguration.Builder()
                             .alias("myImage")
-                            .buildConfig(new JkubeBuildConfiguration.Builder()
+                            .buildConfig(new JKubeBuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/bin/check"))
@@ -65,7 +65,7 @@ public class DockerHealthCheckEnricherTest {
                             .build(),
                                                    new ImageConfiguration.Builder()
                             .alias("myImage2")
-                            .buildConfig(new JkubeBuildConfiguration.Builder()
+                            .buildConfig(new JKubeBuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/xxx/check"))
@@ -96,7 +96,7 @@ public class DockerHealthCheckEnricherTest {
         new Expectations() {{
             List<ImageConfiguration> images = Arrays.asList(new ImageConfiguration.Builder()
                             .alias("myImage")
-                            .buildConfig(new JkubeBuildConfiguration.Builder()
+                            .buildConfig(new JKubeBuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/bin/check"))
@@ -108,7 +108,7 @@ public class DockerHealthCheckEnricherTest {
                             .build(),
                     new ImageConfiguration.Builder()
                             .alias("myImage2")
-                            .buildConfig(new JkubeBuildConfiguration.Builder()
+                            .buildConfig(new JKubeBuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/xxx/check"))
@@ -144,7 +144,7 @@ public class DockerHealthCheckEnricherTest {
         new Expectations() {{
             List<ImageConfiguration> images = Arrays.asList(new ImageConfiguration.Builder()
                     .alias("myImage")
-                    .buildConfig(new JkubeBuildConfiguration.Builder()
+                    .buildConfig(new JKubeBuildConfiguration.Builder()
                             .healthCheck(new HealthCheckConfiguration.Builder()
                                     .mode(HealthCheckMode.none)
                                     .build())
@@ -170,7 +170,7 @@ public class DockerHealthCheckEnricherTest {
         new Expectations() {{
             List<ImageConfiguration> images = Arrays.asList(new ImageConfiguration.Builder()
                     .alias("myImage")
-                    .buildConfig(new JkubeBuildConfiguration.Builder()
+                    .buildConfig(new JKubeBuildConfiguration.Builder()
                             .healthCheck(new HealthCheckConfiguration.Builder()
                                     .mode(HealthCheckMode.cmd)
                                     .cmd(new Arguments("/bin/check"))

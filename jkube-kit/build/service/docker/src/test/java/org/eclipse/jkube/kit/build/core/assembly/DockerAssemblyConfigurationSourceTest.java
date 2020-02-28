@@ -16,9 +16,9 @@ package org.eclipse.jkube.kit.build.core.assembly;
 import java.io.File;
 import java.util.Arrays;
 
-import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
+import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,12 +30,12 @@ import static org.junit.Assert.assertTrue;
 
 public class DockerAssemblyConfigurationSourceTest {
 
-    private JkubeAssemblyConfiguration assemblyConfig;
+    private JKubeAssemblyConfiguration assemblyConfig;
 
     @Before
     public void setup() {
         // set 'ignorePermissions' to something other then default
-        this.assemblyConfig = new JkubeAssemblyConfiguration.Builder()
+        this.assemblyConfig = new JKubeAssemblyConfiguration.Builder()
                 .descriptor("assembly.xml")
                 .descriptorRef("project")
                 .permissions("keep")
@@ -67,7 +67,7 @@ public class DockerAssemblyConfigurationSourceTest {
     @Test
     public void testOutputDirHasImage() {
         String image = "image";
-        JkubeBuildContext context = buildBuildContetxt(".", "src/docker", "output/docker");
+        JKubeBuildContext context = buildBuildContetxt(".", "src/docker", "output/docker");
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(context,
                 new BuildDirs(image, context), assemblyConfig);
 
@@ -76,9 +76,9 @@ public class DockerAssemblyConfigurationSourceTest {
         assertTrue(containsDir(image, source.getTemporaryRootDirectory()));
     }
 
-    private JkubeBuildContext buildBuildContetxt(String projectDir, String sourceDir, String outputDir) {
-        JkubeProject project = new JkubeProject.Builder().buildDirectory(projectDir).build();
-        return new JkubeBuildContext.Builder()
+    private JKubeBuildContext buildBuildContetxt(String projectDir, String sourceDir, String outputDir) {
+        JKubeProject project = new JKubeProject.Builder().buildDirectory(projectDir).build();
+        return new JKubeBuildContext.Builder()
                 .project(project)
                 .sourceDirectory(sourceDir)
                 .outputDirectory(outputDir)
@@ -87,7 +87,7 @@ public class DockerAssemblyConfigurationSourceTest {
 
     @Test
     public void testEmptyAssemblyConfig() {
-        JkubeBuildContext buildContext = new JkubeBuildContext.Builder()
+        JKubeBuildContext buildContext = new JKubeBuildContext.Builder()
                 .sourceDirectory("/src/docker")
                 .outputDirectory("/output/docker")
                 .build();
@@ -95,7 +95,7 @@ public class DockerAssemblyConfigurationSourceTest {
         assertEquals(0,source.getDescriptors().length);
     }
 
-    private void testCreateSource(JkubeBuildContext context) {
+    private void testCreateSource(JKubeBuildContext context) {
         DockerAssemblyConfigurationSource source =
                 new DockerAssemblyConfigurationSource(context, new BuildDirs("image", context), assemblyConfig);
 
@@ -130,10 +130,10 @@ public class DockerAssemblyConfigurationSourceTest {
     @Test
     public void testReactorProjects() {
 
-        JkubeProject jkubeProject1 = new JkubeProject.Builder().build();
-        JkubeProject jkubeProject2 = new JkubeProject.Builder().build();
+        JKubeProject jkubeProject1 = new JKubeProject.Builder().build();
+        JKubeProject jkubeProject2 = new JKubeProject.Builder().build();
 
-        JkubeBuildContext buildContext = new JkubeBuildContext.Builder()
+        JKubeBuildContext buildContext = new JKubeBuildContext.Builder()
                 .sourceDirectory("/src/docker")
                 .outputDirectory("/output/docker")
                 .reactorProjects(Arrays.asList(jkubeProject1, jkubeProject2))

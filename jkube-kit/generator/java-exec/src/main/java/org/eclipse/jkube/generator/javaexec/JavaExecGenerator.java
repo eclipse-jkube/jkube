@@ -20,14 +20,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JkubeAssemblyFileSet;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectAssembly;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
@@ -100,7 +100,7 @@ public class JavaExecGenerator extends BaseGenerator {
             }
             // Check for the existing of plugins indicating a plain java exec app
             for (String[] plugin : JAVA_EXEC_MAVEN_PLUGINS) {
-                if (JkubeProjectUtil.hasPlugin(getProject(), plugin[0], plugin[1])) {
+                if (JKubeProjectUtil.hasPlugin(getProject(), plugin[0], plugin[1])) {
                     return true;
                 }
             }
@@ -111,7 +111,7 @@ public class JavaExecGenerator extends BaseGenerator {
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
         final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
-        final JkubeBuildConfiguration.Builder buildBuilder = new JkubeBuildConfiguration.Builder();
+        final JKubeBuildConfiguration.Builder buildBuilder = new JKubeBuildConfiguration.Builder();
 
         buildBuilder.ports(extractPorts());
 
@@ -169,25 +169,25 @@ public class JavaExecGenerator extends BaseGenerator {
         return new ArrayList<>();
     }
 
-    protected JkubeAssemblyConfiguration createAssembly() {
-        final JkubeAssemblyConfiguration.Builder builder = new JkubeAssemblyConfiguration.Builder();
+    protected JKubeAssemblyConfiguration createAssembly() {
+        final JKubeAssemblyConfiguration.Builder builder = new JKubeAssemblyConfiguration.Builder();
         builder.targetDir(getConfig(Config.targetDir));
         addAssembly(builder);
         return builder.build();
     }
 
-    protected void addAssembly(JkubeAssemblyConfiguration.Builder builder) {
+    protected void addAssembly(JKubeAssemblyConfiguration.Builder builder) {
         String assemblyRef = getConfig(Config.assemblyRef);
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
         } else {
-            JkubeProjectAssembly.Builder assemblyBuilder = new JkubeProjectAssembly.Builder()
+            JKubeProjectAssembly.Builder assemblyBuilder = new JKubeProjectAssembly.Builder()
                     .fileSets(addAdditionalFiles(getProject()));
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
-                JkubeProject project = getProject();
+                JKubeProject project = getProject();
                 if (fatJar != null) {
-                    JkubeAssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
+                    JKubeAssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
                     assemblyBuilder.fileSet(fileSet);
                 }
             } else {
@@ -197,16 +197,16 @@ public class JavaExecGenerator extends BaseGenerator {
         }
     }
 
-    private List<JkubeAssemblyFileSet> addAdditionalFiles(JkubeProject project) {
-        List<JkubeAssemblyFileSet> fileSets = new ArrayList<>();
+    private List<JKubeAssemblyFileSet> addAdditionalFiles(JKubeProject project) {
+        List<JKubeAssemblyFileSet> fileSets = new ArrayList<>();
         fileSets.add(createFileSet(project, "src/main/jkube-includes/bin","0755"));
         fileSets.add(createFileSet(project, "src/main/jkube-includes","0644"));
         return fileSets;
     }
 
-    private JkubeAssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JkubeProject project) {
+    private JKubeAssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JKubeProject project) {
         File buildDir = new File(project.getBuildDirectory());
-        return new JkubeAssemblyFileSet.Builder()
+        return new JKubeAssemblyFileSet.Builder()
                 .directory(getRelativePath(project.getBaseDirectory(), buildDir).getPath())
                 .addInclude(getRelativePath(buildDir, fatJar.getArchiveFile()).getPath())
                 .outputDirectory(".")
@@ -214,8 +214,8 @@ public class JavaExecGenerator extends BaseGenerator {
                 .build();
     }
 
-    private JkubeAssemblyFileSet createFileSet(JkubeProject project, String sourceDir, String fileMode) {
-        return new JkubeAssemblyFileSet.Builder()
+    private JKubeAssemblyFileSet createFileSet(JKubeProject project, String sourceDir, String fileMode) {
+        return new JKubeAssemblyFileSet.Builder()
                 .directory(project.getBaseDirectory().getAbsolutePath())
                 .includes(Collections.singletonList(sourceDir))
                 .fileMode(fileMode)

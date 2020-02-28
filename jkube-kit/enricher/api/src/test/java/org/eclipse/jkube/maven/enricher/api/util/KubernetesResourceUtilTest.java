@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
@@ -47,7 +47,7 @@ public class KubernetesResourceUtilTest {
     private static File jkubeDir;
 
     @Mocked
-    final JkubeProject project = new JkubeProject();
+    final JKubeProject project = new JKubeProject();
 
     @BeforeClass
     public static void initPath() throws UnsupportedEncodingException {

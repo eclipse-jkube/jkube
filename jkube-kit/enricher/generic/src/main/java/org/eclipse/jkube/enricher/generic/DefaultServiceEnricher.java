@@ -26,14 +26,14 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
 import org.eclipse.jkube.maven.enricher.handler.ServiceHandler;
@@ -112,7 +112,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         public String def() { return d; } protected String d;
     }
 
-    public DefaultServiceEnricher(JkubeEnricherContext buildContext) {
+    public DefaultServiceEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-service");
     }
 
@@ -197,7 +197,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         if (appName != null) {
             return appName;
         } else {
-            return getConfig(Config.name, JkubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+            return getConfig(Config.name, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
         }
     }
 

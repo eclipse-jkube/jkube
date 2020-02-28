@@ -18,8 +18,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import mockit.Mocked;
 import org.junit.Test;
@@ -40,8 +40,8 @@ public class VertxPortsExtractorTest {
         configuration.put("config", vertxConfig);
 
 
-        JkubeProject project = new JkubeProject.Builder()
-                .plugins(Collections.singletonList(new JkubeProjectPlugin.Builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP).artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").executions(Collections.singletonList("testexec")).configuration(configuration).build()))
+        JKubeProject project = new JKubeProject.Builder()
+                .plugins(Collections.singletonList(new JKubeProjectPlugin.Builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP).artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").executions(Collections.singletonList("testexec")).configuration(configuration).build()))
                 .build();
 
         Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
@@ -50,8 +50,8 @@ public class VertxPortsExtractorTest {
 
     @Test
     public void testNoVertxConfiguration() throws Exception {
-        JkubeProject project = new JkubeProject.Builder()
-                .plugins(Collections.singletonList(new JkubeProjectPlugin.Builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP).artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").configuration(Collections.emptyMap()).build()))
+        JKubeProject project = new JKubeProject.Builder()
+                .plugins(Collections.singletonList(new JKubeProjectPlugin.Builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP).artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").configuration(Collections.emptyMap()).build()))
                 .build();
         Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
         assertEquals(0,result.size());

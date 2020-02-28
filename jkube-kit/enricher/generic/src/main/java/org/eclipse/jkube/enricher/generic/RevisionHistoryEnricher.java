@@ -20,7 +20,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 
 /**
  * This enricher adds the 'revisionHistoryLimit' property to deployment spec of RCs / RSs for KuberNetes/OpenShift resource descriptors.
@@ -40,7 +40,7 @@ public class RevisionHistoryEnricher extends BaseEnricher {
         public String def() { return d; }
     }
 
-    public RevisionHistoryEnricher(JkubeEnricherContext buildContext) {
+    public RevisionHistoryEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, DEFAULT_NAME);
     }
 

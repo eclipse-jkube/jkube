@@ -18,7 +18,7 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.visitor.MetadataVisitor;
 import org.eclipse.jkube.maven.enricher.api.visitor.SelectorVisitor;
 
@@ -33,7 +33,7 @@ public class DefaultMetadataEnricher extends BaseEnricher {
 
     private final ResourceConfig resourceConfig;
 
-    public DefaultMetadataEnricher(JkubeEnricherContext buildContext) {
+    public DefaultMetadataEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-metadata");
 
         this.defaultEnricherConfig = buildContext.getConfiguration().getProcessorConfig().orElse(ProcessorConfig.EMPTY);

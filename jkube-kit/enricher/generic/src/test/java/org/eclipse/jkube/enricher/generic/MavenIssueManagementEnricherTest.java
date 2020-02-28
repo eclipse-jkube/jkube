@@ -15,10 +15,10 @@ package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Assert;
@@ -36,12 +36,12 @@ import static junit.framework.TestCase.assertTrue;
 public class MavenIssueManagementEnricherTest {
 
     @Mocked
-    private JkubeEnricherContext context;
+    private JKubeEnricherContext context;
 
     @Test
     public void testMavenIssueManagementAll() {
 
-        final JkubeProject project = new JkubeProject();
+        final JKubeProject project = new JKubeProject();
 
         project.setIssueManagementUrl("https://github.com/reactiverse/vertx-maven-plugin/issues/");
         project.setIssueManagementSystem("GitHub");
@@ -64,15 +64,15 @@ public class MavenIssueManagementEnricherTest {
         assertNotNull(scmAnnotations);
         Assert.assertEquals(2, scmAnnotations.size());
         assertEquals("GitHub",
-                scmAnnotations.get(JkubeAnnotations.ISSUE_SYSTEM.value()));
+                scmAnnotations.get(JKubeAnnotations.ISSUE_SYSTEM.value()));
         assertEquals("https://github.com/reactiverse/vertx-maven-plugin/issues/",
-                scmAnnotations.get(JkubeAnnotations.ISSUE_TRACKER_URL.value()));
+                scmAnnotations.get(JKubeAnnotations.ISSUE_TRACKER_URL.value()));
     }
 
     @Test
     public void testMavenIssueManagementOnlySystem() {
 
-        final JkubeProject project = new JkubeProject();
+        final JKubeProject project = new JKubeProject();
         project.setIssueManagementSystem("GitHub");
         // Setup mock behaviour
         new Expectations() {
@@ -97,7 +97,7 @@ public class MavenIssueManagementEnricherTest {
     @Test
     public void testMavenIssueManagementOnlyUrl() {
 
-        final JkubeProject project = new JkubeProject();
+        final JKubeProject project = new JKubeProject();
         project.setIssueManagementUrl("https://github.com/fabric8org.eclipse.jkube-maven-plugin/issues/");
         // Setup mock behaviour
         new Expectations() {
@@ -123,7 +123,7 @@ public class MavenIssueManagementEnricherTest {
     @Test
     public void testMavenNoIssueManagement() {
 
-        final JkubeProject project = new JkubeProject();
+        final JKubeProject project = new JKubeProject();
         // Setup mock behaviour
         new Expectations() {
             {

@@ -188,7 +188,7 @@ a| The build mode which can be
 | `jkube.resourceDir`
 
 | *environment*
-| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, Jkube  will look at src/main/jkube/dev. If not set then root `resourceDir` directory is used.
+| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, JKube  will look at src/main/jkube/dev. If not set then root `resourceDir` directory is used.
 | `jkube.environment`
 
 | *skip*

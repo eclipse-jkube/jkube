@@ -26,7 +26,7 @@ import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -62,7 +62,7 @@ public class ProjectLabelEnricher extends BaseEnricher {
         }
     }
 
-    public ProjectLabelEnricher(JkubeEnricherContext buildContext) {
+    public ProjectLabelEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-project-label");
     }
 

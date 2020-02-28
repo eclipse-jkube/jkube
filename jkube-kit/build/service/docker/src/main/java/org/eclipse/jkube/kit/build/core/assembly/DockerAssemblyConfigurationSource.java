@@ -16,9 +16,9 @@ package org.eclipse.jkube.kit.build.core.assembly;
 import java.io.File;
 import java.util.List;
 
-import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
+import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 
 /**
@@ -27,12 +27,12 @@ import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
  */
 public class DockerAssemblyConfigurationSource {
 
-    private final JkubeAssemblyConfiguration assemblyConfig;
-    private final JkubeBuildContext context;
+    private final JKubeAssemblyConfiguration assemblyConfig;
+    private final JKubeBuildContext context;
     private final BuildDirs buildDirs;
 
     public DockerAssemblyConfigurationSource(
-            JkubeBuildContext context, BuildDirs buildDirs, JkubeAssemblyConfiguration assemblyConfig) {
+            JKubeBuildContext context, BuildDirs buildDirs, JKubeAssemblyConfiguration assemblyConfig) {
 
         this.context = context;
         this.assemblyConfig = assemblyConfig;
@@ -77,7 +77,7 @@ public class DockerAssemblyConfigurationSource {
     }
 
     // Maybe use injection
-    public List<JkubeProject> getReactorProjects() {
+    public List<JKubeProject> getReactorProjects() {
         return context.getReactorProjects();
     }
 
@@ -87,7 +87,7 @@ public class DockerAssemblyConfigurationSource {
     }
 
     // X
-    public JkubeProject getProject() {
+    public JKubeProject getProject() {
         return context.getProject();
     }
 

@@ -16,7 +16,7 @@ package org.eclipse.jkube.thorntail.v2.generator;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -30,9 +30,9 @@ public class ThorntailV2Generator extends JavaExecGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddImageConfiguration(configs)
-                && JkubeProjectUtil.hasPlugin(getProject(), "io.thorntail", "thorntail-maven-plugin")
+                && JKubeProjectUtil.hasPlugin(getProject(), "io.thorntail", "thorntail-maven-plugin")
                 // if there's thorntail-kernel, it's Thorntail v4
-                && !JkubeProjectUtil.hasDependency(getProject(), "io.thorntail", "thorntail-kernel");
+                && !JKubeProjectUtil.hasDependency(getProject(), "io.thorntail", "thorntail-kernel");
     }
 
     @Override

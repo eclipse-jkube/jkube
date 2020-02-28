@@ -24,7 +24,7 @@
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Jkube Maven :: Sample :: Remote Resources</name>
+  <name>JKube Maven :: Sample :: Remote Resources</name>
   <description>Minimal Example with Vertx Web</description>
 
   <properties>

@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
@@ -47,7 +47,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Mocked
     private KitLogger log;
     @Mocked
-    private JkubeProject jkubeProject;
+    private JKubeProject jkubeProject;
     @Mocked
     private ProcessorConfig processorConfig;
     @Mocked

@@ -17,7 +17,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JkubeAssemblyFileSet implements Serializable {
+public class JKubeAssemblyFileSet implements Serializable {
     private String directory;
     private String outputDirectory;
     private boolean filtered;
@@ -88,13 +88,13 @@ public class JkubeAssemblyFileSet implements Serializable {
     }
 
     public static class Builder {
-        private JkubeAssemblyFileSet jkubeAssemblyFileSet;
+        private JKubeAssemblyFileSet jkubeAssemblyFileSet;
 
         public Builder() {
-            this.jkubeAssemblyFileSet = new JkubeAssemblyFileSet();
+            this.jkubeAssemblyFileSet = new JKubeAssemblyFileSet();
         }
 
-        public Builder(JkubeAssemblyFileSet jkubeAssemblyFileSet) {
+        public Builder(JKubeAssemblyFileSet jkubeAssemblyFileSet) {
             if (jkubeAssemblyFileSet != null) {
                 this.jkubeAssemblyFileSet = jkubeAssemblyFileSet;
             }
@@ -146,7 +146,7 @@ public class JkubeAssemblyFileSet implements Serializable {
             return this;
         }
 
-        public JkubeAssemblyFileSet build() {
+        public JKubeAssemblyFileSet build() {
             return jkubeAssemblyFileSet;
         }
 

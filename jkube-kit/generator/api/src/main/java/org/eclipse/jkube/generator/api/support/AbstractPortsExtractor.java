@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.eclipse.jkube.generator.api.PortsExtractor;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.apache.commons.lang3.StringUtils;
 
@@ -58,14 +58,14 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
     public abstract String getConfigPathPropertyName();
 
     /**
-     * Finds the name of the configuration file from the {@link JkubeProject}.
-     * @param project   The {@link JkubeProject} to use.
+     * Finds the name of the configuration file from the {@link JKubeProject}.
+     * @param project   The {@link JKubeProject} to use.
      * @return          The path to the configuration file or null if none has been found
      */
-    public abstract String getConfigPathFromProject(JkubeProject project);
+    public abstract String getConfigPathFromProject(JKubeProject project);
 
 
-    public File getConfigLocation(JkubeProject project) {
+    public File getConfigLocation(JKubeProject project) {
         String propertyName = getConfigPathPropertyName();
         if (StringUtils.isBlank(propertyName)) {
             return null;
@@ -82,7 +82,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
     }
 
     @Override
-    public Map<String, Integer> extract(JkubeProject project) {
+    public Map<String, Integer> extract(JKubeProject project) {
         Map<String, Integer> answer = new HashMap<>();
         File configFile = getConfigLocation(project);
         if (configFile == null) {

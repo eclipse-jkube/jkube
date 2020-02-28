@@ -24,7 +24,7 @@ import io.fabric8.openshift.api.model.ProjectStatus;
 import io.fabric8.openshift.api.model.ProjectStatusBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 
 import static org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
 
@@ -32,7 +32,7 @@ import static org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil.r
 public class ProjectEnricher extends BaseEnricher {
     static final String ENRICHER_NAME = "jkube-openshift-project";
 
-    public ProjectEnricher(JkubeEnricherContext context) {
+    public ProjectEnricher(JKubeEnricherContext context) {
         super(context, ENRICHER_NAME);
     }
 

@@ -17,8 +17,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 /**
  * Jetty handler
@@ -28,7 +28,7 @@ import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
 public class JettyAppSeverHandler extends AbstractAppServerHandler {
 
 
-    public JettyAppSeverHandler(JkubeProject jkubeProject) {
+    public JettyAppSeverHandler(JKubeProject jkubeProject) {
         super("jetty", jkubeProject);
     }
 
@@ -37,8 +37,8 @@ public class JettyAppSeverHandler extends AbstractAppServerHandler {
         try {
             return hasOneOf("**/WEB-INF/jetty-web.xml",
                     "**/META-INF/jetty-logging.properties") ||
-                    JkubeProjectUtil.hasPlugin(project, "org.mortbay.jetty", "jetty-maven-plugin") ||
-                    JkubeProjectUtil.hasPlugin(project, "org.eclipse.jetty", "jetty-maven-plugin");
+                    JKubeProjectUtil.hasPlugin(project, "org.mortbay.jetty", "jetty-maven-plugin") ||
+                    JKubeProjectUtil.hasPlugin(project, "org.eclipse.jetty", "jetty-maven-plugin");
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to scan output directory: ", exception);
         }

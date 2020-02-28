@@ -14,9 +14,9 @@
 package org.eclipse.jkube.maven.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
@@ -36,7 +36,7 @@ public class DaemonSetHandlerTest {
     @Mocked
     ProbeHandler probeHandler;
 
-    JkubeProject project = new JkubeProject();
+    JKubeProject project = new JKubeProject();
 
     List<String> mounts = new ArrayList<>();
     List<VolumeConfig> volumes1 = new ArrayList<>();
@@ -65,7 +65,7 @@ public class DaemonSetHandlerTest {
         volumes1.add(volumeConfig1);
 
         //container name with alias
-        final JkubeBuildConfiguration buildImageConfiguration = new JkubeBuildConfiguration.Builder()
+        final JKubeBuildConfiguration buildImageConfiguration = new JKubeBuildConfiguration.Builder()
                 .ports(ports).from("fabric8/maven:latest").cleanup("try")
                 .tags(tags).compression("gzip").build();
 

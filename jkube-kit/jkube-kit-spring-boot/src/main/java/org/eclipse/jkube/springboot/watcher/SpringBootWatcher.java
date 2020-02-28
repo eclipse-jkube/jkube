@@ -35,16 +35,16 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.IoUtil;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
-import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
@@ -141,7 +141,7 @@ public class SpringBootWatcher extends BaseWatcher {
                     }
                     Service s = serviceResource.get();
                     if (s != null) {
-                        url = KubernetesHelper.getOrCreateAnnotations(s).get(JkubeAnnotations.SERVICE_EXPOSE_URL);
+                        url = KubernetesHelper.getOrCreateAnnotations(s).get(JKubeAnnotations.SERVICE_EXPOSE_URL);
                         if (StringUtils.isNotBlank(url)) {
                             break;
                         }
@@ -278,13 +278,13 @@ public class SpringBootWatcher extends BaseWatcher {
         return printer;
     }
 
-    private File getSpringBootDevToolsJar(JkubeProject project) throws IOException {
+    private File getSpringBootDevToolsJar(JKubeProject project) throws IOException {
         String version = SpringBootUtil.getSpringBootDevToolsVersion(project).orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
         return getContext().getFabric8ServiceHub().getArtifactResolverService().resolveArtifact(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
     }
 
     private String validateSpringBootDevtoolsSettings() throws IllegalStateException {
-        String configuration = JkubeProjectUtil.getPlugin(getContext().getProject(), null, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID).getConfiguration().toString();
+        String configuration = JKubeProjectUtil.getPlugin(getContext().getProject(), null, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID).getConfiguration().toString();
         if(!configuration.contains("<excludeDevtools>false</excludeDevtools>")) {
             log.warn("devtools need to be included in repacked archive, please set <excludeDevtools> to false in plugin configuration");
             throw new IllegalStateException("devtools needs to be included in fat jar");

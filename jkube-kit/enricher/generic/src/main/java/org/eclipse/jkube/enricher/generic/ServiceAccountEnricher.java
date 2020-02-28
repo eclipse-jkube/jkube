@@ -23,7 +23,7 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ServiceAccountEnricher extends BaseEnricher {
-    public ServiceAccountEnricher(JkubeEnricherContext enricherContext) {
+    public ServiceAccountEnricher(JKubeEnricherContext enricherContext) {
         super(enricherContext, "jkube-serviceaccount");
     }
 

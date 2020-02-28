@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.maven.enricher.api.util.SecretConstants;
 import mockit.Expectations;
@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DockerRegistrySecretEnricherTest {
 
     @Mocked
-    private JkubeEnricherContext context;
+    private JKubeEnricherContext context;
 
     private String dockerUrl = "docker.io";
     private String annotation = "maven.jkube.io/dockerServerId";

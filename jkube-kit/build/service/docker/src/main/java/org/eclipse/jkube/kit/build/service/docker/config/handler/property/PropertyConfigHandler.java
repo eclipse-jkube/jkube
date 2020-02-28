@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.property;
 
-import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.LogConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
@@ -25,9 +25,9 @@ import org.eclipse.jkube.kit.build.service.docker.config.UlimitConfig;
 import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.WatchImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
@@ -170,16 +170,16 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     @Override
-    public List<ImageConfiguration> resolve(ImageConfiguration fromConfig, JkubeProject project)
+    public List<ImageConfiguration> resolve(ImageConfiguration fromConfig, JKubeProject project)
         throws IllegalArgumentException {
         Map<String, String> externalConfig = fromConfig.getExternalConfig();
         String prefix = getPrefix(externalConfig);
-        Properties properties = JkubeProjectUtil.getPropertiesWithSystemOverrides(project);
+        Properties properties = JKubeProjectUtil.getPropertiesWithSystemOverrides(project);
         PropertyMode propertyMode = getMode(externalConfig);
         ValueProvider valueProvider = new ValueProvider(prefix, properties, propertyMode);
 
         RunImageConfiguration run = extractRunConfiguration(fromConfig, valueProvider);
-        JkubeBuildConfiguration build = extractBuildConfiguration(fromConfig, valueProvider, project);
+        JKubeBuildConfiguration build = extractBuildConfiguration(fromConfig, valueProvider, project);
         WatchImageConfiguration watch = extractWatchConfig(fromConfig, valueProvider);
         String name = valueProvider.getString(NAME, fromConfig.getName());
         String alias = valueProvider.getString(ALIAS, fromConfig.getAlias());
@@ -202,7 +202,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         return valueProvider.getString(key, config == null ? null : supplier.get()) != null;
     }
     // Enable build config only when a `.from.`, `.dockerFile.`, or `.dockerFileDir.` is configured
-    private boolean buildConfigured(BuildConfiguration config, ValueProvider valueProvider, JkubeProject project) {
+    private boolean buildConfigured(BuildConfiguration config, ValueProvider valueProvider, JKubeProject project) {
 
 
         if (isStringValueNull(valueProvider, config, FROM, () -> config.getFrom())) {
@@ -232,13 +232,13 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
 
-    private JkubeBuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, JkubeProject project) {
-        JkubeBuildConfiguration config = fromConfig.getBuildConfiguration();
+    private JKubeBuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, JKubeProject project) {
+        JKubeBuildConfiguration config = fromConfig.getBuildConfiguration();
         if (!buildConfigured(config, valueProvider, project)) {
             return null;
         }
 
-        return new JkubeBuildConfiguration.Builder()
+        return new JKubeBuildConfiguration.Builder()
                 .cmd(extractArguments(valueProvider, CMD, config == null ? null : config.getCmd()))
                 .cleanup(valueProvider.getString(CLEANUP, config == null ? null : config.getCleanup()))
                 .nocache(valueProvider.getBoolean(NOCACHE, config == null ? null : config.getNoCache()))
@@ -336,8 +336,8 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     @SuppressWarnings("deprecation")
-    private JkubeAssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
-        return new JkubeAssemblyConfiguration.Builder()
+    private JKubeAssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
+        return new JKubeAssemblyConfiguration.Builder()
                 .targetDir(valueProvider.getString(ASSEMBLY_BASEDIR, config == null ? null : config.getTargetDir()))
                 .descriptor(valueProvider.getString(ASSEMBLY_DESCRIPTOR, config == null ? null : config.getDescriptor()))
                 .descriptorRef(valueProvider.getString(ASSEMBLY_DESCRIPTOR_REF, config == null ? null : config.getDescriptorRef()))

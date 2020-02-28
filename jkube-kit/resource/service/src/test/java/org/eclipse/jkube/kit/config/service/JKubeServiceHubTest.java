@@ -15,7 +15,7 @@ package org.eclipse.jkube.kit.config.service;
 
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -29,7 +29,7 @@ import org.junit.Test;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertNotNull;
 
-public class JkubeServiceHubTest {
+public class JKubeServiceHubTest {
 
     @Mocked
     private KitLogger logger;
@@ -47,7 +47,7 @@ public class JkubeServiceHubTest {
     private BuildService.BuildServiceConfig buildServiceConfig;
 
     @Mocked
-    private JkubeProject jkubeProject;
+    private JKubeProject jkubeProject;
 
     @Before
     public void init() throws Exception {
@@ -72,21 +72,21 @@ public class JkubeServiceHubTest {
 
     @Test(expected = NullPointerException.class)
     public void testMissingClusterAccess() {
-        new JkubeServiceHub.Builder()
+        new JKubeServiceHub.Builder()
                 .log(logger)
                 .build();
     }
 
     @Test(expected = NullPointerException.class)
     public void testMissingKitLogger() {
-        new JkubeServiceHub.Builder()
+        new JKubeServiceHub.Builder()
                 .clusterAccess(clusterAccess)
                 .build();
     }
 
     @Test
     public void testBasicInit() {
-        new JkubeServiceHub.Builder()
+        new JKubeServiceHub.Builder()
                 .clusterAccess(clusterAccess)
                 .log(logger)
                 .platformMode(RuntimeMode.auto)
@@ -95,7 +95,7 @@ public class JkubeServiceHubTest {
 
     @Test
     public void testObtainBuildService() {
-        JkubeServiceHub hub = new JkubeServiceHub.Builder()
+        JKubeServiceHub hub = new JKubeServiceHub.Builder()
                 .clusterAccess(clusterAccess)
                 .log(logger)
                 .platformMode(RuntimeMode.kubernetes)
@@ -111,7 +111,7 @@ public class JkubeServiceHubTest {
 
     @Test
     public void testObtainOpenshiftBuildService() {
-        JkubeServiceHub hub = new JkubeServiceHub.Builder()
+        JKubeServiceHub hub = new JKubeServiceHub.Builder()
                 .clusterAccess(clusterAccess)
                 .log(logger)
                 .platformMode(RuntimeMode.openshift)
@@ -127,7 +127,7 @@ public class JkubeServiceHubTest {
 
     @Test
     public void testObtainArtifactResolverService() {
-        JkubeServiceHub hub = new JkubeServiceHub.Builder()
+        JKubeServiceHub hub = new JKubeServiceHub.Builder()
                 .clusterAccess(clusterAccess)
                 .log(logger)
                 .platformMode(RuntimeMode.kubernetes)

@@ -29,7 +29,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.util.InitContainerHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -58,7 +58,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
         public String def() { return d; } protected String d;
     }
 
-    public VolumePermissionEnricher(JkubeEnricherContext buildContext) {
+    public VolumePermissionEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
         initContainerHandler = new InitContainerHandler(buildContext.getLog());
     }

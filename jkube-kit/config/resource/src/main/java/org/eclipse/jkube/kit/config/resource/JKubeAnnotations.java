@@ -17,7 +17,7 @@ package org.eclipse.jkube.kit.config.resource;
  * @author roland
  * @since 23.05.17
  */
-public enum JkubeAnnotations {
+public enum JKubeAnnotations {
 
     SERVICE_EXPOSE_URL("exposeUrl"),
 
@@ -42,7 +42,7 @@ public enum JkubeAnnotations {
 
     private final String annotation;
 
-    JkubeAnnotations(String anno) {
+    JKubeAnnotations(String anno) {
         this.annotation = "jkube.io/" + anno;
     }
 

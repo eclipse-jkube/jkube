@@ -27,7 +27,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.utils.logging.MessageUtils;
 
-public abstract class AbstractJkubeMojo extends AbstractMojo {
+public abstract class AbstractJKubeMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;

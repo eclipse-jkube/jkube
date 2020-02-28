@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.build.core.assembly;
 
 
-import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
+import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 
 import java.io.File;
@@ -29,7 +29,7 @@ import java.io.File;
 class BuildDirs {
 
     private final String buildTopDir;
-    private final JkubeBuildContext params;
+    private final JKubeBuildContext params;
 
     /**
      * Constructor building up the the output directories
@@ -37,7 +37,7 @@ class BuildDirs {
      * @param imageName image name for the image to build
      * @param params mojo params holding base and global outptput dir
      */
-    BuildDirs(String imageName, JkubeBuildContext params) {
+    BuildDirs(String imageName, JKubeBuildContext params) {
         this.params = params;
         // Replace tag separator with a slash to avoid problems
         // with OSs which gets confused by colons.
