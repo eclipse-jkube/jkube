@@ -83,7 +83,7 @@ public class DockerFileUtil {
         try (BufferedReader reader = new BufferedReader(new FileReader(dockerFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String lineInterpolated = JkubeDockerfileInterpolator.interpolate(line, properties);
+                String lineInterpolated = JKubeDockerfileInterpolator.interpolate(line, properties);
                 String[] lineParts = lineInterpolated.split("\\s+");
                 if (lineParts.length > 0 && lineParts[0].equalsIgnoreCase(keyword)) {
                     ret.add(lineParts);
@@ -105,7 +105,7 @@ public class DockerFileUtil {
         try (BufferedReader reader = new BufferedReader(new FileReader(dockerFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                ret.append(JkubeDockerfileInterpolator.interpolate(line, properties)).append(System.lineSeparator());
+                ret.append(JKubeDockerfileInterpolator.interpolate(line, properties)).append(System.lineSeparator());
             }
         }
         return ret.toString();

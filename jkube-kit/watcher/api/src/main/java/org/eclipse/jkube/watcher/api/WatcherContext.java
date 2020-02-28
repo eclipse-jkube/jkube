@@ -14,7 +14,7 @@
 package org.eclipse.jkube.watcher.api;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
@@ -22,7 +22,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.service.JkubeServiceHub;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 /**
  * @author nicola
@@ -30,7 +30,7 @@ import org.eclipse.jkube.kit.config.service.JkubeServiceHub;
  */
 public class WatcherContext {
 
-    private JkubeProject project;
+    private JKubeProject project;
     private ProcessorConfig config;
     private KitLogger logger;
     private KitLogger newPodLogger;
@@ -42,12 +42,12 @@ public class WatcherContext {
     private BuildService.BuildContext buildContext;
     private ClusterConfiguration clusterConfiguration;
     private KubernetesClient kubernetesClient;
-    private JkubeServiceHub fabric8ServiceHub;
+    private JKubeServiceHub fabric8ServiceHub;
 
     private WatcherContext() {
     }
 
-    public JkubeProject getProject() {
+    public JKubeProject getProject() {
         return project;
     }
 
@@ -95,7 +95,7 @@ public class WatcherContext {
         return oldPodLogger;
     }
 
-    public JkubeServiceHub getFabric8ServiceHub() {
+    public JKubeServiceHub getFabric8ServiceHub() {
         return fabric8ServiceHub;
     }
 
@@ -105,7 +105,7 @@ public class WatcherContext {
 
         private WatcherContext ctx = new WatcherContext();
 
-        public Builder project(JkubeProject project) {
+        public Builder project(JKubeProject project) {
             ctx.project = project;
             return this;
         }
@@ -165,7 +165,7 @@ public class WatcherContext {
             return this;
         }
 
-        public Builder fabric8ServiceHub(JkubeServiceHub fabric8ServiceHub) {
+        public Builder fabric8ServiceHub(JKubeServiceHub fabric8ServiceHub) {
             ctx.fabric8ServiceHub = fabric8ServiceHub;
             return this;
         }

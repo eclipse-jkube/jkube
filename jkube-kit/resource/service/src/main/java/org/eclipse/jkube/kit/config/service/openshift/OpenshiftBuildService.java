@@ -54,7 +54,7 @@ import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.service.BuildService;
-import org.eclipse.jkube.kit.config.service.JkubeServiceException;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 
@@ -100,7 +100,7 @@ public class OpenshiftBuildService implements BuildService {
     }
 
     @Override
-    public void build(ImageConfiguration imageConfig) throws JkubeServiceException {
+    public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
         String buildName = null;
         try {
             ImageName imageName = new ImageName(imageConfig.getName());
@@ -129,7 +129,7 @@ public class OpenshiftBuildService implements BuildService {
 
             // Create a file with generated image streams
             addImageStreamToFile(getImageStreamFile(config), imageName, client);
-        } catch (JkubeServiceException e) {
+        } catch (JKubeServiceException e) {
             throw e;
         } catch (Exception ex) {
             // Log additional details in case of any IOException
@@ -137,12 +137,12 @@ public class OpenshiftBuildService implements BuildService {
                 log.error("Build for %s failed: %s", buildName, ex.getCause().getMessage());
                 logBuildFailure(client, buildName);
             } else {
-                throw new JkubeServiceException("Unable to build the image using the OpenShift build service", ex);
+                throw new JKubeServiceException("Unable to build the image using the OpenShift build service", ex);
             }
         }
     }
 
-    protected File createBuildArchive(ImageConfiguration imageConfig) throws JkubeServiceException {
+    protected File createBuildArchive(ImageConfiguration imageConfig) throws JKubeServiceException {
         // Adding S2I artifacts such as environment variables in S2I mode
         ArchiverCustomizer customizer = getS2ICustomizer(imageConfig);
 
@@ -156,11 +156,11 @@ public class OpenshiftBuildService implements BuildService {
             }
             return dockerTar;
         } catch (IOException e) {
-            throw new JkubeServiceException("Unable to create the build archive", e);
+            throw new JKubeServiceException("Unable to create the build archive", e);
         }
     }
 
-    private ArchiverCustomizer getS2ICustomizer(ImageConfiguration imageConfiguration) throws JkubeServiceException {
+    private ArchiverCustomizer getS2ICustomizer(ImageConfiguration imageConfiguration) throws JKubeServiceException {
         try {
             if (imageConfiguration.getBuildConfiguration() != null && imageConfiguration.getBuildConfiguration().getEnv() != null) {
                 String fileName = IoUtil.sanitizeFileName("s2i-env-" + imageConfiguration.getName());
@@ -180,7 +180,7 @@ public class OpenshiftBuildService implements BuildService {
                 return null;
             }
         } catch (IOException e) {
-            throw new JkubeServiceException("Unable to add environment variables to the S2I build archive", e);
+            throw new JKubeServiceException("Unable to add environment variables to the S2I build archive", e);
         }
     }
 
@@ -668,13 +668,13 @@ public class OpenshiftBuildService implements BuildService {
         }
     }
 
-    private void logBuildFailure(OpenShiftClient client, String buildName) throws JkubeServiceException {
+    private void logBuildFailure(OpenShiftClient client, String buildName) throws JKubeServiceException {
         try {
             List<Build> builds = client.builds().inNamespace(client.getNamespace()).list().getItems();
             for(Build build : builds) {
                 if(build.getMetadata().getName().contains(buildName)) {
                     log.error(build.getMetadata().getName() + "\t" + "\t" + build.getStatus().getReason() + "\t" + build.getStatus().getMessage());
-                    throw new JkubeServiceException("Unable to build the image using the OpenShift build service", new KubernetesClientException(build.getStatus().getReason() + " " + build.getStatus().getMessage()));
+                    throw new JKubeServiceException("Unable to build the image using the OpenShift build service", new KubernetesClientException(build.getStatus().getReason() + " " + build.getStatus().getMessage()));
                 }
             }
 

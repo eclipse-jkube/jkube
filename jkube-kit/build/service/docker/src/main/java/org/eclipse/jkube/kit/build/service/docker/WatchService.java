@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
+import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
 import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
@@ -125,7 +125,7 @@ public class WatchService {
     }
 
     private Runnable createCopyWatchTask(final ImageWatcher watcher,
-                                         final JkubeBuildContext mojoParameters, final String containerBaseDir) throws IOException {
+                                         final JKubeBuildContext mojoParameters, final String containerBaseDir) throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
 
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, mojoParameters);
@@ -158,7 +158,7 @@ public class WatchService {
     }
 
     private Runnable createBuildWatchTask(final ImageWatcher watcher,
-                                          final JkubeBuildContext mojoParameters, final boolean doRestart, final BuildService.BuildContext buildContext)
+                                          final JKubeBuildContext mojoParameters, final boolean doRestart, final BuildService.BuildContext buildContext)
             throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, mojoParameters);
@@ -384,7 +384,7 @@ public class WatchService {
      */
     public static class WatchContext implements Serializable {
 
-        private JkubeBuildContext mojoParameters;
+        private JKubeBuildContext mojoParameters;
 
         private WatchMode watchMode;
 
@@ -421,7 +421,7 @@ public class WatchService {
         public WatchContext() {
         }
 
-        public JkubeBuildContext getMavenBuildContext() {
+        public JKubeBuildContext getMavenBuildContext() {
             return mojoParameters;
         }
 
@@ -489,7 +489,7 @@ public class WatchService {
                 this.context = context;
             }
 
-            public Builder mojoParameters(JkubeBuildContext mojoParameters) {
+            public Builder mojoParameters(JKubeBuildContext mojoParameters) {
                 context.mojoParameters = mojoParameters;
                 return this;
             }

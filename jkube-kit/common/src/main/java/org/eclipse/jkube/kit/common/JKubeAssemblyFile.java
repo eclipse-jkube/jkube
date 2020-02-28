@@ -15,7 +15,7 @@ package org.eclipse.jkube.kit.common;
 
 import java.io.Serializable;
 
-public class JkubeAssemblyFile implements Serializable {
+public class JKubeAssemblyFile implements Serializable {
     private String source;
     private String outputDirectory;
 

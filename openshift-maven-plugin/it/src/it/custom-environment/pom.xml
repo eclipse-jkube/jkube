@@ -24,7 +24,7 @@
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Jkube Maven :: Sample :: Custom Environment</name>
+  <name>JKube Maven :: Sample :: Custom Environment</name>
   <description>Minimal Example with Custom Environment</description>
 
   <properties>

@@ -29,8 +29,8 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
 import org.junit.Test;
 
 import java.io.File;
@@ -50,10 +50,10 @@ import static org.junit.Assert.assertEquals;
 
 public class MavenUtilTest {
     @Test
-    public void testJkubeProjectConversion() throws DependencyResolutionRequiredException {
+    public void testJKubeProjectConversion() throws DependencyResolutionRequiredException {
         MavenProject mavenProject = getMavenProject();
 
-        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(mavenProject, getMavenSession());
+        JKubeProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, getMavenSession());
         assertEquals("testProject", jkubeProject.getName());
         assertEquals("org.eclipse.jkube", jkubeProject.getGroupId());
         assertEquals("test-project", jkubeProject.getArtifactId());
@@ -75,7 +75,7 @@ public class MavenUtilTest {
         dependencies.add(new DefaultArtifact("org.eclipse.jkube", "bar-dependency", "0.1.0", "runtime", "jar", "", new DefaultArtifactHandler("jar")));
         project.setDependencyArtifacts(dependencies);
 
-        JkubeProject jkubeProject = MavenUtil.convertMavenProjectToJkubeProject(project, getMavenSession());
+        JKubeProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, getMavenSession());
         assertEquals(2, jkubeProject.getDependencies().size());
         assertEquals("[org.eclipse.jkube,foo-dependency,0.1.0,jar,runtime,, org.eclipse.jkube,bar-dependency,0.1.0,jar,runtime,]", MavenUtil.getDependenciesAsString(project, false).toString());
     }
@@ -83,15 +83,15 @@ public class MavenUtilTest {
     @Test
     public void testLoadedPomFromFile() throws Exception {
         MavenProject mavenProject = loadMavenProjectFromPom();
-        JkubeProject project = MavenUtil.convertMavenProjectToJkubeProject(mavenProject, getMavenSession());
+        JKubeProject project = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, getMavenSession());
 
-        assertEquals("Eclipse Jkube Maven :: Sample :: Spring Boot Web", project.getName());
+        assertEquals("Eclipse JKube Maven :: Sample :: Spring Boot Web", project.getName());
         assertEquals("Minimal Example with Spring Boot", project.getDescription());
         assertEquals("jkube-maven-sample-spring-boot", project.getArtifactId());
         assertEquals("org.eclipse.jkube", project.getGroupId());
         assertEquals("0.1.1-SNAPSHOT", project.getVersion());
 
-        List<JkubeProjectPlugin> plugins = MavenUtil.getPluginsAsString(mavenProject);
+        List<JKubeProjectPlugin> plugins = MavenUtil.getPluginsAsString(mavenProject);
         assertEquals(2, plugins.size());
         assertEquals("org.springframework.boot", plugins.get(0).getGroupId());
         assertEquals("spring-boot-maven-plugin", plugins.get(0).getArtifactId());

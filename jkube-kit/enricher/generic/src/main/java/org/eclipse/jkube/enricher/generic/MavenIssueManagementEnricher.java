@@ -23,11 +23,11 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -46,7 +46,7 @@ import java.util.Map;
 public class MavenIssueManagementEnricher extends BaseEnricher {
     static final String ENRICHER_NAME = "jkube-maven-issue-mgmt";
 
-    public MavenIssueManagementEnricher(JkubeEnricherContext buildContext) {
+    public MavenIssueManagementEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
     }
 
@@ -112,22 +112,22 @@ public class MavenIssueManagementEnricher extends BaseEnricher {
     private Map<String, String> getAnnotations() {
         Map<String, String> annotations = new HashMap<>();
 
-        if (getContext() instanceof JkubeEnricherContext) {
-            JkubeEnricherContext jkubeEnricherContext = (JkubeEnricherContext) getContext();
-            JkubeProject rootProject = jkubeEnricherContext.getProject();
+        if (getContext() instanceof JKubeEnricherContext) {
+            JKubeEnricherContext jkubeEnricherContext = (JKubeEnricherContext) getContext();
+            JKubeProject rootProject = jkubeEnricherContext.getProject();
             if (hasIssueManagement(rootProject)) {
                 String system = rootProject.getIssueManagementSystem();
                 String url = rootProject.getIssueManagementUrl();
                 if (StringUtils.isNotEmpty(system) && StringUtils.isNotEmpty(url)) {
-                    annotations.put(JkubeAnnotations.ISSUE_SYSTEM.value(), system);
-                    annotations.put(JkubeAnnotations.ISSUE_TRACKER_URL.value(), url);
+                    annotations.put(JKubeAnnotations.ISSUE_SYSTEM.value(), system);
+                    annotations.put(JKubeAnnotations.ISSUE_TRACKER_URL.value(), url);
                 }
             }
         }
         return annotations;
     }
 
-    private boolean hasIssueManagement(JkubeProject project) {
+    private boolean hasIssueManagement(JKubeProject project) {
         return project.getIssueManagementSystem() != null ||
                 project.getIssueManagementUrl() != null;
     }

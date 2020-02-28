@@ -20,18 +20,18 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class JkubeBuildConfigurationTest {
+public class JKubeBuildConfigurationTest {
 
     @Test
-    public void testBuilder(@Mocked JkubeAssemblyConfiguration mockJkubeAssemblyConfiguration) {
+    public void testBuilder(@Mocked JKubeAssemblyConfiguration mockJKubeAssemblyConfiguration) {
         // Given
         new Expectations() {{
-            mockJkubeAssemblyConfiguration.getName();
+            mockJKubeAssemblyConfiguration.getName();
             result = "1337";
         }};
         // When
-        final JkubeBuildConfiguration result = new JkubeBuildConfiguration.Builder()
-                .assembly(mockJkubeAssemblyConfiguration)
+        final JKubeBuildConfiguration result = new JKubeBuildConfiguration.Builder()
+                .assembly(mockJKubeAssemblyConfiguration)
                 .user("super-user")
                 .build();
         // Then

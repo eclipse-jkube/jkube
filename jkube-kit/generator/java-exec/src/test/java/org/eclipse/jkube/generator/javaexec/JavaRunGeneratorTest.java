@@ -22,8 +22,8 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -45,10 +45,10 @@ public class JavaRunGeneratorTest {
     GeneratorContext ctx;
 
     @Mocked
-    JkubeProject project;
+    JKubeProject project;
 
     @Mocked
-    JkubeProjectPlugin plugin;
+    JKubeProjectPlugin plugin;
 
     @Test
     @Ignore // TODO: Fix this test
@@ -75,8 +75,8 @@ public class JavaRunGeneratorTest {
 
     private Expectations prepareExpectation(final String version, final RuntimeMode mode, final OpenShiftBuildStrategy strategy) {
         return new Expectations() {{
-            ctx.getProject(); result = new JkubeProject.Builder()
-              .plugins(Arrays.asList(new JkubeProjectPlugin.Builder().groupId("org.eclipse.jkube").artifactId("jkube-kit-parent").version(version).configuration(Collections.emptyMap()).build()))
+            ctx.getProject(); result = new JKubeProject.Builder()
+              .plugins(Arrays.asList(new JKubeProjectPlugin.Builder().groupId("org.eclipse.jkube").artifactId("jkube-kit-parent").version(version).configuration(Collections.emptyMap()).build()))
               .build();
 
             ctx.getRuntimeMode();result = mode;

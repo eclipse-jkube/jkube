@@ -24,10 +24,10 @@ import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.api.model.RoutePort;
-import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RouteEnricher extends BaseEnricher {
     private Boolean generateRoute;
 
-    public RouteEnricher(JkubeEnricherContext buildContext) {
+    public RouteEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-openshift-route");
         this.generateRoute = getValueFromConfig(GENERATE_ROUTE, true);
     }
@@ -132,7 +132,7 @@ public class RouteEnricher extends BaseEnricher {
         if (metadata != null) {
             Map<String, String> labels = metadata.getLabels();
             if (labels != null) {
-                if ("true".equals(labels.get("expose")) || "true".equals(labels.get(JkubeAnnotations.SERVICE_EXPOSE_URL.value()))) {
+                if ("true".equals(labels.get("expose")) || "true".equals(labels.get(JKubeAnnotations.SERVICE_EXPOSE_URL.value()))) {
                     return true;
                 }
             }

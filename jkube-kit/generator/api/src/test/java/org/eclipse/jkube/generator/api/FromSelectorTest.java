@@ -16,8 +16,8 @@ package org.eclipse.jkube.generator.api;
 import java.util.Collections;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -38,10 +38,10 @@ import static org.junit.Assert.assertEquals;
 public class FromSelectorTest {
 
     @Mocked
-    JkubeProject project;
+    JKubeProject project;
 
     @Mocked
-    JkubeProjectPlugin plugin;
+    JKubeProjectPlugin plugin;
 
     @Mocked
     KitLogger logger;

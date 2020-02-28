@@ -24,7 +24,7 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.SecretConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.util.SecretConstants;
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,7 +34,7 @@ import java.util.Map;
 
 public abstract class SecretEnricher extends BaseEnricher {
 
-    public SecretEnricher(JkubeEnricherContext buildContext, String name) {
+    public SecretEnricher(JKubeEnricherContext buildContext, String name) {
         super(buildContext, name);
     }
 
@@ -100,7 +100,7 @@ public abstract class SecretEnricher extends BaseEnricher {
 
             // docker-registry
             if (secretConfig.getDockerServerId() != null) {
-                JkubeEnricherContext mavenContext = ((JkubeEnricherContext)getContext());
+                JKubeEnricherContext mavenContext = ((JKubeEnricherContext)getContext());
                 String dockerSecret = (mavenContext).getDockerJsonConfigString(mavenContext.getSettings(), secretConfig.getDockerServerId());
                 if (StringUtils.isBlank(dockerSecret)) {
                     log.warn("Docker secret with id "

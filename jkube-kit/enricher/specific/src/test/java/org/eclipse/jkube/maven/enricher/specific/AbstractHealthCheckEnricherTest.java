@@ -18,11 +18,11 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.EnricherContext;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import mockit.Mocked;
 import org.junit.Test;
 
@@ -213,10 +213,10 @@ public class AbstractHealthCheckEnricherTest {
 
     protected AbstractHealthCheckEnricher createEnricher(Properties properties, Map<String, String> pi) {
 
-        JkubeProject project = new JkubeProject.Builder().properties(new Properties()).build();
+        JKubeProject project = new JKubeProject.Builder().properties(new Properties()).build();
         project.getProperties().putAll(properties);
 
-        JkubeEnricherContext.Builder enricherContextBuilder = new JkubeEnricherContext.Builder()
+        JKubeEnricherContext.Builder enricherContextBuilder = new JKubeEnricherContext.Builder()
                 .project(project)
                 .log(log);
         if(pi != null && !pi.isEmpty()) {

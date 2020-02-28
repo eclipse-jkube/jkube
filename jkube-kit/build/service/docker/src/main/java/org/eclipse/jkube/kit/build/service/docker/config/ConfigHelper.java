@@ -16,10 +16,10 @@ package org.eclipse.jkube.kit.build.service.docker.config;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyMode;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +71,7 @@ public class ConfigHelper {
         return filtered;
     }
 
-    public static void validateExternalPropertyActivation(JkubeProject project, List<ImageConfiguration> images) {
+    public static void validateExternalPropertyActivation(JKubeProject project, List<ImageConfiguration> images) {
         String prop = getExternalConfigActivationProperty(project);
         if(prop == null) {
             return;
@@ -99,8 +99,8 @@ public class ConfigHelper {
         }
     }
 
-    public static String getExternalConfigActivationProperty(JkubeProject project) {
-        Properties properties = JkubeProjectUtil.getPropertiesWithSystemOverrides(project);
+    public static String getExternalConfigActivationProperty(JKubeProject project) {
+        Properties properties = JKubeProjectUtil.getPropertiesWithSystemOverrides(project);
         String value = properties.getProperty(EXTERNALCONFIG_ACTIVATION_PROPERTY);
 
         // This can be used to disable in a more "local" context, if set globally

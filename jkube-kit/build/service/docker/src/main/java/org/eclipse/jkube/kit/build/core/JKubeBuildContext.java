@@ -20,23 +20,23 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.build.api.BuildContext;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 /**
  * @author roland
  * @since 16.10.18
  */
-public class JkubeBuildContext implements BuildContext<JkubeBuildConfiguration>, Serializable {
+public class JKubeBuildContext implements BuildContext<JKubeBuildConfiguration>, Serializable {
 
     private String sourceDirectory;
     private String outputDirectory;
-    private JkubeProject project;
-    private List<JkubeProject> reactorProjects;
-    private transient JkubeArchiveService archiveService;
+    private JKubeProject project;
+    private List<JKubeProject> reactorProjects;
+    private transient JKubeArchiveService archiveService;
 
-    private JkubeBuildContext() { }
+    private JKubeBuildContext() { }
 
     public String getSourceDirectory() {
         return sourceDirectory;
@@ -57,7 +57,7 @@ public class JkubeBuildContext implements BuildContext<JkubeBuildConfiguration>,
     }
 
     @Override
-    public File createImageContentArchive(String imageName, JkubeBuildConfiguration buildConfig, KitLogger log)
+    public File createImageContentArchive(String imageName, JKubeBuildConfiguration buildConfig, KitLogger log)
             throws IOException {
 
         try {
@@ -90,11 +90,11 @@ public class JkubeBuildContext implements BuildContext<JkubeBuildConfiguration>,
     // =======================================================================================
     // Maven specific method not available via interface
 
-    public JkubeProject getProject() {
+    public JKubeProject getProject() {
         return project;
     }
 
-	public List<JkubeProject> getReactorProjects() {
+	public List<JKubeProject> getReactorProjects() {
 		return reactorProjects;
 	}
 
@@ -102,13 +102,13 @@ public class JkubeBuildContext implements BuildContext<JkubeBuildConfiguration>,
 
     public static class Builder {
 
-        private JkubeBuildContext context;
+        private JKubeBuildContext context;
 
         public Builder() {
-            this.context = new JkubeBuildContext();
+            this.context = new JKubeBuildContext();
         }
 
-        public Builder(JkubeBuildContext context) {
+        public Builder(JKubeBuildContext context) {
             this.context = context;
         }
 
@@ -125,23 +125,23 @@ public class JkubeBuildContext implements BuildContext<JkubeBuildConfiguration>,
         // ===============================================================================
         // Maven specific calls
 
-        public Builder project(JkubeProject project) {
+        public Builder project(JKubeProject project) {
             context.project = project;
             return this;
         }
 
-        public Builder reactorProjects(List<JkubeProject> reactorProjects) {
+        public Builder reactorProjects(List<JKubeProject> reactorProjects) {
             context.reactorProjects = reactorProjects;
             return this;
         }
 
-        public Builder archiveService(JkubeArchiveService archiveService) {
+        public Builder archiveService(JKubeArchiveService archiveService) {
             context.archiveService = archiveService;
             return this;
         }
 
         // ================================================================================
-        public JkubeBuildContext build() {
+        public JKubeBuildContext build() {
             return context;
         }
 

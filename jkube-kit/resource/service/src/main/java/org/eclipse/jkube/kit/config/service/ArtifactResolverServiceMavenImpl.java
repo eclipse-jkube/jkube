@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
 
 import java.io.File;
@@ -24,9 +24,9 @@ import java.util.Objects;
  */
 class ArtifactResolverServiceMavenImpl implements ArtifactResolverService {
 
-    private JkubeProject project;
+    private JKubeProject project;
 
-    ArtifactResolverServiceMavenImpl(JkubeProject project) {
+    ArtifactResolverServiceMavenImpl(JKubeProject project) {
         this.project = Objects.requireNonNull(project, "project");
     }
 

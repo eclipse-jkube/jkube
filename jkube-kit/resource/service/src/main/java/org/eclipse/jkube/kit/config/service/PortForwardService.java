@@ -63,7 +63,7 @@ public class PortForwardService {
      * Forwards a port to the newest pod matching the given selector.
      * If another pod is created, it forwards connections to the new pod once it's ready.
      */
-    public Closeable forwardPortAsync(final KitLogger externalProcessKitLogger, final LabelSelector podSelector, final int remotePort, final int localPort) throws JkubeServiceException {
+    public Closeable forwardPortAsync(final KitLogger externalProcessKitLogger, final LabelSelector podSelector, final int remotePort, final int localPort) throws JKubeServiceException {
 
         final Lock monitor = new ReentrantLock(true);
         final Condition podChanged = monitor.newCondition();
@@ -220,11 +220,11 @@ public class PortForwardService {
         return targetPod;
     }
 
-    public void forwardPort(KitLogger externalProcessKitLogger, String pod, int remotePort, int localPort) throws JkubeServiceException {
+    public void forwardPort(KitLogger externalProcessKitLogger, String pod, int remotePort, int localPort) throws JKubeServiceException {
         forwardPortAsync(externalProcessKitLogger, pod, remotePort, localPort).await();
     }
 
-    public ProcessUtil.ProcessExecutionContext forwardPortAsync(KitLogger externalProcessKitLogger, String pod, int remotePort, int localPort) throws JkubeServiceException {
+    public ProcessUtil.ProcessExecutionContext forwardPortAsync(KitLogger externalProcessKitLogger, String pod, int remotePort, int localPort) throws JKubeServiceException {
         File command = clientToolsService.getKubeCtlExecutable(OpenshiftHelper.isOpenShiftClient(kubernetes));
         log.info("Port forwarding to port " + remotePort + " on pod " + pod + " using command " + command);
 
@@ -238,7 +238,7 @@ public class PortForwardService {
         try {
             return ProcessUtil.runAsyncCommand(externalProcessKitLogger, command, args, true, false);
         } catch (IOException e) {
-            throw new JkubeServiceException("Error while executing the port-forward command", e);
+            throw new JKubeServiceException("Error while executing the port-forward command", e);
         }
     }
 }

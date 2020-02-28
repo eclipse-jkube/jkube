@@ -14,9 +14,9 @@
 package org.eclipse.jkube.kit.common.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectDependency;
-import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectDependency;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,51 +26,51 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
 
-public class JkubeProjectUtil {
+public class JKubeProjectUtil {
 
     public static final int MAX_RESOURCE_NAME_LENGTH = 63;
 
-    private JkubeProjectUtil() { }
+    private JKubeProjectUtil() { }
 
     public static <T> Optional<T> iterateOverListWithCondition(List<T> dependencyList, Predicate<? super T> condition) {
         return dependencyList.stream().filter(condition).findFirst();
     }
 
-    public static String getAnyDependencyVersionWithGroupId(JkubeProject jkubeProject, String groupId) {
-        Optional<JkubeProjectDependency> value = iterateOverListWithCondition(jkubeProject.getDependencies(),
+    public static String getAnyDependencyVersionWithGroupId(JKubeProject jkubeProject, String groupId) {
+        Optional<JKubeProjectDependency> value = iterateOverListWithCondition(jkubeProject.getDependencies(),
                 dependency -> dependency.getGroupId().equals(groupId));
 
-        return value.map(JkubeProjectDependency::getVersion).orElse(null);
+        return value.map(JKubeProjectDependency::getVersion).orElse(null);
     }
 
-    public static JkubeProjectPlugin getPlugin(JkubeProject jkubeProject, String groupId, String artifactId) {
-        Optional<JkubeProjectPlugin> value = iterateOverListWithCondition(jkubeProject.getPlugins(),
+    public static JKubeProjectPlugin getPlugin(JKubeProject jkubeProject, String groupId, String artifactId) {
+        Optional<JKubeProjectPlugin> value = iterateOverListWithCondition(jkubeProject.getPlugins(),
                 plugin -> plugin.getGroupId().equals(groupId) && plugin.getArtifactId().equals(artifactId));
         return value.orElse(null);
     }
 
-    public static JkubeProjectPlugin getPlugin(JkubeProject jkubeProject, String artifactId) {
-        Optional<JkubeProjectPlugin> value = iterateOverListWithCondition(jkubeProject.getPlugins(),
+    public static JKubeProjectPlugin getPlugin(JKubeProject jkubeProject, String artifactId) {
+        Optional<JKubeProjectPlugin> value = iterateOverListWithCondition(jkubeProject.getPlugins(),
                 plugin -> plugin.getArtifactId().equals(artifactId));
         return value.orElse(null);
     }
 
-    public static boolean hasPlugin(JkubeProject jkubeProject, String groupId, String artifactId) {
+    public static boolean hasPlugin(JKubeProject jkubeProject, String groupId, String artifactId) {
         return getPlugin(jkubeProject, groupId, artifactId) != null;
     }
 
-    public static boolean hasPluginOfAnyArtifactId(JkubeProject jkubeProject, String artifactId) {
+    public static boolean hasPluginOfAnyArtifactId(JKubeProject jkubeProject, String artifactId) {
         return getPlugin(jkubeProject, artifactId) != null;
     }
 
-    public static boolean hasDependency(JkubeProject jkubeProject, String groupId, String artifactId) {
+    public static boolean hasDependency(JKubeProject jkubeProject, String groupId, String artifactId) {
         return getDependency(jkubeProject, groupId, artifactId) != null;
     }
 
-    public static JkubeProjectDependency getDependency(JkubeProject jkubeProject, String groupId, String artifactId) {
-        List<JkubeProjectDependency> dependencyList = jkubeProject.getDependencies();
+    public static JKubeProjectDependency getDependency(JKubeProject jkubeProject, String groupId, String artifactId) {
+        List<JKubeProjectDependency> dependencyList = jkubeProject.getDependencies();
         if (dependencyList != null) {
-            Optional<JkubeProjectDependency> value = iterateOverListWithCondition(dependencyList,
+            Optional<JKubeProjectDependency> value = iterateOverListWithCondition(dependencyList,
                     dependency -> dependency.getGroupId().equals(groupId) && dependency.getArtifactId().equals(artifactId));
 
             return value.orElse(null);
@@ -78,7 +78,7 @@ public class JkubeProjectUtil {
         return null;
     }
 
-    public static boolean hasResource(JkubeProject project, String... paths) throws IOException {
+    public static boolean hasResource(JKubeProject project, String... paths) throws IOException {
         try (URLClassLoader compileClassLoader = ClassUtil.createClassLoader(project.getCompileClassPathElements(), project.getOutputDirectory())) {
             for (String path : paths) {
                 try {
@@ -93,13 +93,13 @@ public class JkubeProjectUtil {
         return false;
     }
 
-    public static Properties getPropertiesWithSystemOverrides(JkubeProject project) {
+    public static Properties getPropertiesWithSystemOverrides(JKubeProject project) {
         Properties properties = new Properties(project.getProperties());
         properties.putAll(System.getProperties());
         return properties;
     }
 
-    public static File getFinalOutputArtifact(JkubeProject jkubeProject) {
+    public static File getFinalOutputArtifact(JKubeProject jkubeProject) {
         String nameOfFinalArtifact;
         if (jkubeProject.getBuildFinalName() == null) {
             nameOfFinalArtifact = jkubeProject.getArtifactId() + "-"

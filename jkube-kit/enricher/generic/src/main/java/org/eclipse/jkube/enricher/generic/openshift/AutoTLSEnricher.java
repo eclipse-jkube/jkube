@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.util.InitContainerHandler;
 
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public class AutoTLSEnricher extends BaseEnricher {
         public String def() { return d; } protected String d;
     }
 
-    public AutoTLSEnricher(JkubeEnricherContext buildContext) {
+    public AutoTLSEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
 
         this.secretName = getConfig(Config.tlsSecretName, getContext().getGav().getArtifactId() + "-tls");

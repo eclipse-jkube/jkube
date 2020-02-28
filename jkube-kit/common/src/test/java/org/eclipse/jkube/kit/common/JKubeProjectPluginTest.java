@@ -26,7 +26,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class JkubeProjectPluginTest {
+public class JKubeProjectPluginTest {
     private static List<AbstractMap.SimpleEntry<String, Map<String, Object>>> projectPluginsAsStr;
 
     @Before
@@ -38,27 +38,27 @@ public class JkubeProjectPluginTest {
 
     @Test
     public void testStringToPluginParsing() {
-        JkubeProjectPlugin projectPlugin = JkubeProjectPlugin.fromString(projectPluginsAsStr.get(0).getKey(), projectPluginsAsStr.get(0).getValue());
+        JKubeProjectPlugin projectPlugin = JKubeProjectPlugin.fromString(projectPluginsAsStr.get(0).getKey(), projectPluginsAsStr.get(0).getValue());
         assertSpringBootPlugin(projectPlugin);
 
-        projectPlugin = JkubeProjectPlugin.fromString(projectPluginsAsStr.get(1).getKey(), projectPluginsAsStr.get(1).getValue());
-        assertEclipseJkubePlugin(projectPlugin);
+        projectPlugin = JKubeProjectPlugin.fromString(projectPluginsAsStr.get(1).getKey(), projectPluginsAsStr.get(1).getValue());
+        assertEclipseJKubePlugin(projectPlugin);
     }
 
     @Test
     public void testStringToPluginListParsing() {
-        List<JkubeProjectPlugin> projectPluginList = JkubeProjectPlugin.listFromStringPlugins(projectPluginsAsStr);
+        List<JKubeProjectPlugin> projectPluginList = JKubeProjectPlugin.listFromStringPlugins(projectPluginsAsStr);
         assertEquals(2, projectPluginList.size());
         assertSpringBootPlugin(projectPluginList.get(0));
-        assertEclipseJkubePlugin(projectPluginList.get(1));
+        assertEclipseJKubePlugin(projectPluginList.get(1));
     }
 
-    public void assertSpringBootPlugin(JkubeProjectPlugin projectPlugin) {
+    public void assertSpringBootPlugin(JKubeProjectPlugin projectPlugin) {
         assertEquals("org.springframework.boot", projectPlugin.getGroupId());
         assertEquals("spring-boot-maven-plugin", projectPlugin.getArtifactId());
     }
 
-    public void assertEclipseJkubePlugin(JkubeProjectPlugin projectPlugin) {
+    public void assertEclipseJKubePlugin(JKubeProjectPlugin projectPlugin) {
         assertEquals("org.eclipse.jkube", projectPlugin.getGroupId());
         assertEquals("k8s-maven-plugin", projectPlugin.getArtifactId());
         assertEquals("0.1.0", projectPlugin.getVersion());

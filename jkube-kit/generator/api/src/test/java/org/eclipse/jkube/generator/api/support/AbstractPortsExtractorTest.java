@@ -16,7 +16,7 @@ package org.eclipse.jkube.generator.api.support;
 import java.util.Map;
 
 import org.eclipse.jkube.generator.api.PortsExtractor;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import mockit.Expectations;
@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThat;
 public class AbstractPortsExtractorTest {
 
     @Mocked
-    JkubeProject project;
+    JKubeProject project;
 
     @Mocked
     PrefixedLogger logger;
@@ -122,7 +122,7 @@ public class AbstractPortsExtractorTest {
             }
 
             @Override
-            public String getConfigPathFromProject(JkubeProject project) {
+            public String getConfigPathFromProject(JKubeProject project) {
                 // working on Windows: https://stackoverflow.com/a/31957696/3309168
                 return path != null ? FileUtil.getAbsolutePath(getClass().getResource(path)) : null;
             }

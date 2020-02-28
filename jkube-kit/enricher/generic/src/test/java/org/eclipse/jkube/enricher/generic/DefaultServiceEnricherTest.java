@@ -16,12 +16,12 @@ package org.eclipse.jkube.enricher.generic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
@@ -47,7 +47,7 @@ import static org.junit.Assert.assertThat;
 public class DefaultServiceEnricherTest {
 
     @Mocked
-    private JkubeEnricherContext context;
+    private JKubeEnricherContext context;
 
     @Mocked
     ImageConfiguration imageConfiguration;
@@ -205,7 +205,7 @@ public class DefaultServiceEnricherTest {
             result = configuration;
 
             imageConfigurationWithLabels.getBuildConfiguration();
-            result = new JkubeBuildConfiguration.Builder()
+            result = new JKubeBuildConfiguration.Builder()
                     .labels(Collections.singletonMap("jkube.generator.service.ports", "9090"))
                     .ports(Arrays.asList("80", "53/UDP"))
                     .build();
@@ -265,9 +265,9 @@ public class DefaultServiceEnricherTest {
         }};
     }
 
-    private JkubeBuildConfiguration getBuildConfig(boolean withPorts) {
+    private JKubeBuildConfiguration getBuildConfig(boolean withPorts) {
         // Setup a sample docker build configuration
-        JkubeBuildConfiguration.Builder builder = new JkubeBuildConfiguration.Builder();
+        JKubeBuildConfiguration.Builder builder = new JKubeBuildConfiguration.Builder();
         if (withPorts) {
             builder.ports(Arrays.asList("80", "53/UDP"));
         }

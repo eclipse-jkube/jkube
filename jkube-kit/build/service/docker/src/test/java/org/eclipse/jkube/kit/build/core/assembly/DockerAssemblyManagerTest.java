@@ -17,10 +17,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
+import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
@@ -45,8 +45,8 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testNoAssembly() {
-        JkubeBuildConfiguration buildConfig = new JkubeBuildConfiguration.Builder().build();
-        JkubeAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        JKubeBuildConfiguration buildConfig = new JKubeBuildConfiguration.Builder().build();
+        JKubeAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
 
         DockerFileBuilder builder = assemblyManager.createDockerFileBuilder(buildConfig, assemblyConfig);
         String content = builder.content();
@@ -56,8 +56,8 @@ public class DockerAssemblyManagerTest {
     }
 
     @Test
-    public void assemblyFiles(@Injectable final JkubeBuildContext mojoParams,
-                              @Injectable final JkubeProject project,
+    public void assemblyFiles(@Injectable final JKubeBuildContext mojoParams,
+                              @Injectable final JKubeProject project,
                               @Injectable final File assembly) throws IllegalAccessException, IOException {
 
 
@@ -71,7 +71,7 @@ public class DockerAssemblyManagerTest {
 
         }};
 
-        JkubeBuildConfiguration buildConfig = createBuildConfig();
+        JKubeBuildConfiguration buildConfig = createBuildConfig();
 
         new File("./target/testImage/build/maven").mkdirs();
         AssemblyFiles assemblyFiles = assemblyManager.getAssemblyFiles("testImage", buildConfig, mojoParams, prefixedLogger);
@@ -80,7 +80,7 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testCopyValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        JkubeBuildConfiguration buildConfig = createBuildConfig();
+        JKubeBuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
@@ -95,7 +95,7 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testCopyInvalidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        JkubeBuildConfiguration buildConfig = createBuildConfig();
+        JKubeBuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_invalid.test").getPath()),
@@ -110,7 +110,7 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testCopyChownValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        JkubeBuildConfiguration buildConfig = createBuildConfig();
+        JKubeBuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_chown_valid.test").getPath()),
@@ -123,9 +123,9 @@ public class DockerAssemblyManagerTest {
         }};
     }
 
-    private JkubeBuildConfiguration createBuildConfig() {
-        return new JkubeBuildConfiguration.Builder()
-                .assembly(new JkubeAssemblyConfiguration.Builder()
+    private JKubeBuildConfiguration createBuildConfig() {
+        return new JKubeBuildConfiguration.Builder()
+                .assembly(new JKubeAssemblyConfiguration.Builder()
                         .descriptorRef("artifact")
                         .build())
                 .build();

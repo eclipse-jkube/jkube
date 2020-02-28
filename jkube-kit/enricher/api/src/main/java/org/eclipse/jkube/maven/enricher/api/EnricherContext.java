@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.eclipse.jkube.kit.common.JkubeProjectDependency;
+import org.eclipse.jkube.kit.common.JKubeProjectDependency;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
@@ -79,7 +79,7 @@ public interface EnricherContext {
      * @param transitive if transitive deps should be returned.
      * @return List of dependencies.
      */
-    List<JkubeProjectDependency> getDependencies(boolean transitive);
+    List<JKubeProjectDependency> getDependencies(boolean transitive);
 
     /**
      * Checks if given dependency is defined.
@@ -98,8 +98,8 @@ public interface EnricherContext {
      * @return Version number.
      */
     default Optional<String> getDependencyVersion(String groupId, String artifactId) {
-        List<JkubeProjectDependency> dependencies = getDependencies(true);
-        for (JkubeProjectDependency dep : dependencies) {
+        List<JKubeProjectDependency> dependencies = getDependencies(true);
+        for (JKubeProjectDependency dep : dependencies) {
             String scope = dep.getScope();
             if ("test".equals(scope) ||
                 (artifactId != null && !artifactId.equals(dep.getArtifactId()))) {

@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
@@ -46,7 +46,7 @@ public class DockerBuildServiceTest {
         final String imageName = "image-name";
         final ImageConfiguration image = new ImageConfiguration.Builder()
                 .name(imageName)
-                .buildConfig(new JkubeBuildConfiguration.Builder()
+                .buildConfig(new JKubeBuildConfiguration.Builder()
                         .from("from")
                         .build()
                 ).build();

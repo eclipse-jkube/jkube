@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class WebAppHealthCeckEnricherTest {
 
     @Mocked
-    private JkubeEnricherContext context;
+    private JKubeEnricherContext context;
 
     private void setupExpectations(Map<String, Object> config) {
         new Expectations() {{

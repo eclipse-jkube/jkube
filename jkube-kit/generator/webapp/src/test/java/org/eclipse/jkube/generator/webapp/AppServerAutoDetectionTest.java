@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.Collections;
 
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -82,7 +82,7 @@ public class AppServerAutoDetectionTest {
 
     @Test
     public void testWithSpecifiedServer() throws Exception {
-        JkubeProject jkubeProject = new JkubeProject.Builder()
+        JKubeProject jkubeProject = new JKubeProject.Builder()
                 .build();
 
         AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect("tomcat");
@@ -111,9 +111,9 @@ public class AppServerAutoDetectionTest {
     public void testDefaultServer() throws IOException {
         File appDir = folder.newFolder("webapp");
 
-        JkubeProject jkubeProject = new JkubeProject.Builder()
+        JKubeProject jkubeProject = new JKubeProject.Builder()
                 .buildDirectory(appDir.getAbsolutePath())
-                .plugins(Collections.singletonList(new JkubeProjectPlugin.Builder().groupId("org.apache.tomcat.maven").artifactId("org.apache.tomcat.maven").version("testversion").configuration(Collections.emptyMap()).build()))
+                .plugins(Collections.singletonList(new JKubeProjectPlugin.Builder().groupId("org.apache.tomcat.maven").artifactId("org.apache.tomcat.maven").version("testversion").configuration(Collections.emptyMap()).build()))
                 .build();
         AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
         assertEquals("tomcat", appServerHandler.getName());
@@ -129,7 +129,7 @@ public class AppServerAutoDetectionTest {
             new File(appDir, "WEB-INF/").mkdirs();
             new File(appDir, descriptor).createNewFile();
 
-            JkubeProject jkubeProject = new JkubeProject.Builder()
+            JKubeProject jkubeProject = new JKubeProject.Builder()
                     .buildDirectory(appDir.getPath())
                     .plugins(Collections.emptyList())
                     .build();
@@ -147,9 +147,9 @@ public class AppServerAutoDetectionTest {
             String artifactId = pluginCoordinate.split(":")[1];
             boolean expected = (boolean) plugins[i + 1];
 
-            JkubeProject jkubeProject = new JkubeProject.Builder()
+            JKubeProject jkubeProject = new JKubeProject.Builder()
                     .buildDirectory(folder.getRoot().getPath())
-                    .plugins(Collections.singletonList(new JkubeProjectPlugin.Builder().groupId(groupId).artifactId(artifactId).version("testversion").configuration(Collections.emptyMap()).build()))
+                    .plugins(Collections.singletonList(new JKubeProjectPlugin.Builder().groupId(groupId).artifactId(artifactId).version("testversion").configuration(Collections.emptyMap()).build()))
                     .build();
             AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
 

@@ -13,11 +13,11 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import java.util.Map;
 
@@ -34,13 +34,13 @@ public class VertxPortsExtractor extends AbstractPortsExtractor {
     }
 
     @Override
-    public String getConfigPathFromProject(JkubeProject project) {
-        JkubeProjectPlugin plugin = JkubeProjectUtil.getPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
+    public String getConfigPathFromProject(JKubeProject project) {
+        JKubeProjectPlugin plugin = JKubeProjectUtil.getPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
 
         if (plugin != null) {
             Map<String, Object> pluginConfiguration = plugin.getConfiguration();
             /*
-             * During deserialization into JkubeProjectPlugin null configuration gets converted to null string hence
+             * During deserialization into JKubeProjectPlugin null configuration gets converted to null string hence
              * this check.
              */
             if (pluginConfiguration == null) {

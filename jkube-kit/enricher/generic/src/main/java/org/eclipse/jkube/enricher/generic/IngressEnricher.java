@@ -24,11 +24,11 @@ import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.extensions.IngressBackendBuilder;
 import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
 import io.fabric8.kubernetes.api.model.extensions.IngressSpecBuilder;
-import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class IngressEnricher extends BaseEnricher {
 
-    public IngressEnricher(JkubeEnricherContext buildContext) {
+    public IngressEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-ingress");
     }
 
@@ -133,7 +133,7 @@ public class IngressEnricher extends BaseEnricher {
         if (metadata != null) {
             Map<String, String> labels = metadata.getLabels();
             if (labels != null) {
-                if ("true".equals(labels.get("expose")) || "true".equals(labels.get(JkubeAnnotations.SERVICE_EXPOSE_URL.value()))) {
+                if ("true".equals(labels.get("expose")) || "true".equals(labels.get(JKubeAnnotations.SERVICE_EXPOSE_URL.value()))) {
                     return true;
                 }
             }

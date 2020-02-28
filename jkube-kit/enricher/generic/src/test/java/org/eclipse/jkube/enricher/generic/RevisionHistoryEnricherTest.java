@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
@@ -37,7 +37,7 @@ import static org.junit.Assert.assertThat;
 public class RevisionHistoryEnricherTest {
 
     @Mocked
-    private JkubeEnricherContext context;
+    private JKubeEnricherContext context;
 
     @Test
     public void testDefaultRevisionHistoryLimit() throws JsonProcessingException {

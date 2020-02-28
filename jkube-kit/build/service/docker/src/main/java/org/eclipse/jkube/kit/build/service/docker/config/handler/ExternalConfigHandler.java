@@ -16,7 +16,7 @@ package org.eclipse.jkube.kit.build.service.docker.config.handler;
 import java.util.List;
 
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 
 /**
  * Interface which needs to be implemented to create
@@ -44,6 +44,6 @@ public interface ExternalConfigHandler {
      * @return list of image configuration. Must not be null but can be empty.
      * @throws ExternalConfigHandlerException if there is a problem resolving the image configuration
      */
-    List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JkubeProject project)
+    List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JKubeProject project)
         throws ExternalConfigHandlerException;
 }

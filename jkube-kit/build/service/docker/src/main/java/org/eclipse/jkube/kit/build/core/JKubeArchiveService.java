@@ -18,27 +18,27 @@ import java.io.IOException;
 
 import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 /**
  * @author roland
  * @since 30/11/15
  */
-public class JkubeArchiveService {
+public class JKubeArchiveService {
 
     private DockerAssemblyManager dockerAssemblyManager;
 
-    public JkubeArchiveService(DockerAssemblyManager dockerAssemblyManager) {
+    public JKubeArchiveService(DockerAssemblyManager dockerAssemblyManager) {
         this.dockerAssemblyManager = dockerAssemblyManager;
     }
 
-    public File createArchive(String imageName, JkubeBuildConfiguration buildConfig, JkubeBuildContext ctx, KitLogger log)
+    public File createArchive(String imageName, JKubeBuildConfiguration buildConfig, JKubeBuildContext ctx, KitLogger log)
         throws IOException {
         return createArchive(imageName, buildConfig, ctx, log, null);
     }
 
-    File createArchive(String imageName, JkubeBuildConfiguration buildConfig, JkubeBuildContext ctx, KitLogger log, ArchiverCustomizer customizer)
+    File createArchive(String imageName, JKubeBuildConfiguration buildConfig, JKubeBuildContext ctx, KitLogger log, ArchiverCustomizer customizer)
         throws IOException {
         return dockerAssemblyManager.createDockerTarArchive(imageName, ctx, buildConfig, log, customizer);
     }

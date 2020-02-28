@@ -22,7 +22,7 @@ import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.service.JkubeServiceHub;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -65,14 +65,14 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
                 log.warn("No image build configuration found or detected");
             }
 
-            // Build the Jkube service hub
-            jkubeServiceHub = new JkubeServiceHub.Builder()
+            // Build the JKube service hub
+            jkubeServiceHub = new JKubeServiceHub.Builder()
                     .log(log)
                     .clusterAccess(clusterAccess)
                     .platformMode(mode)
                     .dockerServiceHub(hub)
                     .buildServiceConfig(getBuildServiceConfig())
-                    .jkubeProject(MavenUtil.convertMavenProjectToJkubeProject(project, session))
+                    .jkubeProject(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                     .build();
 
             executeBuildGoal(hub);
@@ -94,7 +94,7 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
 
             DockerAccess access = null;
             try {
-                ConfigHelper.validateExternalPropertyActivation(MavenUtil.convertMavenProjectToJkubeProject(project, session), images);
+                ConfigHelper.validateExternalPropertyActivation(MavenUtil.convertMavenProjectToJKubeProject(project, session), images);
 
                 // The 'real' images configuration to use (configured images + externally resolved images)
                 this.minimalApiVersion = initImageConfiguration(getBuildTimestamp());

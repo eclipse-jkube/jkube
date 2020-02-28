@@ -27,7 +27,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigFluent;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -42,7 +42,7 @@ public class DeploymentConfigEnricher extends BaseEnricher {
     private Boolean enableAutomaticTrigger;
     private Long openshiftDeployTimeoutSeconds;
 
-    public DeploymentConfigEnricher(JkubeEnricherContext context) {
+    public DeploymentConfigEnricher(JKubeEnricherContext context) {
         super(context, ENRICHER_NAME);
         this.enableAutomaticTrigger = getValueFromConfig(OPENSHIFT_ENABLE_AUTOMATIC_TRIGGER, true);;
         this.openshiftDeployTimeoutSeconds =  getOpenshiftDeployTimeoutInSeconds(3600L);

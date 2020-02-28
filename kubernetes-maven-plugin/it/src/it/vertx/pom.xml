@@ -24,7 +24,7 @@
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Jkube Maven :: Sample :: Vertx Web</name>
+  <name>JKube Maven :: Sample :: Vertx Web</name>
   <description>Minimal Example with Vertx Web</description>
 
   <properties>

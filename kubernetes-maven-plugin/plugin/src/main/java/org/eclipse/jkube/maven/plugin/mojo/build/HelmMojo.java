@@ -58,7 +58,7 @@ import static java.lang.System.getProperty;
  * Generates a Helm chart for the kubernetes resources
  */
 @Mojo(name = "helm", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
-public class HelmMojo extends AbstractJkubeMojo {
+public class HelmMojo extends AbstractJKubeMojo {
     protected static final String FAILED_TO_LOAD_KUBERNETES_YAML = "Failed to load kubernetes YAML ";
     protected static final String YAML_EXTENSION = ".yaml";
 

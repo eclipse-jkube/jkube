@@ -13,16 +13,16 @@
  */
 package org.eclipse.jkube.kit.build.core.assembly;
 
-import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
+import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
-import org.eclipse.jkube.kit.common.JkubeAssemblyFileSet;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectAssembly;
+import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.ArchiveCompression;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.AssemblyMode;
@@ -83,7 +83,7 @@ public class DockerAssemblyManager {
      * @throws IOException IO exception
      */
     public File createDockerTarArchive(
-            String imageName, JkubeBuildContext params, JkubeBuildConfiguration buildConfig, KitLogger log)
+            String imageName, JKubeBuildContext params, JKubeBuildConfiguration buildConfig, KitLogger log)
             throws IOException {
 
         return createDockerTarArchive(imageName, params, buildConfig, log, null);
@@ -102,14 +102,14 @@ public class DockerAssemblyManager {
      * @throws IOException IO exception
      */
     public File createDockerTarArchive(
-            String imageName, final JkubeBuildContext params, final JkubeBuildConfiguration buildConfig, KitLogger log,
+            String imageName, final JKubeBuildContext params, final JKubeBuildConfiguration buildConfig, KitLogger log,
             ArchiverCustomizer finalCustomizer) throws IOException {
 
         final BuildDirs buildDirs = createBuildDirs(imageName, params);
 
         Map<File, String> fileToPermissionsMap = copyFilesToFinalTarballDirectory(params.getProject(), buildDirs, buildConfig.getAssemblyConfiguration());
-        final JkubeAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration() != null ?
-                buildConfig.getAssemblyConfiguration() : new JkubeAssemblyConfiguration.Builder().targetDir("/maven").user("root").build();
+        final JKubeAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration() != null ?
+                buildConfig.getAssemblyConfiguration() : new JKubeAssemblyConfiguration.Builder().targetDir("/maven").user("root").build();
 
         final List<ArchiverCustomizer> archiveCustomizers = new ArrayList<>();
 
@@ -131,7 +131,7 @@ public class DockerAssemblyManager {
                 // User dedicated Dockerfile from extra directory
                 archiveCustomizers.add(new ArchiverCustomizer() {
                     @Override
-                    public JkubeTarArchiver customize(JkubeTarArchiver archiver) {
+                    public JKubeTarArchiver customize(JKubeTarArchiver archiver) {
                         // If the content is added as archive, then we need to add the Dockerfile from the builddir
                         // directly to docker.tar (as the output builddir is not picked up in archive mode)
                         if (isArchive(assemblyConfig)) {
@@ -158,7 +158,7 @@ public class DockerAssemblyManager {
                 archiveCustomizers.add(finalCustomizer);
             }
             archiveCustomizers.add((archiver) -> {
-                File finalArtifactFile = JkubeProjectUtil.getFinalOutputArtifact(params.getProject());
+                File finalArtifactFile = JKubeProjectUtil.getFinalOutputArtifact(params.getProject());
                 if (finalArtifactFile != null) {
                     archiver.includeFile(finalArtifactFile, (assemblyConfig != null ? assemblyConfig.getName() : "maven") + File.separator + finalArtifactFile.getName());
                 }
@@ -229,15 +229,15 @@ public class DockerAssemblyManager {
      * @param log kit logger
      * @return assembly files
      */
-    public AssemblyFiles getAssemblyFiles(String name, JkubeBuildConfiguration buildConfig, JkubeBuildContext mojoParams, KitLogger log) {
+    public AssemblyFiles getAssemblyFiles(String name, JKubeBuildConfiguration buildConfig, JKubeBuildContext mojoParams, KitLogger log) {
 
         BuildDirs buildDirs = createBuildDirs(name, mojoParams);
 
-        JkubeAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        JKubeAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
         String assemblyName = assemblyConfig.getName();
 
         AssemblyFiles assemblyFiles = new AssemblyFiles(buildDirs.getOutputDirectory());
-        File finalOutputArtifact = JkubeProjectUtil.getFinalOutputArtifact(mojoParams.getProject());
+        File finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(mojoParams.getProject());
         if (finalOutputArtifact != null) {
             assemblyFiles.addEntry(finalOutputArtifact, new File(buildDirs.getOutputDirectory().getAbsolutePath() + File.separator + assemblyName, finalOutputArtifact.getName()));
         }
@@ -245,27 +245,27 @@ public class DockerAssemblyManager {
         return assemblyFiles;
     }
 
-    private BuildDirs createBuildDirs(String imageName, JkubeBuildContext params) {
+    private BuildDirs createBuildDirs(String imageName, JKubeBuildContext params) {
         BuildDirs buildDirs = new BuildDirs(imageName, params);
         buildDirs.createDirs();
         return buildDirs;
     }
 
-    private boolean hasAssemblyConfiguration(JkubeAssemblyConfiguration assemblyConfig) {
+    private boolean hasAssemblyConfiguration(JKubeAssemblyConfiguration assemblyConfig) {
         return assemblyConfig != null &&
                 (assemblyConfig.getInline() != null ||
                  assemblyConfig.getDescriptor() != null ||
                  assemblyConfig.getDescriptorRef() != null);
     }
 
-    private boolean isArchive(JkubeAssemblyConfiguration assemblyConfig) {
+    private boolean isArchive(JKubeAssemblyConfiguration assemblyConfig) {
         return hasAssemblyConfiguration(assemblyConfig) &&
                assemblyConfig.getMode() != null &&
                assemblyConfig.getMode().isArchive();
     }
 
     public File createChangedFilesArchive(List<AssemblyFiles.Entry> entries, File assemblyDirectory,
-                                          String imageName, JkubeBuildContext mojoParameters)
+                                          String imageName, JKubeBuildContext mojoParameters)
             throws IOException {
         BuildDirs dirs = createBuildDirs(imageName, mojoParameters);
         try {
@@ -275,7 +275,7 @@ public class DockerAssemblyManager {
                 File dest = prepareChangedFilesArchivePath(archiveDir,entry.getDestFile(),assemblyDirectory);
                 Files.copy(Paths.get(entry.getSrcFile().getAbsolutePath()), Paths.get(dest.getAbsolutePath()));
             }
-            return new JkubeTarArchiver().createTarBallOfDirectory(archive, archiveDir, ArchiveCompression.none);
+            return new JKubeTarArchiver().createTarBallOfDirectory(archive, archiveDir, ArchiveCompression.none);
         } catch (IOException exp) {
             throw new IOException("Error while creating " + dirs.getTemporaryRootDirectory() +
                                              "/changed-files.tar: " + exp);
@@ -289,11 +289,11 @@ public class DockerAssemblyManager {
     }
 
     // Create final tar-ball to be used for building the archive to send to the Docker daemon
-    private File createBuildTarBall(JkubeBuildContext params, BuildDirs buildDirs, List<ArchiverCustomizer> archiverCustomizers,
-                                    JkubeAssemblyConfiguration assemblyConfig, ArchiveCompression compression) throws IOException {
+    private File createBuildTarBall(JKubeBuildContext params, BuildDirs buildDirs, List<ArchiverCustomizer> archiverCustomizers,
+                                    JKubeAssemblyConfiguration assemblyConfig, ArchiveCompression compression) throws IOException {
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
 
-        JkubeTarArchiver jkubeTarArchiver = new JkubeTarArchiver();
+        JKubeTarArchiver jkubeTarArchiver = new JKubeTarArchiver();
         for (ArchiverCustomizer customizer : archiverCustomizers) {
             if (customizer != null) {
                 jkubeTarArchiver = customizer.customize(jkubeTarArchiver);
@@ -363,10 +363,10 @@ public class DockerAssemblyManager {
         return builder;
     }
 
-    private void createAssemblyArchive(JkubeAssemblyConfiguration assemblyConfig, JkubeBuildContext params, BuildDirs buildDirs, ArchiveCompression compression)
+    private void createAssemblyArchive(JKubeAssemblyConfiguration assemblyConfig, JKubeBuildContext params, BuildDirs buildDirs, ArchiveCompression compression)
             throws IOException {
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
-        JkubeTarArchiver jkubeTarArchiver = new JkubeTarArchiver();
+        JKubeTarArchiver jkubeTarArchiver = new JKubeTarArchiver();
 
         Map<File, String> fileToPermissionsMap = copyFilesToFinalTarballDirectory(params.getProject(), buildDirs, assemblyConfig);
         AssemblyMode buildMode = assemblyConfig.getMode();
@@ -398,7 +398,7 @@ public class DockerAssemblyManager {
     // object which is then not available for the BuildMojo (there the file is still null leading to the
     // the "Cannot include project artifact: ... The following patterns were never triggered in this artifact inclusion filter: <artifact>"
     // warning with an error following.
-    private File ensureThatArtifactFileIsSet(JkubeProject project) throws IOException {
+    private File ensureThatArtifactFileIsSet(JKubeProject project) throws IOException {
         File artifact = project.getArtifact();
         if (artifact == null) {
             return null;
@@ -420,26 +420,26 @@ public class DockerAssemblyManager {
         return null;
     }
 
-    private void setArtifactFile(JkubeProject project, File artifactFile) throws IOException {
+    private void setArtifactFile(JKubeProject project, File artifactFile) throws IOException {
         File artifact = project.getArtifact();
         if (artifact != null && artifactFile != null) {
             Files.copy(Paths.get(artifactFile.getAbsolutePath()), Paths.get(artifact.getAbsolutePath()), StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
-    private Map<File, String> copyFilesToFinalTarballDirectory(JkubeProject project, BuildDirs buildDirs, JkubeAssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
+    private Map<File, String> copyFilesToFinalTarballDirectory(JKubeProject project, BuildDirs buildDirs, JKubeAssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
         Map<File, String> filesToPermissionsMap = new HashMap<>();
         if (jkubeProjectAssemblyConfiguration != null && jkubeProjectAssemblyConfiguration.getInline() != null) {
             FileUtil.createDirectory(new File(buildDirs.getOutputDirectory(), jkubeProjectAssemblyConfiguration.getName()));
-            JkubeProjectAssembly jkubeProjectAssembly = jkubeProjectAssemblyConfiguration.getInline();
-            for (JkubeAssemblyFileSet jkubeProjectAssemblyFileSet : jkubeProjectAssembly.getFileSets()) {
-                filesToPermissionsMap.putAll(processJkubeProjectAssemblyFileSet(project, jkubeProjectAssemblyFileSet, buildDirs, jkubeProjectAssemblyConfiguration));
+            JKubeProjectAssembly jkubeProjectAssembly = jkubeProjectAssemblyConfiguration.getInline();
+            for (JKubeAssemblyFileSet jkubeProjectAssemblyFileSet : jkubeProjectAssembly.getFileSets()) {
+                filesToPermissionsMap.putAll(processJKubeProjectAssemblyFileSet(project, jkubeProjectAssemblyFileSet, buildDirs, jkubeProjectAssemblyConfiguration));
             }
         }
         return filesToPermissionsMap;
     }
 
-    private Map<File, String> processJkubeProjectAssemblyFileSet(JkubeProject project, JkubeAssemblyFileSet jkubeProjectAssemblyFileSet, BuildDirs buildDirs, JkubeAssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
+    private Map<File, String> processJKubeProjectAssemblyFileSet(JKubeProject project, JKubeAssemblyFileSet jkubeProjectAssemblyFileSet, BuildDirs buildDirs, JKubeAssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
         Map<File, String> fileToPermissionsMap = new HashMap<>();
 
         for (String relativePathInclude : jkubeProjectAssemblyFileSet.getIncludes()) {
@@ -467,11 +467,11 @@ public class DockerAssemblyManager {
         return fileToPermissionsMap;
     }
 
-    private List<String> getFilesPathsToExclude(JkubeAssemblyConfiguration jkubeAssemblyConfiguration) {
+    private List<String> getFilesPathsToExclude(JKubeAssemblyConfiguration jkubeAssemblyConfiguration) {
         List<String> filesToExclude = new ArrayList<>();
         if (jkubeAssemblyConfiguration != null && jkubeAssemblyConfiguration.getInline() != null) {
-            JkubeProjectAssembly jkubeProjectAssembly = jkubeAssemblyConfiguration.getInline();
-            for (JkubeAssemblyFileSet jkubeProjectAssemblyFileSet : jkubeProjectAssembly.getFileSets()) {
+            JKubeProjectAssembly jkubeProjectAssembly = jkubeAssemblyConfiguration.getInline();
+            for (JKubeAssemblyFileSet jkubeProjectAssemblyFileSet : jkubeProjectAssembly.getFileSets()) {
                 if (jkubeProjectAssemblyFileSet != null &&
                         jkubeProjectAssemblyFileSet.getExludes() != null &&
                         !jkubeProjectAssemblyFileSet.getExludes().isEmpty()) {

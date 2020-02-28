@@ -16,7 +16,7 @@ package org.eclipse.jkube.quarkus.enricher;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.specific.AbstractHealthCheckEnricher;
 
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
@@ -27,7 +27,7 @@ import static org.eclipse.jkube.kit.common.Configs.asInteger;
  */
 public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
-    public QuarkusHealthCheckEnricher(JkubeEnricherContext buildContext) {
+    public QuarkusHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-quarkus");
     }
 

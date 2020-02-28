@@ -18,7 +18,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JkubeProjectDependency implements Serializable {
+public class JKubeProjectDependency implements Serializable {
     private String groupId;
     private String artifactId;
     private String version;
@@ -26,7 +26,7 @@ public class JkubeProjectDependency implements Serializable {
     private String scope;
     private File file;
 
-    public JkubeProjectDependency(String groupId, String artifactId, String version, String type, String scope, File file) {
+    public JKubeProjectDependency(String groupId, String artifactId, String version, String type, String scope, File file) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;
@@ -83,20 +83,20 @@ public class JkubeProjectDependency implements Serializable {
         this.file = file;
     }
 
-    public static JkubeProjectDependency fromString(String jkubeDependencyAsString) {
+    public static JKubeProjectDependency fromString(String jkubeDependencyAsString) {
         String[] parts = jkubeDependencyAsString.split(",");
         if (parts.length == 5) { // Case without artifact file object
-            return new JkubeProjectDependency(parts[0], parts[1], parts[2], parts[3], parts[4], null);
+            return new JKubeProjectDependency(parts[0], parts[1], parts[2], parts[3], parts[4], null);
         } else if (parts.length == 6) { // Case with artifact file object
-            return new JkubeProjectDependency(parts[0], parts[1], parts[2], parts[3], parts[4], new File(parts[5]));
+            return new JKubeProjectDependency(parts[0], parts[1], parts[2], parts[3], parts[4], new File(parts[5]));
         }
         return null;
     }
 
-    public static List<JkubeProjectDependency> listFromStringDependencies(List<String> jkubeDependenciesAsStr) {
-        List<JkubeProjectDependency> dependencies = new ArrayList<>();
+    public static List<JKubeProjectDependency> listFromStringDependencies(List<String> jkubeDependenciesAsStr) {
+        List<JKubeProjectDependency> dependencies = new ArrayList<>();
         for (String commaSeparatedDependencies : jkubeDependenciesAsStr) {
-            JkubeProjectDependency jkubeProjectDependency = JkubeProjectDependency.fromString(commaSeparatedDependencies);
+            JKubeProjectDependency jkubeProjectDependency = JKubeProjectDependency.fromString(commaSeparatedDependencies);
             if (jkubeProjectDependency != null) {
                 dependencies.add(jkubeProjectDependency);
             }

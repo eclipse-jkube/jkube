@@ -21,12 +21,12 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.JkubeProjectDependency;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectDependency;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.KindAndName;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import mockit.Expectations;
@@ -48,13 +48,13 @@ import static org.junit.Assert.assertTrue;
 public class DependencyEnricherTest {
 
     @Mocked
-    private JkubeEnricherContext context;
+    private JKubeEnricherContext context;
 
     @Mocked
     private ImageConfiguration imageConfiguration;
 
     @Mocked
-    private JkubeProject project;
+    private JKubeProject project;
 
     // Some resource files related to test case placed in resources/ directory:
     private final String overrideFragementFile = "/jenkins-kubernetes-cm.yml";
@@ -107,12 +107,12 @@ public class DependencyEnricherTest {
         }};
     }
 
-    private List<JkubeProjectDependency> getDummyArtifacts() {
-        List<JkubeProjectDependency> artifacts = new ArrayList<>();
+    private List<JKubeProjectDependency> getDummyArtifacts() {
+        List<JKubeProjectDependency> artifacts = new ArrayList<>();
 
 
         File aFile = new File(getClass().getResource(artifactFilePath).getFile());
-        JkubeProjectDependency artifact = new JkubeProjectDependency("g1", "a1", "v1","jar", "compile", aFile);
+        JKubeProjectDependency artifact = new JKubeProjectDependency("g1", "a1", "v1","jar", "compile", aFile);
         artifacts.add(artifact);
         return artifacts;
     }

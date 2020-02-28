@@ -17,7 +17,7 @@ import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.config.service.BuildService;
-import org.eclipse.jkube.kit.config.service.JkubeServiceException;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 
 import java.util.Objects;
 
@@ -40,7 +40,7 @@ public class DockerBuildService implements BuildService {
     }
 
     @Override
-    public void build(ImageConfiguration imageConfig) throws JkubeServiceException {
+    public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
 
         org.eclipse.jkube.kit.build.service.docker.BuildService dockerBuildService = dockerServiceHub.getBuildService();
         org.eclipse.jkube.kit.build.service.docker.BuildService.BuildContext dockerBuildContext = config.getDockerBuildContext();
@@ -51,7 +51,7 @@ public class DockerBuildService implements BuildService {
             // Assume we always want to tag
             dockerBuildService.tagImage(imageConfig.getName(), imageConfig);
         } catch (Exception ex) {
-            throw new JkubeServiceException("Error while trying to build the image", ex);
+            throw new JKubeServiceException("Error while trying to build the image", ex);
         }
     }
 

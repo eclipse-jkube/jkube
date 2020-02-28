@@ -23,11 +23,11 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -48,25 +48,25 @@ import java.util.Map;
 public class MavenScmEnricher extends BaseEnricher {
     static final String ENRICHER_NAME = "jkube-maven-scm";
 
-    public MavenScmEnricher(JkubeEnricherContext buildContext) {
+    public MavenScmEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
     }
 
     private Map<String, String> getAnnotations() {
         Map<String, String> annotations = new HashMap<>();
 
-        if (getContext() instanceof JkubeEnricherContext) {
-            JkubeEnricherContext jkubeEnricherContext = (JkubeEnricherContext) getContext();
-            JkubeProject rootProject = jkubeEnricherContext.getProject();
+        if (getContext() instanceof JKubeEnricherContext) {
+            JKubeEnricherContext jkubeEnricherContext = (JKubeEnricherContext) getContext();
+            JKubeProject rootProject = jkubeEnricherContext.getProject();
             if (hasScm(rootProject)) {
                 String url = rootProject.getScmUrl();
                 String tag = rootProject.getScmTag();
 
                 if (StringUtils.isNotEmpty(tag)) {
-                    annotations.put(JkubeAnnotations.SCM_TAG.value(), tag);
+                    annotations.put(JKubeAnnotations.SCM_TAG.value(), tag);
                 }
                 if (StringUtils.isNotEmpty(url)) {
-                    annotations.put(JkubeAnnotations.SCM_URL.value(), url);
+                    annotations.put(JKubeAnnotations.SCM_URL.value(), url);
                 }
             }
         }
@@ -133,7 +133,7 @@ public class MavenScmEnricher extends BaseEnricher {
 
     }
 
-    private boolean hasScm(JkubeProject project) {
+    private boolean hasScm(JKubeProject project) {
         return project.getScmUrl() != null;
     }
 

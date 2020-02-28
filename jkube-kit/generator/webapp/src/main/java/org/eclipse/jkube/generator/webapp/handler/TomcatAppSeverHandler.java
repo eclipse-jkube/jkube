@@ -17,8 +17,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 /**
  * Detector for tomcat app servers.
@@ -29,7 +29,7 @@ public class TomcatAppSeverHandler extends AbstractAppServerHandler {
 
     private static final String TOMCAT_GROUPID = "org.apache.tomcat.maven";
 
-    public TomcatAppSeverHandler(JkubeProject project) {
+    public TomcatAppSeverHandler(JKubeProject project) {
         super("tomcat", project);
     }
 
@@ -37,8 +37,8 @@ public class TomcatAppSeverHandler extends AbstractAppServerHandler {
     public boolean isApplicable() {
         try {
             return hasOneOf("**/META-INF/context.xml") ||
-                    JkubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat6-maven-plugin") ||
-                    JkubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat7-maven-plugin");
+                    JKubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat6-maven-plugin") ||
+                    JKubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat7-maven-plugin");
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to scan output directory: ", exception);
         }

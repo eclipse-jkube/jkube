@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class JkubeDockerfileInterpolator {
+public class JKubeDockerfileInterpolator {
     private static Map<String, String> delimiters;
     static {
         delimiters = new HashMap<>();
@@ -25,7 +25,7 @@ public class JkubeDockerfileInterpolator {
         delimiters.put("${", "}");
     }
 
-    private JkubeDockerfileInterpolator() { }
+    private JKubeDockerfileInterpolator() { }
 
     public static String interpolate(String line, Properties properties) {
         for (String property : properties.stringPropertyNames()) {

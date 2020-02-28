@@ -28,7 +28,7 @@
     <relativePath>parent/pom.xml</relativePath>
   </parent>
 
-  <name>Jkube Kit</name>
+  <name>JKube Kit</name>
 
   <modules>
       <module>parent</module>

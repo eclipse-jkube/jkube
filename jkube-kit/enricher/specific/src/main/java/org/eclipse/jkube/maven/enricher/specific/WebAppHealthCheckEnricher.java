@@ -16,12 +16,12 @@ package org.eclipse.jkube.maven.enricher.specific;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.maven.enricher.api.JkubeEnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 public class WebAppHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
-    public WebAppHealthCheckEnricher(JkubeEnricherContext buildContext) {
+    public WebAppHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-webapp");
     }
 

@@ -20,8 +20,8 @@ import java.util.Map;
 
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JkubeProject;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 
 /**
@@ -50,8 +50,8 @@ public class VertxGenerator extends JavaExecGenerator {
   @Override
   public boolean isApplicable(List<ImageConfiguration> configs) {
     return shouldAddImageConfiguration(configs)
-        && (JkubeProjectUtil.hasPlugin(getProject(), Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT)
-        || JkubeProjectUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, null));
+        && (JKubeProjectUtil.hasPlugin(getProject(), Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT)
+        || JKubeProjectUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, null));
   }
 
   @Override
@@ -63,13 +63,13 @@ public class VertxGenerator extends JavaExecGenerator {
       opts.add("-Dvertx.disableDnsResolver=true");
     }
 
-    if (JkubeProjectUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, Constants.VERTX_DROPWIZARD)) {
+    if (JKubeProjectUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, Constants.VERTX_DROPWIZARD)) {
       opts.add("-Dvertx.metrics.options.enabled=true");
       opts.add("-Dvertx.metrics.options.jmxEnabled=true");
       opts.add("-Dvertx.metrics.options.jmxDomain=vertx");
     }
 
-    if (! contains("-Djava.net.preferIPv4Stack", opts)  && JkubeProjectUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, Constants.VERTX_INFINIPAN)) {
+    if (! contains("-Djava.net.preferIPv4Stack", opts)  && JKubeProjectUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, Constants.VERTX_INFINIPAN)) {
       opts.add("-Djava.net.preferIPv4Stack=true");
     }
 
@@ -86,7 +86,7 @@ public class VertxGenerator extends JavaExecGenerator {
         args = "";
       }
 
-      if (JkubeProjectUtil.hasResource(getProject(), Constants.CLUSTER_MANAGER_SPI)) {
+      if (JKubeProjectUtil.hasResource(getProject(), Constants.CLUSTER_MANAGER_SPI)) {
         if (!args.isEmpty()) {
           args += " ";
         }
@@ -112,9 +112,9 @@ public class VertxGenerator extends JavaExecGenerator {
   }
 
   private boolean isUsingFatJarPlugin() {
-    JkubeProject project = getProject();
-    return JkubeProjectUtil.hasPlugin(project, Constants.SHADE_PLUGIN_GROUP, Constants.SHADE_PLUGIN_ARTIFACT) ||
-           JkubeProjectUtil.hasPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
+    JKubeProject project = getProject();
+    return JKubeProjectUtil.hasPlugin(project, Constants.SHADE_PLUGIN_GROUP, Constants.SHADE_PLUGIN_ARTIFACT) ||
+           JKubeProjectUtil.hasPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
   }
 
   @Override

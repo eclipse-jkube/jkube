@@ -20,10 +20,10 @@ import org.apache.commons.lang3.SerializationUtils;
  * @author roland
  * @since 19.10.18
  */
-public class MavenImageConfiguration extends ImageConfiguration<JkubeBuildConfiguration> {
+public class MavenImageConfiguration extends ImageConfiguration<JKubeBuildConfiguration> {
 
     public static class Builder
-            extends ImageConfiguration.TypedBuilder<JkubeBuildConfiguration, MavenImageConfiguration> {
+            extends ImageConfiguration.TypedBuilder<JKubeBuildConfiguration, MavenImageConfiguration> {
 
         public Builder() {
             this(null);

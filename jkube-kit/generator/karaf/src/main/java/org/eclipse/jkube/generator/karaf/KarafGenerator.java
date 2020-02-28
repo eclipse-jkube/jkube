@@ -16,11 +16,11 @@ package org.eclipse.jkube.generator.karaf;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jkube.kit.build.core.config.JkubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.JkubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -48,7 +48,7 @@ public class KarafGenerator extends BaseGenerator {
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
         final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
-        final JkubeBuildConfiguration.Builder buildBuilder = new JkubeBuildConfiguration.Builder();
+        final JKubeBuildConfiguration.Builder buildBuilder = new JKubeBuildConfiguration.Builder();
 
         buildBuilder.ports(extractPorts()).cmd(new Arguments(getConfig(Config.cmd)));
 
@@ -69,7 +69,7 @@ public class KarafGenerator extends BaseGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddImageConfiguration(configs) &&
-                JkubeProjectUtil.hasPluginOfAnyArtifactId(getProject(), KARAF_MAVEN_PLUGIN_ARTIFACT_ID);
+                JKubeProjectUtil.hasPluginOfAnyArtifactId(getProject(), KARAF_MAVEN_PLUGIN_ARTIFACT_ID);
     }
 
     protected List<String> extractPorts() {
@@ -85,8 +85,8 @@ public class KarafGenerator extends BaseGenerator {
         }
     }
 
-    private JkubeAssemblyConfiguration createAssembly() {
-        return new JkubeAssemblyConfiguration.Builder()
+    private JKubeAssemblyConfiguration createAssembly() {
+        return new JKubeAssemblyConfiguration.Builder()
             .targetDir(getConfig(Config.baseDir))
             .user(getConfig(Config.user))
             .descriptorRef("karaf")

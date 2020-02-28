@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.config.service;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
+import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
@@ -34,7 +34,7 @@ public interface BuildService {
      *
      * @param imageConfig the image to build
      */
-    void build(ImageConfiguration imageConfig) throws JkubeServiceException;
+    void build(ImageConfiguration imageConfig) throws JKubeServiceException;
 
     /**
      * Post processing step called after all images has been build
@@ -49,7 +49,7 @@ public interface BuildService {
 
         private org.eclipse.jkube.kit.build.service.docker.BuildService.BuildContext dockerBuildContext;
 
-        private JkubeBuildContext dockerMojoParameters;
+        private JKubeBuildContext dockerMojoParameters;
 
         private BuildRecreateMode buildRecreateMode;
 
@@ -78,7 +78,7 @@ public interface BuildService {
             return dockerBuildContext;
         }
 
-        public JkubeBuildContext getDockerMavenContext() {
+        public JKubeBuildContext getDockerMavenContext() {
             return dockerMojoParameters;
         }
 
@@ -142,7 +142,7 @@ public interface BuildService {
                 return this;
             }
 
-            public Builder dockerMavenBuildContext(JkubeBuildContext dockerMojoParameters) {
+            public Builder dockerMavenBuildContext(JKubeBuildContext dockerMojoParameters) {
                 config.dockerMojoParameters = dockerMojoParameters;
                 return this;
             }

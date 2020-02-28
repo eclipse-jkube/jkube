@@ -29,20 +29,20 @@ import io.fabric8.openshift.api.model.NamedTagEventListBuilder;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
-import org.eclipse.jkube.kit.build.core.assembly.JkubeTarArchiver;
-import org.eclipse.jkube.kit.build.core.JkubeBuildContext;
+import org.eclipse.jkube.kit.build.core.assembly.JKubeTarArchiver;
+import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
 import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.RegistryService;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.service.BuildService;
-import org.eclipse.jkube.kit.config.service.JkubeServiceException;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
@@ -84,16 +84,16 @@ public class OpenshiftBuildServiceTest {
     private ArchiveService archiveService;
 
     @Mocked
-    private JkubeTarArchiver tarArchiver;
+    private JKubeTarArchiver tarArchiver;
 
     @Mocked
     private KitLogger logger;
 
     @Mocked
-    private JkubeBuildContext dockerMojoParameters;
+    private JKubeBuildContext dockerMojoParameters;
 
     @Mocked
-    private JkubeProject project;
+    private JKubeProject project;
 
     private ImageConfiguration image;
 
@@ -113,7 +113,7 @@ public class OpenshiftBuildServiceTest {
             dockerServiceHub.getArchiveService();
             result = archiveService;
 
-            archiveService.createDockerBuildArchive(withAny(ImageConfiguration.class.cast(null)), withAny(JkubeBuildContext.class.cast(null)));
+            archiveService.createDockerBuildArchive(withAny(ImageConfiguration.class.cast(null)), withAny(JKubeBuildContext.class.cast(null)));
             result = dockerFile;
             minTimes = 0;
 
@@ -128,7 +128,7 @@ public class OpenshiftBuildServiceTest {
 
         image = new ImageConfiguration.Builder()
                 .name(projectName)
-                .buildConfig(new JkubeBuildConfiguration.Builder()
+                .buildConfig(new JKubeBuildConfiguration.Builder()
                         .from(projectName)
                         .build()
                 ).build();
@@ -289,7 +289,7 @@ public class OpenshiftBuildServiceTest {
                     "namespace", "my-project");
             ImageConfiguration fromExtImage = new ImageConfiguration.Builder()
                     .name(projectName)
-                    .buildConfig(new JkubeBuildConfiguration.Builder()
+                    .buildConfig(new JKubeBuildConfiguration.Builder()
                             .fromExt(fromExt)
                             .nocache(Boolean.TRUE)
                             .build()
@@ -325,7 +325,7 @@ public class OpenshiftBuildServiceTest {
         });
     }
 
-    @Test(expected = JkubeServiceException.class)
+    @Test(expected = JKubeServiceException.class)
     public void testFailedBuild() throws Exception {
         BuildService.BuildServiceConfig config = defaultConfig.build();
         WebServerEventCollector<OpenShiftMockServer> collector = createMockServer(config, false, 50, false, false);
@@ -336,7 +336,7 @@ public class OpenshiftBuildServiceTest {
         service.build(image);
     }
 
-    @Test(expected = JkubeServiceException.class)
+    @Test(expected = JKubeServiceException.class)
     public void testFailedBuildSecret() throws Exception {
         BuildService.BuildServiceConfig config = defaultConfigSecret.build();
         WebServerEventCollector<OpenShiftMockServer> collector = createMockServer(config, false, 50, false, false);
@@ -375,7 +375,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, dockerServiceHub, config);
 
             ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new JkubeBuildConfiguration.Builder(image.getBuildConfiguration())
+                    .buildConfig(new JKubeBuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -384,7 +384,7 @@ public class OpenshiftBuildServiceTest {
 
             final List<ArchiverCustomizer> customizer = new LinkedList<>();
             new Verifications() {{
-                archiveService.createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(JkubeBuildContext.class), withCapture(customizer));
+                archiveService.createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(JKubeBuildContext.class), withCapture(customizer));
 
                 assertTrue(customizer.size() == 1);
             }};
@@ -419,7 +419,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, dockerServiceHub, config);
 
             ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new JkubeBuildConfiguration.Builder(image.getBuildConfiguration())
+                    .buildConfig(new JKubeBuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -428,7 +428,7 @@ public class OpenshiftBuildServiceTest {
 
             final List<ArchiverCustomizer> customizer = new LinkedList<>();
             new Verifications() {{
-                archiveService.createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(JkubeBuildContext.class), withCapture(customizer));
+                archiveService.createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(JKubeBuildContext.class), withCapture(customizer));
 
                 assertTrue(customizer.size() == 1);
             }};
@@ -454,7 +454,7 @@ public class OpenshiftBuildServiceTest {
 
     @FunctionalInterface
     private interface MockServerRetryable {
-        void run() throws JkubeServiceException, IOException;
+        void run() throws JKubeServiceException, IOException;
     }
 
     private void retryInMockServer(MockServerRetryable retryable) throws Exception {
@@ -466,7 +466,7 @@ public class OpenshiftBuildServiceTest {
                 nTries++;
                 retryable.run();
                 bTestComplete = true;
-            } catch (JkubeServiceException exception) {
+            } catch (JKubeServiceException exception) {
                 rootCause = getRootCause(exception);
                 logger.warn("A problem encountered while running test {}, retrying..", exception.getMessage());
             }

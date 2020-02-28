@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.compose;
 
-import org.eclipse.jkube.kit.build.core.config.JkubeBuildConfiguration;
+import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandlerException;
 import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
-import org.eclipse.jkube.kit.common.JkubeProject;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -49,7 +49,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JkubeProject project) {
+    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JKubeProject project) {
         List<ImageConfiguration> resolved = new ArrayList<>();
 
         DockerComposeConfiguration handlerConfig = new DockerComposeConfiguration(unresolvedConfig.getExternalConfig());
@@ -132,11 +132,11 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         }
     }
 
-    private JkubeBuildConfiguration createBuildImageConfiguration(DockerComposeServiceWrapper mapper,
+    private JKubeBuildConfiguration createBuildImageConfiguration(DockerComposeServiceWrapper mapper,
                                                                   File composeParent,
                                                                   ImageConfiguration imageConfig,
                                                                   DockerComposeConfiguration handlerConfig) {
-        final JkubeBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+        final JKubeBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
         if (handlerConfig.isIgnoreBuild() || !mapper.requiresBuild()) {
             if (serviceMatchesAlias(mapper, imageConfig)) {
                 // Only when the specified image name maps to the current docker-compose service
@@ -147,7 +147,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         }
 
         // Build from the specification as given in the docker-compose file
-        return new JkubeBuildConfiguration.Builder(buildConfig)
+        return new JKubeBuildConfiguration.Builder(buildConfig)
                 .dockerFile(extractDockerFilePath(mapper, composeParent))
                 .args(mapper.getBuildArgs())
                 .build();

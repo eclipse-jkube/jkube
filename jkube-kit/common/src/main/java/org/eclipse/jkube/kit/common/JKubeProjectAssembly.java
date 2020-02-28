@@ -18,18 +18,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JkubeProjectAssembly implements Serializable {
+public class JKubeProjectAssembly implements Serializable {
     private String id;
-    private List<JkubeAssemblyFile> files;
-    private List<JkubeAssemblyFileSet> fileSets;
+    private List<JKubeAssemblyFile> files;
+    private List<JKubeAssemblyFileSet> fileSets;
     private File baseDirectory;
     private String fileMode;
 
-    public List<JkubeAssemblyFile> getFiles() {
+    public List<JKubeAssemblyFile> getFiles() {
         return files;
     }
 
-    public List<JkubeAssemblyFileSet> getFileSets() {
+    public List<JKubeAssemblyFileSet> getFileSets() {
         return fileSets;
     }
 
@@ -57,22 +57,22 @@ public class JkubeProjectAssembly implements Serializable {
         this.id = id;
     }
 
-    public void setFiles(List<JkubeAssemblyFile> files) {
+    public void setFiles(List<JKubeAssemblyFile> files) {
         this.files = files;
     }
 
-    public void setFileSets(List<JkubeAssemblyFileSet> fileSets) {
+    public void setFileSets(List<JKubeAssemblyFileSet> fileSets) {
         this.fileSets = fileSets;
     }
 
     public static class Builder {
-        private JkubeProjectAssembly jkubeProjectAssembly;
+        private JKubeProjectAssembly jkubeProjectAssembly;
 
         public Builder() {
-            this.jkubeProjectAssembly = new JkubeProjectAssembly();
+            this.jkubeProjectAssembly = new JKubeProjectAssembly();
         }
 
-        public Builder(JkubeProjectAssembly jkubeProjectAssembly) {
+        public Builder(JKubeProjectAssembly jkubeProjectAssembly) {
             if (jkubeProjectAssembly != null) {
                 this.jkubeProjectAssembly = jkubeProjectAssembly;
             }
@@ -93,17 +93,17 @@ public class JkubeProjectAssembly implements Serializable {
             return this;
         }
 
-        public Builder files(List<JkubeAssemblyFile> file) {
+        public Builder files(List<JKubeAssemblyFile> file) {
             this.jkubeProjectAssembly.files = file;
             return this;
         }
 
-        public Builder fileSets(List<JkubeAssemblyFileSet> fileSets) {
+        public Builder fileSets(List<JKubeAssemblyFileSet> fileSets) {
             this.jkubeProjectAssembly.fileSets = fileSets;
             return this;
         }
 
-        public Builder fileSet(JkubeAssemblyFileSet fileSet) {
+        public Builder fileSet(JKubeAssemblyFileSet fileSet) {
             if (this.jkubeProjectAssembly.fileSets == null) {
                 this.jkubeProjectAssembly.fileSets = new ArrayList<>();
             }
@@ -111,7 +111,7 @@ public class JkubeProjectAssembly implements Serializable {
             return this;
         }
 
-        public JkubeProjectAssembly build() {
+        public JKubeProjectAssembly build() {
             return this.jkubeProjectAssembly;
         }
 

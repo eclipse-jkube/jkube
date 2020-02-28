@@ -50,7 +50,7 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
@@ -81,7 +81,7 @@ import java.util.Set;
  * Base class for goals which deploy the generated artifacts into the Openshift cluster
  */
 @Mojo(name = "apply", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.INSTALL)
-public class ApplyMojo extends AbstractJkubeMojo {
+public class ApplyMojo extends AbstractJKubeMojo {
 
     public static final String DEFAULT_KUBERNETES_MANIFEST = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml";
     public static final String DEFAULT_OPENSHIFT_MANIFEST = "${basedir}/target/classes/META-INF/jkube/openshift.yml";
@@ -532,7 +532,7 @@ public class ApplyMojo extends AbstractJkubeMojo {
     }
 
     protected String getExternalServiceURL(Service service) {
-        return KubernetesHelper.getOrCreateAnnotations(service).get(JkubeAnnotations.SERVICE_EXPOSE_URL.value());
+        return KubernetesHelper.getOrCreateAnnotations(service).get(JKubeAnnotations.SERVICE_EXPOSE_URL.value());
     }
 
     protected boolean isExposeService(Service service) {
