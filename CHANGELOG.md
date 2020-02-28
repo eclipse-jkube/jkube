@@ -1,6 +1,6 @@
 # Changes
 
-This document main purpose is to list changes which might affect backwards compatibility. It will not list all releases as Eclipse Jkube is build in a continous delivery fashion.
+This document main purpose is to list changes which might affect backwards compatibility. It will not list all releases as Eclipse JKube is build in a continous delivery fashion.
 
 We use semantic versioning in some slight variation until our feature set has stabilized and the missing pieces has been filled in:
 

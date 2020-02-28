@@ -1,6 +1,6 @@
-## jkube-kit
+## JKube-Kit
 
-This project contains various building blocks for the jkube developer toolbox.
+This project contains various building blocks for the JKube developer toolbox.
 
 Actually it contains the following abstractions which has been extracted from both projects:
 

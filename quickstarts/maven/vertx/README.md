@@ -1,5 +1,5 @@
-# Vertx sample for Eclipse Jkube maven plugins
-This is a sample project to use Eclipse Jkube plugins.
+# Vertx sample for Eclipse JKube maven plugins
+This is a sample project to use Eclipse JKube plugins.
 
 ### Steps to use
 

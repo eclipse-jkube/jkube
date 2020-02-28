@@ -1,4 +1,4 @@
-## A WebSphere Liberty Java EE 8 based application prepared for development using Eclipse Jkube Kubernetes Maven Plugin
+## A WebSphere Liberty Java EE 8 based application prepared for development using Eclipse JKube Kubernetes Maven Plugin
 
 **WebSphere Liberty** is a fast, dynamic, and easy-to-use Java application server, built on the open source 
 [Open Liberty][openliberty] project. Ideal for developers but also ready for production, on-premise or in the cloud.

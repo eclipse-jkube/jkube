@@ -23,7 +23,7 @@
   <version>0.1.1-SNAPSHOT</version>
   <packaging>war</packaging>
 
-  <name>Eclipse Jkube Maven :: Sample :: Thorntail</name>
+  <name>Eclipse JKube Maven :: Sample :: Thorntail</name>
 
   <properties>
     <version.thorntail>2.1.0.Final</version.thorntail>

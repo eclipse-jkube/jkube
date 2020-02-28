@@ -30,7 +30,7 @@
         <version>1.4.1.RELEASE</version>
     </parent>
 
-    <name>Eclipse Jkube Maven :: Sample :: Spring Boot Web</name>
+    <name>Eclipse JKube Maven :: Sample :: Spring Boot Web</name>
     <description>Minimal Example with Spring Boot</description>
 
     <distributionManagement>

@@ -26,7 +26,7 @@
 
   <artifactId>jkube-kit-common-maven</artifactId>
 
-  <name>Jkube Kit :: Common Maven</name>
+  <name>JKube Kit :: Common Maven</name>
 
   <dependencies>
     <dependency>

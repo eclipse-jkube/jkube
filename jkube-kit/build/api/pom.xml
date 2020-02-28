@@ -27,7 +27,7 @@
   <artifactId>jkube-kit-build-api</artifactId>
   <version>0.2-SNAPSHOT</version>
 
-  <name>Jkube Kit :: Build :: API</name>
+  <name>JKube Kit :: Build :: API</name>
 
   <dependencies>
 

@@ -26,7 +26,7 @@
 
   <artifactId>jkube-kit-config-resource</artifactId>
 
-  <name>Jkube Kit :: Config :: Resource</name>
+  <name>JKube Kit :: Config :: Resource</name>
 
   <dependencies>
 

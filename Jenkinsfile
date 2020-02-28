@@ -18,7 +18,7 @@ pipeline {
             sh '''
                 # Setup Git Config
                 git config --global user.email eclipsejkubebot@eclipse.org
-                git config --global user.name "Eclipse Jkube Bot"
+                git config --global user.name "Eclipse JKube Bot"
                 git clone https://eclipse-jkube-bot:$GH_TOKEN@github.com/eclipse/jkube.git && cd jkube
                 
                 # Find Project release version

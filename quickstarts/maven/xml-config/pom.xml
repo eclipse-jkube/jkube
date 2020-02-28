@@ -23,7 +23,7 @@
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Eclipse Jkube Maven :: Samples :: XML configuration</name>
+  <name>Eclipse JKube Maven :: Samples :: XML configuration</name>
 
   <properties>
 

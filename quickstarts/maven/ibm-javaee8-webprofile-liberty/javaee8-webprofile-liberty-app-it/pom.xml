@@ -23,7 +23,7 @@
     <version>0.1.0</version>
     <packaging>jar</packaging>
 
-    <name>Eclipse Jkube Maven :: Sample :: JavaEE 8 WebProfile :: IT</name>
+    <name>Eclipse JKube Maven :: Sample :: JavaEE 8 WebProfile :: IT</name>
 
     <parent>
         <groupId>org.eclipse.jkube</groupId>

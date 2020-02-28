@@ -26,7 +26,7 @@
 
   <artifactId>jkube-kit-watcher-standard</artifactId>
 
-  <name>Jkube Kit :: Watcher :: Standard</name>
+  <name>JKube Kit :: Watcher :: Standard</name>
 
   <dependencies>
     <dependency>

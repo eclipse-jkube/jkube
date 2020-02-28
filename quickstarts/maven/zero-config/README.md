@@ -1,6 +1,6 @@
 # Spring Boot Sample With Zero Config
 
-This is a sample project to use Eclipse Jkube plugins.
+This is a sample project to use Eclipse JKube plugins.
 
 ### Steps to use
 

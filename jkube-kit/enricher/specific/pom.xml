@@ -26,7 +26,7 @@
 
   <artifactId>jkube-kit-enricher-specific</artifactId>
 
-  <name>Jkube Kit :: Enricher :: Specific</name>
+  <name>JKube Kit :: Enricher :: Specific</name>
 
   <dependencies>
     <dependency>

@@ -26,7 +26,7 @@
 
     <artifactId>jkube-kit-resource-service</artifactId>
 
-    <name>Jkube Kit :: Resource :: Service</name>
+    <name>JKube Kit :: Resource :: Service</name>
 
     <dependencies>
         <dependency>

@@ -21,7 +21,7 @@
     <version>0.1.0</version>
     <packaging>pom</packaging>
 
-    <name>Eclipse Jkube Maven :: Sample :: JavaEE 8 WebProfile</name>
+    <name>Eclipse JKube Maven :: Sample :: JavaEE 8 WebProfile</name>
     <description>
         Demo project for Java EE 8 WebProfile, IBM WebSphere Liberty is used as a Java EE implementation
         On Windows or Mac if VirtualBox is used, run the tests using:

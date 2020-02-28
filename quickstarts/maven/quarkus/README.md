@@ -1,6 +1,6 @@
-# Eclipse Jkube Quarkus Quickstart
+# Eclipse JKube Quarkus Quickstart
 
-A simple rest application demonstrating usage of Eclipse Jkube with Quarkus.
+A simple rest application demonstrating usage of Eclipse JKube with Quarkus.
 
 ## Prerequisites:
 
@@ -18,7 +18,7 @@ eval $(minikube docker-env)
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] -------------------< org.eclipse.jkube:quarkus-rest >-------------------
-[INFO] Building Eclipse Jkube :: Quarkus :: Rest :: Quickstart 0.1.1-SNAPSHOT
+[INFO] Building Eclipse JKube :: Quarkus :: Rest :: Quickstart 0.1.1-SNAPSHOT
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- k8s-maven-plugin:0.1.1-SNAPSHOT:build (default-cli) @ quarkus-rest ---
@@ -46,7 +46,7 @@ jkube/quarkus-rest                          latest              6ccffc2be415    
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] -------------------< org.eclipse.jkube:quarkus-rest >-------------------
-[INFO] Building Eclipse Jkube :: Quarkus :: Rest :: Quickstart 0.1.1-SNAPSHOT
+[INFO] Building Eclipse JKube :: Quarkus :: Rest :: Quickstart 0.1.1-SNAPSHOT
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- k8s-maven-plugin:0.1.1-SNAPSHOT:resource (default-cli) @ quarkus-rest ---

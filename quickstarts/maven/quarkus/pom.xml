@@ -21,7 +21,7 @@
   <version>0.1.1-SNAPSHOT</version>
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>quarkus-rest</artifactId>
-  <name>Eclipse Jkube :: Quarkus :: Rest :: Quickstart</name>
+  <name>Eclipse JKube :: Quarkus :: Rest :: Quickstart</name>
   <description>
     Quarkus REST JSON project
   </description>

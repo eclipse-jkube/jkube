@@ -26,7 +26,7 @@
 
   <artifactId>jkube-kit-watcher-api</artifactId>
 
-  <name>Jkube Kit :: Watcher :: API</name>
+  <name>JKube Kit :: Watcher :: API</name>
 
   <dependencies>
 

@@ -26,7 +26,7 @@
 
   <artifactId>jkube-kit-enricher-api</artifactId>
 
-  <name>Jkube Kit :: Enricher :: API</name>
+  <name>JKube Kit :: Enricher :: API</name>
 
   <dependencies>
 

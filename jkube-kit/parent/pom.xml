@@ -27,7 +27,7 @@
   <artifactId>jkube-kit-parent</artifactId>
   <packaging>pom</packaging>
 
-  <name>Jkube Kit :: Parent</name>
+  <name>JKube Kit :: Parent</name>
   <description>${project.name}</description>
 
 

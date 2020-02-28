@@ -26,7 +26,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jkube-kit-quarkus</artifactId>
-    <name>Jkube Kit :: Quarkus</name>
+    <name>JKube Kit :: Quarkus</name>
 
     <dependencies>
 
