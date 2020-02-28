@@ -54,6 +54,11 @@
       <artifactId>maven-common-artifact-filters</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+    </dependency>
+
     <!-- == test ====================================== -->
     <dependency>
       <groupId>junit</groupId>
