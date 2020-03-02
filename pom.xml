@@ -300,6 +300,18 @@
             <version>${version.jacoco}</version>
             <executions>
               <execution>
+                <id>default-prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>default-report</id>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+              <execution>
                 <id>instrument</id>
                 <phase>process-classes</phase>
                 <goals>
@@ -311,7 +323,6 @@
                 <phase>test</phase>
                 <goals>
                   <goal>restore-instrumented-classes</goal>
-                  <goal>report</goal>
                 </goals>
               </execution>
             </executions>
@@ -354,6 +365,17 @@
       </build>
     </profile>
 
+    <profile>
+      <id>sonar</id>
+      <properties>
+        <sonar.projectKey>jkubeio_jkube</sonar.projectKey>
+        <sonar.moduleKey>${artifactId}</sonar.moduleKey>
+        <sonar.organization>jkubeio</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.login>${env.SONARQUBE_TOKEN}</sonar.login>
+        <sonar.coverage.exclusions>**/quickstarts/**/*</sonar.coverage.exclusions>
+      </properties>
+    </profile>
   </profiles>
 
 </project>
