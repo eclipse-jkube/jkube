@@ -46,7 +46,7 @@ jobs:
         with:
           java-version: '11'
       - name: Install JKube
-        run: mvn -f pom.xml -B -DskipTests clean install
+        run: ./mvnw -f pom.xml -B -DskipTests clean install
       - name: Checkout JKube Integration Tests Repository
         run: |
           git clone "$JKUBE_IT_REPOSITORY" \
@@ -54,7 +54,7 @@ jobs:
           && git checkout "$JKUBE_IT_REVISION"
       - name: Install and Run Integration Tests
         run: |
-          JKUBE_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) \
+          JKUBE_VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) \
           && cd $JKUBE_IT_DIR \
           && ./mvnw -B -PKubernetes,${{ matrix.suite }} clean verify -Djkube.version="$JKUBE_VERSION"
       - name: Consolidate reports
@@ -86,7 +86,7 @@ jobs:
         with:
           java-version: '11'
       - name: Install JKube
-        run: mvn -f pom.xml -B -DskipTests clean install
+        run: ./mvnw -f pom.xml -B -DskipTests clean install
       - name: Checkout JKube Integration Tests Repository
         run: |
           git clone "$JKUBE_IT_REPOSITORY" \
@@ -94,7 +94,7 @@ jobs:
           && git checkout "$JKUBE_IT_REVISION"
       - name: Install and Run Integration Tests
         run: |
-          JKUBE_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) \
+          JKUBE_VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) \
           && cd $JKUBE_IT_DIR \
           && ./mvnw -B -POpenShift,${{ matrix.suite }} clean verify -Djkube.version="$JKUBE_VERSION" -Djunit.jupiter.execution.parallel.config.fixed.parallelism=1
       - name: Consolidate reports
