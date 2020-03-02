@@ -24,7 +24,7 @@ jobs:
     - run:
         command: |
           # Run maven build
-          mvn test -B -Pjacoco
+          mvn test verify -B -Pjacoco
           # Run codeocov analysis
           bash <(curl -s https://codecov.io/bash)
     - save_cache:
@@ -71,7 +71,7 @@ jobs:
     - restore_cache:
         key: jkube-kit-sonar-{{ checksum "pom.xml" }}
     - run: |
-        MAVEN_OPTS="-Xmx3000m" mvn -B -Pjacoco,sonar clean test sonar:sonar
+        MAVEN_OPTS="-Xmx3000m" mvn -B -Pjacoco,sonar clean install
     - save_cache:
         key: jkube-kit-sonar-{{ checksum "pom.xml" }}
         paths:
@@ -85,7 +85,7 @@ jobs:
         key: jkube-sonar-pr-{{ checksum "pom.xml" }}
     - run: |
         if [ -n "${CIRCLE_PR_NUMBER}" ]; then
-          MAVEN_OPTS="-Xmx3000m" mvn -B -Pjacoco,sonar clean test sonar:sonar \
+          MAVEN_OPTS="-Xmx3000m" mvn -B -Pjacoco,sonar clean install \
              -Dsonar.pullrequest.key=${CIRCLE_PR_NUMBER} \
              -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
              -Dsonar.pullrequest.base=master
