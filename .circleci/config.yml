@@ -46,7 +46,7 @@ jobs:
         key: jkube-kit-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
-  
+
   javadoc:
     machine: true
     steps:
@@ -63,7 +63,7 @@ jobs:
         key: jkube-kit-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
-  
+
   sonar:
     machine: true
     steps:
@@ -71,16 +71,12 @@ jobs:
     - restore_cache:
         key: jkube-kit-sonar-{{ checksum "pom.xml" }}
     - run: |
-        MAVEN_OPTS="-Xmx3000m" mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
-        -Dsonar.projectKey=jkubeio_jkube \
-        -Dsonar.organization=jkubeio \
-        -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.login=${SONARQUBE_TOKEN}
+        MAVEN_OPTS="-Xmx3000m" mvn -B -Pjacoco,sonar clean test sonar:sonar
     - save_cache:
         key: jkube-kit-sonar-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
-                
+
   sonar-pr:
     machine: true
     steps:
@@ -89,15 +85,10 @@ jobs:
         key: jkube-sonar-pr-{{ checksum "pom.xml" }}
     - run: |
         if [ -n "${CIRCLE_PR_NUMBER}" ]; then
-          MAVEN_OPTS="-Xmx3000m" mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
-             -Dsonar.projectKey=jkubeio_jkube \
-             -Dsonar.organization=jkubeio \
+          MAVEN_OPTS="-Xmx3000m" mvn -B -Pjacoco,sonar clean test sonar:sonar \
              -Dsonar.pullrequest.key=${CIRCLE_PR_NUMBER} \
              -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
-             -Dsonar.pullrequest.base=master \
-             -Dsonar.host.url=https://sonarcloud.io \
-             -Dsonar.login=${SONARQUBE_TOKEN}
-
+             -Dsonar.pullrequest.base=master
         else
           echo "No Sonar PR analysis as this is not a pull request"
         fi
