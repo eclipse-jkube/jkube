@@ -11,6 +11,7 @@
 # Contributors:
 #   Red Hat, Inc. - initial API and implementation
 #
+
 name: Integration Tests
 
 on:
@@ -75,6 +76,13 @@ jobs:
         openshift: [v3.11.0,v3.9.0]
         suite: ['quarkus','springboot','webapp','other']
     steps:
+      - name: Free up Space
+        run: |
+          sudo apt-get remove -y 'linux-headers.*'
+          sudo apt-get remove -y 'mysql.*'
+          sudo apt-get remove -y 'php.*'
+          sudo apt-get remove -y 'ruby.*'
+          df -h
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup OpenShift

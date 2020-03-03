@@ -26,6 +26,8 @@ Usage:
 * Fix #76: Github actions checkout v2
 * Updated Kubernetes-Client Version to 4.7.1 #70
 * Fix #30: Decouple JKube-kit from maven
+* Fix #87: JKubeAssemblyFile is processed
+* Fix #89: Reorganized Quickstarts + Added PR verifications (versionable and compilable)
 
 ### 0.1.1 (14-02-2020)
 * Refactor: Add Maven Enforcer Plugin #29

@@ -14,37 +14,39 @@
       Red Hat, Inc. - initial API and implementation
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <version>0.1.1-SNAPSHOT</version>
-  <groupId>org.eclipse.jkube</groupId>
-  <artifactId>quarkus-rest</artifactId>
-  <name>Eclipse JKube :: Quarkus :: Rest :: Quickstart</name>
+
+  <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+  <artifactId>quarkus</artifactId>
+  <version>0.2-SNAPSHOT</version>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: Quarkus</name>
   <description>
     Quarkus REST JSON project
   </description>
 
   <properties>
-    <quarkus.version>1.2.0.Final</quarkus.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <version.quarkus>1.2.0.Final</version.quarkus>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>
-      <version>${quarkus.version}</version>
+      <version>${version.quarkus}</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy</artifactId>
-      <version>${quarkus.version}</version>
+      <version>${version.quarkus}</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy-jackson</artifactId>
-      <version>${quarkus.version}</version>
+      <version>${version.quarkus}</version>
     </dependency>
   </dependencies>
 
@@ -53,7 +55,7 @@
       <plugin>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
-        <version>${quarkus.version}</version>
+        <version>${version.quarkus}</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -80,7 +82,6 @@
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
-        <version>${project.version}</version>
         <configuration>
             <enricher>
               <config>

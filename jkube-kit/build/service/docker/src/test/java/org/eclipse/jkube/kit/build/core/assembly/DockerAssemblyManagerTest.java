@@ -24,12 +24,12 @@ import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
+
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Tested;
 import mockit.Verifications;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -58,7 +58,7 @@ public class DockerAssemblyManagerTest {
     @Test
     public void assemblyFiles(@Injectable final JKubeBuildContext mojoParams,
                               @Injectable final JKubeProject project,
-                              @Injectable final File assembly) throws IllegalAccessException, IOException {
+                              @Injectable final File assembly) {
 
 
         new Expectations() {{

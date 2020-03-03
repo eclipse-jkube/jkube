@@ -14,16 +14,15 @@
       Red Hat, Inc. - initial API and implementation
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-sample-xml-config</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+  <artifactId>xml-config</artifactId>
+  <version>0.2-SNAPSHOT</version>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: XML configuration</name>
   <packaging>jar</packaging>
-
-  <name>Eclipse JKube Maven :: Samples :: XML configuration</name>
 
   <properties>
 
@@ -147,7 +146,7 @@
           <plugin>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>k8s-maven-plugin</artifactId>
-            <version>0.1.0</version>
+            <version>${project.version}</version>
 
             <configuration>
               <!-- Standard d-m-p configuration which defines how images are build, i.e. how the docker.tar is created -->
@@ -224,70 +223,71 @@
           <plugin>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>k8s-maven-plugin</artifactId>
-            <version>0.1.0</version>
+            <version>${project.version}</version>
 
-	    <configuration>
-	      <images>
-		<image>
-		  <name>${image.user}/${project.artifactId}:${project.version}</name>
-		  <alias>camel-service</alias>
-		  <build>
-		    <from>fabric8/s2i-java@sha256:a6ba8a6e76ebd75f99f2431fe0ec39a82985bc21c0f9bd56021deca1ffde520c</from>
-		    <assembly>
-		      <targetDir>/deployments</targetDir>
-		      <descriptorRef>artifact-with-dependencies</descriptorRef>
-		    </assembly>
-		    <env>
-		      <JAVA_LIB_DIR>/deployments</JAVA_LIB_DIR>
-		      <JAVA_MAIN_CLASS>org.apache.camel.cdi.Main</JAVA_MAIN_CLASS>
-		    </env>
-		  </build>
-		</image>
-	      </images>
-	      <resources>
-		<volumes>
-		  <volume>
-		    <name>downward-api-volume</name>
-		    <type>downwardAPI</type>
-		    <items>
-		      <item>
-			<path>labels</path>
-			<fieldRef>
-			  <fieldPath>metadata.labels</fieldPath>
-			</fieldRef>
-		      </item>
-		      <item>
-			<path>annotations</path>
-			<fieldRef>
-			  <fieldPath>metadata.annotations</fieldPath>
-			</fieldRef>
-		      </item>
-		    </items>
-		  </volume>
-		  <volume>
-		    <name>config-vol</name>
-		    <type>configMap</type> <!-- You must create a configmap before you can use it. -->
-		    <configMapName>log-config</configMapName>
-		    <configMapItems>
-		      <configMapItem>
-			<key>log_level</key>
-			<path>log_level</path>
-		      </configMapItem>
-		    </configMapItems>
-		  </volume>
-		  <volume>
-		    <name>scratch</name>
-		    <type>emptyDir</type>
-		    <medium>Memory</medium>
-		  </volume>
-		</volumes>
-	      </resources>
-	    </configuration>
+            <configuration>
+              <images>
+                <image>
+                  <name>${image.user}/${project.artifactId}:${project.version}</name>
+                  <alias>camel-service</alias>
+                  <build>
+                    <from>fabric8/s2i-java@sha256:a6ba8a6e76ebd75f99f2431fe0ec39a82985bc21c0f9bd56021deca1ffde520c
+                    </from>
+                    <assembly>
+                      <targetDir>/deployments</targetDir>
+                      <descriptorRef>artifact-with-dependencies</descriptorRef>
+                    </assembly>
+                    <env>
+                      <JAVA_LIB_DIR>/deployments</JAVA_LIB_DIR>
+                      <JAVA_MAIN_CLASS>org.apache.camel.cdi.Main</JAVA_MAIN_CLASS>
+                    </env>
+                  </build>
+                </image>
+              </images>
+              <resources>
+                <volumes>
+                  <volume>
+                    <name>downward-api-volume</name>
+                    <type>downwardAPI</type>
+                    <items>
+                      <item>
+                        <path>labels</path>
+                        <fieldRef>
+                          <fieldPath>metadata.labels</fieldPath>
+                        </fieldRef>
+                      </item>
+                      <item>
+                        <path>annotations</path>
+                        <fieldRef>
+                          <fieldPath>metadata.annotations</fieldPath>
+                        </fieldRef>
+                      </item>
+                    </items>
+                  </volume>
+                  <volume>
+                    <name>config-vol</name>
+                    <type>configMap</type> <!-- You must create a configmap before you can use it. -->
+                    <configMapName>log-config</configMapName>
+                    <configMapItems>
+                      <configMapItem>
+                        <key>log_level</key>
+                        <path>log_level</path>
+                      </configMapItem>
+                    </configMapItems>
+                  </volume>
+                  <volume>
+                    <name>scratch</name>
+                    <type>emptyDir</type>
+                    <medium>Memory</medium>
+                  </volume>
+                </volumes>
+              </resources>
+            </configuration>
 
-	    <executions>
-	      <execution>
-		<goals>
-		  <goal>resource</goal>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>resource</goal>
                   <goal>build</goal>
                 </goals>
               </execution>

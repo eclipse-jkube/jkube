@@ -14,17 +14,16 @@
       Red Hat, Inc. - initial API and implementation
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>jkube-maven-sample-raw-with-yaml</artifactId>
-  <groupId>org.eclipse.jkube</groupId>
-  <version>0.1.1-SNAPSHOT</version>
+  <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+  <artifactId>yaml</artifactId>
+  <version>0.2-SNAPSHOT</version>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: Yaml</name>
   <packaging>jar</packaging>
 
-  <name>Eclipse JKube Maven :: Sample :: Yaml</name>
   <description>Example with Yaml only resources</description>
 
   <build>
@@ -33,7 +32,7 @@
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>k8s-maven-plugin</artifactId>
-        <version>0.1.0</version>
+        <version>${project.version}</version>
 
         <configuration>
           <profile>raw</profile>
