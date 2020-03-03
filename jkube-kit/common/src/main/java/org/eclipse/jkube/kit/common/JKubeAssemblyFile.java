@@ -18,6 +18,7 @@ import java.io.Serializable;
 public class JKubeAssemblyFile implements Serializable {
     private String source;
     private String outputDirectory;
+    private Boolean filtered;
 
     public String getSource() {
         return source;
@@ -33,5 +34,13 @@ public class JKubeAssemblyFile implements Serializable {
 
     public void setOutputDirectory(String outputDirectory) {
         this.outputDirectory = outputDirectory;
+    }
+
+    public Boolean getFiltered() {
+        return filtered;
+    }
+
+    public void setFiltered(Boolean filtered) {
+        this.filtered = filtered;
     }
 }

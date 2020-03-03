@@ -14,27 +14,28 @@
       Red Hat, Inc. - initial API and implementation
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.eclipse.jkube</groupId>
+    <parent>
+        <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+        <artifactId>javaee8-webprofile-liberty</artifactId>
+        <version>0.2-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>javaee8-webprofile-liberty-app-it</artifactId>
-    <version>0.1.0</version>
+    <version>0.2-SNAPSHOT</version>
+    <name>Eclipse JKube :: Quickstarts :: Maven :: JavaEE 8 WebProfile :: IT</name>
     <packaging>jar</packaging>
 
-    <name>Eclipse JKube Maven :: Sample :: JavaEE 8 WebProfile :: IT</name>
 
-    <parent>
-        <groupId>org.eclipse.jkube</groupId>
-        <artifactId>javaee8-webprofile-liberty</artifactId>
-        <version>0.1.0</version>
-    </parent>
 
     <properties>
         <maven.compile.source>1.8</maven.compile.source>
         <maven.compile.target>1.8</maven.compile.target>
-                        
+
         <applicationArtifactId>javaee8-webprofile-liberty-app</applicationArtifactId>
         <applicationContext>libertyapi</applicationContext>
         <testServerHttpPort>9080</testServerHttpPort>
@@ -44,7 +45,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.eclipse.jkube</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>javaee8-webprofile-liberty-app</artifactId>
             <type>war</type>
         </dependency>
@@ -69,7 +70,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-        
+
     <build>
         <plugins>
             <plugin>
@@ -109,15 +110,15 @@
                     <reportsDirectory>${project.build.directory}/test-reports/it</reportsDirectory>
                 </configuration>
             </plugin>
-            <plugin>            
+            <plugin>
                 <groupId>org.eclipse.jkube</groupId>
                 <artifactId>k8s-maven-plugin</artifactId>
-                <version>${jkube.plugin.version}</version>
+                <version>${project.version}</version>
                 <configuration>
                     <mode>kubernetes</mode>
                     <namespace>${docker.user}</namespace>
                     <images>
-                        <image>                                    
+                        <image>
                             <name>${docker.user}/${applicationArtifactId}:${project.version}</name>
                             <watch>
                                 <interval>5000</interval>
@@ -126,7 +127,7 @@
                     </images>
                     <enricher>
                         <config>
-                            <!-- 
+                            <!--
                                 expose the service externally by Kubernetes
                             -->
                             <fmp-service>
@@ -181,7 +182,7 @@
                                 <pause>${startPodPause}</pause>
                             </properties>
                             <source>
-                                def pause = properties.pause as Integer             
+                                def pause = properties.pause as Integer
                                 def command = properties.script
                                 def process = command.execute()
                                 def outputStream = new StringBuffer()
