@@ -29,7 +29,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <version.quarkus>1.2.0.Final</version.quarkus>
+    <version.quarkus>1.2.1.Final</version.quarkus>
   </properties>
 
   <dependencies>
@@ -42,6 +42,12 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy</artifactId>
       <version>${version.quarkus}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>io.smallrye</groupId>
+          <artifactId>smallrye-config</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -82,6 +88,7 @@
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>oc-maven-plugin</artifactId>
+        <version>${project.version}</version>
         <configuration>
             <enricher>
               <config>
@@ -94,5 +101,40 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>native</id>
+      <activation>
+        <property>
+          <name>native</name>
+        </property>
+      </activation>
+
+      <properties>
+        <jkube.generator.quarkus.nativeImage>true</jkube.generator.quarkus.nativeImage>
+      </properties>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-maven-plugin</artifactId>
+            <version>${version.quarkus}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>native-image</goal>
+                </goals>
+                <configuration>
+                  <enableHttpUrlHandler>true</enableHttpUrlHandler>
+                  <dockerBuild>true</dockerBuild>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>

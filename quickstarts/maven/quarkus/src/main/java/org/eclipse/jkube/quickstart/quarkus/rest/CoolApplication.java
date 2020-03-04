@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.quickstart.quarkus.rest;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class CoolApplication {
 
   private final String applicationName;
