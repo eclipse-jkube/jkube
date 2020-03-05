@@ -49,9 +49,6 @@ import static org.eclipse.jkube.kit.config.resource.RuntimeMode.kubernetes;
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
 
-    // Handler dealing with authentication credentials
-    private AuthConfigFactory authConfigFactory;
-
     @Override
     protected boolean isDockerAccessRequired() {
         boolean ret = false;
@@ -72,11 +69,6 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
         clusterAccess = new ClusterAccess(getClusterConfiguration());
         // Platform mode is already used in executeInternal()
         executeDockerBuild();
-    }
-
-    @Override
-    public void contextualize(Context context) throws ContextException {
-        authConfigFactory = new AuthConfigFactory();
     }
 
     @Override
@@ -114,7 +106,7 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
     public void executeDockerBuild() throws MojoExecutionException, MojoFailureException {
         if (!skip) {
             log = new AnsiLogger(getLog(), useColor, verbose, !settings.getInteractiveMode(), getLogPrefix());
-            authConfigFactory.setLog(log);
+            authConfigFactory = new AuthConfigFactory(log);
             imageConfigResolver.setLog(log);
 
             LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(useColor, logStdout, logDate);

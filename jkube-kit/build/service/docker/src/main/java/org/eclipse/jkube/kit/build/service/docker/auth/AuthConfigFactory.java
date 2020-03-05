@@ -61,19 +61,12 @@ public class AuthConfigFactory {
 
     static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
 
-    private KitLogger log;
+    private final KitLogger log;
     private static final String[] DEFAULT_REGISTRIES = new String[]{
             "docker.io", "index.docker.io", "registry.hub.docker.com"
     };
 
-    /**
-     * Constructor which should be used during startup phase of a plugin
-     *
-     */
-    public AuthConfigFactory() {
-    }
-
-    public void setLog(KitLogger log) {
+    public AuthConfigFactory(KitLogger log) {
         this.log = log;
     }
 

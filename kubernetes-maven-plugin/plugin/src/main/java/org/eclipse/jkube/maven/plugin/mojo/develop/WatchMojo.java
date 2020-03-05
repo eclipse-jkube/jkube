@@ -161,11 +161,6 @@ public class WatchMojo extends AbstractDockerMojo {
     private ServiceHub hub;
 
     @Override
-    public void contextualize(Context context) throws ContextException {
-        authConfigFactory = new AuthConfigFactory();
-    }
-
-    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
             return;
