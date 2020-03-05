@@ -33,7 +33,7 @@ the generation of such resources.
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>oc-maven-plugin</artifactId>
+  <artifactId>openshift-maven-plugin</artifactId>
 
   <!-- ... -->
 

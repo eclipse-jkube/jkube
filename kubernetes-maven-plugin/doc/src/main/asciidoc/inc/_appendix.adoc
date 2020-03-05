@@ -20,7 +20,7 @@ By default if no environment variable nor system property is set, scan for a fil
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>kubernetes-maven-plugin</artifactId>
   <configuration>
     <mappings>
       <mapping>

@@ -137,7 +137,7 @@ Here is an example how the profile can be used in a plugin configuration:
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>oc-maven-plugin</artifactId>
+  <artifactId>openshift-maven-plugin</artifactId>
   <configuration>
     <profile>my-spring-boot-apps</profile> <!--1-->
     .....

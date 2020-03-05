@@ -68,10 +68,10 @@ public abstract class FromSelector {
 
     public boolean isRedHat() {
         JKubeProject project = context.getProject();
-        JKubeProjectPlugin plugin = JKubeProjectUtil.getPlugin(project, "org.eclipse.jkube","oc-maven-plugin");
+        JKubeProjectPlugin plugin = JKubeProjectUtil.getPlugin(project, "org.eclipse.jkube","openshift-maven-plugin");
         if (plugin == null) {
             // This plugin might be repackaged.
-            plugin = JKubeProjectUtil.getPlugin(project,"org.jboss.redhat-fuse", "oc-maven-plugin");
+            plugin = JKubeProjectUtil.getPlugin(project,"org.jboss.redhat-fuse", "openshift-maven-plugin");
         }
         if (plugin == null) {
             // Can happen if not configured in a build section but only in a dependency management section

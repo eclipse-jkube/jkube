@@ -122,7 +122,7 @@ dmp-plugins are enabled by just declaring a dependency in the plugin declaration
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>kubernetes-maven-plugin</artifactId>
 
   <dependencies>
     <dependency>

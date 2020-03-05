@@ -70,7 +70,7 @@ You can declare the generator holding jars as dependency to this plugin as shown
 [source, xml]
 ----
 <plugin>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>kubernetes-maven-plugin</artifactId>
   ....
   <dependencies>
     <dependency>

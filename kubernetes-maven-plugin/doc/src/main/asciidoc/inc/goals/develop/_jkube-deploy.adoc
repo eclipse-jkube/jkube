@@ -15,7 +15,7 @@ This goal is designed to run <<k8s:build>> and <<k8s:resource>> before the deplo
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>kubernetes-maven-plugin</artifactId>
   <version>{version}</version>
 
   <!-- Connect k8s:resource, k8s:build and k8s:helm to lifecycle phases -->
@@ -46,7 +46,7 @@ By default the behaviour of resource goal is it generates `route.yml` for a serv
 ----
 <plugin>
     <groupId>org.eclipse.jkube</groupId>
-    <artifactId>k8s-maven-plugin</artifactId>
+    <artifactId>kubernetes-maven-plugin</artifactId>
     <version>{version}</version>
     <configuration>
         <enricher>

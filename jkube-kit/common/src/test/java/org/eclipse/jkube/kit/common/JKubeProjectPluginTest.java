@@ -33,7 +33,7 @@ public class JKubeProjectPluginTest {
     public void init() {
         projectPluginsAsStr = new ArrayList<>();
         projectPluginsAsStr.add(new AbstractMap.SimpleEntry<>("org.springframework.boot,spring-boot-maven-plugin,null,null", Collections.emptyMap()));
-        projectPluginsAsStr.add(new AbstractMap.SimpleEntry<>("org.eclipse.jkube,k8s-maven-plugin,0.1.0,resource|build|helm", Collections.emptyMap()));
+        projectPluginsAsStr.add(new AbstractMap.SimpleEntry<>("org.eclipse.jkube,kubernetes-maven-plugin,0.1.0,resource|build|helm", Collections.emptyMap()));
     }
 
     @Test
@@ -60,7 +60,7 @@ public class JKubeProjectPluginTest {
 
     public void assertEclipseJKubePlugin(JKubeProjectPlugin projectPlugin) {
         assertEquals("org.eclipse.jkube", projectPlugin.getGroupId());
-        assertEquals("k8s-maven-plugin", projectPlugin.getArtifactId());
+        assertEquals("kubernetes-maven-plugin", projectPlugin.getArtifactId());
         assertEquals("0.1.0", projectPlugin.getVersion());
         assertNotNull(projectPlugin.getConfiguration());
         assertEquals(3, projectPlugin.getExecutions().size());

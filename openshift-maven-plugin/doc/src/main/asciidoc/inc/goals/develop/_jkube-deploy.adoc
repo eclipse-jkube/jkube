@@ -15,7 +15,7 @@ This goal is designed to run <<oc:build>> and <<oc:resource>> before the deploy 
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>oc-maven-plugin</artifactId>
+  <artifactId>openshift-maven-plugin</artifactId>
   <version>{version}</version>
 
   <!-- Connect oc:resource, oc:build and oc:helm to lifecycle phases -->
@@ -46,7 +46,7 @@ By default the behaviour of resource goal is it generates `route.yml` for a serv
 ----
 <plugin>
     <groupId>org.eclipse.jkube</groupId>
-    <artifactId>oc-maven-plugin</artifactId>
+    <artifactId>openshift-maven-plugin</artifactId>
     <version>{version}</version>
     <configuration>
         <enricher>

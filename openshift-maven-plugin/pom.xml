@@ -24,9 +24,9 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>oc-maven-plugin-build</artifactId>
+  <artifactId>openshift-maven-plugin-parent</artifactId>
   <packaging>pom</packaging>
-  <name>Openshift Maven Plugin</name>
+  <name>Openshift Maven Plugin:: Parent</name>
   <description>Maven plugin for getting your Java apps on to Openshift</description>
 
   <modules>

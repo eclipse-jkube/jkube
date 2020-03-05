@@ -27,10 +27,10 @@
   <build>
 
     <plugins>
-      
+
      <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>oc-maven-plugin</artifactId>
+        <artifactId>openshift-maven-plugin</artifactId>
         <version>@jkube.version@</version>
       </plugin>
 

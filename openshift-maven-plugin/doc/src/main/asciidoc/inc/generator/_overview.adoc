@@ -70,7 +70,7 @@ You can declare the generator holding jars as dependency to this plugin as shown
 [source, xml]
 ----
 <plugin>
-  <artifactId>oc-maven-plugin</artifactId>
+  <artifactId>openshift-maven-plugin</artifactId>
   ....
   <dependencies>
     <dependency>

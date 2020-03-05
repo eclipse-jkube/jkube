@@ -30,9 +30,9 @@
   </parent>
 
   <scm>
-    <connection>scm:git:git://github.com/fabric8io/oc-maven-plugin.git</connection>
-    <developerConnection>scm:git:git://github.com/fabric8io/oc-maven-plugin.git</developerConnection>
-    <url>git://github.com/fabric8io/oc-maven-plugin.git</url>
+    <connection>scm:git:git://github.com/jkubeio/openshift-maven-plugin.git</connection>
+    <developerConnection>scm:git:git://github.com/jkubeio/openshift-maven-plugin.git</developerConnection>
+    <url>git://github.com/jkubeio/openshift-maven-plugin.git</url>
   </scm>
 
   <dependencies>
@@ -52,7 +52,7 @@
 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>oc-maven-plugin</artifactId>
+        <artifactId>openshift-maven-plugin</artifactId>
         <version>@jkube.version@</version>
       </plugin>
 
