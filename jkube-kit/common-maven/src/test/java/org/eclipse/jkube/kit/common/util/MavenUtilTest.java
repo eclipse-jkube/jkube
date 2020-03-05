@@ -96,7 +96,7 @@ public class MavenUtilTest {
         assertEquals("org.springframework.boot", plugins.get(0).getGroupId());
         assertEquals("spring-boot-maven-plugin", plugins.get(0).getArtifactId());
         assertEquals("org.eclipse.jkube", plugins.get(1).getGroupId());
-        assertEquals("k8s-maven-plugin", plugins.get(1).getArtifactId());
+        assertEquals("kubernetes-maven-plugin", plugins.get(1).getArtifactId());
         assertEquals("0.1.0", plugins.get(1).getVersion());
         assertEquals(3, plugins.get(1).getExecutions().size());
         assertEquals(Arrays.asList("resource", "build", "helm"), plugins.get(1).getExecutions());

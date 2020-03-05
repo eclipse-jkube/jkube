@@ -78,6 +78,7 @@ jobs:
     steps:
       - name: Free up Space
         run: |
+          sudo apt-get remove -y 'dotnet.*'
           sudo apt-get remove -y 'linux-headers.*'
           sudo apt-get remove -y 'mysql.*'
           sudo apt-get remove -y 'php.*'

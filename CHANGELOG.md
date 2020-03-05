@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 0.2.1-SNAPSHOT
+* Fix #53: Renamed plugins to openshift/kubernetes-maven-plugin keeping acronym (oc/k8s) for goal
 
 ### 0.2.0 (05-03-2020)
 * Fix #71: script to extract changelog information for notifications

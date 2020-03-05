@@ -173,7 +173,7 @@ This enricher is disabled by default. In order to use it, you must configure the
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>kubernetes-maven-plugin</artifactId>
   <version>3.3.0</version>
   <executions>
     <execution>
@@ -307,7 +307,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>kubernetes-maven-plugin</artifactId>
   <version>3.3.0</version>
   <executions>
     <execution>
@@ -363,7 +363,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 [source,xml]
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>3.3.0</version>
         <executions>
           <execution>
@@ -415,7 +415,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 [source,xml]
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>3.3.0</version>
         <executions>
           <execution>
@@ -467,7 +467,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 [source,xml]
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>3.3.0</version>
         <executions>
           <execution>
@@ -518,7 +518,7 @@ The minimal configuration to add health checks is the following:
 ----
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>{version}</version>
         <executions>
           <execution>
@@ -565,7 +565,7 @@ You can provide two different configuration for the readiness and liveness check
 ----
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>{version}</version>
         <executions>
           <execution>
@@ -610,7 +610,7 @@ Shared (generic) configuration can be set outside of the specific configuration.
 ----
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>{version}</version>
         <executions>
           <execution>

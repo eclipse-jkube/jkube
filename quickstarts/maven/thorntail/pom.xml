@@ -71,7 +71,7 @@
 	<plugins>
 	  <plugin>
 	    <groupId>org.eclipse.jkube</groupId>
-	    <artifactId>k8s-maven-plugin</artifactId>
+	    <artifactId>kubernetes-maven-plugin</artifactId>
             <version>${project.version}</version>
 	    <executions>
 	      <execution>
@@ -106,7 +106,7 @@
 	<plugins>
 	  <plugin>
 	    <groupId>org.eclipse.jkube</groupId>
-	    <artifactId>oc-maven-plugin</artifactId>
+	    <artifactId>openshift-maven-plugin</artifactId>
             <version>${project.version}</version>
 	    <executions>
 	      <execution>

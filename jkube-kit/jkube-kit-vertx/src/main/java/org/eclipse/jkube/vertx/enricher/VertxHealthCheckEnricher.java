@@ -63,7 +63,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
             return input == null ? null : input.trim();
         }
     };
-    protected static final String[] JKUBE_PLUGINS = {"k8s-maven-plugin", "oc-maven-plugin"};
+    protected static final String[] JKUBE_PLUGINS = {"kubernetes-maven-plugin", "openshift-maven-plugin"};
 
     public static final String ERROR_MESSAGE = "Location of %s should return a String but found %s with value %s";
 

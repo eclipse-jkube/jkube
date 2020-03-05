@@ -28,7 +28,7 @@ Build the application and the docker image:
 [INFO] Building Eclipse JKube :: Quarkus :: Rest :: Quickstart 0.1.1-SNAPSHOT
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
-[INFO] --- k8s-maven-plugin:0.1.1-SNAPSHOT:build (default-cli) @ quarkus ---
+[INFO] --- kubernetes-maven-plugin:0.1.1-SNAPSHOT:build (default-cli) @ quarkus ---
 [INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator quarkus
@@ -56,7 +56,7 @@ jkube/quarkus                          latest              6ccffc2be415        3
 [INFO] Building Eclipse JKube :: Quarkus :: Rest :: Quickstart 0.1.1-SNAPSHOT
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
-[INFO] --- k8s-maven-plugin:0.1.1-SNAPSHOT:resource (default-cli) @ quarkus ---
+[INFO] --- kubernetes-maven-plugin:0.1.1-SNAPSHOT:resource (default-cli) @ quarkus ---
 [INFO] k8s: Running generator quarkus
 [INFO] k8s: jkube-controller: Adding a default Deployment
 [INFO] k8s: jkube-service: Adding a default service 'quarkus' with ports [8080]
@@ -66,7 +66,7 @@ jkube/quarkus                          latest              6ccffc2be415        3
 [INFO] k8s: validating /home/rohaan/work/repos/jkube/quickstarts/maven/quarkus/target/classes/META-INF/jkube/kubernetes/quarkus-deployment.yml resource
 [INFO] k8s: validating /home/rohaan/work/repos/jkube/quickstarts/maven/quarkus/target/classes/META-INF/jkube/kubernetes/quarkus-service.yml resource
 [INFO] 
-[INFO] --- k8s-maven-plugin:0.1.1-SNAPSHOT:apply (default-cli) @ quarkus ---
+[INFO] --- kubernetes-maven-plugin:0.1.1-SNAPSHOT:apply (default-cli) @ quarkus ---
 [INFO] k8s: Using Kubernetes at https://192.168.39.191:8443/ in namespace default with manifest /home/rohaan/work/repos/jkube/quickstarts/maven/quarkus/target/classes/META-INF/jkube/kubernetes.yml 
 [INFO] k8s: Using namespace: default
 [INFO] k8s: Creating a Service from kubernetes.yml namespace default name quarkus

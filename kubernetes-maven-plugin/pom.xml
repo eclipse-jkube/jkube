@@ -24,9 +24,9 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>k8s-maven-plugin-build</artifactId>
+  <artifactId>kubernetes-maven-plugin-parent</artifactId>
   <packaging>pom</packaging>
-  <name>Kubernetes Maven Plugin</name>
+  <name>Kubernetes Maven Plugin :: Parent</name>
   <description>Maven plugin for getting your Java apps on to Kubernetes</description>
 
   <modules>

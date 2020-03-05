@@ -84,7 +84,7 @@ public class FromSelectorTest {
             new Expectations() {{
                 project.getPlugins(); result = Collections.singletonList(plugin);
                 plugin.getGroupId(); result = "org.eclipse.jkube";
-                plugin.getArtifactId(); result = "oc-maven-plugin";
+                plugin.getArtifactId(); result = "openshift-maven-plugin";
                 plugin.getVersion(); result = version;
             }};
 

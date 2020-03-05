@@ -55,18 +55,18 @@ Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 [INFO] Installing /home/rohaan/work/repos/jkube/quickstarts/maven/hello-world/target/jkube-sample-helloworld-0.1.1-SNAPSHOT.jar to /home/rohaan/.m2/repository/org/eclipse/jkube/samples/jkube-sample-helloworld/0.1.1-SNAPSHOT/jkube-sample-helloworld-0.1.1-SNAPSHOT.jar
 [INFO] Installing /home/rohaan/work/repos/jkube/quickstarts/maven/hello-world/pom.xml to /home/rohaan/.m2/repository/org/eclipse/jkube/samples/jkube-sample-helloworld/0.1.1-SNAPSHOT/jkube-sample-helloworld-0.1.1-SNAPSHOT.pom
 [INFO] 
-[INFO] --- k8s-maven-plugin:0.1.1-SNAPSHOT:build (default-cli) @ jkube-sample-helloworld ---
+[INFO] --- kubernetes-maven-plugin:0.1.1-SNAPSHOT:build (default-cli) @ jkube-sample-helloworld ---
 [INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: [helloworld-java:0.1.1-SNAPSHOT] "hello-world": Created docker-build.tar in 34 milliseconds
 [INFO] k8s: [helloworld-java:0.1.1-SNAPSHOT] "hello-world": Built image sha256:9baee
 [INFO] 
-[INFO] --- k8s-maven-plugin:0.1.1-SNAPSHOT:resource (default-cli) @ jkube-sample-helloworld ---
+[INFO] --- kubernetes-maven-plugin:0.1.1-SNAPSHOT:resource (default-cli) @ jkube-sample-helloworld ---
 [INFO] k8s: jkube-controller: Adding a default Deployment
 [INFO] k8s: jkube-revision-history: Adding revision history limit to 2
 [INFO] k8s: validating /home/rohaan/work/repos/jkube/quickstarts/maven/hello-world/target/classes/META-INF/jkube/kubernetes/jkube-sample-helloworld-deployment.yml resource
 [INFO] 
-[INFO] --- k8s-maven-plugin:0.1.1-SNAPSHOT:apply (default-cli) @ jkube-sample-helloworld ---
+[INFO] --- kubernetes-maven-plugin:0.1.1-SNAPSHOT:apply (default-cli) @ jkube-sample-helloworld ---
 [INFO] k8s: Using Kubernetes at https://192.168.39.149:8443/ in namespace default with manifest /home/rohaan/work/repos/jkube/quickstarts/maven/hello-world/target/classes/META-INF/jkube/kubernetes.yml 
 [INFO] k8s: Using namespace: default
 [INFO] k8s: Creating a Deployment from kubernetes.yml namespace default name jkube-sample-helloworld

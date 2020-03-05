@@ -20,7 +20,7 @@ By default if no environment variable nor system property is set, scan for a fil
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>oc-maven-plugin</artifactId>
+  <artifactId>openshift-maven-plugin</artifactId>
   <configuration>
     <mappings>
       <mapping>

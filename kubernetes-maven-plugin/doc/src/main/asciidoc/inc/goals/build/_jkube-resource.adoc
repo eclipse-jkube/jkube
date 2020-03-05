@@ -189,7 +189,7 @@ Resource goal also validates the generated resource descriptors using API specif
 [[resource-route-generation]]
 === Route Generation
 
-When the `k8s:resource` goal is run, an OpenShift https://docs.openshift.org/latest/architecture/networking/routes.html[Route] descriptor (`route.yml`) will also be generated along the service if an OpenShift cluster is targeted. 
+When the `k8s:resource` goal is run, an OpenShift https://docs.openshift.org/latest/architecture/networking/routes.html[Route] descriptor (`route.yml`) will also be generated along the service if an OpenShift cluster is targeted.
 If you do not want to generate a Route descriptor, you can set the `jkube.openshift.generateRoute` property to `false`.
 
 .Route Generation Configuration
@@ -210,7 +210,7 @@ If you do not want to generate a Route descriptor, you can also specify so in th
 ----
 <plugin>
     <groupId>org.eclipse.jkube</groupId>
-    <artifactId>k8s-maven-plugin</artifactId>
+    <artifactId>kubernetes-maven-plugin</artifactId>
     <version>{version}</version>
     <configuration>
         <generateRoute>false</generateRoute>

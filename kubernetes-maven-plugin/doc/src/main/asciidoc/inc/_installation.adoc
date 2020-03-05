@@ -9,7 +9,7 @@ available goals are described below.
 By default, Maven will only search for plugins in the `org.apache.maven.plugins` and `org.codehaus.mojo` packages. In order to resolve the provider for the JKube plugin goals, you need to edit `~/.m2/settings.xml` and add the `org.eclipse.jkube` namespace so the `<pluginGroups>` configuration.
 
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
----- 
+----
 <settings>
       ...
 
@@ -23,10 +23,10 @@ By default, Maven will only search for plugins in the `org.apache.maven.plugins`
 
 
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
----- 
+----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>kubernetes-maven-plugin</artifactId>
   <version>{version}</version>
 
   <configuration>
