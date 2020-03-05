@@ -457,9 +457,6 @@ public class DockerAssemblyManager {
       JKubeProject project, JKubeAssemblyFile assemblyFile, BuildDirs buildDirs, JKubeAssemblyConfiguration assemblyConfiguration)
       throws IOException {
 
-        if (Boolean.TRUE.equals(assemblyFile.getFiltered())) {
-             return;
-        }
         final File outputDirectory;
         if (new File(assemblyFile.getOutputDirectory()).isAbsolute()) {
             outputDirectory = new File(assemblyFile.getOutputDirectory());
