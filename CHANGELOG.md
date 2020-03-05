@@ -20,7 +20,9 @@ Usage:
 # ./scripts/extract-changelog-for-version.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 0.2-SNAPSHOT
+### 0.2.1-SNAPSHOT
+
+### 0.2.0 (05-03-2020)
 * Fix #71: script to extract changelog information for notifications
 * Fix #34: Ported OpenLiberty support: https://github.com/fabric8io/fabric8-maven-plugin/pull/1711
 * Fix #76: Github actions checkout v2
@@ -28,6 +30,14 @@ Usage:
 * Fix #30: Decouple JKube-kit from maven
 * Fix #87: JKubeAssemblyFile is processed
 * Fix #89: Reorganized Quickstarts + Added PR verifications (versionable and compilable)
+* Fix #92: NullPointerException in AuthConfigFactory
+* Fix #89: Reorganized examples + fixed assembly bug
+* Fix #52: Use proper case in JKube brand name
+* Doc #43: added default md file and links for CONTRIBUTING guide
+* Doc #61: Added a Hello World Quickstart sample
+* Fix #95: filtered is for variable interpolation/substitution, not for exclusion
+* Doc #91: Quarkus Native Quickstart
+
 
 ### 0.1.1 (14-02-2020)
 * Refactor: Add Maven Enforcer Plugin #29
