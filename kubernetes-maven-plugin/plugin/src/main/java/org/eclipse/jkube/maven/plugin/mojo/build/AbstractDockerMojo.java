@@ -428,7 +428,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     @Override
     public void contextualize(Context context) throws ContextException {
         plexusContainer = ((PlexusContainer) context.get(PlexusConstants.PLEXUS_KEY));
-        authConfigFactory = new AuthConfigFactory();
     }
 
     @Override
@@ -436,13 +435,11 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         if (!skip) {
             boolean ansiRestore = Ansi.isEnabled();
             log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
+            authConfigFactory = new AuthConfigFactory(log);
+            imageConfigResolver.setLog(log);
 
             try {
-                authConfigFactory.setLog(log);
-                imageConfigResolver.setLog(log);
-
                 LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(useColor, logStdout, logDate);
-
 
                 DockerAccess access = null;
                 try {
@@ -575,7 +572,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         }
     }
 
-    protected RegistryService.RegistryConfig getRegistryConfig(String specificRegistry) throws MojoExecutionException {
+    protected RegistryService.RegistryConfig getRegistryConfig(String specificRegistry) {
         return new RegistryService.RegistryConfig.Builder()
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                 .authConfig(authConfig != null ? authConfig.toMap() : null)

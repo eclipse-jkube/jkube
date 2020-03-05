@@ -61,11 +61,6 @@ public class PushMojo extends AbstractDockerMojo {
     }
 
     @Override
-    public void contextualize(Context context) throws ContextException {
-        authConfigFactory = new AuthConfigFactory();
-    }
-
-    @Override
     public void executeInternal(ServiceHub serviceHub) throws MojoExecutionException {
         if (skipPush) {
             return;
