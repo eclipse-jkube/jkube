@@ -643,6 +643,8 @@ public class KubernetesResourceUtil {
     }
 
     public static String mergePodSpec(PodSpecBuilder builder, PodSpec defaultPodSpec, String defaultName, boolean sidecarEnabled) {
+        // The default application container name is needed by plugin in order
+        // to add ImageChange triggers in case of DeploymentConfig
         String defaultApplicationContainerName = null;
         List<Container> containers = builder.buildContainers();
         List<Container> defaultContainers = defaultPodSpec.getContainers();
@@ -672,6 +674,11 @@ public class KubernetesResourceUtil {
                         } else {
                             container = new Container();
                             containers.add(container);
+                        }
+                        // If default container name is not set, add first found
+                        // container as default application container.
+                        if (defaultApplicationContainerName == null) {
+                            defaultApplicationContainerName = container.getName();
                         }
                     }
 
