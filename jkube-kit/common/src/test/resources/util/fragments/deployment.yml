@@ -1,0 +1,35 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+spec:
+  replicas: 1
+  template:
+    spec:
+      volumes:
+        - name: config
+          gitRepo:
+            repository: 'https://github.com/jstrachan/sample-springboot-config.git'
+            revision: 667ee4db6bc842b127825351e5c9bae5a4fb2147
+            directory: .
+      containers:
+        - volumeMounts:
+            - name: config
+              mountPath: /app/config
+          env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+      serviceAccount: ribbon

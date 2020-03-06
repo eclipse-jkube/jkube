@@ -71,6 +71,8 @@ public class ResourceConfig {
 
     private List<IngressRule> ingressRules;
 
+    private OpenshiftBuildConfig openshiftBuildConfig;
+
     public Optional<Map<String, String>> getEnv() {
         return Optional.ofNullable(env);
     }
@@ -148,6 +150,10 @@ public class ResourceConfig {
     public List<String> getCrdContexts() { return customResourceDefinitions; }
 
     public List<IngressRule> getIngressRules() { return ingressRules; }
+
+    public OpenshiftBuildConfig getOpenshiftBuildConfig() {
+        return openshiftBuildConfig;
+    }
 
     // =============================================================================================
 
@@ -247,6 +253,11 @@ public class ResourceConfig {
 
         public Builder withCustomResourceDefinitions(List<String> customResourceDefinitions) {
             config.customResourceDefinitions = customResourceDefinitions;
+            return this;
+        }
+
+        public Builder withOpenshiftBuildConfig(OpenshiftBuildConfig openshiftBuildConfig) {
+            config.openshiftBuildConfig = openshiftBuildConfig;
             return this;
         }
 

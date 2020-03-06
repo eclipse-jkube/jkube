@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
@@ -29,6 +30,7 @@ import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.BuildConfigSpec;
+import io.fabric8.openshift.api.model.BuildConfigSpecBuilder;
 import io.fabric8.openshift.api.model.BuildOutput;
 import io.fabric8.openshift.api.model.BuildOutputBuilder;
 import io.fabric8.openshift.api.model.BuildSource;
@@ -78,6 +80,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class OpenshiftBuildService implements BuildService {
 
     private static final String DEFAULT_S2I_BUILD_SUFFIX = "-s2i";
+    public static final String DEFAULT_S2I_SOURCE_TYPE = "Binary";
+    public static final String REQUESTS = "requests";
+    public static final String LIMITS = "limits";
 
     private final OpenShiftClient client;
     private final KitLogger log;
@@ -193,7 +198,7 @@ public class OpenshiftBuildService implements BuildService {
         config.attachArtifact("is", getImageStreamFile(config));
     }
 
-    private String updateOrCreateBuildConfig(BuildServiceConfig config, OpenShiftClient client, KubernetesListBuilder builder, ImageConfiguration imageConfig, String openshiftPullSecret) {
+    protected String updateOrCreateBuildConfig(BuildServiceConfig config, OpenShiftClient client, KubernetesListBuilder builder, ImageConfiguration imageConfig, String openshiftPullSecret) {
         ImageName imageName = new ImageName(imageConfig.getName());
         String buildName = getS2IBuildName(config, imageName);
         String imageStreamName = getImageStreamName(imageName);
@@ -230,7 +235,7 @@ public class OpenshiftBuildService implements BuildService {
         BuildSource source = spec.getSource();
         if (source != null) {
             String sourceType = source.getType();
-            if (!Objects.equals("Binary", sourceType)) {
+            if (!Objects.equals(DEFAULT_S2I_SOURCE_TYPE, sourceType)) {
                 log.warn("BuildServiceConfig %s is not of type: 'Binary' but is '%s' !", buildName, sourceType);
             }
         }
@@ -245,19 +250,49 @@ public class OpenshiftBuildService implements BuildService {
         return spec;
     }
 
+    private BuildConfigSpec getBuildConfigSpec(BuildStrategy buildStrategyResource, BuildOutput buildOutput) {
+        BuildConfigSpecBuilder specBuilder = null;
+
+        // Check for BuildConfig resource fragment
+        File buildConfigResourceFragment = KubernetesHelper.getResourceFragmentFromSource(config.getResourceDir(), config.getResourceConfig() != null ? config.getResourceConfig().getRemotes() : null, "buildconfig.yml", log);
+        if (buildConfigResourceFragment != null) {
+            BuildConfig buildConfigFragment = client.buildConfigs().load(buildConfigResourceFragment).get();
+            specBuilder = new BuildConfigSpecBuilder(buildConfigFragment.getSpec());
+        } else {
+            specBuilder = new BuildConfigSpecBuilder();
+        }
+
+        if (specBuilder.buildSource() == null) {
+            specBuilder.withNewSource()
+                    .withType(DEFAULT_S2I_SOURCE_TYPE)
+                    .endSource();
+        }
+
+        if (specBuilder.buildStrategy() == null) {
+            specBuilder.withStrategy(buildStrategyResource);
+        }
+
+        if (specBuilder.buildOutput() == null) {
+            specBuilder.withOutput(buildOutput);
+        }
+
+        Map<String, Map<String, Quantity>> requestsLimitsMap = getRequestsAndLimits();
+        if (requestsLimitsMap.containsKey(REQUESTS)) {
+            specBuilder.editOrNewResources().addToRequests(requestsLimitsMap.get(REQUESTS)).endResources();
+        }
+        if (requestsLimitsMap.containsKey(LIMITS)) {
+            specBuilder.editOrNewResources().addToLimits(requestsLimitsMap.get(LIMITS)).endResources();
+        }
+        return specBuilder.build();
+    }
+
     private String createBuildConfig(KubernetesListBuilder builder, String buildName, BuildStrategy buildStrategyResource, BuildOutput buildOutput) {
         log.info("Creating BuildServiceConfig %s for %s build", buildName, buildStrategyResource.getType());
         builder.addNewBuildConfigItem()
                 .withNewMetadata()
                 .withName(buildName)
                 .endMetadata()
-                .withNewSpec()
-                .withNewSource()
-                .withType("Binary")
-                .endSource()
-                .withStrategy(buildStrategyResource)
-                .withOutput(buildOutput)
-                .endSpec()
+                .withSpec(getBuildConfigSpec(buildStrategyResource, buildOutput))
                 .endBuildConfigItem();
         return buildName;
     }
@@ -720,6 +755,21 @@ public class OpenshiftBuildService implements BuildService {
         }
         String value = map.get(field);
         return value != null ? value : defaultValue;
+    }
+
+    private Map<String, Map<String, Quantity>> getRequestsAndLimits() {
+        Map<String, Map<String, Quantity>> keyToQuantityMap = new HashMap<>();
+        if (config.getResourceConfig() != null && config.getResourceConfig().getOpenshiftBuildConfig() != null) {
+            Map<String, Quantity> limits = KubernetesHelper.getQuantityFromString(config.getResourceConfig().getOpenshiftBuildConfig().getLimits());
+            if (!limits.isEmpty()) {
+                keyToQuantityMap.put(LIMITS, limits);
+            }
+            Map<String, Quantity> requests = KubernetesHelper.getQuantityFromString(config.getResourceConfig().getOpenshiftBuildConfig().getRequests());
+            if (!requests.isEmpty()) {
+                keyToQuantityMap.put(REQUESTS, requests);
+            }
+        }
+        return keyToQuantityMap;
     }
 
 }
