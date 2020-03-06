@@ -53,17 +53,19 @@ public abstract class SecretEnricher extends BaseEnricher {
             @Override
             public void visit(SecretBuilder secretBuilder) {
                 Map<String, String> annotation = secretBuilder.buildMetadata().getAnnotations();
-                if (!annotation.containsKey(getAnnotationKey())) {
-                    return;
+                if (annotation != null) {
+                    if (!annotation.containsKey(getAnnotationKey())) {
+                        return;
+                    }
+                    String dockerId = annotation.get(getAnnotationKey());
+                    Map<String, String> data = generateData(dockerId);
+                    if (data == null) {
+                        return;
+                    }
+                    // remove the annotation key
+                    annotation.remove(getAnnotationKey());
+                    secretBuilder.addToData(data);
                 }
-                String dockerId = annotation.get(getAnnotationKey());
-                Map<String, String> data = generateData(dockerId);
-                if (data == null) {
-                    return;
-                }
-                // remove the annotation key
-                annotation.remove(getAnnotationKey());
-                secretBuilder.addToData(data);
             }
         });
 

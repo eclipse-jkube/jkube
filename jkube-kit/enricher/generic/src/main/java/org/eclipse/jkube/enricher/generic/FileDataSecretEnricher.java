@@ -49,8 +49,10 @@ public class FileDataSecretEnricher extends BaseEnricher {
             public void visit(SecretBuilder element) {
                 final Map<String, String> annotations = element.buildMetadata().getAnnotations();
                 try {
-                    final Map<String, String> secretAnnotations = createSecretFromAnnotations(annotations);
-                    element.addToData(secretAnnotations);
+                    if (annotations != null && !annotations.isEmpty()) {
+                        final Map<String, String> secretAnnotations = createSecretFromAnnotations(annotations);
+                        element.addToData(secretAnnotations);
+                    }
                 } catch (IOException e) {
                     throw new IllegalArgumentException(e);
                 }
