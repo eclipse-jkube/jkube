@@ -17,7 +17,7 @@ We provide a script to extract changelog portions and automatic link building to
 
 Usage:
 ```
-# ./scripts/extract-changelog-for-version.sh semanticVersionNumber [linkLabelStartNumber]
+# ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.0-SNAPSHOT

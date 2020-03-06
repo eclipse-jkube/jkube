@@ -16,12 +16,8 @@
 trap 'exit' ERR
 
 BASEDIR=$(dirname "$BASH_SOURCE")
-PROJECT_ROOT="$BASEDIR/.."
+source "$BASEDIR/common.sh"
 QUICKSTARTS="$PROJECT_ROOT/quickstarts"
-
-function getJKubeVersion() {
-  echo $(mvn -f "$PROJECT_ROOT/pom.xml" -q -Dexec.executable=echo -Dexec.args=\${project.version} --non-recursive exec:exec)
-}
 
 function version() {
   JKUBE_VERSION=$(getJKubeVersion)
