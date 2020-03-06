@@ -20,6 +20,7 @@ import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import java.io.File;
 
@@ -70,6 +71,10 @@ public interface BuildService {
         private ImagePullManager imagePullManager;
 
         private boolean s2iImageStreamLookupPolicyLocal;
+
+        private ResourceConfig resourceConfig;
+
+        private File resourceDir;
 
         public BuildServiceConfig() {
         }
@@ -124,6 +129,14 @@ public interface BuildService {
             if (attacher != null) {
                 attacher.attach(classifier, destFile);
             }
+        }
+
+        public ResourceConfig getResourceConfig() {
+            return resourceConfig;
+        }
+
+        public File getResourceDir() {
+            return resourceDir;
         }
 
         public static class Builder {
@@ -194,6 +207,16 @@ public interface BuildService {
 
             public Builder imagePullManager(ImagePullManager imagePullManager) {
                 config.imagePullManager = imagePullManager;
+                return this;
+            }
+
+            public Builder resourceConfig(ResourceConfig resourceConfig) {
+                config.resourceConfig = resourceConfig;
+                return this;
+            }
+
+            public Builder resourceDir(File resourceDir) {
+                config.resourceDir = resourceDir;
                 return this;
             }
 

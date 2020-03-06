@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -37,6 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
 
 import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.Container;
@@ -58,6 +60,7 @@ import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
@@ -84,6 +87,7 @@ import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
@@ -94,6 +98,10 @@ import org.eclipse.jkube.kit.common.ResourceFileType;
  */
 public class KubernetesHelper {
     protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
+    private static final String FILENAME_PATTERN_REGEX = "^(?<name>.*?)(-(?<type>[^-]+))?\\.(?<ext>yaml|yml|json)$";
+    private static final String PROFILES_PATTERN_REGEX = "^profiles?\\.ya?ml$";
+    private static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_PATTERN_REGEX);
+    private static final Pattern EXCLUDE_PATTERN = Pattern.compile(PROFILES_PATTERN_REGEX);
 
     /**
      * Validates that the given value is valid according to the kubernetes ID parsing rules, throwing an exception if not.
@@ -827,6 +835,76 @@ public class KubernetesHelper {
             }
         }
         return removed;
+    }
+
+
+    /**
+     * Get a specific resource fragment ending with some suffix in a specified directory
+     *
+     * @param resourceDirFinal resource directory
+     * @param remotes list remote fragments if provided
+     * @param resourceNameSuffix resource name suffix
+     * @param log log object
+     * @return file if present or null
+     */
+    public static File getResourceFragmentFromSource(File resourceDirFinal, List<String> remotes, String resourceNameSuffix, KitLogger log) {
+        File[] resourceFiles = listResourceFragments(resourceDirFinal, remotes, log);
+
+        if (resourceFiles != null) {
+            for (File file : resourceFiles) {
+                if (file.getName().endsWith(resourceNameSuffix)) {
+                    return file;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get requests or limit objects from string hashmaps
+     *
+     * @param quantity hashmap of strings
+     * @return hashmap of string to quantity
+     */
+    public static Map<String, Quantity> getQuantityFromString(Map<String, String> quantity) {
+        Map<String, Quantity> stringQuantityMap = new HashMap<>();
+        if (quantity != null && !quantity.isEmpty()) {
+            for (Map.Entry<String, String> entry : quantity.entrySet()) {
+                stringQuantityMap.put(entry.getKey(), new Quantity(entry.getValue()));
+            }
+        }
+        return stringQuantityMap;
+    }
+
+    protected static File[] listResourceFragments(File localResourceDir, List<String> remotes, KitLogger log) {
+        File[] resourceFiles = listResourceFragments(localResourceDir);
+
+        if(remotes != null) {
+            File[] remoteResourceFiles = listRemoteResourceFragments(remotes, log);
+            if (remoteResourceFiles.length > 0) {
+                resourceFiles = ArrayUtils.addAll(resourceFiles, remoteResourceFiles);
+            }
+        }
+        return resourceFiles;
+    }
+
+    private static File[] listResourceFragments(File resourceDir) {
+        if (resourceDir == null) {
+            return new File[0];
+        }
+        return resourceDir.listFiles((File dir, String name) -> FILENAME_PATTERN.matcher(name).matches() && !EXCLUDE_PATTERN.matcher(name).matches());
+    }
+
+    private static File[] listRemoteResourceFragments(List<String> remotes, KitLogger log) {
+        if (!remotes.isEmpty()) {
+            final File remoteResources = FileUtil.createTempDirectory();
+            FileUtil.downloadRemotes(remoteResources, remotes, log);
+
+            if (remoteResources.isDirectory()) {
+                return remoteResources.listFiles();
+            }
+        }
+        return new File[0];
     }
 }
 

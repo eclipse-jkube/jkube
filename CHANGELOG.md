@@ -26,6 +26,7 @@ Usage:
 * Fix #97: Port of fabric8io/fabric8-maven-plugin#1794 to fix ImageChange triggers not being set in DeploymentConfig when resource fragments are used
 * Ported PR fabric8io/fabric8-maven-plugin#1802, Labels are missing for some objects
 * Ported PR fabric8io/fabric8-maven-plugin#1805, NullPointerException in ConfigMapEnricher
+* Ported PR fabric8io/fabric8-maven-plugin#1772, Support for setting BuildConfig memory/cpu request and limits 
 * Fix #112: Fix windows specific path error while splitting file path
 * Fix #102: HelmMojo works again
 * Fix #120: Critical bugs reported by Sonar
