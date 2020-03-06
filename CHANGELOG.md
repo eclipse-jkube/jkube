@@ -22,6 +22,7 @@ Usage:
 ```
 ### 0.2.1-SNAPSHOT
 * Fix #53: Renamed plugins to openshift/kubernetes-maven-plugin keeping acronym (oc/k8s) for goal
+* Fix #97:  Port of fabric8io/fabric8-maven-plugin#1794 to fix ImageChange triggers not being set in DeploymentConfig when resource fragments are used
 
 ### 0.2.0 (05-03-2020)
 * Fix #71: script to extract changelog information for notifications
