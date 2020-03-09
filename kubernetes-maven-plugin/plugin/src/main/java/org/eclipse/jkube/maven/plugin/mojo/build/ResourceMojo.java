@@ -243,6 +243,9 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.openshift.trimImageInContainerSpec", defaultValue = "false")
     private Boolean trimImageInContainerSpec;
 
+    @Parameter(property = "jkube.openshift.generateRoute", defaultValue = "true")
+    private Boolean generateRoute;
+
     @Parameter(property = "jkube.openshift.enableAutomaticTrigger", defaultValue = "true")
     private Boolean enableAutomaticTrigger;
 
@@ -360,20 +363,24 @@ public class ResourceMojo extends AbstractJKubeMojo {
             resolvedImages = getResolvedImages(images, log);
             if (!skip && (!isPomProject() || hasJKubeDir())) {
                 // Extract and generate resources which can be a mix of Kubernetes and OpenShift resources
-                KubernetesList resources;
-                for(PlatformMode platformMode : new PlatformMode[] { PlatformMode.kubernetes }) {
-                    ResourceClassifier resourceClassifier = platformMode == PlatformMode.kubernetes ? ResourceClassifier.KUBERNETES
-                            : ResourceClassifier.OPENSHIFT;
-
-                    resources = generateResources(platformMode, resolvedImages);
-                    writeResources(resources, resourceClassifier);
-                    File resourceDir = new File(this.targetDir, resourceClassifier.getValue());
-                    validateIfRequired(resourceDir, resourceClassifier);
-                }
+                final PlatformMode platformMode = getPlatformMode();
+                final ResourceClassifier resourceClassifier = getResourceClassifier();
+                final KubernetesList resourceList = generateResources(platformMode, resolvedImages);
+                File resourceClassifierDir = new File(this.targetDir, resourceClassifier.getValue());
+                validateIfRequired(resourceClassifierDir, resourceClassifier);
+                writeResources(resourceList, resourceClassifier);
             }
         } catch (IOException | DependencyResolutionRequiredException e) {
             throw new MojoExecutionException("Failed to generate kubernetes descriptor", e);
         }
+    }
+
+    protected PlatformMode getPlatformMode() {
+        return PlatformMode.kubernetes;
+    }
+
+    protected ResourceClassifier getResourceClassifier() {
+        return ResourceClassifier.KUBERNETES;
     }
 
     private void updateKindFilenameMappings() {
@@ -405,7 +412,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
             } else {
                 log.warn("[[Y]]" + e.getMessage() + "[[Y]]");
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             if (failOnValidationError) {
                 throw new MojoExecutionException("Failed to validate resources", e);
             } else {
@@ -636,6 +643,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
         projectHelper.attachArtifact(project, this.resourceFileType.getArtifactType(), classifier.getValue(), file);
     }
 
+    @Override
     protected ClusterConfiguration getClusterConfiguration() {
         final ClusterConfiguration.Builder clusterConfigurationBuilder = new ClusterConfiguration.Builder(access);
 

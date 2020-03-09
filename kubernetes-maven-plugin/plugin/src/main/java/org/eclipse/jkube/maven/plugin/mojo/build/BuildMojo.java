@@ -25,7 +25,6 @@ import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -43,7 +42,7 @@ import java.io.IOException;
 public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() throws MojoExecutionException {
         if (skip || skipBuild) {
             return;
         }
@@ -62,7 +61,7 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
                 getLog().info("Disabling docker build for pom packaging");
                 return;
             }
-            if (getResolvedImages().size() == 0) {
+            if (getResolvedImages().isEmpty()) {
                 log.warn("No image build configuration found or detected");
             }
 
@@ -76,15 +75,15 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
                     .jkubeProject(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                     .build();
 
-            executeBuildGoal(hub);
+            executeBuildGoal();
 
             jkubeServiceHub.getBuildService().postProcess(getBuildServiceConfig());
-        } catch (IOException | DependencyResolutionRequiredException exception) {
+        } catch (DependencyResolutionRequiredException exception) {
             throw new MojoExecutionException(exception.getMessage());
         }
     }
 
-    public void executeDockerBuild() throws MojoExecutionException, MojoFailureException {
+    public void executeDockerBuild() throws MojoExecutionException {
         if (!skip) {
             log = new AnsiLogger(getLog(), useColor, verbose, !settings.getInteractiveMode(), getLogPrefix());
             authConfigFactory = new AuthConfigFactory(log);

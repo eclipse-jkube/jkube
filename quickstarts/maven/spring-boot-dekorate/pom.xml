@@ -26,7 +26,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>spring-boot-dekorate</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.2.1-SNAPSHOT</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot - Dekorate</name>
   <packaging>jar</packaging>
 

@@ -59,10 +59,12 @@ jobs:
           && cd $JKUBE_IT_DIR \
           && ./mvnw -B -PKubernetes,${{ matrix.suite }} clean verify -Djkube.version="$JKUBE_VERSION"
       - name: Consolidate reports
+        if: always()
         run: |
           mkdir -p ./reports \
-          && cp -R ./$JKUBE_IT_DIR/it/target/failsafe-reports ./reports
+          && cp ./$JKUBE_IT_DIR/it/target/jkube-test-report.txt ./reports
       - name: Save reports as artifact
+        if: always()
         uses: actions/upload-artifact@master
         with:
           name: Test reports (Minikube ${{ matrix.kubernetes }}-${{ matrix.suite }} )
@@ -107,10 +109,12 @@ jobs:
           && cd $JKUBE_IT_DIR \
           && ./mvnw -B -POpenShift,${{ matrix.suite }} clean verify -Djkube.version="$JKUBE_VERSION" -Djunit.jupiter.execution.parallel.config.fixed.parallelism=1
       - name: Consolidate reports
+        if: always()
         run: |
           mkdir -p ./reports \
-          && cp -R ./$JKUBE_IT_DIR/it/target/failsafe-reports ./reports
+          && cp ./$JKUBE_IT_DIR/it/target/jkube-test-report.txt ./reports
       - name: Save reports as artifact
+        if: always()
         uses: actions/upload-artifact@master
         with:
           name: Test reports (OpenShift ${{ matrix.openshift }}-${{ matrix.suite }})

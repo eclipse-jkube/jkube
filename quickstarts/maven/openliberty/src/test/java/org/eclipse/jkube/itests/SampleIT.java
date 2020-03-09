@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 @RunWith(ArquillianConditionalRunner.class)
 public class SampleIT {
 
-	private static final String SAMPLE_APP = "fabric8-maven-sample-openliberty";
+	private static final String SAMPLE_APP = "jkube-maven-sample-openliberty";
 
 	@RouteURL(SAMPLE_APP)
 	@AwaitRoute

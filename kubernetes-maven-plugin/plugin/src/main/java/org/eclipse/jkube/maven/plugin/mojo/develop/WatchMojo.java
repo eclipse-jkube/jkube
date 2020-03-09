@@ -13,25 +13,25 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
-import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -41,23 +41,18 @@ import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 import org.eclipse.jkube.maven.plugin.mojo.build.AbstractDockerMojo;
 import org.eclipse.jkube.maven.plugin.watcher.WatcherManager;
 import org.eclipse.jkube.watcher.api.WatcherContext;
+
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.repository.RepositorySystem;
-import org.codehaus.plexus.context.Context;
-import org.codehaus.plexus.context.ContextException;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.List;
-import java.util.Set;
 
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_OPENSHIFT_MANIFEST;
@@ -74,14 +69,6 @@ import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_OPENSH
 @Execute(goal = "deploy")
 public class WatchMojo extends AbstractDockerMojo {
 
-    @Parameter
-    ProcessorConfig generator;
-
-    /**
-     * To skip over the execution of the goal
-     */
-    @Parameter(property = "jkube.skip", defaultValue = "false")
-    protected boolean skip;
     /**
      * The generated kubernetes YAML file
      */
@@ -92,22 +79,6 @@ public class WatchMojo extends AbstractDockerMojo {
      */
     @Parameter(property = "jkube.openshiftManifest", defaultValue = DEFAULT_OPENSHIFT_MANIFEST)
     private File openshiftManifest;
-    /**
-     * Whether to perform a Kubernetes build (i.e. against a vanilla Docker daemon) or
-     * an OpenShift build (with a Docker build against the OpenShift API server.
-     */
-    @Parameter(property = "jkube.mode")
-    private RuntimeMode mode = RuntimeMode.auto;
-    /**
-     * OpenShift build mode when an OpenShift build is performed.
-     * Can be either "s2i" for an s2i binary build mode or "docker" for a binary
-     * docker mode.
-     */
-    @Parameter(property = "jkube.build.strategy")
-    private OpenShiftBuildStrategy buildStrategy = OpenShiftBuildStrategy.s2i;
-
-    @Parameter
-    protected ClusterConfiguration access;
 
     /**
      * Watcher specific options. This is a generic prefix where the keys have the form
@@ -116,47 +87,6 @@ public class WatchMojo extends AbstractDockerMojo {
     @Parameter
     private ProcessorConfig watcher;
 
-    /**
-     * Should we use the project's compile-time classpath to scan for additional enrichers/generators?
-     */
-    @Parameter(property = "jkube.useProjectClasspath", defaultValue = "false")
-    private boolean useProjectClasspath = false;
-
-    /**
-     * Profile to use. A profile contains the enrichers and generators to
-     * use as well as their configuration. Profiles are looked up
-     * in the classpath and can be provided as yaml files.
-     *
-     * However, any given enricher and or generator configuration overrides
-     * the information provided by a profile.
-     */
-    @Parameter(property = "jkube.profile")
-    private String profile;
-
-    /**
-     * Folder where to find project specific files, e.g a custom profile
-     */
-    @Parameter(property = "jkube.resourceDir", defaultValue = "${basedir}/src/main/jkube")
-    private File resourceDir;
-
-    /**
-     * Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, Plugin will look at src/main/jkube/dev
-     */
-    @Parameter(property = "jkube.environment")
-    private String environment;
-
-    // Whether to use color
-    @Parameter(property = "jkube.useColor", defaultValue = "true")
-    protected boolean useColor;
-
-    // For verbose output
-    @Parameter(property = "jkube.verbose", defaultValue = "false")
-    protected String verbose;
-
-    @Component
-    protected RepositorySystem repositorySystem;
-
-    private ClusterAccess clusterAccess;
     private KubernetesClient kubernetes;
     private ServiceHub hub;
 
@@ -177,6 +107,7 @@ public class WatchMojo extends AbstractDockerMojo {
         }
     }
 
+    @Override
     protected ClusterConfiguration getClusterConfiguration() {
         if(access == null) {
             access = new ClusterConfiguration.Builder().build();
@@ -238,11 +169,14 @@ public class WatchMojo extends AbstractDockerMojo {
                     .kubernetesClient(kubernetes)
                     .fabric8ServiceHub(getJKubeServiceHub())
                     .build();
-        } catch(IOException | DependencyResolutionRequiredException exception) {
+        } catch (IOException exception) {
             throw new MojoExecutionException(exception.getMessage());
+        } catch (DependencyResolutionRequiredException dependencyException) {
+            throw new MojoExecutionException("Instructed to use project classpath, but cannot. Continuing build if we can: " + dependencyException.getMessage());
         }
     }
 
+    @Override
     protected JKubeServiceHub getJKubeServiceHub() throws DependencyResolutionRequiredException {
         return new JKubeServiceHub.Builder()
                 .log(log)
