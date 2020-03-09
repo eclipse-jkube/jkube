@@ -13,12 +13,21 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.codehaus.plexus.DefaultPlexusContainer;
-import org.codehaus.plexus.PlexusConstants;
-import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.PlexusContainerException;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
@@ -31,7 +40,6 @@ import org.eclipse.jkube.kit.build.service.docker.RegistryService;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
@@ -39,11 +47,11 @@ import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.WatchMode;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
+import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
@@ -58,10 +66,10 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
-import org.eclipse.jkube.maven.enricher.api.EnricherContext;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
+
 import org.apache.maven.archiver.MavenArchiveConfiguration;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -75,25 +83,14 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenReaderFilter;
 import org.apache.maven.shared.utils.logging.MessageUtils;
+import org.codehaus.plexus.PlexusConstants;
+import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.fusesource.jansi.Ansi;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigHelper.Customizer, Contextualizable {
     public static final String DMP_PLUGIN_DESCRIPTOR = "META-INF/maven/org.eclipse.jkube/k8s-plugin";
@@ -478,7 +475,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     protected abstract void executeInternal(ServiceHub serviceHub)
             throws IOException, MojoExecutionException;
 
-    protected BuildService.BuildContext getBuildContext() throws MojoExecutionException, DependencyResolutionRequiredException {
+    protected BuildService.BuildContext getBuildContext() throws DependencyResolutionRequiredException {
         return new BuildService.BuildContext.Builder()
                 .buildArgs(buildArgs)
                 .mojoParameters(createMojoParameters())
@@ -511,19 +508,17 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     /**
      * Helper method to process an ImageConfiguration.
      *
-     * @param hub          ServiceHub
      * @param aImageConfig ImageConfiguration that would be forwarded to build and tag
-     * @throws DockerAccessException
      * @throws MojoExecutionException
      */
-    protected void processImageConfig(ServiceHub hub, ImageConfiguration aImageConfig) throws IOException, MojoExecutionException {
+    private void processImageConfig(ImageConfiguration aImageConfig) throws MojoExecutionException {
         BuildConfiguration buildConfig = aImageConfig.getBuildConfiguration();
 
         if (buildConfig != null) {
             if (buildConfig.getSkip()) {
                 log.info("%s : Skipped building", aImageConfig.getDescription());
             } else {
-                buildAndTag(hub, aImageConfig);
+                buildAndTag(aImageConfig);
             }
         }
     }
@@ -553,7 +548,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     protected void processDmpPluginDescription(URL pluginDesc, File outputDir) throws IOException {
         String line = null;
         try (LineNumberReader reader =
-                     new LineNumberReader(new InputStreamReader(pluginDesc.openStream(), "UTF8"))) {
+                     new LineNumberReader(new InputStreamReader(pluginDesc.openStream(), StandardCharsets.UTF_8))) {
             line = reader.readLine();
             while (line != null) {
                 if (line.matches("^\\s*#")) {
@@ -579,7 +574,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                 .authConfigFactory(authConfigFactory)
                 .skipExtendedAuth(skipExtendedAuth)
                 .registry(specificRegistry != null ? specificRegistry : registry)
-                .passwordDecryptionMethod((password) -> {
+                .passwordDecryptionMethod(password -> {
                     try {
                         // Done by reflection since I have classloader issues otherwise
                         if (plexusContainer != null) {
@@ -672,7 +667,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         return true; // True in case of kubernetes maven plugin
     }
 
-    protected void executeBuildGoal(ServiceHub hub) throws IOException, MojoExecutionException {
+    void executeBuildGoal() throws MojoExecutionException {
         if (skipBuild) {
             return;
         }
@@ -682,7 +677,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
 
         // Iterate over all the ImageConfigurations and process one by one
         for (ImageConfiguration imageConfig : getResolvedImages()) {
-            processImageConfig(hub, imageConfig);
+            processImageConfig(imageConfig);
         }
     }
 
@@ -705,8 +700,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         return true;
     }
 
-    protected void buildAndTag(ServiceHub hub, ImageConfiguration imageConfig)
-            throws MojoExecutionException, DockerAccessException {
+    private void buildAndTag(ImageConfiguration imageConfig)
+            throws MojoExecutionException {
 
         try {
             // TODO need to refactor d-m-p to avoid this call
@@ -719,7 +714,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         }
     }
 
-    protected org.eclipse.jkube.kit.config.service.BuildService.BuildServiceConfig getBuildServiceConfig() throws MojoExecutionException, DependencyResolutionRequiredException {
+    protected org.eclipse.jkube.kit.config.service.BuildService.BuildServiceConfig getBuildServiceConfig() throws DependencyResolutionRequiredException {
         return new org.eclipse.jkube.kit.config.service.BuildService.BuildServiceConfig.Builder()
                 .dockerBuildContext(getBuildContext())
                 .dockerMavenBuildContext(createMojoParameters())

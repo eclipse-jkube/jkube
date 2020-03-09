@@ -78,7 +78,6 @@ public class DebugMojo extends ApplyMojo {
     private boolean debugSuspend;
 
     private String remoteDebugPort = DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT;
-    private Watch podWatcher;
     private CountDownLatch terminateLatch = new CountDownLatch(1);
     private Pod foundPod;
     private KitLogger podWaitLog;
@@ -90,6 +89,7 @@ public class DebugMojo extends ApplyMojo {
         portForwardService = new PortForwardService(kubernetes, log);
     }
 
+    @Override
     protected void applyEntities(KubernetesClient kubernetes, String namespace, String fileName, Set<HasMetadata> entities) throws Exception {
         LabelSelector firstSelector = null;
         for (HasMetadata entity : entities) {
@@ -168,7 +168,7 @@ public class DebugMojo extends ApplyMojo {
                 return getName(latestPod);
             }
         }
-        podWatcher = pods.watch(new Watcher<Pod>() {
+        pods.watch(new Watcher<Pod>() {
             @Override
             public void eventReceived(Action action, Pod pod) {
                 podWaitLog.info(getName(pod) + " status: " + getPodStatusDescription(pod) + getPodStatusMessagePostfix(action));
@@ -254,7 +254,7 @@ public class DebugMojo extends ApplyMojo {
             if (podSpec != null) {
                 List<Container> containers = podSpec.getContainers();
                 boolean enabled = false;
-                 for (int i = 0; i < containers.size(); i++) {
+                for (int i = 0; i < containers.size(); i++) {
                     Container container = containers.get(i);
                     List<EnvVar> env = container.getEnv();
                     if (env == null) {
@@ -305,8 +305,7 @@ public class DebugMojo extends ApplyMojo {
 
     private int portToInt(String port, String name) throws MojoExecutionException {
         try {
-            int portInt = Integer.parseInt(port);
-            return portInt;
+            return Integer.parseInt(port);
         } catch (Exception e) {
             throw new MojoExecutionException("Invalid port value: " + name +"=" + port);
         }

@@ -62,7 +62,7 @@ jobs:
         if: always()
         run: |
           mkdir -p ./reports \
-          && cp -R ./$JKUBE_IT_DIR/it/target/failsafe-reports ./reports
+          && cp ./$JKUBE_IT_DIR/it/target/jkube-test-report.txt ./reports
       - name: Save reports as artifact
         if: always()
         uses: actions/upload-artifact@master
@@ -116,7 +116,7 @@ jobs:
         if: always()
         run: |
           mkdir -p ./reports \
-          && cp -R ./$JKUBE_IT_DIR/it/target/failsafe-reports ./reports
+          && cp ./$JKUBE_IT_DIR/it/target/jkube-test-report.txt ./reports
       - name: Save reports as artifact
         if: always()
         uses: actions/upload-artifact@master

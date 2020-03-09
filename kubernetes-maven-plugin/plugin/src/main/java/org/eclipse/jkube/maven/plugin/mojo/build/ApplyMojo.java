@@ -441,11 +441,10 @@ public class ApplyMojo extends AbstractJKubeMojo {
                 }
             }
             log.info("Not generating route for service " + id + " type is not LoadBalancer: " + type);
-            return false;
         } else {
             log.info("Not generating route for service " + id + " as only single port services are supported. Has ports: " + ports);
-            return false;
         }
+        return false;
     }
 
     private boolean hasExactlyOneService(Service service, String id) {

@@ -121,7 +121,9 @@
               <exclude>.lgtm</exclude>
               <exclude>**/.gitkeep</exclude>
               <exclude>Jenkinsfile</exclude>
+              <exclude>.mvn/**/*</exclude>
               <exclude>mvnw</exclude>
+              <exclude>mvnw.cmd</exclude>
             </excludes>
           </configuration>
         </plugin>

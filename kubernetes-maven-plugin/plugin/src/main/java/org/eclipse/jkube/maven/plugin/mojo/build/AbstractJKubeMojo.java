@@ -29,6 +29,8 @@ import org.apache.maven.shared.utils.logging.MessageUtils;
 
 public abstract class AbstractJKubeMojo extends AbstractMojo {
 
+    private static final String DEFAULT_LOG_PREFIX = "k8s:";
+
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
 
@@ -79,8 +81,12 @@ public abstract class AbstractJKubeMojo extends AbstractMojo {
         return createLogger(prefix + "[[s]]");
     }
 
+    protected String getLogPrefix() {
+        return DEFAULT_LOG_PREFIX;
+    }
+
     protected KitLogger createLogger(String prefix) {
-        return new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), "k8s:" + prefix);
+        return new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix() + prefix);
     }
 
     /**
