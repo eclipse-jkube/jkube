@@ -111,8 +111,8 @@ public class DockerAssemblyManager {
 
         final BuildDirs buildDirs = createBuildDirs(imageName, params);
 
-        Map<File, String> fileToPermissionsMap = copyFilesToFinalTarballDirectory(params.getProject(), buildDirs, buildConfig.getAssemblyConfiguration());
         final JKubeAssemblyConfiguration assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfig);
+        Map<File, String> fileToPermissionsMap = copyFilesToFinalTarballDirectory(params.getProject(), buildDirs, assemblyConfig);
 
         final List<ArchiverCustomizer> archiveCustomizers = new ArrayList<>();
 
