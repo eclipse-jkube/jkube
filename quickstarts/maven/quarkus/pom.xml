@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>quarkus</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.2.1-SNAPSHOT</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Quarkus</name>
   <description>
     Quarkus REST JSON project

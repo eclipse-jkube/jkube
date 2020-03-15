@@ -26,7 +26,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>jkube-sample-spring-boot</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.2.1-SNAPSHOT</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot Web</name>
   <packaging>jar</packaging>
 
