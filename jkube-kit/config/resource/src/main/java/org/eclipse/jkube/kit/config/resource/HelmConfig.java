@@ -65,8 +65,8 @@ public class HelmConfig {
     }
 
     public enum HelmType {
-        kubernetes("helm", "k8s-template", "Kubernetes"),
-        openshift("helmshift", "openshift", "OpenShift");
+        KUBERNETES("helm", "kubernetes", "Kubernetes"),
+        OPENSHIFT("helmshift", "openshift", "OpenShift");
 
         private final String classifier;
         private final String sourceDir;

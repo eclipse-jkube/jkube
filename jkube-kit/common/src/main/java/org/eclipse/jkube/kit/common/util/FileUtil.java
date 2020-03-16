@@ -69,7 +69,7 @@ public class FileUtil {
 
     public static String stripPostfix(String text, String postfix) {
         if (text.endsWith(postfix)) {
-            return text.substring(text.length() - postfix.length());
+            return text.substring(0, text.length() - postfix.length());
         }
         return text;
     }
