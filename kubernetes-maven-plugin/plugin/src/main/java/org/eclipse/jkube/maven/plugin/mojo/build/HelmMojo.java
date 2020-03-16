@@ -22,11 +22,12 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
+import org.eclipse.jkube.kit.build.core.assembly.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.config.image.build.ArchiveCompression;
 import org.eclipse.jkube.kit.config.resource.HelmConfig;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.apache.commons.io.FileUtils;
@@ -40,19 +41,19 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.codehaus.plexus.archiver.Archiver;
-import org.codehaus.plexus.archiver.tar.TarArchiver;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-
-import static java.lang.System.getProperty;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Generates a Helm chart for the kubernetes resources
@@ -74,14 +75,14 @@ public class HelmMojo extends AbstractJKubeMojo {
     /**
      * The generated kubernetes YAML file
      */
-    @Parameter(property = "jkube.kubernetesTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/k8s-template.yml")
+    @Parameter(property = "jkube.kubernetesTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
     private File kubernetesTemplate;
 
     @Component
     private MavenProjectHelper projectHelper;
 
-    @Component(role = Archiver.class, hint = "tar")
-    private TarArchiver archiver;
+//    @Component(role = Archiver.class, hint = "tar")
+//    private TarArchiver archiver;
 
     @Override
     public void executeInternal() throws MojoExecutionException {
@@ -124,7 +125,9 @@ public class HelmMojo extends AbstractJKubeMojo {
         // now lets create the tarball
         File destinationFile = new File(project.getBuild().getDirectory(),
                                         chartName + "-" + project.getVersion() + "-" + type.getClassifier() + "." + getChartFileExtension());
-        MavenUtil.createArchive(outputDir.getParentFile(), destinationFile, this.archiver);
+        final JKubeTarArchiver archiver = new JKubeTarArchiver();
+        archiver.createTarBallOfDirectory(destinationFile, outputDir.getParentFile(), ArchiveCompression.gzip);
+//        MavenUtil.createArchive(outputDir.getParentFile(), destinationFile, this.archiver);
         projectHelper.attachArtifact(project, getChartFileExtension(), type.getClassifier(), destinationFile);
     }
 
@@ -189,22 +192,17 @@ public class HelmMojo extends AbstractJKubeMojo {
     }
 
     private List<HelmConfig.HelmType> getHelmTypes() {
-        String helmTypeProp = getProperty("jkube.helm.type");
+        final String helmTypeProp = getProperty("jkube.helm.type");
         if (StringUtils.isNotBlank(helmTypeProp)) {
-            String[] propTypes = StringUtils.split(helmTypeProp, ",");
-            List<HelmConfig.HelmType> ret = new ArrayList<>();
-            for (String prop : propTypes) {
-                ret.add(HelmConfig.HelmType.valueOf(prop.trim().toLowerCase()));
-            }
-            return ret;
+            final String[] propTypes = StringUtils.split(helmTypeProp, ",");
+            return Stream.of(propTypes)
+              .map(prop -> HelmConfig.HelmType.valueOf(prop.trim().toUpperCase()))
+              .collect(Collectors.toList());
         }
-        if (helm != null) {
-            List<HelmConfig.HelmType> types = helm.getType();
-            if (types != null && types.size() > 0) {
-                return types;
-            }
-        }
-        return Arrays.asList(HelmConfig.HelmType.kubernetes);
+        return Optional.ofNullable(helm)
+          .map(HelmConfig::getType)
+          .filter(((Predicate<List<HelmConfig.HelmType>>)List::isEmpty).negate())
+          .orElse(Collections.singletonList(HelmConfig.HelmType.KUBERNETES));
     }
 
     private void createChartYaml(String chartName, File outputDir) throws MojoExecutionException {
@@ -311,7 +309,10 @@ public class HelmMojo extends AbstractJKubeMojo {
     }
 
     private Template findTemplate() throws MojoExecutionException {
-        if (kubernetesTemplate != null && kubernetesTemplate.isFile()) {
+        if (kubernetesTemplate != null && kubernetesTemplate.isDirectory()) {
+            File[] templates = kubernetesTemplate.listFiles((dir, filename) -> filename.endsWith("-template.yml"));
+            kubernetesTemplate = templates != null && templates.length > 0 ? templates[0] : null;
+        } else if (kubernetesTemplate != null && kubernetesTemplate.isFile()) {
             Object dto = null;
             try {
                 dto = ResourceUtil.load(kubernetesTemplate, KubernetesResource.class,ResourceFileType.yaml);
@@ -355,10 +356,7 @@ public class HelmMojo extends AbstractJKubeMojo {
                     continue;
                 }
 
-                String name = file.getName();
-                if (name.endsWith(".yml")) {
-                    name = FileUtil.stripPostfix(name, ".yml") + YAML_EXTENSION;
-                }
+                String name = FileUtil.stripPostfix(file.getName(), ".yml") + YAML_EXTENSION;
                 File targetFile = new File(templatesDir, name);
                 try {
                     // lets escape any {{ or }} characters to avoid creating invalid templates
@@ -503,13 +501,10 @@ public class HelmMojo extends AbstractJKubeMojo {
             this.keywords = keywords;
             this.engine = engine;
 
-            this.name = name;
             if (project != null) {
                 this.version = project.getVersion();
                 this.description = project.getDescription();
                 this.home = project.getUrl();
-                this.keywords = keywords;
-                this.engine = engine;
 
                 Scm scm = project.getScm();
                 if (scm != null) {

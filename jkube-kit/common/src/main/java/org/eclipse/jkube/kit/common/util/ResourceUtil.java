@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
+import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -68,7 +69,8 @@ public class ResourceUtil {
     }
 
     public static File save(File file, Object data, ResourceFileType type) throws IOException {
-        File output = type.addExtensionIfMissing(file);
+        boolean hasExtension = FilenameUtils.indexOfExtension(file.getAbsolutePath()) != -1;
+        File output = hasExtension ? file : type.addExtensionIfMissing(file);
         ensureDir(file);
         getObjectMapper(type).writeValue(output, data);
         return output;
