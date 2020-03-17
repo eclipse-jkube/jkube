@@ -61,11 +61,15 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.image.build.RegistryAuthConfiguration;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
+import org.eclipse.jkube.maven.enricher.api.EnricherContext;
+import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.maven.plugin.enricher.EnricherManager;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
@@ -731,6 +735,11 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                         projectHelper.attachArtifact(project, "yml", classifier, destFile);
                     }
                 })
+                .enricherTask(builder -> {
+                    EnricherManager enricherManager = new EnricherManager(resources, getEnricherContext(), MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath));
+                    enricherManager.enrich(PlatformMode.kubernetes, builder);
+                    enricherManager.enrich(PlatformMode.openshift, builder);
+                })
                 .build();
     }
 
@@ -761,6 +770,17 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     // ==================================================================================================
+
+    // Get enricher context
+    public EnricherContext getEnricherContext() throws DependencyResolutionRequiredException {
+        return new JKubeEnricherContext.Builder()
+                .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
+                .config(extractEnricherConfig())
+                .images(getResolvedImages())
+                .resources(resources)
+                .log(log)
+                .build();
+    }
 
     // Get generator context
     protected GeneratorContext getGeneratorContext() throws DependencyResolutionRequiredException {
