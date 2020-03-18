@@ -20,7 +20,7 @@ import java.util.Map;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.util.ClientBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.build.ArchiveCompression;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.http.client.HttpResponseException;

@@ -218,6 +218,12 @@
         <version>${project.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-resource-helm</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
       <!-- == jkube ===================================== -->
       <dependency>
         <groupId>io.fabric8</groupId>

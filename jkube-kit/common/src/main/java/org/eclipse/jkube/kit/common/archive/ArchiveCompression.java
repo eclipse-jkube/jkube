@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.config.image.build;
+package org.eclipse.jkube.kit.common.archive;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 
