@@ -18,12 +18,12 @@ Actually it contains the following abstractions which has been extracted from bo
 
 * **Kubernetes Maven Plugin** <br/>
 [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/k8s-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22k8s-maven-plugin%22)
-[![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://htmlpreview.github.io/?https://github.com/eclipse/jkube/blob/master/kubernetes-maven-plugin/doc/index.html)
+[![Documentation](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin)](https://htmlpreview.github.io/?https://github.com/eclipse/jkube/blob/master/kubernetes-maven-plugin/doc/index.html)
 ![Sample Demo](kubernetes-maven-plugin/k8s-maven-plugin-demo.gif)
 
 * **OpenShift Maven Plugin** <br/> 
 [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/oc-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22oc-maven-plugin%22)
-[![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://htmlpreview.github.io/?https://github.com/eclipse/jkube/blob/master/openshift-maven-plugin/doc/index.html)
+[![Documentation](https://www.eclipse.org/jkube/docs/openshift-maven-plugin)](https://htmlpreview.github.io/?https://github.com/eclipse/jkube/blob/master/openshift-maven-plugin/doc/index.html)
 ![Sample Demo](openshift-maven-plugin/oc-maven-plugin-demo.gif)
 
 * **JKube-kit**, which consists of the following:
