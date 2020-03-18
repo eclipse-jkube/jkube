@@ -23,13 +23,18 @@ import java.util.Map;
 
 public class KindFilenameMapperUtil {
 
+    private KindFilenameMapperUtil() {}
+
     public static Map<String, List<String>> loadMappings() {
 
         final String location = "/META-INF/jkube/kind-filename-type-mapping-default.adoc";
         final String locationMappingProperties =
                 EnvUtil.getEnvVarOrSystemProperty("jkube.mapping", "/META-INF/jkube/kind-filename-type-mapping-default.properties");
 
-        try (final InputStream mappingFile = loadContent(location); final InputStream mappingPropertiesFile = loadContent(locationMappingProperties)) {
+        try (
+          final InputStream mappingFile = loadContent(location);
+          final InputStream mappingPropertiesFile = loadContent(locationMappingProperties)
+        ) {
             final AsciiDocParser asciiDocParser = new AsciiDocParser();
             final Map<String, List<String>> defaultMapping = asciiDocParser.serializeKindFilenameTable(mappingFile);
 

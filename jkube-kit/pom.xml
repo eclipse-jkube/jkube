@@ -48,6 +48,7 @@
       <module>enricher/generic</module>
       <module>enricher/specific</module>
       <module>profile</module>
+      <module>resource/helm</module>
       <module>resource/service</module>
       <module>watcher/api</module>
       <module>watcher/standard</module>

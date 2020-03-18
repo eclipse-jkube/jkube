@@ -29,7 +29,7 @@ import io.fabric8.openshift.api.model.NamedTagEventListBuilder;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
-import org.eclipse.jkube.kit.build.core.assembly.JKubeTarArchiver;
+import org.eclipse.jkube.kit.build.core.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
 import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
@@ -84,7 +84,7 @@ public class OpenshiftBuildServiceTest {
     private ArchiveService archiveService;
 
     @Mocked
-    private JKubeTarArchiver tarArchiver;
+    private JKubeBuildTarArchiver tarArchiver;
 
     @Mocked
     private KitLogger logger;

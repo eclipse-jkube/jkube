@@ -34,9 +34,10 @@ import org.eclipse.jkube.kit.common.JKubeAssemblyFile;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.config.image.build.ArchiveCompression;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.AssemblyMode;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -134,7 +135,7 @@ public class DockerAssemblyManager {
                 // User dedicated Dockerfile from extra directory
                 archiveCustomizers.add(new ArchiverCustomizer() {
                     @Override
-                    public JKubeTarArchiver customize(JKubeTarArchiver archiver) {
+                    public JKubeBuildTarArchiver customize(JKubeBuildTarArchiver archiver) {
                         // If the content is added as archive, then we need to add the Dockerfile from the builddir
                         // directly to docker.tar (as the output builddir is not picked up in archive mode)
                         if (isArchive(assemblyConfig)) {
@@ -260,7 +261,7 @@ public class DockerAssemblyManager {
                 File dest = prepareChangedFilesArchivePath(archiveDir,entry.getDestFile(),assemblyDirectory);
                 Files.copy(Paths.get(entry.getSrcFile().getAbsolutePath()), Paths.get(dest.getAbsolutePath()));
             }
-            return new JKubeTarArchiver().createTarBallOfDirectory(archive, archiveDir, ArchiveCompression.none);
+            return JKubeTarArchiver.createTarBallOfDirectory(archive, archiveDir, ArchiveCompression.none);
         } catch (IOException exp) {
             throw new IOException("Error while creating " + dirs.getTemporaryRootDirectory() +
                                              "/changed-files.tar: " + exp);
@@ -278,7 +279,7 @@ public class DockerAssemblyManager {
                                     JKubeAssemblyConfiguration assemblyConfig, ArchiveCompression compression) throws IOException {
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
 
-        JKubeTarArchiver jkubeTarArchiver = new JKubeTarArchiver();
+        JKubeBuildTarArchiver jkubeTarArchiver = new JKubeBuildTarArchiver();
         for (ArchiverCustomizer customizer : archiverCustomizers) {
             if (customizer != null) {
                 jkubeTarArchiver = customizer.customize(jkubeTarArchiver);
@@ -351,7 +352,7 @@ public class DockerAssemblyManager {
     private void createAssemblyArchive(JKubeAssemblyConfiguration assemblyConfig, JKubeBuildContext params, BuildDirs buildDirs, ArchiveCompression compression)
             throws IOException {
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
-        JKubeTarArchiver jkubeTarArchiver = new JKubeTarArchiver();
+        JKubeBuildTarArchiver jkubeTarArchiver = new JKubeBuildTarArchiver();
 
         Map<File, String> fileToPermissionsMap = copyFilesToFinalTarballDirectory(params.getProject(), buildDirs, assemblyConfig);
         AssemblyMode buildMode = assemblyConfig.getMode();

@@ -19,9 +19,9 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import mockit.Mocked;
 import org.junit.Test;
 
-import static org.eclipse.jkube.kit.config.image.build.ArchiveCompression.bzip2;
-import static org.eclipse.jkube.kit.config.image.build.ArchiveCompression.gzip;
-import static org.eclipse.jkube.kit.config.image.build.ArchiveCompression.none;
+import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.bzip2;
+import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
+import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.none;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

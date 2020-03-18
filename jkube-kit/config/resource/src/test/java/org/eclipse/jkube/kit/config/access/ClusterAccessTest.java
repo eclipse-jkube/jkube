@@ -38,7 +38,7 @@ public class ClusterAccessTest {
 
     private RuntimeMode mode;
 
-    private List<String> paths = new ArrayList<String>() ;
+    private List<String> paths = new ArrayList<>() ;
 
     OpenShiftMockServer mockServer = new OpenShiftMockServer(false);
     OpenShiftClient client = mockServer.createOpenShiftClient();

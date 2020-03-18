@@ -1,0 +1,36 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+kind: Template
+metadata:
+  name: complete-template-for-pod
+objects:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    name: pod-to-showcase-template
+  spec:
+    containers:
+    - env:
+      - name: SAMPLE_ENV_VAR
+        value: ${SAMPLE_ENV_VAR}
+      image: dockerfile/redis
+      name: master
+      ports:
+      - containerPort: 8080
+        protocol: TCP
+parameters:
+  - description: Parameter to replace environment variable value
+    name: SAMPLE_ENV_VAR
+    value: This is a sample
