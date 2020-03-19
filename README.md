@@ -57,7 +57,7 @@ git clone git@github.com:eclipse/jkube.git && cd jkube/quickstarts/maven/hello-w
 # 2. Build Project and run JKube goals
 mvn clean install \
   k8s:build       \ # Build Docker Image
-  k8s:resouce     \ # Generate Kubernetes Manifests
+  k8s:resource     \ # Generate Kubernetes Manifests
   k8s:apply         # Apply generated Kubernetes Manifests onto Kubernetes
 ```
 - Check created pod logs:
