@@ -25,10 +25,11 @@ objects:
     - env:
       - name: SAMPLE_ENV_VAR
         value: ${SAMPLE_ENV_VAR}
-      image: dockerfile/redis
+      image: containous/whoami
       name: master
       ports:
-      - containerPort: 8080
+      - name: whoami
+        containerPort: 80
         protocol: TCP
 parameters:
   - description: Parameter to replace environment variable value

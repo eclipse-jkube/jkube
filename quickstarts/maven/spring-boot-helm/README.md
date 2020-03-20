@@ -47,3 +47,14 @@ Helm chart can also be customized through `pom.xml` plugin configuration:
     </configuration>
 </plugin>
 ```
+
+## How to test
+
+With Minikube running, perform the following commands:
+```shell script
+eval $(minikube docker-env)
+mvn clean package k8s:build k8s:resource k8s:helm
+helm install spring-boot-yaml target/jkube/helm/spring-boot-yaml/kubernetes/ 
+minikube service spring-boot-yaml  
+```
+

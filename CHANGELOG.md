@@ -27,6 +27,7 @@ Usage:
 * Ported PR fabric8io/fabric8-maven-plugin#1802, Labels are missing for some objects
 * Ported PR fabric8io/fabric8-maven-plugin#1805, NullPointerException in ConfigMapEnricher
 * Fix #112: Fix windows specific path error while splitting file path
+* Fix #102: HelmMojo works again
 
 ### 0.2.0 (05-03-2020)
 * Fix #71: script to extract changelog information for notifications

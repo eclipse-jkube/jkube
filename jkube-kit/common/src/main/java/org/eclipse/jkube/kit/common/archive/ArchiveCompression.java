@@ -27,16 +27,16 @@ import java.io.OutputStream;
  */
 public enum ArchiveCompression {
 
-    none(TarCompressionMethod.none, "tar"),
+    none(TarCompressionMethod.none, "tar"), // NOSONAR
 
-    gzip(TarCompressionMethod.gzip,"tar.gz") {
+    gzip(TarCompressionMethod.gzip,"tar.gz") { // NOSONAR
         @Override
         public OutputStream wrapOutputStream(OutputStream out) throws IOException {
             return new ArchiveCompression.GZIPOutputStream(out);
         }
     },
 
-    bzip2(TarCompressionMethod.bzip2,"tar.bz") {
+    bzip2(TarCompressionMethod.bzip2,"tar.bz") { // NOSONAR
         @Override
         public OutputStream wrapOutputStream(OutputStream out) throws IOException {
             return new BZip2CompressorOutputStream(out);
@@ -61,7 +61,7 @@ public enum ArchiveCompression {
         return fileSuffix;
     }
 
-    public OutputStream wrapOutputStream(OutputStream outputStream) throws IOException {
+    public OutputStream wrapOutputStream(OutputStream outputStream) throws IOException { // NOSONAR
         return outputStream;
     }
 
@@ -69,11 +69,11 @@ public enum ArchiveCompression {
      * Valid Modes for Compression
      */
     public enum TarCompressionMethod {
-        none,
-        gzip,
-        bzip2,
-        snappy,
-        xz
+        none, // NOSONAR
+        gzip, // NOSONAR
+        bzip2, // NOSONAR
+        snappy, // NOSONAR
+        xz // NOSONAR
     }
 
     public static ArchiveCompression fromFileName(String filename) {
