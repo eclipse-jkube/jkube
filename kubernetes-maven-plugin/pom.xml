@@ -44,7 +44,18 @@
         <version>${version.junit}</version>
         <scope>test</scope>
       </dependency>
-
+      <dependency>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-all</artifactId>
+          <version>${version.hamcrest-library}</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.jmockit</groupId>
+          <artifactId>jmockit</artifactId>
+          <version>${version.jmockit}</version>
+          <scope>test</scope>
+      </dependency>
       <dependency>
         <groupId>com.consol.citrus</groupId>
         <artifactId>citrus-core</artifactId>
@@ -107,6 +118,24 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${version.maven-failsafe-plugin}</version>
+        </plugin>
+
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>${version.maven-surefire-plugin}</version>
+            <configuration>
+                <argLine>
+                    -javaagent:"${settings.localRepository}/org/jmockit/jmockit/${version.jmockit}/jmockit-${version.jmockit}.jar"
+                </argLine>
+            </configuration>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jmockit</groupId>
+                    <artifactId>jmockit</artifactId>
+                    <version>${version.jmockit}</version>
+                </dependency>
+            </dependencies>
         </plugin>
 
         <plugin>

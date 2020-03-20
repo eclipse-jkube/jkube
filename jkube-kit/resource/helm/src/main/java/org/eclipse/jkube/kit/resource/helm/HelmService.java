@@ -77,7 +77,7 @@ public class HelmService {
     }
   }
 
-  private static File prepareSourceDir(HelmConfig helmConfig, HelmConfig.HelmType type) throws IOException {
+  static File prepareSourceDir(HelmConfig helmConfig, HelmConfig.HelmType type) throws IOException {
     final File sourceDir = new File(helmConfig.getSourceDir(), type.getSourceDir());
     if (!sourceDir.isDirectory()) {
       throw new IOException(String.format(
@@ -122,7 +122,7 @@ public class HelmService {
     for (File file : listYamls(sourceDir)) {
       final KubernetesResource dto = ResourceUtil.load(file, KubernetesResource.class, ResourceFileType.yaml);
       if (dto instanceof Template) {
-        copyTemplateResourcesToTemplatesDir(templatesDir, (Template) dto);
+        splitAndSaveTemplate((Template) dto, templatesDir);
       } else {
         final String fileName = FileUtil.stripPostfix(file.getName(), ".yml") + YAML_EXTENSION;
         File targetFile = new File(templatesDir, fileName);
@@ -134,7 +134,7 @@ public class HelmService {
     }
   }
 
-  private static void copyTemplateResourcesToTemplatesDir(File templatesDir, Template template) throws IOException {
+  private static void splitAndSaveTemplate(Template template, File templatesDir) throws IOException {
     for (HasMetadata object : Optional.ofNullable(template.getObjects()).orElse(Collections.emptyList())) {
       String name = KubernetesResourceUtil.getNameWithSuffix(KubernetesHelper.getName(object),
           KubernetesHelper.getKind(object)) + YAML_EXTENSION;
@@ -143,7 +143,7 @@ public class HelmService {
     }
   }
 
-  private static void createChartYaml(HelmConfig helmConfig, File outputDir) throws IOException {
+  static void createChartYaml(HelmConfig helmConfig, File outputDir) throws IOException {
     final Chart chart = new Chart();
     chart.setName(helmConfig.getChart());
     chart.setVersion(helmConfig.getVersion());

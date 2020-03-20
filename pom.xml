@@ -75,8 +75,10 @@
   <properties>
     <jdk.version>1.8</jdk.version>
     <version.citrus-core>2.6.2</version.citrus-core>
+    <version.hamcrest-library>1.3</version.hamcrest-library>
     <version.jackson>2.10.0</version.jackson>
     <version.jacoco>0.8.2</version.jacoco>
+    <version.jmockit>1.43</version.jmockit>
     <version.junit>4.11</version.junit>
     <version.maven-compiler-plugin>3.6.2</version.maven-compiler-plugin>
     <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
@@ -87,6 +89,7 @@
     <version.maven-plugin-plugin>3.5</version.maven-plugin-plugin>
     <version.maven-resources-plugin>3.0.0</version.maven-resources-plugin>
     <version.maven-source-plugin>2.4</version.maven-source-plugin>
+    <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>
     <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
     <version.license-maven-plugin>3.0</version.license-maven-plugin>
   </properties>
