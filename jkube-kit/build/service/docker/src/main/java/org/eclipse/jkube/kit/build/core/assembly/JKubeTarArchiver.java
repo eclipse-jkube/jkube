@@ -67,18 +67,11 @@ public class JKubeTarArchiver {
                 String targetFileName = entry.getValue();
 
                 // 1. Check whether nested directory is there, if not create it
-                String[] pathParts = targetFileName.split(File.separator);
-                File parentDirectory = inputDirectory;
-                if (pathParts.length > 0) {
-                    StringBuilder finalPathBuilder = new StringBuilder();
-                    for (int i = 0; i < pathParts.length - 1; i++) {
-                        String pathPart = pathParts[i];
-                        finalPathBuilder.append(pathPart + File.separator);
-                    }
-                    parentDirectory = new File(inputDirectory, finalPathBuilder.toString());
-                    parentDirectory.mkdirs();
+                File parentDirectory = new File(targetFileName).getParentFile();
+                if (parentDirectory != null) {
+                    FileUtil.createDirectory(new File(inputDirectory, parentDirectory.getPath()));
                 }
-                File targetFile = new File(parentDirectory, pathParts[pathParts.length - 1]);
+                File targetFile = new File(inputDirectory, targetFileName);
                 // Check whether file is not already created.
                 if (!targetFile.exists()) {
                     FileUtils.copyFile(srcFile, targetFile);
