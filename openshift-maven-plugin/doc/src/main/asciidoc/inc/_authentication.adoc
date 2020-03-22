@@ -14,7 +14,7 @@ There are five different locations searched for credentials.  In order, these ar
 * Login into a registry with `docker login` (credentials in a credential helper or in `~/.docker/config.json`)
 
 Using the username and password directly in the `pom.xml` is not
-recommended since this is widely visible. This is easiest and
+recommended since this is widely visible. This is the easiest and
 transparent way, though. Using an `<authConfig>` is straight forward:
 
 [source,xml]
@@ -150,7 +150,7 @@ If `useOpenShiftAuth` is enabled then the OpenShift Konfiguration will be looked
 [[password-encryption]]
 == Password encryption
 
-Regardless which mode you choose you can encrypt password as described
+Regardless of which mode you choose you can encrypt password as described
 in the
 http://maven.apache.org/guides/mini/guide-encryption.html[Maven documentation]. Assuming
 that you have setup a _master password_ in

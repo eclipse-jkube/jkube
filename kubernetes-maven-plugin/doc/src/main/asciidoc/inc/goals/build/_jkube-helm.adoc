@@ -11,7 +11,7 @@ For creating a Helm chart you simply call `k8s:helm` goal on the command line:
 mvn k8s:resource k8s:helm
 ----
 
-The `k8s:resource` goal is required to create the resource descriptors which are included in the Helm chart. If you have already built the resource then you can ommit this goal.
+The `k8s:resource` goal is required to create the resource descriptors which are included in the Helm chart. If you have already built the resource then you can omit this goal.
 
 The configuration happens in a `<helm>` section within the plugin's configuration:
 
@@ -29,7 +29,7 @@ The configuration happens in a `<helm>` section within the plugin's configuratio
 </plugin>
 ----
 
-This configuration section know the following subelements in order to configure your Helm chart.
+This configuration section knows the following subelements in order to configure your Helm chart.
 
 .Helm configuration
 [cols="1,5,1"]

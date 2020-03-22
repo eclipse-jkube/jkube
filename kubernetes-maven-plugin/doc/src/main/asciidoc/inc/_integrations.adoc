@@ -42,5 +42,5 @@ A full example of the integration can be found in the directory
 https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot-dekorate[quickstarts/maven/spring-boot-dekorate].
 
 An *experimental* feature is also provided to merge resources generated both by *kubernetes-maven-plugin*
-and Dekorate. Yoy can activate this feature by using the following flag `-Djkube.mergeWithDekorate`
+and Dekorate. You can activate this feature by using the following flag `-Djkube.mergeWithDekorate`
 in the command-line, or setting it up as a property (`<jkube.mergeWithDekorate>true</jkube.mergeWithDekorate>`).

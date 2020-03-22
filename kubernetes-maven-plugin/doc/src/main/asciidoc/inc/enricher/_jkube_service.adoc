@@ -132,7 +132,7 @@ Assuming that the image exposes ports `8080` and `8778` (either directly or via 
 * Pod port 9779 is mapped to service port 9779 with protocol UDP. Note how this second entry overrides the pod exposed port 8778.
 * Pod port 443 is mapped to service port 443.
 
-This example show also the mapping rules:
+This example shows also the mapping rules:
 
 * Port specification in `port` always override the port meta data of the contained Docker images (i.e. the ports exposed)
 * You can always provide a complete mapping with `port` on your own

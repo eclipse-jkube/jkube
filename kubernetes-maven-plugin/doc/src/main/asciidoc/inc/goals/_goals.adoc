@@ -34,10 +34,10 @@ This plugin supports a rich set for providing a smooth Java developer experience
 | Goal | Description
 
 | *<<k8s:deploy>>*
-| Deploy resources decriptors to a cluster after creating them and building the app. Same as <<k8s:run>> except that it runs in the backgorund.
+| Deploy resources descriptors to a cluster after creating them and building the app. Same as <<k8s:run>> except that it runs in the backgorund.
 
 | *<<k8s:undeploy>>*
-| Undeploy and remove resources decriptors from a cluster.
+| Undeploy and remove resources descriptors from a cluster.
 
 | *<<k8s:watch>>*
 | Watch for file changes and perform rebuilds and redeployments
@@ -59,7 +59,7 @@ Depending on whether the OpenShift or Kubernetes operational mode is used, the w
 | Build
 a| `k8s:build` `k8s:push`
 
-* Creates a image against an exposed Docker daemon (with a `docker.tar`)
+* Creates an image against an exposed Docker daemon (with a `docker.tar`)
 * Pushes the image to a registry which is then referenced from the configuration
 
 a| `k8s:build`

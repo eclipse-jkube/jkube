@@ -39,7 +39,7 @@ This image stream created can then be directly referenced from https://docs.open
 By default, image streams are created with a local lookup policy, so that they can be used also by other resources such as Deployments or StatefulSets.
 This behavior can be turned off by setting the `jkube.s2i.imageStreamLookupPolicyLocal` property to `false` when building the project.
 
-In order to be able to to create these OpenShift resource objects access to an OpenShift installation is required. The access parameters are described in <<access-configuration, Access Configuration>>.
+In order to be able to create these OpenShift resource objects access to an OpenShift installation is required. The access parameters are described in <<access-configuration, Access Configuration>>.
 
 Regardless of which build mode is used, the images are configured in the same way.
 
@@ -70,7 +70,7 @@ Global configuration parameters specify overall behavior common for all images t
 | `docker.apiVersion`
 
  | *authConfig*
-| Authentication information when pulling from or pushing to Docker registry. There is a dedicated section <<authentication, Authentication>> for how doing security.
+| Authentication information when pulling from or pushing to Docker registry. There is a dedicated section <<authentication, Authentication>> for how to do security.
 |
 
 | *autoPull*
@@ -78,7 +78,7 @@ a| Decide how to pull missing base images or images to start:
 
  * `on` : Automatic download any missing images (default)
  * `off` : Automatic pulling is switched off
- * `always` : Pull images always even when they are already exist locally
+ * `always` : Pull images always even when they already exist locally
  * `once` : For multi-module builds images are only checked once and pulled for the whole build.
 
 | `docker.autoPull`
@@ -222,7 +222,7 @@ a| The build mode which can be
 
 === Kubernetes Access Configuration
 
-You can configure parameters to define how plugin is going to connect to Kubernetes cluster instead of relaying on default parameters.
+You can configure parameters to define how plugin is going to connect to Kubernetes cluster instead of relying on default parameters.
 
 [source, xml]
 ----

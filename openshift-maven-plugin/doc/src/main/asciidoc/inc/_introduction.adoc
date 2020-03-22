@@ -124,7 +124,7 @@ This setup make some opinionated decisions for you:
 * It will create a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] and a http://kubernetes.io/docs/user-guide/services/[Service] as resource objects
 * It exports port 8080 as the application service port (and 8778 and 9779 for Jolokia and jmx_exporter access, respectively)
 
-These choices can be influenced by configuration options as decribed in <<generator-spring-boot,Spring Boot Generator>>.
+These choices can be influenced by configuration options as described in <<generator-spring-boot,Spring Boot Generator>>.
 
 To start the Docker image build, you simply run
 
@@ -281,7 +281,7 @@ A working example can be found in the  https://github.com/jkubeio/kubernetes-mav
 <3> Labels which should be applied globally to all resource objects
 <4> Definition of a http://kubernetes.io/docs/user-guide/deployments/[Deployment] to create
 <5> Containers to include in the deployment
-<6> An _alias_ is used to correlate a container's image with the image definition in the `<images>` section where each image carry an alias. Can be omitted if only a single image is used
+<6> An _alias_ is used to correlate a container's image with the image definition in the `<images>` section where each image carries an alias. Can be omitted if only a single image is used
 <7> http://kubernetes.io/docs/user-guide/volumes/[Volume] definitions used in a Deployment's _ReplicaSet_
 <8> One or more http://kubernetes.io/docs/user-guide/services/[Service] definitions.
 
@@ -289,7 +289,7 @@ The XML resource configuration is based on plain Kubernetes resource objects. Wh
 
 === Resource Fragments
 
-The third configuration option is to use an external configuration in form of YAML resource descriptors which are located in the  `src/main/jkube` directory. Each resource get its own file, which contains a skeleton of a resource descriptor. The plugin will pick up the resource, enrich it and then combine all to a single `kubernetes.yml` and `openshift.yml` file. Within these descriptor files you are can freely use any Kubernetes feature.
+The third configuration option is to use an external configuration in form of YAML resource descriptors which are located in the  `src/main/jkube` directory. Each resource gets its own file, which contains a skeleton of a resource descriptor. The plugin will pick up the resource, enrich it and then combine all to a single `kubernetes.yml` and `openshift.yml` file. Within these descriptor files you are can freely use any Kubernetes feature.
 
 Note: In order to support simultaneously both OpenShift and Kubernetes, there is currently no way to specify OpenShift-only features this way, though this might change in future releases.
 
@@ -344,4 +344,4 @@ NOTE: For building images there is also an alternative mode using external Docke
 
 Enrichment of resource fragments can be fine-tuned by using profile sub-directories. For more details see <<profiles, Profiles>>.
 
-Now that we have seen some examples for the various ways how this plugin can be used, the following sections will describe the plugin goals and extension points in detail.
+Now that we have seen some examples of the various ways how this plugin can be used, the following sections will describe the plugin goals and extension points in detail.
