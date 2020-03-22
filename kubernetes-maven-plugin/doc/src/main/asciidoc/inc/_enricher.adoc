@@ -246,7 +246,7 @@ The auto-TLS enricher supports the following configuration options:
 
 [[enrichers-jkube]
 === JKube Enrichers
-JKube enrichers are used for providing the connection to other components of the jkube.Microservices platform. They are useful to add icons to to application or links to documentation sites.
+JKube enrichers are used for providing the connection to other components of the jkube.Microservices platform. They are useful to add icons to application or links to documentation sites.
 
 [[jkube-healthcheck-karaf]]
 ==== jkube-healthcheck-karaf
@@ -737,7 +737,7 @@ When using HTTP `GET` requests to determine readiness or liveness, several aspec
 |
 
 |`headers`
-|Custom headers to set in the request. HTTP allows repeated headers. Cannot be configured using project's properties. An example is available below.
+|Custom headers to set in the request. HTTP allows repeated headers. It cannot be configured using project's properties. An example is available below.
 |
 
 |`port`

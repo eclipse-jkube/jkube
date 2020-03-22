@@ -2,7 +2,7 @@
 [[introduction]]
 = Introduction
 
-The *kubernetes-maven-plugin* (k8-m-p) brings your Java applications on to http://kubernetes.io/[Kubernetes].
+The *kubernetes-maven-plugin* (k-m-p) brings your Java applications on to http://kubernetes.io/[Kubernetes].
 It provides a tight integration into http://maven.apache.org[Maven] and benefits from the build configuration already provided.
 This plugin focus on two tasks: _Building Docker images_ and _creating Kubernetes resource descriptors_.
 It can be configured very flexibly and supports multiple configuration models for creating: A _Zero-Config_ setup allows for a quick ramp-up with some opinionated defaults.
@@ -56,11 +56,11 @@ The following table gives an overview of the different models
 | Default <<enrichers, Enrichers>> will create a default _Service_ and _Deployment_ (_DeploymentConfig_ for OpenShift) when no other resource objects are provided. Depending on the image they can detect which port to expose in the service. As with Generators, Enrichers support a limited set of configuration options.
 
 | *XML configuration*
-| jkube-m-p inherits the XML based configuration for building images from the https://jkubeio.github.io/docker-maven-plugin/#docker:build[docker-maven-plugin] and provides the same functionality. It supports an http://maven.apache.org/components/plugins/maven-assembly-plugin/assembly.html[assembly descriptor] for specifying the content of the Docker image.
+| k-m-p inherits the XML based configuration for building images from the https://jkubeio.github.io/docker-maven-plugin/#docker:build[docker-maven-plugin] and provides the same functionality. It supports an http://maven.apache.org/components/plugins/maven-assembly-plugin/assembly.html[assembly descriptor] for specifying the content of the Docker image.
 | A subset of possible resource objects can be configured with a dedicated XML syntax. With a decent IDE you get autocompletion on most object and inline documentation for the available configuration elements. The provided configuration can be still enhanced by Enhancers which is useful for adding e.g. labels and annotations containing build or other information.
 
 | *Resource Fragments* and *Dockerfiles*
-| Similarly to the docker-maven-plugin, jkube-m-p supports <<external-dockerfile,external Dockerfiles>> too, which are referenced from the plugin configuration.
+| Similarly to the docker-maven-plugin, k-m-p supports <<external-dockerfile,external Dockerfiles>> too, which are referenced from the plugin configuration.
 | Resource descriptors can be provided as external YAML files which specify a skeleton. This skeleton is then filled by Enrichers which add labels and more. Maven properties within these files are resolved to thier values. With this model you can use every Kubernetes / OpenShift resource object with all their flexibility, but still get the benefit of adding build information.
 |===
 
@@ -124,7 +124,7 @@ This setup make some opinionated decisions for you:
 * It will create a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] and a http://kubernetes.io/docs/user-guide/services/[Service] as resource objects
 * It exports port 8080 as the application service port (and 8778 and 9779 for Jolokia and jmx_exporter access, respectively)
 
-These choices can be influenced by configuration options as decribed in <<generator-spring-boot,Spring Boot Generator>>.
+These choices can be influenced by configuration options as described in <<generator-spring-boot,Spring Boot Generator>>.
 
 To start the Docker image build, you simply run
 
@@ -281,7 +281,7 @@ A working example can be found in the  https://github.com/jkubeio/kubernetes-mav
 <3> Labels which should be applied globally to all resource objects
 <4> Definition of a http://kubernetes.io/docs/user-guide/deployments/[Deployment] to create
 <5> Containers to include in the deployment
-<6> An _alias_ is used to correlate a container's image with the image definition in the `<images>` section where each image carry an alias. Can be omitted if only a single image is used
+<6> An _alias_ is used to correlate a container's image with the image definition in the `<images>` section where each image carries an alias. Can be omitted if only a single image is used
 <7> http://kubernetes.io/docs/user-guide/volumes/[Volume] definitions used in a Deployment's _ReplicaSet_
 <8> One or more http://kubernetes.io/docs/user-guide/services/[Service] definitions.
 
@@ -289,7 +289,7 @@ The XML resource configuration is based on plain Kubernetes resource objects. Wh
 
 === Resource Fragments
 
-The third configuration option is to use an external configuration in form of YAML resource descriptors which are located in the  `src/main/jkube` directory. Each resource get its own file, which contains a skeleton of a resource descriptor. The plugin will pick up the resource, enrich it and then combine all to a single `kubernetes.yml` and `openshift.yml` file. Within these descriptor files you are can freely use any Kubernetes feature.
+The third configuration option is to use an external configuration in form of YAML resource descriptors which are located in the  `src/main/jkube` directory. Each resource gets its own file, which contains a skeleton of a resource descriptor. The plugin will pick up the resource, enrich it and then combine all to a single `kubernetes.yml` and `openshift.yml` file. Within these descriptor files you are can freely use any Kubernetes feature.
 
 Note: In order to support simultaneously both OpenShift and Kubernetes, there is currently no way to specify OpenShift-only features this way, though this might change in future releases.
 
@@ -344,4 +344,4 @@ NOTE: For building images there is also an alternative mode using external Docke
 
 Enrichment of resource fragments can be fine-tuned by using profile sub-directories. For more details see <<profiles, Profiles>>.
 
-Now that we have seen some examples for the various ways how this plugin can be used, the following sections will describe the plugin goals and extension points in detail.
+Now that we have seen some examples of the various ways how this plugin can be used, the following sections will describe the plugin goals and extension points in detail.

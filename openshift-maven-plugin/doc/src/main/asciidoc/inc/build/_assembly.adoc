@@ -198,6 +198,6 @@ possible to change the name of the final build artifact with the following:
 </build>
 ----
 
-Please note, based upon the following documentation listed http://maven.apache.org/pom.html#BaseBuild_Element[here], there is no guarantee the plugin creating your artifact will honor it in which case you will need to use a custom descriptor like above to achieve the desired naming.
+Please note, based on the following documentation listed http://maven.apache.org/pom.html#BaseBuild_Element[here], there is no guarantee the plugin creating your artifact will honor it in which case you will need to use a custom descriptor like above to achieve the desired naming.
 
 Currently the `jar` and `war` plugins properly honor the usage of `finalName`.

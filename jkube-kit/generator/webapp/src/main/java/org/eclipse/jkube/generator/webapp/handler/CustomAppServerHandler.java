@@ -18,7 +18,7 @@ import java.util.List;
 import org.eclipse.jkube.generator.webapp.AppServerHandler;
 
 /**
- * A custom app server handler used when use explicitely configures the base image
+ * A custom app server handler used when use explicitly configures the base image
  *
  * @author roland
  * @since 05/10/16

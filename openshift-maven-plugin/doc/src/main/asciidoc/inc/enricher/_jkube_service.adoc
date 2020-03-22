@@ -132,13 +132,13 @@ Assuming that the image exposes ports `8080` and `8778` (either directly or via 
 * Pod port 9779 is mapped to service port 9779 with protocol UDP. Note how this second entry overrides the pod exposed port 8778.
 * Pod port 443 is mapped to service port 443.
 
-This example show also the mapping rules:
+This example shows also the mapping rules:
 
-* Port specification in `port` always override the port meta data of the contained Docker images (i.e. the ports exposed)
+* Port specification in `port` always override the port metadata of the contained Docker images (i.e. the ports exposed)
 * You can always provide a complete mapping with `port` on your own
 * The ports exposed by the images serve as _default values_ which are used if not specified by this configuration option.
 * You can map ports which are _not_ exposed by the images by specifying them as target ports.
 
-Multiple ports are **only** mapped when _multiPort_ mode is enabled (which is switched off by default). If _multiPort_ mode is disabled, only the first port from the list of mapped ports as calculated like above is taken.
+Multiple ports are **only** mapped when _multiPort_ mode is enabled (which is switched off by default). If _multiPort_ mode is disabled, only the first port from the list of mapped ports as calculated as above is taken.
 
 When you set `legacyPortMapping` to true than ports 8080 to 9090 are mapped to port 80 automatically if not explicitly mapped via `_port_`. I.e. when an image exposes port 8080 with a legacy mapping this mapped to a service port 80, not 8080. You _should not_ switch this on for any good reason. In fact it might be that this option can vanish anytime.

@@ -1,8 +1,8 @@
 [[oc:resource]]
 == *oc:resource*
 
-This goal generates OpenShift resources based upon your project. It can either be opinionated defaults or
-based upon the configuration provided in XML config or resource fragments in `src/main/jkube`. Generated
+This goal generates OpenShift resources based on your project. It can either be opinionated defaults or
+based on the configuration provided in XML config or resource fragments in `src/main/jkube`. Generated
 resources are in `target/classes/META-INF/jkube/openshift` directory.
 
 [[resource-labels-annotations]]
@@ -76,7 +76,7 @@ The following subelements are possible for `<labels>` and `<annotations>` :
 | Element | Description
 
 | *all*
-| All entries specified in the `<all>` sections are applied to all resource objects created. This also implies build object like image stream and build configs which are create implicitely for an <<build-openshift, OpenShift build>>.
+| All entries specified in the `<all>` sections are applied to all resource objects created. This also implies build object like image stream and build configs which are created implicitely for an <<build-openshift, OpenShift build>>.
 
 | *deployment*
 | Labels and annotations applied to `Deployment` (for Kubernetes) and `DeploymentConfig` (for OpenShift) objects

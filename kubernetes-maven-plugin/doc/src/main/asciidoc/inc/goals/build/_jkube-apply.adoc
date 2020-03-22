@@ -2,7 +2,7 @@
 [[k8s:apply]]
 == *k8s:apply*
 
-This goals applies the resources created with <<k8s:resource>> to a connected Kubernetes cluster. It's  similar to <<k8s:deploy>> but does not the full deployment cycle of creating the resource, creating the application image and the sending the resource descriptors to the clusters. This goal can be easily bound to `<executions>` within the plugin's configuration and binds by default to the `install` lifecycle phase.
+This goal applies the resources created with <<k8s:resource>> to a connected Kubernetes cluster. It's  similar to <<k8s:deploy>> but does not the full deployment cycle of creating the resource, creating the application image and sending the resource descriptors to the clusters. This goal can be easily bound to `<executions>` within the plugin's configuration and binds by default to the `install` lifecycle phase.
 
 [source,sh,subs="attributes"]
 ----
