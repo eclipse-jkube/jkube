@@ -109,12 +109,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     private File resourceDir;
 
     /**
-     * Folder where to find project specific files
-     */
-    @Parameter(property = "jkube.resourceDirOpenShiftOverride", defaultValue = "${basedir}/src/main/jkube-openshift-override")
-    private File resourceDirOpenShiftOverride;
-
-    /**
      * Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, plugin will look at src/main/jkube/dev
      * Same applies for resourceDirOpenShiftOverride property.
      */
@@ -175,10 +169,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
      * Enricher specific configuration configuration given through
      * to the various enrichers.
      */
-
-    // Resource specific configuration for this plugin
-    @Parameter(property = "jkube.gitRemote")
-    private String gitRemote;
 
     @Parameter
     private ProcessorConfig enricher;
@@ -257,7 +247,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.openshift.enrichAllWithImageChangeTrigger", defaultValue = "false")
     private Boolean erichAllWithImageChangeTrigger;
 
-    @Parameter(property = "docker.skip.resource", defaultValue = "false")
+    @Parameter(property = "jkube.skip.resource", defaultValue = "false")
     protected boolean skipResource;
 
     /**

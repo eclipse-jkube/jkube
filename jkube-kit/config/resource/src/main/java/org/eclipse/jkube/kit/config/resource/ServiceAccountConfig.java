@@ -19,16 +19,47 @@ public class ServiceAccountConfig {
 
     private String deploymentRef;
 
-    public ServiceAccountConfig(String name) {
-        this.name = name;
-    }
-
     public String getName() {
         return name;
     }
 
     public String getDeploymentRef() {
         return deploymentRef;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDeploymentRef(String deploymentRef) {
+        this.deploymentRef = deploymentRef;
+    }
+
+    public static class Builder {
+        private ServiceAccountConfig serviceAccountConfig = new ServiceAccountConfig();
+
+        public Builder() { }
+
+        public Builder(ServiceAccountConfig serviceAccountConfig) {
+            if (serviceAccountConfig != null) {
+                this.serviceAccountConfig.name = serviceAccountConfig.getName();
+                this.serviceAccountConfig.deploymentRef = serviceAccountConfig.getDeploymentRef();
+            }
+        }
+
+        public Builder withName(String name) {
+            this.serviceAccountConfig.name = name;
+            return this;
+        }
+
+        public Builder withDeploymentRef(String deploymentRef) {
+            this.serviceAccountConfig.deploymentRef = deploymentRef;
+            return this;
+        }
+
+        public ServiceAccountConfig build() {
+            return serviceAccountConfig;
+        }
     }
 }
 

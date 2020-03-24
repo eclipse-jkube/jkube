@@ -107,3 +107,17 @@ The watcher will detect that the binary artifact has changed and will first rebu
 then start a redeploy of the Kubernetes pod.
 
 It uses the watch feature of the https://dmp.jkube.io/#docker:watch[docker-maven-plugin] under the hood.
+
+[[Supported-Properties-Watch]]
+=== Supported Properties for Watch goal
+
+.Options available with watch goal
+[cols="1.6.3"]
+|===
+| Element | Description | Property(System property or Maven property)
+
+| *kubernetesManifest*
+| The generated kubernetes YAML file. Defaults to `${basedir}/target/classes/META-INF/jkube/kubernetes.yml`
+| `jkube.kubernetesManifest`
+
+|===
