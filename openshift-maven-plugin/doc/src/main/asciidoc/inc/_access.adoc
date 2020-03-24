@@ -16,4 +16,5 @@ be specified by the certPath or machine configuration, or by the
 
 == OpenShift and Kubernetes Access
 
-If no `DOCKER_HOST` is set and no unix socket could be accessed under `/var/run/docker.sock` then f-m-p checks whethe https://github.com/jkubeio/gojkube.gojkube. is in the path and uses `gojkube.docker-env` to get the connection parameter to the Docker host exposed by
+Plugin reads your `kubeconfig` file to read your Kubernetes/OpenShift configuration. By default, `kubeconfig` file is assumed to be either
+in `~/.kube/config` or using the environment variable `KUBECONFIG`.

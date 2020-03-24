@@ -173,7 +173,7 @@ This enricher is disabled by default. In order to use it, you must configure the
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>openshift-maven-plugin</artifactId>
-  <version>3.3.0</version>
+  <version>{version}</version>
   <executions>
     <execution>
       <goals>
@@ -308,10 +308,10 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>openshift-maven-plugin</artifactId>
-  <version>3.3.0</version>
+  <version>{version}</version>
   <executions>
     <execution>
-      <id>fmp</id>
+      <id>kmp</id>
         <goals>
           <goal>resource</goal>
           <goal>helm</goal>
@@ -364,10 +364,10 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>openshift-maven-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>{version}</version>
         <executions>
           <execution>
-            <id>fmp</id>
+            <id>kmp</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -416,10 +416,10 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>openshift-maven-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>{version}</version>
         <executions>
           <execution>
-            <id>fmp</id>
+            <id>kmp</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -468,10 +468,10 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>openshift-maven-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>{version}</version>
         <executions>
           <execution>
-            <id>fmp</id>
+            <id>kmp</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -522,7 +522,7 @@ The minimal configuration to add health checks is the following:
         <version>{version}</version>
         <executions>
           <execution>
-            <id>fmp</id>
+            <id>kmp</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -569,7 +569,7 @@ You can provide two different configuration for the readiness and liveness check
         <version>{version}</version>
         <executions>
           <execution>
-            <id>fmp</id>
+            <id>kmp</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -614,7 +614,7 @@ Shared (generic) configuration can be set outside of the specific configuration.
         <version>{version}</version>
         <executions>
           <execution>
-            <id>fmp</id>
+            <id>kmp</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>

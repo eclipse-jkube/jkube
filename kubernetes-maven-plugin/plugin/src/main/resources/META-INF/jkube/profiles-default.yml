@@ -12,7 +12,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-# Default profiles delivered with f-m-p
+# Default profiles delivered with kmp
 
 # tag::default[]
 # Default profile which is always activated

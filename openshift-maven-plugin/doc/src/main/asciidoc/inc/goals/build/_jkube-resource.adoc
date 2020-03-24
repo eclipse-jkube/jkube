@@ -238,66 +238,78 @@ spec:
 
 In case both the label and the property have been set with conflicting values, precedence will be given to the property value, so if you set the label to `true` but set the property to `false` then no Route descriptor will be generated because precedence will be given to the property value.
 
-[[Other-flags]]
-=== Other flags
+[[Supported-Properties-Resource]]
+=== Supported Properties for Resource goal
 
-.Other options available with resource goal
+.Options available with resource goal
 [cols="1.6.3"]
 |===
-| Configuration | Description | Default
+| Element | Description | Property(System property or maven property)
 
-| *jkube.openshift.enableAutomaticTrigger*
-| If the value is set to `false` then automatic deployments would be disabled.
-| `true`
+| *enableAutomaticTrigger*
+| If the value is set to `false` then automatic deployments would be disabled. Defaults to `true`
+| `jkube.openshift.enableAutomaticTrigger`
 
-| *jkube.skipHealthCheck*
-| If the value is set to `true` then no readiness/liveness checks would be added to any containers.
-| `false`
+| *skipHealthCheck*
+| Whether to skip health checks addition in generated resources or not. Defaults to `false`
+| `jkube.skipHealthCheck`
 
-| *jkube.openshift.deployTimeoutSeconds*
-| The OpenShift deploy timeout in seconds.
-| 3600
+| *deployTimeoutSeconds*
+| The OpenShift deploy timeout in seconds. Defaults to `3600`
+| `jkube.openshift.deployTimeoutSeconds`
 
-| *jkube.openshift.imageChangeTrigger*
-| Add ImageChange triggers to DeploymentConfigs when on openshift.
-| `true`
+| *imageChangeTrigger*
+| Add ImageChange triggers to DeploymentConfigs when on openshift. Defaults to `true`
+| `jkube.openshift.imageChangeTrigger`
 
-| *jkube.profile*
-| Profile to use. A profile contains the enrichers and generators to use as well as their configuration. Profiles are looked up in the classpath and can be provided as yaml files.
-| `default`
+| *trimImageInContainerSpec*
+| If set to true it would set the container image reference to "", this is done to handle weird behavior of Openshift 3.7 in which subsequent rollouts lead to ImagePullErr. Defaults to `false`
+| `jkube.openshift.trimImageInContainerSpec`
 
-| *jkube.sidecar*
-| Whether to enable sidecar behavior or not. By default pod specs are merged into main application container.
-| `false`
+| *enrichAllWithImageChangeTrigger*
+| Adds ImageChangeTriggers with respect to all containers specified inside DeploymentConfig. Defaults to `false`
+| `jkube.openshift.enrichAllWithImageChangeTrigger`
 
-| *jkube.skipHealthCheck*
-| Whether to skip health checks addition in generated resources or not.
-| `false`
+| *profile*
+| Profile to use. A profile contains the enrichers and generators to use as well as their configuration. Profiles are looked up in the classpath and can be provided as yaml files. Defaults to `default`
+| `jkube.profile`
 
-| *jkube.workDir*
-| The JKube working directory
-| `${project.build.directory}/jkube`
+| *sidecar*
+| Whether to enable sidecar behavior or not. By default pod specs are merged into main application container. Defaults to `false`
+| `jkube.sidecar`
 
-| *jkube.environment*
-| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, plugin will look at `src/main/jkube/dev`.
-| `NULL`
+| *workDir*
+| The JKube working directory. Defaults to `${project.build.directory}/jkube`
+| `jkube.workDir`
 
-| *jkube.useProjectClassPath*
-| Should we use the project's compile time classpath to scan for additional enrichers/generators?
-| `false`
+| *environment*
+| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, plugin will look at `src/main/jkube/dev`. Defaults to `null`
+| `jkube.environment`
 
-| *jkube.resourceDir*
-| Folder where to find project specific files
-| `${basedir}/src/main/jkube`
+| *useProjectClassPath*
+| Should we use the project's compile time classpath to scan for additional enrichers/generators. Defaults to `false`
+| `jkube.useProjectClassPath`
 
-| *jkube.targetDir*
-| The generated Kubernetes manifests
-| `${project.build.outputDirectory}/META-INF/jkube`
+| *resourceDir*
+| Folder where to find project specific files. Defaults to `${basedir}/src/main/jkube`
+| `jkube.resourceDir`
 
-| *jkube.switchToDeployment*
-| Use Deployment instead of DeploymentConfig when on Openshift.
-| `false`
+| *targetDir*
+| The generated Kubernetes manifests. Defaults to `${project.build.outputDirectory}/META-INF/jkube`
+| `jkube.targetDir`
+
+| *resourceType*
+| The artifact type for attaching the generated resource file to the project. Can be either 'json' or 'yaml'. Defaults to `yaml`
+| `jkube.resourceType`
+
+| *mergeWithDekorate*
+| When resource generation is delegated to Dekorate, should JKube resources be merged with Dekorate's. Defaults to `false`
+| `jkube.mergeWithDekorate`
+
+| *skipResource*
+| Skip resource generation. Defaults to `false`
+| `jkube.skip.resource`
 
 |===
 
-[[Other-flags]]
+[[Supported-Properties]]
