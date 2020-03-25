@@ -15,7 +15,13 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 @Mojo(name = "helm", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
 public class OpenshiftHelmMojo extends HelmMojo {
+
+  @Override
+  protected HelmConfig.HelmType getDefaultHelmType() {
+    return HelmConfig.HelmType.OPENSHIFT;
+  }
 }
