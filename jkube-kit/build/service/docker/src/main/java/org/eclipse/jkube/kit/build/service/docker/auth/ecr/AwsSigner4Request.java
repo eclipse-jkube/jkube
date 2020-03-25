@@ -39,13 +39,6 @@ import org.apache.http.util.EntityUtils;
  */
 public class AwsSigner4Request {
 
-    static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'");
-
-    static {
-        TimeZone utc = TimeZone.getTimeZone("GMT");
-        TIME_FORMAT.setTimeZone(utc);
-    }
-
     private static final byte[] EMPTY_BYTES = new byte[0];
 
     private final String region;
@@ -118,9 +111,9 @@ public class AwsSigner4Request {
         if (dateHeader != null) {
             return dateHeader.getValue();
         }
-        synchronized (TIME_FORMAT) {
-            return TIME_FORMAT.format(signingTime);
-        }
+        final SimpleDateFormat timeFormat= new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'");
+        timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return timeFormat.format(signingTime);
     }
 
     private static URI getUri(HttpRequest request) {

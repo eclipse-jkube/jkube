@@ -31,7 +31,8 @@ import jnr.unixsocket.UnixSocketChannel;
 final class UnixSocket extends Socket {
 
     private final Object connectLock = new Object();
-    private volatile boolean inputShutdown, outputShutdown;
+    private volatile boolean inputShutdown;
+    private volatile boolean outputShutdown;
 
     private final UnixSocketChannel channel;
 
@@ -158,17 +159,17 @@ final class UnixSocket extends Socket {
     }
 
     @Override
-    public void setSoTimeout(int timeout) {
+    public synchronized void setSoTimeout(int timeout) {
         channel.setSoTimeout(timeout);
     }
 
     @Override
-    public int getSoTimeout() throws SocketException {
+    public synchronized int getSoTimeout() {
         return channel.getSoTimeout();
     }
 
     @Override
-    public void setSendBufferSize(int size) throws SocketException {
+    public synchronized void setSendBufferSize(int size) throws SocketException {
         if (size <= 0) {
             throw new IllegalArgumentException("Send buffer size must be positive: " + size);
         }
@@ -212,12 +213,12 @@ final class UnixSocket extends Socket {
     }
 
     @Override
-    public void setKeepAlive(boolean on) throws SocketException {
+    public void setKeepAlive(boolean on) {
         channel.setKeepAlive(on);
     }
 
     @Override
-    public boolean getKeepAlive() throws SocketException {
+    public boolean getKeepAlive() {
         return channel.getKeepAlive();
     }
 
@@ -235,7 +236,7 @@ final class UnixSocket extends Socket {
     }
 
     @Override
-    public int getTrafficClass() throws SocketException {
+    public int getTrafficClass() {
         throw new UnsupportedOperationException("Getting the traffic class is not supported");
     }
 
@@ -249,12 +250,12 @@ final class UnixSocket extends Socket {
     }
 
     @Override
-    public boolean getReuseAddress() throws SocketException {
+    public boolean getReuseAddress() {
         throw new UnsupportedOperationException("Getting the SO_REUSEADDR option is not supported");
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         channel.close();
         inputShutdown = true;
         outputShutdown = true;

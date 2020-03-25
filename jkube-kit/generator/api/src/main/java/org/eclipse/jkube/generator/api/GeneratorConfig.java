@@ -54,7 +54,7 @@ public class GeneratorConfig {
      */
     public String get(Configs.Key key, String defaultVal) {
         String keyVal = key != null ? key.name() : "";
-        String val = config != null ? config.getConfig(name, key.name()) : null;
+        String val = config != null ? config.getConfig(name, keyVal) : null;
         if (val == null) {
             String fullKey = GENERATOR_PROP_PREFIX + "." + name + "." + key;
             val = Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, fullKey);

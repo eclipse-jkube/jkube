@@ -36,7 +36,6 @@ import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
@@ -45,9 +44,6 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.watcher.api.BaseWatcher;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
-/**
- *
- */
 public class DockerImageWatcher extends BaseWatcher {
 
     public DockerImageWatcher(WatcherContext watcherContext) {
@@ -78,7 +74,7 @@ public class DockerImageWatcher extends BaseWatcher {
         }
     }
 
-    protected void buildImage(ImageConfiguration imageConfig) throws DockerAccessException {
+    protected void buildImage(ImageConfiguration imageConfig) {
         String imageName = imageConfig.getName();
         // lets regenerate the label
         try {
@@ -91,10 +87,9 @@ public class DockerImageWatcher extends BaseWatcher {
         } catch (Exception e) {
             log.error("Caught: " + e, e);
         }
-
     }
 
-    private String getImagePrefix(String imageName) throws IllegalStateException {
+    private String getImagePrefix(String imageName) {
         String imagePrefix = null;
         int idx = imageName.lastIndexOf(':');
         if (idx < 0) {
@@ -105,7 +100,7 @@ public class DockerImageWatcher extends BaseWatcher {
         return imagePrefix;
     }
 
-    protected void restartContainer(WatchService.ImageWatcher watcher, Set<HasMetadata> resources) throws IllegalStateException {
+    protected void restartContainer(WatchService.ImageWatcher watcher, Set<HasMetadata> resources) {
         ImageConfiguration imageConfig = watcher.getImageConfiguration();
         String imageName = imageConfig.getName();
         ClusterAccess clusterAccess = new ClusterAccess(getContext().getClusterConfiguration());
@@ -160,8 +155,9 @@ public class DockerImageWatcher extends BaseWatcher {
                     OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(kubernetes);
                     if (openshiftClient == null) {
                         log.warn("Ignoring DeploymentConfig %s as not connected to an OpenShift cluster", name);
+                    } else {
+                        openshiftClient.deploymentConfigs().inNamespace(namespace).withName(name).replace(resource);
                     }
-                    openshiftClient.deploymentConfigs().inNamespace(namespace).withName(name).replace(resource);
                 }
             }
         }

@@ -594,8 +594,11 @@ public class OpenshiftBuildService implements BuildService {
             }
         })) {
             readyLatch.await(nAwaitTimeout, TimeUnit.SECONDS);
-        } catch (KubernetesClientException | InterruptedException e) {
+        } catch (KubernetesClientException e) {
             log.error("Could not watch pod", e);
+        } catch (InterruptedException e) {
+            log.error("Could not watch pod (Thread interrupted)", e);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -604,7 +607,7 @@ public class OpenshiftBuildService implements BuildService {
             try {
                 latch.await();
             } catch (InterruptedException e) {
-                // ignore
+                Thread.currentThread().interrupt();
             }
         }
     }

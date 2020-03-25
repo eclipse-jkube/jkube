@@ -26,32 +26,31 @@ import java.net.SocketException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 
 final class NamedPipe extends Socket {
 
-    // For checking for ASCII chars
-    private final static CharsetEncoder ASCII_ENCODER = Charset.forName("US-ASCII").newEncoder();
+    private static final CharsetEncoder ASCII_ENCODER = StandardCharsets.US_ASCII.newEncoder();
 
-	// Logging
     private final KitLogger log;
-	//for development purposes
-	private final static boolean DEBUG = false;
+    private final AtomicReference<SocketAddress> socketAddress;
 
     private final Object connectLock = new Object();
-    private volatile boolean inputShutdown, outputShutdown;
+    private volatile boolean inputShutdown;
+    private volatile boolean  outputShutdown;
 
     private String socketPath;
-    private volatile SocketAddress socketAddress;
-    private RandomAccessFile namedPipe;
 
+    private RandomAccessFile namedPipe;
     private FileChannel channel;
 
-    NamedPipe(KitLogger log) throws IOException {
-    	this.log = log;
+    NamedPipe(KitLogger log) {
+        this.log = log;
+        this.socketAddress = new AtomicReference<>();
     }
 
     @Override
@@ -69,12 +68,12 @@ final class NamedPipe extends Socket {
             throw new IllegalArgumentException("Unsupported address type: " + endpoint.getClass().getName());
         }
 
-        this.socketAddress = endpoint;
+        this.socketAddress.set(endpoint);
         this.socketPath = ((NpipeSocketAddress) endpoint).path();
 
         synchronized (connectLock) {
-        	this.namedPipe = new RandomAccessFile(socketPath, "rw");
-        	this.channel = this.namedPipe.getChannel();
+            namedPipe = new RandomAccessFile(socketPath, "rw");
+            channel = namedPipe.getChannel();
         }
     }
 
@@ -105,7 +104,7 @@ final class NamedPipe extends Socket {
 
     @Override
     public SocketAddress getRemoteSocketAddress() {
-        return socketAddress;
+        return socketAddress.get();
     }
 
     @Override
@@ -130,12 +129,12 @@ final class NamedPipe extends Socket {
 
         return new FilterInputStream(Channels.newInputStream(channel)) {
 
-        	@Override
-        	public int read(byte[] b, int off, int len) throws IOException {
-        		int readed = super.read(b, off, len);
-                log.debug("RESPONSE %s", new String(b, off, len, Charset.forName("UTF-8")));
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException {
+                int readed = super.read(b, off, len);
+                log.debug("RESPONSE %s", new String(b, off, len, StandardCharsets.UTF_8));
                 return readed;
-        	}
+            }
 
             @Override
             public void close() throws IOException {
@@ -158,7 +157,7 @@ final class NamedPipe extends Socket {
             @Override
             public void write(byte[] b, int off, int len) throws IOException {
                 if(log.isDebugEnabled()){
-                    String request = new String(b, off, len, Charset.forName("UTF-8"));
+                    String request = new String(b, off, len, StandardCharsets.UTF_8);
                     String logValue = isAscii(request) ? request : "not logged due to non-ASCII characters. ";
                     log.debug("REQUEST %s", logValue);
                 }
@@ -182,25 +181,23 @@ final class NamedPipe extends Socket {
     }
 
     @Override
-    public void setSoTimeout(int timeout) {
+    public synchronized void setSoTimeout(int soTimeout) {
+        // soTimeout is always 0
     }
 
     @Override
-    public int getSoTimeout() throws SocketException {
-    	return 0;
+    public synchronized int getSoTimeout() {
+        return 0;
     }
 
     @Override
-    public void setSendBufferSize(int size) throws SocketException {
+    public synchronized void setSendBufferSize(int size) throws SocketException {
         if (size <= 0) {
             throw new IllegalArgumentException("Send buffer size must be positive: " + size);
         }
-
         if (!channel.isOpen()) {
             throw new SocketException("Socket is closed");
         }
-
-        // just ignore
     }
 
     @Override
@@ -235,12 +232,13 @@ final class NamedPipe extends Socket {
     }
 
     @Override
-    public void setKeepAlive(boolean on) throws SocketException {
+    public synchronized void setKeepAlive(boolean keepAlive) {
+        // keepAlive is always on
     }
 
     @Override
-    public boolean getKeepAlive() throws SocketException {
-    	return true;
+    public synchronized boolean getKeepAlive() {
+        return true;
     }
 
     @Override
@@ -257,49 +255,52 @@ final class NamedPipe extends Socket {
     }
 
     @Override
-    public int getTrafficClass() throws SocketException {
+    public int getTrafficClass() {
         throw new UnsupportedOperationException("Getting the traffic class is not supported");
     }
 
     @Override
-    public void setReuseAddress(boolean on) throws SocketException {
+    public void setReuseAddress(boolean on) {
         // just ignore
     }
 
     @Override
-    public boolean getReuseAddress() throws SocketException {
+    public boolean getReuseAddress() {
         throw new UnsupportedOperationException("Getting the SO_REUSEADDR option is not supported");
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         if (isClosed()) {
             return;
         }
         if (channel != null) {
             channel.close();
         }
+        if (namedPipe != null) {
+            namedPipe.close();
+        }
         inputShutdown = true;
         outputShutdown = true;
     }
 
     @Override
-    public void shutdownInput() throws IOException {
+    public void shutdownInput() {
         inputShutdown = true;
     }
 
     @Override
-    public void shutdownOutput() throws IOException {
+    public void shutdownOutput() {
         outputShutdown = true;
     }
 
     @Override
     public String toString() {
         if (isConnected()) {
-            return "WindowsPipe[addr=" + this.socketPath + ']';
+            return "NamedPipe[addr=" + this.socketPath + ']';
         }
 
-        return "WindowsPipe[unconnected]";
+        return "NamedPipe[unconnected]";
     }
 
     @Override

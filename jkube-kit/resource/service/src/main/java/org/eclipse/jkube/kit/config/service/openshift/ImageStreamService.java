@@ -53,15 +53,11 @@ public class ImageStreamService {
 
 
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    private static final int IMAGE_STREAM_TAG_RETRIES = 15;
+    private static final long IMAGE_STREAM_TAG_RETRY_TIMEOUT_IN_MILLIS = 1000;
+
     private final OpenShiftClient client;
     private final KitLogger log;
-
-    /**
-     * Retry parameter
-     */
-    private final int IMAGE_STREAM_TAG_RETRIES = 15;
-    private final long IMAGE_STREAM_TAG_RETRY_TIMEOUT_IN_MILLIS = 1000;
-
 
     public ImageStreamService(OpenShiftClient client, KitLogger log) {
         this.client = client;
@@ -176,7 +172,7 @@ public class ImageStreamService {
         return tag;
     }
 
-    private String findTagSha(OpenShiftClient client, String imageStreamName, String namespace) throws IllegalStateException {
+    private String findTagSha(OpenShiftClient client, String imageStreamName, String namespace) {
         ImageStream currentImageStream = null;
 
         for (int i = 0; i < IMAGE_STREAM_TAG_RETRIES; i++) {
@@ -186,6 +182,7 @@ public class ImageStreamService {
                     Thread.sleep(IMAGE_STREAM_TAG_RETRY_TIMEOUT_IN_MILLIS);
                 } catch (InterruptedException e) {
                     log.debug("interrupted", e);
+                    Thread.currentThread().interrupt();
                 }
             }
             currentImageStream = client.imageStreams().withName(imageStreamName).get();

@@ -46,6 +46,7 @@ import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
@@ -76,7 +77,8 @@ public class SpringBootWatcher extends BaseWatcher {
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) {
-        return getContext().getProject().getPlugins().contains(SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        return JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getProject(),
+            SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
     }
 
     @Override
@@ -103,7 +105,7 @@ public class SpringBootWatcher extends BaseWatcher {
         }
     }
 
-    private String getPortForwardUrl(final Set<HasMetadata> resources) throws Exception {
+    private String getPortForwardUrl(final Set<HasMetadata> resources) throws JKubeServiceException {
         LabelSelector selector = KubernetesResourceUtil.getPodLabelSelector(resources);
         if (selector == null) {
             log.warn("Unable to determine a selector for application pods");
@@ -141,7 +143,7 @@ public class SpringBootWatcher extends BaseWatcher {
                     }
                     Service s = serviceResource.get();
                     if (s != null) {
-                        url = KubernetesHelper.getOrCreateAnnotations(s).get(JKubeAnnotations.SERVICE_EXPOSE_URL);
+                        url = KubernetesHelper.getOrCreateAnnotations(s).get(JKubeAnnotations.SERVICE_EXPOSE_URL.value());
                         if (StringUtils.isNotBlank(url)) {
                             break;
                         }
@@ -165,7 +167,7 @@ public class SpringBootWatcher extends BaseWatcher {
 
     private boolean isExposeService(Service service) {
         String expose = KubernetesHelper.getLabels(service).get("expose");
-        return expose != null && expose.toLowerCase().equals("true");
+        return expose != null && expose.equalsIgnoreCase("true");
     }
 
     private void runRemoteSpringApplication(String url) {

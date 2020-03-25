@@ -30,7 +30,6 @@ import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -206,25 +205,20 @@ public class DependencyEnricher extends BaseEnricher {
     private void processArtifactSetResources(Set<URL> artifactSet, Function<List<HasMetadata>, Void> function) {
         for (URL url : artifactSet) {
             try {
-                InputStream is = url.openStream();
-                if (is != null) {
-                    log.debug("Processing Kubernetes YAML in at: %s", url);
-
-                    KubernetesList resources = new ObjectMapper(new YAMLFactory()).readValue(is, KubernetesList.class);
-                    List<HasMetadata> items = resources.getItems();
-                    if (items.size() == 0 && Objects.equals("Template", resources.getKind())) {
-                        is = url.openStream();
-                        Template template = new ObjectMapper(new YAMLFactory()).readValue(is, Template.class);
-                        if (template != null) {
-                            items.add(template);
-                        }
+                log.debug("Processing Kubernetes YAML in at: %s", url);
+                KubernetesList resources = new ObjectMapper(new YAMLFactory()).readValue(url, KubernetesList.class);
+                List<HasMetadata> items = resources.getItems();
+                if (items.isEmpty() && Objects.equals("Template", resources.getKind())) {
+                    Template template = new ObjectMapper(new YAMLFactory()).readValue(url, Template.class);
+                    if (template != null) {
+                        items.add(template);
                     }
-                    for (HasMetadata item : items) {
-                        KubernetesResourceUtil.setSourceUrlAnnotationIfNotSet(item, url.toString());
-                        log.debug("  found %s  %s", KubernetesHelper.getKind(item), KubernetesHelper.getName(item));
-                    }
-                    function.apply(items);
                 }
+                for (HasMetadata item : items) {
+                    KubernetesResourceUtil.setSourceUrlAnnotationIfNotSet(item, url.toString());
+                    log.debug("  found %s  %s", KubernetesHelper.getKind(item), KubernetesHelper.getName(item));
+                }
+                function.apply(items);
             } catch (IOException e) {
                 getLog().debug("Skipping %s: %s", url, e);
             }

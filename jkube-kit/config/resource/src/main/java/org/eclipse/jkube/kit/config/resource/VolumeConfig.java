@@ -237,7 +237,7 @@ public class VolumeConfig {
 
     public String getHostPathType() { return hostPathType; }
 
-    public String getConfigMapName() { return name; }
+    public String getConfigMapName() { return configMapName; }
 
     public List<KeyToPath> getConfigMapItems() { return configMapItems; }
 

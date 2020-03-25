@@ -61,7 +61,6 @@ public class PodLogService {
     private Map<String, Pod> addedPods = new ConcurrentHashMap<>();
     private CountDownLatch terminateLatch = new CountDownLatch(1);
     private String watchingPodName;
-    private String newestPodName;
     private CountDownLatch logWatchTerminateLatch;
 
     public PodLogService(PodLogServiceContext context) {
@@ -146,12 +145,9 @@ public class PodLogService {
         if (latestPod != null) {
             onPod(Watcher.Action.ADDED, latestPod, kubernetes, namespace, ctrlCMessage, followLog);
         }
-        if (!watchAddedPodsOnly) {
-            // lets watch the current pods then watch for changes
-            if (!runningPod) {
-                log.warn("No pod is running yet. Are you sure you deployed your app via `jkube:deploy`?");
-                log.warn("Or did you stop it via `jkube:stop`? If so try running the `jkube:start` goal");
-            }
+        if (!watchAddedPodsOnly && !runningPod) {
+            log.warn("No pod is running yet. Are you sure you deployed your app via `jkube:deploy`?");
+            log.warn("Or did you stop it via `jkube:stop`? If so try running the `jkube:start` goal");
         }
         podWatcher = pods.watch(new Watcher<Pod>() {
             @Override
@@ -171,7 +167,7 @@ public class PodLogService {
                 try {
                     terminateLatch.await();
                 } catch (InterruptedException e) {
-                    // ignore
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -192,7 +188,7 @@ public class PodLogService {
         }
 
         Pod watchPod = KubernetesHelper.getNewestPod(addedPods.values());
-        newestPodName = KubernetesHelper.getName(watchPod);
+        String newestPodName = KubernetesHelper.getName(watchPod);
 
         KitLogger statusLog = Objects.equals(name, newestPodName) ? context.getNewPodLog() : context.getOldPodLog();
         if (!action.equals(Watcher.Action.MODIFIED) || watchingPodName == null || !watchingPodName.equals(name)) {
@@ -293,9 +289,6 @@ public class PodLogService {
         private String podName;
 
         private String s2iBuildNameSuffix = "-s2i";
-
-        public PodLogServiceContext() {
-        }
 
         public KitLogger getLog() {
             return log;

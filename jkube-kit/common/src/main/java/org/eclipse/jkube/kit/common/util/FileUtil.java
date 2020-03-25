@@ -35,6 +35,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -45,6 +46,8 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
  * @since 23.05.17
  */
 public class FileUtil {
+
+    private FileUtil() { }
 
     public static File createTempDirectory() {
         try {
@@ -222,7 +225,7 @@ public class FileUtil {
         return resultPath;
     }
 
-    private static final String buildRelativePath( String toPath, String fromPath, final char separatorChar )
+    private static String buildRelativePath( String toPath, String fromPath, final char separatorChar )
     {
         // use tokeniser to traverse paths and for lazy checking
         StringTokenizer toTokeniser = new StringTokenizer( toPath, String.valueOf( separatorChar ) );
@@ -303,23 +306,17 @@ public class FileUtil {
         Files.copy(sourcePath, targetPath, REPLACE_EXISTING);
     }
 
-    public static void copyDirectory(File sourceDir, File targetDir) throws IOException {
+    public static void copyDirectoryIfNotExists(File sourceDir, File targetDir) throws IOException {
         if (targetDir.exists() && targetDir.isDirectory() && !isDirEmpty(targetDir.toPath())) {
-            // Directory already exists, return
             return;
         }
-
-        Path sourcePath = Paths.get(sourceDir.getAbsolutePath());
-        Path targetPath = Paths.get(targetDir.getAbsolutePath());
-
-        Files.walk(sourcePath).forEach((source) -> {
-            try {
-                Path target = targetPath.resolve(sourcePath.relativize(source));
-                Files.copy(source, target, REPLACE_EXISTING);
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
-        });
+        final Path sourcePath = sourceDir.toPath();
+        try (Stream<Path> sourceTree = Files.walk(sourcePath)) {
+          for (Path source : sourceTree.collect(Collectors.toList())){
+            Path target = targetDir.toPath().resolve(sourcePath.relativize(source));
+            Files.copy(source, target, REPLACE_EXISTING);
+          }
+        }
     }
 
     private static boolean isDirEmpty(final Path directory) throws IOException {

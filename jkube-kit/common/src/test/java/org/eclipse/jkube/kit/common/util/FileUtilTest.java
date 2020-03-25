@@ -13,17 +13,20 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class FileUtilTest {
@@ -42,14 +45,14 @@ public class FileUtilTest {
         prepareDirectory();
         List<File> fileList = FileUtil.listFilesRecursivelyInDirectory(folder.getRoot());
         assertNotNull(fileList);
-        assertEquals(3, fileList.size());
+        assertEquals(4, fileList.size());
     }
 
     @Test
     public void testCleanDirectory() throws IOException {
         prepareDirectory();
         List<File> fileList = FileUtil.listFilesRecursivelyInDirectory(folder.getRoot());
-        assertEquals(3, fileList.size());
+        assertEquals(4, fileList.size());
         FileUtil.cleanDirectory(folder.getRoot());
         assertFalse(folder.getRoot().exists());
     }
@@ -60,14 +63,34 @@ public class FileUtilTest {
     }
 
     @Test
-    public void testCopyDir() throws IOException {
+    public void testCopyDirectoryIfNotExists() throws IOException {
+        // Given
         prepareDirectory();
         File copyTarget = new File(folder.getRoot(), "copyTarget");
-        FileUtil.copyDirectory(new File(folder.getRoot(), "foo"), copyTarget);
+        // When
+        FileUtil.copyDirectoryIfNotExists(new File(folder.getRoot(), "foo"), copyTarget);
+        // Then
+        assertThat(copyTarget.exists(), is(true));
+        assertThat(copyTarget.list(), arrayWithSize(2));
+        assertThat(new File(copyTarget, "fileInFoo1").exists(), is(true));
+        assertThat(new File(copyTarget, "fileInFoo2").exists(), is(true));
+    }
 
-        assertTrue(copyTarget.exists());
-        assertEquals(1, FileUtil.listFilesRecursivelyInDirectory(copyTarget).size());
-        assertTrue(new File(copyTarget, "fileInfoo1").exists());
+    @Test
+    public void testCopyDirectoryIfNotExistsWithExistingDirectory() throws IOException {
+        // Given
+        prepareDirectory();
+        File copyTarget = new File(folder.getRoot(), "copyTarget");
+        assertThat(copyTarget.mkdirs(), is(true));
+        assertThat(new File(copyTarget, "emptyFile").createNewFile(), is(true));
+        // When
+        FileUtil.copyDirectoryIfNotExists(new File(folder.getRoot(), "foo"), copyTarget);
+        // Then
+        assertThat(copyTarget.exists(), is(true));
+        assertThat(copyTarget.list(), arrayWithSize(1));
+        assertThat(new File(copyTarget, "emptyFile").exists(), is(true));
+        assertThat(new File(copyTarget, "fileInFoo1").exists(), is(false));
+        assertThat(new File(copyTarget, "fileInFoo2").exists(), is(false));
     }
 
     @Test
@@ -75,18 +98,18 @@ public class FileUtilTest {
       prepareDirectory();
       File relativeFile = FileUtil.getRelativePath(folder.getRoot(), new File(folder.getRoot(), "foo"));
       assertEquals("foo", relativeFile.getPath());
-      relativeFile = FileUtil.getRelativePath(folder.getRoot(), new File(folder.getRoot().getAbsolutePath() + File.separator + "foo" + File.separator + "fileInfoo1"));
-      assertEquals("foo/fileInfoo1", relativeFile.getPath());
+      relativeFile = FileUtil.getRelativePath(folder.getRoot(),
+          new File(folder.getRoot().getAbsolutePath() + File.separator + "foo" + File.separator + "fileInFoo1"));
+      assertEquals("foo/fileInFoo1", relativeFile.getPath());
     }
 
     private void prepareDirectory() throws IOException {
-        File dir1 = folder.newFolder("foo");
-        File file1 = new File(dir1, "fileInfoo1");
+        final File dir1 = folder.newFolder("foo");
+        assertThat(new File(dir1, "fileInFoo1").createNewFile(), is(true));
+        assertThat(new File(dir1, "fileInFoo2").createNewFile(), is(true));
         folder.newFile("something");
-        File dir2 = folder.newFolder("bar");
-        File file2 = new File(dir2, "fileInfoo2");
-        file1.createNewFile();
-        file2.createNewFile();
+        final File dir2 = folder.newFolder("bar");
+        assertThat(new File(dir2, "fileInBar2").createNewFile(), is(true));
     }
 
 }

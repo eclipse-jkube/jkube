@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -124,7 +125,7 @@ public class DockerAccessWithHcClient implements DockerAccess {
                                     String certPath,
                                     int maxConnections,
                                     KitLogger log) throws IOException {
-        URI uri = URI.create(baseUrl);
+        URI uri = URI.create(Objects.requireNonNull(baseUrl, "Docker daemon baseUrl is required"));
         if (uri.getScheme() == null) {
             throw new IllegalArgumentException("The docker access url '" + baseUrl + "' must contain a schema tcp://, unix:// or npipe://");
         }
@@ -442,17 +443,15 @@ public class DockerAccessWithHcClient implements DockerAccess {
             doPushImage(pushUrl, createAuthHeader(authConfig), createPullOrPushResponseHandler(), HTTP_OK, retries);
         } catch (IOException e) {
             dae = new DockerAccessException(e, "Unable to push '%s'%s", image, (registry != null) ? " to registry '" + registry + "'" : "");
-            throw dae;
-        } finally {
-            if (temporaryImage != null) {
-                if (!removeImage(temporaryImage, true)) {
-                    if (dae == null) {
-                        throw new DockerAccessException("Image %s could be pushed, but the temporary tag could not be removed", temporaryImage);
-                    } else {
-                        throw new DockerAccessException(dae.getCause(), dae.getMessage() + " and also temporary tag [%s] could not be removed, too.", temporaryImage);
-                    }
-                }
+        }
+        if (temporaryImage != null && !removeImage(temporaryImage, true)) {
+            if (dae == null) {
+                throw new DockerAccessException("Image %s could be pushed, but the temporary tag could not be removed", temporaryImage);
+            } else {
+                throw new DockerAccessException(dae.getCause(), dae.getMessage() + " and also temporary tag [%s] could not be removed, too.", temporaryImage);
             }
+        } else if (dae != null) {
+            throw dae;
         }
     }
 

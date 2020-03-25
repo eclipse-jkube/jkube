@@ -47,7 +47,7 @@ public enum OpenShiftBuildStrategy {
 
     private final String label;
 
-    private OpenShiftBuildStrategy(String label) {
+    OpenShiftBuildStrategy(String label) {
         this.label = label;
     }
 
@@ -58,9 +58,10 @@ public enum OpenShiftBuildStrategy {
      * @return boolean value whether type is same or not.
      */
     public boolean isSame(String type) {
-        return type != null &&
-                (type.equalsIgnoreCase("source") && this == s2i) ||
-                (type.equalsIgnoreCase("docker") && this == docker);
+        return type != null && (
+            (type.equalsIgnoreCase("source") && this == s2i) ||
+            (type.equalsIgnoreCase("docker") && this == docker)
+        );
     }
 
     public String getLabel() {

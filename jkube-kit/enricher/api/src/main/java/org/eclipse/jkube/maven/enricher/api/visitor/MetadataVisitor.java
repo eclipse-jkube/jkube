@@ -15,24 +15,28 @@ package org.eclipse.jkube.maven.enricher.api.visitor;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.maven.enricher.api.Kind;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaFluent;
+import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
-import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.Enricher;
-import org.eclipse.jkube.maven.enricher.api.Kind;
 import io.fabric8.openshift.api.model.BuildBuilder;
 import io.fabric8.openshift.api.model.BuildConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
@@ -65,15 +69,7 @@ public abstract class MetadataVisitor<T> extends TypedVisitor<T> {
     }
 
     public static void clearProcessorConfig() {
-        configHolder.set(null);
-    }
-
-    private ProcessorConfig getProcessorConfig() {
-        ProcessorConfig config = configHolder.get();
-        if (config == null) {
-            throw new IllegalArgumentException("No ProcessorConfig set");
-        }
-        return config;
+        configHolder.remove();
     }
 
     public void visit(T item) {
@@ -139,7 +135,7 @@ public abstract class MetadataVisitor<T> extends TypedVisitor<T> {
     protected abstract ObjectMeta getOrCreateMetadata(T item);
 
     private Map<String, String> ensureMap(Map<String, String> labels) {
-        return labels != null ? labels : new HashMap<String, String>();
+        return labels != null ? labels : new HashMap<>();
     }
 
 
@@ -369,9 +365,9 @@ public abstract class MetadataVisitor<T> extends TypedVisitor<T> {
     }
 
     private static <T extends ObjectMetaFluent<?>> T addEmptyLabelsAndAnnotations(
-            Supplier<Boolean> hasMetadata, Supplier<T> withNewMetadata, Supplier<T> editMetadata, Supplier<ObjectMeta> buildMetadata) {
+        BooleanSupplier hasMetadata, Supplier<T> withNewMetadata, Supplier<T> editMetadata, Supplier<ObjectMeta> buildMetadata) {
         final T ret;
-        if (Boolean.TRUE.equals(hasMetadata.get())) {
+        if (hasMetadata.getAsBoolean()) {
             ret = editMetadata.get();
             if (buildMetadata.get().getLabels() == null) {
                 ret.withLabels(Collections.emptyMap());

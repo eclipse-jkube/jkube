@@ -61,8 +61,8 @@ public class WatchService {
         this.log = log;
     }
 
-    public synchronized void watch(WatchContext context, BuildService.BuildContext buildContext, List<ImageConfiguration> images) throws DockerAccessException,
-            IOException {
+    public synchronized void watch(WatchContext context, BuildService.BuildContext buildContext, List<ImageConfiguration> images)
+        throws IOException {
 
         // Important to be be a single threaded scheduler since watch jobs must run serialized
         ScheduledExecutorService executor = null;
@@ -102,7 +102,7 @@ public class WatchService {
                     tasks.add("restarting");
                 }
 
-                if (tasks.size() > 0) {
+                if (!tasks.isEmpty()) {
                     log.info("%s: Watch for %s", imageConfig.getDescription(), String.join(" and ", tasks));
                 }
             }
@@ -113,6 +113,7 @@ public class WatchService {
             wait();
         } catch (InterruptedException e) {
             log.warn("Interrupted");
+            Thread.currentThread().interrupt();
         } finally {
             if (executor != null) {
                 executor.shutdownNow();
@@ -171,7 +172,7 @@ public class WatchService {
             @Override
             public void run() {
                 List<AssemblyFiles.Entry> entries = files.getUpdatedEntriesAndRefresh();
-                if (entries != null && entries.size() > 0) {
+                if (entries != null && !entries.isEmpty()) {
                     try {
                         log.info("%s: Assembly changed. Rebuild ...", imageConfig.getDescription());
 
@@ -195,8 +196,7 @@ public class WatchService {
         };
     }
 
-    private Runnable createRestartWatchTask(final ImageWatcher watcher)
-            throws DockerAccessException {
+    private Runnable createRestartWatchTask(final ImageWatcher watcher) {
 
         final String imageName = watcher.getImageName();
 

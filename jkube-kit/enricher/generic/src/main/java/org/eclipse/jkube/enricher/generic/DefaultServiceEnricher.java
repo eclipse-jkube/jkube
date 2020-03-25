@@ -211,7 +211,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         String serviceName = getServiceName();
 
         // Create service only for all images which are supposed to live in a single pod
-        List<ServicePort> ports = extractPorts(getImages().get());
+        List<ServicePort> ports = getImages().map(this::extractPorts).orElse(Collections.emptyList());
 
         ServiceBuilder builder = new ServiceBuilder()
             .withNewMetadata()
@@ -256,7 +256,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
                 ObjectMeta serviceMetadata = ensureServiceMetadata(service, defaultService);
                 String serviceName = ensureServiceName(serviceMetadata, service, defaultServiceName);
 
-                if (defaultService != null && defaultServiceName.equals(serviceName)) {
+                if (defaultService != null && defaultServiceName != null && defaultServiceName.equals(serviceName)) {
                     addMissingServiceParts(service, defaultService);
                 }
             }
@@ -269,7 +269,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         }
         ServiceSpec spec = defaultService.getSpec();
         List<ServicePort> ports = spec.getPorts();
-        if (ports.size() > 0) {
+        if (!ports.isEmpty()) {
             log.info("Adding a default service '%s' with ports [%s]",
                      defaultService.getMetadata().getName(), formatPortsAsList(ports));
         } else {

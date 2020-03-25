@@ -15,9 +15,10 @@ package org.eclipse.jkube.generator.webapp.handler;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.DefaultImageLookup;
 import org.eclipse.jkube.generator.webapp.AppServerHandler;
@@ -52,24 +53,24 @@ public abstract class AbstractAppServerHandler implements AppServerHandler {
     protected String[] scanFiles(String... patterns) throws IOException {
         String buildOutputDir = project.getBuildDirectory();
         if (buildOutputDir != null && new File(buildOutputDir).exists()) {
-            List<String> fileList = new ArrayList<>();
-            Files.walk(new File(buildOutputDir).toPath())
-                    .forEach(path -> {
+            try (Stream<Path> fileStream = Files.walk(new File(buildOutputDir).toPath())) {
+                return fileStream
+                    .filter(path -> {
                         for (String pattern : patterns) {
                             // Trim wildcard suffix since last wildcard character
-                            pattern = pattern.substring(pattern.lastIndexOf("*") + 1);
+                            pattern = pattern.substring(pattern.lastIndexOf('*') + 1);
                             if (path.toUri().toString().contains(pattern)) {
-                                fileList.add(path.toUri().toString());
+                                return true;
                             }
                         }
-                    });
-            String[] fileListArr = new String[fileList.size()];
-            fileListArr = fileList.toArray(fileListArr);
-            return fileListArr;
+                        return false;
+                    })
+                    .map(Path::toUri).map(URI::toString)
+                    .toArray(String[]::new);
+            }
         } else {
             return new String[0];
         }
-
     }
 
     /**
