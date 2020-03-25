@@ -94,6 +94,10 @@ public class HelmMojo extends AbstractJKubeMojo {
     }
   }
 
+  protected HelmConfig.HelmType getDefaultHelmType() {
+    return HelmConfig.HelmType.KUBERNETES;
+  }
+
   private void initDefaults() throws IOException, MojoExecutionException {
     if (helm == null) {
       helm = new HelmConfig();
@@ -224,7 +228,7 @@ public class HelmMojo extends AbstractJKubeMojo {
         .map(s -> s.map(prop -> HelmConfig.HelmType.valueOf(prop.trim().toUpperCase())).collect(Collectors.toList()))
         .ifPresent(helm::setTypes);
     if (helm.getTypes() == null || helm.getTypes().isEmpty()) {
-      helm.setTypes(Collections.singletonList(HelmConfig.HelmType.KUBERNETES));
+      helm.setTypes(Collections.singletonList(getDefaultHelmType()));
     }
   }
 
