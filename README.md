@@ -1,7 +1,7 @@
 # JKube
 
 [![Circle CI](https://circleci.com/gh/eclipse/jkube/tree/master.svg?style=shield)](https://circleci.com/gh/eclipse/jkube/tree/master)
-![Integration Tests](https://github.com/eclipse/jkube/workflows/Integration%20Tests/badge.svg?branch=master)
+[![Integration Tests](https://github.com/eclipse/jkube/workflows/Integration%20Tests/badge.svg?branch=master)](https://github.com/eclipse/jkube/actions?query=branch%3Amaster)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jkubeio_jkube)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube&metric=coverage)](https://sonarcloud.io/dashboard?id=jkubeio_jkube)
 [![Gitter](https://badges.gitter.im/eclipse/jkube.svg)](https://gitter.im/eclipse/jkube?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)

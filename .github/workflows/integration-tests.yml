@@ -81,9 +81,17 @@ jobs:
       - name: Free up Space
         run: |
           sudo apt list --installed
+          sudo apt-get autoremove -y 'aspnetcore.*'
+          sudo apt-get autoremove -y 'cabal-install.*'
+          sudo apt-get autoremove -y 'clang.*'
           sudo apt-get autoremove -y 'dotnet.*'
           sudo apt-get autoremove -y 'firefox.*'
+          sudo apt-get autoremove -y 'ghc.*'
           sudo apt-get autoremove -y 'google-chrome.*'
+          sudo apt-get autoremove -y 'google-cloud.*'
+          sudo apt-get autoremove -y 'heroku.*'
+          sudo apt-get autoremove -y 'libmagic.*'
+          sudo apt-get autoremove -y 'libmono.*'
           sudo apt-get autoremove -y 'linux-headers.*'
           sudo apt-get autoremove -y 'mono-.*'
           sudo apt-get autoremove -y 'mysql.*'
