@@ -87,13 +87,17 @@ public abstract class ExternalCommand {
             statusCode = process.waitFor();
             executor.shutdown();
             executor.awaitTermination(10, TimeUnit.SECONDS);
-        } catch (IllegalThreadStateException | InterruptedException e) {
+        } catch (IllegalThreadStateException e) {
             process.destroy();
             statusCode = -1;
+        } catch (InterruptedException e) {
+            process.destroy();
+            statusCode = -1;
+            Thread.currentThread().interrupt();
         }
     }
 
-    private void inputStreamPump(OutputStream outputStream, String processInput) throws IOException {
+    private void inputStreamPump(OutputStream outputStream, String processInput) {
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
             if (processInput != null) {
                 writer.write(processInput);
@@ -144,7 +148,7 @@ public abstract class ExternalCommand {
         return executor.submit(new Callable<IOException>() {
             @Override
             public IOException call() {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream))) {
                     for (; ; ) {
                         String line = reader.readLine();
                         if (line == null) {

@@ -192,7 +192,7 @@ public class DebugMojo extends ApplyMojo {
             try {
                 terminateLatch.await();
             } catch (InterruptedException e) {
-                // ignore
+                Thread.currentThread().interrupt();
             }
             if (foundPod != null) {
                 return getName(foundPod);

@@ -13,11 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.validation.constraints.NotNull;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -27,15 +22,20 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.validation.constraints.NotNull;
+
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Helper methods to compare the user configuration on entities
  */
 public class UserConfigurationCompare {
-    private static final transient Logger LOG = LoggerFactory.getLogger(UserConfigurationCompare.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UserConfigurationCompare.class);
 
     protected static final Set<String> ignoredProperties = new HashSet<>(Collections.singletonList("status"));
 
@@ -208,23 +208,6 @@ public class UserConfigurationCompare {
         }
         return true;
     }
-
-    protected static boolean configEqualList(List v1, List v2) {
-        int size1 = size(v1);
-        int size2 = size(v2);
-        if (size1 != size2) {
-            return false;
-        }
-        int idx = 0;
-        for (Object value : v1) {
-            Object value2 = v2.get(idx++);
-            if (!configEqual(value, value2)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 
     protected static int size(Map map) {
         return (map == null) ? 0 : map.size();

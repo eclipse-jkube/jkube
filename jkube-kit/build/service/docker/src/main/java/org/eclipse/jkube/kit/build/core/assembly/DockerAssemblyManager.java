@@ -444,7 +444,7 @@ public class DockerAssemblyManager {
 
             if (sourceFile.exists()) {
                 if (sourceFile.isDirectory()) {
-                    FileUtil.copyDirectory(sourceFile, destFile);
+                    FileUtil.copyDirectoryIfNotExists(sourceFile, destFile);
                 } else {
                     FileUtil.copy(sourceFile, destFile);
                 }

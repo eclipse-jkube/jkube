@@ -14,9 +14,11 @@
 package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
@@ -29,9 +31,11 @@ import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class DefaultNamespaceEnricher extends BaseEnricher {
     protected static final String[] NAMESPACE_KINDS = {"Project", "Namespace" };
+    protected static final List<String> NAMESPACE_KINDS_LIST = Arrays.asList(NAMESPACE_KINDS);
 
     private final HandlerHub handlerHub;
 
@@ -98,16 +102,14 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
 
         builder.accept(new TypedVisitor<ObjectMetaBuilder>() {
             private String getNamespaceName() {
-                String name = null;
                 if (config.getNamespace() != null && !config.getNamespace().isEmpty()) {
-                    name = config.getNamespace();
+                    return config.getNamespace();
                 }
-
-                name = builder.getItems().stream()
-                        .filter(item -> Arrays.asList(NAMESPACE_KINDS).contains(item.getKind()))
-                        .findFirst().get().getMetadata().getName();
-
-                return name;
+                return builder.buildItems().stream()
+                    .filter(item -> NAMESPACE_KINDS_LIST.contains(item.getKind()))
+                    .map(HasMetadata::getMetadata)
+                    .map(ObjectMeta::getName)
+                    .findFirst().orElse(null);
             }
 
             @Override

@@ -18,16 +18,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLClassLoader;
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+
+import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
 import com.google.common.base.Objects;
 import org.apache.commons.lang3.StringUtils;
@@ -45,11 +46,6 @@ import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.codehaus.plexus.archiver.tar.TarLongFileMode;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.eclipse.jkube.kit.common.util.ClassUtil.createClassLoader;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.greaterOrEqualsVersion;
@@ -59,9 +55,10 @@ import static org.eclipse.jkube.kit.common.util.EnvUtil.greaterOrEqualsVersion;
  * @since 31/03/16
  */
 public class MavenUtil {
-    private static final transient Logger LOG = LoggerFactory.getLogger(MavenUtil.class);
 
     private static final String DEFAULT_CONFIG_FILE_NAME = "kubernetes.json";
+
+    private MavenUtil() {}
 
     public static boolean isKubernetesJsonArtifact(String classifier, String type) {
         return "json".equals(type) && "kubernetes".equals(classifier);
@@ -95,10 +92,6 @@ public class MavenUtil {
             throw new IllegalArgumentException("Cannot resolve artifact from test classpath", e);
         }
     }
-
-
-
-    // ====================================================
 
     /**
      * Returns true if the maven project has a dependency with the given groupId and artifactId (if not null)
@@ -246,7 +239,7 @@ public class MavenUtil {
                 if (compileClassLoader.getResource(path) != null) {
                     return true;
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 // ignore
             }
         }

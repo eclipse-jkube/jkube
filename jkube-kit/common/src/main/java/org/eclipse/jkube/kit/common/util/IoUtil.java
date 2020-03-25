@@ -37,6 +37,8 @@ import okhttp3.Response;
  */
 public class IoUtil {
 
+    private static final Random RANDOM = new Random();
+
     /**
      * Download with showing the progress a given URL and store it in a file
      * @param log logger used to track progress
@@ -102,10 +104,10 @@ public class IoUtil {
      * @return random port as integer
      */
     public static int getFreeRandomPort(int min, int max, int attempts) {
-        Random random = new Random();
         for (int i=0; i < attempts; i++) {
-            int port = min + random.nextInt(max - min + 1);
-            try (Socket socket = new Socket("localhost", port)) {
+            int port = min + RANDOM.nextInt(max - min + 1);
+            try (Socket socket = new Socket("localhost", port)) { // NOSONAR
+                // Port is open, so it's used up, try again
             } catch (ConnectException e) {
                 return port;
             } catch (IOException e) {

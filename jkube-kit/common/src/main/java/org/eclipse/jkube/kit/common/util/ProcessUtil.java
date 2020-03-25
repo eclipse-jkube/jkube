@@ -34,6 +34,8 @@ import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
  */
 public class ProcessUtil {
 
+    private ProcessUtil() { }
+
     public static int runCommand(final KitLogger log, File command, List<String> args) throws IOException {
         return runCommand(log, command, args, false);
     }
@@ -58,6 +60,7 @@ public class ProcessUtil {
                 thread.join();
             } catch (InterruptedException e) {
                 log.warn("Caught %s", e);
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -84,7 +87,7 @@ public class ProcessUtil {
 
     public static boolean folderIsOnPath(KitLogger logger, File dir) {
         List<File> paths = getPathDirectories();
-        if (paths.size() == 0) {
+        if (paths.isEmpty()) {
             logger.warn("The $PATH environment variable is empty! Usually you have a PATH defined to find binaries.");
             logger.warn("Please report this to the jkube team: https://github.com/fabric8org.eclipse.jkube-maven-plugin/issues/new");
             return false;
@@ -136,7 +139,7 @@ public class ProcessUtil {
     }
 
     private static String[] prepareCommandArray(String command, List<String> args) {
-        List<String> nArgs = args != null ? args : new ArrayList<String>();
+        List<String> nArgs = args != null ? args : new ArrayList<>();
         String[] commandWithArgs = new String[nArgs.size() + 1];
         commandWithArgs[0] = command;
         for (int i = 0; i < nArgs.size(); i++) {
@@ -158,8 +161,7 @@ public class ProcessUtil {
         try {
             return file.getCanonicalPath();
         } catch (IOException e) {
-            String absolutePath = file.getAbsolutePath();
-            return absolutePath;
+            return file.getAbsolutePath();
         }
     }
 
@@ -273,12 +275,13 @@ public class ProcessUtil {
                 joinThreads(loggingThreads, log);
                 return answer;
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 return process.exitValue();
             }
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
             process.destroy();
             await();
         }

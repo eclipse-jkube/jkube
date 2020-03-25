@@ -21,7 +21,6 @@ import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.Configuration;
 import org.eclipse.jkube.maven.enricher.specific.AbstractHealthCheckEnricher;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -56,13 +55,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
     private static final String SCHEME_HTTP = "HTTP";
 
     private static final String VERTX_HEALTH = "vertx.health.";
-    private static final Function<? super String, String> TRIM = new Function<String, String>() {
-        @Nullable
-        @Override
-        public String apply(@Nullable String input) {
-            return input == null ? null : input.trim();
-        }
-    };
+    private static final Function<? super String, String> TRIM = input -> input == null ? null : input.trim();
     protected static final String[] JKUBE_PLUGINS = {"kubernetes-maven-plugin", "openshift-maven-plugin"};
 
     public static final String ERROR_MESSAGE = "Location of %s should return a String but found %s with value %s";
@@ -172,33 +165,19 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
         // Time to build the probe
         ProbeBuilder builder = new ProbeBuilder();
-        if (initialDelay.isPresent()) {
-            builder.withInitialDelaySeconds(initialDelay.get());
-        }
-        if (period.isPresent()) {
-            builder.withPeriodSeconds(period.get());
-        }
-        if (timeout.isPresent()) {
-            builder.withTimeoutSeconds(timeout.get());
-        }
-        if (successThreshold.isPresent()) {
-            builder.withSuccessThreshold(successThreshold.get());
-        }
-        if (failureThreshold.isPresent()) {
-            builder.withFailureThreshold(failureThreshold.get());
-        }
+        initialDelay.ifPresent(builder::withInitialDelaySeconds);
+        period.ifPresent(builder::withPeriodSeconds);
+        timeout.ifPresent(builder::withTimeoutSeconds);
+        successThreshold.ifPresent(builder::withSuccessThreshold);
+        failureThreshold.ifPresent(builder::withFailureThreshold);
 
         switch (type) {
             case "HTTP":
                 ProbeFluent.HttpGetNested<ProbeBuilder> http = builder.withNewHttpGet()
                         .withScheme(scheme)
                         .withPath(path);
-                if (port.isPresent()) {
-                    http.withNewPort(port.get());
-                }
-                if (portName.isPresent()) {
-                    http.withNewPort(portName.get());
-                }
+                port.ifPresent(http::withNewPort);
+                portName.ifPresent(http::withNewPort);
                 if (!headers.isEmpty()) {
                     List<HTTPHeader> list = new ArrayList<>();
                     for (Map.Entry<String, String> entry : headers.entrySet()) {
@@ -210,12 +189,8 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
                 break;
             case "TCP":
                 ProbeFluent.TcpSocketNested<ProbeBuilder> tcp = builder.withNewTcpSocket();
-                if (port.isPresent()) {
-                    tcp.withNewPort(port.get());
-                }
-                if (portName.isPresent()) {
-                    tcp.withNewPort(portName.get());
-                }
+                port.ifPresent(tcp::withNewPort);
+                portName.ifPresent(tcp::withNewPort);
                 tcp.endTcpSocket();
                 break;
             case "EXEC":
@@ -361,7 +336,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
     private Optional<Map<String, Object>> getMavenPluginConfiguration() {
         for(String pluginId : JKUBE_PLUGINS) {
             Optional<Map<String, Object>> configuration = getContext().getConfiguration().getPluginConfiguration("maven", pluginId);
-            if(configuration != null && configuration.isPresent()) {
+            if(configuration.isPresent()) {
                 return configuration;
             }
         }

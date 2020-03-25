@@ -21,20 +21,20 @@ import org.eclipse.jkube.maven.enricher.api.Enricher;
 
 public abstract class SelectorVisitor<T> extends TypedVisitor<T> {
 
-    List<Enricher> enrichers;
+    private static ThreadLocal<ProcessorConfig> configHolder = new ThreadLocal<>();
+
+    final List<Enricher> enrichers;
 
     SelectorVisitor(List<Enricher> enrichers) {
         this.enrichers = enrichers;
     }
-
-    private static ThreadLocal<ProcessorConfig> configHolder = new ThreadLocal<>();
 
     public static void setProcessorConfig(ProcessorConfig config) {
         configHolder.set(config);
     }
 
     public static void clearProcessorConfig() {
-        configHolder.set(null);
+        configHolder.remove();
     }
 
     protected static ProcessorConfig getConfig() {
@@ -44,8 +44,5 @@ public abstract class SelectorVisitor<T> extends TypedVisitor<T> {
         }
         return ret;
     }
-
-    // ========================================================================
-
 }
 

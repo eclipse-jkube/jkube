@@ -14,10 +14,12 @@
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.api.auth.RegistryAuth;
+
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -56,7 +58,7 @@ public class AwsSigner4RequestTest {
                                         + "Signature=89cd649587898a1913ced5c519425905b192c4662212d37e689e6c20e53edbbd";
 
     @Test
-    public void testSign() throws Exception {
+    public void testSign() {
         HttpPost request = new HttpPost("https://ecr.us-east-1.amazonaws.com/");
         request.setHeader("host", "ecr.us-east-1.amazonaws.com");
         request.setHeader("Content-Type", "application/x-amz-json-1.1");
@@ -65,7 +67,9 @@ public class AwsSigner4RequestTest {
 
         AwsSigner4 signer = new AwsSigner4("us-east-1", "ecr");
 
-        Date signingTime = AwsSigner4Request.TIME_FORMAT.parse("20150830T123600Z");
+        Date signingTime = Date.from(
+            ZonedDateTime.of(2015, 8,30, 12, 36, 0, 0, ZoneId.of("GMT"))
+        .toInstant());
         AwsSigner4Request sr = new AwsSigner4Request("us-east-1", "service", request, signingTime);
         AuthConfig credentials =
             new AuthConfig.Builder()
