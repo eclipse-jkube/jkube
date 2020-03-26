@@ -65,6 +65,8 @@ public class HelmMojo extends AbstractJKubeMojo {
   private static final String PROPERTY_OUTPUT_DIR = "jkube.helm.outputDir";
   private static final String PROPERTY_TARBALL_OUTPUT_DIR = "jkube.helm.tarballOutputDir";
   private static final String DEFAULT_CHART_EXTENSION = "tar.gz";
+  static final String PROPERTY_KUBERNETES_MANIFEST = "jkube.kubernetesManifest";
+  static final String PROPERTY_KUBERNETES_TEMPLATE = "jkube.kubernetesTemplate";
 
   @Parameter
   HelmConfig helm;
@@ -72,13 +74,13 @@ public class HelmMojo extends AbstractJKubeMojo {
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml")
+  @Parameter(property = PROPERTY_KUBERNETES_MANIFEST, defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml")
   File kubernetesManifest;
 
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = "jkube.kubernetesTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
+  @Parameter(property = PROPERTY_KUBERNETES_TEMPLATE, defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
   File kubernetesTemplate;
 
   @Component
