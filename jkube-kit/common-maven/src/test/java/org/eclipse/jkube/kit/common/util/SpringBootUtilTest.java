@@ -45,7 +45,7 @@ public class SpringBootUtilTest {
 
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void testInvalidFileThrowsException() {
         YamlUtil.getPropertiesFromYamlResource(SpringBootUtilTest.class.getResource("/util/invalid-application.yml"));
     }

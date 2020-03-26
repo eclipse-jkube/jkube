@@ -101,9 +101,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup OpenShift
-        uses: manusa/actions-setup-openshift@v1.0.1
+        uses: manusa/actions-setup-openshift@v1.0.3
         with:
           oc version: ${{ matrix.openshift }}
+          github token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup Java 11
         uses: actions/setup-java@v1
         with:

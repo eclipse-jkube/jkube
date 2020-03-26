@@ -29,6 +29,7 @@ Usage:
 * Fix #112: Fix windows specific path error while splitting file path
 * Fix #102: HelmMojo works again
 * Fix #120: Critical bugs reported by Sonar
+* Fix #122: Bug 561261 - jkube-kit - insecure yaml load leading to RCE (CWE-502)
 
 ### 0.2.0 (05-03-2020)
 * Fix #71: script to extract changelog information for notifications

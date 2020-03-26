@@ -1,0 +1,40 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+name: YAML 1
+list:
+  - id: 1
+    nested:
+      - element: 1
+        name: nested element 1
+      - element: 2
+        name: nested element 1
+  - id: 2
+    nested:
+property: true
+---
+name: YAML --- 2
+---
+name: YAML 3
+list:
+  - id: 1
+  - id: 2
+    name: nested element 2
+---
+name: Edge case --- 1
+list:
+  - id: first corner ---
+  - id: 2
+    name: nested element 2
