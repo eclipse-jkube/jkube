@@ -7,13 +7,15 @@
 
 .OpenShift Compatibility
 |===
-|     OMP     | OpenShift 4.2.0  | OpenShift 3.11.0 | OpenShift 3.10.0 | OpenShift 3.9.0  | OpenShift 3.7.0  | OpenShift 3.6.0  | OpenShift 3.5.0  | OpenShift 1.4.1
+|     OMP             | OpenShift 4.2.0  | OpenShift 3.11.0 | OpenShift 3.10.0 | OpenShift 3.9.0  | OpenShift 3.7.0  | OpenShift 3.6.0  | OpenShift 3.5.0  | OpenShift 1.4.1
 
-| OMP 0.2.0   |        ✓         |        ✓         |        ✓         |        ✓         |         ✓        |        ✓         |        x         |     x
+| OMP 1.0.0-alpha-1   |        ✓         |        ✓         |        ✓         |        ✓         |         ✓        |        ✓         |        x         |     x
 
-| OMP 0.1.1   |        ✓         |        ✓         |        ✓         |        ✓         |         ✓        |        ✓         |        x         |     x
+| OMP 0.2.0           |        ✓         |        ✓         |        ✓         |        ✓         |         ✓        |        ✓         |        x         |     x
 
-| OMP 0.1.0   |        ✓         |        ✓         |        ✓         |        ✓         |         ✓        |        ✓         |        x         |     x
+| OMP 0.1.1           |        ✓         |        ✓         |        ✓         |        ✓         |         ✓        |        ✓         |        x         |     x
+
+| OMP 0.1.0           |        ✓         |        ✓         |        ✓         |        ✓         |         ✓        |        ✓         |        x         |     x
 
 |===
 
