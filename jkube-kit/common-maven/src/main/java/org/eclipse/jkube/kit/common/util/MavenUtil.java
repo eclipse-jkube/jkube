@@ -425,6 +425,10 @@ public class MavenUtil {
             builder.scmUrl(mavenProject.getScm().getUrl());
         }
 
+        if (mavenProject.getArtifact() != null) {
+            builder.artifact(mavenProject.getArtifact().getFile());
+        }
+
         return builder.build();
     }
 }

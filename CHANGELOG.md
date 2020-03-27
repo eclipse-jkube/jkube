@@ -30,6 +30,7 @@ Usage:
 * Fix #112: Fix windows specific path error while splitting file path
 * Fix #102: HelmMojo works again
 * Fix #120: Critical bugs reported by Sonar
+* Fix #88: Unreachable statement in DockerAssemblyManager
 * Fix #122: Bug 561261 - jkube-kit - insecure yaml load leading to RCE (CWE-502)
 
 ### 0.2.0 (05-03-2020)
