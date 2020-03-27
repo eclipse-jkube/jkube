@@ -20,7 +20,9 @@ Usage:
 # ./scripts/extract-changelog-for-version.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 0.2.1-SNAPSHOT
+### 1.0.0-SNAPSHOT
+
+### 1.0.0-alpha-1 (2020-03-27)
 * Ported PR fabric8io/fabric8-maven-plugin#1792, NullCheck in FileDataSecretEnricher
 * Fix #53: Renamed plugins to openshift/kubernetes-maven-plugin keeping acronym (oc/k8s) for goal
 * Fix #97: Port of fabric8io/fabric8-maven-plugin#1794 to fix ImageChange triggers not being set in DeploymentConfig when resource fragments are used
@@ -33,7 +35,7 @@ Usage:
 * Fix #88: Unreachable statement in DockerAssemblyManager
 * Fix #122: Bug 561261 - jkube-kit - insecure yaml load leading to RCE (CWE-502)
 
-### 0.2.0 (05-03-2020)
+### 0.2.0 (2020-03-05)
 * Fix #71: script to extract changelog information for notifications
 * Fix #34: Ported OpenLiberty support: https://github.com/fabric8io/fabric8-maven-plugin/pull/1711
 * Fix #76: Github actions checkout v2
@@ -50,7 +52,7 @@ Usage:
 * Doc #91: Quarkus Native Quickstart
 
 
-### 0.1.1 (14-02-2020)
+### 0.1.1 (2020-02-14)
 * Refactor: Add Maven Enforcer Plugin #29
 * Fixed broken Quarkus Sample #65
 * Doc: Added Migration guide for Fabric8 Maven Plugin users #64
@@ -69,5 +71,5 @@ Usage:
 * Add Sample Quickstarts to project #33
 * Fix: Run tests for current version #35
 
-### 0.1.0 (19-12-2019)
+### 0.1.0 (2019-12-19)
 * Initial release
