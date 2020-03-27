@@ -340,6 +340,11 @@ public class BuildConfiguration<A extends AssemblyConfiguration> implements Seri
             return this;
         }
 
+        public TypedBuilder<A, B> dockerFileFile(File dockerFile) {
+            config.dockerFileFile = dockerFile;
+            return this;
+        }
+
         public TypedBuilder<A, B> filter(String filter) {
             config.filter = filter;
             return this;

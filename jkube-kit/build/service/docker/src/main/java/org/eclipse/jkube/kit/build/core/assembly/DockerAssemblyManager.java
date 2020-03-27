@@ -133,18 +133,15 @@ public class DockerAssemblyManager {
                 verifyGivenDockerfile(dockerFile, buildConfig, params.getProperties(), log);
                 interpolateDockerfile(dockerFile, buildDirs, params.getProperties());
                 // User dedicated Dockerfile from extra directory
-                archiveCustomizers.add(new ArchiverCustomizer() {
-                    @Override
-                    public JKubeBuildTarArchiver customize(JKubeBuildTarArchiver archiver) {
-                        // If the content is added as archive, then we need to add the Dockerfile from the builddir
-                        // directly to docker.tar (as the output builddir is not picked up in archive mode)
-                        if (isArchive(assemblyConfig)) {
-                            String name = dockerFile.getName();
-                            archiver.includeFile(new File(buildDirs.getOutputDirectory(), name), name);
-                        }
-
-                        return archiver;
+                archiveCustomizers.add(archiver -> {
+                    // If the content is added as archive, then we need to add the Dockerfile from the builddir
+                    // directly to docker.tar (as the output builddir is not picked up in archive mode)
+                    if (isArchive(assemblyConfig)) {
+                        String name = dockerFile.getName();
+                        archiver.includeFile(new File(buildDirs.getOutputDirectory(), name), name);
                     }
+
+                    return archiver;
                 });
             } else {
                 // Create custom docker file in output dir
@@ -384,31 +381,27 @@ public class DockerAssemblyManager {
     // object which is then not available for the BuildMojo (there the file is still null leading to the
     // the "Cannot include project artifact: ... The following patterns were never triggered in this artifact inclusion filter: <artifact>"
     // warning with an error following.
-    private File ensureThatArtifactFileIsSet(JKubeProject project) throws IOException {
-        File artifact = project.getArtifact();
-        if (artifact == null) {
-            return null;
-        }
-        File oldFile = artifact;
+    protected File ensureThatArtifactFileIsSet(JKubeProject project) throws IOException {
+        File oldFile = project.getArtifact();
         if (oldFile != null) {
             return oldFile;
         }
 
         String finalName = project.getBuildFinalName();
         String target = project.getBuildDirectory();
-        if (finalName == null || target == null) {
-            return null;
-        }
-        File artifactFile = new File(target, finalName + "." + project.getPackaging());
-        if (artifactFile.exists() && artifactFile.isFile()) {
-            setArtifactFile(project, artifactFile);
+        if (finalName != null && target != null) {
+            File artifactFile = new File(target, finalName + "." + project.getPackaging());
+            if (artifactFile.exists() && artifactFile.isFile()) {
+                setArtifactFile(project, artifactFile);
+                return artifactFile;
+            }
         }
         return null;
     }
 
     private void setArtifactFile(JKubeProject project, File artifactFile) throws IOException {
-        File artifact = project.getArtifact();
-        if (artifact != null && artifactFile != null) {
+        if (artifactFile != null) {
+            File artifact = new File(project.getBuildDirectory() + artifactFile.getName());
             Files.copy(Paths.get(artifactFile.getAbsolutePath()), Paths.get(artifact.getAbsolutePath()), StandardCopyOption.REPLACE_EXISTING);
         }
     }
