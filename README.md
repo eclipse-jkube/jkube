@@ -18,12 +18,12 @@ This project contains various building blocks for the JKube developer toolbox.
 Actually it contains the following abstractions which has been extracted from both projects:
 
 * **Kubernetes Maven Plugin** <br/>
-[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/k8s-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22k8s-maven-plugin%22)
+[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/kubernetes-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22kubernetes-maven-plugin%22)
 [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin)
 ![Sample Demo](kubernetes-maven-plugin/k8s-maven-plugin-demo.gif)
 
 * **OpenShift Maven Plugin** <br/> 
-[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/oc-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22oc-maven-plugin%22)
+[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/openshift-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22openshift-maven-plugin%22)
 [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.org/jkube/docs/openshift-maven-plugin)
 ![Sample Demo](openshift-maven-plugin/oc-maven-plugin-demo.gif)
 

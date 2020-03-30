@@ -1,6 +1,6 @@
 ## Kubernetes Maven Plugin
 
-[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/k8s-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22k8s-maven-plugin%22)
+[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/kubernetes-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22kubernetes-maven-plugin%22)
 
 ![Sample Demo](k8s-maven-plugin-demo.gif)
 
@@ -23,11 +23,11 @@ To enable kubernetes maven plugin on your project just add this to the plugins s
 
 | Goal                                          | Description                           |
 | --------------------------------------------- | ------------------------------------- |
-| [`k8s:resource`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:resource) | Create Kubernetes resource descriptors |
-| [`k8s:build`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:build) | Build Docker images |
-| [`k8s:push`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:push) | Push Docker images to a registry  |
-| [`k8s:deploy`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:deploy) | Deploy Kubernetes resource objects to a cluster  |
-| [`k8s:watch`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:watch) | Watch for doing rebuilds and restarts |
+| [`k8s:resource`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:resource) | Create Kubernetes resource descriptors |
+| [`k8s:build`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:build) | Build Docker images |
+| [`k8s:push`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:push) | Push Docker images to a registry  |
+| [`k8s:deploy`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:deploy) | Deploy Kubernetes resource objects to a cluster  |
+| [`k8s:watch`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:watch) | Watch for doing rebuilds and restarts |
 
 ### Features
 
