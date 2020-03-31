@@ -174,7 +174,7 @@ This enricher is disabled by default. In order to use it, you must configure the
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>kubernetes-maven-plugin</artifactId>
-  <version>3.3.0</version>
+  <version>{version}</version>
   <executions>
     <execution>
       <goals>
