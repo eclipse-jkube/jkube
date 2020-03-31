@@ -173,7 +173,7 @@ This enricher is disabled by default. In order to use it, you must configure the
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>openshift-maven-plugin</artifactId>
-  <version>3.3.0</version>
+  <version>{version}</version>
   <executions>
     <execution>
       <goals>
@@ -308,7 +308,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>openshift-maven-plugin</artifactId>
-  <version>3.3.0</version>
+  <version>{version}</version>
   <executions>
     <execution>
       <id>fmp</id>
@@ -364,7 +364,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>openshift-maven-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>{version}</version>
         <executions>
           <execution>
             <id>fmp</id>
@@ -416,7 +416,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>openshift-maven-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>{version}</version>
         <executions>
           <execution>
             <id>fmp</id>
@@ -468,7 +468,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>openshift-maven-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>{version}</version>
         <executions>
           <execution>
             <id>fmp</id>
