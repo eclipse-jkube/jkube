@@ -12,10 +12,12 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-name: Integration Tests
+name: E2E Tests
 
 on:
   push:
+    branches:
+      - master
   pull_request:
   schedule:
     - cron: '0 1 * * *' # Everyday at 1
@@ -38,7 +40,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Minikube-Kubernetes
-        uses: manusa/actions-setup-minikube@v1.0.0
+        uses: manusa/actions-setup-minikube@v1.0.1
         with:
           minikube version: v1.5.1
           kubernetes version: ${{ matrix.kubernetes }}
