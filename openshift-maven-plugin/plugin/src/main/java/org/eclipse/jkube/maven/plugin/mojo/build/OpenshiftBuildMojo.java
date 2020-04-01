@@ -17,7 +17,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.docker;
 import static org.eclipse.jkube.kit.config.resource.RuntimeMode.kubernetes;
 
 /**
@@ -34,9 +33,6 @@ public class OpenshiftBuildMojo extends BuildMojo {
         boolean ret = false;
         if (runtimeMode == kubernetes) {
              ret = true;
-        }
-        if (buildStrategy == docker) {
-            ret = true;
         }
         return ret;
     }

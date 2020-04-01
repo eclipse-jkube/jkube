@@ -38,6 +38,16 @@
         <artifactId>kubernetes-maven-plugin</artifactId>
         <version>${project.version}</version>
       </plugin>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>openshift-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <configuration>
+            <mode>openshift</mode>
+            <buildStrategy>docker</buildStrategy>
+            <verbose>true</verbose>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <properties>
