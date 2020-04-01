@@ -401,7 +401,7 @@ public class DockerAssemblyManager {
 
     private void setArtifactFile(JKubeProject project, File artifactFile) throws IOException {
         if (artifactFile != null) {
-            File artifact = new File(project.getBuildDirectory() + artifactFile.getName());
+            File artifact = new File(project.getBuildDirectory(), artifactFile.getName());
             Files.copy(Paths.get(artifactFile.getAbsolutePath()), Paths.get(artifact.getAbsolutePath()), StandardCopyOption.REPLACE_EXISTING);
         }
     }
