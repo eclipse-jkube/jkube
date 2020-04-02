@@ -117,10 +117,6 @@
                   </jkube-service>
                 </config>
               </enricher>
-<!--              <helm>-->
-<!--                <chart>This is a Test</chart>-->
-<!--                <type>kubernetes,openshift</type>-->
-<!--              </helm>-->
             </configuration>
 
             <executions>

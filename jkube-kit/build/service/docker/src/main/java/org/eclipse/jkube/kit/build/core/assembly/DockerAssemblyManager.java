@@ -34,10 +34,10 @@ import org.eclipse.jkube.kit.common.JKubeAssemblyFile;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.AssemblyMode;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -65,7 +65,7 @@ public class DockerAssemblyManager {
     public static final String DOCKER_IGNORE = ".maven-dockerignore";
     public static final String DOCKER_EXCLUDE = ".maven-dockerexclude";
     public static final String DOCKER_INCLUDE = ".maven-dockerinclude";
-    public static final String DOCKERFILE_NAME = "Dockerfile";
+    private static final String DOCKERFILE_NAME = "Dockerfile";
 
     private DockerAssemblyManager() { }
 
@@ -381,7 +381,7 @@ public class DockerAssemblyManager {
     // object which is then not available for the BuildMojo (there the file is still null leading to the
     // the "Cannot include project artifact: ... The following patterns were never triggered in this artifact inclusion filter: <artifact>"
     // warning with an error following.
-    protected File ensureThatArtifactFileIsSet(JKubeProject project) throws IOException {
+    File ensureThatArtifactFileIsSet(JKubeProject project) throws IOException {
         File oldFile = project.getArtifact();
         if (oldFile != null) {
             return oldFile;
