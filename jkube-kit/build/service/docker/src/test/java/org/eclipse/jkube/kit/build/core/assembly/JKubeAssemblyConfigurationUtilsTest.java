@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.core.assembly;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -106,7 +107,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
     // Then
     assertNotNull(result);
     assertFalse(result.isEmpty());
-    assertEquals("1337", result.iterator().next().getDirectory());
+    assertEquals("1337", result.iterator().next().getDirectory().getName());
   }
 
 
@@ -121,7 +122,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
       result = assembly;
       assembly.getFileSets();
       result = Arrays.asList(fileSet, null, fileSet, fileSet);
-      fileSet.getExludes();
+      fileSet.getExcludes();
       result = Collections.singletonList("1337");
       result = Arrays.asList("1","3", null, "3", "7");
       result = null;
@@ -159,14 +160,14 @@ public class JKubeAssemblyConfigurationUtilsTest {
       assembly.getFiles();
       result = Collections.singletonList(file);
       file.getSource();
-      result = "1337";
+      result = new File("1337");
     }};
     // When
     final List<JKubeAssemblyFile> result = getJKubeAssemblyFiles(configuration);
     // Then
     assertNotNull(result);
     assertFalse(result.isEmpty());
-    assertEquals("1337", result.iterator().next().getSource());
+    assertEquals("1337", result.iterator().next().getSource().getName());
   }
 
 }

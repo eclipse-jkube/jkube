@@ -74,12 +74,14 @@
 
   <properties>
     <jdk.version>1.8</jdk.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.citrus-core>2.6.2</version.citrus-core>
     <version.hamcrest-library>1.3</version.hamcrest-library>
     <version.jackson>2.10.0</version.jackson>
     <version.jacoco>0.8.2</version.jacoco>
     <version.jmockit>1.43</version.jmockit>
     <version.junit>4.11</version.junit>
+    <version.lombok-maven-plugin>1.18.12.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.6.2</version.maven-compiler-plugin>
     <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
     <version.maven-failsafe-plugin>2.19.1</version.maven-failsafe-plugin>
@@ -132,6 +134,11 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${version.maven-javadoc-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-plugin-plugin</artifactId>
           <version>${version.maven-plugin-plugin}</version>
           <executions>
@@ -149,6 +156,11 @@
               </goals>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok-maven-plugin</artifactId>
+          <version>${version.lombok-maven-plugin}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -177,6 +189,48 @@
 
 
   <profiles>
+    <profile>
+      <id>javadoc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-maven-plugin</artifactId>
+            <version>${version.lombok-maven-plugin}</version>
+            <executions>
+              <execution>
+                <id>delombok</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>delombok</goal>
+                </goals>
+                <configuration>
+                  <addOutputDirectory>false</addOutputDirectory>
+                  <sourceDirectory>src/main/java</sourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <sourcepath>
+                ${project.basedir}/target/generated-sources/delombok:
+                ${project.basedir}/target/generated-sources/annotations
+              </sourcepath>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
      <!-- "release" profiles used for deploying with jkube -->
     <profile>
       <id>release</id>
@@ -226,9 +280,32 @@
             </executions>
           </plugin>
           <plugin>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-maven-plugin</artifactId>
+            <version>${version.lombok-maven-plugin}</version>
+            <executions>
+              <execution>
+                <id>prepare-javadoc-sources</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>delombok</goal>
+                </goals>
+                <configuration>
+                  <addOutputDirectory>false</addOutputDirectory>
+                  <sourceDirectory>src/main/java</sourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>${version.maven-javadoc-plugin}</version>
+            <configuration>
+              <sourcepath>
+                ${project.basedir}/target/generated-sources/delombok:
+                ${project.basedir}/target/generated-sources/annotations
+              </sourcepath>
+            </configuration>
             <executions>
               <execution>
                 <id>attach-javadocs</id>

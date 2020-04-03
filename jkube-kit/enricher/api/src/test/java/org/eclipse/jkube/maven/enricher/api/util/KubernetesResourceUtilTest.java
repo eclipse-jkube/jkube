@@ -47,7 +47,7 @@ public class KubernetesResourceUtilTest {
     private static File jkubeDir;
 
     @Mocked
-    final JKubeProject project = new JKubeProject();
+    JKubeProject project;
 
     @BeforeClass
     public static void initPath() throws UnsupportedEncodingException {

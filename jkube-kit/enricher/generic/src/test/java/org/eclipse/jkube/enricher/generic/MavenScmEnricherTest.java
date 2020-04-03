@@ -40,9 +40,10 @@ public class MavenScmEnricherTest {
     @Test
     public void testMavenScmAll() {
 
-        final JKubeProject project = new JKubeProject();
-        project.setScmUrl("git://github.com/jkubeio/kubernetes-maven-plugin.git");
-        project.setScmTag("HEAD");
+        final JKubeProject project = JKubeProject.builder()
+            .scmUrl("git://github.com/jkubeio/kubernetes-maven-plugin.git")
+            .scmTag("HEAD")
+            .build();
         // Setup mock behaviour
         new Expectations() {
             {
@@ -73,8 +74,9 @@ public class MavenScmEnricherTest {
     @Test
     public void testMavenScmOnlyConnection() {
 
-        final JKubeProject project = new JKubeProject();
-        project.setScmUrl("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git");
+        final JKubeProject project = JKubeProject.builder()
+            .scmUrl("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
+            .build();
         // Setup mock behaviour
         new Expectations() {
             {
@@ -103,8 +105,9 @@ public class MavenScmEnricherTest {
     @Test
     public void testMavenScmOnlyDevConnection() {
 
-        final JKubeProject project = new JKubeProject();
-        project.setScmUrl("git://github.com/jkubeio/kubernetes-maven-plugin.git");
+        final JKubeProject project = JKubeProject.builder()
+            .scmUrl("git://github.com/jkubeio/kubernetes-maven-plugin.git")
+            .build();
         // Setup mock behaviour
         new Expectations() {
             {
@@ -133,8 +136,9 @@ public class MavenScmEnricherTest {
     @Test
     public void testMavenScmOnlyUrl() {
 
-        final JKubeProject project = new JKubeProject();
-        project.setScmUrl("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git");
+        final JKubeProject project = JKubeProject.builder()
+            .scmUrl("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
+            .build();
         // Setup mock behaviour
         new Expectations() {
             {
@@ -162,7 +166,7 @@ public class MavenScmEnricherTest {
     @Test
     public void testMavenNoScm() {
 
-        final JKubeProject project = new JKubeProject();
+        final JKubeProject project = JKubeProject.builder().build();
         // Setup mock behaviour
         new Expectations() {
             {

@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
-import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,32 +27,35 @@ import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
 import static org.junit.Assert.assertEquals;
 
 public class VertxPortsExtractorTest {
-    @Mocked
-    PrefixedLogger log;
+  @Mocked
+  PrefixedLogger log;
 
-    @Test
-    public void testVertxConfigPathFromProject() throws Exception {
-        Map<String, Object> vertxConfig = new HashMap<>();
-        vertxConfig.put("vertxConfig", getAbsolutePath(VertxPortsExtractorTest.class.getResource("/config.json")));
+  @Test
+  public void testVertxConfigPathFromProject() {
+    Map<String, Object> vertxConfig = new HashMap<>();
+    vertxConfig.put("vertxConfig", getAbsolutePath(VertxPortsExtractorTest.class.getResource("/config.json")));
 
-        Map<String, Object> configuration = new HashMap<>();
-        configuration.put("config", vertxConfig);
+    Map<String, Object> configuration = new HashMap<>();
+    configuration.put("config", vertxConfig);
 
+    JKubeProject project = JKubeProject.builder()
+        .plugins(Collections.singletonList(JKubeProjectPlugin.builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP)
+            .artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion")
+            .executions(Collections.singletonList("testexec")).configuration(configuration).build()))
+        .build();
 
-        JKubeProject project = new JKubeProject.Builder()
-                .plugins(Collections.singletonList(new JKubeProjectPlugin.Builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP).artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").executions(Collections.singletonList("testexec")).configuration(configuration).build()))
-                .build();
+    Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
+    assertEquals((Integer) 80, result.get("http.port"));
+  }
 
-        Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
-        assertEquals((Integer) 80, result.get("http.port"));
-    }
-
-    @Test
-    public void testNoVertxConfiguration() throws Exception {
-        JKubeProject project = new JKubeProject.Builder()
-                .plugins(Collections.singletonList(new JKubeProjectPlugin.Builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP).artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").configuration(Collections.emptyMap()).build()))
-                .build();
-        Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
-        assertEquals(0,result.size());
-    }
+  @Test
+  public void testNoVertxConfiguration() {
+    JKubeProject project = JKubeProject.builder()
+        .plugins(Collections.singletonList(JKubeProjectPlugin.builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP)
+            .artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").configuration(Collections.emptyMap())
+            .build()))
+        .build();
+    Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
+    assertEquals(0, result.size());
+  }
 }

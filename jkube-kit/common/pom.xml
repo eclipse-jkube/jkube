@@ -110,6 +110,10 @@
       <artifactId>javassist</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
     <!-- == test ====================================== -->
     <dependency>
       <groupId>junit</groupId>

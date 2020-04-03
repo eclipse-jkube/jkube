@@ -36,7 +36,7 @@ public class DaemonSetHandlerTest {
     @Mocked
     ProbeHandler probeHandler;
 
-    JKubeProject project = new JKubeProject();
+    JKubeProject project = JKubeProject.builder().build();
 
     List<String> mounts = new ArrayList<>();
     List<VolumeConfig> volumes1 = new ArrayList<>();

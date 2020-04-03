@@ -13,34 +13,56 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.io.File;
 import java.io.Serializable;
 
+@SuppressWarnings("JavaDoc")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
 public class JKubeAssemblyFile implements Serializable {
-    private String source;
-    private String outputDirectory;
-    private Boolean filtered;
 
-    public String getSource() {
-        return source;
-    }
+    private static final long serialVersionUID = -5232977405418412052L;
 
-    public void setSource(String source) {
-        this.source = source;
-    }
+    /**
+     * Absolute or relative path from the project's directory of the file to be included in the assembly.
+     *
+     * @param source New source for the assembly file.
+     * @return The assembly source file.
+     */
+    private File source;
+    /**
+     * Output directory relative to the root of the root directory of the assembly.
+     *
+     * @param outputDirectory New output directory for the assembly file.
+     * @return The assembly output directory.
+     */
+    private File outputDirectory;
+    /**
+     * Whether to determine if the file is filtered.
+     *
+     * @param filtered New filtered value for the assembly file.
+     * @return The assembly filtered value.
+     */
+    private boolean filtered;
 
-    public String getOutputDirectory() {
-        return outputDirectory;
-    }
-
+    // Plexus deserialization specific setters
+    /**
+     * Output directory relative to the root of the root directory of the assembly.
+     *
+     * @param outputDirectory New output directory for the assembly file.
+     */
     public void setOutputDirectory(String outputDirectory) {
-        this.outputDirectory = outputDirectory;
-    }
-
-    public Boolean getFiltered() {
-        return filtered;
-    }
-
-    public void setFiltered(Boolean filtered) {
-        this.filtered = filtered;
+        this.outputDirectory = new File(outputDirectory);
     }
 }

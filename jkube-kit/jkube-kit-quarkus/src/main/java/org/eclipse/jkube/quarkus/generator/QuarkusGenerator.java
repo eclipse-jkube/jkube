@@ -113,16 +113,12 @@ public class QuarkusGenerator extends BaseGenerator {
         return buildBuilder.build();
     }
 
-    interface FileSetCreator {
-        JKubeProjectAssembly createFileSet();
-    }
-
-    private JKubeAssemblyConfiguration createAssemblyConfiguration(String targetDir, JKubeAssemblyFileSet jkubeProjectAssemblyFileSet) {
+    private JKubeAssemblyConfiguration createAssemblyConfiguration(String targetDir, JKubeAssemblyFileSet jKubeAssemblyFileSet) {
         final JKubeAssemblyConfiguration.Builder builder = new JKubeAssemblyConfiguration.Builder();
         builder.targetDir(targetDir);
-        jkubeProjectAssemblyFileSet.setOutputDirectory(".");
-        JKubeProjectAssembly jkubeProjectAssembly = new JKubeProjectAssembly.Builder()
-                .fileSet(jkubeProjectAssemblyFileSet)
+        jKubeAssemblyFileSet.setOutputDirectory(".");
+        final JKubeProjectAssembly jkubeProjectAssembly = JKubeProjectAssembly.builder()
+                .fileSets(Collections.singletonList(jKubeAssemblyFileSet))
                 .build();
         builder.assemblyDef(jkubeProjectAssembly);
         return builder.build();
@@ -154,24 +150,20 @@ public class QuarkusGenerator extends BaseGenerator {
         if (fileToInclude != null && !fileToInclude.isEmpty()) {
             relativePaths.add(fileToInclude);
         }
-        return new JKubeAssemblyFileSet.Builder()
-                .directory(FileUtil.getRelativePath(getProject().getBaseDirectory(), getBuildDir()).getPath())
+        return JKubeAssemblyFileSet.builder()
+                .directory(FileUtil.getRelativePath(getProject().getBaseDirectory(), getProject().getBuildDirectory()))
                 .includes(relativePaths)
                 .fileMode("0777")
                 .build();
     }
 
     private String findSingleFileThatEndsWith(String suffix) {
-        File buildDir = getBuildDir();
+        File buildDir = getProject().getBuildDirectory();
         String[] file = buildDir.list((dir, name) -> name.endsWith(suffix));
         if (file == null || file.length != 1) {
             throw new IllegalStateException("Can't find single file with suffix '" + suffix + "' in " + buildDir + " (zero or more than one files found ending with '" + suffix + "')");
         }
         return file[0];
-    }
-
-    private File getBuildDir() {
-        return new File(getProject().getBuildDirectory());
     }
 
 }

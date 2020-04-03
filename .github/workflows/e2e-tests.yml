@@ -69,7 +69,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@master
         with:
-          name: Test reports (Minikube ${{ matrix.kubernetes }}-${{ matrix.suite }} )
+          name: Test reports (Minikube ${{ matrix.kubernetes }}-${{ matrix.suite }})
           path: ./reports
   openshift:
     name: OpenShift

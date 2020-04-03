@@ -112,7 +112,8 @@ public class JKubeEnricherContext implements EnricherContext {
 
     @Override
     public ProjectClassLoaders getProjectClassLoaders() {
-        return new ProjectClassLoaders(ClassUtil.createClassLoader(getProject().getCompileClassPathElements(), getProject().getOutputDirectory())
+        return new ProjectClassLoaders(ClassUtil.createClassLoader(
+            getProject().getCompileClassPathElements(), getProject().getOutputDirectory().getAbsolutePath())
         );
     }
 

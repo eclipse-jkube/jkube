@@ -23,6 +23,6 @@ public interface Named {
      * Get name of this object
      * @return String denoting name
      */
-    public String getName();
+    String getName();
 }
 

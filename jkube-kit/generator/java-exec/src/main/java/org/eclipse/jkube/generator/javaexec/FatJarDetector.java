@@ -15,68 +15,77 @@ package org.eclipse.jkube.generator.javaexec;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Class for finding out the fat jar of a directory and provide
  * some insights into the fat jar
  * @author roland
- * @since 10/11/16
  */
 public class FatJarDetector {
 
-    private File directory;
+    private final File directory;
     private Result result;
 
-    FatJarDetector(String dir) {
-        this.directory = new File(dir);
+    FatJarDetector(File directory) {
+        this.directory = directory;
     }
 
-    Result scan() {
+    public Result scan() {
+        if (!directory.exists()) {
+            return null;
+        }
         // Scanning is lazy ...
         if (result == null) {
-            if (!directory.exists()) {
-                // No directory to check found so we return null here ...
-                return null;
-            }
-            String[] jarOrWars = directory.list((dir, name) -> name.endsWith(".war") || name.endsWith(".jar"));
-            if (jarOrWars == null || jarOrWars.length == 0) {
-                return null;
-            }
-            long maxSize = 0;
-            for (String jarOrWar : jarOrWars) {
-                File archiveFile = new File(directory, jarOrWar);
-                try (JarFile archive = new JarFile(archiveFile)){
-                    Manifest mf = archive.getManifest();
-                    Attributes mainAttributes = mf.getMainAttributes();
-                    if (mainAttributes != null) {
-                        String mainClass = mainAttributes.getValue("Main-Class");
-                        if (mainClass != null) {
-                            long size = archiveFile.length();
-                            // Take the largest jar / war file found
-                            if (size > maxSize) {
-                                maxSize = size;
-                                result = new Result(archiveFile, mainClass, mainAttributes);
-                            }
-                        }
-                    }
-                } catch (IOException e) {
-                    throw new IllegalStateException("Cannot examine file " + archiveFile + " for the manifest");
-                }
-            }
+            result = scanDirectory();
         }
         return result;
     }
 
-    public class Result {
+    private Result scanDirectory() {
+        final List<File> jarOrWars = Optional.ofNullable(
+            directory.list((dir, name) -> name.endsWith(".war") || name.endsWith(".jar")))
+            .map(files -> Stream.of(files).filter(Objects::nonNull).map(f -> new File(directory, f)).collect(Collectors.toList()))
+            .orElse(Collections.emptyList());
+        Result selectedJar = null;
+        long maxSize = 0;
+        for (File jarOrWar : jarOrWars) {
+            try (JarFile archive = new JarFile(jarOrWar)){
+                final Manifest mf = archive.getManifest();
+                if (mf != null && mf.getMainAttributes() != null) {
+                    final Attributes mainAttributes = mf.getMainAttributes();
+                    String mainClass = mainAttributes.getValue("Main-Class");
+                    if (mainClass != null) {
+                        long size = jarOrWar.length();
+                        // Take the largest jar / war file found
+                        if (size > maxSize) {
+                            maxSize = size;
+                            selectedJar = new Result(jarOrWar, mainClass, mainAttributes);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException("Cannot examine file " + jarOrWar.getName() + " for the manifest");
+            }
+        }
+        return selectedJar;
+    }
+
+    public static final class Result {
 
         private final File archiveFile;
         private final String mainClass;
         private final Attributes attributes;
 
-        public Result(File archiveFile, String mainClass, Attributes attributes) {
+        private Result(File archiveFile, String mainClass, Attributes attributes) {
             this.archiveFile = archiveFile;
             this.mainClass = mainClass;
             this.attributes = attributes;

@@ -13,94 +13,90 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("JavaDoc")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
 public class JKubeProjectDependency implements Serializable {
-    private String groupId;
-    private String artifactId;
-    private String version;
-    private String type;
-    private String scope;
-    private File file;
 
-    public JKubeProjectDependency(String groupId, String artifactId, String version, String type, String scope, File file) {
-        this.groupId = groupId;
-        this.artifactId = artifactId;
-        this.version = version;
-        this.type = type;
-        this.scope = scope;
-        this.file = file;
-    }
+  private static final long serialVersionUID = 1446536983695411537L;
 
-    public String getGroupId() {
-        return groupId;
-    }
+  /**
+   * Maven group ID.
+   *
+   * @param groupId New maven group ID for the dependency.
+   * @return The maven group ID for the dependency.
+   */
+  private String groupId;
+  /**
+   * Maven artifact ID.
+   *
+   * @param artifactId New maven artifact ID for the dependency.
+   * @return The maven artifact ID for the dependency.
+   */
+  private String artifactId;
+  /**
+   * Maven version.
+   *
+   * @param version New maven version for the dependency.
+   * @return The maven version for the dependency.
+   */
+  private String version;
+  /**
+   * Dependency type (e.g. jar, war, etc.).
+   *
+   * @param type New type for the dependency.
+   * @return The dependency type.
+   */
+  private String type;
+  /**
+   * Dependency scope (e.g. compile, provided, runtime, test, system).
+   *
+   * @param scope New scope for the dependency.
+   * @return The dependency scope.
+   */
+  private String scope;
+  /**
+   * Dependency file.
+   *
+   * @param file New file for the dependency.
+   * @return The dependency file.
+   */
+  private File file;
 
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
+  public static JKubeProjectDependency fromString(String jkubeDependencyAsString) {
+    String[] parts = jkubeDependencyAsString.split(",");
+    if (parts.length == 5) { // Case without artifact file object
+      return new JKubeProjectDependency(parts[0], parts[1], parts[2], parts[3], parts[4], null);
+    } else if (parts.length == 6) { // Case with artifact file object
+      return new JKubeProjectDependency(parts[0], parts[1], parts[2], parts[3], parts[4], new File(parts[5]));
     }
+    return null;
+  }
 
-    public String getArtifactId() {
-        return artifactId;
+  public static List<JKubeProjectDependency> listFromStringDependencies(List<String> jkubeDependenciesAsStr) {
+    List<JKubeProjectDependency> dependencies = new ArrayList<>();
+    for (String commaSeparatedDependencies : jkubeDependenciesAsStr) {
+      JKubeProjectDependency jkubeProjectDependency = JKubeProjectDependency.fromString(commaSeparatedDependencies);
+      if (jkubeProjectDependency != null) {
+        dependencies.add(jkubeProjectDependency);
+      }
     }
-
-    public void setArtifactId(String artifactId) {
-        this.artifactId = artifactId;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getScope() {
-        return scope;
-    }
-
-    public void setScope(String scope) {
-        this.scope = scope;
-    }
-
-    public File getFile() {
-        return file;
-    }
-
-    public void setFile(File file) {
-        this.file = file;
-    }
-
-    public static JKubeProjectDependency fromString(String jkubeDependencyAsString) {
-        String[] parts = jkubeDependencyAsString.split(",");
-        if (parts.length == 5) { // Case without artifact file object
-            return new JKubeProjectDependency(parts[0], parts[1], parts[2], parts[3], parts[4], null);
-        } else if (parts.length == 6) { // Case with artifact file object
-            return new JKubeProjectDependency(parts[0], parts[1], parts[2], parts[3], parts[4], new File(parts[5]));
-        }
-        return null;
-    }
-
-    public static List<JKubeProjectDependency> listFromStringDependencies(List<String> jkubeDependenciesAsStr) {
-        List<JKubeProjectDependency> dependencies = new ArrayList<>();
-        for (String commaSeparatedDependencies : jkubeDependenciesAsStr) {
-            JKubeProjectDependency jkubeProjectDependency = JKubeProjectDependency.fromString(commaSeparatedDependencies);
-            if (jkubeProjectDependency != null) {
-                dependencies.add(jkubeProjectDependency);
-            }
-        }
-        return dependencies;
-    }
+    return dependencies;
+  }
 }

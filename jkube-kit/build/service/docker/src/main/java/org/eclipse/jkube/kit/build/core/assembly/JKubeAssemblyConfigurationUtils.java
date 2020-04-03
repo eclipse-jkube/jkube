@@ -49,7 +49,7 @@ public class JKubeAssemblyConfigurationUtils {
   static List<String> getJKubeAssemblyFileSetsExcludes(JKubeAssemblyConfiguration assemblyConfiguration) {
     return getJKubeAssemblyFileSets(assemblyConfiguration).stream()
       .filter(Objects::nonNull)
-      .map(JKubeAssemblyFileSet::getExludes)
+      .map(JKubeAssemblyFileSet::getExcludes)
       .filter(Objects::nonNull)
       .flatMap(Collection::stream)
       .filter(Objects::nonNull)

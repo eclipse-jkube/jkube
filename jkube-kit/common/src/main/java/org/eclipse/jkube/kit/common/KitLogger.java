@@ -143,5 +143,5 @@ public interface KitLogger {
         public String getValue() {
             return category;
         }
-    };
+    }
 }
