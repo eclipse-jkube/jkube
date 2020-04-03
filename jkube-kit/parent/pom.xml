@@ -55,7 +55,7 @@
     <version.json-path-assert>2.2.0</version.json-path-assert>
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.0.5</version.JUnitParams>
-    <version.kubernetes-client>4.7.1</version.kubernetes-client>
+    <version.kubernetes-client>4.9.0</version.kubernetes-client>
     <version.maven-archiver>3.2.0</version.maven-archiver>
     <version.maven-core>3.5.4</version.maven-core>
     <version.maven-filtering>3.1.1</version.maven-filtering>
