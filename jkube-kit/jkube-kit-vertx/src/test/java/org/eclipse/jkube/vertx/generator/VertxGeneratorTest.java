@@ -39,23 +39,25 @@ import static org.assertj.core.api.Assertions.entry;
  */
 public class VertxGeneratorTest {
 
-    @Injectable
-    private KitLogger logger;
+  @Injectable
+  private KitLogger logger;
 
-    @Rule
-    public TemporaryFolder folder= new TemporaryFolder();
+  @Rule
+  public TemporaryFolder folder = new TemporaryFolder();
 
+  private JKubeProjectDependency dropwizard;
+  private JKubeProjectDependency core;
+  private JKubeProjectDependency infinispan;
 
-    private JKubeProjectDependency dropwizard;
-    private JKubeProjectDependency core;
-    private JKubeProjectDependency infinispan;
-
-    @Before
-    public void init() throws IOException {
-        dropwizard = new JKubeProjectDependency("io.vertx", "vertx-dropwizard-metrics", "3.4.2", "jar", "compile", folder.newFile("vertx-dropwizard-metrics.jar"));
-        core = new JKubeProjectDependency("io.vertx", "vertx-core", "3.4.2","jar", "compile", folder.newFile("vertx-core.jar"));
-        infinispan = new JKubeProjectDependency("io.vertx", "vertx-infinispan", "3.4.2","jar", "compile", folder.newFile("vertx-infinispan.jar"));
-    }
+  @Before
+  public void init() throws IOException {
+    dropwizard = JKubeProjectDependency.builder().groupId("io.vertx").artifactId("vertx-dropwizard-metrics").version("3.4.2")
+        .type("jar").scope("compile").file(folder.newFile("vertx-dropwizard-metrics.jar")).build();
+    core = JKubeProjectDependency.builder().groupId("io.vertx").artifactId("vertx-core").version("3.4.2").type("jar")
+        .scope("compile").file(folder.newFile("vertx-core.jar")).build();
+    infinispan = JKubeProjectDependency.builder().groupId("io.vertx").artifactId("vertx-infinispan").version("3.4.2")
+        .type("jar").scope("compile").file(folder.newFile("vertx-infinispan.jar")).build();
+  }
 
     @Test
     public void testDefaultOptions(@Mocked final JKubeProject project) {
@@ -103,7 +105,6 @@ public class VertxGeneratorTest {
             project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
             project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
             project.getDependencies(); result = Arrays.asList(infinispan, core);
-            //project.getArtifacts(); result = ImmutableSet.of(infinispan, core);
         }};
 
         GeneratorContext context = new GeneratorContext.Builder()

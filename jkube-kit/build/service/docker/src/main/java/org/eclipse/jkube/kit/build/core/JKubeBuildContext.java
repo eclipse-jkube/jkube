@@ -30,6 +30,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
  */
 public class JKubeBuildContext implements BuildContext<JKubeBuildConfiguration>, Serializable {
 
+    private static final long serialVersionUID = 7459084747241070651L;
+
     private String sourceDirectory;
     private String outputDirectory;
     private JKubeProject project;
@@ -94,9 +96,9 @@ public class JKubeBuildContext implements BuildContext<JKubeBuildConfiguration>,
         return project;
     }
 
-	public List<JKubeProject> getReactorProjects() {
-		return reactorProjects;
-	}
+  public List<JKubeProject> getReactorProjects() {
+    return reactorProjects;
+  }
 
     // =======================================================================================
 

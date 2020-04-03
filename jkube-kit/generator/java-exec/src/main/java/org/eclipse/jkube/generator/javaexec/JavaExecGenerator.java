@@ -64,8 +64,7 @@ public class JavaExecGenerator extends BaseGenerator {
         super(context, name, new FromSelector.Default(context, "java"));
         fatJarDetector = new FatJarDetector(getProject().getBuildDirectory());
         mainClassDetector = new MainClassDetector(getConfig(Config.mainClass),
-                new File(getProject().getOutputDirectory()),
-                context.getLogger());
+                getProject().getOutputDirectory(), context.getLogger());
     }
 
     public enum Config implements Configs.Key {
@@ -181,14 +180,13 @@ public class JavaExecGenerator extends BaseGenerator {
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
         } else {
-            JKubeProjectAssembly.Builder assemblyBuilder = new JKubeProjectAssembly.Builder()
+            JKubeProjectAssembly.JKubeProjectAssemblyBuilder assemblyBuilder = JKubeProjectAssembly.builder()
                     .fileSets(addAdditionalFiles(getProject()));
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
                 JKubeProject project = getProject();
                 if (fatJar != null) {
-                    JKubeAssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
-                    assemblyBuilder.fileSet(fileSet);
+                    assemblyBuilder.fileSets(Collections.singletonList(getOutputDirectoryFileSet(fatJar, project)));
                 }
             } else {
                 builder.descriptorRef("artifact-with-dependencies");
@@ -205,20 +203,20 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     public JKubeAssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JKubeProject project) {
-        File buildDir = new File(project.getBuildDirectory());
-        return new JKubeAssemblyFileSet.Builder()
-                .directory(getRelativePath(project.getBaseDirectory(), buildDir).getPath())
-                .addInclude(getRelativePath(buildDir, fatJar.getArchiveFile()).getPath())
-                .outputDirectory(".")
+        final File buildDirectory = project.getBuildDirectory();
+        return JKubeAssemblyFileSet.builder()
+                .directory(getRelativePath(project.getBaseDirectory(), buildDirectory))
+                .includes(Collections.singletonList(getRelativePath(buildDirectory, fatJar.getArchiveFile()).getPath()))
+                .outputDirectory(new File("."))
                 .fileMode("0640")
                 .build();
     }
 
     public JKubeAssemblyFileSet createFileSet(JKubeProject project, String sourceDir, String outputDir, String fileMode) {
-        return new JKubeAssemblyFileSet.Builder()
-                .directory(project.getBaseDirectory().getAbsolutePath())
+        return JKubeAssemblyFileSet.builder()
+                .directory(project.getBaseDirectory())
                 .includes(Collections.singletonList(sourceDir))
-                .outputDirectory(outputDir)
+                .outputDirectory(new File(outputDir))
                 .fileMode(fileMode)
                 .build();
     }

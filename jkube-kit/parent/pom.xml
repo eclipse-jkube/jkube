@@ -56,6 +56,7 @@
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.0.5</version.JUnitParams>
     <version.kubernetes-client>4.9.0</version.kubernetes-client>
+    <version.lombok>1.18.12</version.lombok>
     <version.maven-archiver>3.2.0</version.maven-archiver>
     <version.maven-core>3.5.4</version.maven-core>
     <version.maven-filtering>3.1.1</version.maven-filtering>
@@ -411,6 +412,13 @@
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>jsr305</artifactId>
         <version>${version.jsr305}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${version.lombok}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>

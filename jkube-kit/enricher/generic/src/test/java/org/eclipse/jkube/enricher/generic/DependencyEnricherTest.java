@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.JKubeProjectDependency;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.enricher.api.model.KindAndName;
@@ -43,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class DependencyEnricherTest {
@@ -57,8 +57,8 @@ public class DependencyEnricherTest {
     private JKubeProject project;
 
     // Some resource files related to test case placed in resources/ directory:
-    private final String overrideFragementFile = "/jenkins-kubernetes-cm.yml";
-    private final String artifactFilePath = "/jenkins-4.0.41.jar";
+    private static final String OVERRIDE_FRAGMENT_FILE = "/jenkins-kubernetes-cm.yml";
+    private static final String ARTIFACT_FILE_PATH = "/jenkins-4.0.41.jar";
 
     @Test
     public void checkDuplicatesInResource() throws Exception {
@@ -67,8 +67,8 @@ public class DependencyEnricherTest {
         // Enrich
         KubernetesList aResourceList = enrichResources(aBuilder);
         // Assert
-        assertTrue(aResourceList.getItems() != null);
-        assertEquals(checkUniqueResources(aResourceList.getItems()), true);
+        assertNotNull(aResourceList.getItems());
+        assertTrue(checkUniqueResources(aResourceList.getItems()));
     }
 
     private KubernetesList enrichResources(KubernetesListBuilder aBuilder) {
@@ -82,7 +82,7 @@ public class DependencyEnricherTest {
         setupExpectations();
         List<File> resourceList = new ArrayList<>();
 
-        resourceList.add(new File(Paths.get(getClass().getResource(overrideFragementFile).toURI()).toAbsolutePath().toString()));
+        resourceList.add(new File(Paths.get(getClass().getResource(OVERRIDE_FRAGMENT_FILE).toURI()).toAbsolutePath().toString()));
 
 
 
@@ -111,8 +111,9 @@ public class DependencyEnricherTest {
         List<JKubeProjectDependency> artifacts = new ArrayList<>();
 
 
-        File aFile = new File(getClass().getResource(artifactFilePath).getFile());
-        JKubeProjectDependency artifact = new JKubeProjectDependency("g1", "a1", "v1","jar", "compile", aFile);
+        File aFile = new File(getClass().getResource(ARTIFACT_FILE_PATH).getFile());
+        JKubeProjectDependency artifact = JKubeProjectDependency.builder().groupId("g1").artifactId("a1").version("v1")
+            .type("jar").scope("compile").file(aFile).build();
         artifacts.add(artifact);
         return artifacts;
     }

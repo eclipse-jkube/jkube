@@ -21,7 +21,9 @@ import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -30,10 +32,15 @@ import static org.junit.Assert.assertTrue;
 
 public class DockerAssemblyConfigurationSourceTest {
 
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private File buildDirectory;
+
     private JKubeAssemblyConfiguration assemblyConfig;
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
+        buildDirectory = temporaryFolder.newFolder("build");
         // set 'ignorePermissions' to something other then default
         this.assemblyConfig = new JKubeAssemblyConfiguration.Builder()
                 .descriptor("assembly.xml")
@@ -51,23 +58,23 @@ public class DockerAssemblyConfigurationSourceTest {
         }
 
         AssemblyConfiguration config = new AssemblyConfiguration.Builder().permissions("ignore").build();
-        assertSame(AssemblyConfiguration.PermissionMode.ignore, config.getPermissions());;
+        assertSame(AssemblyConfiguration.PermissionMode.ignore, config.getPermissions());
     }
 
     @Test
     public void testCreateSourceAbsolute() {
-        testCreateSource(buildBuildContetxt(".", "/src/docker".replace("/", File.separator), "/output/docker".replace("/", File.separator)));
+        testCreateSource(buildBuildContext("/src/docker".replace("/", File.separator), "/output/docker".replace("/", File.separator)));
     }
 
     @Test
     public void testCreateSourceRelative() {
-        testCreateSource(buildBuildContetxt(".", "src/docker".replace("/", File.separator), "output/docker".replace("/", File.separator)));
+        testCreateSource(buildBuildContext("src/docker".replace("/", File.separator), "output/docker".replace("/", File.separator)));
     }
 
     @Test
     public void testOutputDirHasImage() {
         String image = "image";
-        JKubeBuildContext context = buildBuildContetxt(".", "src/docker", "output/docker");
+        JKubeBuildContext context = buildBuildContext("src/docker", "output/docker");
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(context,
                 new BuildDirs(image, context), assemblyConfig);
 
@@ -76,8 +83,8 @@ public class DockerAssemblyConfigurationSourceTest {
         assertTrue(containsDir(image, source.getTemporaryRootDirectory()));
     }
 
-    private JKubeBuildContext buildBuildContetxt(String projectDir, String sourceDir, String outputDir) {
-        JKubeProject project = new JKubeProject.Builder().buildDirectory(projectDir).build();
+    private JKubeBuildContext buildBuildContext(String sourceDir, String outputDir) {
+        JKubeProject project = JKubeProject.builder().buildDirectory(buildDirectory).build();
         return new JKubeBuildContext.Builder()
                 .project(project)
                 .sourceDirectory(sourceDir)
@@ -130,8 +137,8 @@ public class DockerAssemblyConfigurationSourceTest {
     @Test
     public void testReactorProjects() {
 
-        JKubeProject jkubeProject1 = new JKubeProject.Builder().build();
-        JKubeProject jkubeProject2 = new JKubeProject.Builder().build();
+        JKubeProject jkubeProject1 = JKubeProject.builder().build();
+        JKubeProject jkubeProject2 = JKubeProject.builder().build();
 
         JKubeBuildContext buildContext = new JKubeBuildContext.Builder()
                 .sourceDirectory("/src/docker")
@@ -139,7 +146,7 @@ public class DockerAssemblyConfigurationSourceTest {
                 .reactorProjects(Arrays.asList(jkubeProject1, jkubeProject2))
                 .build();
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(buildContext,null,null);
-        assertEquals(2,source.getReactorProjects().size());
+        assertEquals(2, source.getReactorProjects().size());
     }
 }
 

@@ -58,7 +58,7 @@ public class AbstractHealthCheckEnricherTest {
                 .endTemplate()
                 .endSpec()
                 .endDeploymentItem();
-        
+
         createEnricher(new Properties(), Collections.emptyMap()).create(PlatformMode.kubernetes, list);
 
         final AtomicInteger containerFound = new AtomicInteger(0);
@@ -213,7 +213,7 @@ public class AbstractHealthCheckEnricherTest {
 
     protected AbstractHealthCheckEnricher createEnricher(Properties properties, Map<String, String> pi) {
 
-        JKubeProject project = new JKubeProject.Builder().properties(new Properties()).build();
+        JKubeProject project = JKubeProject.builder().properties(new Properties()).build();
         project.getProperties().putAll(properties);
 
         JKubeEnricherContext.Builder enricherContextBuilder = new JKubeEnricherContext.Builder()

@@ -36,7 +36,8 @@ public class DeploymentHandlerTest {
     @Mocked
     ProbeHandler probeHandler;
 
-    JKubeProject project = new JKubeProject();
+    @Mocked
+    JKubeProject project;
 
     List<String> mounts = new ArrayList<>();
     List<VolumeConfig> volumes1 = new ArrayList<>();

@@ -39,7 +39,6 @@ import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
-import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
@@ -88,9 +87,10 @@ public class SpringBootGenerator extends JavaExecGenerator {
         Map<String, String> res = super.getEnv(prePackagePhase);
         if (getContext().getGeneratorMode() == GeneratorMode.WATCH) {
             // adding dev tools token to env variables to prevent override during recompile
-            String secret = SpringBootUtil.getSpringBootApplicationProperties(
+            final String secret = SpringBootUtil.getSpringBootApplicationProperties(
                     SpringBootUtil.getSpringBootActiveProfile(getProject()),
-                    ClassUtil.createClassLoader(getProject().getCompileClassPathElements(), getProject().getOutputDirectory())).getProperty(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET);
+                    JKubeProjectUtil.getClassLoader(getProject()))
+                .getProperty(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET);
             if (secret != null) {
                 res.put(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET_ENV, secret);
             }
@@ -120,8 +120,8 @@ public class SpringBootGenerator extends JavaExecGenerator {
     protected List<String> extractPorts() {
         List<String> answer = new ArrayList<>();
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
-                SpringBootUtil.getSpringBootActiveProfile(getProject()),
-                ClassUtil.createClassLoader(this.getProject().getCompileClassPathElements(), this.getProject().getOutputDirectory()));
+            SpringBootUtil.getSpringBootActiveProfile(getProject()),
+            JKubeProjectUtil.getClassLoader(getProject()));
         SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getProject()));
         String port = properties.getProperty(propertyHelper.getServerPortPropertyKey(), DEFAULT_SERVER_PORT);
         addPortIfValid(answer, getConfig(JavaExecGenerator.Config.webPort, port));
@@ -134,8 +134,8 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     private void ensureSpringDevToolSecretToken() {
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
-                SpringBootUtil.getSpringBootActiveProfile(getProject()),
-                ClassUtil.createClassLoader(getProject().getCompileClassPathElements(), getProject().getOutputDirectory()));
+            SpringBootUtil.getSpringBootActiveProfile(getProject()),
+            JKubeProjectUtil.getClassLoader(getProject()));
         String remoteSecret = properties.getProperty(DEV_TOOLS_REMOTE_SECRET);
         if (Strings.isNullOrEmpty(remoteSecret)) {
             addSecretTokenToApplicationProperties();

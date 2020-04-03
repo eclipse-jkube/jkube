@@ -386,15 +386,10 @@ public class DockerAssemblyManager {
         if (oldFile != null) {
             return oldFile;
         }
-
-        String finalName = project.getBuildFinalName();
-        String target = project.getBuildDirectory();
-        if (finalName != null && target != null) {
-            File artifactFile = new File(target, finalName + "." + project.getPackaging());
-            if (artifactFile.exists() && artifactFile.isFile()) {
-                setArtifactFile(project, artifactFile);
-                return artifactFile;
-            }
+        final File artifactFile = JKubeProjectUtil.getFinalOutputArtifact(project);
+        if (artifactFile != null && artifactFile.exists() && artifactFile.isFile()) {
+            setArtifactFile(project, artifactFile);
+            return artifactFile;
         }
         return null;
     }
@@ -420,52 +415,56 @@ public class DockerAssemblyManager {
         return filesToPermissionsMap;
     }
 
-    private Map<File, String> processJKubeProjectAssemblyFileSet(JKubeProject project, JKubeAssemblyFileSet jkubeProjectAssemblyFileSet, BuildDirs buildDirs, JKubeAssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
-        Map<File, String> fileToPermissionsMap = new HashMap<>();
+  private Map<File, String> processJKubeProjectAssemblyFileSet(JKubeProject project,
+      JKubeAssemblyFileSet jkubeProjectAssemblyFileSet, BuildDirs buildDirs,
+      JKubeAssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
 
-        for (String relativePathInclude : jkubeProjectAssemblyFileSet.getIncludes()) {
-            File assemblyFileSetOutputDirectory = new File(jkubeProjectAssemblyFileSet.getDirectory());
-            File sourceFile = new File(assemblyFileSetOutputDirectory.isAbsolute() ?
-                    assemblyFileSetOutputDirectory :
-                    new File(project.getBaseDirectory() + File.separator + jkubeProjectAssemblyFileSet.getDirectory()), FileUtil.trimWildcardCharactersFromPath(relativePathInclude));
-            File destParentFile = new File(buildDirs.getOutputDirectory() + File.separator + jkubeProjectAssemblyConfiguration.getName());
-            if (jkubeProjectAssemblyFileSet.getOutputDirectory() != null && !jkubeProjectAssemblyFileSet.getOutputDirectory().equalsIgnoreCase(".")) {
-                destParentFile = new File(buildDirs.getOutputDirectory() + File.separator + jkubeProjectAssemblyConfiguration.getName() + File.separator + jkubeProjectAssemblyFileSet.getOutputDirectory());
-            }
-            FileUtil.createDirectory(destParentFile);
-            File destFile = new File(destParentFile, sourceFile.getName());
+    final Map<File, String> fileToPermissionsMap = new HashMap<>();
 
-            if (sourceFile.exists()) {
-                if (sourceFile.isDirectory()) {
-                    FileUtil.copyDirectoryIfNotExists(sourceFile, destFile);
-                } else {
-                    FileUtil.copy(sourceFile, destFile);
-                }
-                fileToPermissionsMap.put(destFile, jkubeProjectAssemblyFileSet.getFileMode());
-            }
+    for (String relativePathInclude : jkubeProjectAssemblyFileSet.getIncludes()) {
+      final File sourceDirectory = project.getBaseDirectory().toPath()
+          .resolve(jkubeProjectAssemblyFileSet.getDirectory().toPath())
+          .toFile();
+      final File sourceFile = new File(sourceDirectory, FileUtil.trimWildcardCharactersFromPath(relativePathInclude));
+      File destParentFile = new File(buildDirs.getOutputDirectory(), jkubeProjectAssemblyConfiguration.getName());
+      if (jkubeProjectAssemblyFileSet.getOutputDirectory() != null
+          && !jkubeProjectAssemblyFileSet.getOutputDirectory().getName().equals(".")) {
+        destParentFile = buildDirs.getOutputDirectory().toPath()
+            .resolve(jkubeProjectAssemblyConfiguration.getName())
+            .resolve(jkubeProjectAssemblyFileSet.getOutputDirectory().toPath())
+            .toFile();
+      }
+      FileUtil.createDirectory(destParentFile);
+      File destFile = new File(destParentFile, sourceFile.getName());
+
+      if (sourceFile.exists()) {
+        if (sourceFile.isDirectory()) {
+          FileUtil.copyDirectoryIfNotExists(sourceFile, destFile);
+        } else {
+          FileUtil.copy(sourceFile, destFile);
         }
-        return fileToPermissionsMap;
+        fileToPermissionsMap.put(destFile, jkubeProjectAssemblyFileSet.getFileMode());
+      }
     }
+    return fileToPermissionsMap;
+  }
 
     private void processJKubeProjectAssemblyFile(
       JKubeProject project, JKubeAssemblyFile assemblyFile, BuildDirs buildDirs, JKubeAssemblyConfiguration assemblyConfiguration)
       throws IOException {
 
         final File outputDirectory;
-        if (new File(assemblyFile.getOutputDirectory()).isAbsolute()) {
-            outputDirectory = new File(assemblyFile.getOutputDirectory());
+        if (assemblyFile.getOutputDirectory().isAbsolute()) {
+            outputDirectory = assemblyFile.getOutputDirectory();
         } else {
             outputDirectory = buildDirs.getOutputDirectory().toPath()
               .resolve(assemblyConfiguration.getName())
-              .resolve(assemblyFile.getOutputDirectory())
+              .resolve(assemblyFile.getOutputDirectory().toPath())
               .toFile();
         }
-        final File sourceFile;
-        if (new File(assemblyFile.getSource()).isAbsolute()) {
-            sourceFile = new File(assemblyFile.getSource());
-        } else {
-            sourceFile = new File(project.getBaseDirectory(), assemblyFile.getSource());
-        }
+        final File sourceFile = project.getBaseDirectory().toPath()
+            .resolve(assemblyFile.getSource().toPath()).toFile();
+
         FileUtil.createDirectory(outputDirectory);
         final File destinationFile = new File(outputDirectory, sourceFile.getName());
         FileUtil.copy(sourceFile, destinationFile);

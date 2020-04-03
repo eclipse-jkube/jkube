@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.generator.webapp.handler;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -51,9 +50,8 @@ public abstract class AbstractAppServerHandler implements AppServerHandler {
      * @return list of files found
      */
     protected String[] scanFiles(String... patterns) throws IOException {
-        String buildOutputDir = project.getBuildDirectory();
-        if (buildOutputDir != null && new File(buildOutputDir).exists()) {
-            try (Stream<Path> fileStream = Files.walk(new File(buildOutputDir).toPath())) {
+        if (project.getBuildDirectory().exists()) {
+            try (Stream<Path> fileStream = Files.walk(project.getBuildDirectory().toPath())) {
                 return fileStream
                     .filter(path -> {
                         for (String pattern : patterns) {

@@ -84,7 +84,7 @@ public class DockerAssemblyManagerTest {
 
         JKubeBuildConfiguration buildConfig = createBuildConfig();
 
-        new File("./target/testImage/build/maven").mkdirs();
+        assertTrue(new File("./target/testImage/build/maven").mkdirs());
         AssemblyFiles assemblyFiles = assemblyManager.getAssemblyFiles("testImage", buildConfig, mojoParams, prefixedLogger);
         assertNotNull(assemblyFiles);
     }
@@ -145,7 +145,7 @@ public class DockerAssemblyManagerTest {
     @Test
     public void testEnsureThatArtifactFileIsSetWithProjectArtifactSet() throws IOException {
         // Given
-        JKubeProject project = new JKubeProject.Builder()
+        JKubeProject project = JKubeProject.builder()
                 .artifact(temporaryFolder.newFile("temp-project-0.0.1.jar"))
                 .build();
 
@@ -162,9 +162,9 @@ public class DockerAssemblyManagerTest {
         // Given
         File targetDirectory = temporaryFolder.newFolder("target");
         File jarFile = new File(targetDirectory, "foo-project-0.0.1.jar");
-        jarFile.createNewFile();
-        JKubeProject project = new JKubeProject.Builder()
-                .buildDirectory(targetDirectory.getAbsolutePath())
+        assertTrue(jarFile.createNewFile());
+        JKubeProject project = JKubeProject.builder()
+                .buildDirectory(targetDirectory)
                 .packaging("jar")
                 .buildFinalName("foo-project-0.0.1")
                 .build();
@@ -181,7 +181,7 @@ public class DockerAssemblyManagerTest {
     @Test
     public void testEnsureThatArtifactFileIsSetWithEverythingNull() throws IOException {
         // Given
-        JKubeProject project = new JKubeProject.Builder().build();
+        JKubeProject project = JKubeProject.builder().build();
 
         // When
         File artifactFile = assemblyManager.ensureThatArtifactFileIsSet(project);
@@ -195,16 +195,16 @@ public class DockerAssemblyManagerTest {
         // Given
         File targetFolder = temporaryFolder.newFolder("target");
         File finalArtifactFile = new File(targetFolder, "test-0.1.0.jar");
-        finalArtifactFile.createNewFile();
+        assertTrue(finalArtifactFile.createNewFile());
         File outputDirectory = new File(targetFolder, "docker");
 
         final JKubeBuildContext jKubeBuildContext = new JKubeBuildContext.Builder()
-                .project(new JKubeProject.Builder()
+                .project(JKubeProject.builder()
                         .groupId("org.eclipse.jkube")
                         .artifactId("test")
                         .packaging("jar")
                         .version("0.1.0")
-                        .buildDirectory(targetFolder.getAbsolutePath())
+                        .buildDirectory(targetFolder)
                         .artifact(finalArtifactFile)
                   .build())
                 .outputDirectory(outputDirectory.getAbsolutePath())
@@ -241,24 +241,25 @@ public class DockerAssemblyManagerTest {
         // Given
         File baseProjectDir = temporaryFolder.newFolder("test-workspace");
         File dockerFile = new File(baseProjectDir, "Dockerfile");
-        dockerFile.createNewFile();
+        assertTrue(dockerFile.createNewFile());
         writeASimpleDockerfile(dockerFile);
-        File targetFolder = new File(baseProjectDir, "target");
-        targetFolder.mkdirs();
-        File finalArtifactFile = new File(targetFolder, "test-0.1.0.jar");
-        finalArtifactFile.createNewFile();
-        File outputDirectory = new File(targetFolder, "docker");
+        File targetDirectory = new File(baseProjectDir, "target");
+        File outputDirectory = new File(targetDirectory, "classes");
+        assertTrue(outputDirectory.mkdirs());
+        File finalArtifactFile = new File(targetDirectory, "test-0.1.0.jar");
+        assertTrue(finalArtifactFile.createNewFile());
+        File dockerDirectory = new File(targetDirectory, "docker");
 
 
         final JKubeBuildContext jKubeBuildContext = new JKubeBuildContext.Builder()
-                .project(new JKubeProject.Builder()
+                .project(JKubeProject.builder()
                         .groupId("org.eclipse.jkube")
                         .artifactId("test")
                         .packaging("jar")
                         .version("0.1.0")
-                        .buildDirectory("target")
+                        .buildDirectory(targetDirectory)
                         .baseDirectory(baseProjectDir)
-                        .outputDirectory("target/classes")
+                        .outputDirectory(outputDirectory)
                         .properties(new Properties())
                         .artifact(finalArtifactFile)
                         .build())
@@ -278,9 +279,9 @@ public class DockerAssemblyManagerTest {
         // Then
         assertNotNull(dockerArchiveFile);
         assertTrue(dockerArchiveFile.exists());
-        assertEquals(2048, dockerArchiveFile.length());
-        assertTrue(outputDirectory.isDirectory() && outputDirectory.exists());
-        File buildOutputDir = new File(outputDirectory, "test-image");
+        assertEquals(2560, dockerArchiveFile.length());
+        assertTrue(dockerDirectory.isDirectory() && dockerDirectory.exists());
+        File buildOutputDir = new File(dockerDirectory, "test-image");
         assertTrue(buildOutputDir.isDirectory() && buildOutputDir.exists());
         File buildDir = new File(buildOutputDir, "build");
         File workDir = new File(buildOutputDir, "work");

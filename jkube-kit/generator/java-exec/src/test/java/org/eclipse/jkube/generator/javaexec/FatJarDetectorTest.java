@@ -15,27 +15,44 @@ package org.eclipse.jkube.generator.javaexec;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Paths;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
-/**
- * @author roland
- * @since 14/11/16
- */
 public class FatJarDetectorTest {
 
-    @Test
-    public void simple() {
-        URL testDirUrl = getClass().getResource("/fatjar-simple");
-        FatJarDetector detector = new FatJarDetector(getAbsolutePath(testDirUrl));
-        FatJarDetector.Result result = detector.scan();
-        assertNotNull(result);
-        assertEquals(new File(getAbsolutePath(testDirUrl) + "/test.jar"), result.getArchiveFile());
-        assertEquals("org.springframework.boot.loader.JarLauncher", result.getMainClass());
-        assertEquals("Plexus Archiver", result.getManifestEntry("Archiver-Version"));
-    }
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+  @Test
+  public void scanDirectoryDoesntExist() {
+    final File nonExistentDirectory = new File(temporaryFolder.getRoot(), "I-dont-exist");
+    assertThat(nonExistentDirectory.exists(), is(false));
+    // When
+    FatJarDetector.Result result = new FatJarDetector(nonExistentDirectory).scan();
+    // Then
+    assertThat(result, nullValue());
+  }
+
+  @Test
+  public void scanJarExists() throws Exception {
+    // Given
+    final URL testDirUrl = getClass().getResource("/fatjar-simple");
+    // When
+    FatJarDetector.Result result = new FatJarDetector(Paths.get(testDirUrl.toURI()).toFile()).scan();
+    // Then
+    assertNotNull(result);
+    assertThat(result.getArchiveFile().exists(), is(true));
+    assertThat(result.getArchiveFile().getName(), is("test.jar"));
+    assertThat(result.getArchiveFile().getParentFile().getName(), is("fatjar-simple"));
+    assertThat(result.getMainClass(), is("org.springframework.boot.loader.JarLauncher"));
+    assertThat(result.getManifestEntry("Archiver-Version"), is("Plexus Archiver"));
+  }
 }

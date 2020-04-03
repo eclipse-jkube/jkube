@@ -71,9 +71,9 @@ public class ContainerHandlerTest {
 
     @Before
     public void setUp() {
-        project = new JKubeProject.Builder().properties(new Properties()).build();
-        project1 = new JKubeProject.Builder().properties(new Properties()).build();
-        project2 = new JKubeProject.Builder().properties(new Properties()).build();
+        project = JKubeProject.builder().properties(new Properties()).build();
+        project1 = JKubeProject.builder().properties(new Properties()).build();
+        project2 = JKubeProject.builder().properties(new Properties()).build();
         config = new ResourceConfig.Builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -158,7 +158,7 @@ public class ContainerHandlerTest {
         };
 
         for (int i = 0; i < testData.length; i += 5) {
-            JKubeProject testProject = new JKubeProject.Builder().properties(new Properties()).build();
+            JKubeProject testProject = JKubeProject.builder().properties(new Properties()).build();
             Properties testProps = new Properties();
             if (testData[i+2] != null) {
                 testProps.put("docker.pull.registry", testData[i + 2]);

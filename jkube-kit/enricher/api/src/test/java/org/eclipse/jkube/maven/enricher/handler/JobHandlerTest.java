@@ -13,19 +13,20 @@
  */
 package org.eclipse.jkube.maven.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.batch.Job;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
+
+import io.fabric8.kubernetes.api.model.batch.Job;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -36,7 +37,8 @@ public class JobHandlerTest {
     @Mocked
     ProbeHandler probeHandler;
 
-    JKubeProject project = new JKubeProject();
+    @Mocked
+    JKubeProject project;
 
     List<String> mounts = new ArrayList<>();
     List<VolumeConfig> volumes1 = new ArrayList<>();

@@ -22,5 +22,5 @@ import java.io.IOException;
  * @since 04/08/2017
  */
 public interface ArchiverCustomizer {
-    JKubeBuildTarArchiver customize(JKubeBuildTarArchiver archiver) throws IOException;
+  JKubeBuildTarArchiver customize(JKubeBuildTarArchiver archiver) throws IOException;
 }

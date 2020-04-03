@@ -55,10 +55,8 @@ jobs:
         key: jkube-kit-{{ checksum "pom.xml" }}
     - run:
         command: |
-          # Run Maven build
-          ./mvnw clean install -DskipTests
-          # Run javadoc build
-          ./mvnw javadoc:jar
+          # Run Maven build with javadoc jar generation
+          ./mvnw clean install javadoc:jar -DskipTests -Pjavadoc
     - save_cache:
         key: jkube-kit-{{ checksum "pom.xml" }}
         paths:

@@ -41,7 +41,7 @@ public class MavenIssueManagementEnricherTest {
     @Test
     public void testMavenIssueManagementAll() {
 
-        final JKubeProject project = new JKubeProject();
+        final JKubeProject project = JKubeProject.builder().build();
 
         project.setIssueManagementUrl("https://github.com/reactiverse/vertx-maven-plugin/issues/");
         project.setIssueManagementSystem("GitHub");
@@ -72,7 +72,7 @@ public class MavenIssueManagementEnricherTest {
     @Test
     public void testMavenIssueManagementOnlySystem() {
 
-        final JKubeProject project = new JKubeProject();
+        final JKubeProject project = JKubeProject.builder().build();
         project.setIssueManagementSystem("GitHub");
         // Setup mock behaviour
         new Expectations() {
@@ -97,7 +97,7 @@ public class MavenIssueManagementEnricherTest {
     @Test
     public void testMavenIssueManagementOnlyUrl() {
 
-        final JKubeProject project = new JKubeProject();
+        final JKubeProject project = JKubeProject.builder().build();
         project.setIssueManagementUrl("https://github.com/fabric8org.eclipse.jkube-maven-plugin/issues/");
         // Setup mock behaviour
         new Expectations() {
@@ -123,7 +123,7 @@ public class MavenIssueManagementEnricherTest {
     @Test
     public void testMavenNoIssueManagement() {
 
-        final JKubeProject project = new JKubeProject();
+        final JKubeProject project = JKubeProject.builder().build();
         // Setup mock behaviour
         new Expectations() {
             {

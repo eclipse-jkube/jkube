@@ -71,8 +71,7 @@ public class EnvUtil {
      * Compare to version strings and return the larger version strings. This is used in calculating
      * the minimal required API version for this plugin. Version strings must be comparable as floating numbers.
      * The versions must be given in the format in a semantic version foramt (e.g. "1.23"
-     * <p>
-     * If either version is <code>null</code>, the other version is returned (which can be null as well)
+     * <p> If either version is <code>null</code>, the other version is returned (which can be null as well)
      *
      * @param versionA first version number
      * @param versionB second version number
@@ -224,8 +223,8 @@ public class EnvUtil {
     /**
      * Extract part of given properties as a map. The given prefix is used to find the properties,
      * the rest of the property name is used as key for the map.
-     * <p>
-     * NOTE: If key is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored! This is reserved for combine policy tweaking.
+     *
+     * <p> NOTE: If key is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored! This is reserved for combine policy tweaking.
      *
      * @param prefix     prefix which specifies the part which should be extracted as map
      * @param properties properties to extract from
@@ -253,8 +252,8 @@ public class EnvUtil {
      * Extract from given properties a list of string values. The prefix is used to determine the subset of the
      * given properties from which the list should be extracted, the rest is used as a numeric index. If the rest
      * is not numeric, the order is not determined (all those props are appended to the end of the list)
-     * <p>
-     * NOTE: If suffix/index is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored!
+     *
+     * <p> NOTE: If suffix/index is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored!
      * This is reserved for combine policy tweaking.
      *
      * @param prefix     for selecting the properties from which the list should be extracted
@@ -324,8 +323,8 @@ public class EnvUtil {
 
     /**
      * Calculate the duration between now and the given time
-     * <p>
-     * Taken mostly from http://stackoverflow.com/a/5062810/207604 . Kudos to @dblevins
+     *
+     * <p> Taken mostly from http://stackoverflow.com/a/5062810/207604 . Kudos to @dblevins
      *
      * @param start starting time (in milliseconds)
      * @return time in seconds

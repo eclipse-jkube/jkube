@@ -20,6 +20,6 @@ import java.io.File;
  */
 public interface ArtifactResolverService {
 
-    public File resolveArtifact(String groupId, String artifactId, String version, String type);
+  File resolveArtifact(String groupId, String artifactId, String version, String type);
 
 }

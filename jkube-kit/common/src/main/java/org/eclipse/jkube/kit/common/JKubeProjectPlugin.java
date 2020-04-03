@@ -13,123 +13,61 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.io.Serializable;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("JavaDoc")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
 public class JKubeProjectPlugin implements Serializable {
-    private String groupId;
-    private String artifactId;
-    private String version;
-    private Map<String, Object> configuration;
-    private List<String> executions;
 
-    private JKubeProjectPlugin() { }
+  private static final long serialVersionUID = -7421259106320247639L;
 
-    public JKubeProjectPlugin(String groupId, String artifactId, String version, Map<String, Object> configuration, List<String> executions) {
-        this.groupId = groupId;
-        this.artifactId = artifactId;
-        this.version = version;
-        this.configuration = configuration;
-        this.executions = executions;
-    }
-
-    public Map<String, Object> getConfiguration() {
-        return configuration;
-    }
-
-    public String getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-
-    public String getArtifactId() {
-        return artifactId;
-    }
-
-    public void setArtifactId(String artifactId) {
-        this.artifactId = artifactId;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public static JKubeProjectPlugin fromString(String pluginAsStr, Map<String, Object> pluginConfiguration) {
-        String[] parts = pluginAsStr.split(",");
-        if (parts.length == 3) {
-            return new JKubeProjectPlugin(parts[0], parts[1], parts[2], pluginConfiguration, null);
-        } else if (parts.length == 4) {
-            return new JKubeProjectPlugin(parts[0], parts[1], parts[2], pluginConfiguration, Arrays.asList(parts[3].split("\\|")));
-        }
-        return null;
-    }
-
-    public static List<JKubeProjectPlugin> listFromStringPlugins(List<AbstractMap.SimpleEntry<String, Map<String, Object>>> jkubePluginsAsStr) {
-        List<JKubeProjectPlugin> plugins = new ArrayList<>();
-        for (AbstractMap.SimpleEntry<String, Map<String, Object>> commaSeparatedPlugins : jkubePluginsAsStr) {
-            JKubeProjectPlugin jkubeProjectPlugin = JKubeProjectPlugin.fromString(commaSeparatedPlugins.getKey(), commaSeparatedPlugins.getValue());
-            if (jkubeProjectPlugin != null) {
-                plugins.add(jkubeProjectPlugin);
-            }
-        }
-        return plugins;
-    }
-
-    public List<String> getExecutions() {
-        return executions;
-    }
-
-    public static class Builder {
-        private JKubeProjectPlugin projectPlugin;
-
-        public Builder() {
-            this.projectPlugin = new JKubeProjectPlugin();
-        }
-
-        public Builder(JKubeProjectPlugin plugin) {
-            if (plugin != null) {
-                this.projectPlugin = plugin;
-            }
-        }
-
-        public Builder groupId(String groupId) {
-            this.projectPlugin.groupId = groupId;
-            return this;
-        }
-
-        public Builder artifactId(String artifactId) {
-            this.projectPlugin.artifactId = artifactId;
-            return this;
-        }
-
-        public Builder version(String version) {
-            this.projectPlugin.version = version;
-            return this;
-        }
-
-        public Builder executions(List<String> executions) {
-            this.projectPlugin.executions = executions;
-            return this;
-        }
-
-        public Builder configuration(Map<String, Object> configuration) {
-            this.projectPlugin.configuration = configuration;
-            return this;
-        }
-
-        public JKubeProjectPlugin build() {
-            return this.projectPlugin;
-        }
-    }
+  /**
+   * Maven group ID.
+   *
+   * @param groupId New maven group ID for the plugin.
+   * @return The maven group ID for the plugin.
+   */
+  private String groupId;
+  /**
+   * Maven artifact ID.
+   *
+   * @param artifactId New maven artifact ID for the plugin.
+   * @return The maven artifact ID for the plugin.
+   */
+  private String artifactId;
+  /**
+   * Maven version.
+   *
+   * @param version New maven version for the plugin.
+   * @return The maven version for the plugin.
+   */
+  private String version;
+  /**
+   * Plugin configuration.
+   *
+   * @param configuration New configuration for the plugin.
+   * @return The configuration for the plugin.
+   */
+  private Map<String, Object> configuration;
+  /**
+   * Plugin executions. (i.e. Maven plugin executions).
+   *
+   * @param executions New executions for the plugin.
+   * @return The plugin executions.
+   */
+  private List<String> executions;
 }

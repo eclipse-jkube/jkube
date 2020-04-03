@@ -15,7 +15,6 @@ package org.eclipse.jkube.generator.webapp;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.AbstractMap;
 import java.util.Collections;
 
 import org.eclipse.jkube.kit.common.JKubeProject;
@@ -25,6 +24,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author kameshs
@@ -81,9 +81,8 @@ public class AppServerAutoDetectionTest {
     }
 
     @Test
-    public void testWithSpecifiedServer() throws Exception {
-        JKubeProject jkubeProject = new JKubeProject.Builder()
-                .build();
+    public void testWithSpecifiedServer() {
+        JKubeProject jkubeProject = JKubeProject.builder().build();
 
         AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect("tomcat");
         assertEquals("tomcat", appServerHandler.getName());
@@ -111,9 +110,9 @@ public class AppServerAutoDetectionTest {
     public void testDefaultServer() throws IOException {
         File appDir = folder.newFolder("webapp");
 
-        JKubeProject jkubeProject = new JKubeProject.Builder()
-                .buildDirectory(appDir.getAbsolutePath())
-                .plugins(Collections.singletonList(new JKubeProjectPlugin.Builder().groupId("org.apache.tomcat.maven").artifactId("org.apache.tomcat.maven").version("testversion").configuration(Collections.emptyMap()).build()))
+        JKubeProject jkubeProject = JKubeProject.builder()
+                .buildDirectory(appDir)
+                .plugins(Collections.singletonList(JKubeProjectPlugin.builder().groupId("org.apache.tomcat.maven").artifactId("org.apache.tomcat.maven").version("testversion").configuration(Collections.emptyMap()).build()))
                 .build();
         AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
         assertEquals("tomcat", appServerHandler.getName());
@@ -125,12 +124,12 @@ public class AppServerAutoDetectionTest {
             boolean expected = (boolean) descriptors[i + 1];
 
             File appDir = folder.newFolder("webapp" + i);
-            new File(appDir, "META-INF/").mkdirs();
-            new File(appDir, "WEB-INF/").mkdirs();
-            new File(appDir, descriptor).createNewFile();
+            assertTrue(new File(appDir, "META-INF/").mkdirs());
+            assertTrue(new File(appDir, "WEB-INF/").mkdirs());
+            assertTrue(new File(appDir, descriptor).createNewFile());
 
-            JKubeProject jkubeProject = new JKubeProject.Builder()
-                    .buildDirectory(appDir.getPath())
+            JKubeProject jkubeProject = JKubeProject.builder()
+                    .buildDirectory(appDir)
                     .plugins(Collections.emptyList())
                     .build();
             AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
@@ -147,9 +146,9 @@ public class AppServerAutoDetectionTest {
             String artifactId = pluginCoordinate.split(":")[1];
             boolean expected = (boolean) plugins[i + 1];
 
-            JKubeProject jkubeProject = new JKubeProject.Builder()
-                    .buildDirectory(folder.getRoot().getPath())
-                    .plugins(Collections.singletonList(new JKubeProjectPlugin.Builder().groupId(groupId).artifactId(artifactId).version("testversion").configuration(Collections.emptyMap()).build()))
+            JKubeProject jkubeProject = JKubeProject.builder()
+                    .buildDirectory(folder.getRoot())
+                    .plugins(Collections.singletonList(JKubeProjectPlugin.builder().groupId(groupId).artifactId(artifactId).version("testversion").configuration(Collections.emptyMap()).build()))
                     .build();
             AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
 
