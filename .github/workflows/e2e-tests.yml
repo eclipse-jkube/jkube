@@ -134,3 +134,38 @@ jobs:
         with:
           name: Test reports (OpenShift ${{ matrix.openshift }}-${{ matrix.suite }})
           path: ./reports
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Java 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Install JKube
+        run: mvn -f pom.xml -B -DskipTests clean install
+      - name: Checkout JKube Integration Tests Repository
+        shell: cmd
+        run: |
+          git clone %JKUBE_IT_REPOSITORY%
+          cd %JKUBE_IT_DIR%
+          git checkout "%JKUBE_IT_REVISION%"
+      - name: Install and Run Integration Tests
+        run: |
+          $env:JKUBE_VERSION = (mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression='project.version' -q -DforceStdout) | Out-String
+          echo $env:JKUBE_VERSION
+          cd $env:JKUBE_IT_DIR
+          mvn -B -PWindows clean verify -D'jkube.version'=$env:JKUBE_VERSION
+      - name: Consolidate reports
+        if: always()
+        run: |
+          mkdir reports
+          cp $env:JKUBE_IT_DIR\it\target\jkube-test-report.txt reports
+      - name: Save reports as artifact
+        if: always()
+        uses: actions/upload-artifact@master
+        with:
+          name: Test reports (Windows)
+          path: ./reports
