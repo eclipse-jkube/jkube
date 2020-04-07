@@ -266,7 +266,7 @@ public class MavenUtil {
      * @throws IOException IOException in case file is not found
      */
     public static String getVersion(String groupId, String artifactId) throws IOException {
-        String path = "META-INF/maven/" + groupId + "/" + artifactId + "/pom.properties";
+        String path = String.format("META-INF/maven/%s/%s/pom.properties" , groupId, artifactId);
         InputStream in = MavenUtil.class.getClassLoader().getResourceAsStream(path);
         if (in == null) {
             throw new IOException("Could not find " + path + " on classath!");
@@ -312,7 +312,7 @@ public class MavenUtil {
      * @param project MavenProject from which to retrieve the documentation URL
      * @return the documentation URL
      */
-    public static String getDocumentationUrl (MavenProject project) {
+    public static String getDocumentationUrl(MavenProject project) {
         while (project != null) {
             DistributionManagement distributionManagement = project.getDistributionManagement();
             if (distributionManagement != null) {

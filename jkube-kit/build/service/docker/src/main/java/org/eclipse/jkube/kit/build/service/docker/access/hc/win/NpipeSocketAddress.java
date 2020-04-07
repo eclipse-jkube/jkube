@@ -13,29 +13,47 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.hc.win;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.io.File;
 
 class NpipeSocketAddress extends java.net.SocketAddress {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = -201738636850828643L;
 
-	private String path;
+  private final String path;
 
-    NpipeSocketAddress(File path) {
-        this.path = path.getPath();
-    }
+  NpipeSocketAddress(File path) {
+    this.path = path.getPath();
+  }
 
-    public String path() {
-        return path;
-    }
+  public String getPath() {
+    return path;
+  }
 
-    @Override
-    public String toString() {
-        return "NpipeSocketAddress{path=" + path + "}";
-    }
+  @Override
+  public String toString() {
+    return "NpipeSocketAddress{path='" + path + "'}";
+  }
 
-    @Override
-    public boolean equals(Object _other) {
-        return _other instanceof NpipeSocketAddress && path.equals(((NpipeSocketAddress) _other).path);
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+
+    if (o == null || getClass() != o.getClass()) return false;
+
+    NpipeSocketAddress that = (NpipeSocketAddress) o;
+
+    return new EqualsBuilder()
+        .append(path, that.path)
+        .isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37)
+        .append(path)
+        .toHashCode();
+  }
 }

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.build.api.BuildContext;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -28,7 +28,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
  * @author roland
  * @since 16.10.18
  */
-public class JKubeBuildContext implements BuildContext<JKubeBuildConfiguration>, Serializable {
+public class JKubeBuildContext implements BuildContext, Serializable {
 
     private static final long serialVersionUID = 7459084747241070651L;
 
@@ -59,7 +59,7 @@ public class JKubeBuildContext implements BuildContext<JKubeBuildConfiguration>,
     }
 
     @Override
-    public File createImageContentArchive(String imageName, JKubeBuildConfiguration buildConfig, KitLogger log)
+    public File createImageContentArchive(String imageName, BuildConfiguration buildConfig, KitLogger log)
             throws IOException {
 
         try {

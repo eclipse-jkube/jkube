@@ -16,8 +16,8 @@ package org.eclipse.jkube.generator.karaf;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -48,7 +48,7 @@ public class KarafGenerator extends BaseGenerator {
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
         final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
-        final JKubeBuildConfiguration.Builder buildBuilder = new JKubeBuildConfiguration.Builder();
+        final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
 
         buildBuilder.ports(extractPorts()).cmd(new Arguments(getConfig(Config.cmd)));
 
@@ -85,8 +85,8 @@ public class KarafGenerator extends BaseGenerator {
         }
     }
 
-    private JKubeAssemblyConfiguration createAssembly() {
-        return new JKubeAssemblyConfiguration.Builder()
+    private AssemblyConfiguration createAssembly() {
+        return new AssemblyConfiguration.Builder()
             .targetDir(getConfig(Config.baseDir))
             .user(getConfig(Config.user))
             .descriptorRef("karaf")

@@ -17,7 +17,7 @@ import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
 import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.io.File;
@@ -87,7 +87,7 @@ public class ArchiveService {
 
         String name = imageConfig.getName();
         try {
-            return dockerAssemblyManager.getAssemblyFiles(name, imageConfig.getBuildConfiguration(), mojoParameters, log);
+            return dockerAssemblyManager.getAssemblyFiles(name, imageConfig.getBuildConfiguration(), mojoParameters);
         } catch (Exception e) {
             throw new IOException("Cannot extract assembly files for image " + name + ": " + e, e);
         }
@@ -110,12 +110,12 @@ public class ArchiveService {
 
     // =============================================
 
-    File createArchive(String imageName, JKubeBuildConfiguration buildConfig, JKubeBuildContext params, KitLogger log)
+    File createArchive(String imageName, BuildConfiguration buildConfig, JKubeBuildContext params, KitLogger log)
             throws IOException {
         return createArchive(imageName, buildConfig, params, log, null);
     }
 
-    File createArchive(String imageName, JKubeBuildConfiguration buildConfig, JKubeBuildContext params, KitLogger log, ArchiverCustomizer customizer)
+    File createArchive(String imageName, BuildConfiguration buildConfig, JKubeBuildContext params, KitLogger log, ArchiverCustomizer customizer)
             throws IOException {
         return dockerAssemblyManager.createDockerTarArchive(imageName, params, buildConfig, log, customizer);
     }

@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.compose;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
@@ -132,11 +132,11 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         }
     }
 
-    private JKubeBuildConfiguration createBuildImageConfiguration(DockerComposeServiceWrapper mapper,
-                                                                  File composeParent,
-                                                                  ImageConfiguration imageConfig,
-                                                                  DockerComposeConfiguration handlerConfig) {
-        final JKubeBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+    private BuildConfiguration createBuildImageConfiguration(
+        DockerComposeServiceWrapper mapper, File composeParent, ImageConfiguration imageConfig,
+        DockerComposeConfiguration handlerConfig) {
+
+        final BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
         if (handlerConfig.isIgnoreBuild() || !mapper.requiresBuild()) {
             if (serviceMatchesAlias(mapper, imageConfig)) {
                 // Only when the specified image name maps to the current docker-compose service
@@ -147,7 +147,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         }
 
         // Build from the specification as given in the docker-compose file
-        return new JKubeBuildConfiguration.Builder(buildConfig)
+        return new BuildConfiguration.Builder(buildConfig)
                 .dockerFile(extractDockerFilePath(mapper, composeParent))
                 .args(mapper.getBuildArgs())
                 .build();

@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.config.image.build;
 
 import java.io.File;
 
+import mockit.Expectations;
 import org.eclipse.jkube.kit.common.KitLogger;
 import mockit.Mocked;
 import org.junit.Test;
@@ -22,8 +23,10 @@ import org.junit.Test;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.bzip2;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.none;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -129,10 +132,26 @@ public class BuildConfigurationTest {
     @Test
     public void isValidWindowsFileName() {
         BuildConfiguration cfg = new BuildConfiguration();
-    	assertFalse(cfg.isValidWindowsFileName("/Dockerfile"));
-    	assertTrue(cfg.isValidWindowsFileName("Dockerfile"));
-    	assertFalse(cfg.isValidWindowsFileName("Dockerfile/"));
+        assertFalse(cfg.isValidWindowsFileName("/Dockerfile"));
+        assertTrue(cfg.isValidWindowsFileName("Dockerfile"));
+        assertFalse(cfg.isValidWindowsFileName("Dockerfile/"));
     }
 
+    @Test
+    public void testBuilder(@Mocked AssemblyConfiguration mockAssemblyConfiguration) {
+        // Given
+        new Expectations() {{
+            mockAssemblyConfiguration.getName();
+            result = "1337";
+        }};
+        // When
+        final BuildConfiguration result = new BuildConfiguration.Builder()
+            .assembly(mockAssemblyConfiguration)
+            .user("super-user")
+            .build();
+        // Then
+        assertThat(result.getUser(), equalTo("super-user"));
+        assertThat(result.getAssemblyConfiguration().getName(), equalTo("1337"));
+    }
 
 }

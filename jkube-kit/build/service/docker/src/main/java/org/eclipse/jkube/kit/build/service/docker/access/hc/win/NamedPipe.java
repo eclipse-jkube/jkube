@@ -45,7 +45,7 @@ final class NamedPipe extends Socket {
 
     private String socketPath;
 
-    private RandomAccessFile namedPipe;
+    private RandomAccessFile randomAccessFile;
     private FileChannel channel;
 
     NamedPipe(KitLogger log) {
@@ -69,11 +69,11 @@ final class NamedPipe extends Socket {
         }
 
         this.socketAddress.set(endpoint);
-        this.socketPath = ((NpipeSocketAddress) endpoint).path();
+        this.socketPath = ((NpipeSocketAddress) endpoint).getPath();
 
         synchronized (connectLock) {
-            namedPipe = new RandomAccessFile(socketPath, "rw");
-            channel = namedPipe.getChannel();
+            randomAccessFile = new RandomAccessFile(socketPath, "rw");
+            channel = randomAccessFile.getChannel();
         }
     }
 
@@ -277,8 +277,8 @@ final class NamedPipe extends Socket {
         if (channel != null) {
             channel.close();
         }
-        if (namedPipe != null) {
-            namedPipe.close();
+        if (randomAccessFile != null) {
+            randomAccessFile.close();
         }
         inputShutdown = true;
         outputShutdown = true;

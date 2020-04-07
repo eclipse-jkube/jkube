@@ -58,7 +58,7 @@ abstract public class BaseGenerator implements Generator {
         // The alias to use (default to the generator name)
         alias,
 
-        // whether the generator should always add to already existing image configurationws
+        // whether the generator should always add to already existing image configurations
         add {{d = "false"; }},
 
         // Base image
@@ -114,7 +114,7 @@ abstract public class BaseGenerator implements Generator {
      *
      * @param builder for the build image configuration to add the from to.
      */
-    protected void addFrom(BuildConfiguration.TypedBuilder builder) {
+    protected void addFrom(BuildConfiguration.Builder builder) {
         String fromMode = getConfigWithFallback(Config.fromMode, "jkube.generator.fromMode", getFromModeDefault(context.getRuntimeMode()));
         String from = getConfigWithFallback(Config.from, "jkube.generator.from", null);
         if ("docker".equalsIgnoreCase(fromMode)) {
@@ -213,7 +213,7 @@ abstract public class BaseGenerator implements Generator {
         return value != null ? value : defaultVal;
     }
 
-    protected void addLatestTagIfSnapshot(BuildConfiguration.TypedBuilder buildBuilder) {
+    protected void addLatestTagIfSnapshot(BuildConfiguration.Builder buildBuilder) {
         JKubeProject project = getProject();
         if (project.getVersion().endsWith("-SNAPSHOT")) {
             buildBuilder.tags(Collections.singletonList("latest"));
@@ -229,7 +229,7 @@ abstract public class BaseGenerator implements Generator {
         return false;
     }
 
-    protected void addSchemaLabels(BuildConfiguration.TypedBuilder buildBuilder, PrefixedLogger log) {
+    protected void addSchemaLabels(BuildConfiguration.Builder buildBuilder, PrefixedLogger log) {
         final JKubeProject project = getProject();
         String LABEL_SCHEMA_VERSION = "1.0";
         String GIT_REMOTE = "origin";

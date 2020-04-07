@@ -16,7 +16,7 @@ package org.eclipse.jkube.enricher.generic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -205,7 +205,7 @@ public class DefaultServiceEnricherTest {
             result = configuration;
 
             imageConfigurationWithLabels.getBuildConfiguration();
-            result = new JKubeBuildConfiguration.Builder()
+            result = new BuildConfiguration.Builder()
                     .labels(Collections.singletonMap("jkube.generator.service.ports", "9090"))
                     .ports(Arrays.asList("80", "53/UDP"))
                     .build();
@@ -261,13 +261,13 @@ public class DefaultServiceEnricherTest {
             result = configuration;
 
             imageConfiguration.getBuildConfiguration();
-            result = getBuildConfig(withPorts);
+            result = initBuildConfig(withPorts);
         }};
     }
 
-    private JKubeBuildConfiguration getBuildConfig(boolean withPorts) {
+    private BuildConfiguration initBuildConfig(boolean withPorts) {
         // Setup a sample docker build configuration
-        JKubeBuildConfiguration.Builder builder = new JKubeBuildConfiguration.Builder();
+        BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
         if (withPorts) {
             builder.ports(Arrays.asList("80", "53/UDP"));
         }

@@ -138,8 +138,8 @@ public class IoUtil {
     private static String getProgressBar(long bytesRead, long length) {
         StringBuffer ret = new StringBuffer("[");
         if (length > - 1) {
-            int bucketSize = (int) (length / PROGRESS_LENGTH + 0.5);
-            int index = (int) (bytesRead / bucketSize + 0.5);
+            int bucketSize = (int) ((double)length / PROGRESS_LENGTH + 0.5D);
+            int index = (int) ((double)bytesRead / bucketSize + 0.5D);
             for (int i = 0; i < PROGRESS_LENGTH; i++) {
                 ret.append(i < index ? "=" : (i == index ? ">" : " "));
             }
@@ -148,7 +148,7 @@ public class IoUtil {
                     ((float) length / (1024 * 1024))));
         } else {
             int bucketSize = 200 * 1024; // 200k
-            int index = (int) (bytesRead / bucketSize + 0.5) % PROGRESS_LENGTH;
+            int index = (int) ((double)bytesRead / bucketSize + 0.5D) % PROGRESS_LENGTH;
             for (int i = 0; i < PROGRESS_LENGTH; i++) {
                 ret.append(i == index ? "*" : " ");
             }

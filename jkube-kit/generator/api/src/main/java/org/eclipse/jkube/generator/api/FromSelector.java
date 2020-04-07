@@ -62,9 +62,9 @@ public abstract class FromSelector {
         return ret;
     }
 
-    abstract protected String getDockerBuildFrom();
-    abstract protected String getS2iBuildFrom();
-    abstract protected String getIstagFrom();
+    protected abstract String getDockerBuildFrom();
+    protected abstract String getS2iBuildFrom();
+    protected abstract String getIstagFrom();
 
     public boolean isRedHat() {
         JKubeProject project = context.getProject();

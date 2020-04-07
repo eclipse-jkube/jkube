@@ -28,7 +28,6 @@ import com.google.gson.JsonObject;
 import com.google.common.collect.ImmutableMap;
 
 import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -109,7 +108,7 @@ public class BuildService {
         String imageName = imageConfig.getName();
         ImageName.validate(imageName);
 
-        JKubeBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+        BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
         String oldImageId = null;
 

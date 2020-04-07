@@ -17,7 +17,6 @@ import java.io.File;
 import java.util.Arrays;
 
 import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.junit.Before;
@@ -36,13 +35,13 @@ public class DockerAssemblyConfigurationSourceTest {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
     private File buildDirectory;
 
-    private JKubeAssemblyConfiguration assemblyConfig;
+    private AssemblyConfiguration assemblyConfig;
 
     @Before
     public void setup() throws Exception {
         buildDirectory = temporaryFolder.newFolder("build");
         // set 'ignorePermissions' to something other then default
-        this.assemblyConfig = new JKubeAssemblyConfiguration.Builder()
+        this.assemblyConfig = new AssemblyConfiguration.Builder()
                 .descriptor("assembly.xml")
                 .descriptorRef("project")
                 .permissions("keep")

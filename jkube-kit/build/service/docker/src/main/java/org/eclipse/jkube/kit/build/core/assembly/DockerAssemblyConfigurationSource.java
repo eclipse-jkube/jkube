@@ -17,7 +17,6 @@ import java.io.File;
 import java.util.List;
 
 import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 
@@ -27,12 +26,12 @@ import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
  */
 public class DockerAssemblyConfigurationSource {
 
-    private final JKubeAssemblyConfiguration assemblyConfig;
+    private final AssemblyConfiguration assemblyConfig;
     private final JKubeBuildContext context;
     private final BuildDirs buildDirs;
 
     public DockerAssemblyConfigurationSource(
-            JKubeBuildContext context, BuildDirs buildDirs, JKubeAssemblyConfiguration assemblyConfig) {
+            JKubeBuildContext context, BuildDirs buildDirs, AssemblyConfiguration assemblyConfig) {
 
         this.context = context;
         this.assemblyConfig = assemblyConfig;

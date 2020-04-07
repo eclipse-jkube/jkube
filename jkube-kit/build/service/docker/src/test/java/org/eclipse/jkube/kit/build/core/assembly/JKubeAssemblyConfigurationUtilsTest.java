@@ -18,14 +18,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFile;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
 import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
 
 import mockit.Expectations;
 import mockit.Injectable;
+import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Test;
 
 import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
@@ -43,7 +43,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultNoConfigurationShouldReturnDefault(
-    @Injectable final JKubeBuildConfiguration buildConfiguration) {
+    @Injectable final BuildConfiguration buildConfiguration) {
 
     // Given
     new Expectations() {{
@@ -51,7 +51,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
       result = null;
     }};
     // When
-    final JKubeAssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
     assertEquals("/maven", result.getTargetDir());
     assertEquals("root", result.getUser());
@@ -59,7 +59,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultWithConfigurationShouldReturnConfiguration(
-    @Injectable final JKubeBuildConfiguration buildConfiguration, @Injectable JKubeAssemblyConfiguration configuration) {
+    @Injectable final BuildConfiguration buildConfiguration, @Injectable AssemblyConfiguration configuration) {
 
     // Given
     new Expectations() {{
@@ -71,7 +71,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
       result = "ImageName";
     }};
     // When
-    final JKubeAssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
     assertNull(result.getTargetDir());
     assertEquals("OtherUser", result.getUser());
@@ -90,7 +90,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFileSetsNotNullShouldReturnFileSets(
-    @Injectable JKubeAssemblyConfiguration configuration, @Injectable JKubeProjectAssembly assembly,
+    @Injectable AssemblyConfiguration configuration, @Injectable JKubeProjectAssembly assembly,
     @Injectable JKubeAssemblyFileSet fileSet) {
 
     // Given
@@ -113,7 +113,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFileSetsExcludesShouldReturnExcludes(
-    @Injectable JKubeAssemblyConfiguration configuration, @Injectable JKubeProjectAssembly assembly,
+    @Injectable AssemblyConfiguration configuration, @Injectable JKubeProjectAssembly assembly,
     @Injectable JKubeAssemblyFileSet fileSet) {
 
     // Given
@@ -150,7 +150,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFilesNotNullShouldReturnFiles(
-    @Injectable JKubeAssemblyConfiguration configuration, @Injectable JKubeProjectAssembly assembly,
+    @Injectable AssemblyConfiguration configuration, @Injectable JKubeProjectAssembly assembly,
     @Injectable JKubeAssemblyFile file) {
 
     // Given

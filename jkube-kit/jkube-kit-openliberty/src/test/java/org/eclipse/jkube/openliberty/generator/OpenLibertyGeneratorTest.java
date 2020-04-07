@@ -19,7 +19,7 @@ import java.util.List;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -78,7 +78,7 @@ public class OpenLibertyGeneratorTest {
       result = OpenLibertyGenerator.LIBERTY_SELF_EXTRACTOR;
     }};
     // When
-    generator.addAssembly(new JKubeAssemblyConfiguration.Builder());
+    generator.addAssembly(new AssemblyConfiguration.Builder());
     // Then
     assertThat(generator.getEnv(false), hasKey(OpenLibertyGenerator.LIBERTY_RUNNABLE_JAR));
     assertThat(generator.getEnv(false), hasKey(OpenLibertyGenerator.JAVA_APP_JAR));

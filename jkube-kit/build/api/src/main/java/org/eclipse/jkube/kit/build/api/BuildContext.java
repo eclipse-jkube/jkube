@@ -25,7 +25,7 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
  * @author roland
  * @since 16.10.18
  */
-public interface BuildContext<B extends BuildConfiguration> {
+public interface BuildContext {
 
     String getSourceDirectory();
 
@@ -35,7 +35,7 @@ public interface BuildContext<B extends BuildConfiguration> {
 
     Properties getProperties();
 
-    File createImageContentArchive(String imageName, B buildConfig, KitLogger log) throws IOException;
+    File createImageContentArchive(String imageName, BuildConfiguration buildConfig, KitLogger log) throws IOException;
 
     File inSourceDir(String path);
 

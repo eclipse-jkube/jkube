@@ -18,8 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -88,7 +88,7 @@ public class WebAppGenerator extends BaseGenerator {
 
         final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
 
-        final JKubeBuildConfiguration.Builder buildBuilder = new JKubeBuildConfiguration.Builder();
+        final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
 
         buildBuilder.from(getFrom(handler))
             .ports(handler.exposedPorts())
@@ -133,13 +133,13 @@ public class WebAppGenerator extends BaseGenerator {
         return defaultEnv;
     }
 
-    private JKubeAssemblyConfiguration createAssembly(AppServerHandler handler) {
+    private AssemblyConfiguration createAssembly(AppServerHandler handler) {
         String path = getConfig(Config.path);
         if (path.equals("/")) {
             path = "ROOT";
         }
         getProject().getProperties().setProperty("jkube.generator.webapp.path",path);
-        final JKubeAssemblyConfiguration.Builder builder = new JKubeAssemblyConfiguration.Builder();
+        final AssemblyConfiguration.Builder builder = new AssemblyConfiguration.Builder();
 
         builder.targetDir(getDeploymentDir(handler)).descriptorRef("webapp");
 

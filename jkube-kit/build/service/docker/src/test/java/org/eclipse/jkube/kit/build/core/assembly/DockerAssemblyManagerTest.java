@@ -21,8 +21,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
@@ -56,8 +56,8 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testNoAssembly() {
-        JKubeBuildConfiguration buildConfig = new JKubeBuildConfiguration.Builder().build();
-        JKubeAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        BuildConfiguration buildConfig = new BuildConfiguration.Builder().build();
+        AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
 
         DockerFileBuilder builder = assemblyManager.createDockerFileBuilder(buildConfig, assemblyConfig);
         String content = builder.content();
@@ -67,31 +67,32 @@ public class DockerAssemblyManagerTest {
     }
 
     @Test
-    public void assemblyFiles(@Injectable final JKubeBuildContext mojoParams,
-                              @Injectable final JKubeProject project,
-                              @Injectable final File assembly) {
+    public void assemblyFiles(@Injectable final JKubeBuildContext mojoParams, @Injectable final JKubeProject project)
+        throws Exception {
 
-
+        final File baseDirectory = temporaryFolder.newFolder("buildDirs");
+        final File targetDir = new File(baseDirectory, "target");
+        assertTrue(targetDir.mkdirs());
         new Expectations() {{
             mojoParams.getProject();
+            result = project;
+
             project.getBaseDirectory();
-
+            result = baseDirectory;
             project.getBuildDirectory();
-            result = "target/";
-            result = ".";
-
+            result = targetDir;
         }};
 
-        JKubeBuildConfiguration buildConfig = createBuildConfig();
+        BuildConfiguration buildConfig = createBuildConfig();
 
-        assertTrue(new File("./target/testImage/build/maven").mkdirs());
-        AssemblyFiles assemblyFiles = assemblyManager.getAssemblyFiles("testImage", buildConfig, mojoParams, prefixedLogger);
+        AssemblyFiles assemblyFiles = assemblyManager.getAssemblyFiles("testImage", buildConfig, mojoParams);
         assertNotNull(assemblyFiles);
+        assertEquals(baseDirectory.toPath().resolve("testImage").resolve("build").toFile(), assemblyFiles.getAssemblyDirectory());
     }
 
     @Test
     public void testCopyValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        JKubeBuildConfiguration buildConfig = createBuildConfig();
+        BuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
@@ -106,7 +107,7 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testCopyInvalidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        JKubeBuildConfiguration buildConfig = createBuildConfig();
+        BuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_invalid.test").getPath()),
@@ -121,7 +122,7 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testCopyChownValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-        JKubeBuildConfiguration buildConfig = createBuildConfig();
+        BuildConfiguration buildConfig = createBuildConfig();
 
         assemblyManager.verifyGivenDockerfile(
                 new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_chown_valid.test").getPath()),
@@ -134,9 +135,9 @@ public class DockerAssemblyManagerTest {
         }};
     }
 
-    private JKubeBuildConfiguration createBuildConfig() {
-        return new JKubeBuildConfiguration.Builder()
-                .assembly(new JKubeAssemblyConfiguration.Builder()
+    private BuildConfiguration createBuildConfig() {
+        return new BuildConfiguration.Builder()
+                .assembly(new AssemblyConfiguration.Builder()
                         .descriptorRef("artifact")
                         .build())
                 .build();
@@ -210,7 +211,7 @@ public class DockerAssemblyManagerTest {
                 .outputDirectory(outputDirectory.getAbsolutePath())
                 .sourceDirectory(temporaryFolder.getRoot().getAbsolutePath() + "/src/main/docker")
                 .build();
-        final JKubeBuildConfiguration jKubeBuildConfiguration = new JKubeBuildConfiguration.Builder()
+        final BuildConfiguration jKubeBuildConfiguration = new BuildConfiguration.Builder()
                 .build();
 
         // When
@@ -266,7 +267,7 @@ public class DockerAssemblyManagerTest {
                 .outputDirectory("target/docker")
                 .sourceDirectory(baseProjectDir.getPath() + "/src/main/docker")
                 .build();
-        final JKubeBuildConfiguration jKubeBuildConfiguration = new JKubeBuildConfiguration.Builder()
+        final BuildConfiguration jKubeBuildConfiguration = new BuildConfiguration.Builder()
                 .dockerFileDir(baseProjectDir.getPath())
                 .dockerFile(dockerFile.getPath())
                 .dockerFileFile(dockerFile)

@@ -13,14 +13,13 @@
  */
 package org.eclipse.jkube.maven.enricher.specific;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -87,12 +86,12 @@ public class PrometheusEnricherTest {
             null,
             Collections.singletonMap(
                 PrometheusEnricher.ENRICHER_NAME,
-                new TreeMap()
+                new TreeMap<>()
             )
         );
 
-        final JKubeBuildConfiguration imageConfig = new JKubeBuildConfiguration.Builder()
-            .ports(Arrays.asList(PrometheusEnricher.PROMETHEUS_PORT))
+        final BuildConfiguration imageConfig = new BuildConfiguration.Builder()
+            .ports(Collections.singletonList(PrometheusEnricher.PROMETHEUS_PORT))
             .build();
 
 
@@ -101,7 +100,7 @@ public class PrometheusEnricherTest {
             context.getConfiguration();
             result = new Configuration.Builder()
                 .processorConfig(config)
-                .images(Arrays.asList(imageConfiguration))
+                .images(Collections.singletonList(imageConfiguration))
                 .build();
 
             imageConfiguration.getBuildConfiguration(); result = imageConfig;
@@ -128,7 +127,7 @@ public class PrometheusEnricherTest {
             )
         );
 
-        final JKubeBuildConfiguration imageConfig = new JKubeBuildConfiguration.Builder()
+        final BuildConfiguration imageConfig = new BuildConfiguration.Builder()
             .build();
 
         // Setup mock behaviour
@@ -136,7 +135,7 @@ public class PrometheusEnricherTest {
             context.getConfiguration();
             result = new Configuration.Builder()
                 .processorConfig(config)
-                .images(Arrays.asList(imageConfiguration))
+                .images(Collections.singletonList(imageConfiguration))
                 .build();
 
             imageConfiguration.getBuildConfiguration(); result = imageConfig;
@@ -164,8 +163,8 @@ public class PrometheusEnricherTest {
                 )
         );
 
-        final JKubeBuildConfiguration imageConfig = new JKubeBuildConfiguration.Builder()
-                .ports(Arrays.asList(PrometheusEnricher.PROMETHEUS_PORT))
+        final BuildConfiguration imageConfig = new BuildConfiguration.Builder()
+                .ports(Collections.singletonList(PrometheusEnricher.PROMETHEUS_PORT))
                 .build();
 
 
@@ -174,7 +173,7 @@ public class PrometheusEnricherTest {
             context.getConfiguration();
             result = new Configuration.Builder()
                     .processorConfig(config)
-                    .images(Arrays.asList(imageConfiguration))
+                    .images(Collections.singletonList(imageConfiguration))
                     .build();
 
             imageConfiguration.getBuildConfiguration(); result = imageConfig;

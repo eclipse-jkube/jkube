@@ -45,7 +45,7 @@ public class AssemblyFiles {
      * @param destFile the destination to which it is eventually copied. The destination file must be relative.
      */
     public void addEntry(File srcFile, File destFile) {
-        entries.add(new Entry(srcFile,destFile));
+        entries.add(new Entry(srcFile, destFile));
     }
 
     /**
