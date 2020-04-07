@@ -11,28 +11,29 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.core.config;
+package org.eclipse.jkube.kit.config.image;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class MavenImageConfigurationTest {
+public class ImageConfigurationTest {
 
     @Test
-    public void testBuilder(@Mocked JKubeBuildConfiguration mockJKubeBuildConfiguration) {
+    public void testBuilder(@Mocked BuildConfiguration mockJKubeBuildConfiguration) {
         // Given
         new Expectations() {{
             mockJKubeBuildConfiguration.getUser();
             result = "super-user";
         }};
         // When
-        final MavenImageConfiguration result = new MavenImageConfiguration.Builder()
+        final ImageConfiguration result = ImageConfiguration.builder()
                 .name("1337")
-                .buildConfig(mockJKubeBuildConfiguration)
+                .build(mockJKubeBuildConfiguration)
                 .build();
         // Then
         assertThat(result.getName(), equalTo("1337"));

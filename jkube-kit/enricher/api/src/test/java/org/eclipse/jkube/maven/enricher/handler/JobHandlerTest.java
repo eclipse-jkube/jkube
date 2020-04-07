@@ -16,9 +16,9 @@ package org.eclipse.jkube.maven.enricher.handler;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
@@ -67,7 +67,7 @@ public class JobHandlerTest {
         volumes1.add(volumeConfig1);
 
         //container name with alias
-        final JKubeBuildConfiguration buildImageConfiguration = new JKubeBuildConfiguration.Builder()
+        final BuildConfiguration buildImageConfiguration = new BuildConfiguration.Builder()
                 .ports(ports).from("fabric8/maven:latest").cleanup("try")
                 .tags(tags).compression("gzip").build();
 

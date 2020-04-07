@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.config.image.build;
 
 import java.io.Serializable;
 
+import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
+
 public class AssemblyConfiguration implements Serializable {
 
     /**
@@ -57,8 +59,10 @@ public class AssemblyConfiguration implements Serializable {
 
     private String tarLongFileMode;
 
-    protected AssemblyConfiguration() {
-    }
+    /**
+     * Assembly defined inline in the pom.xml
+     */
+    private JKubeProjectAssembly inline;
 
     public Boolean getExportTargetDir() {
         return exportTargetDir;
@@ -127,36 +131,46 @@ public class AssemblyConfiguration implements Serializable {
         return permissions != null ? permissions.name() : null;
     }
 
-    public static class TypedBuilder<A extends AssemblyConfiguration> {
+
+    public JKubeProjectAssembly getInline() {
+        return inline;
+    }
+
+    public static class Builder {
 
         protected AssemblyConfiguration config;
-        private boolean isEmpty = true;
 
-        public TypedBuilder(A config) {
-            this.config = config;
+        public Builder() {
+            config = new AssemblyConfiguration();
         }
 
-        public TypedBuilder<A> exportTargetDir(Boolean exportTargetDir) {
+        private boolean isEmpty = true;
+
+        public AssemblyConfiguration build() {
+            return isEmpty ? null : config;
+        }
+
+        public Builder exportTargetDir(Boolean exportTargetDir) {
             config.exportTargetDir = exportTargetDir;
             return this;
         }
 
-        public TypedBuilder<A> targetDir(String targetDir) {
+        public Builder targetDir(String targetDir) {
             config.targetDir = set(targetDir);
             return this;
         }
 
-        public TypedBuilder<A> descriptor(String descriptorFile) {
+        public Builder descriptor(String descriptorFile) {
             config.descriptor = set(descriptorFile);
             return this;
         }
 
-        public TypedBuilder<A> descriptorRef(String descriptorRef) {
+        public Builder descriptorRef(String descriptorRef) {
             config.descriptorRef = set(descriptorRef);
             return this;
         }
 
-        public TypedBuilder<A> permissions(String permissions) {
+        public Builder permissions(String permissions) {
             if (permissions != null) {
                 config.permissions = PermissionMode.valueOf(permissions.toLowerCase());
                 isEmpty = false;
@@ -164,12 +178,12 @@ public class AssemblyConfiguration implements Serializable {
             return this;
         }
 
-        public TypedBuilder<A> user(String user) {
+        public Builder user(String user) {
             config.user = set(user);
             return this;
         }
 
-        public TypedBuilder<A> mode(String mode) {
+        public Builder mode(String mode) {
             if (mode != null) {
                 config.mode = AssemblyMode.valueOf(mode.toLowerCase());
                 isEmpty = false;
@@ -177,24 +191,29 @@ public class AssemblyConfiguration implements Serializable {
             return this;
         }
 
-        public TypedBuilder<A> tarLongFileMode(String tarLongFileMode) {
+        public Builder tarLongFileMode(String tarLongFileMode) {
             config.tarLongFileMode = set(tarLongFileMode);
             return this;
         }
 
-        public TypedBuilder<A> dockerFileDir(String dockerFileDir) {
+        public Builder dockerFileDir(String dockerFileDir) {
             config.dockerFileDir = set(dockerFileDir);
             return this;
         }
 
-        public TypedBuilder<A> exportBasedir(Boolean export) {
+        public Builder exportBasedir(Boolean export) {
             config.exportBasedir = set(export);
             return this;
         }
 
         @Deprecated
-        public TypedBuilder<A> ignorePermissions(Boolean ignorePermissions) {
+        public Builder ignorePermissions(Boolean ignorePermissions) {
             config.ignorePermissions = set(ignorePermissions);
+            return this;
+        }
+
+        public Builder assemblyDef(JKubeProjectAssembly descriptor) {
+            config.inline = set(descriptor);
             return this;
         }
 
@@ -203,16 +222,6 @@ public class AssemblyConfiguration implements Serializable {
                 isEmpty = false;
             }
             return prop;
-        }
-
-        public A build() {
-            return isEmpty ? null : (A)config;
-        }
-    }
-
-    public static final class Builder extends TypedBuilder<AssemblyConfiguration> {
-        public Builder() {
-            super(new AssemblyConfiguration());
         }
     }
 

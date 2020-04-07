@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFile;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
@@ -88,7 +86,7 @@ public class DockerAssemblyManager {
      * @throws IOException IO exception
      */
     public File createDockerTarArchive(
-            String imageName, JKubeBuildContext params, JKubeBuildConfiguration buildConfig, KitLogger log)
+            String imageName, JKubeBuildContext params, BuildConfiguration buildConfig, KitLogger log)
             throws IOException {
 
         return createDockerTarArchive(imageName, params, buildConfig, log, null);
@@ -107,12 +105,12 @@ public class DockerAssemblyManager {
      * @throws IOException IO exception
      */
     public File createDockerTarArchive(
-            String imageName, final JKubeBuildContext params, final JKubeBuildConfiguration buildConfig, KitLogger log,
+            String imageName, final JKubeBuildContext params, final BuildConfiguration buildConfig, KitLogger log,
             ArchiverCustomizer finalCustomizer) throws IOException {
 
         final BuildDirs buildDirs = createBuildDirs(imageName, params);
 
-        final JKubeAssemblyConfiguration assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfig);
+        final AssemblyConfiguration assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfig);
         Map<File, String> fileToPermissionsMap = copyFilesToFinalTarballDirectory(params.getProject(), buildDirs, assemblyConfig);
 
         final List<ArchiverCustomizer> archiveCustomizers = new ArrayList<>();
@@ -227,14 +225,13 @@ public class DockerAssemblyManager {
      * @param name name of assembly
      * @param buildConfig build configuration
      * @param mojoParams maven build context
-     * @param log kit logger
      * @return assembly files
      */
-    public AssemblyFiles getAssemblyFiles(String name, JKubeBuildConfiguration buildConfig, JKubeBuildContext mojoParams, KitLogger log) {
+    public AssemblyFiles getAssemblyFiles(String name, BuildConfiguration buildConfig, JKubeBuildContext mojoParams) {
 
         BuildDirs buildDirs = createBuildDirs(name, mojoParams);
 
-        JKubeAssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
         String assemblyName = assemblyConfig.getName();
 
         AssemblyFiles assemblyFiles = new AssemblyFiles(buildDirs.getOutputDirectory());
@@ -273,7 +270,7 @@ public class DockerAssemblyManager {
 
     // Create final tar-ball to be used for building the archive to send to the Docker daemon
     private File createBuildTarBall(JKubeBuildContext params, BuildDirs buildDirs, List<ArchiverCustomizer> archiverCustomizers,
-                                    JKubeAssemblyConfiguration assemblyConfig, ArchiveCompression compression) throws IOException {
+                                    AssemblyConfiguration assemblyConfig, ArchiveCompression compression) throws IOException {
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
 
         JKubeBuildTarArchiver jkubeTarArchiver = new JKubeBuildTarArchiver();
@@ -346,7 +343,7 @@ public class DockerAssemblyManager {
         return builder;
     }
 
-    private void createAssemblyArchive(JKubeAssemblyConfiguration assemblyConfig, JKubeBuildContext params, BuildDirs buildDirs, ArchiveCompression compression)
+    private void createAssemblyArchive(AssemblyConfiguration assemblyConfig, JKubeBuildContext params, BuildDirs buildDirs, ArchiveCompression compression)
             throws IOException {
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
         JKubeBuildTarArchiver jkubeTarArchiver = new JKubeBuildTarArchiver();
@@ -402,7 +399,7 @@ public class DockerAssemblyManager {
     }
 
     private Map<File, String> copyFilesToFinalTarballDirectory(
-      JKubeProject project, BuildDirs buildDirs, JKubeAssemblyConfiguration assemblyConfiguration) throws IOException {
+      JKubeProject project, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration) throws IOException {
 
         final Map<File, String> filesToPermissionsMap = new HashMap<>();
         FileUtil.createDirectory(new File(buildDirs.getOutputDirectory(), assemblyConfiguration.getName()));
@@ -417,7 +414,7 @@ public class DockerAssemblyManager {
 
   private Map<File, String> processJKubeProjectAssemblyFileSet(JKubeProject project,
       JKubeAssemblyFileSet jkubeProjectAssemblyFileSet, BuildDirs buildDirs,
-      JKubeAssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
+      AssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
 
     final Map<File, String> fileToPermissionsMap = new HashMap<>();
 
@@ -450,7 +447,7 @@ public class DockerAssemblyManager {
   }
 
     private void processJKubeProjectAssemblyFile(
-      JKubeProject project, JKubeAssemblyFile assemblyFile, BuildDirs buildDirs, JKubeAssemblyConfiguration assemblyConfiguration)
+      JKubeProject project, JKubeAssemblyFile assemblyFile, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration)
       throws IOException {
 
         final File outputDirectory;
@@ -476,14 +473,14 @@ public class DockerAssemblyManager {
         return buildDirs;
     }
 
-    private static boolean hasAssemblyConfiguration(JKubeAssemblyConfiguration assemblyConfig) {
+    private static boolean hasAssemblyConfiguration(AssemblyConfiguration assemblyConfig) {
         return assemblyConfig != null &&
           (assemblyConfig.getInline() != null ||
             assemblyConfig.getDescriptor() != null ||
             assemblyConfig.getDescriptorRef() != null);
     }
 
-    private static boolean isArchive(JKubeAssemblyConfiguration assemblyConfig) {
+    private static boolean isArchive(AssemblyConfiguration assemblyConfig) {
         return hasAssemblyConfiguration(assemblyConfig) &&
           assemblyConfig.getMode() != null &&
           assemblyConfig.getMode().isArchive();

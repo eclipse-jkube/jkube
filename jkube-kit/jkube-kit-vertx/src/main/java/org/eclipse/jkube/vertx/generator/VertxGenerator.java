@@ -125,6 +125,6 @@ public class VertxGenerator extends JavaExecGenerator {
       ports.add(String.valueOf(p));
     }
     // If there are no specific vertx ports found, we reuse the ports from the JavaExecGenerator
-    return ports.size() > 0 ? ports : super.extractPorts();
+    return ports.isEmpty() ? super.extractPorts() : ports;
   }
 }

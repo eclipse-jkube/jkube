@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.core.assembly;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFile;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
 import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
@@ -33,20 +33,20 @@ public class JKubeAssemblyConfigurationUtils {
 
   private JKubeAssemblyConfigurationUtils() {}
 
-  static JKubeAssemblyConfiguration getAssemblyConfigurationOrCreateDefault(JKubeBuildConfiguration buildConfiguration) {
+  static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(BuildConfiguration buildConfiguration) {
     return Optional.ofNullable(buildConfiguration)
-      .map(JKubeBuildConfiguration::getAssemblyConfiguration)
-      .orElse(new JKubeAssemblyConfiguration.Builder().targetDir(DEFAULT_TARGET_DIR).user(DEFAULT_USER).build());
+      .map(BuildConfiguration::getAssemblyConfiguration)
+      .orElse(new AssemblyConfiguration.Builder().targetDir(DEFAULT_TARGET_DIR).user(DEFAULT_USER).build());
   }
 
-  static List<JKubeAssemblyFileSet> getJKubeAssemblyFileSets(JKubeAssemblyConfiguration configuration) {
+  static List<JKubeAssemblyFileSet> getJKubeAssemblyFileSets(AssemblyConfiguration configuration) {
     return Optional.ofNullable(configuration)
-      .map(JKubeAssemblyConfiguration::getInline)
+      .map(AssemblyConfiguration::getInline)
       .map(JKubeProjectAssembly::getFileSets)
       .orElse(Collections.emptyList());
   }
 
-  static List<String> getJKubeAssemblyFileSetsExcludes(JKubeAssemblyConfiguration assemblyConfiguration) {
+  static List<String> getJKubeAssemblyFileSetsExcludes(AssemblyConfiguration assemblyConfiguration) {
     return getJKubeAssemblyFileSets(assemblyConfiguration).stream()
       .filter(Objects::nonNull)
       .map(JKubeAssemblyFileSet::getExcludes)
@@ -56,9 +56,9 @@ public class JKubeAssemblyConfigurationUtils {
       .collect(Collectors.toList());
   }
 
-  static List<JKubeAssemblyFile> getJKubeAssemblyFiles(JKubeAssemblyConfiguration configuration) {
+  static List<JKubeAssemblyFile> getJKubeAssemblyFiles(AssemblyConfiguration configuration) {
     return Optional.ofNullable(configuration)
-      .map(JKubeAssemblyConfiguration::getInline)
+      .map(AssemblyConfiguration::getInline)
       .map(JKubeProjectAssembly::getFiles)
       .orElse(Collections.emptyList());
   }

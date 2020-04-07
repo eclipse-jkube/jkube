@@ -22,8 +22,6 @@ import lombok.Setter;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 @SuppressWarnings("JavaDoc")
 @Builder
@@ -79,24 +77,4 @@ public class JKubeProjectDependency implements Serializable {
    */
   private File file;
 
-  public static JKubeProjectDependency fromString(String jkubeDependencyAsString) {
-    String[] parts = jkubeDependencyAsString.split(",");
-    if (parts.length == 5) { // Case without artifact file object
-      return new JKubeProjectDependency(parts[0], parts[1], parts[2], parts[3], parts[4], null);
-    } else if (parts.length == 6) { // Case with artifact file object
-      return new JKubeProjectDependency(parts[0], parts[1], parts[2], parts[3], parts[4], new File(parts[5]));
-    }
-    return null;
-  }
-
-  public static List<JKubeProjectDependency> listFromStringDependencies(List<String> jkubeDependenciesAsStr) {
-    List<JKubeProjectDependency> dependencies = new ArrayList<>();
-    for (String commaSeparatedDependencies : jkubeDependenciesAsStr) {
-      JKubeProjectDependency jkubeProjectDependency = JKubeProjectDependency.fromString(commaSeparatedDependencies);
-      if (jkubeProjectDependency != null) {
-        dependencies.add(jkubeProjectDependency);
-      }
-    }
-    return dependencies;
-  }
 }

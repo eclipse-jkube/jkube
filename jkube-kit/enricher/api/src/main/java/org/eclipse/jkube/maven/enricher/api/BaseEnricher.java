@@ -127,10 +127,9 @@ public class BaseEnricher implements Enricher {
 
     protected List<String> getProcessingInstructionViaKey(String key) {
         List<String> containers = new ArrayList<>();
-        if(enricherContext.getProcessingInstructions() != null) {
-            if(enricherContext.getProcessingInstructions().get(key) != null) {
-                containers.addAll(Arrays.asList(enricherContext.getProcessingInstructions().get(key).split(",")));
-            }
+        if(enricherContext.getProcessingInstructions() != null
+            && enricherContext.getProcessingInstructions().get(key) != null) {
+            containers.addAll(Arrays.asList(enricherContext.getProcessingInstructions().get(key).split(",")));
         }
         return containers;
     }
@@ -168,15 +167,11 @@ public class BaseEnricher implements Enricher {
         if (xmlResourceConfig != null) {
             List<HasMetadata> items = builder.buildItems();
             for (HasMetadata item : items) {
-                if (item instanceof Deployment) {
-                    if(((Deployment)item).getSpec().getReplicas() != null) {
-                        return ((Deployment)item).getSpec().getReplicas();
-                    }
+                if (item instanceof Deployment && ((Deployment)item).getSpec().getReplicas() != null) {
+                    return ((Deployment)item).getSpec().getReplicas();
                 }
-                if (item instanceof DeploymentConfig) {
-                    if(((DeploymentConfig)item).getSpec().getReplicas() != null) {
-                        return ((DeploymentConfig)item).getSpec().getReplicas();
-                    }
+                if (item instanceof DeploymentConfig && ((DeploymentConfig)item).getSpec().getReplicas() != null) {
+                    return ((DeploymentConfig)item).getSpec().getReplicas();
                 }
             }
             return xmlResourceConfig.getReplicas() > 0 ? xmlResourceConfig.getReplicas() : defaultValue;
@@ -204,7 +199,7 @@ public class BaseEnricher implements Enricher {
         return Boolean.parseBoolean(getValueFromConfig(propertyName, defaultValue.toString()));
     }
 
-    protected boolean useDeploymentforOpenShift() {
+    protected boolean useDeploymentForOpenShift() {
         return getValueFromConfig(SWITCH_TO_DEPLOYMENT, false);
     }
 

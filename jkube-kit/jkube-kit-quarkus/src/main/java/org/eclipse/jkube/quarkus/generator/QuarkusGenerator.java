@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
@@ -74,8 +74,8 @@ public class QuarkusGenerator extends BaseGenerator {
         return existingConfigs;
     }
 
-    private JKubeBuildConfiguration createBuildConfig(boolean prePackagePhase) {
-        final JKubeBuildConfiguration.Builder buildBuilder = new JKubeBuildConfiguration.Builder();
+    private BuildConfiguration createBuildConfig(boolean prePackagePhase) {
+        final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
         // TODO: Check application.properties for a port
         buildBuilder.ports(Collections.singletonList(getConfig(Config.webPort)));
         addSchemaLabels(buildBuilder, log);
@@ -113,15 +113,12 @@ public class QuarkusGenerator extends BaseGenerator {
         return buildBuilder.build();
     }
 
-    private JKubeAssemblyConfiguration createAssemblyConfiguration(String targetDir, JKubeAssemblyFileSet jKubeAssemblyFileSet) {
-        final JKubeAssemblyConfiguration.Builder builder = new JKubeAssemblyConfiguration.Builder();
-        builder.targetDir(targetDir);
+    private AssemblyConfiguration createAssemblyConfiguration(String targetDir, JKubeAssemblyFileSet jKubeAssemblyFileSet) {
         jKubeAssemblyFileSet.setOutputDirectory(".");
-        final JKubeProjectAssembly jkubeProjectAssembly = JKubeProjectAssembly.builder()
-                .fileSets(Collections.singletonList(jKubeAssemblyFileSet))
-                .build();
-        builder.assemblyDef(jkubeProjectAssembly);
-        return builder.build();
+        return new AssemblyConfiguration.Builder()
+            .targetDir(targetDir)
+            .assemblyDef(JKubeProjectAssembly.builder().fileSets(Collections.singletonList(jKubeAssemblyFileSet)).build())
+            .build();
     }
 
     private JKubeAssemblyFileSet getJvmFilesToInclude() {

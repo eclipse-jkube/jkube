@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
@@ -110,7 +110,7 @@ public class JavaExecGenerator extends BaseGenerator {
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
         final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
-        final JKubeBuildConfiguration.Builder buildBuilder = new JKubeBuildConfiguration.Builder();
+        final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
 
         buildBuilder.ports(extractPorts());
 
@@ -168,30 +168,29 @@ public class JavaExecGenerator extends BaseGenerator {
         return new ArrayList<>();
     }
 
-    protected JKubeAssemblyConfiguration createAssembly() {
-        final JKubeAssemblyConfiguration.Builder builder = new JKubeAssemblyConfiguration.Builder();
+    protected AssemblyConfiguration createAssembly() {
+        final AssemblyConfiguration.Builder builder = new AssemblyConfiguration.Builder();
         builder.targetDir(getConfig(Config.targetDir));
         addAssembly(builder);
         return builder.build();
     }
 
-    protected void addAssembly(JKubeAssemblyConfiguration.Builder builder) {
+    protected void addAssembly(AssemblyConfiguration.Builder builder) {
         String assemblyRef = getConfig(Config.assemblyRef);
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
         } else {
-            JKubeProjectAssembly.JKubeProjectAssemblyBuilder assemblyBuilder = JKubeProjectAssembly.builder()
-                    .fileSets(addAdditionalFiles(getProject()));
+            final List<JKubeAssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles(getProject()));
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
                 JKubeProject project = getProject();
                 if (fatJar != null) {
-                    assemblyBuilder.fileSets(Collections.singletonList(getOutputDirectoryFileSet(fatJar, project)));
+                    fileSets.add(getOutputDirectoryFileSet(fatJar, project));
                 }
             } else {
                 builder.descriptorRef("artifact-with-dependencies");
             }
-            builder.assemblyDef(assemblyBuilder.build());
+            builder.assemblyDef(JKubeProjectAssembly.builder().fileSets(fileSets).build());
         }
     }
 

@@ -31,7 +31,6 @@ import java.util.Properties;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
@@ -619,7 +618,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
             name = "%g/%a:%l";
         }
 
-        final JKubeBuildConfiguration buildConfig = new JKubeBuildConfiguration.Builder()
+        final BuildConfiguration buildConfig = new BuildConfiguration.Builder()
                 .dockerFile(dockerFile.getPath())
                 .build();
 
@@ -630,7 +629,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     protected ImageConfiguration addSimpleDockerfileConfig(ImageConfiguration image, File dockerfile) {
-        final JKubeBuildConfiguration buildConfig = new JKubeBuildConfiguration.Builder()
+        final BuildConfiguration buildConfig = new BuildConfiguration.Builder()
                 .dockerFile(dockerfile.getPath())
                 .build();
         return new ImageConfiguration.Builder(image).buildConfig(buildConfig).build();

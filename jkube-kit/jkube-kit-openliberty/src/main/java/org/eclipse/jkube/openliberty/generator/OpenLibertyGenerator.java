@@ -16,7 +16,7 @@ package org.eclipse.jkube.openliberty.generator;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
 import org.eclipse.jkube.kit.common.JKubeProject;
@@ -24,19 +24,18 @@ import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class OpenLibertyGenerator extends JavaExecGenerator {
 
-	protected static final String LIBERTY_SELF_EXTRACTOR = "wlp.lib.extract.SelfExtractRun";
-	protected static final String LIBERTY_RUNNABLE_JAR = "LIBERTY_RUNNABLE_JAR";
-	protected static final String JAVA_APP_JAR = "JAVA_APP_JAR";
+    protected static final String LIBERTY_SELF_EXTRACTOR = "wlp.lib.extract.SelfExtractRun";
+    protected static final String LIBERTY_RUNNABLE_JAR = "LIBERTY_RUNNABLE_JAR";
+    protected static final String JAVA_APP_JAR = "JAVA_APP_JAR";
 
-	private String runnableJarName = null;
+    private String runnableJarName = null;
 
-	public OpenLibertyGenerator(GeneratorContext context) {
+    public OpenLibertyGenerator(GeneratorContext context) {
         super(context, "openliberty");
     }
 
@@ -69,21 +68,20 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
     	return ret;
     }
     @Override
-    protected JKubeAssemblyConfiguration createAssembly() {
-        final JKubeAssemblyConfiguration.Builder builder = new JKubeAssemblyConfiguration.Builder();
+    protected AssemblyConfiguration createAssembly() {
+        final AssemblyConfiguration.Builder builder = new AssemblyConfiguration.Builder();
         builder.targetDir(getConfig(Config.targetDir));
         addAssembly(builder);
         return builder.build();
     }
 
     @Override
-    protected void addAssembly(JKubeAssemblyConfiguration.Builder builder) {
+    protected void addAssembly(AssemblyConfiguration.Builder builder) {
         String assemblyRef = getConfig(Config.assemblyRef);
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
         } else {
-            JKubeProjectAssembly.JKubeProjectAssemblyBuilder assemblyBuilder = JKubeProjectAssembly.builder()
-                    .fileSets(addAdditionalFiles(getProject()));
+            final List<JKubeAssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles(getProject()));
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
                 JKubeProject project = getProject();
@@ -92,12 +90,12 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
                     if (LIBERTY_SELF_EXTRACTOR.equals(fatJar.getMainClass())) {
                         this.runnableJarName = fatJar.getArchiveFile().getName();
                     }
-                    assemblyBuilder.fileSets(Collections.singletonList(fileSet));
+                    fileSets.add(fileSet);
                 }
             } else {
                 builder.descriptorRef("artifact-with-dependencies");
             }
-            builder.assemblyDef(assemblyBuilder.build());
+            builder.assemblyDef(JKubeProjectAssembly.builder().fileSets(fileSets).build());
         }
     }
 

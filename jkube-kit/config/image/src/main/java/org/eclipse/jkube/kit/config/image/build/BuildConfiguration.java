@@ -32,7 +32,7 @@ import org.apache.commons.lang3.SerializationUtils;
  * @author roland
  * @since 02.09.14
  */
-public class BuildConfiguration<A extends AssemblyConfiguration> implements Serializable {
+public class BuildConfiguration implements Serializable {
     public static final String DEFAULT_FILTER = "${*}";
     public static final String DEFAULT_CLEANUP = "try";
 
@@ -114,7 +114,7 @@ public class BuildConfiguration<A extends AssemblyConfiguration> implements Seri
 
     private HealthCheckConfiguration healthCheck;
 
-    private A assembly;
+    private AssemblyConfiguration assembly;
 
     private Boolean skip;
 
@@ -130,9 +130,8 @@ public class BuildConfiguration<A extends AssemblyConfiguration> implements Seri
     private String dockerFileDir;
 
     // Path to Dockerfile to use, initialized lazily ....
-    private File dockerFileFile, dockerArchiveFile;
-
-    protected BuildConfiguration() {}
+    private File dockerFileFile;
+    private File dockerArchiveFile;
 
     public boolean isDockerFileMode() {
         return dockerFile != null || contextDir != null;
@@ -201,11 +200,11 @@ public class BuildConfiguration<A extends AssemblyConfiguration> implements Seri
         return workdir;
     }
 
-    public A getAssemblyConfiguration() {
+    public AssemblyConfiguration getAssemblyConfiguration() {
         return assembly;
     }
 
-    public void setAssembly(A assembly) {
+    public void setAssembly(AssemblyConfiguration assembly) {
         this.assembly = assembly;
     }
 
@@ -312,127 +311,135 @@ public class BuildConfiguration<A extends AssemblyConfiguration> implements Seri
 
 
     // ===========================================================================================
-    public static class TypedBuilder<A extends AssemblyConfiguration, B extends BuildConfiguration<A>> {
+    public static class Builder {
 
-        protected final BuildConfiguration<A> config;
+        protected BuildConfiguration config;
 
-        protected TypedBuilder(B config) {
-            this.config = config;
+        public Builder() {
+            this(null);
         }
 
-        public TypedBuilder<A, B> contextDir(String dir) {
+        public Builder(BuildConfiguration that) {
+            if (that == null) {
+                this.config = new BuildConfiguration();
+            } else {
+                this.config = SerializationUtils.clone(that);
+            }
+        }
+
+        public Builder contextDir(String dir) {
             config.contextDir = dir;
             return this;
         }
 
-        public TypedBuilder<A, B> dockerFile(String file) {
+        public Builder dockerFile(String file) {
             config.dockerFile = file;
             return this;
         }
 
-        public TypedBuilder<A, B> dockerArchive(String archive) {
+        public Builder dockerArchive(String archive) {
             config.dockerArchive = archive;
             return this;
         }
 
-        public TypedBuilder<A, B> dockerFileDir(String dir) {
+        public Builder dockerFileDir(String dir) {
             config.dockerFileDir = dir;
             return this;
         }
 
-        public TypedBuilder<A, B> dockerFileFile(File dockerFile) {
+        public Builder dockerFileFile(File dockerFile) {
             config.dockerFileFile = dockerFile;
             return this;
         }
 
-        public TypedBuilder<A, B> filter(String filter) {
+        public Builder filter(String filter) {
             config.filter = filter;
             return this;
         }
 
-        public TypedBuilder<A, B> from(String from) {
+        public Builder from(String from) {
             config.from = from;
             return this;
         }
 
-        public TypedBuilder<A, B> fromExt(Map<String, String> fromExt) {
+        public Builder fromExt(Map<String, String> fromExt) {
             config.fromExt = fromExt;
             return this;
         }
 
-        public TypedBuilder<A, B> registry(String registry) {
+        public Builder registry(String registry) {
             config.registry = registry;
             return this;
         }
 
-        public TypedBuilder<A, B> maintainer(String maintainer) {
+        public Builder maintainer(String maintainer) {
             config.maintainer = maintainer;
             return this;
         }
 
-        public TypedBuilder<A, B> workdir(String workdir) {
+        public Builder workdir(String workdir) {
             config.workdir = workdir;
             return this;
         }
 
-        public TypedBuilder<A, B> assembly(A assembly) {
+        public Builder assembly(AssemblyConfiguration assembly) {
             config.assembly = assembly;
             return this;
         }
 
-        public TypedBuilder<A, B> ports(List<String> ports) {
+        public Builder ports(List<String> ports) {
             config.ports = ports;
             return this;
         }
 
-        public TypedBuilder<A, B> imagePullPolicy(String imagePullPolicy) {
+        public Builder imagePullPolicy(String imagePullPolicy) {
             config.imagePullPolicy = imagePullPolicy;
             return this;
         }
 
-        public TypedBuilder<A, B> runCmds(List<String> theCmds) {
+        public Builder runCmds(List<String> theCmds) {
             config.runCmds = theCmds;
             return this;
         }
 
-        public TypedBuilder<A, B> volumes(List<String> volumes) {
+        public Builder volumes(List<String> volumes) {
             config.volumes = volumes;
             return this;
         }
 
-        public TypedBuilder<A, B> tags(List<String> tags) {
+        public Builder tags(List<String> tags) {
             config.tags = tags;
             return this;
         }
 
-        public TypedBuilder<A, B> env(Map<String, String> env) {
+        public Builder env(Map<String, String> env) {
             config.env = env;
             return this;
         }
 
-        public TypedBuilder<A, B> args(Map<String, String> args) {
+        public Builder args(Map<String, String> args) {
             config.args = args;
             return this;
         }
 
-        public TypedBuilder<A, B> labels(Map<String, String> labels) {
+        public Builder labels(Map<String, String> labels) {
             config.labels = labels;
             return this;
         }
 
-        public TypedBuilder<A, B> cmd(Arguments cmd) {
+        public Builder cmd(Arguments cmd) {
             if (cmd != null) {
                 config.cmd = cmd;
             }
             return this;
         }
 
-        public TypedBuilder<A, B> cleanup(String cleanup) {
+        public Builder cleanup(String cleanup) {
             config.cleanup = cleanup;
             return this;
         }
 
-        public TypedBuilder<A, B> compression(String compression) {
+        public Builder compression(String compression) {
             if (compression == null) {
                 config.compression = null;
             } else {
@@ -441,44 +448,44 @@ public class BuildConfiguration<A extends AssemblyConfiguration> implements Seri
             return this;
         }
 
-        public TypedBuilder<A, B> nocache(Boolean nocache) {
+        public Builder nocache(Boolean nocache) {
             config.nocache = nocache;
             return this;
         }
 
-        public TypedBuilder<A, B> optimise(Boolean optimise) {
+        public Builder optimise(Boolean optimise) {
             config.optimise = optimise;
             return this;
         }
 
-        public TypedBuilder<A, B> entryPoint(Arguments entryPoint) {
+        public Builder entryPoint(Arguments entryPoint) {
             if (entryPoint != null) {
                 config.entryPoint = entryPoint;
             }
             return this;
         }
 
-        public TypedBuilder<A, B> user(String user) {
+        public Builder user(String user) {
             config.user = user;
             return this;
         }
 
-        public TypedBuilder<A, B> healthCheck(HealthCheckConfiguration healthCheck) {
+        public Builder healthCheck(HealthCheckConfiguration healthCheck) {
             config.healthCheck = healthCheck;
             return this;
         }
 
-        public TypedBuilder<A, B> skip(Boolean skip) {
+        public Builder skip(Boolean skip) {
             config.skip = skip;
             return this;
         }
 
-        public TypedBuilder<A, B> buildOptions(Map<String,String> buildOptions) {
+        public Builder buildOptions(Map<String,String> buildOptions) {
             config.buildOptions = buildOptions;
             return this;
         }
 
-        public TypedBuilder<A, B> shell(Arguments shell) {
+        public Builder shell(Arguments shell) {
             if(shell != null) {
                 config.shell = shell;
             }
@@ -486,24 +493,13 @@ public class BuildConfiguration<A extends AssemblyConfiguration> implements Seri
             return this;
         }
 
-        public B build() {
-            return (B)config;
-        }
-    }
-
-    public static class Builder extends TypedBuilder<AssemblyConfiguration, BuildConfiguration<AssemblyConfiguration>> {
-
-        public Builder() {
-            this(null);
-        }
-
-        public Builder(BuildConfiguration<AssemblyConfiguration> that) {
-            super(that == null ? new BuildConfiguration<>() : SerializationUtils.clone(that));
+        public BuildConfiguration build() {
+            return config;
         }
     }
 
 
-    public String initAndValidate(KitLogger log) throws IllegalArgumentException {
+    public String initAndValidate(KitLogger log) {
         if (entryPoint != null) {
             entryPoint.validate();
         }

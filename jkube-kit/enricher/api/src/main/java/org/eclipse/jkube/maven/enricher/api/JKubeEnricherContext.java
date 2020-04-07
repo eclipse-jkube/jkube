@@ -14,7 +14,6 @@
 package org.eclipse.jkube.maven.enricher.api;
 
 import java.io.File;
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -149,19 +148,11 @@ public class JKubeEnricherContext implements EnricherContext {
         return json.toString();
     }
 
-
-
     private String getConfigurationValue(final RegistryServerConfiguration server, final String key) {
-
-        final Map<String, Object> configuration = server.getConfiguration();
-        if (configuration == null) {
-            return null;
-        }
-
-        if (configuration.containsKey(key)) {
-            return configuration.get(key).toString();
-        }
-        return null;
+        return Optional.ofNullable(server.getConfiguration())
+            .filter(c -> c.containsKey(key))
+            .map(c -> c.get(key).toString())
+            .orElse(null);
     }
     // =======================================================================================================
     public static class Builder {

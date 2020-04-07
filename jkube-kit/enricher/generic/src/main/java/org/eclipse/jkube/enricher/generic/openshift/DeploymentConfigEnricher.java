@@ -54,7 +54,7 @@ public class DeploymentConfigEnricher extends BaseEnricher {
         if(platformMode == PlatformMode.openshift) {
 
             for(HasMetadata item : builder.buildItems()) {
-                if(item instanceof Deployment && !useDeploymentforOpenShift()) {
+                if(item instanceof Deployment && !useDeploymentForOpenShift()) {
                     DeploymentConfig deploymentConfig = convert(item);
                     removeItemFromKubernetesBuilder(builder, item);
                     builder.addToDeploymentConfigItems(deploymentConfig);

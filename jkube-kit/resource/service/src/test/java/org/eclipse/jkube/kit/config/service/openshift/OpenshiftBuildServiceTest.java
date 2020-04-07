@@ -32,7 +32,7 @@ import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
 import org.eclipse.jkube.kit.build.core.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
 import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.RegistryService;
@@ -131,7 +131,7 @@ public class OpenshiftBuildServiceTest {
 
         image = new ImageConfiguration.Builder()
                 .name(projectName)
-                .buildConfig(new JKubeBuildConfiguration.Builder()
+                .buildConfig(new BuildConfiguration.Builder()
                         .from(projectName)
                         .build()
                 ).build();
@@ -292,7 +292,7 @@ public class OpenshiftBuildServiceTest {
                     "namespace", "my-project");
             ImageConfiguration fromExtImage = new ImageConfiguration.Builder()
                     .name(projectName)
-                    .buildConfig(new JKubeBuildConfiguration.Builder()
+                    .buildConfig(new BuildConfiguration.Builder()
                             .fromExt(fromExt)
                             .nocache(Boolean.TRUE)
                             .build()
@@ -378,7 +378,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, dockerServiceHub, config);
 
             ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new JKubeBuildConfiguration.Builder(image.getBuildConfiguration())
+                    .buildConfig(new BuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -422,7 +422,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, dockerServiceHub, config);
 
             ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new JKubeBuildConfiguration.Builder(image.getBuildConfiguration())
+                    .buildConfig(new BuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -471,7 +471,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, dockerServiceHub, config);
 
             ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new JKubeBuildConfiguration.Builder(image.getBuildConfiguration())
+                    .buildConfig(new BuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
