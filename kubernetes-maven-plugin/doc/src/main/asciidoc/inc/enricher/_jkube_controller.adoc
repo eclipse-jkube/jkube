@@ -1,0 +1,33 @@
+
+[[jkube-controller]]
+==== jkube-controller
+
+This enricher is used to ensure that a controller is present.
+This can be either directly configured with fragments or with the XML configuration.
+An explicit configuration always takes precedence over auto detection.
+See https://kubernetes.io/docs/concepts/workloads/controllers/[Kubernetes doc] for more information on types of controllers.
+
+The following configuration parameters can be used to influence the behaviour of this enricher:
+
+[[enricher-jkube-controller]]
+.Default controller enricher
+[cols="1,6,1"]
+|===
+| Element | Description | Default
+
+| *name*
+| Name of the Controller. Kubernetes Controller names must start with a letter. If the maven artifactId starts with a digit, `s` will be prefixed.
+| ${project.artifactId}
+
+| *pullPolicy*
+| Image pull policy to use for the container. One of: _IfNotPresent_, _Always_ 
+| IfNotPresent
+
+| *type*
+| Type of Controller to create. One of: _ReplicationController_, _ReplicaSet_, _Deployment_, _DeploymentConfig_, _StatefulSet_, _DaemonSet_, _Job_
+| Deployment
+
+| *replicaCount*
+| Number of replicas for the container	
+| 1
+|===
