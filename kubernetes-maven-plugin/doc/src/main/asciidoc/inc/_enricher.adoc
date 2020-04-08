@@ -50,7 +50,7 @@ kubernetes-maven-plugin comes with a set of enrichers which are enabled by defau
 | Add Maven SCM information as annotations to the kubernetes/openshift resources
 
 | <<jkube-controller>>
-| Create default controller (replication controller, replica set or deployment) if missing.
+| Create default controller (replication controller, replica set or deployment https://kubernetes.io/docs/concepts/workloads/controllers/[Kubernetes doc]) if missing.
 
 | <<jkube-dependency>>
 | Examine build dependencies for `kubernetes.yml` and add the objects found therein.
@@ -100,8 +100,7 @@ kubernetes-maven-plugin comes with a set of enrichers which are enabled by defau
 
 Default enrichers are used for adding missing resources or adding metadata to given resource objects. The following default enhancers are available out of the box
 
-[[jkube-controller]]
-==== jkube-controller
+include::enricher/_jkube_controller.adoc[]
 
 include::enricher/_jkube_service.adoc[]
 
