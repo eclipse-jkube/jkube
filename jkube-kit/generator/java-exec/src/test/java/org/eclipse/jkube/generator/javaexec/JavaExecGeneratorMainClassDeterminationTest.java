@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
@@ -47,7 +47,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Mocked
     private KitLogger log;
     @Mocked
-    private JKubeProject jkubeProject;
+    private JavaProject project;
     @Mocked
     private ProcessorConfig processorConfig;
     @Mocked
@@ -60,13 +60,13 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Before
     public void setUp() throws Exception{
         new Expectations() {{
-            jkubeProject.getPlugins();
+            project.getPlugins();
             result = Collections.emptyList();
-            jkubeProject.getVersion();
+            project.getVersion();
             result = "1.33.7-SNAPSHOT";
-            jkubeProject.getBuildDirectory();
+            project.getBuildDirectory();
             result = "/the/directory";
-            jkubeProject.getOutputDirectory();
+            project.getOutputDirectory();
             result = "/the/output/directory";
         }};
     }
@@ -85,7 +85,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
             result = "TheImageName";
         }};
         final GeneratorContext generatorContext = new GeneratorContext.Builder()
-                .project(jkubeProject)
+                .project(project)
                 .config(processorConfig)
                 .strategy(OpenShiftBuildStrategy.docker)
                 .logger(log)
@@ -112,7 +112,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Test
     public void testMainClassDeterminationFromDetectionOnNonFatJar(@Injectable File baseDir) {
         new Expectations() {{
-            jkubeProject.getBaseDirectory();
+            project.getBaseDirectory();
             result = baseDir;
             fatJarDetector.scan();
             result = null;
@@ -123,7 +123,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
         }};
 
         final GeneratorContext generatorContext = new GeneratorContext.Builder()
-                .project(jkubeProject)
+                .project(project)
                 .config(processorConfig)
                 .strategy(OpenShiftBuildStrategy.docker)
                 .logger(log)
@@ -151,7 +151,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     public void testMainClassDeterminationFromFatJar(
             @Mocked FileUtil fileUtil, @Injectable File baseDir, @Injectable File fatJarArchive) {
         new Expectations() {{
-            jkubeProject.getBaseDirectory();
+            project.getBaseDirectory();
             result = baseDir;
             fileUtil.getRelativePath(withInstanceOf(File.class), withInstanceOf(File.class));
             result = baseDir;
@@ -163,7 +163,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
             result = "TheFatJarImageName";
         }};
         final GeneratorContext generatorContext = new GeneratorContext.Builder()
-                .project(jkubeProject)
+                .project(project)
                 .config(processorConfig)
                 .strategy(OpenShiftBuildStrategy.docker)
                 .logger(log)

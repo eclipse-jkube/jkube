@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -51,7 +51,7 @@ public class BaseGeneratorTest {
     private GeneratorContext ctx;
 
     @Mocked
-    private JKubeProject project;
+    private JavaProject project;
 
     @Mocked
     private ProcessorConfig config;

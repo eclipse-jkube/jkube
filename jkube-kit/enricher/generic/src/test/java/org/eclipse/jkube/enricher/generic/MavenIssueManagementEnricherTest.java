@@ -15,7 +15,7 @@ package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
@@ -41,7 +41,7 @@ public class MavenIssueManagementEnricherTest {
     @Test
     public void testMavenIssueManagementAll() {
 
-        final JKubeProject project = JKubeProject.builder().build();
+        final JavaProject project = JavaProject.builder().build();
 
         project.setIssueManagementUrl("https://github.com/reactiverse/vertx-maven-plugin/issues/");
         project.setIssueManagementSystem("GitHub");
@@ -72,7 +72,7 @@ public class MavenIssueManagementEnricherTest {
     @Test
     public void testMavenIssueManagementOnlySystem() {
 
-        final JKubeProject project = JKubeProject.builder().build();
+        final JavaProject project = JavaProject.builder().build();
         project.setIssueManagementSystem("GitHub");
         // Setup mock behaviour
         new Expectations() {
@@ -97,7 +97,7 @@ public class MavenIssueManagementEnricherTest {
     @Test
     public void testMavenIssueManagementOnlyUrl() {
 
-        final JKubeProject project = JKubeProject.builder().build();
+        final JavaProject project = JavaProject.builder().build();
         project.setIssueManagementUrl("https://github.com/fabric8org.eclipse.jkube-maven-plugin/issues/");
         // Setup mock behaviour
         new Expectations() {
@@ -123,7 +123,7 @@ public class MavenIssueManagementEnricherTest {
     @Test
     public void testMavenNoIssueManagement() {
 
-        final JKubeProject project = JKubeProject.builder().build();
+        final JavaProject project = JavaProject.builder().build();
         // Setup mock behaviour
         new Expectations() {
             {

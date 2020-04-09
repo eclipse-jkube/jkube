@@ -13,18 +13,11 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.codehaus.plexus.context.Context;
-import org.codehaus.plexus.context.ContextException;
 
 /**
  * Uploads the built Docker images to a Docker registry
@@ -52,22 +45,19 @@ public class PushMojo extends AbstractDockerMojo {
     private int retries;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        if (skip || skipPush) {
-            return;
-        }
-        clusterAccess = new ClusterAccess(getClusterConfiguration());
-        super.execute();
+    protected boolean canExecute() {
+        return super.canExecute() && !skipPush;
     }
 
     @Override
-    public void executeInternal(ServiceHub serviceHub) throws MojoExecutionException {
+    public void executeInternal() throws MojoExecutionException {
         if (skipPush) {
             return;
         }
 
         try {
-            serviceHub.getRegistryService().pushImages(getResolvedImages(), retries, getRegistryConfig(pushRegistry), skipTag);
+            jkubeServiceHub.getDockerServiceHub().getRegistryService()
+                .pushImages(getResolvedImages(), retries, getRegistryConfig(pushRegistry), skipTag);
         } catch (Exception exp) {
             throw new MojoExecutionException(exp.getMessage());
         }

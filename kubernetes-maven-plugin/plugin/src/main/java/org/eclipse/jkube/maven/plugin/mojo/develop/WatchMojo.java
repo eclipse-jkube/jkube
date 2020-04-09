@@ -21,7 +21,7 @@ import java.util.Set;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
-import org.eclipse.jkube.kit.build.service.docker.BuildService;
+import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
@@ -30,11 +30,7 @@ import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
@@ -47,7 +43,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -87,48 +82,21 @@ public class WatchMojo extends AbstractDockerMojo {
     @Parameter
     private ProcessorConfig watcher;
 
-    private KubernetesClient kubernetes;
-    private ServiceHub hub;
+    private KubernetesClient kubernetesClient;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        if (skip) {
-            return;
-        }
-
-        log = new AnsiLogger(getLog(), useColor, verbose, !settings.getInteractiveMode(), getLogPrefix());
-        clusterAccess = new ClusterAccess(getClusterConfiguration());
-        kubernetes = clusterAccess.createDefaultClient(log);
-
-        if(clusterAccess.resolveRuntimeMode(mode, log).equals(RuntimeMode.kubernetes)) {
-            super.execute();
-        } else {
-            executeInternal(null);
-        }
+    protected void init() {
+        super.init();
+        kubernetesClient = clusterAccess.createDefaultClient(log);
     }
 
     @Override
-    protected ClusterConfiguration getClusterConfiguration() {
-        if(access == null) {
-            access = new ClusterConfiguration.Builder().build();
-        }
-        final ClusterConfiguration.Builder clusterConfigurationBuilder = new ClusterConfiguration.Builder(access);
-
-        return clusterConfigurationBuilder.from(System.getProperties())
-            .from(project.getProperties()).build();
-    }
-
-    @Override
-    protected synchronized void executeInternal(ServiceHub hub) throws MojoExecutionException {
-        if(hub != null) {
-            this.hub = hub;
-        }
-
-        URL masterUrl = kubernetes.getMasterUrl();
+    public void executeInternal() throws MojoExecutionException {
+        URL masterUrl = kubernetesClient.getMasterUrl();
         KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
 
         File manifest;
-        boolean isOpenshift = OpenshiftHelper.isOpenShift(kubernetes);
+        boolean isOpenshift = OpenshiftHelper.isOpenShift(kubernetesClient);
         if (isOpenshift) {
             manifest = openshiftManifest;
         } else {
@@ -149,13 +117,13 @@ public class WatchMojo extends AbstractDockerMojo {
 
     }
 
-    public WatcherContext getWatcherContext() throws MojoExecutionException {
+    private WatcherContext getWatcherContext() throws MojoExecutionException {
         try {
-            BuildService.BuildContext buildContext = getBuildContext();
-            WatchService.WatchContext watchContext = hub != null ? getWatchContext(hub) : null;
+            JKubeConfiguration buildContext = initJKubeConfiguration();
+            WatchService.WatchContext watchContext = jkubeServiceHub.getDockerServiceHub() != null ? getWatchContext() : null;
 
             return new WatcherContext.Builder()
-                    .serviceHub(hub)
+                    .serviceHub(jkubeServiceHub.getDockerServiceHub())
                     .buildContext(buildContext)
                     .watchContext(watchContext)
                     .config(extractWatcherConfig())
@@ -165,9 +133,9 @@ public class WatchMojo extends AbstractDockerMojo {
                     .mode(mode)
                     .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                     .useProjectClasspath(useProjectClasspath)
-                    .clusterConfiguration(getClusterConfiguration())
-                    .kubernetesClient(kubernetes)
-                    .fabric8ServiceHub(getJKubeServiceHub())
+                    .clusterConfiguration(initClusterConfiguration())
+                    .kubernetesClient(kubernetesClient)
+                    .jKubeServiceHub(jkubeServiceHub)
                     .build();
         } catch (IOException exception) {
             throw new MojoExecutionException(exception.getMessage());
@@ -177,20 +145,8 @@ public class WatchMojo extends AbstractDockerMojo {
     }
 
     @Override
-    protected JKubeServiceHub getJKubeServiceHub() throws DependencyResolutionRequiredException {
-        return new JKubeServiceHub.Builder()
-                .log(log)
-                .clusterAccess(clusterAccess)
-                .dockerServiceHub(hub)
-                .platformMode(mode)
-                .jkubeProject(MavenUtil.convertMavenProjectToJKubeProject(project, session))
-                .build();
-    }
-
-    @Override
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
         try {
-            JKubeServiceHub serviceHub = getJKubeServiceHub();
             GeneratorContext ctx = new GeneratorContext.Builder()
                     .config(extractGeneratorConfig())
                     .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
@@ -198,7 +154,7 @@ public class WatchMojo extends AbstractDockerMojo {
                     .runtimeMode(mode)
                     .strategy(buildStrategy)
                     .useProjectClasspath(useProjectClasspath)
-                    .artifactResolver(serviceHub.getArtifactResolverService())
+                    .artifactResolver(jkubeServiceHub.getArtifactResolverService())
                     .generatorMode(GeneratorMode.WATCH)
                     .build();
             return GeneratorManager.generate(configs, ctx, false);
@@ -225,7 +181,8 @@ public class WatchMojo extends AbstractDockerMojo {
         return "k8s: ";
     }
 
-    protected WatchService.WatchContext getWatchContext(ServiceHub hub) throws IOException, DependencyResolutionRequiredException {
+    protected WatchService.WatchContext getWatchContext() throws IOException, DependencyResolutionRequiredException {
+        final ServiceHub hub = jkubeServiceHub.getDockerServiceHub();
         return new WatchService.WatchContext.Builder()
                 .watchInterval(watchInterval)
                 .watchMode(watchMode)
@@ -238,7 +195,7 @@ public class WatchMojo extends AbstractDockerMojo {
                 .containerNamePattern(containerNamePattern)
                 .buildTimestamp(getBuildTimestamp())
                 .pomLabel(getGavLabel())
-                .mojoParameters(createMojoParameters())
+                .buildContext(initJKubeConfiguration())
                 .follow(follow())
                 .showLogs(showLogs())
                 .serviceHubFactory(serviceHubFactory)

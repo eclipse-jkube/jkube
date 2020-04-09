@@ -27,7 +27,7 @@ import com.google.gson.JsonParser;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplate;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -44,7 +44,7 @@ public class AutoTLSEnricherTest {
     @Mocked
     private JKubeEnricherContext context;
     @Mocked
-    JKubeProject project;
+    JavaProject project;
 
     // *******************************
     // Tests

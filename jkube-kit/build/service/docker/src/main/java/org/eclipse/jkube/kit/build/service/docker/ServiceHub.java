@@ -71,7 +71,6 @@ public class ServiceHub {
      * @return docker access object
      */
     public DockerAccess getDockerAccess() {
-        checkDockerAccessInitialization();
         return dockerAccess;
     }
 

@@ -14,21 +14,15 @@
 package org.eclipse.jkube.kit.build.service.docker;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.UnaryOperator;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
 /**
  * Allows to interact with registries, eg. to push/pull images.
@@ -50,10 +44,10 @@ public class RegistryService {
      * @param retries how often to retry
      * @param registryConfig a global registry configuration
      * @param skipTag flag to skip pushing tagged images
-     * @throws Exception exception
+     * @throws IOException exception
      */
     public void pushImages(Collection<ImageConfiguration> imageConfigs,
-                           int retries, RegistryConfig registryConfig, boolean skipTag) throws Exception {
+                           int retries, RegistryConfig registryConfig, boolean skipTag) throws IOException {
         for (ImageConfiguration imageConfig : imageConfigs) {
             BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
             String name = imageConfig.getName();
@@ -90,10 +84,10 @@ public class RegistryService {
      * @param pullManager image pull manager
      * @param registryConfig registry configuration
      * @param hasImage boolean variable indicating it has image or not
-     * @throws Exception exception
+     * @throws IOException exception
      */
     public void pullImageWithPolicy(String image, ImagePullManager pullManager, RegistryConfig registryConfig, boolean hasImage)
-        throws Exception {
+        throws IOException {
 
         // Already pulled, so we don't need to take care
         if (pullManager.hasAlreadyPulled(image)) {
@@ -150,103 +144,11 @@ public class RegistryService {
     }
 
     private AuthConfig createAuthConfig(boolean isPush, String user, String registry, RegistryConfig config)
-            throws Exception {
+            throws IOException {
 
         return config.getAuthConfigFactory().createAuthConfig(
             isPush, config.isSkipExtendedAuth(), config.getAuthConfig(),
             config.getSettings(), user, registry, config.getPasswordDecryptionMethod());
-    }
-
-    // ===========================================
-
-
-    public static class RegistryConfig implements Serializable {
-
-        private String registry;
-
-        private List<RegistryServerConfiguration> settings;
-
-        private AuthConfigFactory authConfigFactory;
-
-        private boolean skipExtendedAuth;
-
-        private Map authConfig;
-
-        private transient UnaryOperator<String> passwordDecryptionMethod;
-
-        public RegistryConfig() {
-        }
-
-        public String getRegistry() {
-            return registry;
-        }
-
-        public List<RegistryServerConfiguration> getSettings() {
-            return settings;
-        }
-
-        public AuthConfigFactory getAuthConfigFactory() {
-            return authConfigFactory;
-        }
-
-        public boolean isSkipExtendedAuth() {
-            return skipExtendedAuth;
-        }
-
-        public Map getAuthConfig() {
-            return authConfig;
-        }
-
-        public UnaryOperator<String> getPasswordDecryptionMethod() {
-            return passwordDecryptionMethod;
-        }
-
-        public static class Builder {
-
-            private RegistryConfig context = new RegistryConfig();
-
-            public Builder() {
-                this.context = new RegistryConfig();
-            }
-
-            public Builder(RegistryConfig context) {
-                this.context = context;
-            }
-
-            public Builder registry(String registry) {
-                context.registry = registry;
-                return this;
-            }
-
-            public Builder settings(List<RegistryServerConfiguration> registryServerConfigurations) {
-                context.settings = registryServerConfigurations;
-                return this;
-            }
-
-            public Builder authConfigFactory(AuthConfigFactory authConfigFactory) {
-                context.authConfigFactory = authConfigFactory;
-                return this;
-            }
-
-            public Builder skipExtendedAuth(boolean skipExtendedAuth) {
-                context.skipExtendedAuth = skipExtendedAuth;
-                return this;
-            }
-
-            public Builder authConfig(Map authConfig) {
-                context.authConfig = authConfig;
-                return this;
-            }
-
-            public Builder passwordDecryptionMethod(UnaryOperator<String> passwordDecrypt) {
-                context.passwordDecryptionMethod =passwordDecrypt;
-                return this;
-            }
-
-            public RegistryConfig build() {
-                return context;
-            }
-        }
     }
 
 }

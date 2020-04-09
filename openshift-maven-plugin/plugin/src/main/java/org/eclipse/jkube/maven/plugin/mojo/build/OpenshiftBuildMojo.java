@@ -30,11 +30,7 @@ public class OpenshiftBuildMojo extends BuildMojo {
 
     @Override
     protected boolean isDockerAccessRequired() {
-        boolean ret = false;
-        if (runtimeMode == kubernetes) {
-             ret = true;
-        }
-        return ret;
+        return runtimeMode == kubernetes;
     }
 
     @Override

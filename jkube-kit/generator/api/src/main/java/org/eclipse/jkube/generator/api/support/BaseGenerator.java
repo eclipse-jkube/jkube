@@ -28,7 +28,7 @@ import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.GitUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
@@ -84,7 +84,7 @@ abstract public class BaseGenerator implements Generator {
         this.log = new PrefixedLogger(name, context.getLogger());
     }
 
-    protected JKubeProject getProject() {
+    protected JavaProject getProject() {
         return context.getProject();
     }
 
@@ -214,8 +214,7 @@ abstract public class BaseGenerator implements Generator {
     }
 
     protected void addLatestTagIfSnapshot(BuildConfiguration.Builder buildBuilder) {
-        JKubeProject project = getProject();
-        if (project.getVersion().endsWith("-SNAPSHOT")) {
+        if (getProject().getVersion().endsWith("-SNAPSHOT")) {
             buildBuilder.tags(Collections.singletonList("latest"));
         }
     }
@@ -230,7 +229,7 @@ abstract public class BaseGenerator implements Generator {
     }
 
     protected void addSchemaLabels(BuildConfiguration.Builder buildBuilder, PrefixedLogger log) {
-        final JKubeProject project = getProject();
+        final JavaProject project = getProject();
         String LABEL_SCHEMA_VERSION = "1.0";
         String GIT_REMOTE = "origin";
         String docURL = project.getDocumentationUrl();

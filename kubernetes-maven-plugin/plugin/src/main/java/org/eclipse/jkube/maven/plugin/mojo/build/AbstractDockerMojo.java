@@ -26,16 +26,16 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
-import org.eclipse.jkube.kit.build.service.docker.BuildService;
+import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
-import org.eclipse.jkube.kit.build.service.docker.RegistryService;
+import org.eclipse.jkube.kit.build.service.docker.RegistryConfig;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
@@ -48,7 +48,7 @@ import org.eclipse.jkube.kit.build.service.docker.config.WatchMode;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -64,6 +64,7 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.enricher.api.EnricherContext;
@@ -430,29 +431,42 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         plexusContainer = ((PlexusContainer) context.get(PlexusConstants.PLEXUS_KEY));
     }
 
-    @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        if (!skip) {
-            boolean ansiRestore = Ansi.isEnabled();
-            log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
-            authConfigFactory = new AuthConfigFactory(log);
-            imageConfigResolver.setLog(log);
+    protected void init() {
+        log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
+        authConfigFactory = new AuthConfigFactory(log);
+        imageConfigResolver.setLog(log);
+        clusterAccess = new ClusterAccess(initClusterConfiguration());
+        runtimeMode = clusterAccess.resolveRuntimeMode(mode, log);
+    }
 
+    protected boolean canExecute() {
+        return !skip;
+    }
+
+    @Override
+    public final void execute() throws MojoExecutionException, MojoFailureException {
+        init();
+        if (canExecute()) {
+            final boolean ansiRestore = Ansi.isEnabled();
             try {
                 LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(useColor, logStdout, logDate);
-
                 DockerAccess access = null;
                 try {
-                    JKubeProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
-                    ConfigHelper.validateExternalPropertyActivation(jkubeProject, images);
                     // The 'real' images configuration to use (configured images + externally resolved images)
-                    this.minimalApiVersion = initImageConfiguration(getBuildTimestamp());
                     if (isDockerAccessRequired()) {
                         DockerAccessFactory.DockerAccessContext dockerAccessContext = getDockerAccessContext();
                         access = dockerAccessFactory.createDockerAccess(dockerAccessContext);
                     }
-                    ServiceHub serviceHub = serviceHubFactory.createServiceHub(access, log, logSpecFactory);
-                    executeInternal(serviceHub);
+                    jkubeServiceHub = new JKubeServiceHub.Builder()
+                        .log(log)
+                        .configuration(initJKubeConfiguration())
+                        .clusterAccess(clusterAccess)
+                        .platformMode(mode)
+                        .dockerServiceHub(serviceHubFactory.createServiceHub(access, log, logSpecFactory))
+                        .buildServiceConfig(getBuildServiceConfig())
+                        .build();
+                    this.minimalApiVersion = initImageConfiguration(getBuildTimestamp());
+                    executeInternal();
                 } catch (IOException | DependencyResolutionRequiredException exp) {
                     logException(exp);
                     throw new MojoExecutionException(exp.getMessage());
@@ -460,9 +474,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                     logException(exp);
                     throw exp;
                 } finally {
-                    if (access != null) {
-                        access.shutdown();
-                    }
+                    Optional.ofNullable(jkubeServiceHub).ifPresent(JKubeServiceHub::close);
                 }
             } finally {
                 Ansi.setEnabled(ansiRestore);
@@ -472,28 +484,20 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
 
     /**
      * Hook for subclass for doing the real job
-     *
-     * @param serviceHub context for accessing backends
      */
-    protected abstract void executeInternal(ServiceHub serviceHub)
-            throws IOException, MojoExecutionException;
+    protected abstract void executeInternal() throws IOException, MojoExecutionException;
 
-    protected BuildService.BuildContext getBuildContext() throws DependencyResolutionRequiredException {
-        return new BuildService.BuildContext.Builder()
-                .buildArgs(buildArgs)
-                .mojoParameters(createMojoParameters())
-                .registryConfig(getRegistryConfig(pullRegistry))
-                .build();
-    }
-
-    protected JKubeBuildContext createMojoParameters() throws DependencyResolutionRequiredException {
-        JKubeProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
-        return new JKubeBuildContext.Builder()
-                .project(jkubeProject)
-                .sourceDirectory(sourceDirectory)
-                .outputDirectory(outputDirectory)
-                .reactorProjects(Collections.singletonList(jkubeProject))
-                .build();
+    protected JKubeConfiguration initJKubeConfiguration() throws DependencyResolutionRequiredException {
+        final JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        ConfigHelper.validateExternalPropertyActivation(javaProject, images);
+        return new JKubeConfiguration.Builder()
+            .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
+            .sourceDirectory(sourceDirectory)
+            .outputDirectory(outputDirectory)
+            .reactorProjects(Collections.singletonList(javaProject))
+            .buildArgs(buildArgs)
+            .registryConfig(getRegistryConfig(pullRegistry))
+            .build();
     }
 
     // Get the reference date for the build. By default this is picked up
@@ -570,8 +574,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         }
     }
 
-    protected RegistryService.RegistryConfig getRegistryConfig(String specificRegistry) {
-        return new RegistryService.RegistryConfig.Builder()
+    protected RegistryConfig getRegistryConfig(String specificRegistry) {
+        return new RegistryConfig.Builder()
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                 .authConfig(authConfig != null ? authConfig.toMap() : null)
                 .authConfigFactory(authConfigFactory)
@@ -605,10 +609,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
             log.verbose("Build plugin %s does not support 'addExtraFiles' method", buildPluginClass);
         }
     }
-
-
-
-
 
     protected ImageConfiguration createSimpleDockerfileConfig(File dockerFile) {
         // No configured name, so create one from maven GAV
@@ -717,10 +717,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         }
     }
 
-    protected org.eclipse.jkube.kit.config.service.BuildService.BuildServiceConfig getBuildServiceConfig() throws DependencyResolutionRequiredException {
-        return new org.eclipse.jkube.kit.config.service.BuildService.BuildServiceConfig.Builder()
-                .dockerBuildContext(getBuildContext())
-                .dockerMavenBuildContext(createMojoParameters())
+    protected BuildServiceConfig getBuildServiceConfig() {
+        return new BuildServiceConfig.Builder()
                 .buildRecreateMode(BuildRecreateMode.fromParameter(buildRecreate))
                 .openshiftBuildStrategy(buildStrategy)
                 .openshiftPullSecret(openshiftPullSecret)
@@ -749,7 +747,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
      * @return the configuration customized by our generators.
      */
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
-        runtimeMode = clusterAccess.resolveRuntimeMode(mode, log);
         log.info("Running in [[B]]%s[[B]] mode", runtimeMode.getLabel());
         if (runtimeMode == RuntimeMode.openshift) {
             log.info("Using [[B]]OpenShift[[B]] build with strategy [[B]]%s[[B]]", buildStrategy.getLabel());
@@ -790,16 +787,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                 .runtimeMode(runtimeMode)
                 .strategy(buildStrategy)
                 .useProjectClasspath(useProjectClasspath)
-                .artifactResolver(getJKubeServiceHub().getArtifactResolverService())
-                .build();
-    }
-
-    protected JKubeServiceHub getJKubeServiceHub() throws DependencyResolutionRequiredException {
-        return new JKubeServiceHub.Builder()
-                .log(log)
-                .clusterAccess(clusterAccess)
-                .platformMode(mode)
-                .jkubeProject(MavenUtil.convertMavenProjectToJKubeProject(project, session))
+                .artifactResolver(jkubeServiceHub.getArtifactResolverService())
                 .build();
     }
 
@@ -896,11 +884,11 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                 && !(EnvUtil.isWindows() && !MavenUtil.isMaven350OrLater(session));
     }
 
-    protected ClusterConfiguration getClusterConfiguration() {
-        final ClusterConfiguration.Builder clusterConfigurationBuilder = new ClusterConfiguration.Builder(access);
-
-        return clusterConfigurationBuilder.from(System.getProperties())
-                .from(project.getProperties()).build();
+    protected ClusterConfiguration initClusterConfiguration() {
+        return new ClusterConfiguration.Builder(access)
+            .from(System.getProperties())
+            .from(project.getProperties())
+            .build();
     }
 
     protected GavLabel getGavLabel() {

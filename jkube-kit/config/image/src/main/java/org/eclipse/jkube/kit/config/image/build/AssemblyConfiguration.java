@@ -15,7 +15,7 @@ package org.eclipse.jkube.kit.config.image.build;
 
 import java.io.Serializable;
 
-import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
+import org.eclipse.jkube.kit.common.Assembly;
 
 public class AssemblyConfiguration implements Serializable {
 
@@ -62,7 +62,7 @@ public class AssemblyConfiguration implements Serializable {
     /**
      * Assembly defined inline in the pom.xml
      */
-    private JKubeProjectAssembly inline;
+    private Assembly inline;
 
     public Boolean getExportTargetDir() {
         return exportTargetDir;
@@ -132,7 +132,7 @@ public class AssemblyConfiguration implements Serializable {
     }
 
 
-    public JKubeProjectAssembly getInline() {
+    public Assembly getInline() {
         return inline;
     }
 
@@ -212,7 +212,7 @@ public class AssemblyConfiguration implements Serializable {
             return this;
         }
 
-        public Builder assemblyDef(JKubeProjectAssembly descriptor) {
+        public Builder assemblyDef(Assembly descriptor) {
             config.inline = set(descriptor);
             return this;
         }

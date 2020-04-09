@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JKubeProjectDependency;
+import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
 import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
@@ -85,9 +85,9 @@ public class DependencyEnricher extends BaseEnricher {
     }
 
     private void addArtifactsWithYaml(Set<URL> artifactSet, String dependencyYaml) {
-        final List<JKubeProjectDependency> artifacts = getContext().getDependencies(isIncludeTransitive());
+        final List<Dependency> artifacts = getContext().getDependencies(isIncludeTransitive());
 
-        for (JKubeProjectDependency artifact : artifacts) {
+        for (Dependency artifact : artifacts) {
             if ("compile".equals(artifact.getScope()) && "jar".equals(artifact.getType())) {
                 File file = artifact.getFile();
                 try {

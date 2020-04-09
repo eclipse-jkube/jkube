@@ -37,8 +37,8 @@ import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
@@ -271,8 +271,8 @@ public class SpringBootGenerator extends JavaExecGenerator {
     }
 
     private boolean isSpringBootRepackage() {
-        JKubeProject project = getProject();
-        JKubeProjectPlugin plugin = JKubeProjectUtil.getPlugin(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        JavaProject project = getProject();
+        Plugin plugin = JKubeProjectUtil.getPlugin(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
         if (plugin != null) {
             List<String> executions = plugin.getExecutions();
             if (executions != null) {

@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 /**
@@ -29,7 +29,7 @@ public class TomcatAppSeverHandler extends AbstractAppServerHandler {
 
     private static final String TOMCAT_GROUPID = "org.apache.tomcat.maven";
 
-    public TomcatAppSeverHandler(JKubeProject project) {
+    public TomcatAppSeverHandler(JavaProject project) {
         super("tomcat", project);
     }
 

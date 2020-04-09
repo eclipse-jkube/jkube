@@ -23,7 +23,7 @@ import org.eclipse.jkube.kit.build.service.docker.config.UlimitConfig;
 import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.WatchImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.MapUtil;
@@ -170,7 +170,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     @Override
-    public List<ImageConfiguration> resolve(ImageConfiguration fromConfig, JKubeProject project) {
+    public List<ImageConfiguration> resolve(ImageConfiguration fromConfig, JavaProject project) {
         Map<String, String> externalConfig = fromConfig.getExternalConfig();
         String prefix = getPrefix(externalConfig);
         Properties properties = JKubeProjectUtil.getPropertiesWithSystemOverrides(project);
@@ -202,7 +202,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     // Enable build config only when a `.from.`, `.dockerFile.`, or `.dockerFileDir.` is configured
-    private boolean buildConfigured(BuildConfiguration config, ValueProvider valueProvider, JKubeProject project) {
+    private boolean buildConfigured(BuildConfiguration config, ValueProvider valueProvider, JavaProject project) {
 
 
         if (isStringValueNull(valueProvider, config, FROM, config::getFrom)) {
@@ -235,7 +235,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         return Optional.ofNullable(input).map(function).orElse(null);
     }
 
-    private BuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, JKubeProject project) {
+    private BuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, JavaProject project) {
         BuildConfiguration config = fromConfig.getBuildConfiguration();
         if (!buildConfigured(config, valueProvider, project)) {
             return null;

@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.generator.api;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
@@ -25,7 +25,7 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
  * @since 15/05/16
  */
 public class GeneratorContext {
-    private JKubeProject project;
+    private JavaProject project;
     private ProcessorConfig config;
     private KitLogger logger;
     private RuntimeMode runtimeMode;
@@ -40,7 +40,7 @@ public class GeneratorContext {
     private GeneratorContext() {
     }
 
-    public JKubeProject getProject() {
+    public JavaProject getProject() {
         return project;
     }
 
@@ -88,7 +88,7 @@ public class GeneratorContext {
             return this;
         }
 
-        public Builder project(JKubeProject project) {
+        public Builder project(JavaProject project) {
             ctx.project = project;
             return this;
         }

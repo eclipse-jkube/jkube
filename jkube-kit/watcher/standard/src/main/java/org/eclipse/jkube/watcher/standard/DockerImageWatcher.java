@@ -32,7 +32,6 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
@@ -58,17 +57,16 @@ public class DockerImageWatcher extends BaseWatcher {
     @Override
     public void watch(List<ImageConfiguration> configs, final Set<HasMetadata> resources, PlatformMode mode) {
 
-        BuildService.BuildContext buildContext = getContext().getBuildContext();
         WatchService.WatchContext watchContext = getContext().getWatchContext();
 
         // add a image customizer
         watchContext = new WatchService.WatchContext.Builder(watchContext)
-                .imageCustomizer(imageConfiguration -> buildImage(imageConfiguration)).containerRestarter(imageWatcher -> restartContainer(imageWatcher, resources))
+                .imageCustomizer(this::buildImage).containerRestarter(imageWatcher -> restartContainer(imageWatcher, resources))
                 .build();
 
         ServiceHub hub = getContext().getServiceHub();
         try {
-            hub.getWatchService().watch(watchContext, buildContext, configs);
+            hub.getWatchService().watch(watchContext, getContext().getBuildContext(), configs);
         } catch (Exception ex) {
             throw new RuntimeException("Error while watching", ex);
         }

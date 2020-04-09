@@ -15,7 +15,7 @@ package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
@@ -40,7 +40,7 @@ public class MavenScmEnricherTest {
     @Test
     public void testMavenScmAll() {
 
-        final JKubeProject project = JKubeProject.builder()
+        final JavaProject project = JavaProject.builder()
             .scmUrl("git://github.com/jkubeio/kubernetes-maven-plugin.git")
             .scmTag("HEAD")
             .build();
@@ -74,7 +74,7 @@ public class MavenScmEnricherTest {
     @Test
     public void testMavenScmOnlyConnection() {
 
-        final JKubeProject project = JKubeProject.builder()
+        final JavaProject project = JavaProject.builder()
             .scmUrl("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
             .build();
         // Setup mock behaviour
@@ -105,7 +105,7 @@ public class MavenScmEnricherTest {
     @Test
     public void testMavenScmOnlyDevConnection() {
 
-        final JKubeProject project = JKubeProject.builder()
+        final JavaProject project = JavaProject.builder()
             .scmUrl("git://github.com/jkubeio/kubernetes-maven-plugin.git")
             .build();
         // Setup mock behaviour
@@ -136,7 +136,7 @@ public class MavenScmEnricherTest {
     @Test
     public void testMavenScmOnlyUrl() {
 
-        final JKubeProject project = JKubeProject.builder()
+        final JavaProject project = JavaProject.builder()
             .scmUrl("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
             .build();
         // Setup mock behaviour
@@ -166,7 +166,7 @@ public class MavenScmEnricherTest {
     @Test
     public void testMavenNoScm() {
 
-        final JKubeProject project = JKubeProject.builder().build();
+        final JavaProject project = JavaProject.builder().build();
         // Setup mock behaviour
         new Expectations() {
             {

@@ -21,8 +21,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -64,10 +64,10 @@ public class JavaRunGeneratorTest {
   }
 
   private void prepareExpectation(TestCase testCase) {
-    final JKubeProject.JKubeProjectBuilder projectBuilder = JKubeProject.builder();
+    final JavaProject.JavaProjectBuilder projectBuilder = JavaProject.builder();
     if (testCase.hasOpenShiftPlugin) {
       projectBuilder.plugins(Collections.singletonList(
-          JKubeProjectPlugin.builder().groupId("org.eclipse.jkube").artifactId("openshift-maven-plugin")
+          Plugin.builder().groupId("org.eclipse.jkube").artifactId("openshift-maven-plugin")
               .version(testCase.version).configuration(Collections.emptyMap()).build()));
     }
     new Expectations() {{

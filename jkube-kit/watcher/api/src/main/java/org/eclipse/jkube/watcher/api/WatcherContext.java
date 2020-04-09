@@ -14,8 +14,8 @@
 package org.eclipse.jkube.watcher.api;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.build.service.docker.BuildService;
+import org.eclipse.jkube.kit.config.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -26,11 +26,10 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 /**
  * @author nicola
- * @since 06/02/17
  */
 public class WatcherContext {
 
-    private JKubeProject project;
+    private JavaProject project;
     private ProcessorConfig config;
     private KitLogger logger;
     private KitLogger newPodLogger;
@@ -39,15 +38,15 @@ public class WatcherContext {
     private boolean useProjectClasspath;
     private ServiceHub serviceHub;
     private WatchService.WatchContext watchContext;
-    private BuildService.BuildContext buildContext;
+    private JKubeConfiguration buildContext;
     private ClusterConfiguration clusterConfiguration;
     private KubernetesClient kubernetesClient;
-    private JKubeServiceHub fabric8ServiceHub;
+    private JKubeServiceHub jKubeServiceHub;
 
     private WatcherContext() {
     }
 
-    public JKubeProject getProject() {
+    public JavaProject getProject() {
         return project;
     }
 
@@ -75,7 +74,7 @@ public class WatcherContext {
         return watchContext;
     }
 
-    public BuildService.BuildContext getBuildContext() {
+    public JKubeConfiguration getBuildContext() {
         return buildContext;
     }
 
@@ -95,8 +94,8 @@ public class WatcherContext {
         return oldPodLogger;
     }
 
-    public JKubeServiceHub getFabric8ServiceHub() {
-        return fabric8ServiceHub;
+    public JKubeServiceHub getJKubeServiceHub() {
+        return jKubeServiceHub;
     }
 
     // ========================================================================
@@ -105,7 +104,7 @@ public class WatcherContext {
 
         private WatcherContext ctx = new WatcherContext();
 
-        public Builder project(JKubeProject project) {
+        public Builder project(JavaProject project) {
             ctx.project = project;
             return this;
         }
@@ -150,7 +149,7 @@ public class WatcherContext {
             return this;
         }
 
-        public Builder buildContext(BuildService.BuildContext buildContext) {
+        public Builder buildContext(JKubeConfiguration buildContext) {
             ctx.buildContext = buildContext;
             return this;
         }
@@ -165,8 +164,8 @@ public class WatcherContext {
             return this;
         }
 
-        public Builder fabric8ServiceHub(JKubeServiceHub fabric8ServiceHub) {
-            ctx.fabric8ServiceHub = fabric8ServiceHub;
+        public Builder jKubeServiceHub(JKubeServiceHub jKubeServiceHub) {
+            ctx.jKubeServiceHub = jKubeServiceHub;
             return this;
         }
 

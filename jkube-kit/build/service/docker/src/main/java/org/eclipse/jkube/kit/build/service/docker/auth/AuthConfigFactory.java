@@ -104,10 +104,10 @@ public class AuthConfigFactory {
      * @param registry registry to use, might be null in which case a default registry is checked,
      * @return the authentication configuration or <code>null</code> if none could be found
      *
-     * @throws Exception mojo failure exception
+     * @throws IOException mojo failure exception
      */
     public AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod)
-            throws Exception {
+            throws IOException {
 
         AuthConfig ret = createStandardAuthConfig(isPush, authConfig, settings, user, registry, passwordDecryptionMethod);
         if (ret != null) {
@@ -182,7 +182,7 @@ public class AuthConfigFactory {
      * @throws Exception
      */
     private AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod)
-            throws Exception {
+            throws IOException {
         AuthConfig ret;
 
         // Check first for specific configuration based on direction (pull or push), then for a default value
@@ -299,7 +299,7 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromSystemProperties(LookupMode lookupMode, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
+    private AuthConfig getAuthConfigFromSystemProperties(LookupMode lookupMode, UnaryOperator<String> passwordDecryptionMethod) throws IOException {
         Properties props = System.getProperties();
         String userKey = lookupMode.asSysProperty(AUTH_USERNAME);
         String passwordKey = lookupMode.asSysProperty(AUTH_PASSWORD);
@@ -339,7 +339,7 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map authConfig, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
+    private AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map authConfig, UnaryOperator<String> passwordDecryptionMethod) {
         Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfig);
 
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USERNAME)) {
@@ -354,7 +354,9 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromSettings(List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
+    private AuthConfig getAuthConfigFromSettings(
+        List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod) {
+
         RegistryServerConfiguration defaultServer = null;
         RegistryServerConfiguration found;
         for (RegistryServerConfiguration server : settings) {
@@ -525,7 +527,7 @@ public class AuthConfigFactory {
         return null;
     }
 
-    private AuthConfig createAuthConfigFromServer(RegistryServerConfiguration server, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
+    private AuthConfig createAuthConfigFromServer(RegistryServerConfiguration server, UnaryOperator<String> passwordDecryptionMethod) {
         return new AuthConfig(
                 server.getUsername(),
                 passwordDecryptionMethod.apply(server.getPassword()),

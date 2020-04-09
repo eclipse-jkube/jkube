@@ -16,8 +16,8 @@ package org.eclipse.jkube.kit.build.core.assembly;
 import java.io.File;
 import java.util.Arrays;
 
-import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.config.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.junit.Before;
 import org.junit.Rule;
@@ -73,7 +73,7 @@ public class DockerAssemblyConfigurationSourceTest {
     @Test
     public void testOutputDirHasImage() {
         String image = "image";
-        JKubeBuildContext context = buildBuildContext("src/docker", "output/docker");
+        JKubeConfiguration context = buildBuildContext("src/docker", "output/docker");
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(context,
                 new BuildDirs(image, context), assemblyConfig);
 
@@ -82,10 +82,9 @@ public class DockerAssemblyConfigurationSourceTest {
         assertTrue(containsDir(image, source.getTemporaryRootDirectory()));
     }
 
-    private JKubeBuildContext buildBuildContext(String sourceDir, String outputDir) {
-        JKubeProject project = JKubeProject.builder().buildDirectory(buildDirectory).build();
-        return new JKubeBuildContext.Builder()
-                .project(project)
+    private JKubeConfiguration buildBuildContext(String sourceDir, String outputDir) {
+        return new JKubeConfiguration.Builder()
+                .project(JavaProject.builder().buildDirectory(buildDirectory).build())
                 .sourceDirectory(sourceDir)
                 .outputDirectory(outputDir)
                 .build();
@@ -93,7 +92,7 @@ public class DockerAssemblyConfigurationSourceTest {
 
     @Test
     public void testEmptyAssemblyConfig() {
-        JKubeBuildContext buildContext = new JKubeBuildContext.Builder()
+        JKubeConfiguration buildContext = new JKubeConfiguration.Builder()
                 .sourceDirectory("/src/docker")
                 .outputDirectory("/output/docker")
                 .build();
@@ -101,7 +100,7 @@ public class DockerAssemblyConfigurationSourceTest {
         assertEquals(0,source.getDescriptors().length);
     }
 
-    private void testCreateSource(JKubeBuildContext context) {
+    private void testCreateSource(JKubeConfiguration context) {
         DockerAssemblyConfigurationSource source =
                 new DockerAssemblyConfigurationSource(context, new BuildDirs("image", context), assemblyConfig);
 
@@ -136,13 +135,13 @@ public class DockerAssemblyConfigurationSourceTest {
     @Test
     public void testReactorProjects() {
 
-        JKubeProject jkubeProject1 = JKubeProject.builder().build();
-        JKubeProject jkubeProject2 = JKubeProject.builder().build();
+        JavaProject project1 = JavaProject.builder().build();
+        JavaProject project2 = JavaProject.builder().build();
 
-        JKubeBuildContext buildContext = new JKubeBuildContext.Builder()
+        JKubeConfiguration buildContext = new JKubeConfiguration.Builder()
                 .sourceDirectory("/src/docker")
                 .outputDirectory("/output/docker")
-                .reactorProjects(Arrays.asList(jkubeProject1, jkubeProject2))
+                .reactorProjects(Arrays.asList(project1, project2))
                 .build();
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(buildContext,null,null);
         assertEquals(2, source.getReactorProjects().size());
