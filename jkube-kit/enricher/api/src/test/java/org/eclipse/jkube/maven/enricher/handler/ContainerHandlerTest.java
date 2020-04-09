@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
@@ -42,11 +42,11 @@ public class ContainerHandlerTest {
 
     private List<Container> containers;
 
-    private JKubeProject project;
+    private JavaProject project;
 
-    private JKubeProject project1;
+    private JavaProject project1;
 
-    private JKubeProject project2;
+    private JavaProject project2;
 
     private ResourceConfig config;
 
@@ -71,9 +71,9 @@ public class ContainerHandlerTest {
 
     @Before
     public void setUp() {
-        project = JKubeProject.builder().properties(new Properties()).build();
-        project1 = JKubeProject.builder().properties(new Properties()).build();
-        project2 = JKubeProject.builder().properties(new Properties()).build();
+        project = JavaProject.builder().properties(new Properties()).build();
+        project1 = JavaProject.builder().properties(new Properties()).build();
+        project2 = JavaProject.builder().properties(new Properties()).build();
         config = new ResourceConfig.Builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -156,7 +156,7 @@ public class ContainerHandlerTest {
         };
 
         for (int i = 0; i < testData.length; i += 5) {
-            JKubeProject testProject = JKubeProject.builder().properties(new Properties()).build();
+            JavaProject testProject = JavaProject.builder().properties(new Properties()).build();
             Properties testProps = new Properties();
             if (testData[i+2] != null) {
                 testProps.put("docker.pull.registry", testData[i + 2]);
@@ -187,7 +187,7 @@ public class ContainerHandlerTest {
         }
     }
 
-    private ContainerHandler createContainerHandler(JKubeProject testProject) {
+    private ContainerHandler createContainerHandler(JavaProject testProject) {
         return new ContainerHandler(
             testProject.getProperties(),
             new GroupArtifactVersion("g","a","v"),

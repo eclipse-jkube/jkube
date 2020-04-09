@@ -21,8 +21,8 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectDependency;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
@@ -54,7 +54,7 @@ public class DependencyEnricherTest {
     private ImageConfiguration imageConfiguration;
 
     @Mocked
-    private JKubeProject project;
+    private JavaProject project;
 
     // Some resource files related to test case placed in resources/ directory:
     private static final String OVERRIDE_FRAGMENT_FILE = "/jenkins-kubernetes-cm.yml";
@@ -107,12 +107,11 @@ public class DependencyEnricherTest {
         }};
     }
 
-    private List<JKubeProjectDependency> getDummyArtifacts() {
-        List<JKubeProjectDependency> artifacts = new ArrayList<>();
-
+    private List<Dependency> getDummyArtifacts() {
+        List<Dependency> artifacts = new ArrayList<>();
 
         File aFile = new File(getClass().getResource(ARTIFACT_FILE_PATH).getFile());
-        JKubeProjectDependency artifact = JKubeProjectDependency.builder().groupId("g1").artifactId("a1").version("v1")
+        Dependency artifact = Dependency.builder().groupId("g1").artifactId("a1").version("v1")
             .type("jar").scope("compile").file(aFile).build();
         artifacts.add(artifact);
         return artifacts;

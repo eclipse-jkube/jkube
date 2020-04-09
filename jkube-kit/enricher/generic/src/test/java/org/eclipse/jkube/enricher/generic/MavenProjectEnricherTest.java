@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
@@ -45,9 +44,6 @@ public class MavenProjectEnricherTest {
 
     @Mocked
     private JKubeEnricherContext context;
-
-    @Mocked
-    private JKubeProject mavenProject;
 
     @Before
     public void setupExpectations() {

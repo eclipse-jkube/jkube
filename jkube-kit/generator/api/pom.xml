@@ -40,7 +40,7 @@
 
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-kit-resource-service</artifactId>
+      <artifactId>jkube-kit-config-service</artifactId>
     </dependency>
 
     <dependency>

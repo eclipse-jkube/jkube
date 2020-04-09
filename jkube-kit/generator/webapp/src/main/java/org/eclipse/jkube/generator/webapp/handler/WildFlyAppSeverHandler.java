@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 /**
@@ -27,7 +27,7 @@ import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
  */
 public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
-    public WildFlyAppSeverHandler(JKubeProject project) {
+    public WildFlyAppSeverHandler(JavaProject project) {
         super("wildfly", project);
     }
 

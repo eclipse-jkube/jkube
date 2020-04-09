@@ -20,10 +20,10 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
+import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
@@ -67,7 +67,7 @@ public class DockerAssemblyManagerTest {
     }
 
     @Test
-    public void assemblyFiles(@Injectable final JKubeBuildContext mojoParams, @Injectable final JKubeProject project)
+    public void assemblyFiles(@Injectable final JKubeConfiguration mojoParams, @Injectable final JavaProject project)
         throws Exception {
 
         final File baseDirectory = temporaryFolder.newFolder("buildDirs");
@@ -146,7 +146,7 @@ public class DockerAssemblyManagerTest {
     @Test
     public void testEnsureThatArtifactFileIsSetWithProjectArtifactSet() throws IOException {
         // Given
-        JKubeProject project = JKubeProject.builder()
+        JavaProject project = JavaProject.builder()
                 .artifact(temporaryFolder.newFile("temp-project-0.0.1.jar"))
                 .build();
 
@@ -164,7 +164,7 @@ public class DockerAssemblyManagerTest {
         File targetDirectory = temporaryFolder.newFolder("target");
         File jarFile = new File(targetDirectory, "foo-project-0.0.1.jar");
         assertTrue(jarFile.createNewFile());
-        JKubeProject project = JKubeProject.builder()
+        JavaProject project = JavaProject.builder()
                 .buildDirectory(targetDirectory)
                 .packaging("jar")
                 .buildFinalName("foo-project-0.0.1")
@@ -182,7 +182,7 @@ public class DockerAssemblyManagerTest {
     @Test
     public void testEnsureThatArtifactFileIsSetWithEverythingNull() throws IOException {
         // Given
-        JKubeProject project = JKubeProject.builder().build();
+        JavaProject project = JavaProject.builder().build();
 
         // When
         File artifactFile = assemblyManager.ensureThatArtifactFileIsSet(project);
@@ -199,8 +199,8 @@ public class DockerAssemblyManagerTest {
         assertTrue(finalArtifactFile.createNewFile());
         File outputDirectory = new File(targetFolder, "docker");
 
-        final JKubeBuildContext jKubeBuildContext = new JKubeBuildContext.Builder()
-                .project(JKubeProject.builder()
+        final JKubeConfiguration jKubeBuildContext = new JKubeConfiguration.Builder()
+                .project(JavaProject.builder()
                         .groupId("org.eclipse.jkube")
                         .artifactId("test")
                         .packaging("jar")
@@ -252,8 +252,8 @@ public class DockerAssemblyManagerTest {
         File dockerDirectory = new File(targetDirectory, "docker");
 
 
-        final JKubeBuildContext jKubeBuildContext = new JKubeBuildContext.Builder()
-                .project(JKubeProject.builder()
+        final JKubeConfiguration jKubeBuildContext = new JKubeConfiguration.Builder()
+                .project(JavaProject.builder()
                         .groupId("org.eclipse.jkube")
                         .artifactId("test")
                         .packaging("jar")

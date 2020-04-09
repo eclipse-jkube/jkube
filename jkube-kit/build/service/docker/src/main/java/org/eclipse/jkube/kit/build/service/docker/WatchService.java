@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
+import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
@@ -61,7 +61,7 @@ public class WatchService {
         this.log = log;
     }
 
-    public synchronized void watch(WatchContext context, BuildService.BuildContext buildContext, List<ImageConfiguration> images)
+    public synchronized void watch(WatchContext context, JKubeConfiguration buildContext, List<ImageConfiguration> images)
         throws IOException {
 
         // Important to be be a single threaded scheduler since watch jobs must run serialized
@@ -87,12 +87,12 @@ public class WatchService {
                         imageConfig.getBuildConfiguration().getAssemblyConfiguration() != null) {
                     if (watcher.isCopy()) {
                         String containerBaseDir = imageConfig.getBuildConfiguration().getAssemblyConfiguration().getTargetDir();
-                        schedule(executor, createCopyWatchTask(watcher, context.getMavenBuildContext(), containerBaseDir), interval);
+                        schedule(executor, createCopyWatchTask(watcher, context.getBuildContext(), containerBaseDir), interval);
                         tasks.add("copying artifacts");
                     }
 
                     if (watcher.isBuild()) {
-                        schedule(executor, createBuildWatchTask(watcher, context.getMavenBuildContext(), watchMode == WatchMode.both, buildContext), interval);
+                        schedule(executor, createBuildWatchTask(watcher, context.getBuildContext(), watchMode == WatchMode.both, buildContext), interval);
                         tasks.add("rebuilding");
                     }
                 }
@@ -126,7 +126,7 @@ public class WatchService {
     }
 
     private Runnable createCopyWatchTask(final ImageWatcher watcher,
-                                         final JKubeBuildContext mojoParameters, final String containerBaseDir) throws IOException {
+                                         final JKubeConfiguration mojoParameters, final String containerBaseDir) throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
 
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, mojoParameters);
@@ -159,7 +159,7 @@ public class WatchService {
     }
 
     private Runnable createBuildWatchTask(final ImageWatcher watcher,
-                                          final JKubeBuildContext mojoParameters, final boolean doRestart, final BuildService.BuildContext buildContext)
+                                          final JKubeConfiguration mojoParameters, final boolean doRestart, final JKubeConfiguration buildContext)
             throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, mojoParameters);
@@ -231,7 +231,7 @@ public class WatchService {
         return watcher -> {
             // Stop old one
             ImageConfiguration imageConfig = watcher.getImageConfiguration();
-            PortMapping mappedPorts = runService.createPortMapping(imageConfig.getRunConfiguration(), watcher.getWatchContext().getMavenBuildContext().getProject().getProperties());
+            PortMapping mappedPorts = runService.createPortMapping(imageConfig.getRunConfiguration(), watcher.getWatchContext().getBuildContext().getProject().getProperties());
             String id = watcher.getContainerId();
 
             String optionalPreStop = getPreStopCommand(imageConfig);
@@ -247,8 +247,8 @@ public class WatchService {
                     .log(log)
                     .portMapping(mappedPorts)
                     .gavLabel(watcher.watchContext.getGavLabel())
-                    .projectProperties(watcher.watchContext.mojoParameters.getProject().getProperties())
-                    .basedir(watcher.watchContext.mojoParameters.getProject().getBaseDirectory())
+                    .projectProperties(watcher.watchContext.buildContext.getProject().getProperties())
+                    .basedir(watcher.watchContext.buildContext.getProject().getBaseDirectory())
                     .imageConfig(imageConfig)
                     .serviceHub(watcher.watchContext.hub)
                     .logOutputSpecFactory(watcher.watchContext.serviceHubFactory.getLogOutputSpecFactory())
@@ -384,7 +384,7 @@ public class WatchService {
      */
     public static class WatchContext implements Serializable {
 
-        private JKubeBuildContext mojoParameters;
+        private JKubeConfiguration buildContext;
 
         private WatchMode watchMode;
 
@@ -418,11 +418,8 @@ public class WatchService {
 
         private String containerNamePattern;
 
-        public WatchContext() {
-        }
-
-        public JKubeBuildContext getMavenBuildContext() {
-            return mojoParameters;
+        public JKubeConfiguration getBuildContext() {
+            return buildContext;
         }
 
         public WatchMode getWatchMode() {
@@ -489,8 +486,8 @@ public class WatchService {
                 this.context = context;
             }
 
-            public Builder mojoParameters(JKubeBuildContext mojoParameters) {
-                context.mojoParameters = mojoParameters;
+            public Builder buildContext(JKubeConfiguration buildContext) {
+                context.buildContext = buildContext;
                 return this;
             }
 

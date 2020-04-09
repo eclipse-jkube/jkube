@@ -42,7 +42,7 @@
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-build-service-docker</artifactId>
+            <artifactId>jkube-kit-config-service</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 

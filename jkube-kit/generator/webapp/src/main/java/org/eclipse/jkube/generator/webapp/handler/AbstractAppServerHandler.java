@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.DefaultImageLookup;
 import org.eclipse.jkube.generator.webapp.AppServerHandler;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 
 /**
  * @author kameshs
@@ -29,10 +29,10 @@ import org.eclipse.jkube.kit.common.JKubeProject;
 public abstract class AbstractAppServerHandler implements AppServerHandler {
 
     protected final DefaultImageLookup imageLookup;
-    protected final JKubeProject project;
+    protected final JavaProject project;
     private final String name;
 
-    protected AbstractAppServerHandler(String name, JKubeProject project) {
+    protected AbstractAppServerHandler(String name, JavaProject project) {
         this.project = project;
         this.name = name;
         this.imageLookup = new DefaultImageLookup(this.getClass());

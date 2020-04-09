@@ -19,7 +19,7 @@ import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandlerException;
 import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -49,7 +49,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JKubeProject project) {
+    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JavaProject project) {
         List<ImageConfiguration> resolved = new ArrayList<>();
 
         DockerComposeConfiguration handlerConfig = new DockerComposeConfiguration(unresolvedConfig.getExternalConfig());

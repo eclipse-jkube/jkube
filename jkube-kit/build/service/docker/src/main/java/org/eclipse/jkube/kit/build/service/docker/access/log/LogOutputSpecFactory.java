@@ -32,6 +32,10 @@ public class LogOutputSpecFactory {
     private boolean logStdout;
     private String logDate;
 
+    public LogOutputSpecFactory(boolean useColor, boolean logStdout) {
+        this(useColor, logStdout, null);
+    }
+
     public LogOutputSpecFactory(boolean useColor, boolean logStdout, String logDate) {
         this.useColor = useColor;
         this.logStdout = logStdout;

@@ -26,11 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
+import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
-import org.eclipse.jkube.kit.common.JKubeAssemblyFile;
-import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
@@ -86,7 +86,7 @@ public class DockerAssemblyManager {
      * @throws IOException IO exception
      */
     public File createDockerTarArchive(
-            String imageName, JKubeBuildContext params, BuildConfiguration buildConfig, KitLogger log)
+        String imageName, JKubeConfiguration params, BuildConfiguration buildConfig, KitLogger log)
             throws IOException {
 
         return createDockerTarArchive(imageName, params, buildConfig, log, null);
@@ -105,8 +105,8 @@ public class DockerAssemblyManager {
      * @throws IOException IO exception
      */
     public File createDockerTarArchive(
-            String imageName, final JKubeBuildContext params, final BuildConfiguration buildConfig, KitLogger log,
-            ArchiverCustomizer finalCustomizer) throws IOException {
+        String imageName, final JKubeConfiguration params, final BuildConfiguration buildConfig, KitLogger log,
+        ArchiverCustomizer finalCustomizer) throws IOException {
 
         final BuildDirs buildDirs = createBuildDirs(imageName, params);
 
@@ -227,7 +227,7 @@ public class DockerAssemblyManager {
      * @param mojoParams maven build context
      * @return assembly files
      */
-    public AssemblyFiles getAssemblyFiles(String name, BuildConfiguration buildConfig, JKubeBuildContext mojoParams) {
+    public AssemblyFiles getAssemblyFiles(String name, BuildConfiguration buildConfig, JKubeConfiguration mojoParams) {
 
         BuildDirs buildDirs = createBuildDirs(name, mojoParams);
 
@@ -245,7 +245,7 @@ public class DockerAssemblyManager {
 
 
     public File createChangedFilesArchive(List<AssemblyFiles.Entry> entries, File assemblyDirectory,
-                                          String imageName, JKubeBuildContext mojoParameters)
+                                          String imageName, JKubeConfiguration mojoParameters)
             throws IOException {
         BuildDirs dirs = createBuildDirs(imageName, mojoParameters);
         try {
@@ -269,7 +269,7 @@ public class DockerAssemblyManager {
     }
 
     // Create final tar-ball to be used for building the archive to send to the Docker daemon
-    private File createBuildTarBall(JKubeBuildContext params, BuildDirs buildDirs, List<ArchiverCustomizer> archiverCustomizers,
+    private File createBuildTarBall(JKubeConfiguration params, BuildDirs buildDirs, List<ArchiverCustomizer> archiverCustomizers,
                                     AssemblyConfiguration assemblyConfig, ArchiveCompression compression) throws IOException {
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
 
@@ -343,7 +343,7 @@ public class DockerAssemblyManager {
         return builder;
     }
 
-    private void createAssemblyArchive(AssemblyConfiguration assemblyConfig, JKubeBuildContext params, BuildDirs buildDirs, ArchiveCompression compression)
+    private void createAssemblyArchive(AssemblyConfiguration assemblyConfig, JKubeConfiguration params, BuildDirs buildDirs, ArchiveCompression compression)
             throws IOException {
         DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
         JKubeBuildTarArchiver jkubeTarArchiver = new JKubeBuildTarArchiver();
@@ -378,7 +378,7 @@ public class DockerAssemblyManager {
     // object which is then not available for the BuildMojo (there the file is still null leading to the
     // the "Cannot include project artifact: ... The following patterns were never triggered in this artifact inclusion filter: <artifact>"
     // warning with an error following.
-    File ensureThatArtifactFileIsSet(JKubeProject project) throws IOException {
+    File ensureThatArtifactFileIsSet(JavaProject project) throws IOException {
         File oldFile = project.getArtifact();
         if (oldFile != null) {
             return oldFile;
@@ -391,7 +391,7 @@ public class DockerAssemblyManager {
         return null;
     }
 
-    private void setArtifactFile(JKubeProject project, File artifactFile) throws IOException {
+    private void setArtifactFile(JavaProject project, File artifactFile) throws IOException {
         if (artifactFile != null) {
             File artifact = new File(project.getBuildDirectory(), artifactFile.getName());
             Files.copy(Paths.get(artifactFile.getAbsolutePath()), Paths.get(artifact.getAbsolutePath()), StandardCopyOption.REPLACE_EXISTING);
@@ -399,22 +399,22 @@ public class DockerAssemblyManager {
     }
 
     private Map<File, String> copyFilesToFinalTarballDirectory(
-      JKubeProject project, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration) throws IOException {
+        JavaProject project, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration) throws IOException {
 
         final Map<File, String> filesToPermissionsMap = new HashMap<>();
         FileUtil.createDirectory(new File(buildDirs.getOutputDirectory(), assemblyConfiguration.getName()));
-        for (JKubeAssemblyFileSet fileSet : getJKubeAssemblyFileSets(assemblyConfiguration)) {
+        for (AssemblyFileSet fileSet : getJKubeAssemblyFileSets(assemblyConfiguration)) {
             filesToPermissionsMap.putAll(processJKubeProjectAssemblyFileSet(project, fileSet, buildDirs, assemblyConfiguration));
         }
-        for (JKubeAssemblyFile file : getJKubeAssemblyFiles(assemblyConfiguration)) {
+        for (AssemblyFile file : getJKubeAssemblyFiles(assemblyConfiguration)) {
             processJKubeProjectAssemblyFile(project, file, buildDirs, assemblyConfiguration);
         }
         return filesToPermissionsMap;
     }
 
-  private Map<File, String> processJKubeProjectAssemblyFileSet(JKubeProject project,
-      JKubeAssemblyFileSet jkubeProjectAssemblyFileSet, BuildDirs buildDirs,
-      AssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
+  private Map<File, String> processJKubeProjectAssemblyFileSet(JavaProject project,
+                                                               AssemblyFileSet jkubeProjectAssemblyFileSet, BuildDirs buildDirs,
+                                                               AssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
 
     final Map<File, String> fileToPermissionsMap = new HashMap<>();
 
@@ -447,7 +447,7 @@ public class DockerAssemblyManager {
   }
 
     private void processJKubeProjectAssemblyFile(
-      JKubeProject project, JKubeAssemblyFile assemblyFile, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration)
+        JavaProject project, AssemblyFile assemblyFile, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration)
       throws IOException {
 
         final File outputDirectory;
@@ -467,7 +467,7 @@ public class DockerAssemblyManager {
         FileUtil.copy(sourceFile, destinationFile);
     }
 
-    private static BuildDirs createBuildDirs(String imageName, JKubeBuildContext params) {
+    private static BuildDirs createBuildDirs(String imageName, JKubeConfiguration params) {
         BuildDirs buildDirs = new BuildDirs(imageName, params);
         buildDirs.createDirs();
         return buildDirs;

@@ -61,7 +61,7 @@
     <version.maven-core>3.5.4</version.maven-core>
     <version.maven-filtering>3.1.1</version.maven-filtering>
     <version.maven-plugin-annotations>3.6.0</version.maven-plugin-annotations>
-    <version.mockwebserver>0.0.13</version.mockwebserver>
+    <version.mockwebserver>0.1.8</version.mockwebserver>
     <version.networknt.validator>0.1.7</version.networknt.validator>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
     <version.plexus-archiver>3.5</version.plexus-archiver>
@@ -152,6 +152,12 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-config-service</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-config-resource</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -171,12 +177,6 @@
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-build-service-docker</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-kit-resource-service</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -585,6 +585,10 @@
           <exclusion>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.fabric8</groupId>
+            <artifactId>mockwebserver</artifactId>
           </exclusion>
           <exclusion>
             <groupId>com.squareup.okhttp3</groupId>

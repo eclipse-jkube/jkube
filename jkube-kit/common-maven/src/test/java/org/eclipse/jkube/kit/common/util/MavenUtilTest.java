@@ -23,9 +23,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectDependency;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.Plugin;
 
 import mockit.Expectations;
 import mockit.Mocked;
@@ -37,7 +37,6 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.MavenArtifactRepository;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DistributionManagement;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Site;
@@ -63,30 +62,30 @@ public class MavenUtilTest {
   public void testJKubeProjectConversion() throws DependencyResolutionRequiredException {
     MavenProject mavenProject = getMavenProject();
 
-    JKubeProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, getMavenSession());
-    assertEquals("testProject", jkubeProject.getName());
-    assertEquals("org.eclipse.jkube", jkubeProject.getGroupId());
-    assertEquals("test-project", jkubeProject.getArtifactId());
-    assertEquals("0.1.0", jkubeProject.getVersion());
-    assertEquals("test description", jkubeProject.getDescription());
-    assertEquals("target", jkubeProject.getOutputDirectory().getName());
-    assertEquals(".", jkubeProject.getBuildDirectory().getName());
-    assertEquals("https://www.eclipse.org/jkube/", jkubeProject.getDocumentationUrl());
+    JavaProject project = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, getMavenSession());
+    assertEquals("testProject", project.getName());
+    assertEquals("org.eclipse.jkube", project.getGroupId());
+    assertEquals("test-project", project.getArtifactId());
+    assertEquals("0.1.0", project.getVersion());
+    assertEquals("test description", project.getDescription());
+    assertEquals("target", project.getOutputDirectory().getName());
+    assertEquals(".", project.getBuildDirectory().getName());
+    assertEquals("https://www.eclipse.org/jkube/", project.getDocumentationUrl());
     assertEquals(1, mavenProject.getCompileClasspathElements().size());
     assertEquals("./target", mavenProject.getCompileClasspathElements().get(0));
-    assertEquals("bar", jkubeProject.getProperties().get("foo"));
+    assertEquals("bar", project.getProperties().get("foo"));
   }
 
   @Test
   public void testGetDependencies(@Mocked MavenProject mavenProject) {
     // Given
-    final Dependency dep1 = new Dependency();
+    final org.apache.maven.model.Dependency dep1 = new org.apache.maven.model.Dependency();
     dep1.setGroupId("org.eclipse.jkube");
     dep1.setArtifactId("artifact1");
     dep1.setVersion("1.33.7");
     dep1.setType("war");
     dep1.setScope("compile");
-    final Dependency dep2 = dep1.clone();
+    final org.apache.maven.model.Dependency dep2 = dep1.clone();
     dep2.setArtifactId("artifact2");
     dep2.setType("jar");
     new Expectations() {
@@ -96,7 +95,7 @@ public class MavenUtilTest {
       }
     };
     // When
-    final List<JKubeProjectDependency> dependencies = MavenUtil.getDependencies(mavenProject);
+    final List<Dependency> dependencies = MavenUtil.getDependencies(mavenProject);
     // Then
     assertThat(dependencies, hasSize(2));
   }
@@ -113,13 +112,13 @@ public class MavenUtilTest {
       result = new HashSet<>(Arrays.asList(artifact1, artifact2));
     }};
     // When
-    final List<JKubeProjectDependency> result = MavenUtil.getTransitiveDependencies(mavenProject);
+    final List<Dependency> result = MavenUtil.getTransitiveDependencies(mavenProject);
     // Then
     assertThat(result, hasSize(2));
     assertThat(result, contains(
-        equalTo(JKubeProjectDependency.builder().groupId("org.eclipse.jkube").artifactId("foo-dependency").version("1.33.7")
+        equalTo(Dependency.builder().groupId("org.eclipse.jkube").artifactId("foo-dependency").version("1.33.7")
             .type("jar").scope("runtime").build()),
-        equalTo(JKubeProjectDependency.builder().groupId("org.eclipse.jkube").artifactId("bar-dependency").version("1.33.7")
+        equalTo(Dependency.builder().groupId("org.eclipse.jkube").artifactId("bar-dependency").version("1.33.7")
             .type("jar").scope("runtime").build())
     ));
   }
@@ -127,7 +126,7 @@ public class MavenUtilTest {
   @Test
   public void testLoadedPomFromFile() throws Exception {
     MavenProject mavenProject = loadMavenProjectFromPom();
-    JKubeProject project = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, getMavenSession());
+    JavaProject project = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, getMavenSession());
 
     assertEquals("Eclipse JKube Maven :: Sample :: Spring Boot Web", project.getName());
     assertEquals("Minimal Example with Spring Boot", project.getDescription());
@@ -135,7 +134,7 @@ public class MavenUtilTest {
     assertEquals("org.eclipse.jkube", project.getGroupId());
     assertEquals("0.1.1-SNAPSHOT", project.getVersion());
 
-    List<JKubeProjectPlugin> plugins = MavenUtil.getPlugins(mavenProject);
+    List<Plugin> plugins = MavenUtil.getPlugins(mavenProject);
     assertEquals(2, plugins.size());
     assertEquals("org.springframework.boot", plugins.get(0).getGroupId());
     assertEquals("spring-boot-maven-plugin", plugins.get(0).getArtifactId());

@@ -17,8 +17,8 @@ import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
-import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
@@ -113,16 +113,16 @@ public class QuarkusGenerator extends BaseGenerator {
         return buildBuilder.build();
     }
 
-    private AssemblyConfiguration createAssemblyConfiguration(String targetDir, JKubeAssemblyFileSet jKubeAssemblyFileSet) {
+    private AssemblyConfiguration createAssemblyConfiguration(String targetDir, AssemblyFileSet jKubeAssemblyFileSet) {
         jKubeAssemblyFileSet.setOutputDirectory(".");
         return new AssemblyConfiguration.Builder()
             .targetDir(targetDir)
-            .assemblyDef(JKubeProjectAssembly.builder().fileSets(Collections.singletonList(jKubeAssemblyFileSet)).build())
+            .assemblyDef(Assembly.builder().fileSets(Collections.singletonList(jKubeAssemblyFileSet)).build())
             .build();
     }
 
-    private JKubeAssemblyFileSet getJvmFilesToInclude() {
-        JKubeAssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
+    private AssemblyFileSet getJvmFilesToInclude() {
+        AssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
         fileSet.addInclude("lib/**");
         // We also need to exclude default jar file
         File defaultJarFile = JKubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
@@ -133,21 +133,21 @@ public class QuarkusGenerator extends BaseGenerator {
         return fileSet;
     }
 
-    private JKubeAssemblyFileSet getNativeFileToInclude() {
-        JKubeAssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner");
+    private AssemblyFileSet getNativeFileToInclude() {
+        AssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner");
         fileSet.setFileMode("0755");
 
         return fileSet;
     }
 
-    private JKubeAssemblyFileSet getFileSetWithFileFromBuildThatEndsWith(String suffix) {
+    private AssemblyFileSet getFileSetWithFileFromBuildThatEndsWith(String suffix) {
         List<String> relativePaths = new ArrayList<>();
 
         String fileToInclude = findSingleFileThatEndsWith(suffix);
         if (fileToInclude != null && !fileToInclude.isEmpty()) {
             relativePaths.add(fileToInclude);
         }
-        return JKubeAssemblyFileSet.builder()
+        return AssemblyFileSet.builder()
                 .directory(FileUtil.getRelativePath(getProject().getBaseDirectory(), getProject().getBuildDirectory()))
                 .includes(relativePaths)
                 .fileMode("0777")

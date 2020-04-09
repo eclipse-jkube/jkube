@@ -16,7 +16,7 @@ package org.eclipse.jkube.kit.build.service.docker.config;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyMode;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -71,7 +71,7 @@ public class ConfigHelper {
         return filtered;
     }
 
-    public static void validateExternalPropertyActivation(JKubeProject project, List<ImageConfiguration> images) {
+    public static void validateExternalPropertyActivation(JavaProject project, List<ImageConfiguration> images) {
         String prop = getExternalConfigActivationProperty(project);
         if(prop == null) {
             return;
@@ -99,7 +99,7 @@ public class ConfigHelper {
         }
     }
 
-    public static String getExternalConfigActivationProperty(JKubeProject project) {
+    public static String getExternalConfigActivationProperty(JavaProject project) {
         Properties properties = JKubeProjectUtil.getPropertiesWithSystemOverrides(project);
         String value = properties.getProperty(EXTERNALCONFIG_ACTIVATION_PROPERTY);
 

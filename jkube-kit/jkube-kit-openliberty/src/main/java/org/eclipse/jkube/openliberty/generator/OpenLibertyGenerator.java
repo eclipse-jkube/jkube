@@ -18,9 +18,9 @@ import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import java.util.ArrayList;
@@ -81,12 +81,12 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
         } else {
-            final List<JKubeAssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles(getProject()));
+            final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles(getProject()));
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
-                JKubeProject project = getProject();
+                JavaProject project = getProject();
                 if (fatJar != null) {
-                    JKubeAssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
+                    AssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
                     if (LIBERTY_SELF_EXTRACTOR.equals(fatJar.getMainClass())) {
                         this.runnableJarName = fatJar.getArchiveFile().getName();
                     }
@@ -95,13 +95,13 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
             } else {
                 builder.descriptorRef("artifact-with-dependencies");
             }
-            builder.assemblyDef(JKubeProjectAssembly.builder().fileSets(fileSets).build());
+            builder.assemblyDef(Assembly.builder().fileSets(fileSets).build());
         }
     }
 
     @Override
-    public List<JKubeAssemblyFileSet> addAdditionalFiles(JKubeProject project) {
-        List<JKubeAssemblyFileSet> fileSets = new ArrayList<>();
+    public List<AssemblyFileSet> addAdditionalFiles(JavaProject project) {
+        List<AssemblyFileSet> fileSets = new ArrayList<>();
         fileSets.add(createFileSet(project, "src/main/jkube-includes/bin","bin", "0755"));
         fileSets.add(createFileSet(project, "src/main/jkube-includes",".", "0644"));
         // Add server.xml file

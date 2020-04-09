@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -67,8 +67,8 @@ public abstract class FromSelector {
     protected abstract String getIstagFrom();
 
     public boolean isRedHat() {
-        JKubeProject project = context.getProject();
-        JKubeProjectPlugin plugin = JKubeProjectUtil.getPlugin(project, "org.eclipse.jkube","openshift-maven-plugin");
+        JavaProject project = context.getProject();
+        Plugin plugin = JKubeProjectUtil.getPlugin(project, "org.eclipse.jkube","openshift-maven-plugin");
         if (plugin == null) {
             // This plugin might be repackaged.
             plugin = JKubeProjectUtil.getPlugin(project,"org.jboss.redhat-fuse", "openshift-maven-plugin");

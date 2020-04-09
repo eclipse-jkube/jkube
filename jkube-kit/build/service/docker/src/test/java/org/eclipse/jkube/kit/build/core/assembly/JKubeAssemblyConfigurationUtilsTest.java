@@ -18,9 +18,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.JKubeAssemblyFile;
-import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
-import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
+import org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.Assembly;
 
 import mockit.Expectations;
 import mockit.Injectable;
@@ -82,7 +82,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
   @Test
   public void getJKubeAssemblyFileSetsNullShouldReturnEmptyList() {
     // When
-    final List<JKubeAssemblyFileSet> result = getJKubeAssemblyFileSets(null);
+    final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(null);
     // Then
     assertNotNull(result);
     assertTrue(result.isEmpty());
@@ -90,8 +90,8 @@ public class JKubeAssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFileSetsNotNullShouldReturnFileSets(
-    @Injectable AssemblyConfiguration configuration, @Injectable JKubeProjectAssembly assembly,
-    @Injectable JKubeAssemblyFileSet fileSet) {
+    @Injectable AssemblyConfiguration configuration, @Injectable Assembly assembly,
+    @Injectable AssemblyFileSet fileSet) {
 
     // Given
     new Expectations() {{
@@ -103,7 +103,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
       result = "1337";
     }};
     // When
-    final List<JKubeAssemblyFileSet> result = getJKubeAssemblyFileSets(configuration);
+    final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(configuration);
     // Then
     assertNotNull(result);
     assertFalse(result.isEmpty());
@@ -113,8 +113,8 @@ public class JKubeAssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFileSetsExcludesShouldReturnExcludes(
-    @Injectable AssemblyConfiguration configuration, @Injectable JKubeProjectAssembly assembly,
-    @Injectable JKubeAssemblyFileSet fileSet) {
+    @Injectable AssemblyConfiguration configuration, @Injectable Assembly assembly,
+    @Injectable AssemblyFileSet fileSet) {
 
     // Given
     new Expectations() {{
@@ -142,7 +142,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
   @Test
   public void getJKubeAssemblyFilesNullShouldReturnEmptyList() {
     // When
-    final List<JKubeAssemblyFile> result = getJKubeAssemblyFiles(null);
+    final List<AssemblyFile> result = getJKubeAssemblyFiles(null);
     // Then
     assertNotNull(result);
     assertTrue(result.isEmpty());
@@ -150,8 +150,8 @@ public class JKubeAssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFilesNotNullShouldReturnFiles(
-    @Injectable AssemblyConfiguration configuration, @Injectable JKubeProjectAssembly assembly,
-    @Injectable JKubeAssemblyFile file) {
+    @Injectable AssemblyConfiguration configuration, @Injectable Assembly assembly,
+    @Injectable AssemblyFile file) {
 
     // Given
     new Expectations() {{
@@ -163,7 +163,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
       result = new File("1337");
     }};
     // When
-    final List<JKubeAssemblyFile> result = getJKubeAssemblyFiles(configuration);
+    final List<AssemblyFile> result = getJKubeAssemblyFiles(configuration);
     // Then
     assertNotNull(result);
     assertFalse(result.isEmpty());

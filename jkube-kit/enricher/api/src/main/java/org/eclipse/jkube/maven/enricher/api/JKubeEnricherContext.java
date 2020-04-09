@@ -23,9 +23,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectDependency;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -51,7 +51,7 @@ public class JKubeEnricherContext implements EnricherContext {
 
     private Map<String, String> processingInstruction;
 
-    private JKubeProject project;
+    private JavaProject project;
     private KitLogger log;
 
     private Properties properties;
@@ -96,7 +96,7 @@ public class JKubeEnricherContext implements EnricherContext {
     }
 
     @Override
-    public List<JKubeProjectDependency> getDependencies(boolean transitive) {
+    public List<Dependency> getDependencies(boolean transitive) {
         return transitive ? getProject().getDependenciesWithTransitive() : getProject().getDependencies();
     }
 
@@ -123,7 +123,7 @@ public class JKubeEnricherContext implements EnricherContext {
 
     // ========================================================================
     // Maven specific methods, only available after casting
-    public JKubeProject getProject() {
+    public JavaProject getProject() {
         return project;
     }
 
@@ -168,7 +168,7 @@ public class JKubeEnricherContext implements EnricherContext {
             return this;
         }
 
-        public Builder project(JKubeProject project) {
+        public Builder project(JavaProject project) {
             ctx.project = project;
             return this;
         }
@@ -215,7 +215,7 @@ public class JKubeEnricherContext implements EnricherContext {
                             if (!"maven".equals(system)) {
                                 return Optional.empty();
                             }
-                            final JKubeProjectPlugin plugin = JKubeProjectUtil.getPlugin(ctx.project, id);
+                            final Plugin plugin = JKubeProjectUtil.getPlugin(ctx.project, id);
                             if (plugin == null) {
                                 return Optional.empty();
                             }

@@ -20,7 +20,7 @@ import java.util.Map;
 
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 
@@ -112,7 +112,7 @@ public class VertxGenerator extends JavaExecGenerator {
   }
 
   private boolean isUsingFatJarPlugin() {
-    JKubeProject project = getProject();
+    JavaProject project = getProject();
     return JKubeProjectUtil.hasPlugin(project, Constants.SHADE_PLUGIN_GROUP, Constants.SHADE_PLUGIN_ARTIFACT) ||
            JKubeProjectUtil.hasPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
   }

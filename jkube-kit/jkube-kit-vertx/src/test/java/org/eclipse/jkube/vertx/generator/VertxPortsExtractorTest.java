@@ -17,8 +17,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import mockit.Mocked;
 import org.junit.Test;
@@ -38,8 +38,8 @@ public class VertxPortsExtractorTest {
     Map<String, Object> configuration = new HashMap<>();
     configuration.put("config", vertxConfig);
 
-    JKubeProject project = JKubeProject.builder()
-        .plugins(Collections.singletonList(JKubeProjectPlugin.builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP)
+    JavaProject project = JavaProject.builder()
+        .plugins(Collections.singletonList(Plugin.builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP)
             .artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion")
             .executions(Collections.singletonList("testexec")).configuration(configuration).build()))
         .build();
@@ -50,8 +50,8 @@ public class VertxPortsExtractorTest {
 
   @Test
   public void testNoVertxConfiguration() {
-    JKubeProject project = JKubeProject.builder()
-        .plugins(Collections.singletonList(JKubeProjectPlugin.builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP)
+    JavaProject project = JavaProject.builder()
+        .plugins(Collections.singletonList(Plugin.builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP)
             .artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").configuration(Collections.emptyMap())
             .build()))
         .build();

@@ -19,8 +19,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectDependency;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import mockit.Expectations;
@@ -45,22 +45,22 @@ public class VertxGeneratorTest {
   @Rule
   public TemporaryFolder folder = new TemporaryFolder();
 
-  private JKubeProjectDependency dropwizard;
-  private JKubeProjectDependency core;
-  private JKubeProjectDependency infinispan;
+  private Dependency dropwizard;
+  private Dependency core;
+  private Dependency infinispan;
 
   @Before
   public void init() throws IOException {
-    dropwizard = JKubeProjectDependency.builder().groupId("io.vertx").artifactId("vertx-dropwizard-metrics").version("3.4.2")
+    dropwizard = Dependency.builder().groupId("io.vertx").artifactId("vertx-dropwizard-metrics").version("3.4.2")
         .type("jar").scope("compile").file(folder.newFile("vertx-dropwizard-metrics.jar")).build();
-    core = JKubeProjectDependency.builder().groupId("io.vertx").artifactId("vertx-core").version("3.4.2").type("jar")
+    core = Dependency.builder().groupId("io.vertx").artifactId("vertx-core").version("3.4.2").type("jar")
         .scope("compile").file(folder.newFile("vertx-core.jar")).build();
-    infinispan = JKubeProjectDependency.builder().groupId("io.vertx").artifactId("vertx-infinispan").version("3.4.2")
+    infinispan = Dependency.builder().groupId("io.vertx").artifactId("vertx-infinispan").version("3.4.2")
         .type("jar").scope("compile").file(folder.newFile("vertx-infinispan.jar")).build();
   }
 
     @Test
-    public void testDefaultOptions(@Mocked final JKubeProject project) {
+    public void testDefaultOptions(@Mocked final JavaProject project) {
         new Expectations() {{
             project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
             project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
@@ -77,7 +77,7 @@ public class VertxGeneratorTest {
     }
 
     @Test
-    public void testWithMetrics(@Mocked final JKubeProject project) {
+    public void testWithMetrics(@Mocked final JavaProject project) {
 
         new Expectations() {{
             project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
@@ -100,7 +100,7 @@ public class VertxGeneratorTest {
     }
 
     @Test
-    public void testWithInfinispanClusterManager(@Mocked final JKubeProject project) {
+    public void testWithInfinispanClusterManager(@Mocked final JavaProject project) {
         new Expectations() {{
             project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
             project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();

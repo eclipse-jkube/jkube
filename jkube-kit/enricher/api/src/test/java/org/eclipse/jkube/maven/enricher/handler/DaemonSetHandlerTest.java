@@ -16,7 +16,7 @@ package org.eclipse.jkube.maven.enricher.handler;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
@@ -36,7 +36,7 @@ public class DaemonSetHandlerTest {
     @Mocked
     ProbeHandler probeHandler;
 
-    JKubeProject project = JKubeProject.builder().build();
+    JavaProject project = JavaProject.builder().build();
 
     List<String> mounts = new ArrayList<>();
     List<VolumeConfig> volumes1 = new ArrayList<>();

@@ -15,9 +15,9 @@ package org.eclipse.jkube.kit.build.core.assembly;
 
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.common.JKubeAssemblyFile;
-import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
-import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
+import org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.Assembly;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -39,27 +39,27 @@ public class JKubeAssemblyConfigurationUtils {
       .orElse(new AssemblyConfiguration.Builder().targetDir(DEFAULT_TARGET_DIR).user(DEFAULT_USER).build());
   }
 
-  static List<JKubeAssemblyFileSet> getJKubeAssemblyFileSets(AssemblyConfiguration configuration) {
+  static List<AssemblyFileSet> getJKubeAssemblyFileSets(AssemblyConfiguration configuration) {
     return Optional.ofNullable(configuration)
       .map(AssemblyConfiguration::getInline)
-      .map(JKubeProjectAssembly::getFileSets)
+      .map(Assembly::getFileSets)
       .orElse(Collections.emptyList());
   }
 
   static List<String> getJKubeAssemblyFileSetsExcludes(AssemblyConfiguration assemblyConfiguration) {
     return getJKubeAssemblyFileSets(assemblyConfiguration).stream()
       .filter(Objects::nonNull)
-      .map(JKubeAssemblyFileSet::getExcludes)
+      .map(AssemblyFileSet::getExcludes)
       .filter(Objects::nonNull)
       .flatMap(Collection::stream)
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
   }
 
-  static List<JKubeAssemblyFile> getJKubeAssemblyFiles(AssemblyConfiguration configuration) {
+  static List<AssemblyFile> getJKubeAssemblyFiles(AssemblyConfiguration configuration) {
     return Optional.ofNullable(configuration)
       .map(AssemblyConfiguration::getInline)
-      .map(JKubeProjectAssembly::getFiles)
+      .map(Assembly::getFiles)
       .orElse(Collections.emptyList());
   }
 }

@@ -20,7 +20,7 @@ import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
@@ -437,7 +437,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
             resources = new ResourceConfig.Builder(resources).withNamespace(namespace).build();
         }
         // Manager for calling enrichers.
-        JKubeProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        JavaProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         JKubeEnricherContext.Builder ctxBuilder = new JKubeEnricherContext.Builder()
                 .project(jkubeProject)
                 .config(extractEnricherConfig())
@@ -543,7 +543,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log)
         throws MojoExecutionException, DependencyResolutionRequiredException {
         List<ImageConfiguration> ret;
-        JKubeProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        JavaProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         ret = ConfigHelper.resolveImages(
             log,
             images,

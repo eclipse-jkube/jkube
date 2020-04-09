@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 /**
@@ -28,8 +28,8 @@ import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 public class JettyAppSeverHandler extends AbstractAppServerHandler {
 
 
-    public JettyAppSeverHandler(JKubeProject jkubeProject) {
-        super("jetty", jkubeProject);
+    public JettyAppSeverHandler(JavaProject project) {
+        super("jetty", project);
     }
 
     @Override
