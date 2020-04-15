@@ -69,3 +69,16 @@ jkube-sample-helloworld-7c4665f464-xwskj   0/1     Completed     2          27s
 ~/work/repos/jkube/quickstarts/maven/hello-world : $ kubectl logs jkube-sample-helloworld-7c4665f464-xwskj
 Hello World!
 ```
+
+- Troubleshooting<br/> 
+
+If you experience problems using minikube that pod's status shows 'ImagePullBackOff' and not 'Completed' you must share the minikube's docker deamon environment with your shell with:
+```
+eval $(minikube docker-env)
+```
+You can remove this from your shell again with:
+```
+eval $(minikube docker-env -u)
+````
+If you don't want to type the command for every new terminal you open, you can add the command to your ```.bash_profile```on mac or ```.zshrc```.
+ 
