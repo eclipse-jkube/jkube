@@ -19,7 +19,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -51,7 +51,7 @@ public class DockerRegistryAuthHandler implements RegistryAuthHandler {
     }
 
     @Override
-    public AuthConfig create(RegistryAuthConfig.Kind kind, String user, String registry, Function<String, String> decryptor) {
+    public AuthConfig create(RegistryAuthConfig.Kind kind, String user, String registry, UnaryOperator<String> decryptor) {
         return readDockerConfig().map(d -> extractAuthConfigFromDocker(d, registry)).orElse(null);
     }
 
@@ -97,7 +97,7 @@ public class DockerRegistryAuthHandler implements RegistryAuthHandler {
         }
         String auth = credentials.get("auth").getAsString();
         String email = credentials.has("email") ? credentials.get("email").getAsString() : null;
-        return new AuthConfig.Builder().withCredentialsEncoded(auth).email(email).build();
+        return AuthConfig.fromCredentialsEncoded(auth, email);
     }
 
     private AuthConfig extractAuthConfigFromCredentialsHelper(String registryToLookup, String credConfig) throws IOException {

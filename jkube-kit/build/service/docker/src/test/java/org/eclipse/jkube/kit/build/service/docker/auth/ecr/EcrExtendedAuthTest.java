@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -60,8 +59,7 @@ public class EcrExtendedAuthTest {
     @Test
     public void testHeaders() {
         EcrExtendedAuth eea = new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com");
-        AuthConfig localCredentials =
-            new AuthConfig.Builder()
+        AuthConfig localCredentials = AuthConfig.builder()
                 .username("username")
                 .password("password")
                 .build();
@@ -95,8 +93,7 @@ public class EcrExtendedAuthTest {
             }
         };
 
-        AuthConfig localCredentials =
-            new AuthConfig.Builder()
+        AuthConfig localCredentials = AuthConfig.builder()
                 .username("username")
                 .password("password")
                 .build();

@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.build.api.auth;
 
 import java.io.IOException;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * @author roland
@@ -24,7 +24,7 @@ public interface RegistryAuthHandler {
 
     String getId();
 
-    AuthConfig create(RegistryAuthConfig.Kind kind, String user, String registry, Function<String, String> decryptor);
+    AuthConfig create(RegistryAuthConfig.Kind kind, String user, String registry, UnaryOperator<String> decryptor);
 
     interface Extender {
         String getId();

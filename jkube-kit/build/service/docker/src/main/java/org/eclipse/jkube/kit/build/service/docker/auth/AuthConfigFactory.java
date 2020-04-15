@@ -339,8 +339,8 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map authConfig, UnaryOperator<String> passwordDecryptionMethod) {
-        Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfig);
+    private AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map<String, ?> authConfig, UnaryOperator<String> passwordDecryptionMethod) {
+        Map<String, String> mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfig);
 
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USERNAME)) {
             if (!mapToCheck.containsKey(AUTH_PASSWORD)) {
@@ -348,7 +348,7 @@ public class AuthConfigFactory {
             }
             Map<String, String> cloneConfig = new HashMap<>(mapToCheck);
             cloneConfig.put(AUTH_PASSWORD, passwordDecryptionMethod.apply(cloneConfig.get(AUTH_PASSWORD)));
-            return new AuthConfig(cloneConfig);
+            return AuthConfig.fromMap(cloneConfig);
         } else {
             return null;
         }
@@ -408,7 +408,7 @@ public class AuthConfigFactory {
         }
         String auth = credentials.get("auth").getAsString();
         String email = credentials.has(AUTH_EMAIL) ? credentials.get(AUTH_EMAIL).getAsString() : null;
-        return new AuthConfig(auth,email);
+        return AuthConfig.fromCredentialsEncoded(auth,email);
     }
 
     private AuthConfig extractAuthConfigFromCredentialsHelper(String registryToLookup, String credConfig) throws IOException {
@@ -433,13 +433,13 @@ public class AuthConfigFactory {
 
     // =======================================================================================================
 
-    private Map getAuthConfigMapToCheck(LookupMode lookupMode, Map authConfigMap) {
+    private Map<String, String> getAuthConfigMapToCheck(LookupMode lookupMode, Map<?, ?> authConfigMap) {
         String configMapKey = lookupMode.getConfigMapKey();
         if (configMapKey == null) {
-            return authConfigMap;
+            return (Map<String, String>)authConfigMap;
         }
         if (authConfigMap != null) {
-            return (Map) authConfigMap.get(configMapKey);
+            return (Map<String, String>)authConfigMap.get(configMapKey);
         }
         return null;
     }

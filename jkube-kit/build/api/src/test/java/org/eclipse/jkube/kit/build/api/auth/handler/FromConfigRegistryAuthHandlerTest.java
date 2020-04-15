@@ -51,7 +51,7 @@ public class FromConfigRegistryAuthHandlerTest {
     }
 
     protected RegistryAuthConfig setupAuthConfigFactoryWithConfigData() {
-        return new RegistryAuthConfig.Builder()
+        return RegistryAuthConfig.builder()
                 .skipExtendedAuthentication(false)
                 .addDefaultConfig(RegistryAuth.USERNAME, "roland")
                 .addDefaultConfig(RegistryAuth.PASSWORD, "secret")
@@ -60,7 +60,7 @@ public class FromConfigRegistryAuthHandlerTest {
     }
 
     private RegistryAuthConfig setupAuthConfigFactoryWithConfigDataForKind(RegistryAuthConfig.Kind kind) {
-        return new RegistryAuthConfig.Builder()
+        return RegistryAuthConfig.builder()
                 .skipExtendedAuthentication(false)
                 .addKindConfig(kind, RegistryAuth.USERNAME, "roland")
                 .addKindConfig(kind, RegistryAuth.PASSWORD, "secret")
@@ -69,7 +69,7 @@ public class FromConfigRegistryAuthHandlerTest {
     }
 
     @Test
-    public void testFromPluginConfigurationPull() throws IOException {
+    public void testFromPluginConfigurationPull() {
         FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(setupAuthConfigFactoryWithConfigDataForKind(RegistryAuthConfig.Kind.PULL), log);
 
         AuthConfig config = handler.create(RegistryAuthConfig.Kind.PULL, null, null, s -> s);
@@ -78,9 +78,9 @@ public class FromConfigRegistryAuthHandlerTest {
 
 
     @Test
-    public void testFromPluginConfigurationFailed() throws IOException {
+    public void testFromPluginConfigurationFailed() {
         FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(
-            new RegistryAuthConfig.Builder().addDefaultConfig(RegistryAuth.USERNAME, "admin").build(), log);
+            RegistryAuthConfig.builder().addDefaultConfig(RegistryAuth.USERNAME, "admin").build(), log);
 
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage(containsString("password"));

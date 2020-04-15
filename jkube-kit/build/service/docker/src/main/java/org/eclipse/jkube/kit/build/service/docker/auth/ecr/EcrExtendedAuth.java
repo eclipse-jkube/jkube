@@ -103,7 +103,7 @@ public class EcrExtendedAuth {
         JsonObject authorizationData = authorizationDatas.get(0).getAsJsonObject();
         String authorizationToken = authorizationData.get("authorizationToken").getAsString();
 
-        return new AuthConfig(authorizationToken, "none");
+        return AuthConfig.fromCredentialsEncoded(authorizationToken, "none");
     }
 
     private JsonObject getAuthorizationToken(AuthConfig localCredentials) throws IOException {
