@@ -71,8 +71,7 @@ public class AwsSigner4RequestTest {
             ZonedDateTime.of(2015, 8,30, 12, 36, 0, 0, ZoneId.of("GMT"))
         .toInstant());
         AwsSigner4Request sr = new AwsSigner4Request("us-east-1", "service", request, signingTime);
-        AuthConfig credentials =
-            new AuthConfig.Builder()
+        AuthConfig credentials = AuthConfig.builder()
                 .username("AKIDEXAMPLE")
                 .password("wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY")
                 .build();
@@ -93,8 +92,7 @@ public class AwsSigner4RequestTest {
         HttpUriRequest request = newGet("https://someService.us-east-1.amazonaws.com/");
         request.setHeader("host", request.getURI().getHost());
         String awsSecurityToken = "securityToken";
-        AuthConfig credentials =
-            new AuthConfig.Builder()
+        AuthConfig credentials = AuthConfig.builder()
                 .username("awsAccessKeyId")
                 .password( "awsSecretAccessKey")
                 .auth(awsSecurityToken)

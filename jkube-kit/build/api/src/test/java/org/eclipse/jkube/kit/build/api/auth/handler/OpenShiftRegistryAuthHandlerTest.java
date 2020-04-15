@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
@@ -39,10 +40,11 @@ import static org.junit.Assert.assertNull;
 
 /**
  * @author roland
- * @since 23.10.18
  */
 public class OpenShiftRegistryAuthHandlerTest {
 
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Mocked
     KitLogger log;
@@ -54,7 +56,7 @@ public class OpenShiftRegistryAuthHandlerTest {
 
     @Before
     public void setup() {
-        RegistryAuthConfig registryAuthConfig = new RegistryAuthConfig.Builder()
+        RegistryAuthConfig registryAuthConfig = RegistryAuthConfig.builder()
                 .skipExtendedAuthentication(false)
                 .propertyPrefix("docker")
                 .addHandlerConfig("openshift",
@@ -118,7 +120,7 @@ public class OpenShiftRegistryAuthHandlerTest {
     private void executeWithTempHomeDir(Consumer<File> executor) throws IOException {
         String userHome = System.getProperty("user.home");
         try {
-            File tempDir = Files.createTempDirectory("d-m-p").toFile();
+            File tempDir = temporaryFolder.newFolder("d-m-p");
             System.setProperty("user.home", tempDir.getAbsolutePath());
             executor.accept(tempDir);
         } finally {

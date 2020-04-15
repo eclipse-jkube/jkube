@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.build.api.auth.handler;
 
 import java.util.Properties;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuth;
@@ -43,7 +43,7 @@ public class SystemPropertyRegistryAuthHandler implements RegistryAuthHandler {
     }
 
     @Override
-    public AuthConfig create(RegistryAuthConfig.Kind kind, String user, String registry, Function<String, String> decryptor) {
+    public AuthConfig create(RegistryAuthConfig.Kind kind, String user, String registry, UnaryOperator<String> decryptor) {
         Properties props = System.getProperties();
         String username = registryAuthConfig.extractFromProperties(props, kind, RegistryAuth.USERNAME);
         String password = registryAuthConfig.extractFromProperties(props, kind, RegistryAuth.PASSWORD);
@@ -56,9 +56,9 @@ public class SystemPropertyRegistryAuthHandler implements RegistryAuthHandler {
         }
 
         log.debug("AuthConfig: credentials from system properties");
-        return new AuthConfig.Builder()
+        return AuthConfig.builder()
             .username(username)
-            .password(password, decryptor)
+            .password(AuthConfig.decryptPassword(password, decryptor))
             .email(registryAuthConfig.extractFromProperties(props, kind, RegistryAuth.EMAIL))
             .auth(registryAuthConfig.extractFromProperties(props, kind, RegistryAuth.AUTH))
             .build();

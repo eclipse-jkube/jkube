@@ -47,7 +47,7 @@ public class SystemPropertyRegistryAuthHandlerTest {
 
     @Before
     public void setup() {
-        RegistryAuthConfig registryAuthConfig = new RegistryAuthConfig.Builder()
+        RegistryAuthConfig registryAuthConfig = RegistryAuthConfig.builder()
                 .skipExtendedAuthentication(false)
                 .propertyPrefix("docker")
                 .build();
