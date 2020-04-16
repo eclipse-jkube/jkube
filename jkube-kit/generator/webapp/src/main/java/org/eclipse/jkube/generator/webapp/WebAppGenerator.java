@@ -88,11 +88,11 @@ public class WebAppGenerator extends BaseGenerator {
 
         final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
 
-        final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
+        final BuildConfiguration.BuildConfigurationBuilder buildBuilder = BuildConfiguration.builder();
 
         buildBuilder.from(getFrom(handler))
             .ports(handler.exposedPorts())
-            .cmd(new Arguments(getDockerRunCommand(handler)))
+            .cmd(Arguments.builder().shell(getDockerRunCommand(handler)).build())
             .env(getEnv(handler));
 
         addSchemaLabels(buildBuilder, log);
@@ -139,7 +139,7 @@ public class WebAppGenerator extends BaseGenerator {
             path = "ROOT";
         }
         getProject().getProperties().setProperty("jkube.generator.webapp.path",path);
-        final AssemblyConfiguration.Builder builder = new AssemblyConfiguration.Builder();
+        final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
 
         builder.targetDir(getDeploymentDir(handler)).descriptorRef("webapp");
 

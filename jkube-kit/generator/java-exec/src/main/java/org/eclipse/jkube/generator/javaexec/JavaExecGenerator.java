@@ -110,7 +110,7 @@ public class JavaExecGenerator extends BaseGenerator {
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
         final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
-        final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
+        final BuildConfiguration.BuildConfigurationBuilder buildBuilder = BuildConfiguration.builder();
 
         buildBuilder.ports(extractPorts());
 
@@ -146,10 +146,8 @@ public class JavaExecGenerator extends BaseGenerator {
             String mainClass = getConfig(Config.mainClass);
             if (mainClass == null) {
                 mainClass = mainClassDetector.getMainClass();
-                if (mainClass == null) {
-                    if (!prePackagePhase) {
-                        throw new IllegalStateException("Cannot extract main class to startup");
-                    }
+                if (mainClass == null && !prePackagePhase) {
+                    throw new IllegalStateException("Cannot extract main class to startup");
                 }
             }
             if (mainClass != null) {
@@ -158,7 +156,7 @@ public class JavaExecGenerator extends BaseGenerator {
             }
         }
         List<String> javaOptions = getExtraJavaOptions();
-        if (javaOptions.size() > 0) {
+        if (!javaOptions.isEmpty()) {
             ret.put(JAVA_OPTIONS, StringUtils.join(javaOptions.iterator(), " "));
         }
         return ret;
@@ -169,13 +167,13 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     protected AssemblyConfiguration createAssembly() {
-        final AssemblyConfiguration.Builder builder = new AssemblyConfiguration.Builder();
+        final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
         builder.targetDir(getConfig(Config.targetDir));
         addAssembly(builder);
         return builder.build();
     }
 
-    protected void addAssembly(AssemblyConfiguration.Builder builder) {
+    protected void addAssembly(AssemblyConfiguration.AssemblyConfigurationBuilder builder) {
         String assemblyRef = getConfig(Config.assemblyRef);
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
@@ -189,7 +187,7 @@ public class JavaExecGenerator extends BaseGenerator {
             } else {
                 builder.descriptorRef("artifact-with-dependencies");
             }
-            builder.assemblyDef(Assembly.builder().fileSets(fileSets).build());
+            builder.inline(Assembly.builder().fileSets(fileSets).build());
         }
     }
 

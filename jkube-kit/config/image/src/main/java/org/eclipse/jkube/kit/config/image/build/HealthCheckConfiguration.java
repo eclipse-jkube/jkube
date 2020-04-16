@@ -13,26 +13,37 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * Build configuration for health checks.
  */
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode
 public class HealthCheckConfiguration implements Serializable {
 
-    private HealthCheckMode mode = HealthCheckMode.cmd;
+    private static final long serialVersionUID = 3756852848945587001L;
 
+    private HealthCheckMode mode;
     private String interval;
-
     private String timeout;
-
     private String startPeriod;
-
     private Integer retries;
-
     private Arguments cmd;
 
-    public HealthCheckConfiguration() {}
+    public HealthCheckMode getMode() {
+        return Optional.ofNullable(mode).orElse(HealthCheckMode.cmd);
+    }
 
     public String getInterval() {
         return prepareTimeValue(interval);
@@ -46,7 +57,7 @@ public class HealthCheckConfiguration implements Serializable {
         return prepareTimeValue(startPeriod);
     }
 
-    private String prepareTimeValue(String timeout) {
+    private static String prepareTimeValue(String timeout) {
         // Seconds as default
         if (timeout == null) {
             return null;
@@ -54,84 +65,25 @@ public class HealthCheckConfiguration implements Serializable {
         return timeout.matches("^\\d+$") ? timeout + "s" : timeout;
     }
 
-    public Arguments getCmd() {
-        return cmd;
-    }
 
-    public HealthCheckMode getMode() {
-        return mode;
-    }
-
-    public Integer getRetries() {
-        return retries;
-    }
-
-    public void validate() throws IllegalArgumentException {
-        if (mode == null) {
+    public void validate() {
+        if (getMode() == null) {
             throw new IllegalArgumentException("HealthCheck: mode must not be null");
         }
 
-        switch(mode) {
-        case none:
+        if (getMode() == HealthCheckMode.none) {
             if (interval != null || timeout != null || startPeriod != null || retries != null || cmd != null) {
                 throw new IllegalArgumentException("HealthCheck: no parameters are allowed when the health check mode is set to 'none'");
             }
-            break;
-        case cmd:
-            if (cmd == null) {
-                throw new IllegalArgumentException("HealthCheck: the parameter 'cmd' is mandatory when the health check mode is set to 'cmd' (default)");
-            }
+        } else if (getMode() == HealthCheckMode.cmd && cmd == null) {
+            throw new IllegalArgumentException("HealthCheck: the parameter 'cmd' is mandatory when the health check mode is set to 'cmd' (default)");
         }
     }
 
-    // ===========================================
-
-    public static class Builder {
-
-        private HealthCheckConfiguration config = new HealthCheckConfiguration();
-
-        public Builder() {
-            this.config = new HealthCheckConfiguration();
-        }
-
-        public Builder interval(String interval) {
-            config.interval = interval;
+    public static class HealthCheckConfigurationBuilder {
+        public HealthCheckConfigurationBuilder modeString(String modeString) {
+            mode = Optional.ofNullable(modeString).map(HealthCheckMode::valueOf).orElse(null);
             return this;
-        }
-
-        public Builder timeout(String timeout) {
-            config.timeout = timeout;
-            return this;
-        }
-
-        public Builder startPeriod(String startPeriod) {
-            config.startPeriod = startPeriod;
-            return this;
-        }
-
-        public Builder cmd(Arguments command) {
-            if (command != null) {
-                config.cmd = command;
-            }
-            return this;
-        }
-
-        public Builder retries(Integer retries) {
-            config.retries = retries;
-            return this;
-        }
-
-        public Builder mode(String mode) {
-            return this.mode(mode != null ? HealthCheckMode.valueOf(mode) : (HealthCheckMode) null);
-        }
-
-        public Builder mode(HealthCheckMode mode) {
-            config.mode = mode;
-            return this;
-        }
-
-        public HealthCheckConfiguration build() {
-            return config;
         }
     }
 }

@@ -236,7 +236,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         if (!buildConfigured(config, valueProvider, project)) {
             return null;
         }
-        return new BuildConfiguration.Builder()
+        return BuildConfiguration.builder()
                 .cmd(extractArguments(valueProvider, CMD, valueOrNull(config, BuildConfiguration::getCmd)))
                 .cleanup(valueProvider.getString(CLEANUP, valueOrNull(config, BuildConfiguration::getCleanup)))
                 .nocache(valueProvider.getBoolean(NOCACHE, valueOrNull(config, BuildConfiguration::getNoCache)))
@@ -335,16 +335,16 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
 
     @SuppressWarnings("deprecation")
     private AssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
-        return new AssemblyConfiguration.Builder()
+        return AssemblyConfiguration.builder()
                 .targetDir(valueProvider.getString(ASSEMBLY_BASEDIR, config == null ? null : config.getTargetDir()))
                 .descriptor(valueProvider.getString(ASSEMBLY_DESCRIPTOR, config == null ? null : config.getDescriptor()))
                 .descriptorRef(valueProvider.getString(ASSEMBLY_DESCRIPTOR_REF, config == null ? null : config.getDescriptorRef()))
                 .dockerFileDir(valueProvider.getString(ASSEMBLY_DOCKER_FILE_DIR, config == null ? null : config.getDockerFileDir()))
                 .exportBasedir(valueProvider.getBoolean(ASSEMBLY_EXPORT_BASEDIR, config == null ? null : config.getExportTargetDir()))
                 .ignorePermissions(valueProvider.getBoolean(ASSEMBLY_IGNORE_PERMISSIONS, config == null ? null : config.getIgnorePermissions()))
-                .permissions(valueProvider.getString(ASSEMBLY_PERMISSIONS, config == null ? null : config.getPermissionsRaw()))
+                .permissionsString(valueProvider.getString(ASSEMBLY_PERMISSIONS, config == null ? null : config.getPermissionsRaw()))
                 .user(valueProvider.getString(ASSEMBLY_USER, config == null ? null : config.getUser()))
-                .mode(valueProvider.getString(ASSEMBLY_MODE, config == null ? null : config.getModeRaw()))
+                .modeString(valueProvider.getString(ASSEMBLY_MODE, config == null ? null : config.getModeRaw()))
                 .tarLongFileMode(valueProvider.getString(ASSEMBLY_TARLONGFILEMODE, config == null ? null : config.getTarLongFileMode()))
                 .build();
     }
@@ -352,12 +352,12 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     private HealthCheckConfiguration extractHealthCheck(HealthCheckConfiguration config, ValueProvider valueProvider) {
         Map<String, String> healthCheckProperties = valueProvider.getMap(HEALTHCHECK, Collections.emptyMap());
         if (healthCheckProperties != null && healthCheckProperties.size() > 0) {
-            return new HealthCheckConfiguration.Builder()
+            return HealthCheckConfiguration.builder()
                     .interval(valueProvider.getString(HEALTHCHECK_INTERVAL, valueOrNull(config, HealthCheckConfiguration::getInterval)))
                     .timeout(valueProvider.getString(HEALTHCHECK_TIMEOUT, valueOrNull(config, HealthCheckConfiguration::getTimeout)))
                     .startPeriod(valueProvider.getString(HEALTHCHECK_START_PERIOD, valueOrNull(config, HealthCheckConfiguration::getStartPeriod)))
                     .retries(valueProvider.getInteger(HEALTHCHECK_RETRIES, valueOrNull(config, HealthCheckConfiguration::getRetries)))
-                    .mode(valueProvider.getString(HEALTHCHECK_MODE, config == null || config.getMode() == null ? null : config.getMode().name()))
+                    .modeString(valueProvider.getString(HEALTHCHECK_MODE, config == null || config.getMode() == null ? null : config.getMode().name()))
                     .cmd(extractArguments(valueProvider, HEALTHCHECK_CMD, valueOrNull(config, HealthCheckConfiguration::getCmd)))
                     .build();
         } else {
@@ -381,7 +381,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     private Arguments extractArguments(ValueProvider valueProvider, ConfigKey configKey, Arguments alternative) {
-        return valueProvider.getObject(configKey, alternative, raw -> raw != null ? new Arguments(raw) : null);
+        return valueProvider.getObject(configKey, alternative, raw -> raw != null ? Arguments.builder().shell(raw).build() : null);
     }
 
     private RestartPolicy extractRestartPolicy(RestartPolicy config, ValueProvider valueProvider) {

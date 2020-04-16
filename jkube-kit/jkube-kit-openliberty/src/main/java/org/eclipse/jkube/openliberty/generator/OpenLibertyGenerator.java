@@ -69,14 +69,14 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
     }
     @Override
     protected AssemblyConfiguration createAssembly() {
-        final AssemblyConfiguration.Builder builder = new AssemblyConfiguration.Builder();
+        final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
         builder.targetDir(getConfig(Config.targetDir));
         addAssembly(builder);
         return builder.build();
     }
 
     @Override
-    protected void addAssembly(AssemblyConfiguration.Builder builder) {
+    protected void addAssembly(AssemblyConfiguration.AssemblyConfigurationBuilder builder) {
         String assemblyRef = getConfig(Config.assemblyRef);
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
@@ -95,7 +95,7 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
             } else {
                 builder.descriptorRef("artifact-with-dependencies");
             }
-            builder.assemblyDef(Assembly.builder().fileSets(fileSets).build());
+            builder.inline(Assembly.builder().fileSets(fileSets).build());
         }
     }
 

@@ -56,7 +56,7 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void testNoAssembly() {
-        BuildConfiguration buildConfig = new BuildConfiguration.Builder().build();
+        BuildConfiguration buildConfig = BuildConfiguration.builder().build();
         AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
 
         DockerFileBuilder builder = assemblyManager.createDockerFileBuilder(buildConfig, assemblyConfig);
@@ -136,8 +136,8 @@ public class DockerAssemblyManagerTest {
     }
 
     private BuildConfiguration createBuildConfig() {
-        return new BuildConfiguration.Builder()
-                .assembly(new AssemblyConfiguration.Builder()
+        return BuildConfiguration.builder()
+                .assembly(AssemblyConfiguration.builder()
                         .descriptorRef("artifact")
                         .build())
                 .build();
@@ -211,8 +211,7 @@ public class DockerAssemblyManagerTest {
                 .outputDirectory(outputDirectory.getAbsolutePath())
                 .sourceDirectory(temporaryFolder.getRoot().getAbsolutePath() + "/src/main/docker")
                 .build();
-        final BuildConfiguration jKubeBuildConfiguration = new BuildConfiguration.Builder()
-                .build();
+        final BuildConfiguration jKubeBuildConfiguration = BuildConfiguration.builder().build();
 
         // When
         File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", jKubeBuildContext, jKubeBuildConfiguration, prefixedLogger, null);
@@ -267,7 +266,7 @@ public class DockerAssemblyManagerTest {
                 .outputDirectory("target/docker")
                 .sourceDirectory(baseProjectDir.getPath() + "/src/main/docker")
                 .build();
-        final BuildConfiguration jKubeBuildConfiguration = new BuildConfiguration.Builder()
+        final BuildConfiguration jKubeBuildConfiguration = BuildConfiguration.builder()
                 .dockerFileDir(baseProjectDir.getPath())
                 .dockerFile(dockerFile.getPath())
                 .dockerFileFile(dockerFile)

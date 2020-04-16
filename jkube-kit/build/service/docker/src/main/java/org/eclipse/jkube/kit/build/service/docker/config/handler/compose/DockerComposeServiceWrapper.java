@@ -196,14 +196,14 @@ class DockerComposeServiceWrapper {
             if (toJoin.size() > 1) {
                 throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
             }
-            return new NetworkConfig(NetworkConfig.Mode.custom, toJoin.get(0));
+            return NetworkConfig.builder().mode(NetworkConfig.Mode.custom).name(toJoin.get(0)).build();
         } else if (networks instanceof Map) {
             Map<String,Object> toJoin = (Map<String, Object>) networks;
             if (toJoin.size() > 1) {
                 throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
             }
             String custom = toJoin.keySet().iterator().next();
-            NetworkConfig ret = new NetworkConfig(NetworkConfig.Mode.custom, custom);
+            NetworkConfig ret = NetworkConfig.builder().mode(NetworkConfig.Mode.custom).name(custom).build();
             Object aliases = toJoin.get(custom);
             if (aliases != null) {
                 if (aliases instanceof List) {
@@ -438,9 +438,9 @@ class DockerComposeServiceWrapper {
 
     private Arguments asArguments(Object command, String label) {
         if (command instanceof String) {
-            return new Arguments((String) command);
+            return Arguments.builder().shell((String) command).build();
         } else if (command instanceof List) {
-            return new Arguments((List<String>) command);
+            return Arguments.builder().exec((List<String>) command).build();
         } else {
             throwIllegalArgumentException(String.format("'%s' must be either String or List but not %s", label, command.getClass()));
             return null;

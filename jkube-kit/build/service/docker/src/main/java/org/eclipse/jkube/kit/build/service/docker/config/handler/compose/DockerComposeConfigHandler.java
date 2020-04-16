@@ -147,7 +147,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         }
 
         // Build from the specification as given in the docker-compose file
-        return new BuildConfiguration.Builder(buildConfig)
+        return buildConfig.toBuilder()
                 .dockerFile(extractDockerFilePath(mapper, composeParent))
                 .args(mapper.getBuildArgs())
                 .build();

@@ -75,9 +75,9 @@ public class QuarkusGenerator extends BaseGenerator {
     }
 
     private BuildConfiguration createBuildConfig(boolean prePackagePhase) {
-        final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
+        final BuildConfiguration.BuildConfigurationBuilder buildBuilder = BuildConfiguration.builder();
         // TODO: Check application.properties for a port
-        buildBuilder.ports(Collections.singletonList(getConfig(Config.webPort)));
+        buildBuilder.port(getConfig(Config.webPort));
         addSchemaLabels(buildBuilder, log);
 
         boolean isNative = Boolean.parseBoolean(getConfig(Config.nativeImage, "false"));
@@ -85,9 +85,9 @@ public class QuarkusGenerator extends BaseGenerator {
         Optional<String> fromConfigured = Optional.ofNullable(getFromAsConfigured());
         if (isNative) {
             buildBuilder.from(fromConfigured.orElse("registry.fedoraproject.org/fedora-minimal"))
-                        .entryPoint(new Arguments.Builder()
-                                        .withParam("./" + findSingleFileThatEndsWith("-runner"))
-                                        .withParam("-Dquarkus.http.host=0.0.0.0")
+                        .entryPoint(Arguments.builder()
+                                        .execArgument("./" + findSingleFileThatEndsWith("-runner"))
+                                        .execArgument("-Dquarkus.http.host=0.0.0.0")
                                         .build())
                         .workdir("/");
 
@@ -96,11 +96,11 @@ public class QuarkusGenerator extends BaseGenerator {
             }
         } else {
             buildBuilder.from(fromConfigured.orElse("openjdk:11"))
-                        .entryPoint(new Arguments.Builder()
-                                        .withParam("java")
-                                        .withParam("-Dquarkus.http.host=0.0.0.0")
-                                        .withParam("-jar")
-                                        .withParam(findSingleFileThatEndsWith("-runner.jar"))
+                        .entryPoint(Arguments.builder()
+                                        .execArgument("java")
+                                        .execArgument("-Dquarkus.http.host=0.0.0.0")
+                                        .execArgument("-jar")
+                                        .execArgument(findSingleFileThatEndsWith("-runner.jar"))
                                         .build())
                         .workdir("/opt");
 
@@ -115,9 +115,9 @@ public class QuarkusGenerator extends BaseGenerator {
 
     private AssemblyConfiguration createAssemblyConfiguration(String targetDir, AssemblyFileSet jKubeAssemblyFileSet) {
         jKubeAssemblyFileSet.setOutputDirectory(".");
-        return new AssemblyConfiguration.Builder()
+        return AssemblyConfiguration.builder()
             .targetDir(targetDir)
-            .assemblyDef(Assembly.builder().fileSets(Collections.singletonList(jKubeAssemblyFileSet)).build())
+            .inline(Assembly.builder().fileSets(Collections.singletonList(jKubeAssemblyFileSet)).build())
             .build();
     }
 

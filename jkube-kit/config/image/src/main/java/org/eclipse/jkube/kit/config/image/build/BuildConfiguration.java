@@ -19,117 +19,106 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Singular;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.apache.commons.lang3.SerializationUtils;
 
 /**
  * @author roland
- * @since 02.09.14
  */
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode(doNotUseGetters = true)
 public class BuildConfiguration implements Serializable {
+
+    private static final long serialVersionUID = 3904939784596208966L;
+
     public static final String DEFAULT_FILTER = "${*}";
     public static final String DEFAULT_CLEANUP = "try";
 
     /**
-     * Directory used as the contexst directory, e.g. for a docker build.
+     * Directory used as the context directory, e.g. for a docker build.
      */
     private String contextDir;
-
     /**
      * Path to a dockerfile to use. Its parent directory is used as build context (i.e. as <code>dockerFileDir</code>).
-     * Multiple different Dockerfiles can be specified that way. If set overwrites a possibly given
+     * Multiple different Dockerfiles can be specified that way. If set overwrites a possibly given.
      * <code>contextDir</code>
      */
     private String dockerFile;
-
     /**
      * Path to a docker archive to load an image instead of building from scratch.
      * Note only either dockerFile/dockerFileDir or
      * dockerArchive can be used.
      */
     private String dockerArchive;
-
     /**
-     * How interpolation of a dockerfile should be performed
+     * How interpolation of a dockerfile should be performed.
      */
     private String filter;
-
     /**
      * Base Image
      */
     private String from;
-
     /**
      * Extended version for ;&lt;from;&gt;
      */
     private Map<String, String> fromExt;
-
     private String registry;
-
     private String maintainer;
-
+    @Singular
     private List<String> ports;
-
     private Arguments shell;
-
     /**
      * Policy for pulling the base images
      */
     private String imagePullPolicy;
-
     /**
      * RUN Commands within Build/Image
      */
+    @Singular
     private List<String> runCmds;
-
     private String cleanup;
-
     private Boolean nocache;
-
     private Boolean optimise;
-
+    @Singular
     private List<String> volumes;
-
+    @Singular
     private List<String> tags;
-
     private Map<String, String> env;
-
     private Map<String, String> labels;
-
     private Map<String, String> args;
-
     private Arguments entryPoint;
-
     private String workdir;
-
     private Arguments cmd;
-
     private String user;
-
     private HealthCheckConfiguration healthCheck;
-
     private AssemblyConfiguration assembly;
-
     private Boolean skip;
-
-    private ArchiveCompression compression = ArchiveCompression.none;
-
+    private ArchiveCompression compression;
     private Map<String,String> buildOptions;
-
     /**
      * Directory holding an external Dockerfile which is used to build the
      * image. This Dockerfile will be enriched by the addition build configuration
      */
     @Deprecated
     private String dockerFileDir;
-
-    // Path to Dockerfile to use, initialized lazily ....
+    /**
+     * Path to Dockerfile to use, initialized lazily.
+     */
     private File dockerFileFile;
     private File dockerArchiveFile;
 
@@ -141,33 +130,27 @@ public class BuildConfiguration implements Serializable {
         return dockerFileFile;
     }
 
+    public String getDockerFileRaw() {
+        return dockerFile;
+    }
+
     public File getDockerArchive() {
         return dockerArchiveFile;
+    }
+
+    public String getDockerArchiveRaw() {
+        return dockerArchive;
     }
 
     public File getContextDir() {
         return contextDir != null ? new File(contextDir) : getDockerFile().getParentFile();
     }
 
-    public String getFilter() {
-        return filter;
-    }
-
-    public String getDockerFileRaw() {
-        return dockerFile;
-    }
 
     public String getContextDirRaw() {
         return contextDir;
     }
 
-    public Arguments getShell() {
-        return shell;
-    }
-
-    public String getDockerArchiveRaw() {
-        return dockerArchive;
-    }
 
     public String getDockerFileDirRaw() {
         return dockerFileDir;
@@ -184,36 +167,13 @@ public class BuildConfiguration implements Serializable {
         return from;
     }
 
-    public Map<String, String> getFromExt() {
-        return fromExt;
-    }
-
-    public String getRegistry() {
-        return registry;
-    }
-
-    public String getMaintainer() {
-        return maintainer;
-    }
-
-    public String getWorkdir() {
-        return workdir;
-    }
 
     public AssemblyConfiguration getAssemblyConfiguration() {
         return assembly;
     }
 
-    public void setAssembly(AssemblyConfiguration assembly) {
-        this.assembly = assembly;
-    }
-
     public List<String> getPorts() {
         return removeEmptyEntries(ports);
-    }
-
-    public String getImagePullPolicy() {
-        return imagePullPolicy;
     }
 
     public List<String> getVolumes() {
@@ -224,18 +184,6 @@ public class BuildConfiguration implements Serializable {
         return removeEmptyEntries(tags);
     }
 
-    public Map<String, String> getEnv() {
-        return env;
-    }
-
-    public Map<String, String> getLabels() {
-        return labels;
-    }
-
-    public Arguments getCmd() {
-        return cmd;
-    }
-
     public String getCleanupMode() {
         return cleanup;
     }
@@ -244,52 +192,26 @@ public class BuildConfiguration implements Serializable {
         return nocache;
     }
 
-    public Boolean getOptimise() {
-        return optimise;
-    }
 
     public Boolean getSkip() {
-        return skip != null ? skip : false;
+        return Optional.ofNullable(skip).orElse(false);
     }
 
     public ArchiveCompression getCompression() {
-        return compression;
-    }
-
-    public Map<String, String> getBuildOptions() {
-        return buildOptions;
-    }
-
-    public Arguments getEntryPoint() {
-        return entryPoint;
+        return Optional.ofNullable(compression).orElse(ArchiveCompression.none);
     }
 
     public List<String> getRunCmds() {
         return removeEmptyEntries(runCmds);
     }
 
-    public String getUser() {
-      return user;
-    }
-
-    public HealthCheckConfiguration getHealthCheck() {
-        return healthCheck;
-    }
-
-    public Map<String, String> getArgs() {
-        return args;
-    }
 
     public boolean optimise() {
-        return optimise != null ? optimise : false;
-    }
-
-    public String getCleanup() {
-        return cleanup;
+        return Optional.ofNullable(optimise).orElse(false);
     }
 
     public boolean nocache() {
-        return nocache != null ? nocache : false;
+        return Optional.ofNullable(nocache).orElse(false);
     }
 
     public CleanupMode cleanupMode() {
@@ -308,196 +230,6 @@ public class BuildConfiguration implements Serializable {
     public File getAbsoluteDockerTarPath(String sourceDirectory, String projectBaseDir) {
         return EnvUtil.prepareAbsoluteSourceDirPath(sourceDirectory, projectBaseDir, getDockerArchive().getPath());
     }
-
-
-    // ===========================================================================================
-    public static class Builder {
-
-        protected BuildConfiguration config;
-
-        public Builder() {
-            this(null);
-        }
-
-        public Builder(BuildConfiguration that) {
-            if (that == null) {
-                this.config = new BuildConfiguration();
-            } else {
-                this.config = SerializationUtils.clone(that);
-            }
-        }
-
-        public Builder contextDir(String dir) {
-            config.contextDir = dir;
-            return this;
-        }
-
-        public Builder dockerFile(String file) {
-            config.dockerFile = file;
-            return this;
-        }
-
-        public Builder dockerArchive(String archive) {
-            config.dockerArchive = archive;
-            return this;
-        }
-
-        public Builder dockerFileDir(String dir) {
-            config.dockerFileDir = dir;
-            return this;
-        }
-
-        public Builder dockerFileFile(File dockerFile) {
-            config.dockerFileFile = dockerFile;
-            return this;
-        }
-
-        public Builder filter(String filter) {
-            config.filter = filter;
-            return this;
-        }
-
-        public Builder from(String from) {
-            config.from = from;
-            return this;
-        }
-
-        public Builder fromExt(Map<String, String> fromExt) {
-            config.fromExt = fromExt;
-            return this;
-        }
-
-        public Builder registry(String registry) {
-            config.registry = registry;
-            return this;
-        }
-
-        public Builder maintainer(String maintainer) {
-            config.maintainer = maintainer;
-            return this;
-        }
-
-        public Builder workdir(String workdir) {
-            config.workdir = workdir;
-            return this;
-        }
-
-        public Builder assembly(AssemblyConfiguration assembly) {
-            config.assembly = assembly;
-            return this;
-        }
-
-        public Builder ports(List<String> ports) {
-            config.ports = ports;
-            return this;
-        }
-
-        public Builder imagePullPolicy(String imagePullPolicy) {
-            config.imagePullPolicy = imagePullPolicy;
-            return this;
-        }
-
-        public Builder runCmds(List<String> theCmds) {
-            config.runCmds = theCmds;
-            return this;
-        }
-
-        public Builder volumes(List<String> volumes) {
-            config.volumes = volumes;
-            return this;
-        }
-
-        public Builder tags(List<String> tags) {
-            config.tags = tags;
-            return this;
-        }
-
-        public Builder env(Map<String, String> env) {
-            config.env = env;
-            return this;
-        }
-
-        public Builder args(Map<String, String> args) {
-            config.args = args;
-            return this;
-        }
-
-        public Builder labels(Map<String, String> labels) {
-            config.labels = labels;
-            return this;
-        }
-
-        public Builder cmd(Arguments cmd) {
-            if (cmd != null) {
-                config.cmd = cmd;
-            }
-            return this;
-        }
-
-        public Builder cleanup(String cleanup) {
-            config.cleanup = cleanup;
-            return this;
-        }
-
-        public Builder compression(String compression) {
-            if (compression == null) {
-                config.compression = null;
-            } else {
-                config.compression = ArchiveCompression.valueOf(compression);
-            }
-            return this;
-        }
-
-        public Builder nocache(Boolean nocache) {
-            config.nocache = nocache;
-            return this;
-        }
-
-        public Builder optimise(Boolean optimise) {
-            config.optimise = optimise;
-            return this;
-        }
-
-        public Builder entryPoint(Arguments entryPoint) {
-            if (entryPoint != null) {
-                config.entryPoint = entryPoint;
-            }
-            return this;
-        }
-
-        public Builder user(String user) {
-            config.user = user;
-            return this;
-        }
-
-        public Builder healthCheck(HealthCheckConfiguration healthCheck) {
-            config.healthCheck = healthCheck;
-            return this;
-        }
-
-        public Builder skip(Boolean skip) {
-            config.skip = skip;
-            return this;
-        }
-
-        public Builder buildOptions(Map<String,String> buildOptions) {
-            config.buildOptions = buildOptions;
-            return this;
-        }
-
-        public Builder shell(Arguments shell) {
-            if(shell != null) {
-                config.shell = shell;
-            }
-
-            return this;
-        }
-
-        public BuildConfiguration build() {
-            return config;
-        }
-    }
-
 
     public String initAndValidate(KitLogger log) {
         if (entryPoint != null) {
@@ -639,13 +371,15 @@ public class BuildConfiguration implements Serializable {
         throw new IllegalArgumentException("Can't calculate a docker file path if neither dockerFile nor contextDir is specified");
     }
 
-    // ===============================================================================================================
-
-    private List<String> removeEmptyEntries(List<String> list) {
-        if (list == null) {
-            return Collections.emptyList();
+    public static class BuildConfigurationBuilder {
+        public BuildConfigurationBuilder compressionString(String compressionString) {
+            compression = Optional.ofNullable(compressionString).map(ArchiveCompression::valueOf).orElse(null);
+            return this;
         }
-        return list.stream()
+    }
+
+    private static List<String> removeEmptyEntries(List<String> list) {
+        return Optional.ofNullable(list).orElse(Collections.emptyList()).stream()
                    .filter(Objects::nonNull)
                    .map(String::trim)
                    .filter(s -> !s.isEmpty())
@@ -661,7 +395,7 @@ public class BuildConfiguration implements Serializable {
      * @param filename the filename
      * @return filename is a valid Windows filename
      */
-    boolean isValidWindowsFileName(String filename) {
+    static boolean isValidWindowsFileName(String filename) {
         Pattern pattern = Pattern.compile(
             "# Match a valid Windows filename (unspecified file system).          \n" +
             "^                                # Anchor to start of string.        \n" +

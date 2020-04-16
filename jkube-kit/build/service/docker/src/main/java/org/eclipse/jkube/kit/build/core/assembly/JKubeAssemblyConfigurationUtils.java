@@ -36,7 +36,7 @@ public class JKubeAssemblyConfigurationUtils {
   static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(BuildConfiguration buildConfiguration) {
     return Optional.ofNullable(buildConfiguration)
       .map(BuildConfiguration::getAssemblyConfiguration)
-      .orElse(new AssemblyConfiguration.Builder().targetDir(DEFAULT_TARGET_DIR).user(DEFAULT_USER).build());
+      .orElse(AssemblyConfiguration.builder().targetDir(DEFAULT_TARGET_DIR).user(DEFAULT_USER).build());
   }
 
   static List<AssemblyFileSet> getJKubeAssemblyFileSets(AssemblyConfiguration configuration) {
