@@ -152,7 +152,7 @@ public class DebugMojo extends ApplyMojo {
             }
 
             String podName = waitForRunningPodWithEnvVar(kubernetes, namespace, firstSelector, envVars);
-            portForward(podName);
+            portForward(podName, namespace);
         }
     }
 
@@ -235,9 +235,9 @@ public class DebugMojo extends ApplyMojo {
     }
 
 
-    private void portForward(String podName) throws MojoExecutionException {
+    private void portForward(String podName, String namespace) throws MojoExecutionException {
         try {
-            portForwardService.forwardPort(createExternalProcessLogger("[[B]]port-forward[[B]] "), podName, portToInt(remoteDebugPort, "remoteDebugPort"), portToInt(localDebugPort, "localDebugPort"));
+            portForwardService.forwardPort(createExternalProcessLogger("[[B]]port-forward[[B]] "), podName, namespace, portToInt(remoteDebugPort, "remoteDebugPort"), portToInt(localDebugPort, "localDebugPort"));
 
             log.info("");
             log.info("Now you can start a Remote debug execution in your IDE by using localhost and the debug port " + localDebugPort);

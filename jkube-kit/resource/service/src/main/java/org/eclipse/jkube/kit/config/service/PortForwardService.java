@@ -96,7 +96,7 @@ public class PortForwardService {
 
                                 if (nextPod != null) {
                                     log.info("Starting port-forward to pod %s", KubernetesHelper.getName(nextPod));
-                                    currentPortForward = forwardPortAsync(externalProcessKitLogger, KubernetesHelper.getName(nextPod), remotePort, localPort);
+                                    currentPortForward = forwardPortAsync(externalProcessKitLogger, KubernetesHelper.getName(nextPod), null, remotePort, localPort);
                                 } else {
                                     log.info("Waiting for a pod to become ready before starting port-forward");
                                 }
@@ -220,11 +220,11 @@ public class PortForwardService {
         return targetPod;
     }
 
-    public void forwardPort(KitLogger externalProcessKitLogger, String pod, int remotePort, int localPort) throws JKubeServiceException {
-        forwardPortAsync(externalProcessKitLogger, pod, remotePort, localPort).await();
+    public void forwardPort(KitLogger externalProcessKitLogger, String pod, String namespace, int remotePort, int localPort) throws JKubeServiceException {
+        forwardPortAsync(externalProcessKitLogger, pod, namespace, remotePort, localPort).await();
     }
 
-    public ProcessUtil.ProcessExecutionContext forwardPortAsync(KitLogger externalProcessKitLogger, String pod, int remotePort, int localPort) throws JKubeServiceException {
+    public ProcessUtil.ProcessExecutionContext forwardPortAsync(KitLogger externalProcessKitLogger, String pod, String namespace, int remotePort, int localPort) throws JKubeServiceException {
         File command = clientToolsService.getKubeCtlExecutable(OpenshiftHelper.isOpenShiftClient(kubernetes));
         log.info("Port forwarding to port " + remotePort + " on pod " + pod + " using command " + command);
 
@@ -232,6 +232,9 @@ public class PortForwardService {
         args.add("port-forward");
         args.add(pod);
         args.add(localPort + ":" + remotePort);
+        if (namespace != null) {
+            args.add("-n" + namespace);
+        }
 
         String commandLine = command + " " + StringUtils.join(args, " ");
         log.verbose("Executing command " + commandLine);
