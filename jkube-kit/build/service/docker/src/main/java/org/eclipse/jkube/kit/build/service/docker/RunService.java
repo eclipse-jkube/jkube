@@ -69,7 +69,7 @@ public class RunService {
     private KitLogger log;
 
     // Action to be used when doing a shutdown
-    final private ContainerTracker tracker;
+    private final ContainerTracker tracker;
 
     // DAO for accessing the docker daemon
     private DockerAccess docker;
@@ -360,7 +360,7 @@ public class RunService {
                 .memory(runConfig.getMemory())
                 .memorySwap(runConfig.getMemorySwap())
                 .restartPolicy(restartPolicy.getName(), restartPolicy.getRetry())
-                .logConfig(runConfig.getLogConfiguration())
+                .logConfig(runConfig.getLog())
                 .tmpfs(runConfig.getTmpfs())
                 .ulimits(runConfig.getUlimits())
                 .cpuShares(runConfig.getCpuShares())

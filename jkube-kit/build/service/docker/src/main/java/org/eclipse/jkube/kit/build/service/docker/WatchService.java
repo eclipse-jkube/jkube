@@ -19,12 +19,20 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.core.GavLabel;
+import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
+import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
@@ -241,7 +249,7 @@ public class WatchService {
             runService.stopPreviouslyStartedContainer(id, false, false);
 
             // Start new one
-            StartContainerExecutor helper = new StartContainerExecutor.Builder()
+            StartContainerExecutor helper = StartContainerExecutor.builder()
                     .dispatcher(watcher.watchContext.dispatcher)
                     .follow(watcher.watchContext.follow)
                     .log(log)
@@ -250,11 +258,11 @@ public class WatchService {
                     .projectProperties(watcher.watchContext.buildContext.getProject().getProperties())
                     .basedir(watcher.watchContext.buildContext.getProject().getBaseDirectory())
                     .imageConfig(imageConfig)
-                    .serviceHub(watcher.watchContext.hub)
+                    .hub(watcher.watchContext.hub)
                     .logOutputSpecFactory(watcher.watchContext.serviceHubFactory.getLogOutputSpecFactory())
                     .showLogs(watcher.watchContext.showLogs)
                     .containerNamePattern(watcher.watchContext.containerNamePattern)
-                    .buildTimestamp(watcher.watchContext.buildTimestamp)
+                    .buildDate(watcher.watchContext.buildTimestamp)
                     .build();
 
             String containerId = helper.startContainers();
@@ -264,12 +272,11 @@ public class WatchService {
     }
 
     private String getPreStopCommand(ImageConfiguration imageConfig) {
-        if (imageConfig.getRunConfiguration() != null &&
-                imageConfig.getRunConfiguration().getWaitConfiguration() != null &&
-                imageConfig.getRunConfiguration().getWaitConfiguration().getExec() != null) {
-            return imageConfig.getRunConfiguration().getWaitConfiguration().getExec().getPreStop();
-        }
-        return null;
+        return Optional.ofNullable(imageConfig.getRunConfiguration())
+            .map(RunImageConfiguration::getWait)
+            .map(WaitConfiguration::getExec)
+            .map(WaitConfiguration.ExecConfiguration::getPreStop)
+            .orElse(null);
     }
 
     // ===============================================================================================================
@@ -382,209 +389,34 @@ public class WatchService {
     /**
      * Context class to hold the watch configuration
      */
+    @Builder(toBuilder = true)
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @EqualsAndHashCode
     public static class WatchContext implements Serializable {
 
         private JKubeConfiguration buildContext;
-
         private WatchMode watchMode;
-
         private int watchInterval;
-
         private boolean keepRunning;
-
         private String watchPostGoal;
-
         private String watchPostExec;
-
         private GavLabel gavLabel;
-
         private boolean keepContainer;
-
         private boolean removeVolumes;
-
         private boolean autoCreateCustomNetworks;
-
         private Task<ImageConfiguration> imageCustomizer;
-
         private Task<ImageWatcher> containerRestarter;
 
         private transient ServiceHub hub;
         private transient ServiceHubFactory serviceHubFactory;
         private transient LogDispatcher dispatcher;
+
         private boolean follow;
         private String showLogs;
-
         private Date buildTimestamp;
-
         private String containerNamePattern;
 
-        public JKubeConfiguration getBuildContext() {
-            return buildContext;
-        }
-
-        public WatchMode getWatchMode() {
-            return watchMode;
-        }
-
-        public int getWatchInterval() {
-            return watchInterval;
-        }
-
-        public boolean isKeepRunning() {
-            return keepRunning;
-        }
-
-        public String getWatchPostGoal() {
-            return watchPostGoal;
-        }
-
-        public String getWatchPostExec() {
-            return watchPostExec;
-        }
-
-        public GavLabel getGavLabel() {
-            return gavLabel;
-        }
-
-        public boolean isKeepContainer() {
-            return keepContainer;
-        }
-
-        public boolean isRemoveVolumes() {
-            return removeVolumes;
-        }
-
-        public boolean isAutoCreateCustomNetworks() {
-            return autoCreateCustomNetworks;
-        }
-
-        public Task<ImageConfiguration> getImageCustomizer() {
-            return imageCustomizer;
-        }
-
-        public Task<ImageWatcher> getContainerRestarter() {
-            return containerRestarter;
-        }
-
-        public Date getBuildTimestamp() {
-            return buildTimestamp;
-        }
-
-        public String getContainerNamePattern() {
-            return containerNamePattern;
-        }
-
-        public static class Builder {
-
-            private WatchContext context;
-
-            public Builder() {
-                this.context = new WatchContext();
-            }
-
-            public Builder(WatchContext context) {
-                this.context = context;
-            }
-
-            public Builder buildContext(JKubeConfiguration buildContext) {
-                context.buildContext = buildContext;
-                return this;
-            }
-
-            public Builder watchMode(WatchMode watchMode) {
-                context.watchMode = watchMode;
-                return this;
-            }
-
-            public Builder watchInterval(int watchInterval) {
-                context.watchInterval = watchInterval;
-                return this;
-            }
-
-            public Builder keepRunning(boolean keepRunning) {
-                context.keepRunning = keepRunning;
-                return this;
-            }
-
-            public Builder watchPostGoal(String watchPostGoal) {
-                context.watchPostGoal = watchPostGoal;
-                return this;
-            }
-
-            public Builder watchPostExec(String watchPostExec) {
-                context.watchPostExec = watchPostExec;
-                return this;
-            }
-
-            public Builder pomLabel(GavLabel gavLabel) {
-                context.gavLabel = gavLabel;
-                return this;
-            }
-
-            public Builder keepContainer(boolean keepContainer) {
-                context.keepContainer = keepContainer;
-                return this;
-            }
-
-            public Builder removeVolumes(boolean removeVolumes) {
-                context.removeVolumes = removeVolumes;
-                return this;
-            }
-
-            public Builder imageCustomizer(Task<ImageConfiguration> imageCustomizer) {
-                context.imageCustomizer = imageCustomizer;
-                return this;
-            }
-
-            public Builder containerRestarter(Task<ImageWatcher> containerRestarter) {
-                context.containerRestarter = containerRestarter;
-                return this;
-            }
-
-            public Builder autoCreateCustomNetworks(boolean autoCreateCustomNetworks) {
-                context.autoCreateCustomNetworks = autoCreateCustomNetworks;
-                return this;
-            }
-
-            public Builder follow(boolean follow) {
-                context.follow = follow;
-                return this;
-            }
-
-            public Builder showLogs(String showLogs) {
-                context.showLogs = showLogs;
-                return this;
-            }
-
-            public Builder hub(ServiceHub hub){
-                context.hub = hub;
-                return this;
-            }
-
-            public Builder serviceHubFactory(ServiceHubFactory serviceHubFactory){
-                context.serviceHubFactory = serviceHubFactory;
-                return this;
-            }
-
-            public Builder dispatcher(LogDispatcher dispatcher){
-                context.dispatcher = dispatcher;
-                return this;
-            }
-
-            public Builder buildTimestamp(Date buildTimestamp) {
-                context.buildTimestamp = buildTimestamp;
-                return this;
-            }
-
-            public Builder containerNamePattern(String containerNamePattern) {
-                context.containerNamePattern = containerNamePattern;
-                return this;
-            }
-
-
-            public WatchContext build() {
-                return context;
-            }
-        }
     }
 }

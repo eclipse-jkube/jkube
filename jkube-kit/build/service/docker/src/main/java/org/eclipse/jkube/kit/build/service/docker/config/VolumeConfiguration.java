@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
 
 import java.io.Serializable;
@@ -25,72 +30,33 @@ import java.util.Map;
  *  @author Tom Burton
  *  @version Dec 15, 2016
  */
-public class VolumeConfiguration implements Serializable
-{
-    /** Volume Name */
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode
+public class VolumeConfiguration implements Serializable {
+
+    private static final long serialVersionUID = -310412541839312313L;
+
+    /**
+     * Volume Name
+     */
     private String name;
 
-    /** Volume driver for mounting the volume */
+    /**
+     * Volume driver for mounting the volume
+     */
     private String driver;
 
-    /** Driver specific options */
+    /**
+     * Driver specific options
+     */
     private Map<String, String> opts;
 
-    /** Volume labels */
+    /**
+     * Volume labels
+     */
     private Map<String, String> labels;
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDriver() {
-        return driver;
-    }
-
-    public Map<String, String> getOpts() {
-        return opts;
-    }
-
-    public Map<String, String> getLabels() {
-        return labels;
-    }
-
-    // =============================================================================
-
-    public static class Builder {
-        private final VolumeConfiguration config;
-
-        public Builder()  {
-            this(null);
-        }
-
-        public Builder(VolumeConfiguration that) {
-            this.config = that == null ? new VolumeConfiguration() : DeepCopy.copy(that);
-        }
-
-        public Builder name(String name) {
-            config.name = name;
-            return this;
-        }
-
-        public Builder driver(String driver) {
-            config.driver = driver;
-            return this;
-        }
-
-        public Builder opts(Map<String, String> opts) {
-            config.opts = opts;
-            return this;
-        }
-
-        public Builder labels(Map<String, String> labels) {
-            config.labels = labels;
-            return this;
-        }
-
-        public VolumeConfiguration build() {
-            return config;
-        }
-    }
 
 }

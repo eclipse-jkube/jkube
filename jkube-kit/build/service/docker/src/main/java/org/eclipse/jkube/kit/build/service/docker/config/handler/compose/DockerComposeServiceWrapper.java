@@ -176,8 +176,8 @@ class DockerComposeServiceWrapper {
             throwIllegalArgumentException("'logging' has to be a map and not " + logConfig.getClass());
         }
         Map<String, Object> config = (Map<String, Object>) logConfig;
-        return new LogConfiguration.Builder()
-            .logDriverName((String) config.get("driver"))
+        return LogConfiguration.builder()
+            .driverName((String) config.get("driver"))
             .logDriverOpts((Map<String, String>) config.get("options"))
             .build();
     }
@@ -185,7 +185,7 @@ class DockerComposeServiceWrapper {
     NetworkConfig getNetworkConfig() {
         String net = asString("network_mode");
         if (net != null) {
-            return new NetworkConfig(net);
+            return NetworkConfig.fromLegacyNetSpec(net);
         }
         Object networks = asObject("networks");
         if (networks == null) {
@@ -280,23 +280,23 @@ class DockerComposeServiceWrapper {
     }
 
     RunVolumeConfiguration getVolumeConfig() {
-        RunVolumeConfiguration.Builder builder = new RunVolumeConfiguration.Builder();
+        RunVolumeConfiguration.RunVolumeConfigurationBuilder builder = RunVolumeConfiguration.builder();
         List<String> volumes = asList("volumes");
         boolean added = false;
-        if (volumes.size() > 0) {
+        if (!volumes.isEmpty()) {
             builder.bind(volumes);
             added = true;
         }
         List<String> volumesFrom = asList("volumes_from");
-        if (volumesFrom.size() > 0) {
+        if (!volumesFrom.isEmpty()) {
             builder.from(volumesFrom);
             added = true;
         }
 
         if (added) {
-            RunVolumeConfiguration configuration = builder.build();
-            VolumeBindingUtil.resolveRelativeVolumeBindings(baseDir, configuration);
-            return configuration;
+            final RunVolumeConfiguration runVolumeConfiguration = builder.build();
+            VolumeBindingUtil.resolveRelativeVolumeBindings(baseDir, runVolumeConfiguration);
+            return runVolumeConfiguration;
         }
 
         return null;
@@ -328,7 +328,7 @@ class DockerComposeServiceWrapper {
             return null;
         }
 
-        RestartPolicy.Builder builder = new RestartPolicy.Builder();
+        RestartPolicy.RestartPolicyBuilder builder = RestartPolicy.builder();
         if (restart.contains(":")) {
             String[] parts = restart.split(":", 2);
             builder.name(parts[0]).retry(Integer.valueOf(parts[1]));

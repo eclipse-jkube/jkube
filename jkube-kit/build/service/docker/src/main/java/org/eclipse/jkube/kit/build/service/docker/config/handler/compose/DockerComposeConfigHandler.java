@@ -100,13 +100,13 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
                                                        File composeParent,
                                                        ImageConfiguration unresolvedConfig,
                                                        DockerComposeConfiguration handlerConfig) {
-        ImageConfiguration.Builder builder = new ImageConfiguration.Builder()
+        ImageConfiguration.ImageConfigurationBuilder builder = ImageConfiguration.builder()
                 .name(getImageName(mapper, unresolvedConfig))
                 .alias(mapper.getAlias())
-                .buildConfig(createBuildImageConfiguration(mapper, composeParent, unresolvedConfig, handlerConfig))
-                .runConfig(createRunConfiguration(mapper, unresolvedConfig));
+                .build(createBuildImageConfiguration(mapper, composeParent, unresolvedConfig, handlerConfig))
+                .run(createRunConfiguration(mapper, unresolvedConfig));
         if (serviceMatchesAlias(mapper, unresolvedConfig)) {
-            builder.watchConfig(DeepCopy.copy(unresolvedConfig.getWatchConfiguration()));
+            builder.watch(DeepCopy.copy(unresolvedConfig.getWatchConfiguration()));
         }
         return builder.build();
     }
@@ -158,10 +158,10 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
     }
 
     private RunImageConfiguration createRunConfiguration(DockerComposeServiceWrapper wrapper, ImageConfiguration imageConfig) {
-        RunImageConfiguration.Builder builder =
+        RunImageConfiguration.RunImageConfigurationBuilder builder =
             serviceMatchesAlias(wrapper, imageConfig) ?
-                new RunImageConfiguration.Builder(imageConfig.getRunConfiguration()) :
-                new RunImageConfiguration.Builder();
+                imageConfig.getRunConfiguration().toBuilder() :
+                RunImageConfiguration.builder();
         return builder
                 .capAdd(wrapper.getCapAdd())
                 .capDrop(wrapper.getCapDrop())

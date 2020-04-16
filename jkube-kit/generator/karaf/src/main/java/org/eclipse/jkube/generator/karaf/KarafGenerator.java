@@ -47,7 +47,7 @@ public class KarafGenerator extends BaseGenerator {
 
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
-        final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
+        final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
         final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
 
         buildBuilder.ports(extractPorts()).cmd(new Arguments(getConfig(Config.cmd)));
@@ -61,7 +61,7 @@ public class KarafGenerator extends BaseGenerator {
         imageBuilder
             .name(getImageName())
             .alias(getAlias())
-            .buildConfig(buildBuilder.build());
+            .build(buildBuilder.build());
         configs.add(imageBuilder.build());
         return configs;
     }

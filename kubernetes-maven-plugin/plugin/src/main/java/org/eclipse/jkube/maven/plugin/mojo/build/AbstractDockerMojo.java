@@ -490,7 +490,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     protected JKubeConfiguration initJKubeConfiguration() throws DependencyResolutionRequiredException {
         final JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         ConfigHelper.validateExternalPropertyActivation(javaProject, images);
-        return new JKubeConfiguration.Builder()
+        return JKubeConfiguration.builder()
             .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
             .sourceDirectory(sourceDirectory)
             .outputDirectory(outputDirectory)
@@ -575,7 +575,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     protected RegistryConfig getRegistryConfig(String specificRegistry) {
-        return new RegistryConfig.Builder()
+        return RegistryConfig.builder()
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                 .authConfig(authConfig != null ? authConfig.toMap() : null)
                 .authConfigFactory(authConfigFactory)
@@ -622,9 +622,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                 .dockerFile(dockerFile.getPath())
                 .build();
 
-        return new ImageConfiguration.Builder()
+        return ImageConfiguration.builder()
                 .name(name)
-                .buildConfig(buildConfig)
+                .build(buildConfig)
                 .build();
     }
 
@@ -632,7 +632,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         final BuildConfiguration buildConfig = new BuildConfiguration.Builder()
                 .dockerFile(dockerfile.getPath())
                 .build();
-        return new ImageConfiguration.Builder(image).buildConfig(buildConfig).build();
+        return image.toBuilder().build(buildConfig).build();
     }
 
     protected void logException(Exception exp) {
@@ -644,7 +644,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     protected DockerAccessFactory.DockerAccessContext getDockerAccessContext() {
-        return new DockerAccessFactory.DockerAccessContext.Builder()
+        return DockerAccessFactory.DockerAccessContext.builder()
                 .dockerHost(dockerHost)
                 .certPath(certPath)
                 .machine(machine)

@@ -13,13 +13,18 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
 import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.RunVolumeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.WatchImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
 import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -30,38 +35,37 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("JavaDoc")
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
 public class ImageConfiguration implements StartOrderResolver.Resolvable, Serializable {
-
-    private String name;
-
-    private String alias;
-
-    private RunImageConfiguration run;
-
-    private BuildConfiguration build;
-
-    private WatchImageConfiguration watch;
-
-    private Map<String,String> external;
-
-    private String registry;
-
-    // Used for injection
-    public ImageConfiguration() {}
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
     /**
      * Change the name which can be useful in long running runs e.g. for updating
      * images when doing updates. Use with caution and only for those circumstances.
      *
      * @param name image name to set.
      */
-    public void setName(String name) {
-        this.name = name;
+    private String name;
+    private String alias;
+    private RunImageConfiguration run;
+    private BuildConfiguration build;
+    private WatchImageConfiguration watch;
+    /**
+     * Override externalConfiguration when defined via special property.
+     *
+     * @param external Map with alternative config
+     */
+    private Map<String,String> external;
+    private String registry;
+
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     /**
@@ -152,15 +156,6 @@ public class ImageConfiguration implements StartOrderResolver.Resolvable, Serial
         return String.format("[%s] %s", new ImageName(name).getFullName(), (alias != null ? "\"" + alias + "\"" : "")).trim();
     }
 
-    public String getRegistry() {
-        return registry;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("ImageConfiguration {name='%s', alias='%s'}", name, alias);
-    }
-
     public String initAndValidate(ConfigHelper.NameFormatter nameFormatter, KitLogger log) {
         name = nameFormatter.format(name);
         String minimalApiVersion = null;
@@ -171,65 +166,5 @@ public class ImageConfiguration implements StartOrderResolver.Resolvable, Serial
             minimalApiVersion = EnvUtil.extractLargerVersion(minimalApiVersion, run.initAndValidate());
         }
         return minimalApiVersion;
-    }
-
-    // =========================================================================
-    // Builder for image configurations
-
-    public static class Builder {
-        private final ImageConfiguration config;
-
-        public Builder()  {
-            this(null);
-        }
-
-
-        public Builder(ImageConfiguration that) {
-            if (that == null) {
-                this.config = new ImageConfiguration();
-            } else {
-                this.config = DeepCopy.copy(that);
-            }
-        }
-
-        public Builder name(String name) {
-            config.name = name;
-            return this;
-        }
-
-        public Builder alias(String alias) {
-            config.alias = alias;
-            return this;
-        }
-
-        public Builder runConfig(RunImageConfiguration runConfig) {
-            config.run = runConfig;
-            return this;
-        }
-
-        public Builder buildConfig(BuildConfiguration buildConfig) {
-            config.build = buildConfig;
-            return this;
-        }
-
-        public Builder externalConfig(Map<String, String> externalConfig) {
-            config.external = externalConfig;
-            return this;
-        }
-
-        public Builder registry(String registry) {
-            config.registry = registry;
-            return this;
-        }
-
-
-        public Builder watchConfig(WatchImageConfiguration watchConfig) {
-            config.watch = watchConfig;
-            return this;
-        }
-
-        public ImageConfiguration build() {
-            return config;
-        }
     }
 }

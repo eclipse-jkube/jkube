@@ -88,8 +88,8 @@ public class ContainerHandlerTest {
         volumes2 = new ArrayList<>();
         buildImageConfiguration1 = new BuildConfiguration.Builder()
                 .from("fabric8/maven:latest").build();
-        imageConfiguration1 = new ImageConfiguration.Builder().
-                name("test").alias("test-app").buildConfig(buildImageConfiguration1).registry("docker.io").build();
+        imageConfiguration1 = ImageConfiguration.builder()
+                .name("test").alias("test-app").build(buildImageConfiguration1).registry("docker.io").build();
     }
 
     @Test
@@ -110,8 +110,8 @@ public class ContainerHandlerTest {
         final BuildConfiguration buildImageConfiguration = new BuildConfiguration.Builder()
                 .ports(ports).from("fabric8/maven:latest").cleanup("try").tags(tags).compression("gzip").build();
 
-        ImageConfiguration imageConfiguration = new ImageConfiguration.Builder().
-                name("docker.io/test/test-app:1.2").alias("test-app").buildConfig(buildImageConfiguration).registry("docker-alternate.io").build();
+        ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+                .name("docker.io/test/test-app:1.2").alias("test-app").build(buildImageConfiguration).registry("docker-alternate.io").build();
 
         images.clear();
         images.add(imageConfiguration);
@@ -171,9 +171,8 @@ public class ContainerHandlerTest {
             ContainerHandler handler = createContainerHandler(testProject);
 
             //container name with alias
-            ImageConfiguration imageConfiguration =
-                new ImageConfiguration.Builder()
-                    .buildConfig(buildImageConfiguration)
+            ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+                    .build(buildImageConfiguration)
                     .name(testData[i])
                     .registry(testData[i+1])
                     .build();
@@ -213,8 +212,8 @@ public class ContainerHandlerTest {
                 .ports(ports).from("fabric8/").cleanup("try").tags(tags)
                 .compression("gzip").dockerFile("testFile").dockerFileDir("/demo").build();
 
-        ImageConfiguration imageConfiguration = new ImageConfiguration.Builder().
-                name("test").buildConfig(buildImageConfiguration).registry("docker.io").build();
+        ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+                .name("test").build(buildImageConfiguration).registry("docker.io").build();
 
         images.clear();
         images.add(imageConfiguration);
@@ -243,8 +242,8 @@ public class ContainerHandlerTest {
                 .ports(ports).from("fabric8/").cleanup("try").tags(tags)
                 .compression("gzip").dockerFile("testFile").dockerFileDir("/demo").build();
 
-        ImageConfiguration imageConfiguration = new ImageConfiguration.Builder().
-                name("user/test:latest").buildConfig(buildImageConfiguration).registry("docker.io").build();
+        ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+                .name("user/test:latest").build(buildImageConfiguration).registry("docker.io").build();
 
         images.clear();
         images.add(imageConfiguration);
@@ -320,16 +319,16 @@ public class ContainerHandlerTest {
         ContainerHandler handler = createContainerHandler(project);
 
         //Image Configuration with name and without registry
-        ImageConfiguration imageConfiguration2 = new ImageConfiguration.Builder().
-                name("test").alias("test-app").buildConfig(buildImageConfiguration1).build();
+        ImageConfiguration imageConfiguration2 = ImageConfiguration.builder()
+                .name("test").alias("test-app").build(buildImageConfiguration1).build();
 
         //Image Configuration without name and with registry
-        ImageConfiguration imageConfiguration3 = new ImageConfiguration.Builder().
-                alias("test-app").buildConfig(buildImageConfiguration1).registry("docker.io").build();
+        ImageConfiguration imageConfiguration3 = ImageConfiguration.builder().
+                alias("test-app").build(buildImageConfiguration1).registry("docker.io").build();
 
         //Image Configuration without name and registry
-        ImageConfiguration imageConfiguration4 = new ImageConfiguration.Builder().
-                alias("test-app").buildConfig(buildImageConfiguration1).registry("docker.io").build();
+        ImageConfiguration imageConfiguration4 = ImageConfiguration.builder().
+                alias("test-app").build(buildImageConfiguration1).registry("docker.io").build();
 
         images.clear();
         images.add(imageConfiguration1);
@@ -349,8 +348,8 @@ public class ContainerHandlerTest {
     public void getRegistryTest() {
         ContainerHandler handler = createContainerHandler(project1);
 
-        ImageConfiguration imageConfig = new ImageConfiguration.Builder().
-                name("test").alias("test-app").buildConfig(buildImageConfiguration1).build();
+        ImageConfiguration imageConfig = ImageConfiguration.builder()
+                .name("test").alias("test-app").build(buildImageConfiguration1).build();
 
         images.clear();
         images.add(imageConfig);
@@ -480,8 +479,8 @@ public class ContainerHandlerTest {
         final BuildConfiguration buildImageConfiguration2 = new BuildConfiguration.Builder()
                 .from("fabric8/maven:latest").cleanup("try").compression("gzip").build();
 
-        ImageConfiguration imageConfiguration2 = new ImageConfiguration.Builder().
-                name("test").alias("test-app").buildConfig(buildImageConfiguration2).registry("docker.io").build();
+        ImageConfiguration imageConfiguration2 = ImageConfiguration.builder()
+                .name("test").alias("test-app").build(buildImageConfiguration2).registry("docker.io").build();
 
         images.clear();
         images.add(imageConfiguration2);
@@ -506,8 +505,8 @@ public class ContainerHandlerTest {
         buildImageConfiguration1 = new BuildConfiguration.Builder()
                 .ports(ports).from("fabric8/maven:latest").cleanup("try").compression("gzip").build();
 
-        imageConfiguration1 = new ImageConfiguration.Builder().
-                name("test").alias("test-app").buildConfig(buildImageConfiguration1).registry("docker.io").build();
+        imageConfiguration1 = ImageConfiguration.builder()
+                .name("test").alias("test-app").build(buildImageConfiguration1).registry("docker.io").build();
 
         images.clear();
         images.add(imageConfiguration1);

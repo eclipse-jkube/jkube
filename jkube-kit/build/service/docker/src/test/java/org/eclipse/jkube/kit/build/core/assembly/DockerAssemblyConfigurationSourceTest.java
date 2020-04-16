@@ -83,7 +83,7 @@ public class DockerAssemblyConfigurationSourceTest {
     }
 
     private JKubeConfiguration buildBuildContext(String sourceDir, String outputDir) {
-        return new JKubeConfiguration.Builder()
+        return JKubeConfiguration.builder()
                 .project(JavaProject.builder().buildDirectory(buildDirectory).build())
                 .sourceDirectory(sourceDir)
                 .outputDirectory(outputDir)
@@ -92,7 +92,7 @@ public class DockerAssemblyConfigurationSourceTest {
 
     @Test
     public void testEmptyAssemblyConfig() {
-        JKubeConfiguration buildContext = new JKubeConfiguration.Builder()
+        JKubeConfiguration buildContext = JKubeConfiguration.builder()
                 .sourceDirectory("/src/docker")
                 .outputDirectory("/output/docker")
                 .build();
@@ -138,7 +138,7 @@ public class DockerAssemblyConfigurationSourceTest {
         JavaProject project1 = JavaProject.builder().build();
         JavaProject project2 = JavaProject.builder().build();
 
-        JKubeConfiguration buildContext = new JKubeConfiguration.Builder()
+        JKubeConfiguration buildContext = JKubeConfiguration.builder()
                 .sourceDirectory("/src/docker")
                 .outputDirectory("/output/docker")
                 .reactorProjects(Arrays.asList(project1, project2))

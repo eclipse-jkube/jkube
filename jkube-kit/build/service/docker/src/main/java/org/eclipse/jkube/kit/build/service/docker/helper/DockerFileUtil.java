@@ -49,8 +49,10 @@ public class DockerFileUtil {
      * Extract the base images from a dockerfile. All lines containing a <code>FROM</code> is
      * taken.
      *
-     * @param dockerFile file from where to extract the base image
+     * @param dockerFile file from where to extract the base image.
+     * @param properties properties to interpolate in the provided dockerFile.
      * @return LinkedList of base images name or empty collection if none is found.
+     * @throws IOException if there's a problem while performin IO operations.
      */
     public static List<String> extractBaseImages(File dockerFile, Properties properties) throws IOException {
         List<String[]> fromLines = extractLines(dockerFile, "FROM", properties);
@@ -68,15 +70,17 @@ public class DockerFileUtil {
                 }
             }
         }
-        return result.stream().collect(Collectors.toList());
+        return new ArrayList<>(result);
     }
 
     /**
      * Extract all lines containing the given keyword
      *
-     * @param dockerFile dockerfile to examine
-     * @param keyword keyword to extract the lines for
-     * @return list of matched lines or an empty list
+     * @param dockerFile dockerfile to examine.
+     * @param keyword keyword to extract the lines for.
+     * @param properties properties to interpolate in the provided dockerFile.
+     * @return list of matched lines or an empty list.
+     * @throws IOException if there's a problem while performin IO operations.
      */
     public static List<String[]> extractLines(File dockerFile, String keyword, Properties properties) throws IOException {
         List<String[]> ret = new ArrayList<>();
@@ -96,9 +100,10 @@ public class DockerFileUtil {
     /**
      * Interpolate a docker file with the given properties and filter
      *
-     * @param dockerFile docker file to interpolate
+     * @param dockerFile docker file to interpolate.
+     * @param properties properties to interpolate in the provided dockerFile.
      * @return The interpolated contents of the file.
-     * @throws IOException
+     * @throws IOException if there's a problem while performin IO operations.
      */
     public static String interpolate(File dockerFile, Properties properties) throws IOException {
         StringBuilder ret = new StringBuilder();

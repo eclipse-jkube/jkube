@@ -70,8 +70,8 @@ public class ReplicationControllerHandlerTest {
                 .ports(ports).from("fabric8/maven:latest").cleanup("try")
                 .tags(tags).compression("gzip").build();
 
-        ImageConfiguration imageConfiguration = new ImageConfiguration.Builder().
-                name("test").alias("test-app").buildConfig(buildImageConfiguration)
+        ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+                .name("test").alias("test-app").build(buildImageConfiguration)
                 .registry("docker.io").build();
 
         images.add(imageConfiguration);

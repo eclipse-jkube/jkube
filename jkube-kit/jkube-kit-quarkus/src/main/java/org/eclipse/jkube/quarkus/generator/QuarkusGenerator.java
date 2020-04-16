@@ -64,11 +64,11 @@ public class QuarkusGenerator extends BaseGenerator {
 
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) {
-        ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder()
+        ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder()
             .name(getImageName())
             .registry(getRegistry())
             .alias(getAlias())
-            .buildConfig(createBuildConfig(prePackagePhase));
+            .build(createBuildConfig(prePackagePhase));
 
         existingConfigs.add(imageBuilder.build());
         return existingConfigs;

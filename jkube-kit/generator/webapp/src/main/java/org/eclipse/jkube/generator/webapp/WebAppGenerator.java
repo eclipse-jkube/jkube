@@ -86,7 +86,7 @@ public class WebAppGenerator extends BaseGenerator {
 
         log.info("Using %s as base image for webapp",handler.getFrom());
 
-        final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
+        final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
 
         final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
 
@@ -103,7 +103,7 @@ public class WebAppGenerator extends BaseGenerator {
         imageBuilder
             .name(getImageName())
             .alias(getAlias())
-            .buildConfig(buildBuilder.build());
+            .build(buildBuilder.build());
         configs.add(imageBuilder.build());
 
         return configs;
