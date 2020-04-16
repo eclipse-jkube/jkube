@@ -13,24 +13,42 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config;
 
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Network config encapsulating network specific configuration
  * @author roland
  * @since 29/07/16
  */
-
+@Getter
+@EqualsAndHashCode
 public class NetworkConfig implements Serializable {
 
-    private String name;
+    private final String name;
+    private final Mode mode;
+    private final List<String> aliases;
 
-    private Mode mode;
+    public NetworkConfig() {
+        this(null, null);
+    }
 
-    private List<String> aliases = new ArrayList<>();
+    public NetworkConfig(Mode mode, String name) {
+        this(null, null, null);
+    }
 
+    @Builder
+    public NetworkConfig(Mode mode, String name, List<String> aliases) {
+        this.name = name;
+        this.mode = mode;
+        this.aliases = Optional.ofNullable(aliases).orElse(new ArrayList<>());
+    }
     // Use by Maven to add flattened <alias> entries
     // See  http://blog.sonatype.com/2011/03/configuring-plugin-goals-in-maven-3/
     public void addAlias(String alias) {
@@ -41,38 +59,21 @@ public class NetworkConfig implements Serializable {
      * Legacy constructor using the ;&lt;net;&gt; config
      * @param net net, encapsulating mode and name.
      */
-    public NetworkConfig(String net) {
-        initLegacyNetSpec(net);
-    }
-
-
-    public NetworkConfig(Mode mode, String name) {
-        this.name = name;
-        this.mode = mode;
-    }
-
-    public NetworkConfig() {
-        name = null;
-        mode = null;
-    }
-
-    private void initLegacyNetSpec(String net) {
+    public static NetworkConfig fromLegacyNetSpec(String net) {
+        Mode mode = null;
+        String name = null;
         if (net != null) {
-            this.mode = extractMode(net);
-            if (this.mode == Mode.container) {
-                this.name = net.substring(Mode.container.name().length() + 1);
-            } else if (this.mode == Mode.custom) {
-                this.name = net;
-            } else {
-                this.name = null;
+            mode = extractMode(net);
+            if (mode == Mode.container) {
+                name = net.substring(Mode.container.name().length() + 1);
+            } else if (mode == Mode.custom) {
+                name = net;
             }
-        } else {
-            this.mode = null;
-            this.name = null;
         }
+        return new NetworkConfig(mode, name);
     }
 
-    private Mode extractMode(String mode) {
+    private static Mode extractMode(String mode) {
         if (mode != null && mode.length() > 0) {
             try {
                 return Mode.valueOf(mode.toLowerCase());
@@ -84,10 +85,6 @@ public class NetworkConfig implements Serializable {
             }
         }
         return null;
-    }
-
-    public List<String> getAliases() {
-        return aliases;
     }
 
     public boolean isCustomNetwork() {
@@ -121,15 +118,6 @@ public class NetworkConfig implements Serializable {
         return aliases != null && !aliases.isEmpty();
     }
 
-    public Mode getMode() {
-        return mode;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    // ==============================================================================
 
     // Mode used for determining the network
     public enum Mode {
@@ -140,37 +128,18 @@ public class NetworkConfig implements Serializable {
         custom;
     }
 
-    public static class Builder {
+    public static class NetworkConfigBuilder {
 
-        private final NetworkConfig config = new NetworkConfig();
-        private boolean isEmpty = true;
+        public NetworkConfigBuilder modeString(String modeString){
+            mode = Optional.ofNullable(modeString).map(Mode::valueOf).orElse(null);
+            return this;
+        }
 
         public NetworkConfig build() {
-            return isEmpty ? null : config;
+            return mode == null && name == null && aliases == null ?
+                null : new NetworkConfig(mode, name, aliases);
         }
 
-        public Builder mode(String mode) {
-            config.mode = set(mode != null ? Mode.valueOf(mode) : null);
-            return this;
-        }
-
-        public Builder name(String name) {
-            config.name = set(name);
-            return this;
-        }
-
-
-        public Builder aliases(List<String> aliases) {
-            config.aliases = set(aliases);
-            return this;
-        }
-
-        private <T> T set(T prop) {
-            if (prop != null) {
-                isEmpty = false;
-            }
-            return prop;
-        }
     }
 }
 

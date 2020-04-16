@@ -13,87 +13,45 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config;
 
-import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * Configuration for watching on image changes
  */
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode
 public class WatchImageConfiguration implements Serializable {
 
-    private Integer interval;
+  private static final long serialVersionUID = -8837447095092135706L;
 
-    private WatchMode mode;
+  private Integer interval;
+  private WatchMode mode;
+  private String postGoal;
+  private String postExec;
 
-    private String postGoal;
+  public int getInterval() {
+    return interval != null ? interval : 5000;
+  }
 
-    private String postExec;
+  public Integer getIntervalRaw() {
+    return interval;
+  }
 
-    public WatchImageConfiguration() {};
-
-    public int getInterval() {
-        return interval != null ? interval : 5000;
+  public static class WatchImageConfigurationBuilder {
+    public WatchImageConfigurationBuilder modeString(String modeString) {
+      mode = Optional.ofNullable(modeString).map(String::toLowerCase).map(WatchMode::valueOf).orElse(null);
+      return this;
     }
-
-    public Integer getIntervalRaw() {
-        return interval;
-    }
-
-    public WatchMode getMode() {
-        return mode;
-    }
-
-    public String getPostGoal() {
-        return postGoal;
-    }
-
-    public String getPostExec() {
-        return postExec;
-    }
-
-    public static class Builder {
-
-        private final WatchImageConfiguration c;
-
-        public Builder() {
-            this(null);
-        }
-
-        public Builder(WatchImageConfiguration that) {
-            if (that == null) {
-                this.c = new WatchImageConfiguration();
-            } else {
-                this.c = DeepCopy.copy(that);
-            }
-        }
-
-        public Builder interval(Integer interval) {
-            c.interval = interval;
-            return this;
-        }
-
-        public Builder mode(String mode) {
-            if (mode != null) {
-                c.mode = WatchMode.valueOf(mode.toLowerCase());
-            }
-            return this;
-        }
-
-        public Builder postGoal(String goal) {
-            c.postGoal = goal;
-            return this;
-        }
-
-        public Builder postExec(String exec) {
-            c.postExec = exec;
-            return this;
-        }
-
-        public WatchImageConfiguration build() {
-            return c;
-        }
-    }
-
+  }
 
 }

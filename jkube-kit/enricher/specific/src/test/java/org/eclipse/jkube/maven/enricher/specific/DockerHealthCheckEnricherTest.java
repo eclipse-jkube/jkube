@@ -51,9 +51,9 @@ public class DockerHealthCheckEnricherTest {
     public void testEnrichFromSingleImage() throws Exception {
         // Setup mock behaviour
         new Expectations() {{
-            List<ImageConfiguration> images =  Arrays.asList(new ImageConfiguration.Builder()
+            List<ImageConfiguration> images =  Arrays.asList(ImageConfiguration.builder()
                             .alias("myImage")
-                            .buildConfig(new BuildConfiguration.Builder()
+                            .build(new BuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/bin/check"))
@@ -63,9 +63,9 @@ public class DockerHealthCheckEnricherTest {
                                             .build())
                                     .build())
                             .build(),
-                                                   new ImageConfiguration.Builder()
+                ImageConfiguration.builder()
                             .alias("myImage2")
-                            .buildConfig(new BuildConfiguration.Builder()
+                            .build(new BuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/xxx/check"))
@@ -94,9 +94,9 @@ public class DockerHealthCheckEnricherTest {
     public void testEnrichFromDoubleImage() throws Exception {
         // Setup mock behaviour
         new Expectations() {{
-            List<ImageConfiguration> images = Arrays.asList(new ImageConfiguration.Builder()
+            List<ImageConfiguration> images = Arrays.asList(ImageConfiguration.builder()
                             .alias("myImage")
-                            .buildConfig(new BuildConfiguration.Builder()
+                            .build(new BuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/bin/check"))
@@ -106,9 +106,9 @@ public class DockerHealthCheckEnricherTest {
                                             .build())
                                     .build())
                             .build(),
-                    new ImageConfiguration.Builder()
+                ImageConfiguration.builder()
                             .alias("myImage2")
-                            .buildConfig(new BuildConfiguration.Builder()
+                            .build(new BuildConfiguration.Builder()
                                     .healthCheck(new HealthCheckConfiguration.Builder()
                                             .mode(HealthCheckMode.cmd)
                                             .cmd(new Arguments("/xxx/check"))
@@ -142,9 +142,9 @@ public class DockerHealthCheckEnricherTest {
     public void testInvalidHealthCheck() throws Exception {
         // Setup mock behaviour
         new Expectations() {{
-            List<ImageConfiguration> images = Arrays.asList(new ImageConfiguration.Builder()
+            List<ImageConfiguration> images = Arrays.asList(ImageConfiguration.builder()
                     .alias("myImage")
-                    .buildConfig(new BuildConfiguration.Builder()
+                    .build(new BuildConfiguration.Builder()
                             .healthCheck(new HealthCheckConfiguration.Builder()
                                     .mode(HealthCheckMode.none)
                                     .build())
@@ -168,9 +168,9 @@ public class DockerHealthCheckEnricherTest {
     public void testUnmatchingHealthCheck() throws Exception {
         // Setup mock behaviour
         new Expectations() {{
-            List<ImageConfiguration> images = Arrays.asList(new ImageConfiguration.Builder()
+            List<ImageConfiguration> images = Arrays.asList(ImageConfiguration.builder()
                     .alias("myImage")
-                    .buildConfig(new BuildConfiguration.Builder()
+                    .build(new BuildConfiguration.Builder()
                             .healthCheck(new HealthCheckConfiguration.Builder()
                                     .mode(HealthCheckMode.cmd)
                                     .cmd(new Arguments("/bin/check"))

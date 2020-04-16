@@ -109,7 +109,7 @@ public class JavaExecGenerator extends BaseGenerator {
 
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
-        final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
+        final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
         final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
 
         buildBuilder.ports(extractPorts());
@@ -129,7 +129,7 @@ public class JavaExecGenerator extends BaseGenerator {
                 .name(getImageName())
                 .registry(getRegistry())
                 .alias(getAlias())
-                .buildConfig(buildBuilder.build());
+                .build(buildBuilder.build());
         configs.add(imageBuilder.build());
         return configs;
     }

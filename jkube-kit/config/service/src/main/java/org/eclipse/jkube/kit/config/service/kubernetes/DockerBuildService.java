@@ -32,7 +32,7 @@ public class DockerBuildService implements BuildService {
 
     public DockerBuildService(JKubeServiceHub jKubeServiceHub) {
         Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub(), "dockerServiceHub");
-        Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(), "config");
+        Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(), "BuildServiceConfig is required");
         this.jKubeServiceHub = jKubeServiceHub;
     }
 

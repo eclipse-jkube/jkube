@@ -44,9 +44,9 @@ public class DockerBuildServiceTest {
         // @formatter:on
 
         final String imageName = "image-name";
-        final ImageConfiguration image = new ImageConfiguration.Builder()
+        final ImageConfiguration image = ImageConfiguration.builder()
                 .name(imageName)
-                .buildConfig(new BuildConfiguration.Builder()
+                .build(new BuildConfiguration.Builder()
                         .from("from")
                         .build()
                 ).build();

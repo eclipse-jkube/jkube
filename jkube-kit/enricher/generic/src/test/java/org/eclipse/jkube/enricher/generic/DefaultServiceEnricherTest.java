@@ -184,11 +184,11 @@ public class DefaultServiceEnricherTest {
 
     @Test
     public void serviceImageLabelEnrichment() throws Exception {
-        ImageConfiguration imageConfigurationWithLabels = new ImageConfiguration.Builder()
+        ImageConfiguration imageConfigurationWithLabels = ImageConfiguration.builder()
                 .name("test-label")
                 .alias("test")
                 .build();
-        final TreeMap config = new TreeMap();
+        final TreeMap<String, String> config = new TreeMap<>();
         config.put("type", "LoadBalancer");
 
         new Expectations() {{

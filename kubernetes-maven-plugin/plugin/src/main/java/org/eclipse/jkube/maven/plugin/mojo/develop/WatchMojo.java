@@ -183,7 +183,7 @@ public class WatchMojo extends AbstractDockerMojo {
 
     protected WatchService.WatchContext getWatchContext() throws IOException, DependencyResolutionRequiredException {
         final ServiceHub hub = jkubeServiceHub.getDockerServiceHub();
-        return new WatchService.WatchContext.Builder()
+        return WatchService.WatchContext.builder()
                 .watchInterval(watchInterval)
                 .watchMode(watchMode)
                 .watchPostGoal(watchPostGoal)
@@ -194,7 +194,7 @@ public class WatchMojo extends AbstractDockerMojo {
                 .removeVolumes(removeVolumes)
                 .containerNamePattern(containerNamePattern)
                 .buildTimestamp(getBuildTimestamp())
-                .pomLabel(getGavLabel())
+                .gavLabel(getGavLabel())
                 .buildContext(initJKubeConfiguration())
                 .follow(follow())
                 .showLogs(showLogs())

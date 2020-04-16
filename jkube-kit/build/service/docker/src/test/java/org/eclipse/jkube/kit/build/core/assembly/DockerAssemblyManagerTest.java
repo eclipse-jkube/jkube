@@ -199,7 +199,7 @@ public class DockerAssemblyManagerTest {
         assertTrue(finalArtifactFile.createNewFile());
         File outputDirectory = new File(targetFolder, "docker");
 
-        final JKubeConfiguration jKubeBuildContext = new JKubeConfiguration.Builder()
+        final JKubeConfiguration jKubeBuildContext = JKubeConfiguration.builder()
                 .project(JavaProject.builder()
                         .groupId("org.eclipse.jkube")
                         .artifactId("test")
@@ -252,7 +252,7 @@ public class DockerAssemblyManagerTest {
         File dockerDirectory = new File(targetDirectory, "docker");
 
 
-        final JKubeConfiguration jKubeBuildContext = new JKubeConfiguration.Builder()
+        final JKubeConfiguration jKubeBuildContext = JKubeConfiguration.builder()
                 .project(JavaProject.builder()
                         .groupId("org.eclipse.jkube")
                         .artifactId("test")

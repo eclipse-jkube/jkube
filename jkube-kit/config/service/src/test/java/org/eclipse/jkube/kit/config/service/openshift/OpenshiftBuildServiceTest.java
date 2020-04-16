@@ -112,13 +112,13 @@ public class OpenshiftBuildServiceTest {
             result = jKubeServiceHub.getConfiguration().getProject();
             minTimes = 0;
             jKubeServiceHub.getConfiguration().getRegistryConfig();
-            result = new RegistryConfig.Builder().build();
+            result = RegistryConfig.builder().build();
             minTimes = 0;
         }};
 
-        image = new ImageConfiguration.Builder()
+        image = ImageConfiguration.builder()
                 .name(projectName)
-                .buildConfig(new BuildConfiguration.Builder()
+                .build(new BuildConfiguration.Builder()
                         .from(projectName)
                         .build()
                 ).build();
@@ -272,9 +272,9 @@ public class OpenshiftBuildServiceTest {
             Map<String,String> fromExt = ImmutableMap.of("name", "app:1.2-1",
                     "kind", "ImageStreamTag",
                     "namespace", "my-project");
-            ImageConfiguration fromExtImage = new ImageConfiguration.Builder()
+            ImageConfiguration fromExtImage = ImageConfiguration.builder()
                     .name(projectName)
-                    .buildConfig(new BuildConfiguration.Builder()
+                    .build(new BuildConfiguration.Builder()
                             .fromExt(fromExt)
                             .nocache(Boolean.TRUE)
                             .build()
@@ -384,8 +384,8 @@ public class OpenshiftBuildServiceTest {
             OpenShiftClient client = mockServer.createOpenShiftClient();
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
 
-            ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new BuildConfiguration.Builder(image.getBuildConfiguration())
+            ImageConfiguration imageWithEnv = image.toBuilder()
+                    .build(new BuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -434,8 +434,8 @@ public class OpenshiftBuildServiceTest {
             OpenShiftClient client = mockServer.createOpenShiftClient();
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
 
-            ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new BuildConfiguration.Builder(image.getBuildConfiguration())
+            ImageConfiguration imageWithEnv = image.toBuilder()
+                    .build(new BuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -489,8 +489,8 @@ public class OpenshiftBuildServiceTest {
             OpenShiftClient client = mockServer.createOpenShiftClient();
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
 
-            ImageConfiguration imageWithEnv = new ImageConfiguration.Builder(image)
-                    .buildConfig(new BuildConfiguration.Builder(image.getBuildConfiguration())
+            ImageConfiguration imageWithEnv = image.toBuilder()
+                    .build(new BuildConfiguration.Builder(image.getBuildConfiguration())
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();

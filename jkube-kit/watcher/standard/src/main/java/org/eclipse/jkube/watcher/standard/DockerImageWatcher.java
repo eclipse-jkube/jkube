@@ -60,7 +60,7 @@ public class DockerImageWatcher extends BaseWatcher {
         WatchService.WatchContext watchContext = getContext().getWatchContext();
 
         // add a image customizer
-        watchContext = new WatchService.WatchContext.Builder(watchContext)
+        watchContext = watchContext.toBuilder()
                 .imageCustomizer(this::buildImage).containerRestarter(imageWatcher -> restartContainer(imageWatcher, resources))
                 .build();
 

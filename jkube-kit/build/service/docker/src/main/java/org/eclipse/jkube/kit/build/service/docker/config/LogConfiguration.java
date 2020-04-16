@@ -13,57 +13,45 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config;
 
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Optional;
 
 
 /**
  * @author roland
- * @since 12.10.14
  */
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode
 public class LogConfiguration implements Serializable {
 
-    public static final LogConfiguration DEFAULT = new LogConfiguration(null, null, null, null, null, null);
+    private static final long serialVersionUID = 6896468158396394236L;
+
+    public static final LogConfiguration DEFAULT = new LogConfiguration(null, null, null, null, null, null, null);
 
     private Boolean enabled;
-
     private String prefix;
-
     private String date;
-
     private String color;
-
     private String file;
-
     private LogDriver driver;
 
-    public LogConfiguration() {}
-
-    private LogConfiguration(Boolean enabled, String prefix, String color, String date, String file, LogDriver driver) {
+    @lombok.Builder
+    private LogConfiguration(
+        Boolean enabled, String prefix, String color, String date, String file, Map<String, String> logDriverOpts, String driverName) {
         this.enabled = enabled;
         this.prefix = prefix;
         this.date = date;
         this.color = color;
         this.file = file;
-        this.driver = driver;
+        this.driver = Optional.ofNullable(driverName).map(dn -> new LogDriver(dn, logDriverOpts)).orElse(null);
     }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public Boolean isEnabled() {
-        return enabled;
-    }
-
     /**
      * If explicitly enabled, or configured in any way and NOT explicitly disabled, return true.
      *
@@ -87,19 +75,13 @@ public class LogConfiguration implements Serializable {
         return file;
     }
 
-    public LogDriver getDriver() {
-        return driver;
-    }
-
-    // =======================================================================================
-
     public static class LogDriver implements Serializable {
 
         private String name;
 
         private Map<String, String> opts;
 
-        public LogDriver() {};
+        public LogDriver() {}
 
         private LogDriver(String name, Map<String, String> opts) {
             this.name = name;
@@ -115,52 +97,5 @@ public class LogConfiguration implements Serializable {
         }
     }
 
-    // =============================================================================
-
-    public static class Builder {
-        private Boolean enabled;
-        private String prefix, date, color, file;
-        private Map<String, String> driverOpts;
-        private String driverName;
-        public Builder enabled(Boolean enabled) {
-            this.enabled = enabled;
-            return this;
-        }
-
-        public Builder prefix(String prefix) {
-            this.prefix = prefix;
-            return this;
-        }
-
-        public Builder date(String date) {
-            this.date = date;
-            return this;
-        }
-
-        public Builder color(String color) {
-            this.color = color;
-            return this;
-        }
-
-        public Builder file(String file) {
-            this.file = file;
-            return this;
-        }
-
-        public Builder logDriverName(String logDriver) {
-            this.driverName = logDriver;
-            return this;
-        }
-
-        public Builder logDriverOpts(Map<String, String> logOpts) {
-            this.driverOpts = logOpts;
-            return this;
-        }
-
-        public LogConfiguration build() {
-            return new LogConfiguration(enabled, prefix, color, date, file,
-                    driverName != null ? new LogDriver(driverName,driverOpts) : null);
-        }
-    }
 }
 

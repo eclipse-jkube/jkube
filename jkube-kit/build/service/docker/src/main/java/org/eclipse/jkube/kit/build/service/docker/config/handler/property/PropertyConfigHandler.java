@@ -155,10 +155,7 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 
 /**
  * @author roland
- * @since 18/11/14
  */
-// Moved temporarily to resources/META-INF/plexus/components.xml because of https://github.com/codehaus-plexus/plexus-containers/issues/4
-// @Component(role = ExternalConfigHandler.class)
 public class PropertyConfigHandler implements ExternalConfigHandler {
 
     public static final String TYPE_NAME = "properties";
@@ -187,14 +184,13 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
             throw new IllegalArgumentException(String.format("Mandatory property [%s] is not defined", NAME));
         }
 
-        return Collections.singletonList(
-                new ImageConfiguration.Builder()
-                        .name(name)
-                        .alias(alias)
-                        .runConfig(run)
-                        .buildConfig(build)
-                        .watchConfig(watch)
-                        .build());
+        return Collections.singletonList(ImageConfiguration.builder()
+                .name(name)
+                .alias(alias)
+                .run(run)
+                .build(build)
+                .watch(watch)
+                .build());
     }
 
     private static boolean isStringValueNull(ValueProvider valueProvider, BuildConfiguration config, ConfigKey key, Supplier<String> supplier) {
@@ -282,7 +278,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
             config = null;
         }
 
-        return new RunImageConfiguration.Builder()
+        return RunImageConfiguration.builder()
                 .capAdd(valueProvider.getList(CAP_ADD, config == null ? null : config.getCapAdd()))
                 .capDrop(valueProvider.getList(CAP_DROP, config == null ? null : config.getCapDrop()))
                 .securityOpts(valueProvider.getList(SECURITY_OPTS, config == null ? null : config.getSecurityOpts()))
@@ -305,7 +301,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .links(valueProvider.getList(LINKS, config == null ? null : config.getLinks()))
                 .memory(valueProvider.getLong(MEMORY, config == null ? null : config.getMemory()))
                 .memorySwap(valueProvider.getLong(MEMORY_SWAP, config == null ? null : config.getMemorySwap()))
-                .namingStrategy(valueProvider.getString(NAMING_STRATEGY, config == null || config.getNamingStrategy() == null ? null : config.getNamingStrategy().name()))
+                .namingStrategyString(valueProvider.getString(NAMING_STRATEGY, config == null || config.getNamingStrategy() == null ? null : config.getNamingStrategy().name()))
                 .exposedPropertyKey(valueProvider.getString(EXPOSED_PROPERTY_KEY, config == null ? null : config.getExposedPropertyKey()))
                 .portPropertyFile(valueProvider.getString(PORT_PROPERTY_FILE, config == null ? null : config.getPortPropertyFile()))
                 .ports(valueProvider.getList(PORTS, config == null ? null : config.getPorts()))
@@ -314,8 +310,8 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .restartPolicy(extractRestartPolicy(config == null ? null : config.getRestartPolicy(), valueProvider))
                 .user(valueProvider.getString(USER, config == null ? null : config.getUser()))
                 .workingDir(valueProvider.getString(WORKING_DIR, config == null ? null : config.getWorkingDir()))
-                .log(extractLogConfig(config == null ? null : config.getLogConfiguration(), valueProvider))
-                .wait(extractWaitConfig(config == null ? null : config.getWaitConfiguration(), valueProvider))
+                .log(extractLogConfig(config == null ? null : config.getLog(), valueProvider))
+                .wait(extractWaitConfig(config == null ? null : config.getWait(), valueProvider))
                 .volumes(extractVolumeConfig(config == null ? null : config.getVolumeConfiguration(), valueProvider))
                 .skip(valueProvider.getBoolean(SKIP_RUN, config == null ? null : config.getSkip()))
                 .imagePullPolicy(valueProvider.getString(IMAGE_PULL_POLICY_RUN, config == null ? null : config.getImagePullPolicy()))
@@ -330,8 +326,8 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     private NetworkConfig extractNetworkConfig(NetworkConfig config, ValueProvider valueProvider) {
-        return new NetworkConfig.Builder()
-            .mode(valueProvider.getString(NETWORK_MODE, config == null || config.getMode() == null ? null : config.getMode().name()))
+        return NetworkConfig.builder()
+            .modeString(valueProvider.getString(NETWORK_MODE, config == null || config.getMode() == null ? null : config.getMode().name()))
             .name(valueProvider.getString(NETWORK_NAME, config == null ? null : config.getName()))
             .aliases(valueProvider.getList(NETWORK_ALIAS, config == null ? null : config.getAliases()))
             .build();
@@ -389,22 +385,22 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     private RestartPolicy extractRestartPolicy(RestartPolicy config, ValueProvider valueProvider) {
-        return new RestartPolicy.Builder()
+        return RestartPolicy.builder()
                 .name(valueProvider.getString(RESTART_POLICY_NAME, config == null ? null : config.getName()))
                 .retry(valueProvider.getInt(RESTART_POLICY_RETRY, config == null || config.getRetry() == 0 ? null : config.getRetry()))
                 .build();
     }
 
     private LogConfiguration extractLogConfig(LogConfiguration config, ValueProvider valueProvider) {
-        LogConfiguration.Builder builder = new LogConfiguration.Builder()
+        LogConfiguration.LogConfigurationBuilder builder = LogConfiguration.builder()
             .color(valueProvider.getString(LOG_COLOR, config == null ? null : config.getColor()))
             .date(valueProvider.getString(LOG_DATE, config == null ? null : config.getDate()))
             .file(valueProvider.getString(LOG_FILE, config == null ? null : config.getFileLocation()))
             .prefix(valueProvider.getString(LOG_PREFIX, config == null ? null : config.getPrefix()))
-            .logDriverName(valueProvider.getString(LOG_DRIVER_NAME, config == null || config.getDriver() == null ? null : config.getDriver().getName()))
+            .driverName(valueProvider.getString(LOG_DRIVER_NAME, config == null || config.getDriver() == null ? null : config.getDriver().getName()))
             .logDriverOpts(valueProvider.getMap(LOG_DRIVER_OPTS, config == null || config.getDriver() == null ? null : config.getDriver().getOpts()));
 
-        Boolean configEnabled = config != null ? config.isEnabled() : null;
+        Boolean configEnabled = config != null ? config.getEnabled() : null;
         Boolean enabled = valueProvider.getBoolean(LOG_ENABLED, configEnabled);
         builder.enabled(enabled);
         return builder.build();
@@ -420,7 +416,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         WaitConfiguration.TcpConfiguration tcp = config == null ? null : config.getTcp();
         WaitConfiguration.HttpConfiguration http = config == null ? null : config.getHttp();
 
-        return new WaitConfiguration.Builder()
+        return WaitConfiguration.builder()
                 .time(valueProvider.getInt(WAIT_TIME, config == null ? null : config.getTime()))
                 .healthy(valueProvider.getBoolean(WAIT_HEALTHY, config == null ? null : config.getHealthy()))
                 .url(url)
@@ -435,18 +431,18 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .shutdown(valueProvider.getInteger(WAIT_SHUTDOWN, config == null ? null : config.getShutdown()))
                 .tcpHost(valueProvider.getString(WAIT_TCP_HOST, tcp == null ? null : tcp.getHost()))
                 .tcpPorts(valueProvider.getIntList(WAIT_TCP_PORT, tcp == null ? null : tcp.getPorts()))
-                .tcpMode(valueProvider.getString(WAIT_TCP_MODE, tcp == null || tcp.getMode() == null ? null : tcp.getMode().name()))
+                .tcpModeString(valueProvider.getString(WAIT_TCP_MODE, tcp == null || tcp.getMode() == null ? null : tcp.getMode().name()))
                 .build();
     }
 
     private WatchImageConfiguration extractWatchConfig(ImageConfiguration fromConfig, ValueProvider valueProvider) {
         WatchImageConfiguration config = fromConfig.getWatchConfiguration();
 
-        return new WatchImageConfiguration.Builder()
+        return WatchImageConfiguration.builder()
                 .interval(valueProvider.getInteger(WATCH_INTERVAL, config == null ? null : config.getIntervalRaw()))
                 .postGoal(valueProvider.getString(WATCH_POSTGOAL, config == null ? null : config.getPostGoal()))
                 .postExec(valueProvider.getString(WATCH_POSTEXEC, config == null ? null : config.getPostExec()))
-                .mode(valueProvider.getString(WATCH_POSTGOAL, config == null || config.getMode() == null ? null : config.getMode().name()))
+                .modeString(valueProvider.getString(WATCH_POSTGOAL, config == null || config.getMode() == null ? null : config.getMode().name()))
                 .build();
     }
 
@@ -472,7 +468,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     private RunVolumeConfiguration extractVolumeConfig(RunVolumeConfiguration config, ValueProvider valueProvider) {
-        return new RunVolumeConfiguration.Builder()
+        return RunVolumeConfiguration.builder()
                 .bind(valueProvider.getList(BIND, config == null ? null : config.getBind()))
                 .from(valueProvider.getList(VOLUMES_FROM, config == null ? null : config.getFrom()))
                 .build();

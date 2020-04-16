@@ -150,7 +150,7 @@ public class KubernetesResourceUtilTest {
     @Test
     public void containerName() {
 
-        ImageConfiguration imageConfiguration = new ImageConfiguration.Builder()
+        ImageConfiguration imageConfiguration = ImageConfiguration.builder()
                 .name("dummy-image")
                 .registry("example.com/someregistry")
                 .name("test")
