@@ -90,7 +90,7 @@ public class PrometheusEnricherTest {
             )
         );
 
-        final BuildConfiguration imageConfig = new BuildConfiguration.Builder()
+        final BuildConfiguration imageConfig = BuildConfiguration.builder()
             .ports(Collections.singletonList(PrometheusEnricher.PROMETHEUS_PORT))
             .build();
 
@@ -127,7 +127,7 @@ public class PrometheusEnricherTest {
             )
         );
 
-        final BuildConfiguration imageConfig = new BuildConfiguration.Builder()
+        final BuildConfiguration imageConfig = BuildConfiguration.builder()
             .build();
 
         // Setup mock behaviour
@@ -163,7 +163,7 @@ public class PrometheusEnricherTest {
                 )
         );
 
-        final BuildConfiguration imageConfig = new BuildConfiguration.Builder()
+        final BuildConfiguration imageConfig = BuildConfiguration.builder()
                 .ports(Collections.singletonList(PrometheusEnricher.PROMETHEUS_PORT))
                 .build();
 

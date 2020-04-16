@@ -78,7 +78,7 @@ public class OpenLibertyGeneratorTest {
       result = OpenLibertyGenerator.LIBERTY_SELF_EXTRACTOR;
     }};
     // When
-    generator.addAssembly(new AssemblyConfiguration.Builder());
+    generator.addAssembly(AssemblyConfiguration.builder());
     // Then
     assertThat(generator.getEnv(false), hasKey(OpenLibertyGenerator.LIBERTY_RUNNABLE_JAR));
     assertThat(generator.getEnv(false), hasKey(OpenLibertyGenerator.JAVA_APP_JAR));

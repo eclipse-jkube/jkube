@@ -64,8 +64,8 @@ public class DefaultControllerEnricherTest {
 
     protected void enrichAndAssert(int sizeOfObjects, int replicaCount) throws com.fasterxml.jackson.core.JsonProcessingException {
         // Setup a sample docker build configuration
-        final BuildConfiguration buildConfig = new BuildConfiguration.Builder()
-            .ports(Arrays.asList("8080"))
+        final BuildConfiguration buildConfig = BuildConfiguration.builder()
+            .port("8080")
             .build();
 
         final TreeMap controllerConfig = new TreeMap();

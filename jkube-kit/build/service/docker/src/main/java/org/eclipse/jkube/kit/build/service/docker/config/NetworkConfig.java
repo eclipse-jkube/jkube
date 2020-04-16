@@ -36,10 +36,6 @@ public class NetworkConfig implements Serializable {
     private final List<String> aliases;
 
     public NetworkConfig() {
-        this(null, null);
-    }
-
-    public NetworkConfig(Mode mode, String name) {
         this(null, null, null);
     }
 
@@ -70,7 +66,7 @@ public class NetworkConfig implements Serializable {
                 name = net;
             }
         }
-        return new NetworkConfig(mode, name);
+        return NetworkConfig.builder().mode(mode).name(name).build();
     }
 
     private static Mode extractMode(String mode) {

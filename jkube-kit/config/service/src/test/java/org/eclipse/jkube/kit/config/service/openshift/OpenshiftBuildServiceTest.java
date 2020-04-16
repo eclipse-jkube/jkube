@@ -118,7 +118,7 @@ public class OpenshiftBuildServiceTest {
 
         image = ImageConfiguration.builder()
                 .name(projectName)
-                .build(new BuildConfiguration.Builder()
+                .build(BuildConfiguration.builder()
                         .from(projectName)
                         .build()
                 ).build();
@@ -274,7 +274,7 @@ public class OpenshiftBuildServiceTest {
                     "namespace", "my-project");
             ImageConfiguration fromExtImage = ImageConfiguration.builder()
                     .name(projectName)
-                    .build(new BuildConfiguration.Builder()
+                    .build(BuildConfiguration.builder()
                             .fromExt(fromExt)
                             .nocache(Boolean.TRUE)
                             .build()
@@ -385,7 +385,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
 
             ImageConfiguration imageWithEnv = image.toBuilder()
-                    .build(new BuildConfiguration.Builder(image.getBuildConfiguration())
+                    .build(image.getBuildConfiguration().toBuilder()
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -435,7 +435,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
 
             ImageConfiguration imageWithEnv = image.toBuilder()
-                    .build(new BuildConfiguration.Builder(image.getBuildConfiguration())
+                    .build(image.getBuildConfiguration().toBuilder()
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();
@@ -490,7 +490,7 @@ public class OpenshiftBuildServiceTest {
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
 
             ImageConfiguration imageWithEnv = image.toBuilder()
-                    .build(new BuildConfiguration.Builder(image.getBuildConfiguration())
+                    .build(image.getBuildConfiguration().toBuilder()
                             .env(Collections.singletonMap("FOO", "BAR"))
                             .build()
                     ).build();

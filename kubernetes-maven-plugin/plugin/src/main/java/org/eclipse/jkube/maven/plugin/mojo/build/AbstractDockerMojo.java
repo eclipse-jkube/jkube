@@ -618,7 +618,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
             name = "%g/%a:%l";
         }
 
-        final BuildConfiguration buildConfig = new BuildConfiguration.Builder()
+        final BuildConfiguration buildConfig = BuildConfiguration.builder()
                 .dockerFile(dockerFile.getPath())
                 .build();
 
@@ -629,7 +629,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     protected ImageConfiguration addSimpleDockerfileConfig(ImageConfiguration image, File dockerfile) {
-        final BuildConfiguration buildConfig = new BuildConfiguration.Builder()
+        final BuildConfiguration buildConfig = BuildConfiguration.builder()
                 .dockerFile(dockerfile.getPath())
                 .build();
         return image.toBuilder().build(buildConfig).build();

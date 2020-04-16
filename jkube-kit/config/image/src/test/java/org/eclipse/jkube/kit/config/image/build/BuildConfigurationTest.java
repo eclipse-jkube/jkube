@@ -49,9 +49,8 @@ public class BuildConfigurationTest {
 
     @Test
     public void simpleDockerfile() {
-        BuildConfiguration config =
-            new BuildConfiguration.Builder().
-                dockerFile("src/docker/Dockerfile").build();
+        BuildConfiguration config = BuildConfiguration.builder()
+                .dockerFile("src/docker/Dockerfile").build();
         config.validate();
         assertTrue(config.isDockerFileMode());
         assertEquals(config.calculateDockerFilePath(),new File("src/docker/Dockerfile"));
@@ -59,9 +58,8 @@ public class BuildConfigurationTest {
 
     @Test
     public void simpleDockerfileDir() {
-        BuildConfiguration config =
-            new BuildConfiguration.Builder().
-                                                     contextDir("src/docker/").build();
+        BuildConfiguration config = BuildConfiguration.builder()
+            .contextDir("src/docker/").build();
         config.validate();
         assertTrue(config.isDockerFileMode());
         assertEquals(config.calculateDockerFilePath(),new File("src/docker/Dockerfile"));
@@ -69,10 +67,9 @@ public class BuildConfigurationTest {
 
     @Test
     public void DockerfileDirAndDockerfileAlsoSet() {
-        BuildConfiguration config =
-            new BuildConfiguration.Builder().
-                                                     contextDir("/tmp/").
-                dockerFile("Dockerfile").build();
+        BuildConfiguration config = BuildConfiguration.builder()
+            .contextDir("/tmp/")
+            .dockerFile("Dockerfile").build();
         config.validate();
         assertTrue(config.isDockerFileMode());
         assertEquals(config.calculateDockerFilePath(),new File("/tmp/Dockerfile"));
@@ -80,10 +77,9 @@ public class BuildConfigurationTest {
 
     @Test
     public void dockerFileAndArchive() {
-        BuildConfiguration config =
-            new BuildConfiguration.Builder().
-                dockerArchive("this").
-                dockerFile("that").build();
+        BuildConfiguration config = BuildConfiguration.builder()
+            .dockerArchive("this")
+            .dockerFile("that").build();
 
         try {
             config.validate();
@@ -95,9 +91,8 @@ public class BuildConfigurationTest {
 
     @Test
     public void dockerArchive() {
-        BuildConfiguration config =
-                new BuildConfiguration.Builder().
-                        dockerArchive("this").build();
+        BuildConfiguration config = BuildConfiguration.builder()
+            .dockerArchive("this").build();
         config.initAndValidate(logger);
 
         assertFalse(config.isDockerFileMode());
@@ -106,22 +101,20 @@ public class BuildConfigurationTest {
 
     @Test
     public void compression() {
-        BuildConfiguration config =
-            new BuildConfiguration.Builder().
-                compression("gzip").build();
+        BuildConfiguration config = BuildConfiguration.builder()
+            .compressionString("gzip").build();
         assertEquals(gzip, config.getCompression());
 
-        config = new BuildConfiguration.Builder().build();
+        config = BuildConfiguration.builder().build();
         assertEquals(none, config.getCompression());
 
-        config =
-            new BuildConfiguration.Builder().
-                compression("bzip2").build();
+        config = BuildConfiguration.builder()
+            .compressionString("bzip2").build();
         assertEquals(bzip2, config.getCompression());
 
         try {
-            new BuildConfiguration.Builder().
-                compression("bzip").build();
+            BuildConfiguration.builder()
+                .compressionString("bzip").build();
             fail();
         } catch (Exception exp) {
             assertTrue(exp.getMessage().contains("bzip"));
@@ -131,10 +124,9 @@ public class BuildConfigurationTest {
 
     @Test
     public void isValidWindowsFileName() {
-        BuildConfiguration cfg = new BuildConfiguration();
-        assertFalse(cfg.isValidWindowsFileName("/Dockerfile"));
-        assertTrue(cfg.isValidWindowsFileName("Dockerfile"));
-        assertFalse(cfg.isValidWindowsFileName("Dockerfile/"));
+        assertFalse(BuildConfiguration.isValidWindowsFileName("/Dockerfile"));
+        assertTrue(BuildConfiguration.isValidWindowsFileName("Dockerfile"));
+        assertFalse(BuildConfiguration.isValidWindowsFileName("Dockerfile/"));
     }
 
     @Test
@@ -145,7 +137,7 @@ public class BuildConfigurationTest {
             result = "1337";
         }};
         // When
-        final BuildConfiguration result = new BuildConfiguration.Builder()
+        final BuildConfiguration result = BuildConfiguration.builder()
             .assembly(mockAssemblyConfiguration)
             .user("super-user")
             .build();

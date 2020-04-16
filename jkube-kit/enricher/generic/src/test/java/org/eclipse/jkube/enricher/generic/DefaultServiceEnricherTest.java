@@ -205,7 +205,7 @@ public class DefaultServiceEnricherTest {
             result = configuration;
 
             imageConfigurationWithLabels.getBuildConfiguration();
-            result = new BuildConfiguration.Builder()
+            result = BuildConfiguration.builder()
                     .labels(Collections.singletonMap("jkube.generator.service.ports", "9090"))
                     .ports(Arrays.asList("80", "53/UDP"))
                     .build();
@@ -267,7 +267,7 @@ public class DefaultServiceEnricherTest {
 
     private BuildConfiguration initBuildConfig(boolean withPorts) {
         // Setup a sample docker build configuration
-        BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
+        BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
         if (withPorts) {
             builder.ports(Arrays.asList("80", "53/UDP"));
         }

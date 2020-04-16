@@ -86,7 +86,7 @@ public class BaseGeneratorTest {
                     for (String from : new String[]{null, "openshift/testfrom"}) {
                         setupContext(props, isOpenShift, from, null);
 
-                        BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
+                        BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
                         BaseGenerator generator = createGenerator(selector);
                         generator.addFrom(builder);
                         BuildConfiguration config = builder.build();
@@ -134,7 +134,7 @@ public class BaseGeneratorTest {
         for (String from : new String[] { null, "test_namespace/test_image:2.0"}) {
             setupContext(props, false, from, null);
 
-            BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
+            BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
             BaseGenerator generator = createGenerator(new TestFromSelector(ctx, false));
             generator.addFrom(builder);
             BuildConfiguration config = builder.build();
@@ -155,7 +155,7 @@ public class BaseGeneratorTest {
         for (String from : new String[] { null, "test_namespace/test_image:2.0"}) {
             setupContext(props, false, from, null);
 
-            BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
+            BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
             BaseGenerator generator = createGenerator(null);
             generator.addFrom(builder);
             BuildConfiguration config = builder.build();
@@ -173,7 +173,7 @@ public class BaseGeneratorTest {
     public void addFromIstagWithNameWithoutTag() {
         Properties props = new Properties();
         setupContext(props, false, "test_namespace/test_image", "istag");
-        BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
+        BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
         BaseGenerator generator = createGenerator(null);
         generator.addFrom(builder);
         BuildConfiguration config = builder.build();
@@ -187,7 +187,7 @@ public class BaseGeneratorTest {
             Properties props = new Properties();
             setupContextKubernetes(props, null, "blub");
 
-            BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
+            BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
             BaseGenerator generator = createGenerator(null);
             generator.addFrom(builder);
             fail();
@@ -217,7 +217,7 @@ public class BaseGeneratorTest {
             ctx.getProject(); result = project;
             project.getVersion(); result = "1.2-SNAPSHOT";
         }};
-        BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
+        BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
         BaseGenerator generator = createGenerator(null);
         generator.addLatestTagIfSnapshot(builder);;
         BuildConfiguration config = builder.build();

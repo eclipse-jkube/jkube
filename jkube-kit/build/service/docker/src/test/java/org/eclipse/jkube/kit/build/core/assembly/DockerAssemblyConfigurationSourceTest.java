@@ -41,22 +41,22 @@ public class DockerAssemblyConfigurationSourceTest {
     public void setup() throws Exception {
         buildDirectory = temporaryFolder.newFolder("build");
         // set 'ignorePermissions' to something other then default
-        this.assemblyConfig = new AssemblyConfiguration.Builder()
+        this.assemblyConfig = AssemblyConfiguration.builder()
                 .descriptor("assembly.xml")
                 .descriptorRef("project")
-                .permissions("keep")
+                .permissionsString("keep")
                 .build();
     }
 
     @Test
     public void permissionMode() {
         try {
-            new AssemblyConfiguration.Builder().permissions("blub").build();
+            AssemblyConfiguration.builder().permissionsString("blub").build();
         } catch (IllegalArgumentException exp) {
             assertTrue(exp.getMessage().contains("blub"));
         }
 
-        AssemblyConfiguration config = new AssemblyConfiguration.Builder().permissions("ignore").build();
+        AssemblyConfiguration config = AssemblyConfiguration.builder().permissionsString("ignore").build();
         assertSame(AssemblyConfiguration.PermissionMode.ignore, config.getPermissions());
     }
 

@@ -29,10 +29,11 @@ import org.apache.commons.lang3.StringUtils;
 
 public class KarafGenerator extends BaseGenerator {
 
+    private static final String KARAF = "karaf";
     private static final String KARAF_MAVEN_PLUGIN_ARTIFACT_ID = "karaf-maven-plugin";
 
     public KarafGenerator(GeneratorContext context) {
-        super(context, "karaf", new FromSelector.Default(context,"karaf"));
+        super(context, KARAF, new FromSelector.Default(context,KARAF));
     }
 
     private enum Config implements Configs.Key {
@@ -48,9 +49,9 @@ public class KarafGenerator extends BaseGenerator {
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
         final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
-        final BuildConfiguration.Builder buildBuilder = new BuildConfiguration.Builder();
+        final BuildConfiguration.BuildConfigurationBuilder buildBuilder = BuildConfiguration.builder();
 
-        buildBuilder.ports(extractPorts()).cmd(new Arguments(getConfig(Config.cmd)));
+        buildBuilder.ports(extractPorts()).cmd(Arguments.builder().shell(getConfig(Config.cmd)).build());
 
         addSchemaLabels(buildBuilder, log);
         addFrom(buildBuilder);
@@ -86,10 +87,10 @@ public class KarafGenerator extends BaseGenerator {
     }
 
     private AssemblyConfiguration createAssembly() {
-        return new AssemblyConfiguration.Builder()
+        return AssemblyConfiguration.builder()
             .targetDir(getConfig(Config.baseDir))
             .user(getConfig(Config.user))
-            .descriptorRef("karaf")
+            .descriptorRef(KARAF)
             .build();
     }
 }

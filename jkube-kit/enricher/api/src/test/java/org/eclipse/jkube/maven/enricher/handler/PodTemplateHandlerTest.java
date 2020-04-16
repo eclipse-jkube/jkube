@@ -64,9 +64,9 @@ public class PodTemplateHandlerTest {
         tags.add("test");
 
         //container name with alias
-        final BuildConfiguration buildImageConfiguration = new BuildConfiguration.Builder()
+        final BuildConfiguration buildImageConfiguration = BuildConfiguration.builder()
                 .ports(ports).from("fabric8/maven:latest").cleanup("try")
-                .tags(tags).compression("gzip").build();
+                .tags(tags).compressionString("gzip").build();
 
         ImageConfiguration imageConfiguration = ImageConfiguration.builder()
                 .name("test").alias("test-app").build(buildImageConfiguration)

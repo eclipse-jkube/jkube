@@ -213,7 +213,7 @@ public class RunImageConfiguration implements Serializable {
     } else if (net != null) {
       return NetworkConfig.fromLegacyNetSpec(net);
     } else {
-      return new NetworkConfig();
+      return NetworkConfig.builder().build();
     }
   }
 
@@ -254,7 +254,7 @@ public class RunImageConfiguration implements Serializable {
   public static class RunImageConfigurationBuilder {
     public RunImageConfigurationBuilder cmdString(String cmdString) {
       if (cmdString != null) {
-        cmd = new Arguments(cmdString);
+        cmd = Arguments.builder().shell(cmdString).build();
       }
       return this;
     }
