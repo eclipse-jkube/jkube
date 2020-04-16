@@ -89,7 +89,7 @@ public class PortForwardServiceTest {
         OpenShiftClient client = mockServer.createOpenShiftClient();
         PortForwardService service = new PortForwardService(client, logger) {
             @Override
-            public ProcessUtil.ProcessExecutionContext forwardPortAsync(KitLogger externalProcessLogger, String pod, int remotePort, int localPort) throws JKubeServiceException {
+            public ProcessUtil.ProcessExecutionContext forwardPortAsync(KitLogger externalProcessLogger, String pod, String namespace, int remotePort, int localPort) throws JKubeServiceException {
                 return new ProcessUtil.ProcessExecutionContext(process, Collections.<Thread>emptyList(), logger);
             }
         };
