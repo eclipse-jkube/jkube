@@ -341,7 +341,7 @@ public class MavenUtil {
         List<RegistryServerConfiguration> registryServerConfigurations = new ArrayList<>();
         for (Server server : settings.getServers()) {
             if (server.getUsername() != null) {
-                registryServerConfigurations.add(new RegistryServerConfiguration.Builder()
+                registryServerConfigurations.add(RegistryServerConfiguration.builder()
                         .id(server.getId())
                         .username(server.getUsername())
                         .password(server.getPassword())

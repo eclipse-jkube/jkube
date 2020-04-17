@@ -13,6 +13,12 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -21,53 +27,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
 public class RegistryServerConfiguration implements Serializable {
+
+    private static final long serialVersionUID = -5916500916284810117L;
 
     private String id;
     private String username;
     private String password;
     private Map<String, Object> configuration;
 
-    public Map<String, Object> getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(Map<String, Object> configuration) {
-        this.configuration = configuration;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    private RegistryServerConfiguration() { }
-
-    public RegistryServerConfiguration(String id, String username, String decryptedPassword, Map<String, Object> configurationAsMap) {
-        this.id = id;
-        this.username = username;
-        this.password = decryptedPassword;
-        this.configuration = configurationAsMap;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
     public static RegistryServerConfiguration getServer(final List<RegistryServerConfiguration> settings, final String serverId) {
         if (settings != null && !StringUtils.isBlank(serverId)) {
@@ -77,7 +51,6 @@ public class RegistryServerConfiguration implements Serializable {
                 }
             }
         }
-
         return null;
     }
 
@@ -88,44 +61,6 @@ public class RegistryServerConfiguration implements Serializable {
                     entry.getValue().getKey().getKey(), entry.getValue().getKey().getValue(), entry.getValue().getValue()));
         }
         return registryServerConfigurationList;
-    }
-
-    public static class Builder {
-        private RegistryServerConfiguration registryServerConfiguration;
-
-        public Builder() {
-            this.registryServerConfiguration = new RegistryServerConfiguration();
-        }
-
-        public Builder(RegistryServerConfiguration registryServerConfiguration) {
-            if (registryServerConfiguration != null) {
-                this.registryServerConfiguration = registryServerConfiguration;
-            }
-        }
-
-        public Builder id(String id) {
-            this.registryServerConfiguration.id = id;
-            return this;
-        }
-
-        public Builder username(String username) {
-            this.registryServerConfiguration.username = username;
-            return this;
-        }
-
-        public Builder password(String password) {
-            this.registryServerConfiguration.password = password;
-            return this;
-        }
-
-        public Builder configuration(Map<String, Object> configuration) {
-            this.registryServerConfiguration.configuration = configuration;
-            return this;
-        }
-
-        public RegistryServerConfiguration build() {
-            return this.registryServerConfiguration;
-        }
     }
 
 }
