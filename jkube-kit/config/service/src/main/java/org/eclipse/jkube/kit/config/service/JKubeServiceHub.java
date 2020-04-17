@@ -66,7 +66,7 @@ public class JKubeServiceHub implements Closeable {
             platformMode = RuntimeMode.DEFAULT;
         }
         if (clusterAccess == null) {
-            clusterAccess = new ClusterAccess(new ClusterConfiguration.Builder().from(System.getProperties()).build());
+            clusterAccess = new ClusterAccess(ClusterConfiguration.from(System.getProperties()).build());
         }
         this.resolvedMode = clusterAccess.resolveRuntimeMode(platformMode, log);
         if (resolvedMode != RuntimeMode.kubernetes && resolvedMode != RuntimeMode.openshift) {

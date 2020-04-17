@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -773,12 +774,12 @@ public class KubernetesHelper {
 
     /**
      * Convert a map of env vars to a list of K8s EnvVar objects.
-     * @param envVars the name-value map containing env vars which must not be null
+     * @param envVars the name-value map containing env vars
      * @return list of converted env vars
      */
     public static List<EnvVar> convertToEnvVarList(Map<String, String> envVars) {
         List<EnvVar> envList = new LinkedList<>();
-        for (Map.Entry<String, String> entry : envVars.entrySet()) {
+        for (Map.Entry<String, String> entry : Optional.ofNullable(envVars).orElse(Collections.emptyMap()).entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue();
 

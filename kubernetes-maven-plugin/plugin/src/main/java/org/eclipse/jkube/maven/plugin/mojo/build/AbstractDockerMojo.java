@@ -885,10 +885,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     protected ClusterConfiguration initClusterConfiguration() {
-        return new ClusterConfiguration.Builder(access)
-            .from(System.getProperties())
-            .from(project.getProperties())
-            .build();
+        return ClusterConfiguration.from(access, System.getProperties(), project.getProperties()).build();
     }
 
     protected GavLabel getGavLabel() {

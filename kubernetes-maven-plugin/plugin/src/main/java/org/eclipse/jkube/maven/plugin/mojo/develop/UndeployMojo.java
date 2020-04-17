@@ -34,7 +34,7 @@ import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUt
 public class UndeployMojo extends ApplyMojo {
     @Override
     protected void applyEntities(KubernetesClient kubernetes, String namespace, String fileName, Set<HasMetadata> entities) throws Exception {
-        deleteCustomEntities(kubernetes, namespace, resources != null ? resources.getCrdContexts() : null);
+        deleteCustomEntities(kubernetes, namespace, resources != null ? resources.getCustomResourceDefinitions() : null);
         deleteEntities(kubernetes, namespace, entities, s2iBuildNameSuffix, log);
     }
 

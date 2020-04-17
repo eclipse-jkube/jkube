@@ -43,8 +43,8 @@ public class ServiceAccountEnricherTest {
         new Expectations() {{
             context.getConfiguration();
             result = new Configuration.Builder()
-                    .resource(new ResourceConfig.Builder()
-                            .withServiceAccounts(Collections.singletonList(new ServiceAccountConfig.Builder().withName("ribbon").build())).build())
+                    .resource(ResourceConfig.builder()
+                            .serviceAccount(ServiceAccountConfig.builder().name("ribbon").build()).build())
                     .build();
         }};
         final KubernetesListBuilder builder = new KubernetesListBuilder();

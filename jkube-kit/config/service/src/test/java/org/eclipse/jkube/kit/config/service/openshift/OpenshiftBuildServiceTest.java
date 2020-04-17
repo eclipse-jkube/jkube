@@ -477,8 +477,10 @@ public class OpenshiftBuildServiceTest {
             limitsMap.put("memory", "256Mi");
 
             BuildServiceConfig config = defaultConfig
-                    .resourceConfig(new ResourceConfig.Builder()
-                            .withOpenshiftBuildConfig(new OpenshiftBuildConfig.Builder().limits(limitsMap).build()).build()).build();
+                    .resourceConfig(ResourceConfig.builder()
+                        .openshiftBuildConfig(OpenshiftBuildConfig.builder().limits(limitsMap).build())
+                        .build()
+                    ).build();
             // @formatter:on
             new Expectations() {{
                 jKubeServiceHub.getBuildServiceConfig(); result = config;

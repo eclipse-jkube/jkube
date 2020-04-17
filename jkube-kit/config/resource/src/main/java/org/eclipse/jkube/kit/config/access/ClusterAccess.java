@@ -41,7 +41,7 @@ public class ClusterAccess {
         this.clusterConfiguration = clusterConfiguration;
 
         if (this.clusterConfiguration == null) {
-            this.clusterConfiguration = new ClusterConfiguration.Builder().build();
+            this.clusterConfiguration = ClusterConfiguration.builder().build();
         }
 
         this.client = null;
@@ -49,7 +49,7 @@ public class ClusterAccess {
 
     @Deprecated
     public ClusterAccess(String namespace) {
-        ClusterConfiguration.Builder clusterConfigurationBuilder = new ClusterConfiguration.Builder();
+        ClusterConfiguration.ClusterConfigurationBuilder clusterConfigurationBuilder = ClusterConfiguration.builder();
         clusterConfigurationBuilder.namespace(namespace);
         this.clusterConfiguration = clusterConfigurationBuilder.build();
         this.client = null;

@@ -100,10 +100,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo {
     }
 
     protected ClusterConfiguration getClusterConfiguration() {
-        final ClusterConfiguration.Builder clusterConfigurationBuilder = new ClusterConfiguration.Builder(access);
-
-        return clusterConfigurationBuilder.from(System.getProperties())
-                .from(project.getProperties()).build();
+        return ClusterConfiguration.from(access, System.getProperties(), project.getProperties()).build();
     }
 
 }

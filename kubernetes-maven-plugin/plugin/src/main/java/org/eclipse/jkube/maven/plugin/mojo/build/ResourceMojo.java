@@ -434,7 +434,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
         throws IOException, MojoExecutionException, DependencyResolutionRequiredException {
 
         if (namespace != null && !namespace.isEmpty()) {
-            resources = new ResourceConfig.Builder(resources).withNamespace(namespace).build();
+            resources = ResourceConfig.toBuilder(resources).namespace(namespace).build();
         }
         // Manager for calling enrichers.
         JavaProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
@@ -689,9 +689,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     @Override
     protected ClusterConfiguration getClusterConfiguration() {
-        final ClusterConfiguration.Builder clusterConfigurationBuilder = new ClusterConfiguration.Builder(access);
-
-        return clusterConfigurationBuilder.from(System.getProperties())
-                .from(project.getProperties()).build();
+        return ClusterConfiguration.from(access, System.getProperties(), project.getProperties()).build();
     }
 }

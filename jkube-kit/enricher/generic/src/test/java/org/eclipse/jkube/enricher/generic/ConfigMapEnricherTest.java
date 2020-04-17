@@ -84,8 +84,8 @@ public class ConfigMapEnricherTest {
     @Test
     public void should_materialize_file_content_from_xml() throws Exception {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap("src/test/resources/test-application.properties");
-        final ResourceConfig config = new ResourceConfig.Builder()
-                .withConfigMap(baseConfigMap)
+        final ResourceConfig config = ResourceConfig.builder()
+                .configMap(baseConfigMap)
                 .build();
         new Expectations() {{
             context.getConfiguration();
@@ -105,8 +105,8 @@ public class ConfigMapEnricherTest {
     @Test
     public void should_materialize_binary_file_content_from_xml() throws Exception {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap("src/test/resources/test.bin");
-        final ResourceConfig config = new ResourceConfig.Builder()
-                .withConfigMap(baseConfigMap)
+        final ResourceConfig config = ResourceConfig.builder()
+                .configMap(baseConfigMap)
                 .build();
         new Expectations() {{
             context.getConfiguration();

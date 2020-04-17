@@ -24,9 +24,11 @@ import org.eclipse.jkube.kit.config.resource.ServiceConfig;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author roland
@@ -51,7 +53,7 @@ public class ServiceHandler {
 
             List<ServicePort> servicePorts = new ArrayList<>();
 
-            for (ServiceConfig.Port port : service.getPorts()) {
+            for (ServiceConfig.Port port : Optional.ofNullable(service.getPorts()).orElse(Collections.emptyList())) {
                 ServicePort servicePort = new ServicePortBuilder()
                     .withName(port.getName())
                     .withProtocol(port.getProtocol() != null ? port.getProtocol().name() : "TCP")

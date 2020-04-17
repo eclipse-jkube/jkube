@@ -50,9 +50,7 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
     public DefaultNamespaceEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-namespace");
 
-        ResourceConfig xmlResourceConfig = getConfiguration().getResource().orElse(null);
-        config = new ResourceConfig.Builder(xmlResourceConfig)
-                .build();
+        config = getConfiguration().getResource().orElse(ResourceConfig.builder().build());
 
         handlerHub = new HandlerHub(
                 getContext().getGav(), getContext().getConfiguration().getProperties());
