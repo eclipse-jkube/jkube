@@ -44,7 +44,7 @@ public class Main {
         kitLogger,
         new LogOutputSpecFactory(false, true));
     kitLogger.info(" - Creating Docker Build Service Configuration");
-    final BuildServiceConfig dockerBuildServiceConfig = new BuildServiceConfig.Builder().build();
+    final BuildServiceConfig dockerBuildServiceConfig = BuildServiceConfig.builder().build();
     kitLogger.info(" - Creating configuration for JKube");
     final JKubeConfiguration configuration = JKubeConfiguration.builder()
         .project(JavaProject.builder().build())
@@ -56,7 +56,7 @@ public class Main {
         .build(BuildConfiguration.builder().from("java").build())
         .build();
     try (
-        JKubeServiceHub jKubeServiceHub = new JKubeServiceHub.Builder()
+        JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
             .log(kitLogger)
             .configuration(configuration)
             .platformMode(RuntimeMode.kubernetes)

@@ -86,7 +86,7 @@ public class SpringBootWatcher extends BaseWatcher {
     public void watch(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) throws Exception {
         KubernetesClient kubernetes = getContext().getKubernetesClient();
 
-        PodLogService.PodLogServiceContext logContext = new PodLogService.PodLogServiceContext.Builder()
+        PodLogService.PodLogServiceContext logContext = PodLogService.PodLogServiceContext.builder()
                 .log(log)
                 .newPodLog(getContext().getNewPodLogger())
                 .oldPodLog(getContext().getOldPodLogger())

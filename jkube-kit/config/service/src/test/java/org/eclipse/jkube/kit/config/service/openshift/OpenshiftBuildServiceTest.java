@@ -89,9 +89,9 @@ public class OpenshiftBuildServiceTest {
 
     private ImageConfiguration image;
 
-    private BuildServiceConfig.Builder defaultConfig;
+    private BuildServiceConfig.BuildServiceConfigBuilder defaultConfig;
 
-    private BuildServiceConfig.Builder defaultConfigSecret;
+    private BuildServiceConfig.BuildServiceConfigBuilder defaultConfigSecret;
 
     @Before
     public void init() throws Exception {
@@ -123,13 +123,13 @@ public class OpenshiftBuildServiceTest {
                         .build()
                 ).build();
 
-        defaultConfig = new BuildServiceConfig.Builder()
+        defaultConfig = BuildServiceConfig.builder()
                 .buildDirectory(baseDir)
                 .buildRecreateMode(BuildRecreateMode.none)
                 .s2iBuildNameSuffix("-s2i-suffix2")
                 .openshiftBuildStrategy(OpenShiftBuildStrategy.s2i);
 
-        defaultConfigSecret = new BuildServiceConfig.Builder()
+        defaultConfigSecret = BuildServiceConfig.builder()
                 .buildDirectory(baseDir)
                 .buildRecreateMode(BuildRecreateMode.none)
                 .s2iBuildNameSuffix("-s2i-suffix2")
@@ -196,7 +196,7 @@ public class OpenshiftBuildServiceTest {
     @Test
     public void testDockerBuild() throws Exception {
         retryInMockServer(() -> {
-            BuildServiceConfig dockerConfig = new BuildServiceConfig.Builder()
+            BuildServiceConfig dockerConfig = BuildServiceConfig.builder()
                     .buildDirectory(baseDir)
                     .buildRecreateMode(BuildRecreateMode.none)
                     .s2iBuildNameSuffix("-docker")
@@ -224,7 +224,7 @@ public class OpenshiftBuildServiceTest {
     @Test
     public void testDockerBuildNoS2iSuffix() throws Exception {
         retryInMockServer(() -> {
-            final BuildServiceConfig dockerConfig = new BuildServiceConfig.Builder()
+            final BuildServiceConfig dockerConfig = BuildServiceConfig.builder()
                     .buildDirectory(baseDir)
                     .buildRecreateMode(BuildRecreateMode.none)
                     .openshiftBuildStrategy(OpenShiftBuildStrategy.docker)
@@ -252,7 +252,7 @@ public class OpenshiftBuildServiceTest {
     @Test
     public void testDockerBuildFromExt() throws Exception {
         retryInMockServer(() -> {
-            BuildServiceConfig dockerConfig = new BuildServiceConfig.Builder()
+            BuildServiceConfig dockerConfig = BuildServiceConfig.builder()
                     .buildDirectory(baseDir)
                     .buildRecreateMode(BuildRecreateMode.none)
                     .s2iBuildNameSuffix("-docker")

@@ -457,7 +457,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                         DockerAccessFactory.DockerAccessContext dockerAccessContext = getDockerAccessContext();
                         access = dockerAccessFactory.createDockerAccess(dockerAccessContext);
                     }
-                    jkubeServiceHub = new JKubeServiceHub.Builder()
+                    jkubeServiceHub = JKubeServiceHub.builder()
                         .log(log)
                         .configuration(initJKubeConfiguration())
                         .clusterAccess(clusterAccess)
@@ -718,13 +718,13 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     protected BuildServiceConfig getBuildServiceConfig() {
-        return new BuildServiceConfig.Builder()
+        return BuildServiceConfig.builder()
                 .buildRecreateMode(BuildRecreateMode.fromParameter(buildRecreate))
                 .openshiftBuildStrategy(buildStrategy)
                 .openshiftPullSecret(openshiftPullSecret)
                 .s2iBuildNameSuffix(s2iBuildNameSuffix)
                 .s2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal)
-                .forcePullEnabled(forcePull)
+                .forcePull(forcePull)
                 .imagePullManager(getImagePullManager(imagePullPolicy, autoPull))
                 .buildDirectory(project.getBuild().getDirectory())
                 .attacher((classifier, destFile) -> {

@@ -75,14 +75,14 @@ public class JKubeServiceHubTest {
 
     @Test(expected = NullPointerException.class)
     public void testMissingClusterAccess() {
-        new JKubeServiceHub.Builder()
+      JKubeServiceHub.builder()
                 .log(logger)
                 .build();
     }
 
     @Test(expected = NullPointerException.class)
     public void testMissingKitLogger() {
-        new JKubeServiceHub.Builder()
+      JKubeServiceHub.builder()
                 .clusterAccess(clusterAccess)
                 .build();
     }
@@ -90,7 +90,7 @@ public class JKubeServiceHubTest {
   @Test
   public void testBasicInit() {
     // When
-    try (final JKubeServiceHub jKubeServiceHub = new JKubeServiceHub.Builder()
+    try (final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
         .configuration(configuration)
         .log(logger)
         .build()
@@ -104,7 +104,7 @@ public class JKubeServiceHubTest {
 
     @Test
     public void testObtainBuildService() {
-        JKubeServiceHub hub = new JKubeServiceHub.Builder()
+        JKubeServiceHub hub = JKubeServiceHub.builder()
                 .configuration(configuration)
                 .clusterAccess(clusterAccess)
                 .log(logger)
@@ -121,7 +121,7 @@ public class JKubeServiceHubTest {
 
     @Test
     public void testObtainOpenshiftBuildService() {
-        JKubeServiceHub hub = new JKubeServiceHub.Builder()
+        JKubeServiceHub hub = JKubeServiceHub.builder()
                 .configuration(configuration)
                 .clusterAccess(clusterAccess)
                 .log(logger)
@@ -138,7 +138,7 @@ public class JKubeServiceHubTest {
 
     @Test
     public void testObtainArtifactResolverService() {
-        JKubeServiceHub hub = new JKubeServiceHub.Builder()
+        JKubeServiceHub hub = JKubeServiceHub.builder()
                 .configuration(configuration)
                 .clusterAccess(clusterAccess)
                 .log(logger)
