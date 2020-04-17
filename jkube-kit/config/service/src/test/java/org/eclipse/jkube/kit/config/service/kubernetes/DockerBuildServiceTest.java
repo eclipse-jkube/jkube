@@ -33,7 +33,7 @@ public class DockerBuildServiceTest {
     @Test
     public void testSuccessfulBuild() throws Exception {
 
-        final BuildServiceConfig config = new BuildServiceConfig.Builder()
+        final BuildServiceConfig config = BuildServiceConfig.builder()
                 .imagePullManager(new ImagePullManager(new TestCacheStore(), ImagePullPolicy.Always.name(), AutoPullMode.ALWAYS.name()))
                 .build();
         // @formatter:off

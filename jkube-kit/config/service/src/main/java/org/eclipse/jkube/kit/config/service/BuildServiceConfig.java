@@ -14,6 +14,11 @@
 package org.eclipse.jkube.kit.config.service;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
@@ -25,65 +30,25 @@ import java.io.File;
 /**
  * Class to hold configuration parameters for the building service.
  */
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode
 public class BuildServiceConfig {
 
     private BuildRecreateMode buildRecreateMode;
-
     private OpenShiftBuildStrategy openshiftBuildStrategy;
-
     private boolean forcePull;
-
     private String s2iBuildNameSuffix;
-
     private String openshiftPullSecret;
-
     private Task<KubernetesListBuilder> enricherTask;
-
     private String buildDirectory;
-
     private Attacher attacher;
-
     private ImagePullManager imagePullManager;
-
     private boolean s2iImageStreamLookupPolicyLocal;
-
     private ResourceConfig resourceConfig;
-
     private File resourceDir;
-
-    public BuildRecreateMode getBuildRecreateMode() {
-        return buildRecreateMode;
-    }
-
-    public OpenShiftBuildStrategy getOpenshiftBuildStrategy() {
-        return openshiftBuildStrategy;
-    }
-
-    public String getS2iBuildNameSuffix() {
-        return s2iBuildNameSuffix;
-    }
-
-    public String getOpenshiftPullSecret() {
-        return openshiftPullSecret;
-    }
-
-    public Task<KubernetesListBuilder> getEnricherTask() {
-        return enricherTask;
-    }
-
-    public String getBuildDirectory() {
-        return buildDirectory;
-    }
-
-    public ImagePullManager getImagePullManager() { return imagePullManager; }
-
-    public boolean isS2iImageStreamLookupPolicyLocal() {
-        return s2iImageStreamLookupPolicyLocal;
-    }
-
-    public boolean isForcePullEnabled() {
-        return forcePull;
-    }
 
     public void attachArtifact(String classifier, File destFile) {
         if (attacher != null) {
@@ -91,92 +56,6 @@ public class BuildServiceConfig {
         }
     }
 
-    public ResourceConfig getResourceConfig() {
-        return resourceConfig;
-    }
-
-    public File getResourceDir() {
-        return resourceDir;
-    }
-
-    public static class Builder {
-        private BuildServiceConfig config;
-
-        public Builder() {
-            this.config = new BuildServiceConfig();
-        }
-
-        public Builder(BuildServiceConfig config) {
-            this.config = config;
-        }
-
-        public Builder buildRecreateMode(BuildRecreateMode buildRecreateMode) {
-            config.buildRecreateMode = buildRecreateMode;
-            return this;
-        }
-
-        public Builder openshiftBuildStrategy(OpenShiftBuildStrategy openshiftBuildStrategy) {
-            config.openshiftBuildStrategy = openshiftBuildStrategy;
-            return this;
-        }
-
-        public Builder forcePullEnabled(boolean forcePull) {
-            config.forcePull = forcePull;
-            return this;
-        }
-
-        public Builder s2iBuildNameSuffix(String s2iBuildNameSuffix) {
-            config.s2iBuildNameSuffix = s2iBuildNameSuffix;
-            return this;
-        }
-
-        public Builder openshiftPullSecret(String openshiftPullSecret) {
-            config.openshiftPullSecret = openshiftPullSecret;
-            return this;
-        }
-
-        public Builder s2iImageStreamLookupPolicyLocal(boolean s2iImageStreamLookupPolicyLocal) {
-            config.s2iImageStreamLookupPolicyLocal = s2iImageStreamLookupPolicyLocal;
-            return this;
-        }
-
-        public Builder enricherTask(Task<KubernetesListBuilder> enricherTask) {
-            config.enricherTask = enricherTask;
-            return this;
-        }
-
-        public Builder buildDirectory(String buildDirectory) {
-            config.buildDirectory = buildDirectory;
-            return this;
-        }
-
-        public Builder attacher(Attacher attacher) {
-            config.attacher = attacher;
-            return this;
-        }
-
-        public Builder imagePullManager(ImagePullManager imagePullManager) {
-            config.imagePullManager = imagePullManager;
-            return this;
-        }
-
-        public Builder resourceConfig(ResourceConfig resourceConfig) {
-            config.resourceConfig = resourceConfig;
-            return this;
-        }
-
-        public Builder resourceDir(File resourceDir) {
-            config.resourceDir = resourceDir;
-            return this;
-        }
-
-        public BuildServiceConfig build() {
-            return config;
-        }
-
-    }
-
-    // Delegate for attaching stuff
     public interface Attacher {
         void attach(String classifier, File destFile);
     }

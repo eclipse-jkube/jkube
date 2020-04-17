@@ -51,7 +51,7 @@ public class LogMojo extends ApplyMojo {
     }
 
     protected PodLogService.PodLogServiceContext getLogServiceContext() {
-        return new PodLogService.PodLogServiceContext.Builder()
+        return PodLogService.PodLogServiceContext.builder()
                 .log(log)
                 .logContainerName(logContainerName)
                 .podName(podName)

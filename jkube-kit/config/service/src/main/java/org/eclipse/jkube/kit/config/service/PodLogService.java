@@ -26,6 +26,11 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.PodResource;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -51,7 +57,6 @@ public class PodLogService {
 
     public static final String OPERATION_UNDEPLOY = "undeploy";
     public static final String OPERATION_STOP = "stop";
-
 
     private PodLogServiceContext context;
     private KitLogger log;
@@ -279,87 +284,23 @@ public class PodLogService {
 
     // =======================================
 
+    @Builder(toBuilder = true)
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @EqualsAndHashCode
     public static class PodLogServiceContext {
 
+        private static final String DEFAULT_S2I_BUILD_NAME_SUFFIX = "-s2i";
         private KitLogger log;
         private KitLogger newPodLog;
         private KitLogger oldPodLog;
-
         private String logContainerName;
         private String podName;
-
-        private String s2iBuildNameSuffix = "-s2i";
-
-        public KitLogger getLog() {
-            return log;
-        }
-
-        public KitLogger getNewPodLog() {
-            return newPodLog;
-        }
-
-        public KitLogger getOldPodLog() {
-            return oldPodLog;
-        }
-
-        public String getLogContainerName() {
-            return logContainerName;
-        }
-
-        public String getPodName() {
-            return podName;
-        }
+        private String s2iBuildNameSuffix;
 
         public String getS2iBuildNameSuffix() {
-            return s2iBuildNameSuffix;
-        }
-
-        public static class Builder {
-
-            private PodLogServiceContext context;
-
-            public Builder() {
-                this.context = new PodLogServiceContext();
-            }
-
-            public Builder(PodLogServiceContext context) {
-                this.context = context;
-            }
-
-            public Builder log(KitLogger log) {
-                context.log = log;
-                return this;
-            }
-
-            public Builder newPodLog(KitLogger newPodLog) {
-                context.newPodLog = newPodLog;
-                return this;
-            }
-
-            public Builder oldPodLog(KitLogger oldPodLog) {
-                context.oldPodLog = oldPodLog;
-                return this;
-            }
-
-            public Builder logContainerName(String logContainerName) {
-                context.logContainerName = logContainerName;
-                return this;
-            }
-
-            public Builder podName(String podName) {
-                context.podName = podName;
-                return this;
-            }
-
-            public Builder s2iBuildNameSuffix(String s2iBuildNameSuffix) {
-                context.s2iBuildNameSuffix = s2iBuildNameSuffix;
-                return this;
-            }
-
-            public PodLogServiceContext build() {
-                return context;
-            }
-
+            return Optional.ofNullable(s2iBuildNameSuffix).orElse(DEFAULT_S2I_BUILD_NAME_SUFFIX);
         }
 
     }

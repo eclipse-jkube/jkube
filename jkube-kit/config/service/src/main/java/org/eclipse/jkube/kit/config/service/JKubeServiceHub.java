@@ -19,6 +19,8 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
+import lombok.Builder;
+import lombok.Getter;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
@@ -36,27 +38,34 @@ import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
  */
 public class JKubeServiceHub implements Closeable {
 
+    @Getter
     private JKubeConfiguration configuration;
-
+    @Getter
     private ClusterAccess clusterAccess;
-
     private RuntimeMode platformMode;
-
     private KitLogger log;
-
+    @Getter
     private ServiceHub dockerServiceHub;
-
+    @Getter
     private BuildServiceConfig buildServiceConfig;
-
     private RuntimeMode resolvedMode;
-
+    @Getter
     private KubernetesClient client;
-
     private LazyBuilder<ArtifactResolverService> artifactResolverService;
     private LazyBuilder<BuildService> buildService;
     private LazyBuilder<ApplyService> applyService;
 
-    private JKubeServiceHub() {
+    @Builder
+    public JKubeServiceHub(
+        ClusterAccess clusterAccess, RuntimeMode platformMode, KitLogger log,
+        ServiceHub dockerServiceHub, JKubeConfiguration configuration, BuildServiceConfig buildServiceConfig) {
+        this.clusterAccess = clusterAccess;
+        this.platformMode = platformMode;
+        this.log = log;
+        this.dockerServiceHub = dockerServiceHub;
+        this.configuration = configuration;
+        this.buildServiceConfig = buildServiceConfig;
+        init();
     }
 
     private void init() {
@@ -113,24 +122,8 @@ public class JKubeServiceHub implements Closeable {
         Optional.ofNullable(dockerServiceHub).map(ServiceHub::getDockerAccess).ifPresent(DockerAccess::shutdown);
     }
 
-    public JKubeConfiguration getConfiguration() {
-        return configuration;
-    }
-
     public RuntimeMode getRuntimeMode() {
         return resolvedMode;
-    }
-
-    public KubernetesClient getClient() {
-        return client;
-    }
-
-    public ServiceHub getDockerServiceHub() {
-        return dockerServiceHub;
-    }
-
-    public BuildServiceConfig getBuildServiceConfig() {
-        return buildServiceConfig;
     }
 
     public ArtifactResolverService getArtifactResolverService() {
@@ -145,49 +138,5 @@ public class JKubeServiceHub implements Closeable {
         return applyService.get();
     }
 
-
-    public static class Builder {
-
-        private JKubeServiceHub hub;
-
-        public Builder() {
-            this.hub = new JKubeServiceHub();
-        }
-
-        public Builder clusterAccess(ClusterAccess clusterAccess) {
-            hub.clusterAccess = clusterAccess;
-            return this;
-        }
-
-        public Builder platformMode(RuntimeMode platformMode) {
-            hub.platformMode = platformMode;
-            return this;
-        }
-
-        public Builder log(KitLogger log) {
-            hub.log = log;
-            return this;
-        }
-
-        public Builder dockerServiceHub(ServiceHub dockerServiceHub) {
-            hub.dockerServiceHub = dockerServiceHub;
-            return this;
-        }
-
-        public Builder configuration(JKubeConfiguration configuration) {
-            hub.configuration = configuration;
-            return this;
-        }
-
-        public Builder buildServiceConfig(BuildServiceConfig buildServiceConfig) {
-            hub.buildServiceConfig = buildServiceConfig;
-            return this;
-        }
-
-        public JKubeServiceHub build() {
-            hub.init();
-            return hub;
-        }
-    }
 }
 
