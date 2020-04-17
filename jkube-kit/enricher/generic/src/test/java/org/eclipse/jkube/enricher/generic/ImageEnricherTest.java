@@ -54,7 +54,7 @@ public class ImageEnricherTest {
         new Expectations() {{
             Configuration configuration =
                 new Configuration.Builder()
-                    .resource(new ResourceConfig.Builder()
+                    .resource(ResourceConfig.builder()
                                   .env(Collections.singletonMap("MY_KEY", "MY_VALUE"))
                                   .build())
                 .images(Collections.singletonList(imageConfiguration))

@@ -61,7 +61,7 @@ public class ReplicationControllerHandlerTest {
         tags.add("latest");
         tags.add("test");
 
-        VolumeConfig volumeConfig1 = new VolumeConfig.Builder()
+        VolumeConfig volumeConfig1 = VolumeConfig.builder()
                 .name("test").mounts(mounts).type("hostPath").path("/test/path").build();
         volumes1.add(volumeConfig1);
 
@@ -86,11 +86,11 @@ public class ReplicationControllerHandlerTest {
 
         ReplicationControllerHandler replicationControllerHandler = new ReplicationControllerHandler(podTemplateHandler);
 
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .withServiceAccount("test-account")
-                .withReplicas(5)
+                .serviceAccount("test-account")
+                .replicas(5)
                 .volumes(volumes1)
                 .build();
 
@@ -127,11 +127,11 @@ public class ReplicationControllerHandlerTest {
         ReplicationControllerHandler replicationControllerHandler = new ReplicationControllerHandler(podTemplateHandler);
 
         //with invalid controller name
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
-                .withServiceAccount("test-account")
-                .withReplicas(5)
+                .serviceAccount("test-account")
+                .replicas(5)
                 .volumes(volumes1)
                 .build();
 
@@ -148,10 +148,10 @@ public class ReplicationControllerHandlerTest {
         ReplicationControllerHandler replicationControllerHandler = new ReplicationControllerHandler(podTemplateHandler);
 
         //without controller name
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
-                .withServiceAccount("test-account")
-                .withReplicas(5)
+                .serviceAccount("test-account")
+                .replicas(5)
                 .volumes(volumes1)
                 .build();
 

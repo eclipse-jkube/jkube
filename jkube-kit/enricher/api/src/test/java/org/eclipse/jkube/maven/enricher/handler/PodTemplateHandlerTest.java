@@ -83,11 +83,11 @@ public class PodTemplateHandlerTest {
         PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
 
         //Pod without Volume Config
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .withServiceAccount("test-account")
-                .withReplicas(5)
+                .serviceAccount("test-account")
+                .replicas(5)
                 .build();
 
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, images);
@@ -114,10 +114,10 @@ public class PodTemplateHandlerTest {
 
         PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
         //Pod with empty Volume Config and wihtout ServiceAccount
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .withReplicas(5)
+                .replicas(5)
                 .volumes(volumes1)
                 .build();
 
@@ -136,16 +136,16 @@ public class PodTemplateHandlerTest {
         PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
         //Config with Volume Config and ServiceAccount
         //valid type
-        VolumeConfig volumeConfig1 = new VolumeConfig.Builder().name("test")
+        VolumeConfig volumeConfig1 = VolumeConfig.builder().name("test")
                 .mounts(mounts).type("hostPath").path("/test/path").build();
         volumes1.clear();
         volumes1.add(volumeConfig1);
 
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .withServiceAccount("test-account")
-                .withReplicas(5)
+                .serviceAccount("test-account")
+                .replicas(5)
                 .volumes(volumes1)
                 .build();
 
@@ -168,16 +168,16 @@ public class PodTemplateHandlerTest {
         PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
 
         //invalid type
-        VolumeConfig volumeConfig1 = new VolumeConfig.Builder().name("test")
+        VolumeConfig volumeConfig1 = VolumeConfig.builder().name("test")
                 .mounts(mounts).type("hoStPath").path("/test/path").build();
         volumes1.clear();
         volumes1.add(volumeConfig1);
 
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .withServiceAccount("test-account")
-                .withReplicas(5)
+                .serviceAccount("test-account")
+                .replicas(5)
                 .volumes(volumes1)
                 .build();
 
@@ -196,15 +196,15 @@ public class PodTemplateHandlerTest {
         PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
 
         //empty type
-        VolumeConfig volumeConfig1 = new VolumeConfig.Builder().name("test").mounts(mounts).build();
+        VolumeConfig volumeConfig1 = VolumeConfig.builder().name("test").mounts(mounts).build();
         volumes1.clear();
         volumes1.add(volumeConfig1);
 
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .withServiceAccount("test-account")
-                .withReplicas(5)
+                .serviceAccount("test-account")
+                .replicas(5)
                 .volumes(volumes1)
                 .build();
 

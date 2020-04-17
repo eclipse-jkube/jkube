@@ -527,7 +527,7 @@ public class ApplyMojo extends AbstractJKubeMojo {
                 }
             }
         }
-        processCustomEntities(kubernetes, namespace, resources != null ? resources.getCrdContexts() : null, false);
+        processCustomEntities(kubernetes, namespace, resources != null ? resources.getCustomResourceDefinitions() : null, false);
     }
 
     protected String getExternalServiceURL(Service service) {

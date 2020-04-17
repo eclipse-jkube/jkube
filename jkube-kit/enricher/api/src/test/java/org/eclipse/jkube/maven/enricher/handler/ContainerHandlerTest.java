@@ -74,12 +74,12 @@ public class ContainerHandlerTest {
         project = JavaProject.builder().properties(new Properties()).build();
         project1 = JavaProject.builder().properties(new Properties()).build();
         project2 = JavaProject.builder().properties(new Properties()).build();
-        config = new ResourceConfig.Builder()
+        config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .withReplicas(5)
+                .replicas(5)
                 .build();
-        config1 = new ResourceConfig.Builder()
+        config1 = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent").build();
         ports = new ArrayList<>();
         tags = new ArrayList<>();
@@ -299,7 +299,7 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration1);
 
         //check if policy is not set then both in case of version is set or not
-        ResourceConfig config2 = new ResourceConfig.Builder()
+        ResourceConfig config2 = ResourceConfig.builder()
                 .imagePullPolicy("").build();
 
         containers = handler1.getContainers(config2, images);
@@ -371,9 +371,9 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration1);
 
         //volume config without mount
-        VolumeConfig volumeConfig1 = new VolumeConfig.Builder().name("first").build();
+        VolumeConfig volumeConfig1 = VolumeConfig.builder().name("first").build();
         volumes1.add(volumeConfig1);
-        ResourceConfig config1 = new ResourceConfig.Builder().volumes(volumes1).build();
+        ResourceConfig config1 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config1, images);
         assertTrue(containers.get(0).getVolumeMounts().isEmpty());
     }
@@ -390,11 +390,11 @@ public class ContainerHandlerTest {
         mounts.add("/path/etc");
 
         //volume config without name but with mount
-        VolumeConfig volumeConfig2 = new VolumeConfig.Builder().mounts(mounts).build();
+        VolumeConfig volumeConfig2 = VolumeConfig.builder().mounts(mounts).build();
         volumes1.clear();
         volumes1.add(volumeConfig2);
 
-        ResourceConfig config2 = new ResourceConfig.Builder().volumes(volumes1).build();
+        ResourceConfig config2 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config2, images);
         assertEquals(1, containers.get(0).getVolumeMounts().size());
         assertNull(containers.get(0).getVolumeMounts().get(0).getName());
@@ -412,10 +412,10 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration1);
 
         //volume config with name and single mount
-        VolumeConfig volumeConfig3 = new VolumeConfig.Builder().name("third").mounts(mounts).build();
+        VolumeConfig volumeConfig3 = VolumeConfig.builder().name("third").mounts(mounts).build();
         volumes1.clear();
         volumes1.add(volumeConfig3);
-        ResourceConfig config3 = new ResourceConfig.Builder().volumes(volumes1).build();
+        ResourceConfig config3 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config3, images);
         assertEquals(1, containers.get(0).getVolumeMounts().size());
         assertEquals("third", containers.get(0).getVolumeMounts().get(0).getName());
@@ -435,10 +435,10 @@ public class ContainerHandlerTest {
         //volume config with name and multiple mount
         mounts.add("/path/system");
         mounts.add("/path/sys");
-        VolumeConfig volumeConfig4 = new VolumeConfig.Builder().name("test").mounts(mounts).build();
+        VolumeConfig volumeConfig4 = VolumeConfig.builder().name("test").mounts(mounts).build();
         volumes1.clear();
         volumes1.add(volumeConfig4);
-        ResourceConfig config4 = new ResourceConfig.Builder().volumes(volumes1).build();
+        ResourceConfig config4 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config4, images);
         assertEquals(3, containers.get(0).getVolumeMounts().size());
         for (int i = 0; i <= 2; i++)
@@ -453,7 +453,7 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration1);
 
         //empty volume
-        ResourceConfig config5 = new ResourceConfig.Builder().volumes(volumes2).build();
+        ResourceConfig config5 = ResourceConfig.builder().volumes(volumes2).build();
         containers = handler.getContainers(config5, images);
         assertTrue(containers.get(0).getVolumeMounts().isEmpty());
     }

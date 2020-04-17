@@ -62,7 +62,7 @@ public class JobHandlerTest {
         tags.add("latest");
         tags.add("test");
 
-        VolumeConfig volumeConfig1 = new VolumeConfig.Builder()
+        VolumeConfig volumeConfig1 = VolumeConfig.builder()
                 .name("test").mounts(mounts).type("hostPath").path("/test/path").build();
         volumes1.add(volumeConfig1);
 
@@ -87,10 +87,10 @@ public class JobHandlerTest {
 
         JobHandler jobHandler = new JobHandler(podTemplateHandler);
 
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .withServiceAccount("test-account")
+                .serviceAccount("test-account")
                 .volumes(volumes1)
                 .build();
 
@@ -126,10 +126,10 @@ public class JobHandlerTest {
         JobHandler jobHandler = new JobHandler(podTemplateHandler);
 
         //with invalid controller name
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
-                .withServiceAccount("test-account")
+                .serviceAccount("test-account")
                 .volumes(volumes1)
                 .build();
 
@@ -146,9 +146,9 @@ public class JobHandlerTest {
         JobHandler jobHandler = new JobHandler(podTemplateHandler);
 
         //without controller name
-        ResourceConfig config = new ResourceConfig.Builder()
+        ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
-                .withServiceAccount("test-account")
+                .serviceAccount("test-account")
                 .volumes(volumes1)
                 .build();
 

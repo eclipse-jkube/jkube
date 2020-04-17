@@ -13,66 +13,53 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.util.Properties;
 
 /**
  * Configuration for labels or annotations
  *
  * @author roland
- * @since 22/03/16
  */
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode
 public class MetaDataConfig {
-    /**
-     * Labels or annotations which should be applied to every object
-     */
-    private Properties all;
+  /**
+   * Labels or annotations which should be applied to every object
+   */
+  private Properties all;
 
-    /**
-     * Labels or annotation for a Pod within a controller or deployment
-     */
-    private Properties pod;
+  /**
+   * Labels or annotation for a Pod within a controller or deployment
+   */
+  private Properties pod;
 
-    /**
-     * Labels or annotations for replica sets (or replication controller)
-     */
-    private Properties replicaSet;
+  /**
+   * Labels or annotations for replica sets (or replication controller)
+   */
+  private Properties replicaSet;
 
-    /**
-     * Labels or annotation for services
-     */
-    private Properties service;
+  /**
+   * Labels or annotation for services
+   */
+  private Properties service;
 
-    /**
-     * Labels or annotations for deployment or deployment configs
-     */
-    private Properties ingress;
+  /**
+   * Labels or annotations for deployment or deployment configs
+   */
+  private Properties ingress;
 
-    /**
-     * Labels or annotations for deployment or deployment configs
-     */
-    private Properties deployment;
+  /**
+   * Labels or annotations for deployment or deployment configs
+   */
+  private Properties deployment;
 
-    public Properties getPod() {
-        return pod;
-    }
-
-    public Properties getReplicaSet() {
-        return replicaSet;
-    }
-
-    public Properties getService() {
-        return service;
-    }
-
-    public Properties getAll() {
-        return all;
-    }
-
-    public Properties getDeployment() {
-        return deployment;
-    }
-
-    public Properties getIngress() {
-        return ingress;
-    }
 }

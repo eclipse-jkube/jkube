@@ -49,10 +49,10 @@ public class ServiceHandlerTest {
 
         //first scenario
         //*adding a basic port case with all values (with ports, without headless)
-        port = new ServiceConfig.Port.Builder()
+        port = ServiceConfig.Port.builder()
                 .port(8080).protocol("tcp").targetPort(80).nodePort(50).name("port-test").build();
         ports.add(port);
-        serviceconfig = new ServiceConfig.Builder()
+        serviceconfig = ServiceConfig.builder()
                 .ports(ports).name("service-test").expose(true).headless(false).type("NodePort").build();
 
         //creating serviceConfigs of service;
@@ -78,7 +78,7 @@ public class ServiceHandlerTest {
     public void getServicesWithoutPortTest() {
         //second scenario
         //*create a service without ports
-        serviceconfig = new ServiceConfig.Builder()
+        serviceconfig = ServiceConfig.builder()
                 .name("service-test").expose(true).type("NodePort").build();
 
         serviceConfigs.clear();
@@ -94,7 +94,7 @@ public class ServiceHandlerTest {
     public void getServicesWithHeadlessServiceTest() {
         //third scenario
         //*create a service without ports and with headless service
-        serviceconfig = new ServiceConfig.Builder()
+        serviceconfig = ServiceConfig.builder()
                 .name("service-test").expose(true).type("NodePort").headless(true).build();
 
         serviceConfigs.clear();
@@ -115,12 +115,12 @@ public class ServiceHandlerTest {
     @Test
     public void getServicesBothPortAndHealessTest() {
         ports.clear();
-        port = new ServiceConfig.Port.Builder()
+        port = ServiceConfig.Port.builder()
                 .port(8080).protocol("tcp").targetPort(80).nodePort(50).name("port-test").build();
         ports.add(port);
         //fourth scenario
         //*create a service with ports and with headless service
-        serviceconfig = new ServiceConfig.Builder()
+        serviceconfig = ServiceConfig.builder()
                 .ports(ports).name("service-test").expose(true).type("NodePort").headless(true).build();
 
         serviceConfigs.clear();
@@ -147,12 +147,12 @@ public class ServiceHandlerTest {
 
         //checking protocol now
         //TCP
-        port = new ServiceConfig.Port.Builder()
+        port = ServiceConfig.Port.builder()
                 .port(8080).protocol("tcp").targetPort(80).nodePort(50).name("port-test").build();
         ports.clear();
         ports.add(port);
         serviceConfigs.clear();
-        serviceconfig = new ServiceConfig.Builder()
+        serviceconfig = ServiceConfig.builder()
                 .ports(ports).name("service-test").expose(true).headless(false).type("NodePort").build();
 
         //creating serviceConfigs of service;
@@ -166,11 +166,11 @@ public class ServiceHandlerTest {
     @Test
     public void getServicesWithUDPProtocolTest() {
         //UDP
-        port = new ServiceConfig.Port.Builder()
+        port = ServiceConfig.Port.builder()
                 .port(8080).protocol("udp").targetPort(80).nodePort(50).name("port-test").build();
         ports.clear();
         ports.add(port);
-        serviceconfig = new ServiceConfig.Builder()
+        serviceconfig = ServiceConfig.builder()
                 .ports(ports).name("service-test").expose(true).headless(false).type("NodePort").build();
 
         //creating serviceConfigs of service;
@@ -185,11 +185,11 @@ public class ServiceHandlerTest {
     @Test
     public void getServicesWithDefaultProtocolTest() {
         //DEFAULT
-        port = new ServiceConfig.Port.Builder()
+        port = ServiceConfig.Port.builder()
                 .port(8080).targetPort(80).nodePort(50).name("port-test").build();
         ports.clear();
         ports.add(port);
-        serviceconfig = new ServiceConfig.Builder()
+        serviceconfig = ServiceConfig.builder()
                 .ports(ports).name("service-test").expose(true).headless(false).type("NodePort").build();
 
         //creating serviceConfigs of service;
@@ -204,12 +204,12 @@ public class ServiceHandlerTest {
     @Test
     public void getServicesWithNullProtocolTest() {
         //checking null type
-        port = new ServiceConfig.Port.Builder()
+        port = ServiceConfig.Port.builder()
                 .port(8080).targetPort(80).nodePort(50).name("port-test").build();
         ports.clear();
         ports.add(port);
 
-        serviceconfig = new ServiceConfig.Builder()
+        serviceconfig = ServiceConfig.builder()
                 .ports(ports).name("service-test").expose(true).headless(false).build();
 
         //creating serviceConfigs of service;

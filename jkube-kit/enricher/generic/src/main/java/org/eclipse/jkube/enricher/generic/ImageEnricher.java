@@ -272,7 +272,7 @@ public class ImageEnricher extends BaseEnricher {
     }
 
     private void mergeEnvVariables(Container container) {
-        getConfiguration().getResource().flatMap(ResourceConfig::getEnv).ifPresent(resourceEnv -> {
+        getConfiguration().getResource().map(ResourceConfig::getEnv).ifPresent(resourceEnv -> {
             List<EnvVar> containerEnvVars = container.getEnv();
             if (containerEnvVars == null) {
                 containerEnvVars = new LinkedList<>();
