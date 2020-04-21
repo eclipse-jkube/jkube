@@ -42,16 +42,17 @@ import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import static org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil.extractContainerName;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.extractContainerName;
 
 
 /**
@@ -68,7 +69,6 @@ import static org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil.e
  * Any already configured container in the pod spec is updated if the property is not set.
  *
  * @author roland
- * @since 25/05/16
  */
 public class ImageEnricher extends BaseEnricher {
 
@@ -211,17 +211,15 @@ public class ImageEnricher extends BaseEnricher {
     // Add missing information to the given containers as found
     // configured
     private void mergeImageConfigurationWithContainerSpec(List<Container> containers) {
-        getImages().ifPresent(images -> {
-            int idx = 0;
-            for (ImageConfiguration image : images) {
-                Container container = getContainer(idx, containers);
-                mergeImagePullPolicy(image, container);
-                mergeImage(image, container);
-                mergeContainerName(image, container);
-                mergeEnvVariables(container);
-                idx++;
-            }
-        });
+        int idx = 0;
+        for (ImageConfiguration image : getImages()) {
+            Container container = getContainer(idx, containers);
+            mergeImagePullPolicy(image, container);
+            mergeImage(image, container);
+            mergeContainerName(image, container);
+            mergeEnvVariables(container);
+            idx++;
+        }
     }
 
     private Container getContainer(int idx, List<Container> containers) {
@@ -272,7 +270,7 @@ public class ImageEnricher extends BaseEnricher {
     }
 
     private void mergeEnvVariables(Container container) {
-        getConfiguration().getResource().map(ResourceConfig::getEnv).ifPresent(resourceEnv -> {
+        Optional.ofNullable(getConfiguration().getResource()).map(ResourceConfig::getEnv).ifPresent(resourceEnv -> {
             List<EnvVar> containerEnvVars = container.getEnv();
             if (containerEnvVars == null) {
                 containerEnvVars = new LinkedList<>();

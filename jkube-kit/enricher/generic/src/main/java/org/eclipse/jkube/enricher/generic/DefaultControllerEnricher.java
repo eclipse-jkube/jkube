@@ -27,21 +27,22 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.maven.enricher.handler.DaemonSetHandler;
-import org.eclipse.jkube.maven.enricher.handler.DeploymentConfigHandler;
-import org.eclipse.jkube.maven.enricher.handler.DeploymentHandler;
-import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
-import org.eclipse.jkube.maven.enricher.handler.JobHandler;
-import org.eclipse.jkube.maven.enricher.handler.ReplicaSetHandler;
-import org.eclipse.jkube.maven.enricher.handler.ReplicationControllerHandler;
-import org.eclipse.jkube.maven.enricher.handler.StatefulSetHandler;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.handler.DaemonSetHandler;
+import org.eclipse.jkube.kit.enricher.handler.DeploymentConfigHandler;
+import org.eclipse.jkube.kit.enricher.handler.DeploymentHandler;
+import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
+import org.eclipse.jkube.kit.enricher.handler.JobHandler;
+import org.eclipse.jkube.kit.enricher.handler.ReplicaSetHandler;
+import org.eclipse.jkube.kit.enricher.handler.ReplicationControllerHandler;
+import org.eclipse.jkube.kit.enricher.handler.StatefulSetHandler;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Enrich with controller if not already present.
@@ -58,7 +59,6 @@ import java.util.List;
  * TODO: There is a certain overlap with the ImageEnricher with adding default images etc.. This must be resolved.
  *
  * @author roland
- * @since 25/05/16
  */
 public class DefaultControllerEnricher extends BaseEnricher {
     protected static final String[] POD_CONTROLLER_KINDS =
@@ -99,14 +99,15 @@ public class DefaultControllerEnricher extends BaseEnricher {
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
         final String name = getConfig(Config.name, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-        ResourceConfig xmlResourceConfig = getConfiguration().getResource().orElse(ResourceConfig.builder().build());
+        ResourceConfig xmlResourceConfig = Optional.ofNullable(getConfiguration().getResource())
+            .orElse(ResourceConfig.builder().build());
         ResourceConfig config = ResourceConfig.toBuilder(xmlResourceConfig)
                 .controllerName(name)
                 .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, getConfig(Config.pullPolicy)))
                 .replicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.replicaCount))))
                 .build();
 
-        final List<ImageConfiguration> images = getImages().orElse(Collections.emptyList());
+        final List<ImageConfiguration> images = getImages();
 
         // Check if at least a replica set is added. If not add a default one
         if (!KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS)) {

@@ -31,8 +31,8 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -119,11 +119,10 @@ public class AutoTLSEnricherTest {
             // Setup mock behaviour
             new Expectations() {
                 {
-                    Configuration configuration =
-                            new Configuration.Builder()
-                                    .properties(projectProps)
-                                    .processorConfig(config)
-                                    .build();
+                    Configuration configuration = Configuration.builder()
+                        .properties(projectProps)
+                        .processorConfig(config)
+                        .build();
                     context.getConfiguration();
                     result = configuration;
                     project.getArtifactId();

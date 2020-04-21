@@ -22,11 +22,11 @@ import io.fabric8.openshift.api.model.Template;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.KindAndName;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +47,6 @@ import java.util.function.Function;
  * Enricher for embedding dependency descriptors to single package.
  *
  * @author jimmidyson
- * @since 14/07/16
  */
 public class DependencyEnricher extends BaseEnricher {
     private static String DEPENDENCY_KUBERNETES_YAML = "META-INF/jkube/kubernetes.yml";

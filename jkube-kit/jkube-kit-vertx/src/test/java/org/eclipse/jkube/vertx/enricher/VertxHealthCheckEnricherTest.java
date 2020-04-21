@@ -23,8 +23,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.Probe;
 import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -49,7 +49,7 @@ public class VertxHealthCheckEnricherTest {
             context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
             result = true;
 
-            Configuration.Builder configBuilder = new Configuration.Builder();
+            Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
             configBuilder.pluginConfigLookup(getProjectLookup(config));
 
             context.getConfiguration();
@@ -62,7 +62,7 @@ public class VertxHealthCheckEnricherTest {
             context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
             result = true;
 
-            Configuration.Builder configBuilder = new Configuration.Builder();
+            Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
             configBuilder.properties(props);
             configBuilder.pluginConfigLookup(getProjectLookup(null));
 
@@ -76,7 +76,7 @@ public class VertxHealthCheckEnricherTest {
             context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
             result = true;
 
-            Configuration.Builder configBuilder = new Configuration.Builder();
+            Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
             configBuilder.properties(props);
             configBuilder.pluginConfigLookup(getProjectLookup(config));
 

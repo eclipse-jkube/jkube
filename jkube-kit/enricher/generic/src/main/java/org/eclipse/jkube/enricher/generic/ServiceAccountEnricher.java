@@ -22,8 +22,8 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +41,7 @@ public class ServiceAccountEnricher extends BaseEnricher {
         List<ServiceAccount> serviceAccounts = new ArrayList<>();
 
         // Check XML config and see if there are any service accounts specified
-        ResourceConfig xmlResourceConfig = getConfiguration().getResource().orElse(null);
+        ResourceConfig xmlResourceConfig = getConfiguration().getResource();
         if(xmlResourceConfig != null && xmlResourceConfig.getServiceAccounts() != null) {
             for(ServiceAccountConfig serviceAccountConfig : xmlResourceConfig.getServiceAccounts()) {
                 if(serviceAccountConfig.getName() != null) {

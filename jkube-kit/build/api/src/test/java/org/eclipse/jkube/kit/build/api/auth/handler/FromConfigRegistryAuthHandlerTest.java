@@ -53,9 +53,9 @@ public class FromConfigRegistryAuthHandlerTest {
     protected RegistryAuthConfig setupAuthConfigFactoryWithConfigData() {
         return RegistryAuthConfig.builder()
                 .skipExtendedAuthentication(false)
-                .addDefaultConfig(RegistryAuth.USERNAME, "roland")
-                .addDefaultConfig(RegistryAuth.PASSWORD, "secret")
-                .addDefaultConfig(RegistryAuth.EMAIL, "roland@jolokia.org")
+                .putDefaultConfig(RegistryAuth.USERNAME, "roland")
+                .putDefaultConfig(RegistryAuth.PASSWORD, "secret")
+                .putDefaultConfig(RegistryAuth.EMAIL, "roland@jolokia.org")
                 .build();
     }
 
@@ -80,7 +80,7 @@ public class FromConfigRegistryAuthHandlerTest {
     @Test
     public void testFromPluginConfigurationFailed() {
         FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(
-            RegistryAuthConfig.builder().addDefaultConfig(RegistryAuth.USERNAME, "admin").build(), log);
+            RegistryAuthConfig.builder().putDefaultConfig(RegistryAuth.USERNAME, "admin").build(), log);
 
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage(containsString("password"));
@@ -89,8 +89,8 @@ public class FromConfigRegistryAuthHandlerTest {
 
     private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
         JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue().getBytes())), JsonObject.class);
-        assertEquals(username,params.get("username").getAsString());
-        assertEquals(password,params.get("password").getAsString());
+        assertEquals(username, params.get("username").getAsString());
+        assertEquals(password, params.get("password").getAsString());
         if (email != null) {
             assertEquals(email, params.get("email").getAsString());
         }

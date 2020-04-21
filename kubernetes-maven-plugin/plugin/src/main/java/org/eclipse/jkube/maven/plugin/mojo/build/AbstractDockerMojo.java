@@ -67,8 +67,8 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
-import org.eclipse.jkube.maven.enricher.api.EnricherContext;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.plugin.enricher.EnricherManager;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 
@@ -733,7 +733,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                     }
                 })
                 .enricherTask(builder -> {
-                    EnricherManager enricherManager = new EnricherManager(resources, getEnricherContext(), MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath));
+                    EnricherManager enricherManager = new EnricherManager(getEnricherContext(), MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath));
                     enricherManager.enrich(PlatformMode.kubernetes, builder);
                     enricherManager.enrich(PlatformMode.openshift, builder);
                 })
@@ -769,9 +769,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
 
     // Get enricher context
     public EnricherContext getEnricherContext() throws DependencyResolutionRequiredException {
-        return new JKubeEnricherContext.Builder()
+        return JKubeEnricherContext.builder()
                 .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
-                .config(extractEnricherConfig())
+                .processorConfig(extractEnricherConfig())
                 .images(getResolvedImages())
                 .resources(resources)
                 .log(log)

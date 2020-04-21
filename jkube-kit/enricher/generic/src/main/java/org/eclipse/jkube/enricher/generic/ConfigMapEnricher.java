@@ -18,8 +18,8 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.config.resource.ConfigMapEntry;
 
 import java.io.IOException;
@@ -138,11 +138,13 @@ public class ConfigMapEnricher extends BaseEnricher {
     }
 
     private boolean checkIfItemExists(KubernetesListBuilder builder, String name) {
-        return builder.buildItems().stream().filter(item -> item.getKind().equals("ConfigMap")).anyMatch(item -> item.getMetadata().getName().equals(name));
+        return builder.buildItems().stream()
+            .filter(item -> item.getKind().equals("ConfigMap"))
+            .anyMatch(item -> item.getMetadata().getName().equals(name));
     }
 
     private org.eclipse.jkube.kit.config.resource.ConfigMap getConfigMapFromXmlConfiguration() {
-        ResourceConfig resourceConfig = getConfiguration().getResource().orElse(null);
+        ResourceConfig resourceConfig = getConfiguration().getResource();
         if (resourceConfig != null && resourceConfig.getConfigMap() != null) {
             return resourceConfig.getConfigMap();
         }

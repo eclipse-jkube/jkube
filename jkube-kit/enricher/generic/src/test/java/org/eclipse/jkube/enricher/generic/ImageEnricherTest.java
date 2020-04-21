@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -36,7 +36,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * @author nicola
- * @since 14/02/17
  */
 public class ImageEnricherTest {
 
@@ -52,12 +51,11 @@ public class ImageEnricherTest {
     public void prepareMock() {
         // Setup mock behaviour
         new Expectations() {{
-            Configuration configuration =
-                new Configuration.Builder()
-                    .resource(ResourceConfig.builder()
-                                  .env(Collections.singletonMap("MY_KEY", "MY_VALUE"))
-                                  .build())
-                .images(Collections.singletonList(imageConfiguration))
+            Configuration configuration = Configuration.builder()
+                .resource(ResourceConfig.builder()
+                    .env(Collections.singletonMap("MY_KEY", "MY_VALUE"))
+                    .build())
+                .image(imageConfiguration)
                 .build();
             context.getConfiguration(); result = configuration;
 

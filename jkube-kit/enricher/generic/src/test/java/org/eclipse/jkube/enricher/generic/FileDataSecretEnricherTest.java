@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.common.util.Base64Util;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -49,7 +49,7 @@ public class FileDataSecretEnricherTest {
         new Expectations() {
             {{
                 context.getConfiguration();
-                result = new Configuration.Builder()
+                result = Configuration.builder()
                         .resource(new ResourceConfig())
                         .build();
             }}

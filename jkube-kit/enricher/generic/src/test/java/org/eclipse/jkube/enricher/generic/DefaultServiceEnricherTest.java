@@ -21,8 +21,8 @@ import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -42,7 +42,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * @author roland
- * @since 03/06/16
  */
 public class DefaultServiceEnricherTest {
 
@@ -193,8 +192,8 @@ public class DefaultServiceEnricherTest {
 
         new Expectations() {{
 
-            Configuration configuration = new Configuration.Builder()
-                    .images(Arrays.asList(imageConfigurationWithLabels))
+            Configuration configuration = Configuration.builder()
+                    .image(imageConfigurationWithLabels)
                     .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-service", config)))
                     .build();
 
@@ -252,8 +251,8 @@ public class DefaultServiceEnricherTest {
 
         new Expectations() {{
 
-            Configuration configuration = new Configuration.Builder()
-                .images(Arrays.asList(imageConfiguration))
+            Configuration configuration = Configuration.builder()
+                .image(imageConfiguration)
                 .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-service", config)))
                 .build();
 
