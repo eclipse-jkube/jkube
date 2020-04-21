@@ -84,7 +84,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
             processorConfig.getConfig("java-exec", "name");
             result = "TheImageName";
         }};
-        final GeneratorContext generatorContext = new GeneratorContext.Builder()
+        final GeneratorContext generatorContext = GeneratorContext.builder()
                 .project(project)
                 .config(processorConfig)
                 .strategy(OpenShiftBuildStrategy.docker)
@@ -122,7 +122,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
             result = "TheNonFatJarImageName";
         }};
 
-        final GeneratorContext generatorContext = new GeneratorContext.Builder()
+        final GeneratorContext generatorContext = GeneratorContext.builder()
                 .project(project)
                 .config(processorConfig)
                 .strategy(OpenShiftBuildStrategy.docker)
@@ -162,7 +162,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
             processorConfig.getConfig("java-exec", "name");
             result = "TheFatJarImageName";
         }};
-        final GeneratorContext generatorContext = new GeneratorContext.Builder()
+        final GeneratorContext generatorContext = GeneratorContext.builder()
                 .project(project)
                 .config(processorConfig)
                 .strategy(OpenShiftBuildStrategy.docker)

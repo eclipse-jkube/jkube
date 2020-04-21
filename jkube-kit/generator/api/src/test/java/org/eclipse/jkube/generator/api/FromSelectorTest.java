@@ -72,7 +72,7 @@ public class FromSelectorTest {
         };
 
         for (int i = 0; i < data.length; i += 5) {
-            GeneratorContext ctx = new GeneratorContext.Builder()
+            GeneratorContext ctx = GeneratorContext.builder()
                     .project(project)
                     .config(new ProcessorConfig())
                     .logger(logger)

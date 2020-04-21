@@ -46,7 +46,7 @@ public class Configuration {
     /**
      * Project properties.
      */
-    private Properties properties = new Properties();
+    private Properties properties;
 
     /**
      * List of image configuration used when building.

@@ -85,17 +85,17 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for handling Kubernetes resource descriptors
  *
  * @author roland
- * @since 02/05/16
  */
 public class KubernetesResourceUtil {
 
-    private static final transient org.slf4j.Logger LOG = LoggerFactory.getLogger(KubernetesResourceUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KubernetesResourceUtil.class);
 
     public static final String API_VERSION = "v1";
     public static final String API_EXTENSIONS_VERSION = "extensions/v1beta1";
@@ -114,7 +114,7 @@ public class KubernetesResourceUtil {
             .withCronJobVersion(CRONJOB_VERSION)
             .withRbacVersioning(RBAC_VERSION);
 
-    public static final HashSet<Class<?>> SIMPLE_FIELD_TYPES = new HashSet<>();
+    public static final Set<Class<?>> SIMPLE_FIELD_TYPES = new HashSet<>();
 
     public static final String CONTAINER_NAME_REGEX = "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$";
 
@@ -208,24 +208,24 @@ public class KubernetesResourceUtil {
 
     // ========================================================================================================
 
-    protected final static Map<String,String> FILENAME_TO_KIND_MAPPER = new HashMap<>();
-    protected final static Map<String,String> KIND_TO_FILENAME_MAPPER = new HashMap<>();
+    protected static final Map<String,String> FILENAME_TO_KIND_MAPPER = new HashMap<>();
+    protected static final Map<String,String> KIND_TO_FILENAME_MAPPER = new HashMap<>();
 
     static {
         initializeKindFilenameMapper();
     }
 
-    protected final static void initializeKindFilenameMapper() {
+    protected static void initializeKindFilenameMapper() {
         final Map<String, List<String>> mappings = KindFilenameMapperUtil.loadMappings();
         updateKindFilenameMapper(mappings);
     }
 
-    protected final static void remove(String kind, String filename) {
+    protected static void remove(String kind, String filename) {
         FILENAME_TO_KIND_MAPPER.remove(filename);
         KIND_TO_FILENAME_MAPPER.remove(kind);
     }
 
-    public final static void updateKindFilenameMapper(final Map<String, List<String>> mappings) {
+    public static void updateKindFilenameMapper(final Map<String, List<String>> mappings) {
 
         final Set<Map.Entry<String, List<String>>> entries = mappings.entrySet();
 

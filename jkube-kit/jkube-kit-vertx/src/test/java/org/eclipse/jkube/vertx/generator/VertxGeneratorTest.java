@@ -66,7 +66,7 @@ public class VertxGeneratorTest {
             project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
         }};
 
-        GeneratorContext context = new GeneratorContext.Builder()
+        GeneratorContext context = GeneratorContext.builder()
                 .logger(logger)
                 .project(project)
                 .build();
@@ -85,7 +85,7 @@ public class VertxGeneratorTest {
             project.getDependencies(); result = Arrays.asList(dropwizard, core);
         }};
 
-        GeneratorContext context = new GeneratorContext.Builder()
+        GeneratorContext context = GeneratorContext.builder()
                 .logger(logger)
                 .project(project)
                 .build();
@@ -107,7 +107,7 @@ public class VertxGeneratorTest {
             project.getDependencies(); result = Arrays.asList(infinispan, core);
         }};
 
-        GeneratorContext context = new GeneratorContext.Builder()
+        GeneratorContext context = GeneratorContext.builder()
                 .logger(logger)
                 .project(project)
                 .build();

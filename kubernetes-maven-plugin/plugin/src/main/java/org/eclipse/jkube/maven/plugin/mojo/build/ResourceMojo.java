@@ -551,7 +551,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
             null,  // no filter on image name yet (TODO: Maybe add this, too ?)
                 (List<ImageConfiguration> configs) -> {
                     try {
-                        GeneratorContext ctx = new GeneratorContext.Builder()
+                        GeneratorContext ctx = GeneratorContext.builder()
                                 .config(extractGeneratorConfig())
                                 .project(jkubeProject)
                                 .runtimeMode(runtimeMode)

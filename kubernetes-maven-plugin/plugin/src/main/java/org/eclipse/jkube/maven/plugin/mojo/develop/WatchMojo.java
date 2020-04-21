@@ -122,7 +122,7 @@ public class WatchMojo extends AbstractDockerMojo {
             JKubeConfiguration buildContext = initJKubeConfiguration();
             WatchService.WatchContext watchContext = jkubeServiceHub.getDockerServiceHub() != null ? getWatchContext() : null;
 
-            return new WatcherContext.Builder()
+            return WatcherContext.builder()
                     .serviceHub(jkubeServiceHub.getDockerServiceHub())
                     .buildContext(buildContext)
                     .watchContext(watchContext)
@@ -147,7 +147,7 @@ public class WatchMojo extends AbstractDockerMojo {
     @Override
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
         try {
-            GeneratorContext ctx = new GeneratorContext.Builder()
+            GeneratorContext ctx = GeneratorContext.builder()
                     .config(extractGeneratorConfig())
                     .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                     .logger(log)
