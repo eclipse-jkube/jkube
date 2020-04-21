@@ -134,7 +134,7 @@ public class ClusterConfiguration {
   }
 
   public static ClusterConfigurationBuilder from(Properties... properties) {
-    return from(null, properties);
+    return from(new ClusterConfiguration(), properties);
   }
 
   public static ClusterConfigurationBuilder from(ClusterConfiguration clusterConfiguration, Properties... properties) {

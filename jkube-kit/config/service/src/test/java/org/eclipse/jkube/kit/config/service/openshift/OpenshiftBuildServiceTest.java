@@ -48,7 +48,9 @@ import mockit.Verifications;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,11 +74,8 @@ public class OpenshiftBuildServiceTest {
 
     private static final int MAX_TIMEOUT_RETRIES = 5;
 
-    private String baseDir = "target/test-files/openshift-build-service";
-
-    private String projectName = "myapp";
-
-    private File imageStreamFile = new File(baseDir, projectName);
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Mocked
     private JKubeServiceHub jKubeServiceHub;
@@ -84,7 +83,12 @@ public class OpenshiftBuildServiceTest {
     @Mocked
     private JKubeBuildTarArchiver tarArchiver;
 
-    @Mocked
+    private String baseDir;
+
+    private String projectName = "myapp";
+
+    private File imageStreamFile = new File(baseDir, projectName);
+
     private KitLogger logger;
 
     private ImageConfiguration image;
@@ -95,8 +99,9 @@ public class OpenshiftBuildServiceTest {
 
     @Before
     public void init() throws Exception {
+        logger = new KitLogger.StdoutLogger();
+        baseDir = temporaryFolder.newFolder("openshift-build-service").getAbsolutePath();
         final File dockerFile = new File(baseDir, "Docker.tar");
-        dockerFile.getParentFile().mkdirs();
         dockerFile.createNewFile();
 
         imageStreamFile.delete();

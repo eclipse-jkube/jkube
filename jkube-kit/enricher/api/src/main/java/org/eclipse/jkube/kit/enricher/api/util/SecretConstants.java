@@ -15,7 +15,7 @@ package org.eclipse.jkube.kit.enricher.api.util;
 
 
 public class SecretConstants {
-    public static String KIND = "Secret";
-    public static String DOCKER_CONFIG_TYPE = "kubernetes.io/dockercfg";
-    public static String DOCKER_DATA_KEY = ".dockercfg";
+    public static final String KIND = "Secret";
+    public static final String DOCKER_CONFIG_TYPE = "kubernetes.io/dockercfg";
+    public static final String DOCKER_DATA_KEY = ".dockercfg";
 }

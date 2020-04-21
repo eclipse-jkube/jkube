@@ -13,25 +13,22 @@
  */
 package org.eclipse.jkube.kit.common;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Singular;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
  * Model class that represents a Java Project to be processed by JKube
  */
 @SuppressWarnings("JavaDoc")
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -211,5 +208,41 @@ public class JavaProject implements Serializable {
    * @return The project's SCM tag.
    */
   private String scmTag;
+
+  @Builder
+  public JavaProject(
+      String name, String groupId, String artifactId, String version,
+      File outputDirectory, File baseDirectory, File buildDirectory,
+      Properties properties, @Singular List<String> compileClassPathElements, @Singular List<Dependency> dependencies,
+      List<Dependency> dependenciesWithTransitive, @Singular List<Plugin> plugins,
+      String site, String description, String organizationName, String documentationUrl,
+      String buildFinalName, File artifact, File localRepositoryBaseDirectory,
+      String packaging, String issueManagementSystem, String issueManagementUrl, String scmUrl, String scmTag) {
+
+    this.name = name;
+    this.groupId = groupId;
+    this.artifactId = artifactId;
+    this.version = version;
+    this.outputDirectory = outputDirectory;
+    this.baseDirectory = baseDirectory;
+    this.buildDirectory = buildDirectory;
+    this.properties = Optional.ofNullable(properties).orElse(new Properties());
+    this.compileClassPathElements = compileClassPathElements;
+    this.dependencies = dependencies;
+    this.dependenciesWithTransitive = dependenciesWithTransitive;
+    this.plugins = plugins;
+    this.site = site;
+    this.description = description;
+    this.organizationName = organizationName;
+    this.documentationUrl = documentationUrl;
+    this.buildFinalName = buildFinalName;
+    this.artifact = artifact;
+    this.localRepositoryBaseDirectory = localRepositoryBaseDirectory;
+    this.packaging = packaging;
+    this.issueManagementSystem = issueManagementSystem;
+    this.issueManagementUrl = issueManagementUrl;
+    this.scmUrl = scmUrl;
+    this.scmTag = scmTag;
+  }
 }
 

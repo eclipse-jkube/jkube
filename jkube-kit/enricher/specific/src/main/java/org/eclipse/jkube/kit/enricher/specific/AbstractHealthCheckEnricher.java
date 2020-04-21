@@ -33,9 +33,8 @@ import java.util.Set;
  */
 public abstract class AbstractHealthCheckEnricher extends BaseEnricher {
 
-    public static String ENRICH_CONTAINERS = "jkube.enricher.basic.enrichContainers";
-
-    public static String ENRICH_ALL_CONTAINERS = "jkube.enricher.basic.enrichAllContainers";
+    public static final String ENRICH_CONTAINERS = "jkube.enricher.basic.enrichContainers";
+    public static final String ENRICH_ALL_CONTAINERS = "jkube.enricher.basic.enrichAllContainers";
 
     private enum Config implements Configs.Key {
         enrichAllContainers {{ d = "false"; }},

@@ -780,7 +780,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
 
     // Get generator context
     protected GeneratorContext getGeneratorContext() throws DependencyResolutionRequiredException {
-        return new GeneratorContext.Builder()
+        return GeneratorContext.builder()
                 .config(extractGeneratorConfig())
                 .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                 .logger(log)

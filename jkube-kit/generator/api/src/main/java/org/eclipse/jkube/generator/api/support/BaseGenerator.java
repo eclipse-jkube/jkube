@@ -40,9 +40,8 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author roland
- * @since 15/05/16
  */
-abstract public class BaseGenerator implements Generator {
+public abstract class BaseGenerator implements Generator {
 
     private final GeneratorContext context;
     private final String name;

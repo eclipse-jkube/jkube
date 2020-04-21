@@ -33,7 +33,6 @@ public class Main {
   public static void main(String[] args) {
     final KitLogger kitLogger = new KitLogger.StdoutLogger();
     kitLogger.info("Initiating default JKube configuration and required services...");
-
     kitLogger.info(" - Creating DockerAccessContext");
     final DockerAccessFactory.DockerAccessContext dac = DockerAccessFactory.DockerAccessContext.builder()
         .projectProperties(System.getProperties()).skipMachine(false).maxConnections(100).log(kitLogger)
@@ -53,7 +52,10 @@ public class Main {
 
     kitLogger.info("Creating configuration for example Docker Image");
     final ImageConfiguration imageConfiguration = ImageConfiguration.builder()
-        .build(BuildConfiguration.builder().from("java").build())
+        .name("jkube-example")
+        .build(BuildConfiguration.builder()
+            .from("containous/whoami")
+            .build())
         .build();
     try (
         JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
@@ -67,6 +69,7 @@ public class Main {
 //      jKubeServiceHub.getApplyService().applyResource();
     } catch (JKubeServiceException ex) {
       kitLogger.error("Error occurred: '%s'", ex.getMessage());
+      ex.printStackTrace();
     }
   }
   //
