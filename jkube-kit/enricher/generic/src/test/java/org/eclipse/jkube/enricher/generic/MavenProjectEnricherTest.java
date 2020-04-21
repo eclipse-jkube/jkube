@@ -21,8 +21,8 @@ import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
@@ -87,7 +87,7 @@ public class MavenProjectEnricherTest {
         properties.setProperty("jkube.enricher.jkube-project-label.useProjectLabel", "true");
         new Expectations() {{
             context.getConfiguration();
-            result = new Configuration.Builder().properties(properties).build();
+            result = Configuration.builder().properties(properties).build();
         }};
 
         ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);

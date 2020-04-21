@@ -26,8 +26,8 @@ import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.api.model.RoutePort;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import java.util.ArrayList;
 import java.util.List;

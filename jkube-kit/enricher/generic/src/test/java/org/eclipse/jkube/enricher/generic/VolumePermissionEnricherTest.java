@@ -26,8 +26,8 @@ import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +65,7 @@ public class VolumePermissionEnricherTest {
     @Test
     public void alreadyExistingInitContainer(@Mocked final ProcessorConfig config) throws Exception {
         new Expectations() {{
-            context.getConfiguration(); result = new Configuration.Builder().processorConfig(config).build();
+            context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
         }};
 
         PodTemplateBuilder ptb = createEmptyPodTemplate();
@@ -103,7 +103,7 @@ public class VolumePermissionEnricherTest {
 
             // Setup mock behaviour
             new Expectations() {{
-                context.getConfiguration(); result = new Configuration.Builder().processorConfig(config).build();
+                context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
             }};
 
             VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);

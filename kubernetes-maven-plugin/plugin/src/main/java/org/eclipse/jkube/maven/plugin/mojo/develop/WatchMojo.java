@@ -32,7 +32,7 @@ import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 import org.eclipse.jkube.maven.plugin.mojo.build.AbstractDockerMojo;
 import org.eclipse.jkube.maven.plugin.watcher.WatcherManager;

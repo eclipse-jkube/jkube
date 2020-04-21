@@ -17,16 +17,16 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.visitor.MetadataVisitor;
-import org.eclipse.jkube.maven.enricher.api.visitor.SelectorVisitor;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.visitor.MetadataVisitor;
+
+import java.util.Optional;
 
 public class DefaultMetadataEnricher extends BaseEnricher {
 
     // List of visitors used to create with labels
     private MetadataVisitor<?>[] metaDataVisitors = null;
-    private SelectorVisitor<?>[] selectorVisitorCreators = null;
 
     // context used by enrichers
     private final ProcessorConfig defaultEnricherConfig;
@@ -36,8 +36,9 @@ public class DefaultMetadataEnricher extends BaseEnricher {
     public DefaultMetadataEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-metadata");
 
-        this.defaultEnricherConfig = buildContext.getConfiguration().getProcessorConfig().orElse(ProcessorConfig.EMPTY);
-        this.resourceConfig = buildContext.getConfiguration().getResource().orElse(null);
+        this.defaultEnricherConfig = Optional.ofNullable(buildContext.getConfiguration().getProcessorConfig())
+            .orElse(ProcessorConfig.EMPTY);
+        this.resourceConfig = buildContext.getConfiguration().getResource();
     }
 
     private void init() {

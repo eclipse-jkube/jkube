@@ -22,14 +22,13 @@ import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.TreeMap;
 
@@ -106,10 +105,10 @@ public class PortNameEnricherTest {
 
         new Expectations() {{
 
-            Configuration configuration = new Configuration.Builder()
-                    .images(Arrays.asList(imageConfiguration))
-                    .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-portname", config)))
-                    .build();
+            Configuration configuration = Configuration.builder()
+                .image(imageConfiguration)
+                .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-portname", config)))
+                .build();
 
             context.getConfiguration();
             result = configuration;

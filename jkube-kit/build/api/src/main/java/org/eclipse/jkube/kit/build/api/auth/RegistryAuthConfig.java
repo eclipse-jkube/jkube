@@ -41,7 +41,7 @@ public class RegistryAuthConfig {
     public RegistryAuthConfig(
         Map<String, Map<String, String>> handlerConfig,
         Map<Kind, Map<String, String>> kindConfig,
-        @Singular("addDefaultConfig")Map<String, String> defaultConfig,
+        @Singular("putDefaultConfig") Map<String, String> defaultConfig,
         boolean skipExtendedAuthentication,
         String propertyPrefix
     ) {

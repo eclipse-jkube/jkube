@@ -25,8 +25,8 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +48,6 @@ import java.util.Map;
  * The project labels which are already specified in the input fragments are not overridden by the enricher.
  *
  * @author roland
- * @since 01/04/16
  */
 public class ProjectLabelEnricher extends BaseEnricher {
 

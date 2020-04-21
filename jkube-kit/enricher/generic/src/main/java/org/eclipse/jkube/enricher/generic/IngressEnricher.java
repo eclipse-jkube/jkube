@@ -20,17 +20,15 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
-import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.extensions.IngressBackendBuilder;
 import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
 import io.fabric8.kubernetes.api.model.extensions.IngressSpecBuilder;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,7 +36,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Enricher which generates an Ingress for each exposed Service
  */
-
 public class IngressEnricher extends BaseEnricher {
 
     public IngressEnricher(JKubeEnricherContext buildContext) {
@@ -48,7 +45,6 @@ public class IngressEnricher extends BaseEnricher {
     @Override
     public void create(PlatformMode platformMode, final KubernetesListBuilder listBuilder) {
         if (platformMode == PlatformMode.kubernetes) {
-            final List<Ingress> ingresses = new ArrayList<>();
             listBuilder.accept(new TypedVisitor<ServiceBuilder>() {
                 @Override
                 public void visit(ServiceBuilder serviceBuilder) {
@@ -66,7 +62,7 @@ public class IngressEnricher extends BaseEnricher {
             if (!hasIngress(listBuilder, name)) {
                 Integer servicePort = getServicePort(serviceBuilder);
                 if (servicePort != null) {
-                    ResourceConfig resourceConfig = getConfiguration().getResource().orElse(null);
+                    ResourceConfig resourceConfig = getConfiguration().getResource();
 
                     IngressBuilder ingressBuilder = new IngressBuilder().
                             withMetadata(serviceBuilder.getMetadata()).

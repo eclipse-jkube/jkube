@@ -34,8 +34,8 @@ import io.fabric8.openshift.api.model.ImageChangeTriggerBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import java.util.ArrayList;
@@ -47,7 +47,6 @@ import java.util.Set;
  * This adds a `image.openshift.io/triggers` tag to all kubernetes resources in order to make them run on Openshift when using ImageStreams.
  *
  * @author nicola
- * @since 10/05/18
  */
 public class TriggersAnnotationEnricher extends BaseEnricher {
 

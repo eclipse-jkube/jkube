@@ -29,18 +29,18 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.eclipse.jkube.maven.enricher.api.util.DebugConstants.ENV_VAR_JAVA_DEBUG;
-import static org.eclipse.jkube.maven.enricher.api.util.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT;
-import static org.eclipse.jkube.maven.enricher.api.util.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT;
+import static org.eclipse.jkube.kit.enricher.api.util.DebugConstants.ENV_VAR_JAVA_DEBUG;
+import static org.eclipse.jkube.kit.enricher.api.util.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT;
+import static org.eclipse.jkube.kit.enricher.api.util.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT;
 
 
 /**

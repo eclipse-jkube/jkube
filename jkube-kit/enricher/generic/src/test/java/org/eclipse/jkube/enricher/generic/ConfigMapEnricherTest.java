@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.config.resource.ConfigMapEntry;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -89,7 +89,7 @@ public class ConfigMapEnricherTest {
                 .build();
         new Expectations() {{
             context.getConfiguration();
-            result = new Configuration.Builder().resource(config).build();
+            result = Configuration.builder().resource(config).build();
         }};
 
         final KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -110,7 +110,7 @@ public class ConfigMapEnricherTest {
                 .build();
         new Expectations() {{
             context.getConfiguration();
-            result = new Configuration.Builder().resource(config).build();
+            result = Configuration.builder().resource(config).build();
         }};
 
         final KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -135,7 +135,8 @@ public class ConfigMapEnricherTest {
 
     private ConfigMap createAnnotationConfigMap(final String key, final String file) {
         ObjectMetaBuilder metaBuilder = new ObjectMetaBuilder()
-                .withNamespace("default");
+            .withName("some-config-map")
+            .withNamespace("default");
 
         Map<String, String> annotations = new HashMap<>();
         annotations.put(ConfigMapEnricher.PREFIX_ANNOTATION + key, file);

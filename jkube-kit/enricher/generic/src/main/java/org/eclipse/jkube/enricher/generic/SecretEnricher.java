@@ -23,9 +23,9 @@ import org.eclipse.jkube.kit.common.util.Base64Util;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.SecretConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.util.SecretConstants;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -128,7 +128,7 @@ public abstract class SecretEnricher extends BaseEnricher {
     }
 
     private List<SecretConfig> getSecretsFromXmlConfig() {
-        ResourceConfig resourceConfig = getConfiguration().getResource().orElse(null);
+        ResourceConfig resourceConfig = getConfiguration().getResource();
         if(resourceConfig != null && resourceConfig.getSecrets() != null) {
             return resourceConfig.getSecrets();
         }

@@ -25,13 +25,14 @@ import io.fabric8.openshift.api.model.ProjectBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultNamespaceEnricher extends BaseEnricher {
     protected static final String[] NAMESPACE_KINDS = {"Project", "Namespace" };
@@ -50,7 +51,7 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
     public DefaultNamespaceEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-namespace");
 
-        config = getConfiguration().getResource().orElse(ResourceConfig.builder().build());
+        config = Optional.ofNullable(getConfiguration().getResource()).orElse(ResourceConfig.builder().build());
 
         handlerHub = new HandlerHub(
                 getContext().getGav(), getContext().getConfiguration().getProperties());

@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -61,7 +61,7 @@ public class RevisionHistoryEnricherTest {
         // Setup mock behaviour
         final String revisionNumber = "10";
         new Expectations() {{
-            Configuration config = new Configuration.Builder().processorConfig(prepareEnricherConfig(revisionNumber)).build();
+            Configuration config = Configuration.builder().processorConfig(prepareEnricherConfig(revisionNumber)).build();
             context.getConfiguration(); result = config;
         }};
 

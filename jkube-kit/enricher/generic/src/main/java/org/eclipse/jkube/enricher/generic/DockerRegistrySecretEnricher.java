@@ -15,17 +15,17 @@ package org.eclipse.jkube.enricher.generic;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
-import org.eclipse.jkube.maven.enricher.api.util.SecretConstants;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
 public class DockerRegistrySecretEnricher extends SecretEnricher {
-    final private static String ANNOTATION_KEY = "maven.jkube.io/dockerServerId";
-    final private static String ENRICHER_NAME = "jkube-docker-registry-secret";
+    private static final String ANNOTATION_KEY = "maven.jkube.io/dockerServerId";
+    private static final String ENRICHER_NAME = "jkube-docker-registry-secret";
 
 
     public DockerRegistrySecretEnricher(JKubeEnricherContext buildContext) {

@@ -21,9 +21,9 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
-import org.eclipse.jkube.maven.enricher.api.util.SecretConstants;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.commons.codec.binary.Base64;
@@ -51,7 +51,7 @@ public class DockerRegistrySecretEnricherTest {
         new Expectations() {
             {{
                 context.getConfiguration();
-                result = new Configuration.Builder()
+                result = Configuration.builder()
                     .secretConfigLookup(
                         id -> {
                             Map<String, Object> ret = new HashMap<>();

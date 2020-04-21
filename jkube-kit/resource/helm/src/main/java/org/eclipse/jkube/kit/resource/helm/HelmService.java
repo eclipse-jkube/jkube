@@ -31,7 +31,7 @@ import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResource;

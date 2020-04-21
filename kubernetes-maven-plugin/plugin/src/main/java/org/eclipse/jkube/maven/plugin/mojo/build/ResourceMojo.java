@@ -45,9 +45,9 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.profile.Profile;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 import org.eclipse.jkube.maven.plugin.enricher.EnricherManager;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 import org.apache.commons.lang3.StringUtils;
@@ -438,16 +438,16 @@ public class ResourceMojo extends AbstractJKubeMojo {
         }
         // Manager for calling enrichers.
         JavaProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
-        JKubeEnricherContext.Builder ctxBuilder = new JKubeEnricherContext.Builder()
+        JKubeEnricherContext.JKubeEnricherContextBuilder ctxBuilder = JKubeEnricherContext.builder()
                 .project(jkubeProject)
-                .config(extractEnricherConfig())
+                .processorConfig(extractEnricherConfig())
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                 .properties(jkubeProject.getProperties())
                 .resources(resources)
                 .images(resolvedImages)
                 .log(log);
 
-        EnricherManager enricherManager = new EnricherManager(resources, ctxBuilder.build(),
+        EnricherManager enricherManager = new EnricherManager(ctxBuilder.build(),
             MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath));
 
         // Generate all resources from the main resource directory, configuration and create them accordingly

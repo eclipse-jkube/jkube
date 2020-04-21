@@ -32,11 +32,11 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
-import org.eclipse.jkube.maven.enricher.handler.ServiceHandler;
+import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
+import org.eclipse.jkube.kit.enricher.handler.ServiceHandler;
 import java.util.Properties;
 
 import java.io.IOException;
@@ -56,7 +56,6 @@ import java.util.regex.Pattern;
  * An enricher for creating default services when not present.
  *
  * @author roland
- * @since 25/05/16
  */
 public class DefaultServiceEnricher extends BaseEnricher {
 
@@ -119,8 +118,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
 
-        ResourceConfig xmlConfig = getConfiguration().getResource().orElse(null);
-
+        final ResourceConfig xmlConfig = getConfiguration().getResource();
         if (xmlConfig != null && xmlConfig.getServices() != null) {
             // Add Services configured via XML
             addServices(builder, xmlConfig.getServices());
@@ -141,8 +139,6 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
 
     }
-
-    // =======================================================================================================
 
     private void normalizeServicePorts(KubernetesListBuilder builder) {
         builder.accept(new TypedVisitor<ServicePortBuilder>() {
@@ -211,7 +207,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         String serviceName = getServiceName();
 
         // Create service only for all images which are supposed to live in a single pod
-        List<ServicePort> ports = getImages().map(this::extractPorts).orElse(Collections.emptyList());
+        List<ServicePort> ports = extractPorts(getImages());
 
         ServiceBuilder builder = new ServiceBuilder()
             .withNewMetadata()

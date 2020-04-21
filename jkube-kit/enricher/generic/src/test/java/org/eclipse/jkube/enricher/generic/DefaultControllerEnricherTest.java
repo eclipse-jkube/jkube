@@ -22,15 +22,14 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.TreeMap;
 
@@ -39,7 +38,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * @author kamesh
- * @since 08/05/17
  */
 public class DefaultControllerEnricherTest {
 
@@ -94,10 +92,10 @@ public class DefaultControllerEnricherTest {
             result = new GroupArtifactVersion("", "jkube-controller-test", "0");
 
             Configuration config =
-                new Configuration.Builder()
+                Configuration.builder()
                     .processorConfig(new ProcessorConfig(null, null,
                                                          Collections.singletonMap("jkube-controller", controllerConfig)))
-                    .images(Arrays.asList(imageConfiguration))
+                    .image(imageConfiguration)
                     .build();
             context.getConfiguration();
             result = config;
