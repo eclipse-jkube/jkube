@@ -24,6 +24,7 @@ Usage:
 * Fix #130: Updated HelmMojo documentation
 * Fix #138: dockerAccessRequired should be false in case of docker build strategy
 * Fix #131: Extra-artifact wrongly generated  
+* Ported PR fabric8io/fabric8-mavne-plugin#1810, Update Fabric8 Images to latest version
 
 ### 1.0.0-alpha-1 (2020-03-27)
 * Ported PR fabric8io/fabric8-maven-plugin#1792, NullCheck in FileDataSecretEnricher
