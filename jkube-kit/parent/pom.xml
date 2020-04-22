@@ -77,8 +77,8 @@
     <!-- =======================================================  -->
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
-    <version.image.java.upstream.docker>1.5</version.image.java.upstream.docker>
-    <version.image.java.upstream.s2i>2.3</version.image.java.upstream.s2i>
+    <version.image.java.upstream.docker>1.5.6</version.image.java.upstream.docker>
+    <version.image.java.upstream.s2i>3.0-java8</version.image.java.upstream.s2i>
 
     <!-- RedHat -->
     <version.image.java.redhat.docker>2.0</version.image.java.redhat.docker>
@@ -87,7 +87,7 @@
     <!-- =======================================================  -->
     <!-- === Karaf base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
-    <version.image.karaf.upstream.docker>2.3</version.image.karaf.upstream.docker>
+    <version.image.karaf.upstream.docker>3.0</version.image.karaf.upstream.docker>
     <version.image.karaf.upstream.s2i>${version.image.karaf.upstream.docker}</version.image.karaf.upstream.s2i>
 
     <!-- RedHat  -->
