@@ -103,7 +103,7 @@ public class BuildService {
      * @throws IOException in case of any I/O exception
      */
     protected void buildImage(ImageConfiguration imageConfig, JKubeConfiguration params, boolean noCache, Map<String, String> buildArgs)
-            throws DockerAccessException, IOException {
+            throws IOException {
 
         String imageName = imageConfig.getName();
         ImageName.validate(imageName);

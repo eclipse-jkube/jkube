@@ -455,23 +455,17 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
         // Add resources found in subdirectories of resourceDir, with a certain profile
         // applied
-        addProfiledResourcesFromSubirectories(platformMode, builder, realResourceDir, enricherManager);
+        addProfiledResourcesFromSubdirectories(platformMode, builder, realResourceDir, enricherManager);
         return builder.build();
     }
 
-    private void addProfiledResourcesFromSubirectories(PlatformMode platformMode, KubernetesListBuilder builder, File resourceDir,
+    private void addProfiledResourcesFromSubdirectories(PlatformMode platformMode, KubernetesListBuilder builder, File resourceDir,
         EnricherManager enricherManager) throws IOException, MojoExecutionException {
-        File[] profileDirs = resourceDir.listFiles((File pathname) -> pathname.isDirectory());
+        File[] profileDirs = resourceDir.listFiles(File::isDirectory);
         if (profileDirs != null) {
             for (File profileDir : profileDirs) {
-                Profile profile = ProfileUtil.findProfile(profileDir.getName(), resourceDir);
-                if (profile == null) {
-                    throw new MojoExecutionException(String.format("Invalid profile '%s' given as directory in %s. " +
-                            "Please either define a profile of this name or move this directory away",
-                        profileDir.getName(), resourceDir));
-                }
-
-                ProcessorConfig enricherConfig = profile.getEnricherConfig();
+                Profile foundProfile = ProfileUtil.findProfile(profileDir.getName(), resourceDir);
+                ProcessorConfig enricherConfig = foundProfile.getEnricherConfig();
                 File[] resourceFiles = KubernetesResourceUtil.listResourceFragments(profileDir);
                 if (resourceFiles.length > 0) {
                     KubernetesListBuilder profileBuilder = readResourceFragments(platformMode, resourceFiles);

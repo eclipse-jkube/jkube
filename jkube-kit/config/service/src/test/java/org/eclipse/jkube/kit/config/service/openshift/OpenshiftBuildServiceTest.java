@@ -113,6 +113,13 @@ public class OpenshiftBuildServiceTest {
             );
             result = dockerFile;
             minTimes = 0;
+            jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
+                withAny(null),
+                withAny(null),
+                withAny(null)
+            );
+            result = dockerFile;
+            minTimes = 0;
             jKubeServiceHub.getConfiguration().getProject();
             result = jKubeServiceHub.getConfiguration().getProject();
             minTimes = 0;

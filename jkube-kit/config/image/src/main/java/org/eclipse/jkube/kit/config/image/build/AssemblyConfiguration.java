@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,7 +25,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.common.Assembly;
 
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -75,14 +74,6 @@ public class AssemblyConfiguration implements Serializable {
         } else {
             return null;
         }
-    }
-
-    public String getName() {
-        return Optional.ofNullable(name).orElse("maven");
-    }
-
-    public String getTargetDir() {
-        return Optional.ofNullable(targetDir).orElse(File.separator.concat(getName()));
     }
 
     public AssemblyMode getMode() {

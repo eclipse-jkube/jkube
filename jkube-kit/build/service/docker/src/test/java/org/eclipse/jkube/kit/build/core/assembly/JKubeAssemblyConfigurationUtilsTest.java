@@ -18,14 +18,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import mockit.Expectations;
 import mockit.Injectable;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Test;
 
 import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
@@ -35,11 +35,9 @@ import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurati
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class JKubeAssemblyConfigurationUtilsTest {
-
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultNoConfigurationShouldReturnDefault(
@@ -53,29 +51,28 @@ public class JKubeAssemblyConfigurationUtilsTest {
     // When
     final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
+    assertEquals("maven", result.getName());
     assertEquals("/maven", result.getTargetDir());
     assertEquals("root", result.getUser());
   }
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultWithConfigurationShouldReturnConfiguration(
-    @Injectable final BuildConfiguration buildConfiguration, @Injectable AssemblyConfiguration configuration) {
+    @Injectable final BuildConfiguration buildConfiguration) {
 
     // Given
+    final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
     new Expectations() {{
       buildConfiguration.getAssemblyConfiguration();
       result = configuration;
-      configuration.getUser();
-      result = "OtherUser";
-      configuration.getName();
-      result = "ImageName";
     }};
     // When
     final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
-    assertNull(result.getTargetDir());
-    assertEquals("OtherUser", result.getUser());
+    assertNotNull(result);
     assertEquals("ImageName", result.getName());
+    assertEquals(File.separator + "maven", result.getTargetDir());
+    assertEquals("OtherUser", result.getUser());
   }
 
 

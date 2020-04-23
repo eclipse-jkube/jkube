@@ -98,7 +98,9 @@ public class BuildConfiguration implements Serializable {
     private List<String> volumes;
     @Singular
     private List<String> tags;
+    @Singular("putEnv")
     private Map<String, String> env;
+    @Singular
     private Map<String, String> labels;
     private Map<String, String> args;
     private Arguments entryPoint;

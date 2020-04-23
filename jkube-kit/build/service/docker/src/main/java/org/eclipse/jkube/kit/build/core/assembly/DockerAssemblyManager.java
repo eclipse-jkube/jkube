@@ -440,7 +440,13 @@ public class DockerAssemblyManager {
         } else {
           FileUtil.copy(sourceFile, destFile);
         }
-        fileToPermissionsMap.put(destFile, jkubeProjectAssemblyFileSet.getFileMode());
+        final String fileMode = jkubeProjectAssemblyFileSet.getFileMode();
+        if (destFile.isFile()) {
+            fileToPermissionsMap.put(destFile, fileMode);
+        } else {
+            final int directoryCanListPermission = Integer.parseInt(fileMode, 8) + 0111;
+            fileToPermissionsMap.put(destFile, Integer.toOctalString(directoryCanListPermission));
+        }
       }
     }
     return fileToPermissionsMap;

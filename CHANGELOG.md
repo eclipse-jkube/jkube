@@ -23,8 +23,11 @@ Usage:
 ### 1.0.0-SNAPSHOT
 * Fix #130: Updated HelmMojo documentation
 * Fix #138: dockerAccessRequired should be false in case of docker build strategy
-* Fix #131: Extra-artifact wrongly generated  
-* Ported PR fabric8io/fabric8-mavne-plugin#1810, Update Fabric8 Images to latest version
+* Fix #131: Extra-artifact wrongly generated
+* Fix #152: kubernetes namespace is ignored in debug goal
+* Ported PR fabric8io/fabric8-maven-plugin#1810, Update Fabric8 Images to latest version
+* Fix #136: Refactored configuration model to provide fluent builders and defaults
+* Fix #163: Added Quickstart for external Dockerfile
 
 ### 1.0.0-alpha-1 (2020-03-27)
 * Ported PR fabric8io/fabric8-maven-plugin#1792, NullCheck in FileDataSecretEnricher
@@ -38,8 +41,6 @@ Usage:
 * Fix #120: Critical bugs reported by Sonar
 * Fix #88: Unreachable statement in DockerAssemblyManager
 * Fix #122: Bug 561261 - jkube-kit - insecure yaml load leading to RCE (CWE-502)
-* Fix #152: kubernetes namespace is ignored in debug goal
-* Fix #163: Added Quickstart for external Dockerfile
 
 ### 0.2.0 (2020-03-05)
 * Fix #71: script to extract changelog information for notifications

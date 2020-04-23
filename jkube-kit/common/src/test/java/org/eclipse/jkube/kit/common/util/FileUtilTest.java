@@ -43,16 +43,16 @@ public class FileUtilTest {
     @Test
     public void testListFilesRecursively() throws IOException {
         prepareDirectory();
-        List<File> fileList = FileUtil.listFilesRecursivelyInDirectory(folder.getRoot());
+        List<File> fileList = FileUtil.listFilesAndDirsRecursivelyInDirectory(folder.getRoot());
         assertNotNull(fileList);
-        assertEquals(4, fileList.size());
+        assertEquals(6, fileList.size());
     }
 
     @Test
     public void testCleanDirectory() throws IOException {
         prepareDirectory();
-        List<File> fileList = FileUtil.listFilesRecursivelyInDirectory(folder.getRoot());
-        assertEquals(4, fileList.size());
+        List<File> fileList = FileUtil.listFilesAndDirsRecursivelyInDirectory(folder.getRoot());
+        assertEquals(6, fileList.size());
         FileUtil.cleanDirectory(folder.getRoot());
         assertFalse(folder.getRoot().exists());
     }

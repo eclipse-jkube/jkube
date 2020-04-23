@@ -338,12 +338,13 @@ public class FileUtil {
         return filePath.substring(0, charIndex);
     }
 
-    public static List<File> listFilesRecursivelyInDirectory(File directory) {
-        return new ArrayList<>(FileUtils.listFiles(
-                directory,
-                new RegexFileFilter("^(.*?)"),
-                DirectoryFileFilter.DIRECTORY
-        ));
+    public static List<File> listFilesAndDirsRecursivelyInDirectory(File directory) {
+        return FileUtils.listFilesAndDirs(directory, new RegexFileFilter("^(.*?)"),
+            DirectoryFileFilter.DIRECTORY
+        )
+            .stream()
+            .filter(f -> !f.equals(directory))
+            .collect(Collectors.toList());
     }
 
     public static void createDirectory(File directory) throws IOException {

@@ -96,6 +96,8 @@ import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.fusesource.jansi.Ansi;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
+import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
+
 public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigHelper.Customizer, Contextualizable {
     public static final String DMP_PLUGIN_DESCRIPTOR = "META-INF/maven/org.eclipse.jkube/k8s-plugin";
     public static final String DOCKER_EXTRA_DIR = "docker-extra";
@@ -157,7 +159,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     protected boolean skipMachine;
 
     // maximum connection to use in parallel for connecting the docker host
-    @Parameter(property = "docker.maxConnections", defaultValue = "100")
+    @Parameter(property = "docker.maxConnections", defaultValue = "" + DEFAULT_MAX_CONNECTIONS)
     protected int maxConnections;
 
     // Whether to use color

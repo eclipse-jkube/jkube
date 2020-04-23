@@ -121,6 +121,8 @@ public class DockerAccessFactory {
 
         private static final long serialVersionUID = -4768689117574797600L;
 
+        public static final int DEFAULT_MAX_CONNECTIONS = 100;
+
         private Properties projectProperties;
         private DockerMachineConfiguration machine;
         private List<DockerConnectionDetector.DockerHostProvider> dockerHostProviders;
@@ -131,6 +133,14 @@ public class DockerAccessFactory {
         private int maxConnections;
         private KitLogger log;
 
+        public static DockerAccessContext getDefault(KitLogger kitLogger){
+            return DockerAccessContext.builder()
+                .projectProperties(System.getProperties())
+                .skipMachine(false)
+                .maxConnections(DEFAULT_MAX_CONNECTIONS)
+                .log(kitLogger)
+                .build();
+        }
     }
 
 }

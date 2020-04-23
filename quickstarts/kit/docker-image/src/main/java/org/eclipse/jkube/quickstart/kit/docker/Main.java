@@ -13,35 +13,27 @@
  */
 package org.eclipse.jkube.quickstart.kit.docker;
 
-import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
+import java.io.File;
+
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
+import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
-import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-
-import java.io.File;
 
 public class Main {
   public static void main(String[] args) {
     final KitLogger kitLogger = new KitLogger.StdoutLogger();
     kitLogger.info("Initiating default JKube configuration and required services...");
-    kitLogger.info(" - Creating DockerAccessContext");
-    final DockerAccessFactory.DockerAccessContext dac = DockerAccessFactory.DockerAccessContext.builder()
-        .projectProperties(System.getProperties()).skipMachine(false).maxConnections(100).log(kitLogger)
-        .build();
     kitLogger.info(" - Creating Docker Service Hub");
-    final ServiceHub serviceHub = new ServiceHubFactory().createServiceHub(
-        new DockerAccessFactory().createDockerAccess(dac),
-        kitLogger,
-        new LogOutputSpecFactory(false, true));
+    final ServiceHub serviceHub = new ServiceHubFactory().createServiceHub(kitLogger);
     kitLogger.info(" - Creating Docker Build Service Configuration");
     final BuildServiceConfig dockerBuildServiceConfig = BuildServiceConfig.builder().build();
     kitLogger.info(" - Creating configuration for JKube");
@@ -53,8 +45,15 @@ public class Main {
     kitLogger.info("Creating configuration for example Docker Image");
     final ImageConfiguration imageConfiguration = ImageConfiguration.builder()
         .name("jkube-example")
+        .run(RunImageConfiguration.builder().user("1000").build())
         .build(BuildConfiguration.builder()
-            .from("containous/whoami")
+            .putEnv("MY_VAR", "value")
+            .putEnv("MY_OTHER_VAR", "true")
+            .label("maintainer", "JKube Devs")
+            .port("80/tcp")
+            .maintainer("JKube Devs")
+            .from("busybox")
+            .cmd(Arguments.builder().shell("/bin/sh").build())
             .build())
         .build();
     try (
@@ -66,36 +65,11 @@ public class Main {
             .buildServiceConfig(dockerBuildServiceConfig)
             .build()) {
       jKubeServiceHub.getBuildService().build(imageConfiguration);
-//      jKubeServiceHub.getApplyService().applyResource();
-    } catch (JKubeServiceException ex) {
+      final String imageId = jKubeServiceHub.getDockerServiceHub().getDockerAccess().getImageId("jkube-example");
+      kitLogger.info("Docker image built successfully (%s)!", imageId);
+      System.exit(0);
+    } catch (Exception ex) {
       kitLogger.error("Error occurred: '%s'", ex.getMessage());
-      ex.printStackTrace();
     }
   }
-  //
-  //
-  //  private static BuildServiceConfig initBuildServiceConfig() throws DependencyResolutionRequiredException {
-  //    return new BuildServiceConfig.Builder()
-  //        .dockerBuildContext(getBuildContext())
-  //        .dockerMavenBuildContext(createMojoParameters())
-  //        .buildRecreateMode(BuildRecreateMode.fromParameter(buildRecreate))
-  //        .openshiftBuildStrategy(buildStrategy)
-  //        .openshiftPullSecret(openshiftPullSecret)
-  //        .s2iBuildNameSuffix(s2iBuildNameSuffix)
-  //        .s2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal)
-  //        .forcePullEnabled(forcePull)
-  //        .imagePullManager(getImagePullManager(imagePullPolicy, autoPull))
-  //        .buildDirectory(project.getBuild().getDirectory())
-  //        .attacher((classifier, destFile) -> {
-  //          if (destFile.exists()) {
-  //            projectHelper.attachArtifact(project, "yml", classifier, destFile);
-  //          }
-  //        })
-  //        .enricherTask(builder -> {
-  //          EnricherManager enricherManager = new EnricherManager(resources, getEnricherContext(), MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath));
-  //          enricherManager.enrich(PlatformMode.kubernetes, builder);
-  //          enricherManager.enrich(PlatformMode.openshift, builder);
-  //        })
-  //        .build();
-  //  }
 }

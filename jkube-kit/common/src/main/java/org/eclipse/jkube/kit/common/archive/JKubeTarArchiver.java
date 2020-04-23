@@ -36,15 +36,8 @@ public class JKubeTarArchiver {
   public static File createTarBallOfDirectory(
     File outputFile, File inputDirectory, ArchiveCompression compression) throws IOException {
 
-    return JKubeTarArchiver.createTarBall(outputFile, inputDirectory, FileUtil.listFilesRecursivelyInDirectory(inputDirectory), Collections.emptyMap(), compression);
-  }
-
-  public static File createTarBallOfDirectory(
-      File outputFile, File inputDirectory, Map<File, String> fileToPermissionsMap, ArchiveCompression compression)
-      throws IOException {
-
-    return JKubeTarArchiver.createTarBall(outputFile, inputDirectory, FileUtil.listFilesRecursivelyInDirectory(inputDirectory),
-        fileToPermissionsMap, compression);
+    return JKubeTarArchiver.createTarBall(outputFile, inputDirectory,
+        FileUtil.listFilesAndDirsRecursivelyInDirectory(inputDirectory), Collections.emptyMap(), compression);
   }
 
   public static File createTarBall(
@@ -55,7 +48,7 @@ public class JKubeTarArchiver {
     try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
         BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
 
-      TarArchiveOutputStream tarArchiveOutputStream = null;
+      final TarArchiveOutputStream tarArchiveOutputStream;
       if (compression.equals(ArchiveCompression.gzip)) {
         tarArchiveOutputStream = new TarArchiveOutputStream(new GzipCompressorOutputStream(bufferedOutputStream));
       } else if (compression.equals(ArchiveCompression.bzip2)) {
@@ -75,11 +68,15 @@ public class JKubeTarArchiver {
         tarEntry.setSize(currentFile.length());
         if (fileToPermissionsMap.containsKey(currentFile)) {
           tarEntry.setMode(Integer.parseInt(fileToPermissionsMap.get(currentFile), 8));
+        } else if (currentFile.isDirectory()) {
+          tarEntry.setMode(TarArchiveEntry.DEFAULT_DIR_MODE);
         }
 
         tarArchiveOutputStream.putArchiveEntry(tarEntry);
         tarArchiveOutputStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
-        tarArchiveOutputStream.write(IOUtils.toByteArray(new FileInputStream(currentFile)));
+        if (currentFile.isFile()) {
+          tarArchiveOutputStream.write(IOUtils.toByteArray(new FileInputStream(currentFile)));
+        }
         tarArchiveOutputStream.closeArchiveEntry();
       }
       tarArchiveOutputStream.close();

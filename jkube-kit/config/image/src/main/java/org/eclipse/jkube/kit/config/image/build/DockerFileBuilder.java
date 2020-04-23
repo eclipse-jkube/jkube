@@ -19,10 +19,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -35,11 +36,8 @@ import org.apache.commons.lang3.StringUtils;
  * Create a dockerfile
  *
  * @author roland
- * @since 17.04.14
  */
 public class DockerFileBuilder {
-
-    private static final StringJoiner JOIN_ON_COMMA = new StringJoiner("\",\"");
 
     // Base image to use as from
     private String baseImage;
@@ -108,7 +106,7 @@ public class DockerFileBuilder {
      * @return the dockerfile create
      * @throws IllegalArgumentException if no src/dest entries have been added
      */
-    public String content() throws IllegalArgumentException {
+    public String content() {
 
         StringBuilder b = new StringBuilder();
 
@@ -263,8 +261,8 @@ public class DockerFileBuilder {
         if (value == null || value.isEmpty()) {
             return sb.append("\"\"").toString();
         }
-	StringBuilder valBuf = new StringBuilder();
-	boolean toBeQuoted = false;
+        StringBuilder valBuf = new StringBuilder();
+        boolean toBeQuoted = false;
         for (int i = 0; i < value.length(); ++i) {
             char c = value.charAt(i);
             switch (c) {
@@ -291,7 +289,7 @@ public class DockerFileBuilder {
     }
 
     private void addPorts(StringBuilder b) {
-        if (ports.size() > 0) {
+        if (!ports.isEmpty()) {
             String[] portsS = new String[ports.size()];
             int i = 0;
             for(String port : ports) {
@@ -301,7 +299,7 @@ public class DockerFileBuilder {
         }
     }
 
-    private String validatePortExposure(String input) throws IllegalArgumentException {
+    private String validatePortExposure(String input) {
         try {
             Matcher matcher = Pattern.compile("(.*?)(?:/(tcp|udp))?$", Pattern.CASE_INSENSITIVE).matcher(input);
             // Matches always.  If there is a tcp/udp protocol, should end up in the second group
@@ -324,11 +322,11 @@ public class DockerFileBuilder {
         }
     }
 
-	private void addRun(StringBuilder b) {
-		for (String run : runCmds) {
+    private void addRun(StringBuilder b) {
+        for (String run : runCmds) {
             DockerFileKeyword.RUN.addTo(b, run);
-		}
-	}
+        }
+    }
 
     private void addVolumes(StringBuilder b) {
         if (exportTargetDir != null ? exportTargetDir : baseImage == null) {
@@ -425,13 +423,9 @@ public class DockerFileBuilder {
      * @return DockerFileBuilder docker file builder
      */
     public DockerFileBuilder run(List<String> runCmds) {
-        if (runCmds != null) {
-            for (String cmd : runCmds) {
-                if (!StringUtils.isEmpty(cmd)) {
-                    this.runCmds.add(cmd);
-                }
-            }
-        }
+        Optional.ofNullable(runCmds).orElse(Collections.emptyList()).stream()
+            .filter(StringUtils::isNotEmpty)
+            .forEach(this.runCmds::add);
         return this;
     }
 
@@ -478,7 +472,8 @@ public class DockerFileBuilder {
 
     // All entries required, destination is relative to exportDir
     private static final class CopyEntry {
-        private String source,destination;
+        private String source;
+        private String destination;
 
         private CopyEntry(String src, String dest) {
             source = src;
