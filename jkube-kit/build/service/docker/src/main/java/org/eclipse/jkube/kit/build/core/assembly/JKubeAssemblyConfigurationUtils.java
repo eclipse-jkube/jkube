@@ -13,12 +13,14 @@
  */
 package org.eclipse.jkube.kit.build.core.assembly;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.Assembly;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -28,15 +30,24 @@ import java.util.stream.Collectors;
 
 public class JKubeAssemblyConfigurationUtils {
 
-  private static final String DEFAULT_TARGET_DIR = "/maven";
+  private static final String DEFAULT_NAME = "maven";
+  private static final String DEFAULT_TARGET_DIR = File.separator.concat(DEFAULT_NAME);
   private static final String DEFAULT_USER = "root";
 
   private JKubeAssemblyConfigurationUtils() {}
 
   static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(BuildConfiguration buildConfiguration) {
-    return Optional.ofNullable(buildConfiguration)
+    final AssemblyConfiguration ac = Optional.ofNullable(buildConfiguration)
       .map(BuildConfiguration::getAssemblyConfiguration)
-      .orElse(AssemblyConfiguration.builder().targetDir(DEFAULT_TARGET_DIR).user(DEFAULT_USER).build());
+      .orElse(AssemblyConfiguration.builder().user(DEFAULT_USER).build());
+    final AssemblyConfiguration.AssemblyConfigurationBuilder builder = ac.toBuilder();
+    if (StringUtils.isBlank(ac.getName())) {
+      builder.name(DEFAULT_NAME);
+    }
+    if (StringUtils.isBlank(ac.getTargetDir())) {
+      builder.targetDir(DEFAULT_TARGET_DIR);
+    }
+    return builder.build();
   }
 
   static List<AssemblyFileSet> getJKubeAssemblyFileSets(AssemblyConfiguration configuration) {

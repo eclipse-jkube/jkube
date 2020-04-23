@@ -53,7 +53,7 @@ public class JKubeBuildTarArchiver {
 
     public File createArchive(File inputDirectory, BuildDirs buildDirs, ArchiveCompression compression) throws IOException {
         File outputFile = new File(buildDirs.getTemporaryRootDirectory(), "docker-build." + (compression.equals(ArchiveCompression.none) ? "tar" : compression.getFileSuffix()));
-        List<File> files = FileUtil.listFilesRecursivelyInDirectory(inputDirectory);
+        List<File> files = FileUtil.listFilesAndDirsRecursivelyInDirectory(inputDirectory);
 
         if (!filesToIncludeNameMap.isEmpty()) {
             for (Map.Entry<File, String> entry : filesToIncludeNameMap.entrySet()) {

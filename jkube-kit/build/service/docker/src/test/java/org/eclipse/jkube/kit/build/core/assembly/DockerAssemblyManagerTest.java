@@ -138,6 +138,8 @@ public class DockerAssemblyManagerTest {
     private BuildConfiguration createBuildConfig() {
         return BuildConfiguration.builder()
                 .assembly(AssemblyConfiguration.builder()
+                        .name("maven")
+                        .targetDir("/maven")
                         .descriptorRef("artifact")
                         .build())
                 .build();
@@ -219,7 +221,7 @@ public class DockerAssemblyManagerTest {
         // Then
         assertNotNull(dockerArchiveFile);
         assertTrue(dockerArchiveFile.exists());
-        assertEquals(2560, dockerArchiveFile.length());
+        assertEquals(3072, dockerArchiveFile.length());
         assertTrue(outputDirectory.isDirectory() && outputDirectory.exists());
         File buildOutputDir = new File(outputDirectory, "test-image");
         assertTrue(buildOutputDir.isDirectory() && buildOutputDir.exists());
@@ -279,7 +281,7 @@ public class DockerAssemblyManagerTest {
         // Then
         assertNotNull(dockerArchiveFile);
         assertTrue(dockerArchiveFile.exists());
-        assertEquals(2560, dockerArchiveFile.length());
+        assertEquals(3072, dockerArchiveFile.length());
         assertTrue(dockerDirectory.isDirectory() && dockerDirectory.exists());
         File buildOutputDir = new File(dockerDirectory, "test-image");
         assertTrue(buildOutputDir.isDirectory() && buildOutputDir.exists());

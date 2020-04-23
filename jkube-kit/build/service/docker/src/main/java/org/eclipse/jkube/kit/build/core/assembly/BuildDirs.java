@@ -24,7 +24,6 @@ import java.io.File;
  * directories.
  *
  * @author roland
- * @since 27/02/15
  */
 class BuildDirs {
 
@@ -35,7 +34,7 @@ class BuildDirs {
      * Constructor building up the the output directories
      *
      * @param imageName image name for the image to build
-     * @param params mojo params holding base and global outptput dir
+     * @param params mojo params holding base and global output dir
      */
     BuildDirs(String imageName, JKubeConfiguration params) {
         this.params = params;

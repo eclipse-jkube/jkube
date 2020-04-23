@@ -213,7 +213,7 @@ public class RunImageConfiguration implements Serializable {
     } else if (net != null) {
       return NetworkConfig.fromLegacyNetSpec(net);
     } else {
-      return NetworkConfig.builder().build();
+      return new NetworkConfig();
     }
   }
 
