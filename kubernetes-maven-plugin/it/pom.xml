@@ -26,7 +26,7 @@ for running a single test.
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>kubernetes-maven-plugin-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-alpha-2</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 

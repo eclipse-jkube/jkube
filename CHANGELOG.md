@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.0.0-SNAPSHOT
+### 1.0.0-alpha-2 (2020-04-24)
 * Fix #130: Updated HelmMojo documentation
 * Fix #138: dockerAccessRequired should be false in case of docker build strategy
 * Fix #131: Extra-artifact wrongly generated
