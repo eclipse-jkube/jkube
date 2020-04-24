@@ -39,6 +39,7 @@ Usage:
 * Fix #88: Unreachable statement in DockerAssemblyManager
 * Fix #122: Bug 561261 - jkube-kit - insecure yaml load leading to RCE (CWE-502)
 * Fix #152: kubernetes namespace is ignored in debug goal
+* Fix #163: Added Quickstart for external Dockerfile
 
 ### 0.2.0 (2020-03-05)
 * Fix #71: script to extract changelog information for notifications
