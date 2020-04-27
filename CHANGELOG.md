@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.0-SNAPSHOT
+* Fix #167: Add CMD for wildfly based applications
 
 ### 1.0.0-alpha-2 (2020-04-24)
 * Fix #130: Updated HelmMojo documentation
