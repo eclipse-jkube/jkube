@@ -37,6 +37,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -45,69 +50,85 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.eclipse.jkube</groupId>
+                <artifactId>kubernetes-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <configuration combine.children="append">
+                    <enricher>
+                        <config>
+                            <jkube-service>
+                                <type>NodePort</type>
+                                <name>${artifactId}</name>
+                                <port>8080:8080</port>
+                            </jkube-service>
+                        </config>
+                    </enricher>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
     <profiles>
         <profile>
-            <id>kubernetes</id>
+            <id>context-dir</id>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.eclipse.jkube</groupId>
                         <artifactId>kubernetes-maven-plugin</artifactId>
-                        <version>${project.version}</version>
                         <configuration>
                             <images>
                                 <image>
                                     <name>jkube/docker-file-provided</name>
                                     <build>
-                                        <contextDir>${project.basedir}</contextDir>
-                                        <dockerFile>src/main/docker/Dockerfile</dockerFile>
+                                        <contextDir>${project.basedir}/src/main/docker-context-dir</contextDir>
                                     </build>
                                 </image>
                             </images>
-                            <enricher>
-                                <config>
-                                    <jkube-service>
-                                        <type>NodePort</type>
-                                        <name>${artifactId}</name>
-                                        <port>8080:8080</port>
-                                    </jkube-service>
-                                </config>
-                            </enricher>
                         </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile>
         <profile>
-            <id>openshift</id>
+            <id>docker-file</id>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.eclipse.jkube</groupId>
-                        <artifactId>openshift-maven-plugin</artifactId>
-                        <version>${project.version}</version>
+                        <artifactId>kubernetes-maven-plugin</artifactId>
                         <configuration>
                             <images>
                                 <image>
                                     <name>jkube/docker-file-provided</name>
                                     <build>
-                                        <contextDir>${project.basedir}</contextDir>
-                                        <dockerFile>src/main/docker/Dockerfile</dockerFile>
+                                        <dockerFile>subdir/Dockerfile</dockerFile>
                                     </build>
                                 </image>
                             </images>
-                            <enricher>
-                                <config>
-                                    <jkube-service>
-                                        <type>NodePort</type>
-                                        <name>${artifactId}</name>
-                                        <port>8080:8080</port>
-                                    </jkube-service>
-                                </config>
-                            </enricher>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>context-and-file</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.jkube</groupId>
+                        <artifactId>kubernetes-maven-plugin</artifactId>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>jkube/docker-file-provided</name>
+                                    <build>
+                                        <contextDir>${project.basedir}/src/main/docker-context-dir</contextDir>
+                                        <dockerFile>other/file/DockerfileWithChangedFileName</dockerFile>
+                                    </build>
+                                </image>
+                            </images>
                         </configuration>
                     </plugin>
                 </plugins>

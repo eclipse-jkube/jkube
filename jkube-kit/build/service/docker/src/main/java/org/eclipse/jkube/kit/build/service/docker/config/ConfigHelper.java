@@ -27,13 +27,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Utility class which helps in resolving, customizing, initializing and validating
  * image configuration.
  *
  * @author roland
- * @since 17/05/16
  */
 public class ConfigHelper {
     // Property which can be set to activate externalConfiguration through properties.
@@ -59,12 +59,9 @@ public class ConfigHelper {
                                                          Customizer imageCustomizer) {
         List<ImageConfiguration> ret = resolveConfiguration(imageResolver, images);
         ret = imageCustomizer.customizeConfig(ret);
-        List<ImageConfiguration> filtered =  filterImages(imageNameFilter,ret);
-        if (ret.size() > 0 && filtered.size() == 0 && imageNameFilter != null) {
-            List<String> imageNames = new ArrayList<>();
-            for (ImageConfiguration image : ret) {
-                imageNames.add(image.getName());
-            }
+        final List<ImageConfiguration> filtered =  filterImages(imageNameFilter,ret);
+        if (!ret.isEmpty() && filtered.isEmpty() && imageNameFilter != null) {
+            final List<String> imageNames = ret.stream().map(ImageConfiguration::getName).collect(Collectors.toList());
             logger.warn("None of the resolved images [%s] match the configured filter '%s'",
                         String.join(",", imageNames), imageNameFilter);
         }
