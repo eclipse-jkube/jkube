@@ -69,7 +69,7 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
     @Override
     public String getCommand() {
-        return null;
+        return "/opt/jboss/wildfly/bin/standalone.sh";
     }
 
     @Override
