@@ -62,9 +62,10 @@ import java.util.concurrent.CountDownLatch;
  * Utility class for executing common tasks using the Kubernetes client
  *
  * @author nicola
- * @since 09/02/17
  */
 public class KubernetesClientUtil {
+
+    private KubernetesClientUtil() {}
 
     public static void resizeApp(KubernetesClient kubernetes, String namespace, Set<HasMetadata> entities, int replicas, KitLogger log) {
         for (HasMetadata entity : entities) {
@@ -91,22 +92,8 @@ public class KubernetesClientUtil {
         }
     }
 
-
-
-    public static void deleteEntities(KubernetesClient kubernetes, String namespace, Set<HasMetadata> entities, String s2iBuildNameSuffix, KitLogger log) {
+    public static void deleteEntities(KubernetesClient kubernetes, String namespace, Set<HasMetadata> entities, KitLogger log) {
         List<HasMetadata> list = new ArrayList<>(entities);
-
-        // For OpenShift cluster, also delete s2i buildconfig
-        OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(kubernetes);        if (openshiftClient != null) {
-            for (HasMetadata entity : list) {
-                if ("ImageStream".equals(KubernetesHelper.getKind(entity))) {
-                    ImageName imageName = new ImageName(entity.getMetadata().getName());
-                    String buildName = getS2IBuildName(imageName, s2iBuildNameSuffix);
-                    log.info("Deleting resource BuildConfig " + namespace + "/" + buildName);
-                    openshiftClient.buildConfigs().inNamespace(namespace).withName(buildName).delete();
-                }
-            }
-        }
 
         // lets delete in reverse order
         Collections.reverse(list);
@@ -114,6 +101,23 @@ public class KubernetesClientUtil {
         for (HasMetadata entity : list) {
             log.info("Deleting resource " + KubernetesHelper.getKind(entity) + " " + namespace + "/" + KubernetesHelper.getName(entity));
             kubernetes.resource(entity).inNamespace(namespace).cascading(true).delete();
+        }
+    }
+
+    public static void deleteOpenShiftEntities(KubernetesClient kubernetes, String namespace, Set<HasMetadata> entities, String s2iBuildNameSuffix, KitLogger log) {
+        // For OpenShift cluster, also delete s2i buildconfig
+        OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(kubernetes);
+        if (openshiftClient == null) {
+            return;
+        }
+        for (HasMetadata entity : entities) {
+            if ("ImageStream".equals(KubernetesHelper.getKind(entity))) {
+                ImageName imageName = new ImageName(entity.getMetadata().getName());
+                String buildName = getS2IBuildName(imageName, s2iBuildNameSuffix);
+                log.info("Deleting resource BuildConfig %s/%s and Builds", namespace, buildName);
+                openshiftClient.builds().inNamespace(namespace).withLabel("buildconfig", buildName).delete();
+                openshiftClient.buildConfigs().inNamespace(namespace).withName(buildName).delete();
+            }
         }
     }
 

@@ -16,20 +16,18 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-
-import static org.eclipse.jkube.maven.plugin.mojo.Openshift.DEFAULT_LOG_PREFIX;
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 @Mojo(name = "push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class OpenshiftPushMojo extends PushMojo {
   @Override
   protected String getLogPrefix() {
-    return DEFAULT_LOG_PREFIX;
+    return OpenShift.DEFAULT_LOG_PREFIX;
   }
 
   @Override
   protected boolean canExecute() {
-    log.warn("Image is pushed to OpenShift's internal registry during oc:build goal." +
-        " Skipping...");
+    log.warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
     return false;
   }
 }

@@ -85,7 +85,7 @@ public class DebugMojo extends ApplyMojo {
     private PortForwardService portForwardService;
 
     @Override
-    protected void initServices(KubernetesClient kubernetes, KitLogger log) {
+    protected void initServices(KubernetesClient kubernetes) {
         portForwardService = new PortForwardService(kubernetes, log);
     }
 
@@ -160,7 +160,7 @@ public class DebugMojo extends ApplyMojo {
         //  wait for the newest pod to be ready with the given env var
         FilterWatchListDeletable<Pod, PodList, Boolean, Watch, Watcher<Pod>> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
         log.info("Waiting for debug pod with selector " + selector + " and environment variables " + envVars);
-        podWaitLog = createExternalProcessLogger("[[Y]][W][[Y]] ");
+        podWaitLog = createLogger("[[Y]][W][[Y]] [[s]]");
         PodList list = pods.list();
         if (list != null) {
             Pod latestPod = KubernetesHelper.getNewestPod(list.getItems());
@@ -237,7 +237,7 @@ public class DebugMojo extends ApplyMojo {
 
     private void portForward(String podName, String namespace) throws MojoExecutionException {
         try {
-            portForwardService.forwardPort(createExternalProcessLogger("[[B]]port-forward[[B]] "), podName, namespace, portToInt(remoteDebugPort, "remoteDebugPort"), portToInt(localDebugPort, "localDebugPort"));
+            portForwardService.forwardPort(createLogger("[[B]]port-forward[[B]] [[s]]"), podName, namespace, portToInt(remoteDebugPort, "remoteDebugPort"), portToInt(localDebugPort, "localDebugPort"));
 
             log.info("");
             log.info("Now you can start a Remote debug execution in your IDE by using localhost and the debug port " + localDebugPort);

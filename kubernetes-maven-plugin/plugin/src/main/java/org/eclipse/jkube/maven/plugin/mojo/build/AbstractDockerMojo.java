@@ -57,7 +57,6 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.image.build.RegistryAuthConfiguration;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -72,7 +71,6 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.maven.plugin.enricher.EnricherManager;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 
-import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -82,10 +80,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.settings.Settings;
-import org.apache.maven.shared.filtering.MavenFileFilter;
-import org.apache.maven.shared.filtering.MavenReaderFilter;
 import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
@@ -93,12 +88,16 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
+import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 import org.fusesource.jansi.Ansi;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
 import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
+import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo.DEFAULT_LOG_PREFIX;
 
-public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigHelper.Customizer, Contextualizable {
+public abstract class AbstractDockerMojo extends AbstractMojo
+    implements ConfigHelper.Customizer, Contextualizable, KitLoggerProvider {
+
     public static final String DMP_PLUGIN_DESCRIPTOR = "META-INF/maven/org.eclipse.jkube/k8s-plugin";
     public static final String DOCKER_EXTRA_DIR = "docker-extra";
 
@@ -153,7 +152,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     protected DockerMachineConfiguration machine;
 
     /**
-     * Whether the usage of docker machine should be skipped competely
+     * Whether the usage of docker machine should be skipped completely
      */
     @Parameter(property = "docker.skip.machine", defaultValue = "false")
     protected boolean skipMachine;
@@ -222,15 +221,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     protected boolean skipExtendedAuth;
 
     @Parameter
-    protected MavenArchiveConfiguration archive;
-
-    @Component
-    protected MavenFileFilter mavenFileFilter;
-
-    @Component
-    protected MavenReaderFilter mavenFilterReader;
-
-    @Parameter
     protected Map<String, String> buildArgs;
 
     // Authentication information
@@ -265,9 +255,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     protected MavenProjectHelper projectHelper;
 
     @Component
-    protected RepositorySystem repositorySystem;
-
-    @Component
     protected ServiceHubFactory serviceHubFactory;
 
     @Component
@@ -282,21 +269,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     @Parameter(property = "docker.skip.build", defaultValue = "false")
     protected boolean skipBuild;
 
-    /**
-     * OpenShift build mode when an OpenShift build is performed.
-     * Can be either "s2i" for an s2i binary build mode or "docker" for a binary
-     * docker mode.
-     */
-    @Parameter(property = "jkube.build.strategy")
-    protected OpenShiftBuildStrategy buildStrategy = OpenShiftBuildStrategy.s2i;
-
-    /**
-     * The name of pullSecret to be used to pull the base image in case pulling from a protected
-     * registry which requires authentication.
-     */
-    @Parameter(property = "jkube.build.pullSecret", defaultValue = "pullsecret-jkube")
-    protected String openshiftPullSecret;
-
     // To skip over the execution of the goal
     @Parameter(property = "jkube.skip", defaultValue = "false")
     protected boolean skip;
@@ -310,13 +282,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
 
     @Parameter(property = "jkube.skip.build.pom")
     protected Boolean skipBuildPom;
-
-    /**
-     * The S2I binary builder BuildConfig name suffix appended to the image name to avoid
-     * clashing with the underlying BuildConfig for the Jenkins pipeline
-     */
-    @Parameter(property = "jkube.s2i.buildNameSuffix", defaultValue = "-s2i")
-    protected String s2iBuildNameSuffix;
 
     /**
      * Generator specific options. This is a generic prefix where the keys have the form
@@ -358,7 +323,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
      */
     @Parameter
     protected ProcessorConfig enricher;
-
 
     /**
      * Folder where to find project specific files, e.g a custom profile
@@ -433,6 +397,11 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         plexusContainer = ((PlexusContainer) context.get(PlexusConstants.PLEXUS_KEY));
     }
 
+    @Override
+    public KitLogger getKitLogger() {
+        return log;
+    }
+
     protected void init() {
         log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
         authConfigFactory = new AuthConfigFactory(log);
@@ -465,7 +434,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                         .clusterAccess(clusterAccess)
                         .platformMode(mode)
                         .dockerServiceHub(serviceHubFactory.createServiceHub(access, log, logSpecFactory))
-                        .buildServiceConfig(getBuildServiceConfig())
+                        .buildServiceConfig(buildServiceConfigBuilder().build())
                         .build();
                     this.minimalApiVersion = initImageConfiguration(getBuildTimestamp());
                     executeInternal();
@@ -719,12 +688,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
         }
     }
 
-    protected BuildServiceConfig getBuildServiceConfig() {
+    protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
         return BuildServiceConfig.builder()
                 .buildRecreateMode(BuildRecreateMode.fromParameter(buildRecreate))
-                .openshiftBuildStrategy(buildStrategy)
-                .openshiftPullSecret(openshiftPullSecret)
-                .s2iBuildNameSuffix(s2iBuildNameSuffix)
                 .s2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal)
                 .forcePull(forcePull)
                 .imagePullManager(getImagePullManager(imagePullPolicy, autoPull))
@@ -738,8 +704,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
                     EnricherManager enricherManager = new EnricherManager(getEnricherContext(), MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath));
                     enricherManager.enrich(PlatformMode.kubernetes, builder);
                     enricherManager.enrich(PlatformMode.openshift, builder);
-                })
-                .build();
+                });
     }
 
     /**
@@ -750,21 +715,18 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
      */
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
         log.info("Running in [[B]]%s[[B]] mode", runtimeMode.getLabel());
-        if (runtimeMode == RuntimeMode.openshift) {
-            log.info("Using [[B]]OpenShift[[B]] build with strategy [[B]]%s[[B]]", buildStrategy.getLabel());
-        } else {
+        if (runtimeMode != RuntimeMode.openshift) {
             log.info("Building Docker image in [[B]]Kubernetes[[B]] mode");
         }
-
         try {
-            return GeneratorManager.generate(configs, getGeneratorContext(), false);
+            return GeneratorManager.generate(configs, generatorContextBuilder().build(), false);
         } catch (DependencyResolutionRequiredException de) {
             throw new IllegalArgumentException("Instructed to use project classpath, but cannot. Continuing build if we can: ", de);
         }
     }
 
     protected String getLogPrefix() {
-        return "k8s: ";
+        return DEFAULT_LOG_PREFIX;
     }
 
     // ==================================================================================================
@@ -781,16 +743,14 @@ public abstract class AbstractDockerMojo extends AbstractMojo implements ConfigH
     }
 
     // Get generator context
-    protected GeneratorContext getGeneratorContext() throws DependencyResolutionRequiredException {
+    protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() throws DependencyResolutionRequiredException {
         return GeneratorContext.builder()
                 .config(extractGeneratorConfig())
                 .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                 .logger(log)
                 .runtimeMode(runtimeMode)
-                .strategy(buildStrategy)
                 .useProjectClasspath(useProjectClasspath)
-                .artifactResolver(jkubeServiceHub.getArtifactResolverService())
-                .build();
+                .artifactResolver(jkubeServiceHub.getArtifactResolverService());
     }
 
     // Get generator config

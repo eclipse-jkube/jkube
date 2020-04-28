@@ -14,7 +14,6 @@
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -27,21 +26,17 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * Note that the goals k8s:resource and k8s:build must be bound to the proper execution phases.
  *
  * @author roland
- * @since 09/06/16
  */
 
 @Mojo(name = "deploy", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.VALIDATE)
 @Execute(phase = LifecyclePhase.INSTALL)
 public class DeployMojo extends ApplyMojo {
+
     @Parameter(property = "docker.skip.deploy", defaultValue = "false")
     protected boolean skipDeploy;
 
     @Override
-    public void executeInternal() throws MojoExecutionException {
-        if (skipDeploy) {
-            return;
-        }
-
-        super.executeInternal();
+    protected boolean canExecute() {
+        return super.canExecute() && !skipDeploy;
     }
 }

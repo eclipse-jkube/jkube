@@ -19,9 +19,7 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-
-import static org.eclipse.jkube.maven.plugin.mojo.Openshift.DEFAULT_LOG_PREFIX;
-
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 /**
  * Generates or copies the Kubernetes JSON file and attaches it to the build so its
@@ -32,7 +30,7 @@ public class OpenshiftResourceMojo extends ResourceMojo {
 
     @Override
     protected String getLogPrefix() {
-        return DEFAULT_LOG_PREFIX;
+        return OpenShift.DEFAULT_LOG_PREFIX;
     }
 
     @Override
