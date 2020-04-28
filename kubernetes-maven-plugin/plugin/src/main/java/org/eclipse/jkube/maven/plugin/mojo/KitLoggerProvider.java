@@ -13,10 +13,9 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo;
 
-public class Openshift {
+import org.eclipse.jkube.kit.common.KitLogger;
 
-  public static final String DEFAULT_LOG_PREFIX = "oc:";
+public interface KitLoggerProvider {
 
-  private Openshift() {}
-
+  KitLogger getKitLogger();
 }

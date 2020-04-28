@@ -13,11 +13,15 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
+
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
-import static org.eclipse.jkube.maven.plugin.mojo.Openshift.DEFAULT_LOG_PREFIX;
+import java.io.File;
 
 /**
  * Base class for goals which deploy the generated artifacts into the Openshift cluster
@@ -25,8 +29,19 @@ import static org.eclipse.jkube.maven.plugin.mojo.Openshift.DEFAULT_LOG_PREFIX;
 @Mojo(name = "apply", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.INSTALL)
 public class OpenshiftApplyMojo extends ApplyMojo {
 
+  /**
+   * The generated openshift YAML file
+   */
+  @Parameter(property = "jkube.openshiftManifest", defaultValue = DEFAULT_OPENSHIFT_MANIFEST)
+  private File openshiftManifest;
+
+  @Override
+  public File getManifest(KubernetesClient kubernetesClient) {
+    return OpenShift.getOpenShiftManifest(kubernetesClient, super.getManifest(kubernetesClient), openshiftManifest);
+  }
+
   @Override
   protected String getLogPrefix() {
-    return DEFAULT_LOG_PREFIX;
+    return OpenShift.DEFAULT_LOG_PREFIX;
   }
 }

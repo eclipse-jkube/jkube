@@ -35,8 +35,6 @@ import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.ValidationUtil;
 import org.eclipse.jkube.kit.common.util.validator.ResourceValidator;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.MappingConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -333,10 +331,12 @@ public class ResourceMojo extends AbstractJKubeMojo {
         }
     }
 
+    @Override
+    protected boolean canExecute() {
+        return super.canExecute() && !skipResource;
+    }
+
     public void executeInternal() throws MojoExecutionException, MojoFailureException {
-        if (skipResource) {
-            return;
-        }
         if (useDekorate(project) && mergeWithDekorate) {
             log.info("Dekorate detected, merging JKube and Dekorate resources");
             System.setProperty("dekorate.input.dir", DEFAULT_RESOURCE_LOCATION);
@@ -414,8 +414,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     }
 
     private void lateInit() {
-        ClusterAccess clusterAccess = new ClusterAccess(getClusterConfiguration());
-        runtimeMode = new ClusterAccess(getClusterConfiguration()).resolveRuntimeMode(runtimeMode, log);
+        runtimeMode = clusterAccess.resolveRuntimeMode(runtimeMode, log);
         if (runtimeMode.equals(RuntimeMode.openshift)) {
             Properties properties = project.getProperties();
             if (!properties.contains(DOCKER_IMAGE_USER)) {
@@ -681,8 +680,4 @@ public class ResourceMojo extends AbstractJKubeMojo {
           .orElse(null);
     }
 
-    @Override
-    protected ClusterConfiguration getClusterConfiguration() {
-        return ClusterConfiguration.from(access, System.getProperties(), project.getProperties()).build();
-    }
 }

@@ -25,7 +25,6 @@ import java.util.Set;
 
 /**
  * @author roland
- * @since 16.10.14
  */
 public class StartOrderResolver {
 
@@ -68,7 +67,7 @@ public class StartOrderResolver {
         }
 
         // Next passes: Those with dependencies are checked whether they already have been visited.
-        return secondPass.size() > 0 ? resolveRemaining(resolved) : resolved;
+        return secondPass.isEmpty() ? resolved : resolveRemaining(resolved);
     }
 
     private List<Resolvable> resolveRemaining(List<Resolvable> ret) {
@@ -77,11 +76,11 @@ public class StartOrderResolver {
         try {
             do {
                 resolveImageDependencies(ret);
-            } while (secondPass.size() > 0  && retries-- > 0);
+            } while (!secondPass.isEmpty() && retries-- > 0);
         } catch (DockerAccessException | ResolveSteadyStateException e) {
             error = "Cannot resolve image dependencies for start order\n" + remainingImagesDescription();
         }
-        if (retries == 0 && secondPass.size() > 0) {
+        if (retries == 0 && !secondPass.isEmpty()) {
             error = "Cannot resolve image dependencies after " + MAX_RESOLVE_RETRIES + " passes\n"
                     + remainingImagesDescription();
         }
@@ -105,7 +104,7 @@ public class StartOrderResolver {
             ret.append("* ")
                .append(config.getAlias())
                .append(" depends on ")
-               .append(String.join(",", (String[])config.getDependencies().toArray()))
+               .append(String.join(",", config.getDependencies().toArray(new String[0])))
                .append("\n");
         }
         return ret.toString();
@@ -156,7 +155,7 @@ public class StartOrderResolver {
     }
 
     // Exception indicating a steady state while resolving start order of images
-    private static class ResolveSteadyStateException extends Throwable { }
+    private static class ResolveSteadyStateException extends Exception { }
 
     public interface Resolvable {
         String getName();

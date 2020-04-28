@@ -46,6 +46,7 @@ import java.util.concurrent.CountDownLatch;
 
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.withSelector;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.deleteEntities;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.deleteOpenShiftEntities;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusDescription;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusMessagePostfix;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.resizeApp;
@@ -96,7 +97,10 @@ public class PodLogService {
                     public void run() {
                         if (onExitOperationLower.equals(OPERATION_UNDEPLOY)) {
                             log.info("Undeploying the app:");
-                            deleteEntities(kubernetes, namespace, entities, context.getS2iBuildNameSuffix(), log);
+                            deleteEntities(kubernetes, namespace, entities, log);
+                            if (context.getS2iBuildNameSuffix() != null) {
+                                deleteOpenShiftEntities(kubernetes, namespace, entities, context.getS2iBuildNameSuffix(), log);
+                            }
                         } else if (onExitOperationLower.equals(OPERATION_STOP)) {
                             log.info("Stopping the app:");
                             resizeApp(kubernetes, namespace, entities, 0, log);

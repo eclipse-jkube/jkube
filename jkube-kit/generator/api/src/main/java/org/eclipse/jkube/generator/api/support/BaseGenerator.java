@@ -43,6 +43,9 @@ import org.apache.commons.lang3.StringUtils;
  */
 public abstract class BaseGenerator implements Generator {
 
+    private static final String LABEL_SCHEMA_VERSION = "1.0";
+    private static final String GIT_REMOTE = "origin";
+
     private final GeneratorContext context;
     private final String name;
     private final GeneratorConfig config;
@@ -219,8 +222,8 @@ public abstract class BaseGenerator implements Generator {
     }
 
     private boolean containsBuildConfiguration(List<ImageConfiguration> configs) {
-        for (ImageConfiguration config : configs) {
-            if (config.getBuildConfiguration() != null) {
+        for (ImageConfiguration imageConfig : configs) {
+            if (imageConfig.getBuildConfiguration() != null) {
                 return true;
             }
         }
@@ -229,8 +232,6 @@ public abstract class BaseGenerator implements Generator {
 
     protected void addSchemaLabels(BuildConfiguration.BuildConfigurationBuilder buildBuilder, PrefixedLogger log) {
         final JavaProject project = getProject();
-        String LABEL_SCHEMA_VERSION = "1.0";
-        String GIT_REMOTE = "origin";
         String docURL = project.getDocumentationUrl();
         Map<String, String> labels = new HashMap<>();
 
@@ -243,7 +244,7 @@ public abstract class BaseGenerator implements Generator {
         if (project.getSite() != null) {
             labels.put(BuildLabelAnnotations.URL.value(), project.getSite());
         }
-        if (project.getOrganizationName() != null && project.getOrganizationName() != null) {
+        if (project.getOrganizationName() != null && !project.getOrganizationName().isEmpty()) {
             labels.put(BuildLabelAnnotations.VENDOR.value(), project.getOrganizationName());
         }
         labels.put(BuildLabelAnnotations.VERSION.value(), project.getVersion());

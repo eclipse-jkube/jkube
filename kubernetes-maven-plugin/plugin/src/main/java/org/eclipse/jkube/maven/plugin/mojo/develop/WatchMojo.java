@@ -16,24 +16,21 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
+import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 import org.eclipse.jkube.maven.plugin.mojo.build.AbstractDockerMojo;
 import org.eclipse.jkube.maven.plugin.watcher.WatcherManager;
 import org.eclipse.jkube.watcher.api.WatcherContext;
@@ -50,7 +47,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
-import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_OPENSHIFT_MANIFEST;
 
 
 // TODO: Similar to the DebugMojo the WatchMojo should scale down any deployment to 1 replica (or ensure that its running only with one replica)
@@ -62,18 +58,13 @@ import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_OPENSH
  */
 @Mojo(name = "watch", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
 @Execute(goal = "deploy")
-public class WatchMojo extends AbstractDockerMojo {
+public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
 
     /**
      * The generated kubernetes YAML file
      */
     @Parameter(property = "jkube.kubernetesManifest", defaultValue = DEFAULT_KUBERNETES_MANIFEST)
     private File kubernetesManifest;
-    /**
-     * The generated openshift YAML file
-     */
-    @Parameter(property = "jkube.openshiftManifest", defaultValue = DEFAULT_OPENSHIFT_MANIFEST)
-    private File openshiftManifest;
 
     /**
      * Watcher specific options. This is a generic prefix where the keys have the form
@@ -83,6 +74,11 @@ public class WatchMojo extends AbstractDockerMojo {
     private ProcessorConfig watcher;
 
     private KubernetesClient kubernetesClient;
+
+    @Override
+    public File getKubernetesManifest() {
+        return kubernetesManifest;
+    }
 
     @Override
     protected void init() {
@@ -95,16 +91,8 @@ public class WatchMojo extends AbstractDockerMojo {
         URL masterUrl = kubernetesClient.getMasterUrl();
         KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
 
-        File manifest;
-        boolean isOpenshift = OpenshiftHelper.isOpenShift(kubernetesClient);
-        if (isOpenshift) {
-            manifest = openshiftManifest;
-        } else {
-            manifest = kubernetesManifest;
-        }
-
         try {
-            Set<HasMetadata> resources = KubernetesResourceUtil.loadResources(manifest);
+            Set<HasMetadata> resources = KubernetesResourceUtil.loadResources(getManifest(kubernetesClient));
             WatcherContext context = getWatcherContext();
 
             WatcherManager.watch(getResolvedImages(), resources, context);
@@ -114,7 +102,6 @@ public class WatchMojo extends AbstractDockerMojo {
         } catch (Exception ex) {
             throw new MojoExecutionException("An error has occurred while while trying to watch the resources", ex);
         }
-
     }
 
     private WatcherContext getWatcherContext() throws MojoExecutionException {
@@ -145,22 +132,15 @@ public class WatchMojo extends AbstractDockerMojo {
     }
 
     @Override
-    public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
-        try {
-            GeneratorContext ctx = GeneratorContext.builder()
-                    .config(extractGeneratorConfig())
-                    .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
-                    .logger(log)
-                    .runtimeMode(mode)
-                    .strategy(buildStrategy)
-                    .useProjectClasspath(useProjectClasspath)
-                    .artifactResolver(jkubeServiceHub.getArtifactResolverService())
-                    .generatorMode(GeneratorMode.WATCH)
-                    .build();
-            return GeneratorManager.generate(configs, ctx, false);
-        } catch (DependencyResolutionRequiredException de) {
-            throw new IllegalArgumentException("Instructed to use project classpath, but cannot. Continuing build if we can: ", de);
-        }
+    protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() throws DependencyResolutionRequiredException {
+        return GeneratorContext.builder()
+            .config(extractGeneratorConfig())
+            .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
+            .logger(log)
+            .runtimeMode(mode)
+            .useProjectClasspath(useProjectClasspath)
+            .artifactResolver(jkubeServiceHub.getArtifactResolverService())
+            .generatorMode(GeneratorMode.WATCH);
     }
 
     // Get watcher config
@@ -173,12 +153,7 @@ public class WatchMojo extends AbstractDockerMojo {
     }
 
     protected KitLogger createLogger(String prefix) {
-        return new AnsiLogger(getLog(), useColor, verbose, !settings.getInteractiveMode(), "k8s:" + prefix);
-    }
-
-    @Override
-    protected String getLogPrefix() {
-        return "k8s: ";
+        return new AnsiLogger(getLog(), useColor, verbose, !settings.getInteractiveMode(), getLogPrefix() + prefix);
     }
 
     protected WatchService.WatchContext getWatchContext() throws IOException, DependencyResolutionRequiredException {

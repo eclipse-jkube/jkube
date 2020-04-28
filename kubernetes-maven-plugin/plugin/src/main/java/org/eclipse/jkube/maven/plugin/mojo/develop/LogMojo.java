@@ -42,22 +42,16 @@ public class LogMojo extends ApplyMojo {
 
     @Override
     protected void applyEntities(final KubernetesClient kubernetes, final String namespace, String fileName, final Set<HasMetadata> entities) throws Exception {
-        getLogService().tailAppPodsLogs(kubernetes, namespace, entities, false, null, followLog, null, true);
+        new PodLogService(podLogServiceContextBuilder().build())
+            .tailAppPodsLogs(kubernetes, namespace, entities, false, null, followLog, null, true);
     }
 
-
-    protected PodLogService getLogService() {
-        return new PodLogService(getLogServiceContext());
-    }
-
-    protected PodLogService.PodLogServiceContext getLogServiceContext() {
+    protected PodLogService.PodLogServiceContext.PodLogServiceContextBuilder podLogServiceContextBuilder() {
         return PodLogService.PodLogServiceContext.builder()
                 .log(log)
                 .logContainerName(logContainerName)
                 .podName(podName)
                 .newPodLog(createLogger("[[C]][NEW][[C]] "))
-                .oldPodLog(createLogger("[[R]][OLD][[R]] "))
-                .s2iBuildNameSuffix(s2iBuildNameSuffix)
-                .build();
+                .oldPodLog(createLogger("[[R]][OLD][[R]] "));
     }
 }

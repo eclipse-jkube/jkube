@@ -35,31 +35,31 @@ public class LogConfiguration implements Serializable {
 
     public static final LogConfiguration DEFAULT = new LogConfiguration(null, null, null, null, null, null, null);
 
-    private Boolean enabled;
+    private boolean enabled;
     private String prefix;
     private String date;
     private String color;
     private String file;
     private LogDriver driver;
 
-    @lombok.Builder
+    @Builder
     private LogConfiguration(
         Boolean enabled, String prefix, String color, String date, String file, Map<String, String> logDriverOpts, String driverName) {
-        this.enabled = enabled;
+        this.enabled = Optional.ofNullable(enabled).orElse(false);
         this.prefix = prefix;
         this.date = date;
         this.color = color;
         this.file = file;
         this.driver = Optional.ofNullable(driverName).map(dn -> new LogDriver(dn, logDriverOpts)).orElse(null);
     }
+
     /**
      * If explicitly enabled, or configured in any way and NOT explicitly disabled, return true.
      *
      * @return whether its activated or not
      */
     public boolean isActivated() {
-        return enabled == Boolean.TRUE ||
-                (enabled != Boolean.FALSE && !isBlank());
+        return enabled || !isBlank();
     }
 
     /**
@@ -80,8 +80,6 @@ public class LogConfiguration implements Serializable {
         private String name;
 
         private Map<String, String> opts;
-
-        public LogDriver() {}
 
         private LogDriver(String name, Map<String, String> opts) {
             this.name = name;

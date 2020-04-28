@@ -392,18 +392,15 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     private LogConfiguration extractLogConfig(LogConfiguration config, ValueProvider valueProvider) {
-        LogConfiguration.LogConfigurationBuilder builder = LogConfiguration.builder()
+        return LogConfiguration.builder()
             .color(valueProvider.getString(LOG_COLOR, config == null ? null : config.getColor()))
             .date(valueProvider.getString(LOG_DATE, config == null ? null : config.getDate()))
             .file(valueProvider.getString(LOG_FILE, config == null ? null : config.getFileLocation()))
             .prefix(valueProvider.getString(LOG_PREFIX, config == null ? null : config.getPrefix()))
             .driverName(valueProvider.getString(LOG_DRIVER_NAME, config == null || config.getDriver() == null ? null : config.getDriver().getName()))
-            .logDriverOpts(valueProvider.getMap(LOG_DRIVER_OPTS, config == null || config.getDriver() == null ? null : config.getDriver().getOpts()));
-
-        Boolean configEnabled = config != null ? config.getEnabled() : null;
-        Boolean enabled = valueProvider.getBoolean(LOG_ENABLED, configEnabled);
-        builder.enabled(enabled);
-        return builder.build();
+            .logDriverOpts(valueProvider.getMap(LOG_DRIVER_OPTS, config == null || config.getDriver() == null ? null : config.getDriver().getOpts()))
+            .enabled(valueProvider.getBoolean(LOG_ENABLED, Optional.ofNullable(config).map(LogConfiguration::isEnabled).orElse(false)))
+            .build();
     }
 
     private WaitConfiguration extractWaitConfig(WaitConfiguration config, ValueProvider valueProvider) {

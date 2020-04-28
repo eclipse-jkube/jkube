@@ -78,7 +78,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author nicola
- * @since 21/02/17
  */
 public class OpenshiftBuildService implements BuildService {
 
@@ -120,7 +119,7 @@ public class OpenshiftBuildService implements BuildService {
 
             // Check for buildconfig / imagestream / pullSecret and create them if necessary
             String openshiftPullSecret = config.getOpenshiftPullSecret();
-            Boolean usePullSecret = checkOrCreatePullSecret(config, client, builder, openshiftPullSecret, imageConfig);
+            final boolean usePullSecret = checkOrCreatePullSecret(client, builder, openshiftPullSecret, imageConfig);
             if (usePullSecret) {
                 buildName = updateOrCreateBuildConfig(config, client, builder, imageConfig, openshiftPullSecret);
             } else {
@@ -411,7 +410,7 @@ public class OpenshiftBuildService implements BuildService {
         return Collections.emptyList();
     }
 
-    private Boolean checkOrCreatePullSecret(BuildServiceConfig config, OpenShiftClient client, KubernetesListBuilder builder, String pullSecretName, ImageConfiguration imageConfig)
+    private boolean checkOrCreatePullSecret(OpenShiftClient client, KubernetesListBuilder builder, String pullSecretName, ImageConfiguration imageConfig)
             throws Exception {
         JKubeConfiguration configuration = jKubeServiceHub.getConfiguration();
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
@@ -567,7 +566,7 @@ public class OpenshiftBuildService implements BuildService {
         }
     }
 
-    private void waitForOpenShiftBuildToComplete(OpenShiftClient client, Build build) throws InterruptedException, IOException {
+    private void waitForOpenShiftBuildToComplete(OpenShiftClient client, Build build) throws IOException {
         final CountDownLatch latch = new CountDownLatch(1);
         final CountDownLatch logTerminateLatch = new CountDownLatch(1);
         final String buildName = KubernetesHelper.getName(build);
@@ -618,9 +617,8 @@ public class OpenshiftBuildService implements BuildService {
      * @param podName Name of the pod
      * @param nAwaitTimeout Time in seconds upto which pod must be watched
      * @param log Logger object
-     * @throws InterruptedException
      */
-    private void waitUntilPodIsReady(String podName, int nAwaitTimeout, final KitLogger log) throws InterruptedException {
+    private void waitUntilPodIsReady(String podName, int nAwaitTimeout, final KitLogger log) {
         final CountDownLatch readyLatch = new CountDownLatch(1);
         try (Watch watch = client.pods().withName(podName).watch(new Watcher<Pod>() {
             @Override

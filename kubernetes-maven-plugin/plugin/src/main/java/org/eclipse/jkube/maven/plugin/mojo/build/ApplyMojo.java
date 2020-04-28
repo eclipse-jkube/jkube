@@ -49,7 +49,6 @@ import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
@@ -64,6 +63,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,7 +81,7 @@ import java.util.Set;
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
  */
 @Mojo(name = "apply", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.INSTALL)
-public class ApplyMojo extends AbstractJKubeMojo {
+public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
 
     public static final String DEFAULT_KUBERNETES_MANIFEST = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml";
     public static final String DEFAULT_OPENSHIFT_MANIFEST = "${basedir}/target/classes/META-INF/jkube/openshift.yml";
@@ -109,12 +109,6 @@ public class ApplyMojo extends AbstractJKubeMojo {
      */
     @Parameter(property = "jkube.kubernetesManifest", defaultValue = DEFAULT_KUBERNETES_MANIFEST)
     private File kubernetesManifest;
-
-    /**
-     * The generated openshift YAML file
-     */
-    @Parameter(property = "jkube.openshiftManifest", defaultValue = DEFAULT_OPENSHIFT_MANIFEST)
-    private File openshiftManifest;
 
     /**
      * Should we create new kubernetes resources?
@@ -191,13 +185,6 @@ public class ApplyMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.serviceUrl.waitSeconds", defaultValue = "5")
     protected long serviceUrlWaitTimeSeconds;
 
-    /**
-     * The S2I binary builder BuildConfig name suffix appended to the image name to avoid
-     * clashing with the underlying BuildConfig for the Jenkins pipeline
-     */
-    @Parameter(property = "jkube.s2i.buildNameSuffix", defaultValue = "-s2i")
-    protected String s2iBuildNameSuffix;
-
     @Parameter
     protected ResourceConfig resources;
 
@@ -217,28 +204,27 @@ public class ApplyMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.skip.apply", defaultValue = "false")
     protected boolean skipApply;
 
-    private ClusterAccess clusterAccess;
     protected ApplyService applyService;
 
+    @Override
+    protected boolean canExecute() {
+        return super.canExecute() && !skipApply;
+    }
+
+    @Override
+    public File getKubernetesManifest() {
+        return kubernetesManifest;
+    }
+
+    @Override
     public void executeInternal() throws MojoExecutionException {
-        if (skipApply) {
-            return;
-        }
-
-        clusterAccess = new ClusterAccess(getClusterConfiguration());
-
         try {
             KubernetesClient kubernetes = clusterAccess.createDefaultClient(log);
             applyService = new ApplyService(kubernetes, log);
-            initServices(kubernetes, log);
+            initServices(kubernetes);
 
             URL masterUrl = kubernetes.getMasterUrl();
-            File manifest;
-            if (OpenshiftHelper.isOpenShift(kubernetes)) {
-                manifest = openshiftManifest;
-            } else {
-                manifest = kubernetesManifest;
-            }
+            final File manifest = getManifest(kubernetes);
             if (!manifest.exists() || !manifest.isFile()) {
                 if (failOnNoKubernetesJson) {
                     throw new MojoFailureException("No such generated manifest file: " + manifest);
@@ -322,8 +308,8 @@ public class ApplyMojo extends AbstractJKubeMojo {
         }
     }
 
-    protected void initServices(KubernetesClient kubernetes, KitLogger log) {
-
+    protected void initServices(KubernetesClient kubernetes) {
+        log.debug("No services required in ApplyMojo");
     }
 
     private Route createRouteForService(String routeDomainPostfix, String namespace, Service service) {
@@ -495,7 +481,7 @@ public class ApplyMojo extends AbstractJKubeMojo {
             }
         }
 
-        KitLogger serviceLogger = createExternalProcessLogger("[[G]][SVC][[G]] ");
+        KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
         long serviceUrlWaitTimeSeconds = this.serviceUrlWaitTimeSeconds;
         for (HasMetadata entity : entities) {
             if (entity instanceof Service) {
@@ -523,7 +509,7 @@ public class ApplyMojo extends AbstractJKubeMojo {
                 // lets not wait for other services
                 serviceUrlWaitTimeSeconds = 1;
                 if (StringUtils.isNotBlank(url) && url.startsWith("http")) {
-                    serviceLogger.info("" + name + ": " + url);
+                    serviceLogger.info("%s: %s", name, url);
                 }
             }
         }
@@ -609,7 +595,7 @@ public class ApplyMojo extends AbstractJKubeMojo {
             return;
         }
         List<Ingress> ingresses = new ArrayList<>();
-        for (Object object : collection) {
+        for (HasMetadata object : collection) {
             if (object instanceof Service) {
                 Service service = (Service) object;
                 if (!serviceHasIngressRule(ingressList, service)) {
@@ -717,21 +703,6 @@ public class ApplyMojo extends AbstractJKubeMojo {
             project = project.getParent();
         }
         return answer;
-    }
-
-    /**
-     * Returns the root project folder
-     */
-    protected MavenProject getRootProject() {
-        MavenProject project = getProject();
-        while (project != null) {
-            MavenProject parent = project.getParent();
-            if (parent == null) {
-                break;
-            }
-            project = parent;
-        }
-        return project;
     }
 
 }
