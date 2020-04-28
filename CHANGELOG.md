@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.0.0-SNAPSHOT
 * Fix #167: Add CMD for wildfly based applications
+* Added Webapp Wildfly maven quickstart
 
 ### 1.0.0-alpha-2 (2020-04-24)
 * Fix #130: Updated HelmMojo documentation
