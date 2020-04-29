@@ -21,9 +21,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
@@ -418,7 +420,9 @@ public class DockerAssemblyManager {
 
     final Map<File, String> fileToPermissionsMap = new HashMap<>();
 
-    for (String relativePathInclude : jkubeProjectAssemblyFileSet.getIncludes()) {
+    final List<String> includes = Optional.ofNullable(jkubeProjectAssemblyFileSet.getIncludes())
+        .orElse(Collections.singletonList(""));
+    for (String relativePathInclude : includes) {
       final File sourceDirectory = project.getBaseDirectory().toPath()
           .resolve(jkubeProjectAssemblyFileSet.getDirectory().toPath())
           .toFile();

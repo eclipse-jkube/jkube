@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+  <artifactId>quarkus-customized-image</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: Quarkus customized Image</name>
+  <description>
+    Quarkus REST JSON project
+  </description>
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <version.quarkus>1.4.1.Final</version.quarkus>
+    <jkube.build.pullSecret>12819530-ocp42-exposed-env-pull-secret-pull-secret</jkube.build.pullSecret>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-arc</artifactId>
+      <version>${version.quarkus}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy</artifactId>
+      <version>${version.quarkus}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>io.smallrye</groupId>
+          <artifactId>smallrye-config</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-jackson</artifactId>
+      <version>${version.quarkus}</version>
+    </dependency>
+<!--    https://github.com/quarkusio/quarkus/issues/8391-->
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-buffer</artifactId>
+      <version>4.1.48.Final</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+        <version>${version.quarkus}</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>openshift-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <configuration>
+          <images>
+            <image>
+              <name>${project.groupId}/${project.artifactId}</name>
+              <build>
+                <from>registry.redhat.io/openjdk/openjdk-11-rhel8:1.2-3.1587486933</from>
+                <tags>
+                  <tag>latest</tag>
+                  <tag>${project.version}</tag>
+                </tags>
+                <env>
+                  <JAVA_APP_JAR>${project.artifactId}-${project.version}-runner.jar</JAVA_APP_JAR>
+                  <JAVA_OPTIONS>-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager</JAVA_OPTIONS>
+                </env>
+                <assembly>
+                  <mode>dir</mode>
+                  <targetDir>/</targetDir>
+                  <inline>
+                    <id>customized-quarkus</id>
+                    <files>
+                      <file>
+                        <source>target/${project.artifactId}-${project.version}-runner.jar</source>
+                        <outputDirectory>.</outputDirectory>
+                      </file>
+                    </files>
+                    <fileSets>
+                      <fileSet>
+                        <directory>${project.basedir}/target/lib</directory>
+                        <outputDirectory>.</outputDirectory>
+                        <fileMode>755</fileMode>
+                      </fileSet>
+                    </fileSets>
+                  </inline>
+                </assembly>
+                <ports>8080</ports>
+                <user>185</user>
+              </build>
+            </image>
+          </images>
+          <enricher>
+            <config>
+              <jkube-service>
+                <type>NodePort</type>
+              </jkube-service>
+            </config>
+          </enricher>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

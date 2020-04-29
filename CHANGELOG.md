@@ -23,6 +23,8 @@ Usage:
 ### 1.0.0-SNAPSHOT
 * Fix #167: Add CMD for wildfly based applications
 * Added Webapp Wildfly maven quickstart
+* Fix #171: OpenShift pull secret not picked up without registry auth configuration
+* Fix #171: Customized Quarkus application quick start 
 
 ### 1.0.0-alpha-2 (2020-04-24)
 * Fix #130: Updated HelmMojo documentation

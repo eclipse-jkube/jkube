@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
@@ -90,7 +91,6 @@ public class OpenshiftBuildService implements BuildService {
     private final KitLogger log;
     private final JKubeServiceHub jKubeServiceHub;
     private final BuildServiceConfig config;
-    private RegistryConfig registryConfig;
     private AuthConfigFactory authConfigFactory;
 
 
@@ -426,11 +426,18 @@ public class OpenshiftBuildService implements BuildService {
 
         if (pullRegistry != null) {
             RegistryConfig registryConfig = configuration.getRegistryConfig();
-            AuthConfig authConfig = registryConfig.getAuthConfigFactory().createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
+            final AuthConfig authConfig = registryConfig.getAuthConfigFactory().createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
                     registryConfig.getSettings(), null, pullRegistry, registryConfig.getPasswordDecryptionMethod());
 
-            if (authConfig != null) {
+            final Secret secret = Optional.ofNullable(pullSecretName)
+                .map(psn ->  client.secrets().withName(psn).get()).orElse(null);
 
+            if (secret != null) {
+                log.info("Adding to Secret %s", pullSecretName);
+                return updateSecret(client, pullSecretName, secret.getData());
+            }
+
+            if (authConfig != null) {
                 JsonObject auths = new JsonObject();
                 JsonObject auth = new JsonObject();
                 JsonObject item = new JsonObject();
@@ -445,25 +452,15 @@ public class OpenshiftBuildService implements BuildService {
                 Map<String, String> data = new HashMap<>();
                 data.put(".dockerconfigjson", credentials);
 
-                boolean hasPullSecret = client.secrets().withName(pullSecretName).get() != null;
-
-                if (!hasPullSecret) {
-                    log.info("Creating Secret %s", hasPullSecret);
-                    builder.addNewSecretItem()
-                            .withNewMetadata()
-                            .withName(pullSecretName)
-                            .endMetadata()
-                            .withData(data)
-                            .withType("kubernetes.io/dockerconfigjson")
-                            .endSecretItem();
-                } else {
-                    log.info("Adding to Secret %s", pullSecretName);
-                    return updateSecret(client, pullSecretName, data);
-                }
-
+                log.info("Creating Secret");
+                builder.addNewSecretItem()
+                        .withNewMetadata()
+                        .withName(pullSecretName)
+                        .endMetadata()
+                        .withData(data)
+                        .withType("kubernetes.io/dockerconfigjson")
+                        .endSecretItem();
                 return true;
-            } else {
-                return false;
             }
         }
         return false;
