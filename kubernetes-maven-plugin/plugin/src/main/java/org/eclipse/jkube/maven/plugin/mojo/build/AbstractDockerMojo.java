@@ -273,13 +273,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(property = "jkube.skip", defaultValue = "false")
     protected boolean skip;
 
-    /**
-     * Whether to perform a Kubernetes build (i.e. against a vanilla Docker daemon) or
-     * an OpenShift build (with a Docker build against the OpenShift API server.
-     */
-    @Parameter(property = "jkube.mode")
-    protected RuntimeMode mode = RuntimeMode.DEFAULT;
-
     @Parameter(property = "jkube.skip.build.pom")
     protected Boolean skipBuildPom;
 
@@ -289,13 +282,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
      */
     @Parameter
     protected ProcessorConfig generator;
-
-    /**
-     * Allow the ImageStream used in the S2I binary build to be used in standard
-     * Kubernetes resources such as Deployment or StatefulSet.
-     */
-    @Parameter(property = "jkube.s2i.imageStreamLookupPolicyLocal", defaultValue = "true")
-    protected boolean s2iImageStreamLookupPolicyLocal = true;
 
     /**
      * While creating a BuildConfig, By default, if the builder image specified in the
@@ -402,12 +388,16 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         return log;
     }
 
+    public RuntimeMode getConfiguredRuntimeMode() {
+        return RuntimeMode.kubernetes;
+    }
+
     protected void init() {
         log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
         authConfigFactory = new AuthConfigFactory(log);
         imageConfigResolver.setLog(log);
         clusterAccess = new ClusterAccess(initClusterConfiguration());
-        runtimeMode = clusterAccess.resolveRuntimeMode(mode, log);
+        runtimeMode = clusterAccess.resolveRuntimeMode(getConfiguredRuntimeMode(), log);
     }
 
     protected boolean canExecute() {
@@ -432,7 +422,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                         .log(log)
                         .configuration(initJKubeConfiguration())
                         .clusterAccess(clusterAccess)
-                        .platformMode(mode)
+                        .platformMode(getConfiguredRuntimeMode())
                         .dockerServiceHub(serviceHubFactory.createServiceHub(access, log, logSpecFactory))
                         .buildServiceConfig(buildServiceConfigBuilder().build())
                         .build();
@@ -691,7 +681,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
         return BuildServiceConfig.builder()
                 .buildRecreateMode(BuildRecreateMode.fromParameter(buildRecreate))
-                .s2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal)
                 .forcePull(forcePull)
                 .imagePullManager(getImagePullManager(imagePullPolicy, autoPull))
                 .buildDirectory(project.getBuild().getDirectory())

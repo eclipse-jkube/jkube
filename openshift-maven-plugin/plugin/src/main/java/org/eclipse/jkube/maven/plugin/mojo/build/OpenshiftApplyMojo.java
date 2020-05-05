@@ -37,7 +37,7 @@ public class OpenshiftApplyMojo extends ApplyMojo {
 
   @Override
   public File getManifest(KubernetesClient kubernetesClient) {
-    return OpenShift.getOpenShiftManifest(kubernetesClient, super.getManifest(kubernetesClient), openshiftManifest);
+    return OpenShift.getOpenShiftManifest(kubernetesClient, getKubernetesManifest(), openshiftManifest);
   }
 
   @Override

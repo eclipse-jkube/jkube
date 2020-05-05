@@ -31,7 +31,7 @@ The healtcheck configuration can have the following options
 The following example queries an URL every 10s as an healthcheck:
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <healthCheck>
   <!-- Check every 5 minutes -->

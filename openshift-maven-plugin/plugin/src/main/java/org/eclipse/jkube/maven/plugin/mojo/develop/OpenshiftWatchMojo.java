@@ -22,6 +22,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 import java.io.File;
@@ -41,6 +42,13 @@ import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_OPENSH
 public class OpenshiftWatchMojo extends WatchMojo {
 
     /**
+     * Whether to perform a Kubernetes build (i.e. against a vanilla Docker daemon) or
+     * an OpenShift build (with a Docker build against the OpenShift API server.
+     */
+    @Parameter(property = "jkube.mode")
+    protected RuntimeMode configuredRuntimeMode = RuntimeMode.DEFAULT;
+
+    /**
      * OpenShift build mode when an OpenShift build is performed.
      * Can be either "s2i" for an s2i binary build mode or "docker" for a binary
      * docker mode.
@@ -55,8 +63,13 @@ public class OpenshiftWatchMojo extends WatchMojo {
     private File openshiftManifest;
 
     @Override
+    public RuntimeMode getConfiguredRuntimeMode() {
+        return configuredRuntimeMode;
+    }
+
+    @Override
     public File getManifest(KubernetesClient kubernetesClient) {
-        return OpenShift.getOpenShiftManifest(kubernetesClient, super.getManifest(kubernetesClient), openshiftManifest);
+        return OpenShift.getOpenShiftManifest(kubernetesClient, getKubernetesManifest(), openshiftManifest);
     }
 
     @Override

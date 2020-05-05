@@ -1,12 +1,12 @@
 
-[[k8s:apply]]
-== *k8s:apply*
+[[jkube:apply]]
+== *{goal-prefix}:apply*
 
-This goal applies the resources created with <<k8s:resource>> to a connected Kubernetes cluster. It's  similar to <<k8s:deploy>> but does not the full deployment cycle of creating the resource, creating the application image and sending the resource descriptors to the clusters. This goal can be easily bound to `<executions>` within the plugin's configuration and binds by default to the `install` lifecycle phase.
+This goal applies the resources created with <<jkube:resource>> to a connected Kubernetes cluster. It's  similar to <<jkube:deploy>> but does not the full deployment cycle of creating the resource, creating the application image and sending the resource descriptors to the clusters. This goal can be easily bound to `<executions>` within the plugin's configuration and binds by default to the `install` lifecycle phase.
 
-[source,sh,subs="attributes"]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:apply
+mvn {goal-prefix}:apply
 ----
 
 [[Supported-Properties-Apply]]
@@ -25,9 +25,17 @@ mvn k8s:apply
 | Should we update resources by deleting them first and then creating them again, by default `false`
 | `jkube.recreate`
 
+ifeval::["{goal-prefix}" == "k8s"]
 | *kubernetesManifest*
-| The generated kubernetes YAML file, defaults to `${basedir}/target/classes/META-INF/jkube/kubernetes.yml`
+| The generated kubernetes YAML file. Defaults to `${basedir}/target/classes/META-INF/jkube/kubernetes.yml`
 | `jkube.kubernetesManifest`
+endif::[]
+
+ifeval::["{goal-prefix}" == "oc"]
+| *openshiftManifest*
+| The generated kubernetes YAML file. Defaults to `${basedir}/target/classes/META-INF/jkube/openshift.yml`
+| `jkube.openshiftManifest`
+endif::[]
 
 | *create*
 | Should we create new resources, defaults to `true`
@@ -84,6 +92,5 @@ mvn k8s:apply
 | *skipApply*
 | Skip applying the resources, defaults to `false`
 | `jkube.skip.apply`
-|===
 
-[[Supported-Properties]]
+|===

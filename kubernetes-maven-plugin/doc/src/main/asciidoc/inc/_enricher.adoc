@@ -1,9 +1,8 @@
 
-
 [[enrichers]]
 = Enrichers
 
-Enriching is the complementary concept to <<generators, Generators>>. Whereas Generators are used to create and customize Docker images, Enrichers are use to create and customize Kubernetes resource objects.
+Enriching is the complementary concept to <<generators, Generators>>. Whereas Generators are used to create and customize Docker images, Enrichers are use to create and customize {cluster} resource objects.
 
 There are a lot of similarities to Generators:
 
@@ -33,7 +32,7 @@ This plugin comes with a set of default enrichers. In addition custom enrichers 
 [[enrichers-default]]
 == Default Enrichers
 
-kubernetes-maven-plugin comes with a set of enrichers which are enabled by default. There are two categories of default enrichers:
+{plugin} comes with a set of enrichers which are enabled by default. There are two categories of default enrichers:
 
 * *Generic Enrichers* are used to add default resource object when they are missing or add common metadata extracted from the given build information
 * *Specific Enrichers* are enrichers which are focused on a certain tech stack that they detect.
@@ -83,7 +82,7 @@ kubernetes-maven-plugin comes with a set of enrichers which are enabled by defau
 | Add revision history limit (https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit[Kubernetes doc]) as a deployment spec property to the Kubernetes/OpenShift resources.
 
 | <<jkube-triggers-annotation>>
-| Add ImageStreamTag change triggers on Kubernetes resources such as StatefulSets, ReplicaSets and DaemonSets using the `image.openshift.io/triggers` annotation.
+| Add ImageStreamTag change triggers on {cluster} resources such as StatefulSets, ReplicaSets and DaemonSets using the `image.openshift.io/triggers` annotation.
 
 | <<jkube-configmap-file>>
 | Add ConfigMap elements defined as XML or as annotation.
@@ -166,13 +165,13 @@ Enricher which adds appropriate annotations and volumes to enable OpenShift's au
 This enricher adds an init container to convert the service serving certificates from PEM (the format that OpenShift generates them in) to
 a JKS-format Java keystore ready for consumption in Java services.
 
-This enricher is disabled by default. In order to use it, you must configure the Kubernetes Maven plugin to use this enricher:
+This enricher is disabled by default. In order to use it, you must configure the {plugin} to use this enricher:
 
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>kubernetes-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
   <version>{version}</version>
   <executions>
     <execution>
@@ -243,8 +242,9 @@ The auto-TLS enricher supports the following configuration options:
 | `server`
 |===
 
-[[enrichers-jkube]
+[[enrichers-jkube]]
 === JKube Enrichers
+
 JKube enrichers are used for providing the connection to other components of the jkube.Microservices platform. They are useful to add icons to application or links to documentation sites.
 
 [[jkube-healthcheck-karaf]]
@@ -300,22 +300,22 @@ The enricher will use the following settings by default:
 
 If `path` attribute is not set (default value) then this enricher is disabled.
 
-These values can be configured by the enricher in the `kubernetes-maven-plugin` configuration as shown below:
+These values can be configured by the enricher in the `{plugin}` configuration as shown below:
 
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>kubernetes-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
   <version>{version}</version>
   <executions>
     <execution>
-      <id>kmp</id>
-        <goals>
-          <goal>resource</goal>
-          <goal>helm</goal>
-          <goal>build</goal>
-        </goals>
+      <id>jkube</id>
+      <goals>
+        <goal>resource</goal>
+        <goal>helm</goal>
+        <goal>build</goal>
+      </goals>
     </execution>
   </executions>
   <configuration>
@@ -337,11 +337,13 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 This enricher adds kubernetes readiness and liveness probes with Spring Boot. This requires the following dependency
  has been enabled in Spring Boot
 
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
    <dependency>
      <groupId>org.springframework.boot</groupId>
      <artifactId>spring-boot-starter-actuator</artifactId>
    </dependency>
+----
 
 The enricher will try to discover the settings from the `application.properties` / `application.yaml` Spring Boot configuration file.
 
@@ -358,15 +360,16 @@ The enricher will use the following settings by default:
 * `failureThreshold`: `3`
 * `successThreshold`: `1`
 
-These values can be configured by the enricher in the `kubernetes-maven-plugin` configuration as shown below:
-[source,xml]
+These values can be configured by the enricher in the `{plugin}` configuration as shown below:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>kubernetes-maven-plugin</artifactId>
+        <artifactId>{plugin}</artifactId>
         <version>{version}</version>
         <executions>
           <execution>
-            <id>kmp</id>
+            <id>jkube</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -387,7 +390,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
           </enricher>
         </configuration>
       </plugin>
-
+----
 
 
 [[jkube-healthcheck-wildfly-swarm]]
@@ -396,11 +399,13 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 This enricher adds kubernetes readiness and liveness probes with WildFly Swarm. This requires the following fraction
  has been enabled in WildFly Swarm
 
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
    <dependency>
      <groupId>org.wildfly.swarm</groupId>
      <artifactId>microprofile-health</artifactId>
    </dependency>
+----
 
 The enricher will use the following settings by default:
 
@@ -410,15 +415,16 @@ The enricher will use the following settings by default:
 - failureThreshold = `3`
 - successThreshold = `1`
 
-These values can be configured by the enricher in the `kubernetes-maven-plugin` configuration as shown below:
-[source,xml]
+These values can be configured by the enricher in the `{plugin}` configuration as shown below:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>kubernetes-maven-plugin</artifactId>
+        <artifactId>{plugin}</artifactId>
         <version>{version}</version>
         <executions>
           <execution>
-            <id>kmp</id>
+            <id>jkube</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -440,6 +446,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
           </enricher>
         </configuration>
       </plugin>
+----
 
 
 [[jkube-healthcheck-thorntail-v2]]
@@ -448,11 +455,13 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
 This enricher adds kubernetes readiness and liveness probes with Thorntail v2. This requires the following fraction
  has been enabled in Thorntail
 
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
    <dependency>
      <groupId>io.thorntail</groupId>
      <artifactId>microprofile-health</artifactId>
    </dependency>
+----
 
 The enricher will use the following settings by default:
 
@@ -462,15 +471,16 @@ The enricher will use the following settings by default:
 - failureThreshold = `3`
 - successThreshold = `1`
 
-These values can be configured by the enricher in the `kubernetes-maven-plugin` configuration as shown below:
-[source,xml]
+These values can be configured by the enricher in the `{plugin}` configuration as shown below:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>kubernetes-maven-plugin</artifactId>
+        <artifactId>{plugin}</artifactId>
         <version>{version}</version>
         <executions>
           <execution>
-            <id>kmp</id>
+            <id>jkube</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -492,6 +502,7 @@ These values can be configured by the enricher in the `kubernetes-maven-plugin` 
           </enricher>
         </configuration>
       </plugin>
+----
 
 [[jkube-healthcheck-vertx]]
 ==== jkube-healthcheck-vertx
@@ -517,11 +528,11 @@ The minimal configuration to add health checks is the following:
 ----
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>kubernetes-maven-plugin</artifactId>
+        <artifactId>{plugin}</artifactId>
         <version>{version}</version>
         <executions>
           <execution>
-            <id>kmp</id>
+            <id>jkube</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -564,11 +575,11 @@ You can provide two different configuration for the readiness and liveness check
 ----
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>kubernetes-maven-plugin</artifactId>
+        <artifactId>{plugin}</artifactId>
         <version>{version}</version>
         <executions>
           <execution>
-            <id>kmp</id>
+            <id>jkube</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -609,11 +620,11 @@ Shared (generic) configuration can be set outside of the specific configuration.
 ----
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>kubernetes-maven-plugin</artifactId>
+        <artifactId>{plugin}</artifactId>
         <version>{version}</version>
         <executions>
           <execution>
-            <id>kmp</id>
+            <id>jkube</id>
             <goals>
               <goal>resource</goal>
               <goal>helm</goal>
@@ -896,7 +907,7 @@ Lets say you have a maven pom.xml with the following scm information,
 </scm>
 
 ----
-This infomation will be enriched as annotations in the generated manifest like,
+This information will be enriched as annotations in the generated manifest like,
 
 [source,yaml]
 ----

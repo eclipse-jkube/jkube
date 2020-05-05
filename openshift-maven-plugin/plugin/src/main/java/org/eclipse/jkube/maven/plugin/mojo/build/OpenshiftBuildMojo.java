@@ -38,6 +38,13 @@ import static org.eclipse.jkube.kit.config.resource.RuntimeMode.kubernetes;
 public class OpenshiftBuildMojo extends BuildMojo {
 
     /**
+     * Whether to perform a Kubernetes build (i.e. against a vanilla Docker daemon) or
+     * an OpenShift build (with a Docker build against the OpenShift API server.
+     */
+    @Parameter(property = "jkube.mode")
+    protected RuntimeMode configuredRuntimeMode = RuntimeMode.DEFAULT;
+
+    /**
      * OpenShift build mode when an OpenShift build is performed.
      * Can be either "s2i" for an s2i binary build mode or "docker" for a binary
      * docker mode.
@@ -59,9 +66,21 @@ public class OpenshiftBuildMojo extends BuildMojo {
     @Parameter(property = "jkube.s2i.buildNameSuffix", defaultValue = "-s2i")
     protected String s2iBuildNameSuffix;
 
+    /**
+     * Allow the ImageStream used in the S2I binary build to be used in standard
+     * Kubernetes resources such as Deployment or StatefulSet.
+     */
+    @Parameter(property = "jkube.s2i.imageStreamLookupPolicyLocal", defaultValue = "true")
+    protected boolean s2iImageStreamLookupPolicyLocal = true;
+
     @Override
     protected boolean isDockerAccessRequired() {
         return runtimeMode == kubernetes;
+    }
+
+    @Override
+    public RuntimeMode getConfiguredRuntimeMode() {
+        return configuredRuntimeMode;
     }
 
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
@@ -76,7 +95,8 @@ public class OpenshiftBuildMojo extends BuildMojo {
         return super.buildServiceConfigBuilder()
             .openshiftBuildStrategy(buildStrategy)
             .openshiftPullSecret(openshiftPullSecret)
-            .s2iBuildNameSuffix(s2iBuildNameSuffix);
+            .s2iBuildNameSuffix(s2iBuildNameSuffix)
+            .s2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal);
     }
 
     @Override

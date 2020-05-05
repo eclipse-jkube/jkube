@@ -7,7 +7,7 @@ There are some configuration options which are shared by all generators:
 | Element | Description | Property
 
 | *add*
-| When this set to `true`, then the generator _adds_ to an existing image configuration. By default this is disabled, so that a generator only kicks in when there are no other image configurations in the build, which are either configured directly for a `k8s:build` or already added by a generator which has been run previously.
+| When this set to `true`, then the generator _adds_ to an existing image configuration. By default this is disabled, so that a generator only kicks in when there are no other image configurations in the build, which are either configured directly for a `{goal-prefix}:build` or already added by a generator which has been run previously.
 |
 
 | *alias*

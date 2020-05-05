@@ -1,26 +1,26 @@
 
-[[k8s:helm]]
-== *k8s:helm*
+[[jkube:helm]]
+== *{goal-prefix}:helm*
 
 This goal is for creating
 https://helm.sh/docs/topics/charts[Helm charts]
 for your Maven project so that you can install, update or delete your app in Kubernetes
 using https://github.com/helm/helm[Helm].
 
-For creating a Helm chart you simply call `k8s:helm` goal on the command line:
+For creating a Helm chart you simply call `{goal-prefix}:helm` goal on the command line:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:resource k8s:helm
+mvn {goal-prefix}:resource {goal-prefix}:helm
 ----
 
-The `k8s:resource` goal is required to create the resource descriptors which are included in the Helm chart.
+The `{goal-prefix}:resource` goal is required to create the resource descriptors which are included in the Helm chart.
 If you have already built the resource then you can omit this goal.
 
 The configuration is defined in a `<helm>` section within the plugin's configuration:
 
 .Example Helm configuration
-[source, xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <configuration>
@@ -90,8 +90,8 @@ This configuration section knows the following sub-elements in order to configur
 | `jkube.helm.type`
 
 | *sourceDir*
-| Where to find the resource descriptors generated with `k8s:resource`.
-  By default this is `${basedir}/target/classes/META-INF/jkube., which is also the output directory used by `k8s:resource`.
+| Where to find the resource descriptors generated with `{goal-prefix}:resource`.
+  By default this is `${basedir}/target/classes/META-INF/jkube., which is also the output directory used by `{goal-prefix}:resource`.
 | `jkube.helm.sourceDir`
 
 | *outputDir*
@@ -112,7 +112,7 @@ This configuration section knows the following sub-elements in order to configur
 
 In a next step you can install this via the https://github.com/helm/helm/releases[helm command line tool] as follows:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
 helm install nameForChartInRepository target/jkube/helm/${chartName}/kubernetes
 ----
@@ -122,14 +122,14 @@ helm install target/jkube/helm/${chartName}/kubernetes --generate-name
 ----
 
 To add the `helm` goal to your project so that it is automatically executed just add the `helm` goal to the `executions`
-section of the `kubernetes-maven-plugin` section of your `pom.xml`.
+section of the `{plugin}` section of your `pom.xml`.
 
 .Add helm goal
-[source, xml, indent=0]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>kubernetes-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
 
   <!-- ... -->
 

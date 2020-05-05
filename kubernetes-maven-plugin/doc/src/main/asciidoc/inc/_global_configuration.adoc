@@ -6,5 +6,6 @@ Global plugin configuration properties are typically apply to all Maven plugin g
 | Property | Description
 
 | `jkube.skip`
-| Skips over executing the goal.  Typically used to disable the JKube Kubernetes maven plugin when it's configured in a project.
+| Skips over executing the goal. Typically used to disable the {plugin} when it's configured in a project.
 
+|===

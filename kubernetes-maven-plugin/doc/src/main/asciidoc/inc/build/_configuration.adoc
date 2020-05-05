@@ -32,7 +32,7 @@ https://docs.docker.com/engine/reference/api/docker_remote_api_v1.24/#build-imag
 | A command to execute by default (i.e. if no command is provided when a container for this image is started). See <<misc-startup,Startup Arguments>> for details.
 
 | *compression*
-| The compression mode how the build archive is transmitted to the docker daemon (`{plugin}:build`) and how docker build archives are attached to this build as sources (`{plugin}:source`). The value can be `none` (default), `gzip` or `bzip2`.
+| The compression mode how the build archive is transmitted to the docker daemon (`{goal-prefix}:build`) and how docker build archives are attached to this build as sources (`{goal-prefix}:source`). The value can be `none` (default), `gzip` or `bzip2`.
 
 | *dockerFile*
 | Path to a `Dockerfile` which also triggers _Dockerfile mode_. See <<external-dockerfile, External Dockerfile>> for details.
@@ -54,7 +54,7 @@ https://docs.docker.com/engine/reference/api/docker_remote_api_v1.24/#build-imag
 
 | [[build-config-from]]*from*
 | The base image which should be used for this image. If not given this default to `busybox:latest` and is suitable for a pure data image.
-ifeval::["{plugin}" == "jkube"]
+ifeval::["{goal-prefix}" == "oc"]
 In case of an <<build-openshift,S2I Binary build>> this parameter specifies the S2I Builder Image to use, which by default is `fabric8/s2i-java:latest`. See also <<build-config-from-ext,from-ext>> how to add additional properties for the base image.
 
 endif::[]
@@ -63,13 +63,13 @@ endif::[]
 a| Extended definition for a base image. This field holds a map of defined in `<key>value</key>` format. The known keys are:
 
 * `<name>` : Name of the base image
-ifeval::["{plugin}" == "jkube"]
+ifeval::["{goal-prefix}" == "oc"]
 * `<kind>` : Kind of the reference to the builder image when in S2I build mode. By default its `ImageStreamTag` but can be also `ImageStream`. An alternative would be `DockerImage`
 * `<namespace>` : Namespace where this builder image lives.
 
 endif::[]
 
-A provided `<from>` takes precedence over the name given here. This tag is useful for extensions of this plugin. 
+A provided `<from>` takes precedence over the name given here. This tag is useful for extensions of this plugin.
 
 | <<build-healthcheck, *healthCheck*>>
 | Definition of a health check as described in <<build-healthcheck, Healthcheck>>
@@ -137,7 +137,7 @@ copies over the assembled files and calls the Docker daemon via its
 remote API.
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <build>
   <from>java:8u40</from>

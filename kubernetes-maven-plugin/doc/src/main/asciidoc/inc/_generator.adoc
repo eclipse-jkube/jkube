@@ -46,7 +46,6 @@ All default generators examine the build information for certain aspects and gen
 | `Quarkus`
 | Generator for Quarkus based applications
 
-
 | <<generator-openliberty,Open Liberty>>
 | `webapps`
 | Generator for Open Liberty applications

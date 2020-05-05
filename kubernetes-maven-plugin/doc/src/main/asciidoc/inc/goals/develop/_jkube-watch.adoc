@@ -1,11 +1,11 @@
 
-[[k8s:watch]]
-== *k8s:watch*
+[[jkube:watch]]
+== *{goal-prefix}:watch*
 
 This goal is used to monitor the project workspace for changes and automatically trigger a redeploy of the application
 running on Kubernetes.
 
-In order to use k8s:watch for spring-boot, you need to make sure that `devtools` is included in the repacked
+In order to use {goal-prefix}:watch for spring-boot, you need to make sure that `devtools` is included in the repacked
 archive, as shown in the following listing:
 ----
 		<plugin>
@@ -28,12 +28,12 @@ Before entering the watch mode, this goal must generate the docker image and the
 and deploy the app on Kubernetes. Lifecycle bindings should be configured as follows to allow
 the generation of such resources.
 
-.Lifecycle bindings for k8s:watch
-[source, xml, indent=0]
+.Lifecycle bindings for {goal-prefix}:watch
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>kubernetes-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
 
   <!-- ... -->
 
@@ -51,9 +51,9 @@ the generation of such resources.
 For any application having `resource` and `build` goals bound to the lifecycle, the following
 command can be used to run the watch task.
 
-[source, bash]
+[source, bash, subs="+attributes"]
 ----
-mvn k8s:watch
+mvn {goal-prefix}:watch
 ----
 
 This plugin supports different watcher providers, enabled automatically if the project satisfies certain conditions.
@@ -71,21 +71,21 @@ This watcher is enabled by default for all Spring Boot projects. It performs the
 
 You can try it on any spring boot application via:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:watch
+mvn {goal-prefix}:watch
 ----
 
 Once the goal starts up the spring boot RemoteSpringApplication it will watch for local development changes.
 
 e.g. if you edit the java code of your app and then build it via something like this:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
 mvn package
 ----
 
-You should see your app reload on the fly in the shell running the <<k8s:watch>> goal!
+You should see your app reload on the fly in the shell running the <<jkube:watch>> goal!
 
 There is also support for LiveReload as well.
 
@@ -98,7 +98,7 @@ This is a generic watcher that can be used in Kubernetes mode only. Once activat
 
 The watcher can be activated e.g. by running this command in another shell:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
 mvn package
 ----

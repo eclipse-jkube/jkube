@@ -26,7 +26,7 @@ By default, Maven will only search for plugins in the `org.apache.maven.plugins`
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>kubernetes-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
   <version>{version}</version>
 
   <configuration>
@@ -43,7 +43,7 @@ By default, Maven will only search for plugins in the `org.apache.maven.plugins`
      </images>
   </configuration>
 
-  <!-- Connect k8s:resource, k8s:build and k8s:helm to lifecycle phases -->
+  <!-- Connect {goal-prefix}:resource, {goal-prefix}:build and {goal-prefix}:helm to lifecycle phases -->
   <executions>
     <execution>
        <id>jkube</id>
