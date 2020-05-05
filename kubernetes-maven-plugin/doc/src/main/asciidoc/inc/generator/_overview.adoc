@@ -1,4 +1,4 @@
-The usual way to define Docker images is with the plugin configuration as explained in <<k8s:build>>. This can either be done completely within the `pom.xml` or by referring to an external Dockerfile. Since kubernetes-maven-plugin includes https://github.com/jkubeio/docker-maven-plugin[docker-maven-plugin] the way by which images are built is identical.
+The usual way to define Docker images is with the plugin configuration as explained in <<jkube:build>>. This can either be done completely within the `pom.xml` or by referring to an external Dockerfile. Since {plugin} includes https://github.com/jkubeio/docker-maven-plugin[docker-maven-plugin] the way by which images are built is identical.
 
 However, this plugin provides an additional route for defining image configurations. This is done by so called _Generators_. A generator is a Java component providing an auto-detection mechanism for certain build types like a Spring Boot build or a plain Java build. As soon as a _Generator_ detects that it is applicable it will be called with the list of images configured in the `pom.xml`. Typically a generator only creates dynamically a new image configuration if this list is empty. But a generator is free to also add new images to an existing list or even change the current image list.
 
@@ -54,7 +54,7 @@ The following sub-elements are supported:
 Beside specifying generator configuration in the plugin's configuration it can be set directly with properties, too:
 
 .Example generator property config
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
 mvn -Djkube.generator.spring-boot.alias="myapp"
 ----
@@ -67,17 +67,17 @@ In addition to the provided default _Generators_ described in the next section <
 
 You can declare the generator holding jars as dependency to this plugin as shown in this example
 
-[source, xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
-  <artifactId>kubernetes-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
   ....
   <dependencies>
     <dependency>
       <groupId>io.acme</groupId>
       <artifactId>mygenerator</artifactId>
       <version>1.0</version>
-    <dependency>
+    </dependency>
   </dependencies>
 </plugin>
 ----

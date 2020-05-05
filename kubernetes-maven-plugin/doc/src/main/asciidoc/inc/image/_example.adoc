@@ -1,9 +1,9 @@
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <configuration>
-  ....
+  <!-- .... -->
   <images>
     <image>
       <name>%g/docker-demo:0.1</name>

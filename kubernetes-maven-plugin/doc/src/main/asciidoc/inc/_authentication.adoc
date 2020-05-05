@@ -2,7 +2,7 @@
 [[authentication]]
 = Authentication
 
-When pulling (via the `autoPull` mode of `{plugin}:start`) or pushing image, it
+When pulling (via the `autoPull` mode of `{goal-prefix}:start`) or pushing image, it
 might be necessary to authenticate against a Docker registry.
 
 There are five different locations searched for credentials.  In order, these are:
@@ -17,7 +17,7 @@ Using the username and password directly in the `pom.xml` is not
 recommended since this is widely visible. This is the easiest and
 transparent way, though. Using an `<authConfig>` is straight forward:
 
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <configuration>
@@ -38,13 +38,13 @@ the outside:
 .Example
 [source, sh, subs="+attributes"]
 ----
-mvn -Ddocker.username=jolokia -Ddocker.password=s!cr!t {plugin}:push
+mvn -Ddocker.username=jolokia -Ddocker.password=s!cr!t {goal-prefix}:push
 ----
 
 The most _mavenish_ way is to add a server to the Maven settings file `~/.m2/settings.xml`:
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <servers>
   <server>
@@ -84,7 +84,7 @@ can be added. In the example below the credentials provider are only
 used for image push operations:
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <configuration>
@@ -158,7 +158,7 @@ that you have setup a _master password_ in
 passwords:
 
 .Example
-[source,bash]
+[source, bash, subs="+attributes"]
 ----
 $ mvn --encrypt-password
 Password:

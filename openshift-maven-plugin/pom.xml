@@ -32,7 +32,6 @@
   <modules>
     <module>plugin</module>
     <module>it</module>
-    <module>doc</module>
   </modules>
 
   <dependencyManagement>

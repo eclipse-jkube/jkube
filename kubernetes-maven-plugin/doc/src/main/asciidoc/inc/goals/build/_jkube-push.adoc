@@ -1,5 +1,5 @@
-[[k8s:push]]
-== *k8s:push*
+[[jkube:push]]
+== *{goal-prefix}:push*
 
 WARNING: Section needs review and rearrangements
 

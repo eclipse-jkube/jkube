@@ -1,6 +1,6 @@
 
-[[k8s:build]]
-== *k8s:build*
+[[jkube:build]]
+== *{goal-prefix}:build*
 
 This goal is for building Docker images. Images can be built in two different ways depending on the `mode` configuration (controlled by the `jkube.mode` property).
 By default the mode is set to `auto`. In this case the plugin tries to detect which kind of build should be performed by contacting the API server. If this fails or if no cluster access is configured e.g. with `oc login` then the mode is set to `kubernetes` in which case a standard Docker build is performed. It can also be forced to `openshift` to perform an OpenShift build.
@@ -10,7 +10,7 @@ By default the mode is set to `auto`. In this case the plugin tries to detect wh
 
 If the mode is set to `kubernetes` then a normal Docker build is performed. The connection configuration to access the Docker daemon is described in <<access-configuration, Access Configuration>>.
 
-In order to make the generated images available to the Kubernetes cluster the generated images need to be pushed to a registry with the goal <<k8s:push>>. This is not necessary for single node clusters, though as there is no need to distribute images.
+In order to make the generated images available to the Kubernetes cluster the generated images need to be pushed to a registry with the goal <<jkube:push>>. This is not necessary for single node clusters, though as there is no need to distribute images.
 
 [[build-openshift]]
 === OpenShift Build
@@ -33,9 +33,9 @@ There are two kind of binary builds supported by this plugin, which can be selec
 
 Both build strategies update an https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#image-streams[Image Stream] after the image creation.
 
-The https://docs.openshift.com/enterprise/latest/dev_guide/builds.html#defining-a-buildconfig[Build Config] and https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#image-streams[Image streams] can be managed by this plugin. If they do not exist, they will be automatically created by `k8s:build`. If they do already exist, they are reused, except when the `buildRecreate` configuration option (property `jkube.build.recreate`) is set to a value as described in <<build-goal-configuration, Configuration>>. Also if the provided build strategy is different than the one defined in the existing build configuration, the Build Config is edited to reflect the new type (which in turn removes all build associated with the previous build).
+The https://docs.openshift.com/enterprise/latest/dev_guide/builds.html#defining-a-buildconfig[Build Config] and https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#image-streams[Image streams] can be managed by this plugin. If they do not exist, they will be automatically created by `{goal-prefix}:build`. If they do already exist, they are reused, except when the `buildRecreate` configuration option (property `jkube.build.recreate`) is set to a value as described in <<build-goal-configuration, Configuration>>. Also if the provided build strategy is different than the one defined in the existing build configuration, the Build Config is edited to reflect the new type (which in turn removes all build associated with the previous build).
 
-This image stream created can then be directly referenced from https://docs.openshift.com/enterprise/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[Deployment Configuration] objects created by <<k8s:resource>>.
+This image stream created can then be directly referenced from https://docs.openshift.com/enterprise/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[Deployment Configuration] objects created by <<jkube:resource>>.
 By default, image streams are created with a local lookup policy, so that they can be used also by other resources such as Deployments or StatefulSets.
 This behavior can be turned off by setting the `jkube.s2i.imageStreamLookupPolicyLocal` property to `false` when building the project.
 
@@ -162,7 +162,7 @@ a| The build mode which can be
 |
 
 | *outputDirectory*
-| Default output directory to be used by this plugin. The default value is `target/docker` and is only used for the goal `{plugin}:build`.
+| Default output directory to be used by this plugin. The default value is `target/docker` and is only used for the goal `{goal-prefix}:build`.
 | `docker.target.dir`
 
 | *portPropertyFile*
@@ -188,7 +188,7 @@ a| The build mode which can be
 | `jkube.resourceDir`
 
 | *environment*
-| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, JKube  will look at src/main/jkube/dev. If not set then root `resourceDir` directory is used.
+| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, JKube will look at src/main/jkube/dev. If not set then root `resourceDir` directory is used.
 | `jkube.environment`
 
 | *skip*
@@ -196,7 +196,7 @@ a| The build mode which can be
 | `docker.skip`
 
 | *skipBuild*
-| If set not images will be build (which implies also _skip.tag_) with `{plugin}:build`
+| If set not images will be build (which implies also _skip.tag_) with `{goal-prefix}:build`
 | `docker.skip.build`
 
 | *skipBuildPom*
@@ -204,7 +204,7 @@ a| The build mode which can be
 | `jkube.skip.build.pom`
 
 | *skipTag*
-| If set to `true` this plugin won't add any tags to images that have been built with `{plugin}:build`
+| If set to `true` this plugin won't add any tags to images that have been built with `{goal-prefix}:build`
 | `docker.skip.tag`
 
 | *skipMachine*
@@ -212,7 +212,7 @@ a| The build mode which can be
 | `docker.skip.machine`
 
 | *sourceDirectory*
-| Default directory that contains the assembly descriptor(s) used by the plugin. The default value is `src/main/docker`. This option is only relevant for the `{plugin}:build` goal.
+| Default directory that contains the assembly descriptor(s) used by the plugin. The default value is `src/main/docker`. This option is only relevant for the `{goal-prefix}:build` goal.
 | `docker.source.dir`
 
 | *verbose*
@@ -224,7 +224,7 @@ a| The build mode which can be
 
 You can configure parameters to define how plugin is going to connect to Kubernetes cluster instead of relying on default parameters.
 
-[source, xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <configuration>
   <access>
@@ -320,7 +320,7 @@ include::../../image/_configuration.adoc[]
 The `<build>` section is mandatory and is explained in <<build-configuration, below>>.
 
 .Example for <image>
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <configuration>
   ....

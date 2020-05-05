@@ -14,16 +14,16 @@ This plugin supports a rich set for providing a smooth Java developer experience
 |===
 | Goal | Description
 
-| *<<k8s:build>>*
+| *<<jkube:build>>*
 | Build images
 
-| *<<k8s:push>>*
+| *<<jkube:push>>*
 | Push images to a registry
 
-| *<<k8s:resource>>*
+| *<<jkube:resource>>*
 | Create Kubernetes or OpenShift resource descriptors
 
-| *<<k8s:apply>>*
+| *<<jkube:apply>>*
 | Apply resources to a running cluster
 |===
 
@@ -33,19 +33,19 @@ This plugin supports a rich set for providing a smooth Java developer experience
 |===
 | Goal | Description
 
-| *<<k8s:deploy>>*
-| Deploy resources descriptors to a cluster after creating them and building the app. Same as <<k8s:run>> except that it runs in the backgorund.
+| *<<jkube:deploy>>*
+| Deploy resources descriptors to a cluster after creating them and building the app. Same as <<jkube:run>> except that it runs in the background.
 
-| *<<k8s:undeploy>>*
+| *<<jkube:undeploy>>*
 | Undeploy and remove resources descriptors from a cluster.
 
-| *<<k8s:watch>>*
+| *<<jkube:watch>>*
 | Watch for file changes and perform rebuilds and redeployments
 
-| *<<k8s:log>>*
+| *<<jkube:log>>*
 | Show the logs of the running application
 
-| *<<k8s:debug>>*
+| *<<jkube:debug>>*
 | Enable remote debugging
 |===
 
@@ -57,12 +57,12 @@ Depending on whether the OpenShift or Kubernetes operational mode is used, the w
 | Use Case | Kubernetes | OpenShift
 
 | Build
-a| `k8s:build` `k8s:push`
+a| `{goal-prefix}:build` `{goal-prefix}:push`
 
 * Creates an image against an exposed Docker daemon (with a `docker.tar`)
 * Pushes the image to a registry which is then referenced from the configuration
 
-a| `k8s:build`
+a| `{goal-prefix}:build`
 
 * Creates or uses a `BuildConfig`
 * Creates or uses an `ImageStream` which can be referenced by the deployment descriptors in a `DeploymenConfig`
@@ -70,11 +70,11 @@ a| `k8s:build`
 
 
 | Deploy
-a| `k8s:deploy`
+a| `{goal-prefix}:deploy`
 
 * Applies a Kubernetes resource descriptor to cluster
 
-a| `k8s:deploy`
+a| `{goal-prefix}:deploy`
 
 * Applies an OpenShift resource descriptor to a cluster
 

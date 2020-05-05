@@ -133,11 +133,11 @@ Profiles can be selected by defining them in the plugin configuration, by giving
 
 Here is an example how the profile can be used in a plugin configuration:
 
-[source, xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>kubernetes-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
   <configuration>
     <profile>my-spring-boot-apps</profile> <!--1-->
     .....
@@ -150,9 +150,9 @@ Here is an example how the profile can be used in a plugin configuration:
 
 Alternatively a profile can be also specified on the command line when calling Maven:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
-mvn -Djkube.profile=my-spring-boot-apps k8s:build k8s:deploy
+mvn -Djkube.profile=my-spring-boot-apps {goal-prefix}:build {goal-prefix}:deploy
 ----
 
 If a configuration for enrichers and generators are provided as part of the plugin's `<configuration>` then this takes precedence over any profile specified.
@@ -164,9 +164,9 @@ Profiles are also very useful when used together with resource fragments in `src
 
 For example, consider the following directory layout:
 
-[source]
+[source, subs="+attributes"]
 ----
-src/main/k8s:
+src/main/{goal-prefix}:
   app-rc.yml
   app-svc.yml
   raw/ -->

@@ -113,7 +113,7 @@ used for `descriptorRef`:
 |===
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <images>
   <image>
@@ -141,10 +141,10 @@ o  'org.eclipse.jkube:helloworld'
 
 then you have two options to fix this:
 
-* Call `mvn package {plugin}:build` to explicitly run "package" and "docker:build" in a chain.
-* Bind `build` to an to an execution phase in the plugin's definition. By default `{plugin}:build` will bind to the `install` phase is set in an execution. Then you can use a plain `mvn install` for building the artifact and creating the image.
+* Call `mvn package {goal-prefix}:build` to explicitly run "package" and "docker:build" in a chain.
+* Bind `build` to an to an execution phase in the plugin's definition. By default `{goal-prefix}:build` will bind to the `install` phase is set in an execution. Then you can use a plain `mvn install` for building the artifact and creating the image.
 
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <executions>
   <execution>
@@ -164,7 +164,7 @@ up with an image, based on `busybox` which has a directory `/maven`
 containing a single file `jolokia.war`. This volume is also exported
 automatically.
 
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <assembly>
   <inline>
@@ -190,7 +190,7 @@ If you are using the `artifact` or `artifact-with-dependencies` descriptor, it i
 possible to change the name of the final build artifact with the following:
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <build>
   <finalName>your-desired-final-name</finalName>

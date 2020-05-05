@@ -1,9 +1,14 @@
-[[k8s:resource]]
-== *k8s:resource*
+[[jkube:resource]]
+== *{goal-prefix}:resource*
 
-This goal generates kubernetes resources based on your project. It can either be opinionated defaults or
-based on the configuration provided in XML config or resource fragments in `src/main/jkube`. Generated
-resources are in `target/classes/META-INF/jkube/kubernetes` directory.
+This goal generates {cluster} resources based on your project. It can either be opinionated defaults or
+based on the configuration provided in XML config or resource fragments in `src/main/jkube`.
+ifeval::["{goal-prefix}" == "k8s"]
+Generated resources are in `target/classes/META-INF/jkube/kubernetes` directory.
+endif::[]
+ifeval::["{goal-prefix}" == "oc"]
+Generated resources are in `target/classes/META-INF/jkube/openshift` directory.
+endif::[]
 
 [[resource-labels-annotations]]
 === Labels and Annotations
@@ -62,7 +67,7 @@ Labels and annotations can be easily added to any resource object. This is best 
 <3> `<service>` labels are used to label services
 <4> `<replicaSet>` labels are for replica set and replication controller
 <5> `<pod>` holds labels for pod specifications in replication controller, replica sets and deployments
-<6> `<deployment>` is for labels on deployments (kubernetes)
+<6> `<deployment>` is for labels on deployments (kubernetes) and deployment configs (openshift)
 <7> The subelements are also available for specifying annotations.
 <8> `<remotes>` you can set location of fragments as `URL`.
 
@@ -77,9 +82,15 @@ The following subelements are possible for `<labels>` and `<annotations>` :
 
 | *all*
 | All entries specified in the `<all>` sections are applied to all resource objects created.
+ifeval::["{goal-prefix}" == "oc"]
+  This also implies build object like image stream and build configs which are created implicitly for an <<build-openshift, {cluster} build>>.
+endif::[]
 
 | *deployment*
-| Labels and annotations applied to `Deployment` (for Kubernetes)
+| Labels and annotations applied to `Deployment` (for Kubernetes).
+ifeval::["{goal-prefix}" == "oc"]
+   And `DeploymentConfig` (for OpenShift) objects.
+endif::[]
 
 
 | *pod*
@@ -133,7 +144,10 @@ This is best explained by an example.
 <properties>
     <docker.registry>docker.io</docker.registry>
 </properties>
-...
+----
+
+[source,xml]
+----
 <configuration>
     <resources>
         <secrets>
@@ -183,7 +197,28 @@ Resource goal also validates the generated resource descriptors using API specif
 | *jkube.failOnValidationError*
 | If value is set to `true` then any validation error will block the plugin execution. A warning will be printed otherwise.
 | `false`
+
 |===
+
+ifeval::["{goal-prefix}" == "oc"]
+[[resource-route-generation]]
+=== Route Generation
+
+When the `{goal-prefix}:resource` goal is run, an {cluster}
+https://docs.openshift.org/latest/architecture/networking/routes.html[Route] descriptor (`route.yml`) will also be
+generated along the service if an {cluster} cluster is targeted.
+If you do not want to generate a Route descriptor, you can set the `jkube.openshift.generateRoute` property to `false`.
+
+.Route Generation Configuration
+[cols="1.6.1"]
+|===
+| Configuration | Description | Default
+
+| *jkube.openshift.generateRoute*
+| If value is set to `false` then no Route descriptor will be generated. By default it is set to `true`, which will create a `route.yml` descriptor and also add Route resource to `openshift.yml`.
+| `true`
+|===
+endif::[]
 
 If you do not want to generate a Route descriptor, you can also specify so in the plugin configuration in your POM as seen below.
 
@@ -193,7 +228,7 @@ If you do not want to generate a Route descriptor, you can also specify so in th
 ----
 <plugin>
     <groupId>org.eclipse.jkube</groupId>
-    <artifactId>kubernetes-maven-plugin</artifactId>
+    <artifactId>{plugin}</artifactId>
     <version>{version}</version>
     <configuration>
         <generateRoute>false</generateRoute>
@@ -225,6 +260,28 @@ In case both the label and the property have been set with conflicting values, p
 [cols="1.6.3"]
 |===
 | Element | Description | Property(System property or maven property)
+
+ifeval::["{goal-prefix}" == "oc"]
+| *enableAutomaticTrigger*
+| If the value is set to `false` then automatic deployments would be disabled. Defaults to `true`
+| `jkube.openshift.enableAutomaticTrigger`
+
+| *deployTimeoutSeconds*
+| The OpenShift deploy timeout in seconds. Defaults to `3600`
+| `jkube.openshift.deployTimeoutSeconds`
+
+| *imageChangeTrigger*
+| Add ImageChange triggers to DeploymentConfigs when on openshift. Defaults to `true`
+| `jkube.openshift.imageChangeTrigger`
+
+| *trimImageInContainerSpec*
+| If set to true it would set the container image reference to "", this is done to handle weird behavior of Openshift 3.7 in which subsequent rollouts lead to ImagePullErr. Defaults to `false`
+| `jkube.openshift.trimImageInContainerSpec`
+
+| *enrichAllWithImageChangeTrigger*
+| Adds ImageChangeTriggers with respect to all containers specified inside DeploymentConfig. Defaults to `false`
+| `jkube.openshift.enrichAllWithImageChangeTrigger`
+endif::[]
 
 | *profile*
 | Profile to use. A profile contains the enrichers and generators to use as well as their configuration. Profiles are looked up in the classpath and can be provided as yaml files. Defaults to `default`
@@ -269,6 +326,5 @@ In case both the label and the property have been set with conflicting values, p
 | *skipResource*
 | Skip resource generation. Defaults to `false`
 | `jkube.skip.resource`
-|===
 
-[[Other-flags]]
+|===

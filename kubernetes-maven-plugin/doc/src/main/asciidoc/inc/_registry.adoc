@@ -34,9 +34,9 @@ evaluated which can be also provided as system property via
 detecting a registry.
 
 This registry is used for pulling (i.e. for autopull the base image
-when doing a `{plugin}:build`) and pushing with `{plugin}:push`. However,
+when doing a `{goal-prefix}:build`) and pushing with `{goal-prefix}:push`. However,
 when these two goals are combined on the command line like in `mvn
--Ddocker.registry=myregistry:5000 package {plugin}:build {plugin}:push`
+-Ddocker.registry=myregistry:5000 package {goal-prefix}:build {goal-prefix}:push`
 the same registry is used for both operation. For a more fine grained
 control, separate registries for _pull_ and _push_ can be specified.
 
@@ -46,7 +46,7 @@ control, separate registries for _pull_ and _push_ can be specified.
 `docker.push.registry`, respectively.
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <configuration>
   <registry>docker.jolokia.org:443</registry>
@@ -57,7 +57,7 @@ control, separate registries for _pull_ and _push_ can be specified.
       <!-- ... hence use this registry -->
       <registry>docker.ro14nd.de</registry>
       ....
-    <image>
+    </image>
     <image>
       <name>postgresql</name>
       <!-- No registry in the name, hence use the globally

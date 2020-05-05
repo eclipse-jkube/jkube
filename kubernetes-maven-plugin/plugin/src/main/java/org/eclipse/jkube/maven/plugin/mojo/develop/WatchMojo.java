@@ -117,7 +117,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                     .logger(log)
                     .newPodLogger(createLogger("[[C]][NEW][[C]] "))
                     .oldPodLogger(createLogger("[[R]][OLD][[R]] "))
-                    .mode(mode)
+                    .mode(getConfiguredRuntimeMode())
                     .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                     .useProjectClasspath(useProjectClasspath)
                     .clusterConfiguration(initClusterConfiguration())
@@ -137,7 +137,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
             .config(extractGeneratorConfig())
             .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
             .logger(log)
-            .runtimeMode(mode)
+            .runtimeMode(getConfiguredRuntimeMode())
             .useProjectClasspath(useProjectClasspath)
             .artifactResolver(jkubeServiceHub.getArtifactResolverService())
             .generatorMode(GeneratorMode.WATCH);

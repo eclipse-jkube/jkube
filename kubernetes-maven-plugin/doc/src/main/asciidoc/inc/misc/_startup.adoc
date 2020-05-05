@@ -27,7 +27,7 @@ An entry point or command can be specified in two alternative formats:
 Either shell or params should be specified.
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <entryPoint>
    <!-- shell form  -->
@@ -38,7 +38,7 @@ Either shell or params should be specified.
 or
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <entryPoint>
    <!-- exec form  -->
@@ -53,7 +53,7 @@ or
 This can be formulated also more dense with:
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <!-- shell form  -->
 <entryPoint>java -jar $HOME/server.jar</entryPoint>
@@ -62,7 +62,7 @@ This can be formulated also more dense with:
 or
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <entryPoint>
   <!-- exec form  -->
