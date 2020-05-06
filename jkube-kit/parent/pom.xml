@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-alpha-3</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 

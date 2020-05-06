@@ -20,12 +20,13 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.0.0-SNAPSHOT
+### 1.0.0-alpha-3 (2020-05-06)
 * Fix #167: Add CMD for wildfly based applications
 * Added Webapp Wildfly maven quickstart
 * Fix #171: OpenShift pull secret not picked up without registry auth configuration
 * Fix #171: Customized Quarkus application quick start
 * Fix #101: Removed Openshift specific functionality from Kubernetes Maven Plugin
+* Fix #178: Bump kubernetes-client from 4.9.1 to 4.10.1
 
 ### 1.0.0-alpha-2 (2020-04-24)
 * Fix #130: Updated HelmMojo documentation
