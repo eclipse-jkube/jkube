@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -100,7 +101,7 @@ public class KubernetesClientUtil {
 
         for (HasMetadata entity : list) {
             log.info("Deleting resource " + KubernetesHelper.getKind(entity) + " " + namespace + "/" + KubernetesHelper.getName(entity));
-            kubernetes.resource(entity).inNamespace(namespace).cascading(true).delete();
+            kubernetes.resource(entity).inNamespace(namespace).withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
         }
     }
 
