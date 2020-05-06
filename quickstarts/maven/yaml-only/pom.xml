@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>yaml</artifactId>
-  <version>1.0.0-alpha-2</version>
+  <version>1.0.0-alpha-3</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Yaml</name>
   <packaging>jar</packaging>
 
