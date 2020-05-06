@@ -116,11 +116,10 @@ public class MavenProjectEnricherTest {
     }
 
     private KubernetesListBuilder createListWithDeploymentConfig() {
-        return new KubernetesListBuilder()
-                .addNewDeploymentConfigItem()
-                .withNewMetadata().endMetadata()
-                .withNewSpec().endSpec()
-                .endDeploymentConfigItem();
+        return new KubernetesListBuilder().addToItems(new DeploymentConfigBuilder()
+            .withNewMetadata().endMetadata()
+            .withNewSpec().endSpec()
+            .build());
     }
 
 }

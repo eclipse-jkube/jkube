@@ -55,7 +55,7 @@
     <version.json-path-assert>2.2.0</version.json-path-assert>
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.0.5</version.JUnitParams>
-    <version.kubernetes-client>4.9.1</version.kubernetes-client>
+    <version.kubernetes-client>4.10.1</version.kubernetes-client>
     <version.lombok>1.18.12</version.lombok>
     <version.maven-archiver>3.2.0</version.maven-archiver>
     <version.maven-core>3.5.4</version.maven-core>
@@ -243,6 +243,14 @@
           <exclusion>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.sundr</groupId>
+            <artifactId>builder-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.jsonschema2pojo</groupId>
+            <artifactId>jsonschema2pojo-core</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.slf4j</groupId>
@@ -549,6 +557,10 @@
         <scope>test</scope>
         <exclusions>
           <exclusion>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>com.sun</groupId>
             <artifactId>tools</artifactId>
           </exclusion>
@@ -780,5 +792,5 @@
       </extension>
     </extensions>
   </build>
-  
+
 </project>

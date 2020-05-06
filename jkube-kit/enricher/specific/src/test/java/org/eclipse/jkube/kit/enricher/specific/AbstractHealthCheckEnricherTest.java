@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -45,19 +46,18 @@ public class AbstractHealthCheckEnricherTest {
 
     @Test
     public void enrichSingleContainer() {
-        KubernetesListBuilder list = new KubernetesListBuilder()
-                .addNewDeploymentItem()
-                .withNewSpec()
-                .withNewTemplate()
-                .withNewSpec()
-                .addNewContainer()
-                .withName("app")
-                .withImage("app:latest")
-                .endContainer()
-                .endSpec()
-                .endTemplate()
-                .endSpec()
-                .endDeploymentItem();
+        KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
+            .withNewSpec()
+            .withNewTemplate()
+            .withNewSpec()
+            .addNewContainer()
+            .withName("app")
+            .withImage("app:latest")
+            .endContainer()
+            .endSpec()
+            .endTemplate()
+            .endSpec()
+            .build());
 
         createEnricher(new Properties(), Collections.emptyMap()).create(PlatformMode.kubernetes, list);
 
@@ -76,23 +76,22 @@ public class AbstractHealthCheckEnricherTest {
 
     @Test
     public void enrichContainerWithSidecar() {
-        KubernetesListBuilder list = new KubernetesListBuilder()
-                .addNewDeploymentItem()
+        KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
+            .withNewSpec()
+                .withNewTemplate()
                     .withNewSpec()
-                        .withNewTemplate()
-                            .withNewSpec()
-                                .addNewContainer()
-                                    .withName("app")
-                                    .withImage("app:latest")
-                                .endContainer()
-                                .addNewContainer()
-                                    .withName("sidecar")
-                                    .withImage("sidecar:latest")
-                                .endContainer()
-                            .endSpec()
-                        .endTemplate()
+                        .addNewContainer()
+                            .withName("app")
+                            .withImage("app:latest")
+                        .endContainer()
+                        .addNewContainer()
+                            .withName("sidecar")
+                            .withImage("sidecar:latest")
+                        .endContainer()
                     .endSpec()
-                .endDeploymentItem();
+                .endTemplate()
+            .endSpec()
+            .build());
 
         createEnricher(new Properties(), Collections.singletonMap("FABRIC8_GENERATED_CONTAINERS", "app")).create(PlatformMode.kubernetes, list);
 
@@ -120,27 +119,26 @@ public class AbstractHealthCheckEnricherTest {
         final Properties properties = new Properties();
         properties.put(AbstractHealthCheckEnricher.ENRICH_CONTAINERS, "app2,app3");
 
-        KubernetesListBuilder list = new KubernetesListBuilder()
-                .addNewDeploymentItem()
+        KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
+            .withNewSpec()
+                .withNewTemplate()
                     .withNewSpec()
-                        .withNewTemplate()
-                            .withNewSpec()
-                                .addNewContainer()
-                                    .withName("app")
-                                    .withImage("app:latest")
-                                .endContainer()
-                                .addNewContainer()
-                                    .withName("app2")
-                                    .withImage("app2:latest")
-                                .endContainer()
-                                .addNewContainer()
-                                    .withName("app3")
-                                    .withImage("app3:latest")
-                                .endContainer()
-                            .endSpec()
-                        .endTemplate()
+                        .addNewContainer()
+                            .withName("app")
+                            .withImage("app:latest")
+                        .endContainer()
+                        .addNewContainer()
+                            .withName("app2")
+                            .withImage("app2:latest")
+                        .endContainer()
+                        .addNewContainer()
+                            .withName("app3")
+                            .withImage("app3:latest")
+                        .endContainer()
                     .endSpec()
-                .endDeploymentItem();
+                .endTemplate()
+            .endSpec()
+            .build());
 
         createEnricher(properties, Collections.emptyMap()).create(PlatformMode.kubernetes,list);
 
@@ -172,23 +170,22 @@ public class AbstractHealthCheckEnricherTest {
         final Properties properties = new Properties();
         properties.put(AbstractHealthCheckEnricher.ENRICH_ALL_CONTAINERS, "true");
 
-        KubernetesListBuilder list = new KubernetesListBuilder()
-                .addNewDeploymentItem()
+        KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
+            .withNewSpec()
+                .withNewTemplate()
                     .withNewSpec()
-                        .withNewTemplate()
-                            .withNewSpec()
-                                .addNewContainer()
-                                    .withName("app")
-                                    .withImage("app:latest")
-                                .endContainer()
-                                .addNewContainer()
-                                    .withName("app2")
-                                    .withImage("app2:latest")
-                                .endContainer()
-                            .endSpec()
-                        .endTemplate()
+                        .addNewContainer()
+                            .withName("app")
+                            .withImage("app:latest")
+                        .endContainer()
+                        .addNewContainer()
+                            .withName("app2")
+                            .withImage("app2:latest")
+                        .endContainer()
                     .endSpec()
-                .endDeploymentItem();
+                .endTemplate()
+            .endSpec()
+            .build());
 
         createEnricher(properties, Collections.emptyMap()).create(PlatformMode.kubernetes,list);
 

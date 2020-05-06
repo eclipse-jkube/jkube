@@ -126,7 +126,7 @@ public class DockerImageWatcher extends BaseWatcher {
             DeploymentSpec spec = resource.getSpec();
             if (spec != null) {
                 if (updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                    kubernetes.extensions().deployments().inNamespace(namespace).withName(name).replace(resource);
+                    kubernetes.apps().deployments().inNamespace(namespace).withName(name).replace(resource);
                 }
             }
         } else if (entity instanceof ReplicaSet) {
@@ -134,7 +134,7 @@ public class DockerImageWatcher extends BaseWatcher {
             ReplicaSetSpec spec = resource.getSpec();
             if (spec != null) {
                 if (updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                    kubernetes.extensions().replicaSets().inNamespace(namespace).withName(name).replace(resource);
+                    kubernetes.apps().replicaSets().inNamespace(namespace).withName(name).replace(resource);
                 }
             }
         } else if (entity instanceof ReplicationController) {

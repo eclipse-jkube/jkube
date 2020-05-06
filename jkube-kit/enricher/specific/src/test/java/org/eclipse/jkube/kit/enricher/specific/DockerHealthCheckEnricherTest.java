@@ -22,6 +22,7 @@ import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
@@ -199,20 +200,20 @@ public class DockerHealthCheckEnricherTest {
     }
 
     private KubernetesListBuilder addDeployment(KubernetesListBuilder list, String name) {
-        return list.addNewDeploymentItem()
-                .withNewMetadata()
-                .withName(name)
-                .endMetadata()
-                .withNewSpec()
-                .withNewTemplate()
-                .withNewSpec()
-                .addNewContainer()
-                .withName(name)
-                .endContainer()
-                .endSpec()
-                .endTemplate()
-                .endSpec()
-                .endDeploymentItem();
+        return list.addToItems(new DeploymentBuilder()
+            .withNewMetadata()
+            .withName(name)
+            .endMetadata()
+            .withNewSpec()
+            .withNewTemplate()
+            .withNewSpec()
+            .addNewContainer()
+            .withName(name)
+            .endContainer()
+            .endSpec()
+            .endTemplate()
+            .endSpec()
+            .build());
     }
 
     private void assertNoProbes(HasMetadata object) throws JsonProcessingException {

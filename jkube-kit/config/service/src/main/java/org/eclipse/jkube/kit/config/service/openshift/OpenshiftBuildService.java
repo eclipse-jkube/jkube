@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.BuildConfig;
+import io.fabric8.openshift.api.model.BuildConfigBuilder;
 import io.fabric8.openshift.api.model.BuildConfigSpec;
 import io.fabric8.openshift.api.model.BuildConfigSpecBuilder;
 import io.fabric8.openshift.api.model.BuildOutput;
@@ -37,6 +38,7 @@ import io.fabric8.openshift.api.model.BuildOutputBuilder;
 import io.fabric8.openshift.api.model.BuildSource;
 import io.fabric8.openshift.api.model.BuildStrategy;
 import io.fabric8.openshift.api.model.BuildStrategyBuilder;
+import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
@@ -294,12 +296,13 @@ public class OpenshiftBuildService implements BuildService {
 
     private String createBuildConfig(KubernetesListBuilder builder, String buildName, BuildStrategy buildStrategyResource, BuildOutput buildOutput) {
         log.info("Creating BuildServiceConfig %s for %s build", buildName, buildStrategyResource.getType());
-        builder.addNewBuildConfigItem()
-                .withNewMetadata()
-                .withName(buildName)
-                .endMetadata()
-                .withSpec(getBuildConfigSpec(buildStrategyResource, buildOutput))
-                .endBuildConfigItem();
+        builder.addToItems(new BuildConfigBuilder()
+            .withNewMetadata()
+            .withName(buildName)
+            .endMetadata()
+            .withSpec(getBuildConfigSpec(buildStrategyResource, buildOutput))
+            .build()
+        );
         return buildName;
     }
 
@@ -518,16 +521,17 @@ public class OpenshiftBuildService implements BuildService {
         }
         if (!hasImageStream) {
             log.info("Creating ImageStream %s", imageStreamName);
-            builder.addNewImageStreamItem()
-                    .withNewMetadata()
-                        .withName(imageStreamName)
-                    .endMetadata()
-                    .withNewSpec()
-                        .withNewLookupPolicy()
-                            .withLocal(config.isS2iImageStreamLookupPolicyLocal())
-                        .endLookupPolicy()
-                    .endSpec()
-                    .endImageStreamItem();
+            builder.addToItems(new ImageStreamBuilder()
+                .withNewMetadata()
+                    .withName(imageStreamName)
+                .endMetadata()
+                .withNewSpec()
+                    .withNewLookupPolicy()
+                        .withLocal(config.isS2iImageStreamLookupPolicyLocal())
+                    .endLookupPolicy()
+                .endSpec()
+                .build()
+            );
         } else {
             log.info("Adding to ImageStream %s", imageStreamName);
         }
