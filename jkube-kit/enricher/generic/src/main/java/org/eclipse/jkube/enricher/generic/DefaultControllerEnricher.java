@@ -118,28 +118,28 @@ public class DefaultControllerEnricher extends BaseEnricher {
                     if (platformMode == PlatformMode.kubernetes  || (platformMode == PlatformMode.openshift && useDeploymentForOpenShift())) {
                         log.info("Adding a default Deployment");
                         Deployment deployment = deployHandler.getDeployment(config, images);
-                        builder.addToDeploymentItems(deployment);
+                        builder.addToItems(deployment);
                         setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(deployment.getSpec().getTemplate()));
                     } else {
                         log.info("Adding a default DeploymentConfig");
                         DeploymentConfig deploymentConfig = deployConfigHandler.getDeploymentConfig(config, images, getOpenshiftDeployTimeoutInSeconds(3600L), getValueFromConfig(IMAGE_CHANGE_TRIGGERS, true), getValueFromConfig(OPENSHIFT_ENABLE_AUTOMATIC_TRIGGER, true), isOpenShiftMode(), getProcessingInstructionViaKey(FABRIC8_GENERATED_CONTAINERS));
-                        builder.addToDeploymentConfigItems(deploymentConfig);
+                        builder.addToItems(deploymentConfig);
                         setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(deploymentConfig.getSpec().getTemplate()));
                     }
                 } else if ("statefulSet".equalsIgnoreCase(type)) {
                     log.info("Adding a default StatefulSet");
                     StatefulSet statefulSet = statefulSetHandler.getStatefulSet(config, images);
-                    builder.addToStatefulSetItems(statefulSet);
+                    builder.addToItems(statefulSet);
                     setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(statefulSet.getSpec().getTemplate()));
                 } else if ("daemonSet".equalsIgnoreCase(type)) {
                     log.info("Adding a default DaemonSet");
                     DaemonSet daemonSet = daemonSetHandler.getDaemonSet(config, images);
-                    builder.addToDaemonSetItems(daemonSet);
+                    builder.addToItems(daemonSet);
                     setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(daemonSet.getSpec().getTemplate()));
                 } else if ("replicaSet".equalsIgnoreCase(type)) {
                     log.info("Adding a default ReplicaSet");
                     ReplicaSet replicaSet = rsHandler.getReplicaSet(config, images);
-                    builder.addToReplicaSetItems(replicaSet);
+                    builder.addToItems(replicaSet);
                     setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(replicaSet.getSpec().getTemplate()));
                 } else if ("replicationController".equalsIgnoreCase(type)) {
                     log.info("Adding a default ReplicationController");
@@ -149,7 +149,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
                 } else if ("job".equalsIgnoreCase(type)) {
                     log.info("Adding a default Job");
                     Job job = jobHandler.getJob(config, images);
-                    builder.addToJobItems(job);
+                    builder.addToItems(job);
                     setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(job.getSpec().getTemplate()));
                 }
             }

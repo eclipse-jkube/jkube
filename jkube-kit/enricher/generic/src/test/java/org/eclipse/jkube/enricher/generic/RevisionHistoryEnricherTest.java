@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -42,9 +43,7 @@ public class RevisionHistoryEnricherTest {
     @Test
     public void testDefaultRevisionHistoryLimit() throws JsonProcessingException {
         // Given
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewDeploymentItem()
-                .endDeploymentItem();
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());
 
         RevisionHistoryEnricher enricher = new RevisionHistoryEnricher(context);
 
@@ -66,9 +65,7 @@ public class RevisionHistoryEnricherTest {
         }};
 
         // Given
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewDeploymentItem()
-                .endDeploymentItem();
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());
 
         RevisionHistoryEnricher enricher = new RevisionHistoryEnricher(context);
 
@@ -94,7 +91,7 @@ public class RevisionHistoryEnricherTest {
     }
 
     private void assertRevisionHistory(KubernetesList list, Integer revisionNumber) throws JsonProcessingException {
-        assertEquals(list.getItems().size(),1);
+        assertEquals(1, list.getItems().size());
 
         String kubeJson = ResourceUtil.toJson(list.getItems().get(0));
         assertThat(kubeJson, JsonPathMatchers.isJson());

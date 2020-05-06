@@ -43,7 +43,7 @@ public class ProjectEnricher extends BaseEnricher {
                 if(item instanceof Namespace) {
                     Project project = convertToProject((Namespace) item);
                     removeItemFromKubernetesBuilder(builder, item);
-                    builder.addToProjectItems(project);
+                    builder.addToItems(project);
                 }
             }
         }

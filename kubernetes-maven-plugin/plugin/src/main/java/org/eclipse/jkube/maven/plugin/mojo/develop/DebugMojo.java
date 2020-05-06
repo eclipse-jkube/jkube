@@ -100,7 +100,7 @@ public class DebugMojo extends ApplyMojo {
                 DeploymentSpec spec = resource.getSpec();
                 if (spec != null) {
                     if (enableDebugging(entity, spec.getTemplate())) {
-                        kubernetes.extensions().deployments().inNamespace(namespace).withName(name).replace(resource);
+                        kubernetes.apps().deployments().inNamespace(namespace).withName(name).replace(resource);
                     }
                     selector = getPodLabelSelector(entity);
                 }
@@ -109,7 +109,7 @@ public class DebugMojo extends ApplyMojo {
                 ReplicaSetSpec spec = resource.getSpec();
                 if (spec != null) {
                     if (enableDebugging(entity, spec.getTemplate())) {
-                        kubernetes.extensions().replicaSets().inNamespace(namespace).withName(name).replace(resource);
+                        kubernetes.apps().replicaSets().inNamespace(namespace).withName(name).replace(resource);
                     }
                     selector = getPodLabelSelector(entity);
                 }

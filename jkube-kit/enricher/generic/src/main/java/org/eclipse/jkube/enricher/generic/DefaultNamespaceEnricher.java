@@ -84,7 +84,7 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
 
                     log.info("Adding a default Project" + config.getNamespace());
                     Project project = handlerHub.getProjectHandler().getProject(config.getNamespace());
-                    builder.addToProjectItems(project);
+                    builder.addToItems(project);
                 }
             }
         }

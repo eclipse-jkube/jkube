@@ -60,7 +60,7 @@ public class RouteEnricher extends BaseEnricher {
             if (!routes.isEmpty()) {
                 Route[] routeArray = new Route[routes.size()];
                 routes.toArray(routeArray);
-                listBuilder.addToRouteItems(routeArray);
+                listBuilder.addToItems(routeArray);
             }
         }
     }

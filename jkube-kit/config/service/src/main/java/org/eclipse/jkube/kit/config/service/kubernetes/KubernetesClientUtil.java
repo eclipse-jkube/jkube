@@ -72,9 +72,9 @@ public class KubernetesClientUtil {
             String name = KubernetesHelper.getName(entity);
             Scaleable<?> scalable = null;
             if (entity instanceof Deployment) {
-                scalable = kubernetes.extensions().deployments().inNamespace(namespace).withName(name);
+                scalable = kubernetes.apps().deployments().inNamespace(namespace).withName(name);
             } else if (entity instanceof ReplicaSet) {
-                scalable = kubernetes.extensions().replicaSets().inNamespace(namespace).withName(name);
+                scalable = kubernetes.apps().replicaSets().inNamespace(namespace).withName(name);
             } else if (entity instanceof ReplicationController) {
                 scalable = kubernetes.replicationControllers().inNamespace(namespace).withName(name);
             } else if (entity instanceof DeploymentConfig) {
@@ -250,7 +250,10 @@ public class KubernetesClientUtil {
         }
     }
 
-    public static Map<String, Object> doDeleteCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String name) {
+    public static Map<String, Object> doDeleteCustomResource(
+        KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String name)
+        throws IOException{
+
         if ("Namespaced".equals(crdContext.getScope())) {
             return kubernetesClient.customResource(crdContext).delete(namespace, name);
         } else {

@@ -177,11 +177,11 @@ public class ApplyService {
         } else if (dto instanceof ConfigMap) {
             applyResource((ConfigMap) dto, sourceName, kubernetesClient.configMaps());
         } else if (dto instanceof DaemonSet) {
-            applyResource((DaemonSet) dto, sourceName, kubernetesClient.extensions().daemonSets());
+            applyResource((DaemonSet) dto, sourceName, kubernetesClient.apps().daemonSets());
         } else if (dto instanceof Deployment) {
-            applyResource((Deployment) dto, sourceName, kubernetesClient.extensions().deployments());
+            applyResource((Deployment) dto, sourceName, kubernetesClient.apps().deployments());
         } else if (dto instanceof ReplicaSet) {
-            applyResource((ReplicaSet) dto, sourceName, kubernetesClient.extensions().replicaSets());
+            applyResource((ReplicaSet) dto, sourceName, kubernetesClient.apps().replicaSets());
         } else if (dto instanceof StatefulSet) {
             applyResource((StatefulSet) dto, sourceName, kubernetesClient.apps().statefulSets());
         } else if (dto instanceof Ingress) {
@@ -472,7 +472,9 @@ public class ApplyService {
         }
     }
 
-    public void applyCustomResource(File customResourceFile, String namespace, CustomResourceDefinitionContext context) throws Exception {
+    public void applyCustomResource(File customResourceFile, String namespace, CustomResourceDefinitionContext context)
+        throws Exception {
+
         Map<String, Object> cr = KubernetesClientUtil.doReadCustomResourceFile(customResourceFile);
         Map<String, Object> objectMeta = (Map<String, Object>)cr.get("metadata");
         String name = objectMeta.get("name").toString();
@@ -493,7 +495,9 @@ public class ApplyService {
         }
     }
 
-    public void deleteCustomResource(File customResourceFile, String namespace, CustomResourceDefinitionContext crdContext) throws Exception {
+    public void deleteCustomResource(File customResourceFile, String namespace, CustomResourceDefinitionContext crdContext)
+        throws Exception {
+
         Map<String, Object> customResource = KubernetesClientUtil.doReadCustomResourceFile(customResourceFile);
         Map<String, Object> objectMeta = (Map<String, Object>)customResource.get("metadata");
         String name = objectMeta.get("name").toString();

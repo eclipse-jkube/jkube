@@ -57,7 +57,7 @@ public class DeploymentConfigEnricher extends BaseEnricher {
                 if(item instanceof Deployment && !useDeploymentForOpenShift()) {
                     DeploymentConfig deploymentConfig = convert(item);
                     removeItemFromKubernetesBuilder(builder, item);
-                    builder.addToDeploymentConfigItems(deploymentConfig);
+                    builder.addToItems(deploymentConfig);
                 }
             }
         }
