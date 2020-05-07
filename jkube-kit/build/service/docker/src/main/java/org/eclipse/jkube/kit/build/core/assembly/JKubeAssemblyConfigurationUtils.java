@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 public class JKubeAssemblyConfigurationUtils {
 
   private static final String DEFAULT_NAME = "maven";
-  private static final String DEFAULT_TARGET_DIR = File.separator.concat(DEFAULT_NAME);
   private static final String DEFAULT_USER = "root";
 
   private JKubeAssemblyConfigurationUtils() {}
@@ -41,11 +40,15 @@ public class JKubeAssemblyConfigurationUtils {
       .map(BuildConfiguration::getAssemblyConfiguration)
       .orElse(AssemblyConfiguration.builder().user(DEFAULT_USER).build());
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = ac.toBuilder();
+    final String name;
     if (StringUtils.isBlank(ac.getName())) {
       builder.name(DEFAULT_NAME);
+      name = DEFAULT_NAME;
+    } else {
+      name = ac.getName();
     }
     if (StringUtils.isBlank(ac.getTargetDir())) {
-      builder.targetDir(DEFAULT_TARGET_DIR);
+      builder.targetDir(File.separator.concat(name));
     }
     return builder.build();
   }

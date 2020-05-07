@@ -14,16 +14,15 @@
 package org.eclipse.jkube.kit.config.image.build;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
+
+import org.eclipse.jkube.kit.common.Assembly;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.eclipse.jkube.kit.common.Assembly;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -94,15 +93,6 @@ public class AssemblyConfiguration implements Serializable {
 
 
     public static class AssemblyConfigurationBuilder {
-        public AssemblyConfiguration build() {
-            if (Stream.of(descriptor, descriptorRef, permissions, user, mode, tarLongFileMode,
-                dockerFileDir, exportBasedir, ignorePermissions, inline).allMatch(Objects::isNull)) {
-                return null;
-            }
-            return new AssemblyConfiguration(
-                targetDir, name, descriptor, descriptorRef, exportBasedir, dockerFileDir, ignorePermissions,
-                exportTargetDir, permissions, mode, user, tarLongFileMode, inline);
-        }
 
         public AssemblyConfigurationBuilder permissionsString(String permissionsString) {
             permissions = Optional.ofNullable(permissionsString)

@@ -50,3 +50,15 @@ $ mvn clean package k8s:build -P'context-and-file'
 $ docker image inspect jkube/docker-file-provided | jq ".[].ContainerConfig.Labels" | grep location 
   "location": "src/main/docker-context-dir/other/file",
 ```
+
+## `contextDir` and customized assembly name
+Retrieves the `Dockerfile` from the provided `<contextDir>` configuration.
+
+Adds the packaged artifact file to a directory with the name provided in the `<assembly>` configuration.
+
+```shell script
+$ mvn clean package k8s:build -P'context-and-assembly'
+...
+$ docker image inspect jkube/context-and-assembly | jq ".[].ContainerConfig.Labels" | grep location 
+  "location": "/",
+```

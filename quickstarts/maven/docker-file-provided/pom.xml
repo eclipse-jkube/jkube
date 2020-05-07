@@ -26,7 +26,7 @@
 
     <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
     <artifactId>docker-file-provided</artifactId>
-    <version>1.0.0-alpha-3</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>Eclipse JKube :: Quickstarts :: Maven :: Docker File Provided</name>
     <packaging>jar</packaging>
 
@@ -59,7 +59,7 @@
                         <config>
                             <jkube-service>
                                 <type>NodePort</type>
-                                <name>${artifactId}</name>
+                                <name>${project.artifactId}</name>
                                 <port>8080:8080</port>
                             </jkube-service>
                         </config>
@@ -126,6 +126,30 @@
                                     <build>
                                         <contextDir>${project.basedir}/src/main/docker-context-dir</contextDir>
                                         <dockerFile>other/file/DockerfileWithChangedFileName</dockerFile>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>context-and-assembly</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.jkube</groupId>
+                        <artifactId>kubernetes-maven-plugin</artifactId>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>jkube/context-and-assembly</name>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                        <assembly>
+                                            <name>target</name>
+                                        </assembly>
                                     </build>
                                 </image>
                             </images>
