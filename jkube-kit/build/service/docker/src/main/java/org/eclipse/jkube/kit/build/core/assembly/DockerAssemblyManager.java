@@ -149,7 +149,7 @@ public class DockerAssemblyManager {
                 builder.write(buildDirs.getOutputDirectory());
                 // Add own Dockerfile
                 final File dockerFile = new File(buildDirs.getOutputDirectory(), DOCKERFILE_NAME);
-                archiveCustomizers.add((archiver) -> {
+                archiveCustomizers.add(archiver -> {
                         archiver.includeFile(dockerFile, DOCKERFILE_NAME);
                         return archiver;
                     });
@@ -158,10 +158,10 @@ public class DockerAssemblyManager {
             if (finalCustomizer != null) {
                 archiveCustomizers.add(finalCustomizer);
             }
-            archiveCustomizers.add((archiver) -> {
+            archiveCustomizers.add(archiver -> {
                 File finalArtifactFile = JKubeProjectUtil.getFinalOutputArtifact(params.getProject());
                 if (finalArtifactFile != null) {
-                    archiver.includeFile(finalArtifactFile, (assemblyConfig != null ? assemblyConfig.getName() : "maven") + File.separator + finalArtifactFile.getName());
+                    archiver.includeFile(finalArtifactFile, assemblyConfig.getName() + File.separator + finalArtifactFile.getName());
                 }
                 return archiver;
             });

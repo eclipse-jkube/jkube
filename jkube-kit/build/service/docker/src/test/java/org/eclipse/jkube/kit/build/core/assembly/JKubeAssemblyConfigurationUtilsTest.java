@@ -71,7 +71,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
     // Then
     assertNotNull(result);
     assertEquals("ImageName", result.getName());
-    assertEquals(File.separator + "maven", result.getTargetDir());
+    assertEquals(File.separator + "ImageName", result.getTargetDir());
     assertEquals("OtherUser", result.getUser());
   }
 
