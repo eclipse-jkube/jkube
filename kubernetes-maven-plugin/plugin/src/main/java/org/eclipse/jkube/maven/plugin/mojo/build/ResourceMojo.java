@@ -222,7 +222,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     /**
      * If set to true it would set the container image reference to "", this is done to handle weird
-     * behavior of Openshift 3.7 in which subsequent rollouts lead to ImagePullErr
+     * behavior of OpenShift 3.7 in which subsequent rollouts lead to ImagePullErr
      *
      * Please see discussion at
      * <ul>

@@ -115,7 +115,7 @@ public class BaseEnricher implements Enricher {
     /**
      * Returns true if we are in OpenShift S2I binary building mode
      *
-     * @return boolean value indicating whether Openshift or not.
+     * @return boolean value indicating whether OpenShift or not.
      */
     protected boolean isOpenShiftMode() {
         Properties properties = getContext().getConfiguration().getProperties();

@@ -1,4 +1,4 @@
-## Openshift Maven Plugin
+## OpenShift Maven Plugin
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/openshift-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22openshift-maven-plugin%22)
 
@@ -11,7 +11,7 @@ This Maven plugin is a one-stop-shop for building and deploying Java application
 + Deploy application on OpenShift
 
 ### Usage
-To enable Openshift maven plugin on your project just add this to the plugins sections of your pom.xml:
+To enable OpenShift maven plugin on your project just add this to the plugins sections of your pom.xml:
 
 ```
       <plugin>

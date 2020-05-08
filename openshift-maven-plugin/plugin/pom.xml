@@ -31,8 +31,8 @@
 
     <artifactId>openshift-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-    <name>Openshift Maven Plugin :: Plugin</name>
-    <description>Openshift Maven Plugin</description>
+    <name>OpenShift Maven Plugin :: Plugin</name>
+    <description>OpenShift Maven Plugin</description>
 
     <properties>
         <jkube.kit.version>${project.version}</jkube.kit.version>

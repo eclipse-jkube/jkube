@@ -26,8 +26,8 @@
 
   <artifactId>openshift-maven-plugin-parent</artifactId>
   <packaging>pom</packaging>
-  <name>Openshift Maven Plugin:: Parent</name>
-  <description>Maven plugin for getting your Java apps on to Openshift</description>
+  <name>OpenShift Maven Plugin:: Parent</name>
+  <description>Maven plugin for getting your Java apps on to OpenShift</description>
 
   <modules>
     <module>plugin</module>

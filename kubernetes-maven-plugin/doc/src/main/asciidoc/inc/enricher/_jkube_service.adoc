@@ -24,7 +24,9 @@ The following configuration parameters can be used to influence the behaviour of
 | `false`
 
 | *expose*
-| If set to true, a label `expose` with value `true` is added which can be picked up by the jkube.https://github.com/jkubeio/exposecontroller[expose-controller] to expose the service to the outside by various means. See the documentation of expose-controller for more details.
+| If set to true, a label `expose` with value `true` is added which can be picked up by the jkube.
+  https://github.com/jenkins-x/exposecontroller[expose-controller] to expose the service to the outside by various means.
+  See the documentation of expose-controller for more details.
 | `false`
 
 | *type*

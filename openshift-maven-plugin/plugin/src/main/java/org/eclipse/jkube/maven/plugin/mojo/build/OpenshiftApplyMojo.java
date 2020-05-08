@@ -24,7 +24,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import java.io.File;
 
 /**
- * Base class for goals which deploy the generated artifacts into the Openshift cluster
+ * Base class for goals which deploy the generated artifacts into the OpenShift cluster
  */
 @Mojo(name = "apply", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.INSTALL)
 public class OpenshiftApplyMojo extends ApplyMojo {

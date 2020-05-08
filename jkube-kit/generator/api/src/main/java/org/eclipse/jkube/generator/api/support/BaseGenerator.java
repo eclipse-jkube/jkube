@@ -183,7 +183,7 @@ public abstract class BaseGenerator implements Generator {
 
     /**
      * Get the docker registry where the image should be located.
-     * It returns null in Openshift mode.
+     * It returns null in OpenShift mode.
      *
      * @return The docker registry if configured
      */

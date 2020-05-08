@@ -98,9 +98,9 @@ public class JKubeServiceHub implements Closeable {
                 // Creating platform-dependent services
                 if (resolvedMode == RuntimeMode.openshift) {
                     if (!(client instanceof OpenShiftClient)) {
-                        throw new IllegalStateException("Openshift platform has been specified but Openshift has not been detected!");
+                        throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
                     }
-                    // Openshift services
+                    // OpenShift services
                     ret = new OpenshiftBuildService((OpenShiftClient) client, log, JKubeServiceHub.this);
                 } else {
                     // Kubernetes services

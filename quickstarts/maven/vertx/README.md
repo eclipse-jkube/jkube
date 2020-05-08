@@ -8,7 +8,7 @@ run minishift/minikube to test this application by using following command.
 
 
 
-#### For Openshift
+#### For OpenShift
 ```
 minishift start
 ```
@@ -22,7 +22,7 @@ mvn clean oc:resource -Popenshift
 mvn package oc:build -Popenshift
 ```
 
- Below command will deploy your application on Openshift cluster.
+ Below command will deploy your application on OpenShift cluster.
 ```
 mvn oc:deploy -Popenshift
 ```
@@ -42,7 +42,7 @@ mvn clean k8s:resource -Pkubernetes
 mvn package k8s:build -Pkubernetes
 ```
 
- Below command will deploy your application on Openshift cluster.
+ Below command will deploy your application on OpenShift cluster.
 ```
 mvn k8s:deploy -Pkubernetes
 ```

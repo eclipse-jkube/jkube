@@ -24,7 +24,7 @@
   <packaging>war</packaging>
 
   <properties>
-    <jkube.mode>kubernetes</jkube.mode>
+    <jkube.build.strategy>docker</jkube.build.strategy>
     <jkube.version>${project.version}</jkube.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -60,7 +60,6 @@
         <version>${jkube.version}</version>
         <configuration>
             <mode>openshift</mode>
-            <buildStrategy>docker</buildStrategy>
             <verbose>true</verbose>
         </configuration>
       </plugin>

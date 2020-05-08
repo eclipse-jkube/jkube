@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * This adds a `image.openshift.io/triggers` tag to all kubernetes resources in order to make them run on Openshift when using ImageStreams.
+ * This adds a `image.openshift.io/triggers` tag to all kubernetes resources in order to make them run on OpenShift when using ImageStreams.
  *
  * @author nicola
  */

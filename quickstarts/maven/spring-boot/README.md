@@ -9,7 +9,7 @@ run minishift/minikube to test this application by using following command.
 
 
 
-#### For Openshift
+#### For OpenShift
 ```
 minishift start
 ```
@@ -23,7 +23,7 @@ Now start S2I build  by hitting the build goal.
 mvn package oc:build -Popenshift
 ```
 
-Below command will deploy your application on Openshift cluster.
+Below command will deploy your application on OpenShift cluster.
 ```
 mvn oc:deploy -Popenshift
 ```
@@ -43,7 +43,7 @@ Now start docker build  by hitting the build goal.
 mvn package k8s:build -Pkubernetes
 ```
 
-Below command will deploy your application on Openshift cluster.
+Below command will deploy your application on OpenShift cluster.
 ```
 mvn k8s:deploy -Pkubernetes
 ```

@@ -2,16 +2,28 @@
 [[jkube:build]]
 == *{goal-prefix}:build*
 
-This goal is for building Docker images. Images can be built in two different ways depending on the `mode` configuration (controlled by the `jkube.mode` property).
-By default the mode is set to `auto`. In this case the plugin tries to detect which kind of build should be performed by contacting the API server. If this fails or if no cluster access is configured e.g. with `oc login` then the mode is set to `kubernetes` in which case a standard Docker build is performed. It can also be forced to `openshift` to perform an OpenShift build.
+This goal is for building Docker images.
+
+ifeval::["{goal-prefix}" == "oc"]
+Images can be built in two different ways depending on the `mode` configuration (controlled by the `jkube.mode`
+property).
+By default the mode is set to `auto`. In this case the plugin tries to detect which kind of build should be performed by
+contacting the API server. If this fails or if no cluster access is configured e.g. with `oc login` then the mode is set
+to `kubernetes` in which case a standard Docker build is performed. It can also be forced to `openshift` to perform an
+OpenShift build.
+endif::[]
 
 [[build-kubernetes]]
 === Kubernetes Build
 
-If the mode is set to `kubernetes` then a normal Docker build is performed. The connection configuration to access the Docker daemon is described in <<access-configuration, Access Configuration>>.
+If the mode is set to `kubernetes` then a normal Docker build is performed. The connection configuration to access the
+Docker daemon is described in <<access-configuration, Access Configuration>>.
 
-In order to make the generated images available to the Kubernetes cluster the generated images need to be pushed to a registry with the goal <<jkube:push>>. This is not necessary for single node clusters, though as there is no need to distribute images.
+In order to make the generated images available to the Kubernetes cluster the generated images need to be pushed to a
+registry with the goal <<jkube:push>>. This is not necessary for single node clusters, though as there is no need to
+distribute images.
 
+ifeval::["{goal-prefix}" == "oc"]
 [[build-openshift]]
 === OpenShift Build
 
@@ -50,11 +62,13 @@ The configuration consists of two parts:
 Many of the options below are relevant for the <<build-kubernetes, Kubernetes Workflow>> or the <<build-openshift, OpenShift Workflow>> with Docker builds as they influence how the Docker image is build.
 
 For an S2I binary build, on the other hand, the most relevant section is the <<build-assembly, Assembly>> one because the build depends on which buider/base image is used and how it interprets the content of the uploaded `docker.tar`.
+endif::[]
 
 [[build-goal-configuration]]
 === Configuration
 
-The following sections describe the usual configuration, which is similar to the build configuration used in the https://dmp.jkube.io[docker-maven-plugin].
+The following sections describe the usual configuration, which is similar to the build configuration used in the
+ https://dmp.fabric8.io[docker-maven-plugin].
 
 In addition a more automatic way for creating predefined build configuration can be performed with so called <<generators, Generators>>. Generators are very flexible and can be easily created. These are described in an extra <<generators, section>>.
 
@@ -94,6 +108,7 @@ a| If the effective <<build-mode,mode>> is `openshift` then this option decides 
 The default is `none`. If you provide the property without value then `all` is assumed, so everything gets recreated.
 | `jkube.build.recreate`
 
+ifeval::["{goal-prefix}" == "oc"]
 | *buildStrategy*
 a| If the effective <<build-mode,mode>> is `openshift` then this option sets the build strategy. This can be:
 
@@ -102,6 +117,7 @@ a| If the effective <<build-mode,mode>> is `openshift` then this option sets the
 
 By default S2I is used.
 | `jkube.build.strategy`
+endif::[]
 
 |*forcePull*
 |
@@ -143,6 +159,7 @@ the URL is:
 | Docker machine configuration. See <<docker-machine, Docker Machine>> for possible values
 |
 
+ifeval::["{goal-prefix}" == "oc"]
 | [[build-mode]] *mode*
 a| The build mode which can be
 
@@ -152,6 +169,7 @@ a| The build mode which can be
 
 `auto` is the default. (_Because of technical reasons, "kubernetes" is currently the default, but will change to "auto" eventually_)
 | `jkube.mode`
+endif::[]
 
 | *maxConnections*
 | Number of parallel connections are allowed to be opened to the Docker Host. For parsing log output, a connection needs to be kept open (as well for the wait features), so don't put that number to low. Default is 100 which should be suitable for most of the cases.
@@ -173,11 +191,14 @@ a| The build mode which can be
 | Profile to which contains enricher and generators configuration. See <<profiles,Profiles>> for details.
 | `jkube.profile`
 
+ifeval::["{goal-prefix}" == "oc"]
 | *pullSecret*
-| The name to use for naming pullSecret to be created to pull the base image in case pulling from a private registry which requires authentication for Openshift.
+| The name to use for naming pullSecret to be created to pull the base image in case pulling from a private registry
+   which requires authentication for OpenShift.
 
   The default value for pull registry will be picked from "docker.pull.registry/docker.registry".
 | `jkube.build.pullSecret`
+endif::[]
 
 | *registry*
 | Specify globally a registry to use for pulling and pushing images. See <<registry,Registry handling>> for details.

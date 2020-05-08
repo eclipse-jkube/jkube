@@ -78,7 +78,7 @@ public class WebAppGenerator extends BaseGenerator {
             !prePackagePhase) {
             throw new IllegalArgumentException("S2I not yet supported for the webapp-generator. Use -Djkube.mode=kubernetes or " +
                                                "-Djkube.build.strategy=docker for OpenShift mode. Please refer to the reference manual at " +
-                                               "https://maven.jkube.io for details about build modes.");
+                                               "https://www.eclipse.org/jkube/docs for details about build modes.");
         }
 
         // Late initialization to avoid unnecessary directory scanning
