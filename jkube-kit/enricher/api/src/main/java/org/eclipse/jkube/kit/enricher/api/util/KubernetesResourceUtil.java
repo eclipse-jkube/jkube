@@ -125,7 +125,7 @@ public class KubernetesResourceUtil {
      * Read all Kubernetes resource fragments from a directory and create a {@link KubernetesListBuilder} which
      * can be adapted later.
      *
-     * @param platformMode platform whether it's Kubernetes/Openshift
+     * @param platformMode platform whether it's Kubernetes/OpenShift
      * @param apiVersions the api versions to use
      * @param defaultName the default name to use when none is given
      * @param resourceFiles files to add.
@@ -157,7 +157,7 @@ public class KubernetesResourceUtil {
      *     <li>apiVersion - API version (given as parameter to this method)</li>
      * </ul>
      *
-     * @param platformMode Platform whether it's Kubernetes/Openshift
+     * @param platformMode Platform whether it's Kubernetes/OpenShift
      * @param apiVersions the API versions to add if not given.
      * @param file file to read, whose name must match {@link #FILENAME_PATTERN}.  @return map holding the fragment
      * @param appName resource name specifying resources belonging to this application

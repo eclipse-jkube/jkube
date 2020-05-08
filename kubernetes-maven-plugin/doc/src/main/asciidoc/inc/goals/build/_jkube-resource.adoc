@@ -275,7 +275,7 @@ ifeval::["{goal-prefix}" == "oc"]
 | `jkube.openshift.imageChangeTrigger`
 
 | *trimImageInContainerSpec*
-| If set to true it would set the container image reference to "", this is done to handle weird behavior of Openshift 3.7 in which subsequent rollouts lead to ImagePullErr. Defaults to `false`
+| If set to true it would set the container image reference to "", this is done to handle weird behavior of OpenShift 3.7 in which subsequent rollouts lead to ImagePullErr. Defaults to `false`
 | `jkube.openshift.trimImageInContainerSpec`
 
 | *enrichAllWithImageChangeTrigger*

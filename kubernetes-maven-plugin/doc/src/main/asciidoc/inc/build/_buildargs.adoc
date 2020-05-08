@@ -12,4 +12,6 @@ useful when using predefined Docker arguments for setting proxies transparently.
   <docker.buildArg.myBuildArg>myValue</docker.buildArg.myBuildArg>
 ----
 
-Please note that the system property setting will always override the project property. Also note that for all properties which are not Docker https://docs.docker.com/engine/reference/builder/#arg[predefined] properties, the external Dockerfile must contain an `ARGS` instruction.
+Please note that the system property setting will always override the project property. Also note that for all
+properties which are not Docker https://docs.docker.com/engine/reference/builder/#arg[predefined] properties, the
+external Dockerfile must contain an `ARGS` instruction.

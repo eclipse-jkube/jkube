@@ -33,7 +33,7 @@ for running a single test.
   <artifactId>openshift-maven-plugin-it</artifactId>
   <packaging>jar</packaging>
 
-  <name>Openshift Maven Plugin :: Integration Tests</name>
+  <name>OpenShift Maven Plugin :: Integration Tests</name>
 
   <properties>
     <jkube.version>${project.version}</jkube.version>

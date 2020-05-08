@@ -28,7 +28,7 @@ Usage:
 * Added Webapp Wildfly maven quickstart
 * Fix #171: OpenShift pull secret not picked up without registry auth configuration
 * Fix #171: Customized Quarkus application quick start
-* Fix #101: Removed Openshift specific functionality from Kubernetes Maven Plugin
+* Fix #101: Removed OpenShift specific functionality from Kubernetes Maven Plugin
 * Fix #178: Bump kubernetes-client from 4.9.1 to 4.10.1
 
 ### 1.0.0-alpha-2 (2020-04-24)

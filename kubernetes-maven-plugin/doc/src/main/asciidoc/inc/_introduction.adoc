@@ -27,7 +27,7 @@ Depending on the operational mode, for building the actual image either a Docker
 
 A special <<jkube:watch>> goal allows for reacting to code changes to automatically recreate images or copy new artifacts into running containers.
 
-These image related features are inherited from the https://github.com/jkubeio/docker-maven-plugin[jkubeio/docker-maven-plugin] which is part of this plugin.
+These image related features are inherited from the https://github.com/fabric8io/docker-maven-plugin[jkubeio/docker-maven-plugin] which is part of this plugin.
 
 [[resource-descriptors]]
 == {cluster} Resources
@@ -45,7 +45,7 @@ As mentioned already there are three levels of configuration:
 * *Zero-Config* mode makes some very opinionated decisions based on what is present in the pom.xml like what base image to use or which ports to expose.
 This is great for starting up things and for keeping quickstart applications small and tidy.
 
-* *XML plugin configuration* mode is similar to what https://jkubeio.github.io/docker-maven-plugin/#example[docker-maven-plugin] provides.
+* *XML plugin configuration* mode is similar to what https://dmp.fabric8.io/#example[docker-maven-plugin] provides.
 This allows for type-safe configuration with IDE support, but only a subset of possible resource descriptor features is provided.
 
 * *Kubernetes &amp; OpenShift resource fragments* are user provided YAML files that can be _enriched_ by the plugin. This allows expert users to use a plain configuration file with all their capabilities, but also to add project specific build information and avoid boilerplate code.
@@ -62,7 +62,7 @@ The following table gives an overview of the different models
 | Default <<enrichers, Enrichers>> will create a default _Service_ and _Deployment_ (_DeploymentConfig_ for OpenShift) when no other resource objects are provided. Depending on the image they can detect which port to expose in the service. As with Generators, Enrichers support a limited set of configuration options.
 
 | *XML configuration*
-| {plugin} inherits the XML based configuration for building images from the https://jkubeio.github.io/docker-maven-plugin/#docker:build[docker-maven-plugin] and provides the same functionality. It supports an http://maven.apache.org/components/plugins/maven-assembly-plugin/assembly.html[assembly descriptor] for specifying the content of the Docker image.
+| {plugin} inherits the XML based configuration for building images from the https://dmp.fabric8.io/#docker:build[docker-maven-plugin] and provides the same functionality. It supports an http://maven.apache.org/components/plugins/maven-assembly-plugin/assembly.html[assembly descriptor] for specifying the content of the Docker image.
 | A subset of possible resource objects can be configured with a dedicated XML syntax. With a decent IDE you get autocompletion on most object and inline documentation for the available configuration elements. The provided configuration can be still enhanced by Enhancers which is useful for adding e.g. labels and annotations containing build or other information.
 
 | *Resource Fragments* and *Dockerfiles*
@@ -78,7 +78,9 @@ Let's have a look at some code. The following examples will demonstrate all thre
 [[zero-config]]
 === Zero-Config
 
-This minimal but full working example `pom.xml` shows how a simple spring boot application can be dockerized and prepared for Kubernetes. The full example can be found in directory https://github.com/jkubeio/kubernetes-maven-plugin/tree/master/samples/zero-config[samples/zero-config].
+This minimal but full working example `pom.xml` shows how a simple spring boot application can be dockerized and
+prepared for Kubernetes. The full example can be found in directory
+https://github.com/eclipse/jkube/tree/master/quickstarts/maven/zero-config[quickstarts/maven/zero-config].
 
 .Example
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
@@ -126,8 +128,11 @@ This minimal but full working example `pom.xml` shows how a simple spring boot a
 
 This setup make some opinionated decisions for you:
 
-* As base image https://github.com/fabric8io-images/java/tree/master/images/jboss/openjdk8/jdk[jkube/java-jboss-openjdk8-jdk] is chosen which enables https://www.jolokia.org[Jolokia] and https://github.com/prometheus/jmx_exporter[jmx_exporter]. It also comes with a sophisticated https://github.com/jkubeio-images/run-java-sh[startup script].
-* It will create a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] and a http://kubernetes.io/docs/user-guide/services/[Service] as resource objects
+* As base image https://github.com/fabric8io-images/java/tree/master/images/jboss/openjdk8/jdk[jkube/java-jboss-openjdk8-jdk]
+  is chosen which enables https://www.jolokia.org[Jolokia] and https://github.com/prometheus/jmx_exporter[jmx_exporter].
+  It also comes with a sophisticated https://github.com/jkubeio-images/run-java-sh[startup script].
+* It will create a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] and a
+  http://kubernetes.io/docs/user-guide/services/[Service] as resource objects
 * It exports port 8080 as the application service port (and 8778 and 9779 for Jolokia and jmx_exporter access, respectively)
 
 These choices can be influenced by configuration options as described in <<generator-spring-boot,Spring Boot Generator>>.
@@ -139,7 +144,10 @@ To start the Docker image build, you simply run
 mvn package {goal-prefix}:build
 ----
 
-This will create the Docker image against a running Docker daemon (which must be accessible either via Unix Socket or with the URL set in `DOCKER_HOST`). Alternatively, when connected to an OpenShift cluster (or using the `openshift` <<build-mode,mode>> explicitly), then a Docker build will be performed on OpenShift which at the end creates an https://docs.openshift.com/enterprise/3.1/architecture/core_concepts/builds_and_image_streams.html[ImageStream].
+This will create the Docker image against a running Docker daemon (which must be accessible either via Unix Socket or
+with the URL set in `DOCKER_HOST`). Alternatively, when connected to an OpenShift cluster (or using the `openshift`
+<<build-mode,mode>> explicitly), then a Docker build will be performed on OpenShift which at the end creates an
+https://docs.openshift.com/enterprise/3.1/architecture/core_concepts/builds_and_image_streams.html[ImageStream].
 
 To deploy the resources to the cluster call
 
@@ -200,17 +208,21 @@ If you'd also like to automatically deploy to Kubernetes each time you do a `mvn
 WARNING: XML based configuration is only partially implemented and is not recommended for use right now.
 
 Although the Zero-config mode and its generators can be tweaked with options up to a certain degree, many cases require more flexibility. For such instances, an XML-based plugin configuration can be used, in a way similar to the
-https://jkubeio.github.io/docker-maven-plugin/#configuration[XML configuration] used by `docker-maven-plugin`.
+https://dmp.fabric8.io/#configuration[XML configuration] used by `docker-maven-plugin`.
 
 The plugin configuration can be roughly divided into the following sections:
 
 * Global configuration options are responsible for tuning the behaviour of plugin goals
-* `<images>` defines which Docker <<image-configuration,images>> are used and configured. This section is similar to the https://jkubeio.github.io/docker-maven-plugin/#image-configuration[image configuration] of the `docker-maven-plugin`, except that `<run>` and `<external>` sub-elements are ignored)
+* `<images>` defines which Docker <<image-configuration,images>> are used and configured. This section is similar to the
+   https://dmp.fabric8.io//#image-configuration[image configuration] of the `docker-maven-plugin`, except that `<run>`
+   and `<external>` sub-elements are ignored)
 * `<resource>` defines the resource descriptors for deploying on an OpenShift or Kuberneres cluster.
 * `<generator>` configures <<generators,generators>> which are responsible for creating images. Generators are used as an alternative to a dedicated `<images>` section.
 * `<enricher>` configures various aspects of <<enrichers,enrichers>> for creating or enhancing resource descriptors.
 
-A working example can be found in the  https://github.com/eclipse/jkube/tree/master/quickstarts/maven/xml-config[samples/xml-config] directory. An extract of the plugin configuration is shown below:
+A working example can be found in the
+https://github.com/eclipse/jkube/tree/master/quickstarts/maven/xml-config[quickstarts/maven/xml-config] directory.
+An extract of the plugin configuration is shown below:
 
 .Example for an XML configuration
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
@@ -277,7 +289,10 @@ The third configuration option is to use an external configuration in form of YA
 
 Note: In order to support simultaneously both OpenShift and Kubernetes, there is currently no way to specify OpenShift-only features this way, though this might change in future releases.
 
-Let's have a look at an example from https://github.com/eclipse/jkube/tree/master/quickstarts/maven/external-resources[quickstarts/maven/external-resources]. This is a plain Spring Boot application, whose images are auto generated like in the <<zero-config, Zero-Config>> case. The resource fragments are in `src/main/jkube`.
+Let's have a look at an example from
+https://github.com/eclipse/jkube/tree/master/quickstarts/maven/external-resources[quickstarts/maven/external-resources].
+This is a plain Spring Boot application, whose images are auto generated like in the <<zero-config, Zero-Config>> case.
+The resource fragments are in `src/main/jkube`.
 
 .Example fragment "deployment.yml"
 [source,yaml,indent=0,subs="verbatim,quotes,attributes"]

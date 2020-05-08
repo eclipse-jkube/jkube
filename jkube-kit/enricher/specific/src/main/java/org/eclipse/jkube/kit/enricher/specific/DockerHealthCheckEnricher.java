@@ -28,7 +28,7 @@ import static org.eclipse.jkube.kit.enricher.api.util.GoTimeUtil.durationSeconds
 
 /**
  * Enrich a container with probes when health checks are defined in the {@code ImageConfiguration} of the docker maven plugin.
- * This enricher could need a change when Dockerfile health checks will be supported natively in Openshift or Kubernetes.
+ * This enricher could need a change when Dockerfile health checks will be supported natively in OpenShift or Kubernetes.
  */
 public class DockerHealthCheckEnricher extends AbstractHealthCheckEnricher {
 

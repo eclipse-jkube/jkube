@@ -42,7 +42,7 @@ import java.util.Set;
 
 /**
  * Validates Kubernetes/OpenShift resource descriptors using JSON schema validation method.
- * For Openshift it adds some some exceptions from JSON schema constraints and ignores some validation errors.
+ * For OpenShift it adds some some exceptions from JSON schema constraints and ignores some validation errors.
  */
 
 public class ResourceValidator {

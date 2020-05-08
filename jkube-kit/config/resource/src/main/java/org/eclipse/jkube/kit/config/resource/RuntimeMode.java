@@ -19,7 +19,7 @@ import java.util.Properties;
 
 
 /**
- * Mode on how to build/deploy resources onto Kubernetes/Openshift cluster.
+ * Mode on how to build/deploy resources onto Kubernetes/OpenShift cluster.
  * It can be provided by user as a parameter, otherwise it would be
  * automatically detected by plugin via querying cluster.
  *
@@ -31,14 +31,14 @@ public enum RuntimeMode {
     /**
      * Build Docker images and use plain Deployments for deployment
      * onto cluster. It can be used both on vanilla Kubernetes and
-     * Openshift.
+     * OpenShift.
      */
     kubernetes(false, "Kubernetes"),
 
     /**
      * Use special OpenShift features like BuildConfigs, DeploymentConfigs
      * ImageStreams and S2I builds while deploying onto cluster. It can be
-     * used only when on Openshift.
+     * used only when on OpenShift.
      */
     openshift(false, "OpenShift"),
 
