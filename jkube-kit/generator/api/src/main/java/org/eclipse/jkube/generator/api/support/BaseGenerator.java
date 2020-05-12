@@ -117,7 +117,7 @@ public abstract class BaseGenerator implements Generator {
      * @param builder for the build image configuration to add the from to.
      */
     protected void addFrom(BuildConfiguration.BuildConfigurationBuilder builder) {
-        String fromMode = getConfigWithFallback(Config.fromMode, "jkube.generator.fromMode", getFromModeDefault(context.getRuntimeMode()));
+        String fromMode = getConfigWithFallback(Config.fromMode, "jkube.generator.fromMode", getFromModeDefault());
         String from = getConfigWithFallback(Config.from, "jkube.generator.from", null);
         if ("docker".equalsIgnoreCase(fromMode)) {
             String fromImage = from;
@@ -160,8 +160,8 @@ public abstract class BaseGenerator implements Generator {
     }
 
     // Use "istag" as default for "redhat" versions of this plugin
-    private String getFromModeDefault(RuntimeMode mode) {
-        if (mode == RuntimeMode.openshift && fromSelector != null && fromSelector.isRedHat()) {
+    private String getFromModeDefault() {
+        if (context.getRuntimeMode() == RuntimeMode.openshift && fromSelector != null && fromSelector.isRedHat()) {
             return "istag";
         } else {
             return "docker";
@@ -174,7 +174,7 @@ public abstract class BaseGenerator implements Generator {
      * @return Docker image name which is never null
      */
     protected String getImageName() {
-        if (RuntimeMode.isOpenShiftMode(getProject().getProperties())) {
+        if (getContext().getRuntimeMode() == RuntimeMode.openshift) {
             return getConfigWithFallback(Config.name, "jkube.generator.name", "%a:%l");
         } else {
             return getConfigWithFallback(Config.name, "jkube.generator.name", "%g/%a:%l");
@@ -188,11 +188,11 @@ public abstract class BaseGenerator implements Generator {
      * @return The docker registry if configured
      */
     protected String getRegistry() {
-        if (!RuntimeMode.isOpenShiftMode(getProject().getProperties())) {
-            return getConfigWithFallback(Config.registry, "jkube.generator.registry", null);
+        if (getContext().getRuntimeMode() == RuntimeMode.openshift &&
+            getContext().getStrategy() == OpenShiftBuildStrategy.s2i) {
+            return null;
         }
-
-        return null;
+        return getConfigWithFallback(Config.registry, "jkube.generator.registry", null);
     }
 
     /**
