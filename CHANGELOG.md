@@ -23,6 +23,7 @@ Usage:
 ### 1.0.0-alpha-SNAPSHOT
 * Fix #182: Assembly is never null
 * Fix #198: Wildfly works in OpenShift with S2I binary build (Docker)
+* Fix : BaseGenerator retrieves runtime mode from context (not from missing properties)
 
 ### 1.0.0-alpha-3 (2020-05-06)
 * Fix #167: Add CMD for wildfly based applications
