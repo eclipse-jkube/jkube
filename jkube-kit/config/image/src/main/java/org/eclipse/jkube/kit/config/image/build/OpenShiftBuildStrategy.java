@@ -32,7 +32,7 @@ public enum OpenShiftBuildStrategy {
      */
     docker("Docker");
 
-    // Source strategy elemens
+    // Source strategy elements
     public enum SourceStrategy {
         kind,
         namespace,

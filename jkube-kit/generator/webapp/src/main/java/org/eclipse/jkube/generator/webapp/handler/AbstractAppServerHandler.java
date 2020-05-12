@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.DefaultImageLookup;
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.webapp.AppServerHandler;
 import org.eclipse.jkube.kit.common.JavaProject;
 
@@ -29,11 +30,11 @@ import org.eclipse.jkube.kit.common.JavaProject;
 public abstract class AbstractAppServerHandler implements AppServerHandler {
 
     protected final DefaultImageLookup imageLookup;
-    protected final JavaProject project;
+    protected final GeneratorContext generatorContext;
     private final String name;
 
-    protected AbstractAppServerHandler(String name, JavaProject project) {
-        this.project = project;
+    protected AbstractAppServerHandler(String name, GeneratorContext generatorContext) {
+        this.generatorContext = generatorContext;
         this.name = name;
         this.imageLookup = new DefaultImageLookup(this.getClass());
     }
@@ -43,6 +44,10 @@ public abstract class AbstractAppServerHandler implements AppServerHandler {
         return name;
     }
 
+    protected JavaProject getProject() {
+        return generatorContext.getProject();
+    }
+
     /**
      * Scan the project's output directory for certain files.
      *
@@ -50,8 +55,8 @@ public abstract class AbstractAppServerHandler implements AppServerHandler {
      * @return list of files found
      */
     protected String[] scanFiles(String... patterns) throws IOException {
-        if (project.getBuildDirectory().exists()) {
-            try (Stream<Path> fileStream = Files.walk(project.getBuildDirectory().toPath())) {
+        if (getProject().getBuildDirectory().exists()) {
+            try (Stream<Path> fileStream = Files.walk(getProject().getBuildDirectory().toPath())) {
                 return fileStream
                     .filter(path -> {
                         for (String pattern : patterns) {
