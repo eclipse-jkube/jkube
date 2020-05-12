@@ -73,18 +73,19 @@ public class WebAppGenerator extends BaseGenerator {
 
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
+        final AppServerHandler handler = getAppServerHandler(getContext());
         if (getContext().getRuntimeMode() == RuntimeMode.openshift &&
             getContext().getStrategy() == OpenShiftBuildStrategy.s2i &&
-            !prePackagePhase) {
+            !prePackagePhase &&
+            !handler.supportsS2iBuild()
+        ) {
             throw new IllegalArgumentException("S2I not yet supported for the webapp-generator. Use -Djkube.mode=kubernetes or " +
                                                "-Djkube.build.strategy=docker for OpenShift mode. Please refer to the reference manual at " +
                                                "https://www.eclipse.org/jkube/docs for details about build modes.");
         }
 
-        // Late initialization to avoid unnecessary directory scanning
-        AppServerHandler handler = getAppServerHandler(getContext());
 
-        log.info("Using %s as base image for webapp",handler.getFrom());
+        log.info("Using %s as base image for webapp", handler.getFrom());
 
         final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
 
@@ -94,6 +95,8 @@ public class WebAppGenerator extends BaseGenerator {
             .ports(handler.exposedPorts())
             .cmd(Arguments.builder().shell(getDockerRunCommand(handler)).build())
             .env(getEnv(handler));
+
+        handler.runCmds().forEach(buildBuilder::runCmd);
 
         addSchemaLabels(buildBuilder, log);
         if (!prePackagePhase) {
@@ -115,7 +118,7 @@ public class WebAppGenerator extends BaseGenerator {
             // If a base image is provided use this exclusively and dont do a custom lookup
             return createCustomAppServerHandler(from);
         } else {
-            return new AppServerDetector(context.getProject()).detect(getConfig(Config.server));
+            return new AppServerDetector(context).detect(getConfig(Config.server));
         }
     }
 
@@ -157,17 +160,14 @@ public class WebAppGenerator extends BaseGenerator {
     }
 
     private String getDockerRunCommand(AppServerHandler handler) {
-        String cmd = getConfig(Config.cmd);
-        return cmd != null ? cmd : handler.getCommand();
+        return getConfig(Config.cmd, handler.getCommand());
     }
 
     private String getDeploymentDir(AppServerHandler handler) {
-        String deploymentDir = getConfig(Config.targetDir);
-        return deploymentDir != null ? deploymentDir : handler.getDeploymentDir();
+        return getConfig(Config.targetDir, handler.getDeploymentDir());
     }
 
     private String getUser(AppServerHandler handler) {
-        String user = getConfig(Config.user);
-        return user != null ? user : handler.getUser();
+        return getConfig(Config.user, handler.getUser());
     }
 }

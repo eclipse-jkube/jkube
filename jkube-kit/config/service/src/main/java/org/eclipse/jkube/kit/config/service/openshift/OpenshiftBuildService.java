@@ -143,7 +143,7 @@ public class OpenshiftBuildService implements BuildService {
             throw e;
         } catch (Exception ex) {
             // Log additional details in case of any IOException
-            if (ex != null && ex.getCause() instanceof IOException) {
+            if (ex.getCause() instanceof IOException) {
                 log.error("Build for %s failed: %s", buildName, ex.getCause().getMessage());
                 logBuildFailure(client, buildName);
             } else {
@@ -325,29 +325,27 @@ public class OpenshiftBuildService implements BuildService {
     }
 
     private BuildStrategy createBuildStrategy(ImageConfiguration imageConfig, OpenShiftBuildStrategy osBuildStrategy, String openshiftPullSecret) {
+        final BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+        final Map<String, String> fromExt = buildConfig.getFromExt();
+        final String fromName;
+        if(buildConfig.isDockerFileMode()) {
+            fromName = extractBaseFromDockerfile(buildConfig, jKubeServiceHub.getConfiguration());
+        } else {
+            fromName = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.name, buildConfig.getFrom());
+        }
+        final String fromKind = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.kind, "DockerImage");
+        final String fromNamespace = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.namespace, "ImageStreamTag".equals(fromKind) ? "openshift" : null);
         if (osBuildStrategy == OpenShiftBuildStrategy.docker) {
-            BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
-            Map<String, String> fromExt = buildConfig.getFromExt();
-            String fromName, fromKind, fromNamespace;
-
-            if(buildConfig.isDockerFileMode()) {
-                fromName = extractBaseFromDockerfile(buildConfig, jKubeServiceHub.getConfiguration());
-            } else {
-                fromName = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.name, buildConfig.getFrom());
-            }
-            fromKind = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.kind, "DockerImage");
-            fromNamespace = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.namespace, "ImageStreamTag".equals(fromKind) ? "openshift" : null);
-
             BuildStrategy buildStrategy = new BuildStrategyBuilder()
                     .withType("Docker")
                     .withNewDockerStrategy()
-                    .withNewFrom()
-                    .withKind(fromKind)
-                    .withName(fromName)
-                    .withNamespace(StringUtils.isEmpty(fromNamespace) ? null : fromNamespace)
-                    .endFrom()
-                    .withEnv(checkForEnv(imageConfig))
-                    .withNoCache(checkForNocache(imageConfig))
+                        .withNewFrom()
+                            .withKind(fromKind)
+                            .withName(fromName)
+                            .withNamespace(StringUtils.isEmpty(fromNamespace) ? null : fromNamespace)
+                        .endFrom()
+                        .withEnv(checkForEnv(imageConfig))
+                        .withNoCache(checkForNocache(imageConfig))
                     .endDockerStrategy().build();
 
             if (openshiftPullSecret != null) {
@@ -355,30 +353,17 @@ public class OpenshiftBuildService implements BuildService {
                 .withName(openshiftPullSecret)
                 .build());
             }
-
             return buildStrategy;
         } else if (osBuildStrategy == OpenShiftBuildStrategy.s2i) {
-            BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
-            Map<String, String> fromExt = buildConfig.getFromExt();
-            String fromName, fromKind, fromNamespace;
-
-            if(buildConfig.isDockerFileMode()) {
-                fromName = extractBaseFromDockerfile(buildConfig, jKubeServiceHub.getConfiguration());
-            } else {
-                fromName = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.name, buildConfig.getFrom());
-            }
-            fromKind = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.kind, "DockerImage");
-            fromNamespace = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.namespace, "ImageStreamTag".equals(fromKind) ? "openshift" : null);
-
             BuildStrategy buildStrategy = new BuildStrategyBuilder()
                     .withType("Source")
                     .withNewSourceStrategy()
-                    .withNewFrom()
-                    .withKind(fromKind)
-                    .withName(fromName)
-                    .withNamespace(StringUtils.isEmpty(fromNamespace) ? null : fromNamespace)
-                    .endFrom()
-                    .withForcePull(config.isForcePull())
+                        .withNewFrom()
+                            .withKind(fromKind)
+                            .withName(fromName)
+                            .withNamespace(StringUtils.isEmpty(fromNamespace) ? null : fromNamespace)
+                        .endFrom()
+                        .withForcePull(config.isForcePull())
                     .endSourceStrategy()
                     .build();
             if (openshiftPullSecret != null) {
@@ -386,7 +371,6 @@ public class OpenshiftBuildService implements BuildService {
                 .withName(openshiftPullSecret)
                 .build());
             }
-
             return buildStrategy;
 
         } else {

@@ -98,7 +98,7 @@
     <!-- Servlet container images -->
     <version.image.tomcat.upstream>1.2.1</version.image.tomcat.upstream>
     <version.image.jetty.upstream>1.5.1</version.image.jetty.upstream>
-    <version.image.wildfly.upstream>10.1.0.Final</version.image.wildfly.upstream>
+    <version.image.wildfly.upstream>19.0.0.Final</version.image.wildfly.upstream>
 
     <!-- ============================================= -->
     <!-- Default images used in the default generators. Please note that the generators make some assumption about

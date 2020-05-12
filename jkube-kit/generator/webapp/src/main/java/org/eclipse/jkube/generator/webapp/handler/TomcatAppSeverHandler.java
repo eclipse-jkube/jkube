@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 /**
@@ -29,16 +29,16 @@ public class TomcatAppSeverHandler extends AbstractAppServerHandler {
 
     private static final String TOMCAT_GROUPID = "org.apache.tomcat.maven";
 
-    public TomcatAppSeverHandler(JavaProject project) {
-        super("tomcat", project);
+    public TomcatAppSeverHandler(GeneratorContext context) {
+        super("tomcat", context);
     }
 
     @Override
     public boolean isApplicable() {
         try {
             return hasOneOf("**/META-INF/context.xml") ||
-                    JKubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat6-maven-plugin") ||
-                    JKubeProjectUtil.hasPlugin(project, TOMCAT_GROUPID, "tomcat7-maven-plugin");
+                    JKubeProjectUtil.hasPlugin(getProject(), TOMCAT_GROUPID, "tomcat6-maven-plugin") ||
+                    JKubeProjectUtil.hasPlugin(getProject(), TOMCAT_GROUPID, "tomcat7-maven-plugin");
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to scan output directory: ", exception);
         }

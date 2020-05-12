@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.generator.webapp;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,4 +70,17 @@ public interface AppServerHandler {
      * @return list of ports to expos
      */
     List<String> exposedPorts();
+
+    /**
+     * A list of commands to run during image build phase.
+     *
+     * @return the list of commands to run
+     */
+    default List<String> runCmds() {
+        return Collections.emptyList();
+    }
+
+    default boolean supportsS2iBuild() {
+        return false;
+    }
 }
