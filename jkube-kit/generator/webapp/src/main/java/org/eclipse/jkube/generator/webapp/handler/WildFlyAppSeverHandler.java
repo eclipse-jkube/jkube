@@ -16,9 +16,12 @@ package org.eclipse.jkube.generator.webapp.handler;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 /**
@@ -28,10 +31,14 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
  */
 public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
-  private static final String PROPERTY_IMAGE_NAME = "wildfly.upstream.docker";
+  private static final String HANDLER_NAME = "wildfly";
+  private static final String PROPERTY_IMAGE_NAME = HANDLER_NAME;
+
+  private final FromSelector fromSelector;
 
   public WildFlyAppSeverHandler(GeneratorContext context) {
-    super("wildfly", context);
+    super(HANDLER_NAME, context);
+    this.fromSelector = new FromSelector.NoRedHatSupportFromSelector(context, PROPERTY_IMAGE_NAME);
   }
 
   @Override
@@ -63,7 +70,7 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
   @Override
   public String getFrom() {
-    return imageLookup.getImageName(PROPERTY_IMAGE_NAME);
+    return fromSelector.getFrom();
   }
 
   @Override
@@ -71,15 +78,28 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
     return Collections.singletonList("8080");
   }
 
-    @Override
-    public String getDeploymentDir() {
-        return "/opt/jboss/wildfly/standalone/deployments";
-    }
+  @Override
+  public String getDeploymentDir() {
+    // Applicable for Docker image - ignored for s2i
+    return "/opt/jboss/wildfly/standalone/deployments";
+  }
 
-    @Override
-    public String getCommand() {
-        return "/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0";
-    }
+  @Override
+  public String getCommand() {
+    // Applicable for Docker image - ignored for s2i
+    return "/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0";
+  }
+
+  @Override
+  public Map<String, String> getEnv() {
+    // Applicable for s2i image - ignored for Docker
+    return Collections.singletonMap("GALLEON_PROVISION_LAYERS", "cloud-server,web-clustering");
+  }
+
+  @Override
+  public String getAssemblyName() {
+    return "deployments";
+  }
 
   @Override
   public String getUser() {
@@ -88,13 +108,18 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
   @Override
   public List<String> runCmds() {
-    // OpenShift runs pods in a restricted security context (SCC) which randomizes the user.
-    // Make required runtime directories writeable for all users
-    if (generatorContext.getRuntimeMode() == RuntimeMode.openshift) {
+    if (generatorContext.getRuntimeMode() == RuntimeMode.openshift
+        && generatorContext.getStrategy() == OpenShiftBuildStrategy.docker) {
+      // OpenShift runs pods in a restricted security context (SCC) which randomizes the user.
+      // Make required runtime directories writeable for all users
       return Collections.singletonList(
-          "chmod -R a+rw /opt/jboss/wildfly/standalone/"
-      );
+          "chmod -R a+rw /opt/jboss/wildfly/standalone/");
     }
     return super.runCmds();
+  }
+
+  @Override
+  public boolean supportsS2iBuild() {
+    return true;
   }
 }

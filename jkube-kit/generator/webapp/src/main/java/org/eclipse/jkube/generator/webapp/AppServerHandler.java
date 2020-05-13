@@ -15,6 +15,7 @@ package org.eclipse.jkube.generator.webapp;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface encapsulating a certain application handler
@@ -72,14 +73,38 @@ public interface AppServerHandler {
     List<String> exposedPorts();
 
     /**
+     * A Map containing environment variables to add to the Image.
+     *
+     * @return the Map containing environment variables.
+     */
+    default Map<String, String> getEnv() {
+        return Collections.emptyMap();
+    }
+
+    /**
+     * The name for the assembly configuration (will also be the name of the directory where
+     * artifacts are placed for Dockerfile COPY).
+     *
+     * @return the assembly name.
+     */
+    default String getAssemblyName() {
+        return null;
+    }
+
+    /**
      * A list of commands to run during image build phase.
      *
-     * @return the list of commands to run
+     * @return the list of commands to run.
      */
     default List<String> runCmds() {
         return Collections.emptyList();
     }
 
+    /**
+     * If this handler support S2I source builds.
+     *
+     * @return true if the handler supports S2I builds, false otherwise.
+     */
     default boolean supportsS2iBuild() {
         return false;
     }

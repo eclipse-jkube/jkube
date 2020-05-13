@@ -16,7 +16,7 @@ The base images chosen are:
 | | Docker Build | S2I Build
 
 | *Tomcat*
-| `jkube.tomcat-8`
+| `jkube.tomcat-9`
 | ---
 
 | *Jetty*
@@ -25,7 +25,7 @@ The base images chosen are:
 
 | *Wildfly*
 | `jboss/wildfly`
-| ---
+| https://github.com/wildfly/wildfly-s2i[`quay.io/wildfly/wildfly-centos7`]
 |===
 
 [IMPORTANT]

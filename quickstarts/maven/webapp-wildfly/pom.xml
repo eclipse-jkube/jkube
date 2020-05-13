@@ -24,7 +24,6 @@
   <packaging>war</packaging>
 
   <properties>
-    <jkube.build.strategy>docker</jkube.build.strategy>
     <jkube.version>${project.version}</jkube.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
