@@ -98,7 +98,8 @@
     <!-- Servlet container images -->
     <version.image.tomcat.upstream>1.2.1</version.image.tomcat.upstream>
     <version.image.jetty.upstream>1.5.1</version.image.jetty.upstream>
-    <version.image.wildfly.upstream>19.0.0.Final</version.image.wildfly.upstream>
+    <version.image.wildfly.upstream.docker>19.0.0.Final</version.image.wildfly.upstream.docker>
+    <version.image.wildfly.upstream.s2i>19.0</version.image.wildfly.upstream.s2i>
 
     <!-- ============================================= -->
     <!-- Default images used in the default generators. Please note that the generators make some assumption about
@@ -125,7 +126,10 @@
     <!-- webapp -->
     <image.tomcat.upstream>fabric8/tomcat-9:${version.image.tomcat.upstream}</image.tomcat.upstream>
     <image.jetty.upstream>fabric8/jetty-9:${version.image.jetty.upstream}</image.jetty.upstream>
-    <image.wildfly.upstream>jboss/wildfly:${version.image.wildfly.upstream}</image.wildfly.upstream>
+    <image.wildfly.upstream.docker>jboss/wildfly:${version.image.wildfly.upstream.docker}</image.wildfly.upstream.docker>
+    <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
+    <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
+
   </properties>
 
   <dependencyManagement>

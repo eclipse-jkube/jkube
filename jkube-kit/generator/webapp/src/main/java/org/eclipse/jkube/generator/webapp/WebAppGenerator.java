@@ -133,6 +133,7 @@ public class WebAppGenerator extends BaseGenerator {
     protected Map<String, String> getEnv(AppServerHandler handler) {
         Map<String, String> defaultEnv = new HashMap<>();
         defaultEnv.put("DEPLOY_DIR", getDeploymentDir(handler));
+        defaultEnv.putAll(handler.getEnv());
         return defaultEnv;
     }
 
@@ -144,7 +145,10 @@ public class WebAppGenerator extends BaseGenerator {
         getProject().getProperties().setProperty("jkube.generator.webapp.path",path);
         final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
 
-        builder.targetDir(getDeploymentDir(handler)).descriptorRef("webapp");
+        builder
+            .descriptorRef("webapp")
+            .name(handler.getAssemblyName())
+            .targetDir(getDeploymentDir(handler));
 
         String user = getUser(handler);
         if (user != null) {

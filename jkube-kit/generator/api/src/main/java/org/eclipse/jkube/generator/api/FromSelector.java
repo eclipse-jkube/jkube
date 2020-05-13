@@ -32,7 +32,6 @@ import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.So
  * Helper class to encapsulate the selection of a base image
  *
  * @author roland
- * @since 12/08/16
  */
 public abstract class FromSelector {
 
@@ -115,6 +114,36 @@ public abstract class FromSelector {
 
         protected String getIstagFrom() {
             return isRedHat() ? redhatIstag : upstreamIstag;
+        }
+    }
+
+    public static final class NoRedHatSupportFromSelector extends FromSelector {
+
+        private final String upstreamDocker;
+        private final String upstreamS2i;
+        private final String upstreamIstag;
+
+        public NoRedHatSupportFromSelector(GeneratorContext context, String prefix) {
+            super(context);
+            DefaultImageLookup lookup = new DefaultImageLookup(NoRedHatSupportFromSelector.class);
+
+            this.upstreamDocker = lookup.getImageName(prefix + ".upstream.docker");
+            this.upstreamS2i = lookup.getImageName(prefix + ".upstream.s2i");
+            this.upstreamIstag = lookup.getImageName(prefix + ".upstream.istag");
+        }
+
+        @Override
+        protected String getDockerBuildFrom() {
+            return upstreamDocker;
+        }
+
+        @Override
+        protected String getS2iBuildFrom() {
+            return upstreamS2i;
+        }
+
+        protected String getIstagFrom() {
+            return upstreamIstag;
         }
     }
 }

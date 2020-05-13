@@ -20,10 +20,11 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.0.0-alpha-SNAPSHOT
+### 1.0.0-SNAPSHOT
 * Fix #182: Assembly is never null
 * Fix #198: Wildfly works in OpenShift with S2I binary build (Docker)
-* Fix : BaseGenerator retrieves runtime mode from context (not from missing properties)
+* Fix #199: BaseGenerator retrieves runtime mode from context (not from missing properties)
+* Fix #201: Webapp-Wildfly supports S2I source builds too (3 modes Docker, OpenShift-Docker, OpenShift-S2I)
 
 ### 1.0.0-alpha-3 (2020-05-06)
 * Fix #167: Add CMD for wildfly based applications
