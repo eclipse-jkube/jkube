@@ -38,7 +38,6 @@ import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 
 /**
  * @author roland
- * @since 21/09/16
  */
 
 public class JavaExecGenerator extends BaseGenerator {
@@ -170,6 +169,7 @@ public class JavaExecGenerator extends BaseGenerator {
         final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
         builder.targetDir(getConfig(Config.targetDir));
         addAssembly(builder);
+        builder.name("deployments");
         return builder.build();
     }
 

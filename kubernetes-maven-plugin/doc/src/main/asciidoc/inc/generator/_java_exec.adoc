@@ -22,9 +22,9 @@ It will use the following base image by default, but as explained <<generator-op
 | | Docker Build | S2I Build | ImageStream
 
 | *Community*
-| `fabric8/java-jboss-openjdk8-jdk`
-| `fabric8/s2i-java`
-| `fabric8-java`
+| `quay.io/jkube/jkube-java-binary-s2i`
+| `quay.io/jkube/jkube-java-binary-s2i`
+| `jkube-java`
 
 | *Red Hat*
 | `jboss-fuse-6/fis-java-openshift`

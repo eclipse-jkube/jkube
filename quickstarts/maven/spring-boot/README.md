@@ -2,6 +2,11 @@
 
 This is a sample project to use Eclipse JKube plugins.
 
+**Notice:**
+> k8s:watch / oc:watch goal won't work as Spring devtools automatically
+> ignores projects named `spring-boot`, `spring-boot-devtools`, `spring-boot-autoconfigure`, `spring-boot-actuator`, 
+> `and spring-boot-starter`.
+
 ### Steps to use
 
 Make sure that Kubernetes/OpenShift cluster or Minikube/minishift is running. In case, if anything of this is not running, you can

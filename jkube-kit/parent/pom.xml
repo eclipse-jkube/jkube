@@ -77,8 +77,8 @@
     <!-- =======================================================  -->
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
-    <version.image.java.upstream.docker>1.5.6</version.image.java.upstream.docker>
-    <version.image.java.upstream.s2i>3.0-java8</version.image.java.upstream.s2i>
+    <version.image.java.upstream.docker>0.0.1</version.image.java.upstream.docker>
+    <version.image.java.upstream.s2i>0.0.1</version.image.java.upstream.s2i>
 
     <!-- RedHat -->
     <version.image.java.redhat.docker>2.0</version.image.java.redhat.docker>
@@ -106,9 +106,9 @@
          these images (e.g. where the deployment directory is), so don't change them arbitrarily -->
 
     <!-- java (java-exec, spring-boot, wildfly-swarm) -->
-    <image.java.upstream.s2i>fabric8/s2i-java:${version.image.java.upstream.s2i}</image.java.upstream.s2i>
-    <image.java.upstream.docker>fabric8/java-centos-openjdk8-jdk:${version.image.java.upstream.docker}</image.java.upstream.docker>
-    <image.java.upstream.istag>fabric8-java:${version.image.java.upstream.s2i}</image.java.upstream.istag>
+    <image.java.upstream.s2i>quay.io/jkube/jkube-java-binary-s2i:${version.image.java.upstream.s2i}</image.java.upstream.s2i>
+    <image.java.upstream.docker>quay.io/jkube/jkube-java-binary-s2i:${version.image.java.upstream.docker}</image.java.upstream.docker>
+    <image.java.upstream.istag>jkube-java:${version.image.java.upstream.s2i}</image.java.upstream.istag>
 
     <image.java.redhat.s2i>jboss-fuse-6/fis-java-openshift:${version.image.java.redhat.s2i}</image.java.redhat.s2i>
     <image.java.redhat.docker>jboss-fuse-6/fis-java-openshift:${version.image.java.redhat.docker}</image.java.redhat.docker>
