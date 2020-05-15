@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.zip.CRC32;
@@ -45,6 +46,8 @@ import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.apache.commons.io.FileUtils;
 
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
+import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID;
+import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID;
 import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.color;
 
 /**
@@ -273,21 +276,22 @@ public class SpringBootGenerator extends JavaExecGenerator {
     private boolean isSpringBootRepackage() {
         JavaProject project = getProject();
         Plugin plugin = JKubeProjectUtil.getPlugin(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
-        if (plugin != null) {
-            List<String> executions = plugin.getExecutions();
-            if (executions != null) {
-                if (executions.contains("repackage")) {
-                    log.verbose("Using fat jar packaging as the spring boot plugin is using `repackage` goal execution");
-                    return true;
-                }
-            }
+        if (Optional.ofNullable(plugin).map(Plugin::getExecutions).map(e -> e.contains("repackage")).orElse(false)) {
+            log.verbose("Using fat jar packaging as the spring boot plugin is using `repackage` goal execution");
+            return true;
         }
         return false;
     }
 
-    private File getSpringBootDevToolsJar() throws IOException {
-        String version = SpringBootUtil.getSpringBootDevToolsVersion(getProject()).orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
-        return getContext().getArtifactResolver().resolveArtifact(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
+    private File getSpringBootDevToolsJar() {
+        String version = SpringBootUtil.getSpringBootDevToolsVersion(getProject())
+            .orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
+        final File devToolsJar = getContext().getArtifactResolver()
+            .resolveArtifact(SPRING_BOOT_GROUP_ID, SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
+        if (!devToolsJar.exists()) {
+            throw new IllegalArgumentException("devtools need to be included in repacked archive, please set <excludeDevtools> to false in plugin configuration");
+        }
+        return devToolsJar;
     }
 
 }

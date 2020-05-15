@@ -69,6 +69,9 @@ This watcher is enabled by default for all Spring Boot projects. It performs the
 * tails the log of the latest running pod for your application
 * watches the local development build of your Spring Boot based application and then triggers a reload of the application when there are changes
 
+WARNING: Spring devtools automatically ignores projects named `spring-boot`, `spring-boot-devtools`,
+         `spring-boot-autoconfigure`, `spring-boot-actuator`, `and spring-boot-starter`
+
 You can try it on any spring boot application via:
 
 [source, sh, subs="+attributes"]

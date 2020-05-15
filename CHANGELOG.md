@@ -25,6 +25,7 @@ Usage:
 * Fix #198: Wildfly works in OpenShift with S2I binary build (Docker)
 * Fix #199: BaseGenerator retrieves runtime mode from context (not from missing properties)
 * Fix #201: Webapp-Wildfly supports S2I source builds too (3 modes Docker, OpenShift-Docker, OpenShift-S2I)
+* Fix #205: JavaExecGenerator uses jkube/jkube-java-binary-s2i for Docker and S2I builds (#183)
 
 ### 1.0.0-alpha-3 (2020-05-06)
 * Fix #167: Add CMD for wildfly based applications
