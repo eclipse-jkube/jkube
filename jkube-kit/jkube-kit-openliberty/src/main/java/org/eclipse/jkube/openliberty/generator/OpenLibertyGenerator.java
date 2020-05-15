@@ -60,19 +60,12 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
 
     @Override
     protected Map<String, String> getEnv(boolean prePackagePhase) {
-    	Map<String,String> ret = super.getEnv(prePackagePhase);
-    	if ( runnableJarName != null) {
-    		ret.put(LIBERTY_RUNNABLE_JAR, runnableJarName);
-    		ret.put(JAVA_APP_JAR, runnableJarName);
-    	}
-    	return ret;
-    }
-    @Override
-    protected AssemblyConfiguration createAssembly() {
-        final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
-        builder.targetDir(getConfig(Config.targetDir));
-        addAssembly(builder);
-        return builder.build();
+        Map<String, String> ret = super.getEnv(prePackagePhase);
+        if (runnableJarName != null) {
+            ret.put(LIBERTY_RUNNABLE_JAR, runnableJarName);
+            ret.put(JAVA_APP_JAR, runnableJarName);
+        }
+        return ret;
     }
 
     @Override
