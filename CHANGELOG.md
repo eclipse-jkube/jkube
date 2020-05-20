@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.0.0-SNAPSHOT
 * Fix #173: Use OpenShift compliant git/vcs annotations 
+* Fix #187: Provided Dockerfile is always skipped in simple Dockerfile mode
 * Fix #182: Assembly is never null
 * Fix #184: IngressEnricher seems to be broken, Port of fabric8io/fabric8-maven-plugin#1730
 * Fix #198: Wildfly works in OpenShift with S2I binary build (Docker)
