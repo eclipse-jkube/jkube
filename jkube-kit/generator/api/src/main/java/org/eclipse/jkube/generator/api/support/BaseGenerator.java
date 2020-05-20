@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.generator.api.support;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -195,7 +196,13 @@ public abstract class BaseGenerator implements Generator {
     }
 
     protected boolean shouldAddImageConfiguration(List<ImageConfiguration> configs) {
-        return !containsBuildConfiguration(configs) || Configs.asBoolean(getConfig(Config.add));
+        if (isSimpleDockerfileMode()) {
+            return false;
+        }
+        if (!containsBuildConfiguration(configs)) {
+            return true;
+        }
+        return Configs.asBoolean(getConfig(Config.add));
     }
 
     protected String getConfigWithFallback(Config name, String key, String defaultVal) {
@@ -217,6 +224,14 @@ public abstract class BaseGenerator implements Generator {
             if (imageConfig.getBuildConfiguration() != null) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    private boolean isSimpleDockerfileMode() {
+        if (getProject() != null && getProject().getBaseDirectory() != null && getProject().getBaseDirectory().exists()) {
+            File dockerFile = new File(getProject().getBaseDirectory(), "Dockerfile");
+            return dockerFile.exists();
         }
         return false;
     }

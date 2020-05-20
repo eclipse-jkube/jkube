@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.generator.api.support;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +31,9 @@ import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import mockit.Expectations;
 import mockit.Mocked;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -55,6 +59,8 @@ public class BaseGeneratorTest {
     @Mocked
     private ProcessorConfig config;
 
+    @Rule
+    public TemporaryFolder folder= new TemporaryFolder();
 
     @Test
     public void fromAsConfigured() {
@@ -192,10 +198,29 @@ public class BaseGeneratorTest {
             ic2.getBuildConfiguration(); result = null; minTimes = 0;
         }};
         BaseGenerator generator = createGenerator(null);
-        assertTrue(generator.shouldAddImageConfiguration(Collections.<ImageConfiguration>emptyList()));
+        assertTrue(generator.shouldAddImageConfiguration(Collections.emptyList()));
         assertFalse(generator.shouldAddImageConfiguration(Arrays.asList(ic1, ic2)));
-        assertTrue(generator.shouldAddImageConfiguration(Arrays.asList(ic2)));
-        assertFalse(generator.shouldAddImageConfiguration(Arrays.asList(ic1)));
+        assertTrue(generator.shouldAddImageConfiguration(Collections.singletonList(ic2)));
+        assertFalse(generator.shouldAddImageConfiguration(Collections.singletonList(ic1)));
+    }
+
+    @Test
+    public void shouldNotAddDefaultImageInCaseOfSimpleDockerfile() throws IOException {
+        // Given
+        File projectBaseDir = folder.newFolder("test-project-dir");
+        File dockerFile = new File(projectBaseDir, "Dockerfile");
+        boolean isTestDockerfileCreated = dockerFile.createNewFile();
+        new Expectations() {{
+           ctx.getProject(); result = project;
+           project.getBaseDirectory(); result = projectBaseDir;
+        }};
+
+        // When
+        BaseGenerator generator = createGenerator(null);
+
+        // Then
+        assertTrue(isTestDockerfileCreated);
+        assertFalse(generator.shouldAddImageConfiguration(Collections.emptyList()));
     }
 
     @Test
