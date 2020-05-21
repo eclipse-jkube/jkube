@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Singular;
 
 import java.io.File;
 import java.io.Serializable;
@@ -48,6 +49,7 @@ public class Assembly implements Serializable {
      * @param files New list of files for the Assembly.
      * @return The Assembly files.
      */
+    @Singular
     private List<AssemblyFile> files;
     /**
      * List of filesets for the Assembly.
@@ -55,6 +57,7 @@ public class Assembly implements Serializable {
      * @param fileSets New list of filesets for the Assembly.
      * @return The Assembly filesets.
      */
+    @Singular
     private List<AssemblyFileSet> fileSets;
     /**
      * Base directory from which to resolve the Assembly files and filesets.

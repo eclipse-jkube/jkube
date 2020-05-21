@@ -44,20 +44,31 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
   @Override
   public boolean isApplicable() {
     try {
-      return isNotWildflySwarm() && isNotThorntail() &&
-          (hasOneOf("**/WEB-INF/jboss-deployment-structure.xml",
-              "**/META-INF/jboss-deployment-structure.xml",
-              "**/WEB-INF/jboss-web.xml", "**/WEB-INF/ejb-jar.xml",
-              "**/WEB-INF/jboss-ejb3.xml", "**/META-INF/persistence.xml",
-              "**/META-INF/*-jms.xml", "**/WEB-INF/*-jms.xml",
-              "**/META-INF/*-ds.xml", "**/WEB-INF/*-ds.xml",
-              "**/WEB-INF/jboss-ejb-client.xml", "**/META-INF/jbosscmp-jdbc.xml",
-              "**/WEB-INF/jboss-webservices.xml") ||
-              JKubeProjectUtil.hasPlugin(getProject(), "org.jboss.as.plugins", "jboss-as-maven-plugin") ||
-              JKubeProjectUtil.hasPlugin(getProject(), "org.wildfly.plugins", "wildfly-maven-plugin"));
+      return isNotWildflySwarm() && isNotThorntail() && (isWildFlyWebApp() || hasWildFlyPlugin());
     } catch (IOException exception) {
       throw new IllegalStateException("Unable to scan output directory: ", exception);
     }
+  }
+
+  private boolean hasWildFlyPlugin() {
+    return JKubeProjectUtil.hasPlugin(getProject(), "org.jboss.as.plugins", "jboss-as-maven-plugin") ||
+        JKubeProjectUtil.hasPlugin(getProject(), "org.wildfly.plugins", "wildfly-maven-plugin");
+  }
+
+  private boolean isWildFlyWebApp() throws IOException {
+    return hasOneOf("glob:**/WEB-INF/jboss-deployment-structure.xml",
+        "glob:**/META-INF/jboss-deployment-structure.xml",
+        "glob:**/WEB-INF/jboss-web.xml",
+        "glob:**/WEB-INF/ejb-jar.xml",
+        "glob:**/WEB-INF/jboss-ejb3.xml",
+        "glob:**/META-INF/persistence.xml",
+        "glob:**/META-INF/*-jms.xml",
+        "glob:**/WEB-INF/*-jms.xml",
+        "glob:**/META-INF/*-ds.xml",
+        "glob:**/WEB-INF/*-ds.xml",
+        "glob:**/WEB-INF/jboss-ejb-client.xml",
+        "glob:**/META-INF/jbosscmp-jdbc.xml",
+        "glob:**/WEB-INF/jboss-webservices.xml");
   }
 
   private boolean isNotWildflySwarm() {

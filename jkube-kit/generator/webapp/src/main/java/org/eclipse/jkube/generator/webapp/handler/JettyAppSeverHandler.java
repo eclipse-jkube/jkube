@@ -35,8 +35,8 @@ public class JettyAppSeverHandler extends AbstractAppServerHandler {
     @Override
     public boolean isApplicable() {
         try {
-            return hasOneOf("**/WEB-INF/jetty-web.xml",
-                    "**/META-INF/jetty-logging.properties") ||
+            return hasOneOf("glob:**/WEB-INF/jetty-web.xml",
+                    "glob:**/META-INF/jetty-logging.properties") ||
                     JKubeProjectUtil.hasPlugin(getProject(), "org.mortbay.jetty", "jetty-maven-plugin") ||
                     JKubeProjectUtil.hasPlugin(getProject(), "org.eclipse.jetty", "jetty-maven-plugin");
         } catch (IOException exception) {

@@ -56,6 +56,13 @@ public class AssemblyConfiguration implements Serializable {
      * Whether the target directory should be exported.
      */
     private Boolean exportTargetDir;
+    /**
+     * Java Project final artifact will be excluded from the assembly if this flag is set to true.
+     *
+     * @param excludeFinalOutputArtifact set if artifact must be excluded from the assembly.
+     * @return true if artifact must be excluded from the assembly false otherwise.
+     */
+    private boolean excludeFinalOutputArtifact;
     private PermissionMode permissions;
     private AssemblyMode mode;
     private String user;

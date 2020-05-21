@@ -158,13 +158,15 @@ public class DockerAssemblyManager {
             if (finalCustomizer != null) {
                 archiveCustomizers.add(finalCustomizer);
             }
-            archiveCustomizers.add(archiver -> {
-                File finalArtifactFile = JKubeProjectUtil.getFinalOutputArtifact(params.getProject());
-                if (finalArtifactFile != null) {
-                    archiver.includeFile(finalArtifactFile, assemblyConfig.getName() + File.separator + finalArtifactFile.getName());
-                }
-                return archiver;
-            });
+            if (!assemblyConfig.isExcludeFinalOutputArtifact()) {
+                archiveCustomizers.add(archiver -> {
+                    File finalArtifactFile = JKubeProjectUtil.getFinalOutputArtifact(params.getProject());
+                    if (finalArtifactFile != null) {
+                        archiver.includeFile(finalArtifactFile, assemblyConfig.getName() + File.separator + finalArtifactFile.getName());
+                    }
+                    return archiver;
+                });
+            }
 
             List<String> filesToExclude = getJKubeAssemblyFileSetsExcludes(buildConfig.getAssemblyConfiguration());
             archiveCustomizers.add(archiver -> {
@@ -352,9 +354,7 @@ public class DockerAssemblyManager {
 
         Map<File, String> fileToPermissionsMap = copyFilesToFinalTarballDirectory(params.getProject(), buildDirs, assemblyConfig);
         AssemblyMode buildMode = assemblyConfig.getMode();
-        File originalArtifactFile = null;
         try {
-            originalArtifactFile = ensureThatArtifactFileIsSet(params.getProject());
             fileToPermissionsMap.forEach(jkubeTarArchiver::setFilePermissions);
             jkubeTarArchiver.createArchive(source.getOutputDirectory(), buildDirs, compression);
         } catch (IOException e) {
@@ -366,8 +366,6 @@ public class DockerAssemblyManager {
                          "Please see the documentation (section \"Assembly\") for more information.";
             }
             throw new IOException(error, e);
-        } finally {
-            setArtifactFile(params.getProject(), originalArtifactFile);
         }
     }
 
@@ -473,7 +471,8 @@ public class DockerAssemblyManager {
             .resolve(assemblyFile.getSource().toPath()).toFile();
 
         FileUtil.createDirectory(outputDirectory);
-        final File destinationFile = new File(outputDirectory, sourceFile.getName());
+        final String destinationFilename = Optional.ofNullable(assemblyFile.getDestName()).orElse(sourceFile.getName());
+        final File destinationFile = new File(outputDirectory, destinationFilename);
         FileUtil.copy(sourceFile, destinationFile);
     }
 

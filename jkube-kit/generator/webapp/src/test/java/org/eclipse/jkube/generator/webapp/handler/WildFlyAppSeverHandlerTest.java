@@ -14,29 +14,104 @@
 package org.eclipse.jkube.generator.webapp.handler;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class WildFlyAppSeverHandlerTest {
+
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Mocked
   private GeneratorContext generatorContext;
 
   @Test
-  public void kubernetes() {
+  public void isApplicableHasJmsXmlShouldReturnTrue() throws IOException {
     // Given
     // @formatter:off
     new Expectations() {{
+      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
+    }};
+    // @formatter:on
+    assertTrue(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile());
+    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    // When
+    final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
+    // Then
+    assertTrue(result);
+  }
+
+  @Test
+  public void isApplicableHasJmsXmlAndThorntailPluginShouldReturnFalse(@Mocked Plugin plugin) throws IOException {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot(); minTimes = 0;
+      plugin.getGroupId(); result = "io.thorntail";
+      plugin.getArtifactId(); result = "thorntail-maven-plugin";
+      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
+    }};
+    // @formatter:on
+    assertTrue(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile());
+    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    // When
+    final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
+    // Then
+    assertFalse(result);
+  }
+
+  @Test
+  public void isApplicableHasNoApplicableFilesShouldReturnFalse() throws IOException {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
+    }};
+    // @formatter:on
+    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    // When
+    final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
+    // Then
+    assertFalse(result);
+  }
+
+  @Test
+  public void isApplicableHasWildflyPluginShouldReturnTrue(@Mocked Plugin plugin) {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      plugin.getGroupId(); result = "org.wildfly.plugins";
+      plugin.getArtifactId(); result = "wildfly-maven-plugin";
+      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
+    }};
+    // @formatter:on
+    // When
+    final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
+    // Then
+    assertTrue(result);
+  }
+
+  @Test
+  public void kubernetes() {
+    // Given
+    // @formatter:off
+    new Expectations(GeneratorContext.class) {{
       generatorContext.getRuntimeMode(); result = RuntimeMode.kubernetes;
     }};
     // @formatter:on
@@ -52,7 +127,7 @@ public class WildFlyAppSeverHandlerTest {
   public void openShiftDockerStrategy() {
     // Given
     // @formatter:off
-    new Expectations() {{
+    new Expectations(GeneratorContext.class) {{
       generatorContext.getRuntimeMode(); result = RuntimeMode.openshift;
       generatorContext.getStrategy(); result = OpenShiftBuildStrategy.docker;
     }};
@@ -69,7 +144,7 @@ public class WildFlyAppSeverHandlerTest {
   public void openShiftSourceStrategy() {
     // Given
     // @formatter:off
-    new Expectations() {{
+    new Expectations(GeneratorContext.class) {{
       generatorContext.getRuntimeMode(); result = RuntimeMode.openshift;
       generatorContext.getStrategy(); result = OpenShiftBuildStrategy.s2i;
     }};

@@ -14,8 +14,9 @@
 package org.eclipse.jkube.generator.webapp.handler;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -27,45 +28,58 @@ import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
  */
 public class TomcatAppSeverHandler extends AbstractAppServerHandler {
 
-    private static final String TOMCAT_GROUPID = "org.apache.tomcat.maven";
+  private static final String TOMCAT_GROUPID = "org.apache.tomcat.maven";
 
-    public TomcatAppSeverHandler(GeneratorContext context) {
-        super("tomcat", context);
-    }
+  public TomcatAppSeverHandler(GeneratorContext context) {
+    super("tomcat", context);
+  }
 
-    @Override
-    public boolean isApplicable() {
-        try {
-            return hasOneOf("**/META-INF/context.xml") ||
-                    JKubeProjectUtil.hasPlugin(getProject(), TOMCAT_GROUPID, "tomcat6-maven-plugin") ||
-                    JKubeProjectUtil.hasPlugin(getProject(), TOMCAT_GROUPID, "tomcat7-maven-plugin");
-        } catch (IOException exception) {
-            throw new IllegalStateException("Unable to scan output directory: ", exception);
-        }
+  @Override
+  public boolean isApplicable() {
+    try {
+      return hasOneOf("glob:**/META-INF/context.xml") || hasTomcatMavenPlugin();
+    } catch (IOException exception) {
+      throw new IllegalStateException("Unable to scan output directory: ", exception);
     }
+  }
 
-    @Override
-    public String getFrom() {
-        return imageLookup.getImageName("tomcat.upstream.docker");
-    }
+  private boolean hasTomcatMavenPlugin() {
+    return Stream.of("tomcat6-maven-plugin", "tomcat7-maven-plugin", "tomcat8-maven-plugin")
+        .anyMatch(artifactId -> JKubeProjectUtil.hasPlugin(getProject(), TOMCAT_GROUPID, artifactId));
+  }
 
-    @Override
-    public List<String> exposedPorts() {
-        return Arrays.asList("8080", "8778");
-    }
+  @Override
+  public String getFrom() {
+    return imageLookup.getImageName("tomcat.upstream.docker");
+  }
 
-    @Override
-    public String getDeploymentDir() {
-        return "/deployments";
-    }
+  @Override
+  public List<String> exposedPorts() {
+    return Collections.singletonList("8080");
+  }
 
-    @Override
-    public String getCommand() {
-        return "/opt/tomcat/bin/deploy-and-run.sh";
-    }
+  @Override
+  public String getDeploymentDir() {
+    return "/deployments";
+  }
 
-    @Override
-    public String getUser() {
-        return "jboss:jboss:jboss";
-    }
+  @Override
+  public String getAssemblyName() {
+    return "deployments";
+  }
+
+  @Override
+  public String getCommand() {
+    return "/usr/local/s2i/run";
+  }
+
+  @Override
+  public String getUser() {
+    return null;
+  }
+
+  @Override
+  public boolean supportsS2iBuild() {
+    return true;
+  }
 }
