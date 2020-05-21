@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Singular;
 
 import java.io.File;
 import java.io.Serializable;
@@ -64,6 +65,7 @@ public class AssemblyFileSet implements Serializable {
    * @param includes New includes for the assembly fileSet.
    * @return The assembly fileSet includes
    */
+  @Singular
   private List<String> includes;
   /**
    *  A set of files and directory to exclude.
@@ -73,6 +75,7 @@ public class AssemblyFileSet implements Serializable {
    * @param excludes New includes for the assembly fileSet.
    * @return The assembly fileSet includes
    */
+  @Singular
   private List<String> excludes;
   /**
    * Similar to a UNIX permission, sets the file mode of the files included. THIS IS AN OCTAL VALUE.

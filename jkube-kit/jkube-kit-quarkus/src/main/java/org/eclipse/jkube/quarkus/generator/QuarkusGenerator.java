@@ -122,25 +122,25 @@ public class QuarkusGenerator extends BaseGenerator {
     }
 
     private AssemblyFileSet getJvmFilesToInclude() {
-        AssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
-        fileSet.addInclude("lib/**");
+        AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder =
+            getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
+        fileSetBuilder.include("lib/**");
         // We also need to exclude default jar file
         File defaultJarFile = JKubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
         if (defaultJarFile != null) {
-            fileSet.addExclude(defaultJarFile.getName());
+            fileSetBuilder.exclude(defaultJarFile.getName());
         }
-        fileSet.setFileMode("0640");
-        return fileSet;
+        fileSetBuilder.fileMode("0640");
+        return fileSetBuilder.build();
     }
 
     private AssemblyFileSet getNativeFileToInclude() {
-        AssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner");
-        fileSet.setFileMode("0755");
-
-        return fileSet;
+        return getFileSetWithFileFromBuildThatEndsWith("-runner")
+            .fileMode("0755")
+            .build();
     }
 
-    private AssemblyFileSet getFileSetWithFileFromBuildThatEndsWith(String suffix) {
+    private AssemblyFileSet.AssemblyFileSetBuilder getFileSetWithFileFromBuildThatEndsWith(String suffix) {
         List<String> relativePaths = new ArrayList<>();
 
         String fileToInclude = findSingleFileThatEndsWith(suffix);
@@ -150,8 +150,7 @@ public class QuarkusGenerator extends BaseGenerator {
         return AssemblyFileSet.builder()
                 .directory(FileUtil.getRelativePath(getProject().getBaseDirectory(), getProject().getBuildDirectory()))
                 .includes(relativePaths)
-                .fileMode("0777")
-                .build();
+                .fileMode("0777");
     }
 
     private String findSingleFileThatEndsWith(String suffix) {

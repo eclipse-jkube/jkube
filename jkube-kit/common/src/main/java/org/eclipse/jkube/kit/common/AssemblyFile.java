@@ -49,6 +49,13 @@ public class AssemblyFile implements Serializable {
      */
     private File outputDirectory;
     /**
+     * Destination filename in the outputDirectory.
+     *
+     * @param destName New destination filename.
+     * @return The assembly destination filename.
+     */
+    private String destName;
+    /**
      * Whether to determine if the file is filtered.
      *
      * @param filtered New filtered value for the assembly file.
