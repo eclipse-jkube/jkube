@@ -65,9 +65,6 @@ public class DockerAssemblyManager {
     public static final String SCRATCH_IMAGE = "scratch";
 
     // Assembly name used also as build directory within outputBuildDir
-    public static final String DOCKER_IGNORE = ".maven-dockerignore";
-    public static final String DOCKER_EXCLUDE = ".maven-dockerexclude";
-    public static final String DOCKER_INCLUDE = ".maven-dockerinclude";
     private static final String DOCKERFILE_NAME = "Dockerfile";
 
     private DockerAssemblyManager() { }
@@ -114,72 +111,27 @@ public class DockerAssemblyManager {
         ArchiverCustomizer finalCustomizer) throws IOException {
 
         final BuildDirs buildDirs = createBuildDirs(imageName, params);
-
-        final AssemblyConfiguration assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfig);
-        Map<File, String> fileToPermissionsMap = copyFilesToFinalTarballDirectory(params.getProject(), buildDirs, assemblyConfig);
-
+        final AssemblyConfiguration assemblyConfig;
         final List<ArchiverCustomizer> archiveCustomizers = new ArrayList<>();
 
-        // Build up assembly. In dockerfile mode this must be added explicitly in the Dockerfile with an ADD
-        if (hasAssemblyConfiguration(assemblyConfig)) {
-            createAssemblyArchive(assemblyConfig, params, buildDirs, buildConfig.getCompression());
-        }
         try {
             if (buildConfig.isDockerFileMode()) {
-                // Use specified docker directory which must include a Dockerfile.
-                final File dockerFile = buildConfig.getAbsoluteDockerFilePath(params.getSourceDirectory(), params.getProject().getBaseDirectory().toString());
-                if (!dockerFile.exists()) {
-                    throw new IOException("Configured Dockerfile \"" +
-                                                     buildConfig.getDockerFile() + "\" (resolved to \"" + dockerFile + "\") doesn't exist");
-                }
-
-                verifyGivenDockerfile(dockerFile, buildConfig, params.getProperties(), log);
-                interpolateDockerfile(dockerFile, buildDirs, params.getProperties());
-                // User dedicated Dockerfile from extra directory
-                archiveCustomizers.add(archiver -> {
-                    // If the content is added as archive, then we need to add the Dockerfile from the builddir
-                    // directly to docker.tar (as the output builddir is not picked up in archive mode)
-                    if (isArchive(assemblyConfig)) {
-                        String name = dockerFile.getName();
-                        archiver.includeFile(new File(buildDirs.getOutputDirectory(), name), name);
-                    }
-
-                    return archiver;
-                });
+                assemblyConfig = getAssemblyConfigurationForDockerfileMode(buildConfig, params);
+                createDockerTarArchiveForDockerFile(buildConfig, assemblyConfig, params, buildDirs, log, archiveCustomizers);
             } else {
-                // Create custom docker file in output dir
-                DockerFileBuilder builder = createDockerFileBuilder(buildConfig, assemblyConfig);
-                builder.write(buildDirs.getOutputDirectory());
-                // Add own Dockerfile
-                final File dockerFile = new File(buildDirs.getOutputDirectory(), DOCKERFILE_NAME);
-                archiveCustomizers.add(archiver -> {
-                        archiver.includeFile(dockerFile, DOCKERFILE_NAME);
-                        return archiver;
-                    });
+                assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfig);
+                // Build up assembly. In dockerfile mode this must be added explicitly in the Dockerfile with an ADD
+                if (hasAssemblyConfiguration(assemblyConfig)) {
+                    createAssemblyArchive(assemblyConfig, params, buildDirs, buildConfig.getCompression());
+                }
+                createDockerTarArchiveForGeneratorMode(buildConfig, buildDirs, archiveCustomizers, assemblyConfig);
             }
 
-            if (finalCustomizer != null) {
-                archiveCustomizers.add(finalCustomizer);
+            if (assemblyConfig != null) {
+                return processAssemblyConfigToCreateTarball(buildConfig, params, buildDirs, assemblyConfig, archiveCustomizers, finalCustomizer);
+            } else {
+                throw new IllegalStateException("Failed to build up AssemblyConfiguration");
             }
-            if (!assemblyConfig.isExcludeFinalOutputArtifact()) {
-                archiveCustomizers.add(archiver -> {
-                    File finalArtifactFile = JKubeProjectUtil.getFinalOutputArtifact(params.getProject());
-                    if (finalArtifactFile != null) {
-                        archiver.includeFile(finalArtifactFile, assemblyConfig.getName() + File.separator + finalArtifactFile.getName());
-                    }
-                    return archiver;
-                });
-            }
-
-            List<String> filesToExclude = getJKubeAssemblyFileSetsExcludes(buildConfig.getAssemblyConfiguration());
-            archiveCustomizers.add(archiver -> {
-                filesToExclude.forEach(archiver::excludeFile);
-                fileToPermissionsMap.forEach(archiver::setFilePermissions);
-                return archiver;
-            });
-
-            return createBuildTarBall(params, buildDirs, archiveCustomizers, assemblyConfig, buildConfig.getCompression());
-
         } catch (IOException e) {
             throw new IOException(String.format("Cannot create %s in %s", DOCKERFILE_NAME, buildDirs.getOutputDirectory()), e);
         }
@@ -461,4 +413,79 @@ public class DockerAssemblyManager {
           assemblyConfig.getMode().isArchive();
     }
 
+    private void createDockerTarArchiveForDockerFile(BuildConfiguration buildConfig, AssemblyConfiguration assemblyConfig, JKubeConfiguration params, BuildDirs buildDirs, KitLogger log, List<ArchiverCustomizer> archiveCustomizers) throws IOException {
+        // Use specified docker directory which must include a Dockerfile.
+        final File dockerFile = buildConfig.getAbsoluteDockerFilePath(params.getSourceDirectory(), params.getProject().getBaseDirectory().toString());
+        if (!dockerFile.exists()) {
+            throw new IOException("Configured Dockerfile \"" +
+                    buildConfig.getDockerFile() + "\" (resolved to \"" + dockerFile + "\") doesn't exist");
+        }
+
+        verifyGivenDockerfile(dockerFile, buildConfig, params.getProperties(), log);
+        interpolateDockerfile(dockerFile, buildDirs, params.getProperties());
+        // User dedicated Dockerfile from extra directory
+        archiveCustomizers.add(archiver -> {
+            // If the content is added as archive, then we need to add the Dockerfile from the builddir
+            // directly to docker.tar (as the output builddir is not picked up in archive mode)
+            if (isArchive(assemblyConfig)) {
+                String name = dockerFile.getName();
+                archiver.includeFile(new File(buildDirs.getOutputDirectory(), name), name);
+            }
+
+            return archiver;
+        });
+    }
+
+    private void createDockerTarArchiveForGeneratorMode(BuildConfiguration buildConfig, BuildDirs buildDirs, List<ArchiverCustomizer> archiveCustomizers, final AssemblyConfiguration assemblyConfig) throws IOException {
+        // Create custom docker file in output dir
+        DockerFileBuilder builder = createDockerFileBuilder(buildConfig, assemblyConfig);
+        builder.write(buildDirs.getOutputDirectory());
+        // Add own Dockerfile
+        final File dockerFile = new File(buildDirs.getOutputDirectory(), DOCKERFILE_NAME);
+        archiveCustomizers.add(archiver -> {
+            archiver.includeFile(dockerFile, DOCKERFILE_NAME);
+            return archiver;
+        });
+
+    }
+
+    private static AssemblyConfiguration getAssemblyConfigurationForDockerfileMode(BuildConfiguration buildConfiguration, JKubeConfiguration params) {
+        AssemblyConfiguration assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+        final AssemblyConfiguration.AssemblyConfigurationBuilder builder = assemblyConfig.toBuilder();
+
+        File contextDir = buildConfiguration.getAbsoluteContextDirPath(params.getSourceDirectory(), params.getBasedir().getAbsolutePath());
+        builder.inline(Assembly.builder()
+                .fileSet(AssemblyFileSet.builder()
+                        .directory(contextDir)
+                        .outputDirectory(new File("."))
+                        .directoryMode("0775")
+                        .build()).build());
+
+        return builder.build();
+    }
+
+    private File processAssemblyConfigToCreateTarball(BuildConfiguration buildConfig, JKubeConfiguration params, BuildDirs buildDirs, AssemblyConfiguration assemblyConfig, List<ArchiverCustomizer> archiveCustomizers, ArchiverCustomizer finalCustomizer) throws IOException {
+        Map<File, String> fileToPermissionsMap = copyFilesToFinalTarballDirectory(params.getProject(), buildDirs, assemblyConfig);
+        if (finalCustomizer != null) {
+            archiveCustomizers.add(finalCustomizer);
+        }
+        if (!assemblyConfig.isExcludeFinalOutputArtifact()) {
+            archiveCustomizers.add(archiver -> {
+                File finalArtifactFile = JKubeProjectUtil.getFinalOutputArtifact(params.getProject());
+                if (finalArtifactFile != null) {
+                    archiver.includeFile(finalArtifactFile, assemblyConfig.getName() + File.separator + finalArtifactFile.getName());
+                }
+                return archiver;
+            });
+        }
+
+        List<String> filesToExclude = getJKubeAssemblyFileSetsExcludes(buildConfig.getAssemblyConfiguration());
+        archiveCustomizers.add(archiver -> {
+            filesToExclude.forEach(archiver::excludeFile);
+            fileToPermissionsMap.forEach(archiver::setFilePermissions);
+            return archiver;
+        });
+
+        return createBuildTarBall(params, buildDirs, archiveCustomizers, assemblyConfig, buildConfig.getCompression());
+    }
 }

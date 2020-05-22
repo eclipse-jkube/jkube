@@ -198,10 +198,10 @@ public class BaseGeneratorTest {
             ic2.getBuildConfiguration(); result = null; minTimes = 0;
         }};
         BaseGenerator generator = createGenerator(null);
-        assertTrue(generator.shouldAddImageConfiguration(Collections.emptyList()));
-        assertFalse(generator.shouldAddImageConfiguration(Arrays.asList(ic1, ic2)));
-        assertTrue(generator.shouldAddImageConfiguration(Collections.singletonList(ic2)));
-        assertFalse(generator.shouldAddImageConfiguration(Collections.singletonList(ic1)));
+        assertTrue(generator.shouldAddGeneratedImageConfiguration(Collections.emptyList()));
+        assertFalse(generator.shouldAddGeneratedImageConfiguration(Arrays.asList(ic1, ic2)));
+        assertTrue(generator.shouldAddGeneratedImageConfiguration(Collections.singletonList(ic2)));
+        assertFalse(generator.shouldAddGeneratedImageConfiguration(Collections.singletonList(ic1)));
     }
 
     @Test
@@ -220,7 +220,7 @@ public class BaseGeneratorTest {
 
         // Then
         assertTrue(isTestDockerfileCreated);
-        assertFalse(generator.shouldAddImageConfiguration(Collections.emptyList()));
+        assertFalse(generator.shouldAddGeneratedImageConfiguration(Collections.emptyList()));
     }
 
     @Test

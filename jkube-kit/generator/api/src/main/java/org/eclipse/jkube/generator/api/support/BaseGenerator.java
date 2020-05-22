@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.generator.api.support;
 
-import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -28,6 +27,7 @@ import org.eclipse.jkube.generator.api.Generator;
 import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
@@ -195,14 +195,15 @@ public abstract class BaseGenerator implements Generator {
         return getConfigWithFallback(Config.alias, "jkube.generator.alias", getName());
     }
 
-    protected boolean shouldAddImageConfiguration(List<ImageConfiguration> configs) {
-        if (isSimpleDockerfileMode()) {
+    protected boolean shouldAddGeneratedImageConfiguration(List<ImageConfiguration> configs) {
+        if (getProject() != null && getProject().getBaseDirectory() != null && getProject().getBaseDirectory().exists()
+              && DockerFileUtil.isSimpleDockerFileMode(getContext().getProject().getBaseDirectory())) {
             return false;
         }
-        if (!containsBuildConfiguration(configs)) {
-            return true;
+        if (containsBuildConfiguration(configs)) {
+            return Configs.asBoolean(getConfig(Config.add));
         }
-        return Configs.asBoolean(getConfig(Config.add));
+        return true;
     }
 
     protected String getConfigWithFallback(Config name, String key, String defaultVal) {
@@ -224,14 +225,6 @@ public abstract class BaseGenerator implements Generator {
             if (imageConfig.getBuildConfiguration() != null) {
                 return true;
             }
-        }
-        return false;
-    }
-
-    private boolean isSimpleDockerfileMode() {
-        if (getProject() != null && getProject().getBaseDirectory() != null && getProject().getBaseDirectory().exists()) {
-            File dockerFile = new File(getProject().getBaseDirectory(), "Dockerfile");
-            return dockerFile.exists();
         }
         return false;
     }

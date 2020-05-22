@@ -49,7 +49,7 @@ public class KarafGenerator extends BaseGenerator {
 
   @Override
   public boolean isApplicable(List<ImageConfiguration> configs) {
-    return shouldAddImageConfiguration(configs) &&
+    return shouldAddGeneratedImageConfiguration(configs) &&
         JKubeProjectUtil.hasPluginOfAnyArtifactId(getProject(), KARAF_MAVEN_PLUGIN_ARTIFACT_ID);
   }
 

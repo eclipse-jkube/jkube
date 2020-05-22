@@ -41,7 +41,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultNoConfigurationShouldReturnDefault(
-    @Injectable final BuildConfiguration buildConfiguration) {
+          @Injectable final BuildConfiguration buildConfiguration) {
 
     // Given
     new Expectations() {{
@@ -58,7 +58,7 @@ public class JKubeAssemblyConfigurationUtilsTest {
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultWithConfigurationShouldReturnConfiguration(
-    @Injectable final BuildConfiguration buildConfiguration) {
+          @Injectable final BuildConfiguration buildConfiguration) {
 
     // Given
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();

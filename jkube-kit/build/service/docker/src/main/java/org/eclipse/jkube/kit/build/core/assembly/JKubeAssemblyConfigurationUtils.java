@@ -37,8 +37,8 @@ public class JKubeAssemblyConfigurationUtils {
 
   static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(BuildConfiguration buildConfiguration) {
     final AssemblyConfiguration ac = Optional.ofNullable(buildConfiguration)
-      .map(BuildConfiguration::getAssemblyConfiguration)
-      .orElse(AssemblyConfiguration.builder().user(DEFAULT_USER).build());
+            .map(BuildConfiguration::getAssemblyConfiguration)
+            .orElse(AssemblyConfiguration.builder().user(DEFAULT_USER).build());
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = ac.toBuilder();
     final String name;
     if (StringUtils.isBlank(ac.getName())) {
@@ -55,25 +55,25 @@ public class JKubeAssemblyConfigurationUtils {
 
   static List<AssemblyFileSet> getJKubeAssemblyFileSets(AssemblyConfiguration configuration) {
     return Optional.ofNullable(configuration)
-      .map(AssemblyConfiguration::getInline)
-      .map(Assembly::getFileSets)
-      .orElse(Collections.emptyList());
+            .map(AssemblyConfiguration::getInline)
+            .map(Assembly::getFileSets)
+            .orElse(Collections.emptyList());
   }
 
   static List<String> getJKubeAssemblyFileSetsExcludes(AssemblyConfiguration assemblyConfiguration) {
     return getJKubeAssemblyFileSets(assemblyConfiguration).stream()
-      .filter(Objects::nonNull)
-      .map(AssemblyFileSet::getExcludes)
-      .filter(Objects::nonNull)
-      .flatMap(Collection::stream)
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+            .filter(Objects::nonNull)
+            .map(AssemblyFileSet::getExcludes)
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
   }
 
   static List<AssemblyFile> getJKubeAssemblyFiles(AssemblyConfiguration configuration) {
     return Optional.ofNullable(configuration)
-      .map(AssemblyConfiguration::getInline)
-      .map(Assembly::getFiles)
-      .orElse(Collections.emptyList());
+            .map(AssemblyConfiguration::getInline)
+            .map(Assembly::getFiles)
+            .orElse(Collections.emptyList());
   }
 }

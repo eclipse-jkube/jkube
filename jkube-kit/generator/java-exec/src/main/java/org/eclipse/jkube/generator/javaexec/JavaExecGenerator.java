@@ -90,7 +90,7 @@ public class JavaExecGenerator extends BaseGenerator {
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
-        if (shouldAddImageConfiguration(configs)) {
+        if (shouldAddGeneratedImageConfiguration(configs)) {
             // If a main class is configured, we always kick in
             if (getConfig(Config.mainClass) != null) {
                 return true;

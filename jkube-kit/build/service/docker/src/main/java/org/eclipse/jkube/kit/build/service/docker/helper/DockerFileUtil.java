@@ -16,6 +16,8 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.BufferedReader;
@@ -33,7 +35,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Utility class for dealing with dockerfiles
@@ -164,6 +165,40 @@ public class DockerFileUtil {
             return (Map<String, ?>) ret.load(reader);
         }
         return null;
+    }
+
+    public static boolean isSimpleDockerFileMode(File projectBaseDirectory) {
+        if (projectBaseDirectory != null) {
+            return getTopLevelDockerfile(projectBaseDirectory).exists();
+        }
+        return false;
+    }
+
+    public static File getTopLevelDockerfile(File projectBaseDirectory) {
+        return new File(projectBaseDirectory, "Dockerfile");
+    }
+
+    public static ImageConfiguration createSimpleDockerfileConfig(File dockerFile, String defaultImageName) {
+        if (defaultImageName == null) {
+            // Default name group/artifact:version (or 'latest' if SNAPSHOT)
+            defaultImageName = "%g/%a:%l";
+        }
+
+        final BuildConfiguration buildConfig = BuildConfiguration.builder()
+                .dockerFile(dockerFile.getPath())
+                .build();
+
+        return ImageConfiguration.builder()
+                .name(defaultImageName)
+                .build(buildConfig)
+                .build();
+    }
+
+    public static ImageConfiguration addSimpleDockerfileConfig(ImageConfiguration image, File dockerfile) {
+        final BuildConfiguration buildConfig = BuildConfiguration.builder()
+                .dockerFile(dockerfile.getPath())
+                .build();
+        return image.toBuilder().build(buildConfig).build();
     }
 
     private static File getHomeDir() {

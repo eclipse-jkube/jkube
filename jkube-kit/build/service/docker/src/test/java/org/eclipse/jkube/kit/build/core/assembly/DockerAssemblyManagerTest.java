@@ -281,7 +281,6 @@ public class DockerAssemblyManagerTest {
         // Then
         assertNotNull(dockerArchiveFile);
         assertTrue(dockerArchiveFile.exists());
-        assertEquals(3072, dockerArchiveFile.length());
         assertTrue(dockerDirectory.isDirectory() && dockerDirectory.exists());
         File buildOutputDir = new File(dockerDirectory, "test-image");
         assertTrue(buildOutputDir.isDirectory() && buildOutputDir.exists());
@@ -292,8 +291,8 @@ public class DockerAssemblyManagerTest {
         assertTrue(workDir.isDirectory() && workDir.exists());
         assertTrue(tmpDir.isDirectory() && tmpDir.exists());
         assertTrue(new File(buildDir, "Dockerfile").exists());
-        File assemblyNameDirInBuild = new File(buildDir, "maven");
-        assertTrue(assemblyNameDirInBuild.isDirectory() && assemblyNameDirInBuild.exists());
+        File jarCopiedInBuildDirs = new File(buildDir, "maven/target/test-0.1.0.jar");
+        assertTrue(jarCopiedInBuildDirs.exists());
     }
 
     private void writeASimpleDockerfile(File dockerFile) throws FileNotFoundException, UnsupportedEncodingException {

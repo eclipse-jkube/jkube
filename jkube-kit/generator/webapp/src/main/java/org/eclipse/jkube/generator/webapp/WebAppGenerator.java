@@ -76,8 +76,8 @@ public class WebAppGenerator extends BaseGenerator {
 
   @Override
   public boolean isApplicable(List<ImageConfiguration> configs) {
-    return shouldAddImageConfiguration(configs) &&
-        JKubeProjectUtil.hasPlugin(getProject(), "org.apache.maven.plugins", "maven-war-plugin");
+    return shouldAddGeneratedImageConfiguration(configs) &&
+            JKubeProjectUtil.hasPlugin(getProject(), "org.apache.maven.plugins", "maven-war-plugin");
   }
 
   @Override
