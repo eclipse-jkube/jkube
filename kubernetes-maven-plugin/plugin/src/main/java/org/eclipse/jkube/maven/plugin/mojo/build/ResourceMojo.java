@@ -20,6 +20,7 @@ import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
@@ -574,6 +575,15 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
         Date now = getBuildReferenceDate();
         storeReferenceDateInPluginContext(now);
+        // Check for simple Dockerfile mode
+        if (DockerFileUtil.isSimpleDockerFileMode(project.getBasedir())) {
+            File topDockerfile = DockerFileUtil.getTopLevelDockerfile(project.getBasedir());
+            if (ret.isEmpty()) {
+                ret.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("docker.name")));
+            } else if (ret.size() == 1 && ret.get(0).getBuildConfiguration() == null) {
+                ret.set(0, DockerFileUtil.addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
+            }
+        }
         String minimalApiVersion = ConfigHelper.initAndValidate(ret, null /* no minimal api version */,
             new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), now), log);
         return ret;

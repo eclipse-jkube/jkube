@@ -14,6 +14,8 @@
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Test;
 
 import java.io.File;
@@ -27,6 +29,7 @@ import java.util.Properties;
 
 import static org.eclipse.jkube.kit.build.service.docker.helper.PathTestUtil.createTmpFile;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author roland
@@ -94,6 +97,38 @@ public class DockerFileUtilTest {
         FileUtils.write(actualDockerFile, DockerFileUtil.interpolate(dockerFile, projectProperties), "UTF-8");
         // Compare text lines without regard to EOL delimiters
         assertEquals(FileUtils.readLines(expectedDockerFile), FileUtils.readLines(actualDockerFile));
+    }
+
+    @Test
+    public void testCreateSimpleDockerfileConfig() throws IOException {
+        // Given
+        File dockerFile = File.createTempFile("Dockerfile", "-test");
+        // When
+        ImageConfiguration imageConfiguration1 = DockerFileUtil.createSimpleDockerfileConfig(dockerFile, null);
+        ImageConfiguration imageConfiguration2 = DockerFileUtil.createSimpleDockerfileConfig(dockerFile, "someImage:0.0.1");
+        // Then
+        assertNotNull(imageConfiguration1);
+        assertEquals("%g/%a:%l", imageConfiguration1.getName());
+        assertEquals(dockerFile.getPath(), imageConfiguration1.getBuild().getDockerFileRaw());
+        assertNotNull(imageConfiguration2);
+        assertEquals("someImage:0.0.1", imageConfiguration2.getName());
+        assertEquals(dockerFile.getPath(), imageConfiguration2.getBuild().getDockerFileRaw());
+    }
+
+    @Test
+    public void testAddSimpleDockerfileConfig() throws IOException {
+        // Given
+        ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+                .name("test-image")
+                .build();
+        File dockerFile = File.createTempFile("Dockerfile", "-test");
+
+        // When
+        ImageConfiguration result = DockerFileUtil.addSimpleDockerfileConfig(imageConfiguration, dockerFile);
+
+        // Then
+        assertNotNull(result.getBuild());
+        assertEquals(dockerFile.getPath(), result.getBuild().getDockerFileRaw());
     }
 
     private File getDockerfilePath(String dir) {

@@ -146,7 +146,7 @@
                                 <image>
                                     <name>jkube/context-and-assembly</name>
                                     <build>
-                                        <contextDir>${project.basedir}</contextDir>
+                                        <contextDir>${project.basedir}/src/main/assembly-dockerfile</contextDir>
                                         <assembly>
                                             <name>target</name>
                                         </assembly>

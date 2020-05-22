@@ -42,7 +42,7 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
     // Override so that the generator kicks in when the liberty-maven-plugin is used
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
-        return shouldAddImageConfiguration(configs)
+        return shouldAddGeneratedImageConfiguration(configs)
                 && JKubeProjectUtil.hasPlugin(getProject(), "io.openliberty.tools", "liberty-maven-plugin");
 
     }

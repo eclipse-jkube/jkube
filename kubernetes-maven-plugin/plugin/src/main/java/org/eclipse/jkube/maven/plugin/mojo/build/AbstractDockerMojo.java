@@ -31,6 +31,7 @@ import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.core.GavLabel;
+import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
@@ -571,31 +572,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         }
     }
 
-    protected ImageConfiguration createSimpleDockerfileConfig(File dockerFile) {
-        // No configured name, so create one from maven GAV
-        String name = MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("docker.name");
-        if (name == null) {
-            // Default name group/artifact:version (or 'latest' if SNAPSHOT)
-            name = "%g/%a:%l";
-        }
-
-        final BuildConfiguration buildConfig = BuildConfiguration.builder()
-                .dockerFile(dockerFile.getPath())
-                .build();
-
-        return ImageConfiguration.builder()
-                .name(name)
-                .build(buildConfig)
-                .build();
-    }
-
-    protected ImageConfiguration addSimpleDockerfileConfig(ImageConfiguration image, File dockerfile) {
-        final BuildConfiguration buildConfig = BuildConfiguration.builder()
-                .dockerFile(dockerfile.getPath())
-                .build();
-        return image.toBuilder().build(buildConfig).build();
-    }
-
     protected void logException(Exception exp) {
         if (exp.getCause() != null) {
             log.error("%s [%s]", exp.getMessage(), exp.getCause().getMessage());
@@ -813,12 +789,12 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 this);                     // customizer (can be overwritten by a subclass)
 
         // Check for simple Dockerfile mode
-        File topDockerfile = new File(project.getBasedir(),"Dockerfile");
-        if (topDockerfile.exists()) {
+        if (DockerFileUtil.isSimpleDockerFileMode(project.getBasedir())) {
+            File topDockerfile = DockerFileUtil.getTopLevelDockerfile(project.getBasedir());
             if (resolvedImages.isEmpty()) {
-                resolvedImages.add(createSimpleDockerfileConfig(topDockerfile));
+                resolvedImages.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("docker.name")));
             } else if (resolvedImages.size() == 1 && resolvedImages.get(0).getBuildConfiguration() == null) {
-                resolvedImages.set(0, addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
+                resolvedImages.set(0, DockerFileUtil.addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
             }
         }
 
