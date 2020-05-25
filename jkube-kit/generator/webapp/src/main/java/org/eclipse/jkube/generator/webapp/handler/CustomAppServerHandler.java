@@ -58,6 +58,11 @@ public class CustomAppServerHandler implements AppServerHandler {
   }
 
   @Override
+  public String getAssemblyName() {
+    return null;
+  }
+
+  @Override
   public String getDeploymentDir() {
     return deploymentDir;
   }

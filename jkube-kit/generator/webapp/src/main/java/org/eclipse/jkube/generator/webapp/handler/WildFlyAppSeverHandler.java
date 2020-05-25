@@ -85,11 +85,6 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
   }
 
   @Override
-  public List<String> exposedPorts() {
-    return Collections.singletonList("8080");
-  }
-
-  @Override
   public String getDeploymentDir() {
     // Applicable for Docker image - ignored for s2i
     return "/opt/jboss/wildfly/standalone/deployments";
@@ -107,10 +102,6 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
     return Collections.singletonMap("GALLEON_PROVISION_LAYERS", "cloud-server,web-clustering");
   }
 
-  @Override
-  public String getAssemblyName() {
-    return "deployments";
-  }
 
   @Override
   public String getUser() {
