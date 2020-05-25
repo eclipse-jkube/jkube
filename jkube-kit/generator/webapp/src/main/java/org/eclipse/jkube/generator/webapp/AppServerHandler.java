@@ -63,14 +63,18 @@ public interface AppServerHandler {
     /**
      * Get the user to use. Return null if no specific user directive is required
      */
-    String getUser();
+    default String getUser() {
+        return null;
+    }
 
     /**
      * A list of ports which are exposed by the base image
      *
      * @return list of ports to expos
      */
-    List<String> exposedPorts();
+    default List<String> exposedPorts(){
+        return Collections.singletonList("8080");
+    }
 
     /**
      * A Map containing environment variables to add to the Image.
@@ -88,7 +92,7 @@ public interface AppServerHandler {
      * @return the assembly name.
      */
     default String getAssemblyName() {
-        return null;
+        return "deployments";
     }
 
     /**

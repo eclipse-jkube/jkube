@@ -28,6 +28,7 @@ Usage:
 * Fix #205: JavaExecGenerator uses jkube/jkube-java-binary-s2i for Docker and S2I builds (#183)
 * Fix #206: WebAppGenerator with "/" path renames artifacts to ROOT.war
 * Fix #206: WebAppGenerator>TomcatAppSeverHandler uses quay.io/jkube/jkube-tomcat9-binary-s2i as base image
+* Fix #210: WebAppGenerator>JettyAppSeverHandler uses quay.io/jkube/jkube-jetty9-binary-s2i as base image
 
 ### 1.0.0-alpha-3 (2020-05-06)
 * Fix #167: Add CMD for wildfly based applications

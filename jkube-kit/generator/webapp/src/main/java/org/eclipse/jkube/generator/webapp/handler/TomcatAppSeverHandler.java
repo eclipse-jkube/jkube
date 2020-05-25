@@ -14,8 +14,6 @@
 package org.eclipse.jkube.generator.webapp.handler;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -54,28 +52,13 @@ public class TomcatAppSeverHandler extends AbstractAppServerHandler {
   }
 
   @Override
-  public List<String> exposedPorts() {
-    return Collections.singletonList("8080");
-  }
-
-  @Override
   public String getDeploymentDir() {
     return "/deployments";
   }
 
   @Override
-  public String getAssemblyName() {
-    return "deployments";
-  }
-
-  @Override
   public String getCommand() {
     return "/usr/local/s2i/run";
-  }
-
-  @Override
-  public String getUser() {
-    return null;
   }
 
   @Override
