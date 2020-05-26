@@ -142,7 +142,7 @@
             <version>${project.version}</version>
 
             <configuration>
-
+              <mode>kubernetes</mode>
               <resources>
                 <labels>
                   <all>
