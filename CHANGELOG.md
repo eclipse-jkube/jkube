@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.0-SNAPSHOT
+* Fix #173: Use OpenShift compliant git/vcs annotations 
 * Fix #182: Assembly is never null
 * Fix #198: Wildfly works in OpenShift with S2I binary build (Docker)
 * Fix #199: BaseGenerator retrieves runtime mode from context (not from missing properties)
