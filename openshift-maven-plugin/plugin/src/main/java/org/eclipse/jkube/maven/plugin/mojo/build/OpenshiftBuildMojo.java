@@ -41,7 +41,7 @@ public class OpenshiftBuildMojo extends BuildMojo {
      * Whether to perform a Kubernetes build (i.e. against a vanilla Docker daemon) or
      * an OpenShift build (with a Docker build against the OpenShift API server.
      */
-    @Parameter(property = "jkube.mode")
+    @Parameter(name="mode", property = "jkube.mode")
     protected RuntimeMode configuredRuntimeMode = RuntimeMode.DEFAULT;
 
     /**
@@ -108,5 +108,19 @@ public class OpenshiftBuildMojo extends BuildMojo {
     @Override
     protected String getLogPrefix() {
         return OpenShift.DEFAULT_LOG_PREFIX;
+    }
+
+    /**
+     * Sets the configured {@link RuntimeMode} to be considered when resolving the effective runtime mode.
+     *
+     * <p>n.b this is a workaround for <code>{@code @Parameter(name="mode")}</code> being ignored
+     *
+     * @see <a href="https://issues.apache.org/jira/browse/MPLUGINTESTING-56">MPLUGINTESTING-56</a>
+     * @see <a href="https://stackoverflow.com/questions/30913685/maven-annotation-api-parameter-name-method-seems-to-not-work">maven-annotation-api-parameter-name-method-seems-to-not-work</a>
+     *
+     * @param mode configured RuntimeMode
+     */
+    public void setMode(RuntimeMode mode) {
+        configuredRuntimeMode = mode;
     }
 }
