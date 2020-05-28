@@ -75,10 +75,11 @@
     <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
 
     <!-- =======================================================  -->
+    <version.image.jkube-images>0.0.5</version.image.jkube-images>
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
-    <version.image.java.upstream.docker>0.0.3</version.image.java.upstream.docker>
-    <version.image.java.upstream.s2i>0.0.3</version.image.java.upstream.s2i>
+    <version.image.java.upstream.docker>${version.image.jkube-images}</version.image.java.upstream.docker>
+    <version.image.java.upstream.s2i>${version.image.jkube-images}</version.image.java.upstream.s2i>
 
     <!-- RedHat -->
     <version.image.java.redhat.docker>2.0</version.image.java.redhat.docker>
@@ -87,8 +88,8 @@
     <!-- =======================================================  -->
     <!-- === Karaf base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
-    <version.image.karaf.upstream.docker>3.0</version.image.karaf.upstream.docker>
-    <version.image.karaf.upstream.s2i>${version.image.karaf.upstream.docker}</version.image.karaf.upstream.s2i>
+    <version.image.karaf.upstream.docker>${version.image.jkube-images}</version.image.karaf.upstream.docker>
+    <version.image.karaf.upstream.s2i>${version.image.jkube-images}</version.image.karaf.upstream.s2i>
 
     <!-- RedHat  -->
     <version.image.karaf.redhat.docker>2.0</version.image.karaf.redhat.docker>
@@ -96,8 +97,8 @@
 
     <!-- =======================================================  -->
     <!-- Servlet container images -->
-    <version.image.tomcat.upstream>0.0.3</version.image.tomcat.upstream>
-    <version.image.jetty.upstream>0.0.3</version.image.jetty.upstream>
+    <version.image.tomcat.upstream>${version.image.jkube-images}</version.image.tomcat.upstream>
+    <version.image.jetty.upstream>${version.image.jkube-images}</version.image.jetty.upstream>
     <version.image.wildfly.upstream.docker>19.0.0.Final</version.image.wildfly.upstream.docker>
     <version.image.wildfly.upstream.s2i>19.0</version.image.wildfly.upstream.s2i>
 
@@ -115,9 +116,9 @@
     <image.java.redhat.istag>fis-java-openshift:${version.image.java.redhat.s2i}</image.java.redhat.istag>
 
     <!-- karaf -->
-    <image.karaf.upstream.docker>fabric8/s2i-karaf:${version.image.karaf.upstream.docker}</image.karaf.upstream.docker>
-    <image.karaf.upstream.s2i>fabric8/s2i-karaf:${version.image.karaf.upstream.s2i}</image.karaf.upstream.s2i>
-    <image.karaf.upstream.istag>fabric8-karaf:${version.image.karaf.upstream.s2i}</image.karaf.upstream.istag>
+    <image.karaf.upstream.docker>quay.io/jkube/jkube-karaf-binary-s2i:${version.image.karaf.upstream.docker}</image.karaf.upstream.docker>
+    <image.karaf.upstream.s2i>quay.io/jkube/jkube-karaf-binary-s2i:${version.image.karaf.upstream.s2i}</image.karaf.upstream.s2i>
+    <image.karaf.upstream.istag>jkube-karaf:${version.image.karaf.upstream.s2i}</image.karaf.upstream.istag>
 
     <image.karaf.redhat.docker>jboss-fuse-6/fis-karaf-openshift:${version.image.karaf.redhat.docker}</image.karaf.redhat.docker>
     <image.karaf.redhat.s2i>jboss-fuse-6/fis-karaf-openshift:${version.image.karaf.redhat.s2i}</image.karaf.redhat.s2i>

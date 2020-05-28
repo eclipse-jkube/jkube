@@ -11,13 +11,12 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.config.image.build;
+package org.eclipse.jkube.kit.common;
 
 /**
  * Various modes how to add file for the tarball for "docker:build".
  *
  * @author roland
- * @since 18/05/15
  */
 public enum AssemblyMode {
 

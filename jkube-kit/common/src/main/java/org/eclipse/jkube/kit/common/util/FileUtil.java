@@ -43,7 +43,6 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 /**
  * File related methods which cannot be found elsewhere
  * @author roland
- * @since 23.05.17
  */
 public class FileUtil {
 
@@ -314,6 +313,7 @@ public class FileUtil {
         try (Stream<Path> sourceTree = Files.walk(sourcePath)) {
           for (Path source : sourceTree.collect(Collectors.toList())){
             Path target = targetDir.toPath().resolve(sourcePath.relativize(source));
+            FileUtils.forceMkdir(target.toFile());
             Files.copy(source, target, REPLACE_EXISTING);
           }
         }

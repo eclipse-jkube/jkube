@@ -21,25 +21,24 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.AssemblyMode;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.AssemblyMode;
+import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 
@@ -47,13 +46,13 @@ import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurati
 import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getJKubeAssemblyFileSets;
 import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getJKubeAssemblyFileSetsExcludes;
 import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getJKubeAssemblyFiles;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
 
 /**
  * Tool for creating a docker image tar ball including a Dockerfile for building
  * a docker image.
  *
  * @author roland
- * @since 08.05.14
  */
 public class DockerAssemblyManager {
 
@@ -404,55 +403,13 @@ public class DockerAssemblyManager {
         final Map<File, String> filesToPermissionsMap = new HashMap<>();
         FileUtil.createDirectory(new File(buildDirs.getOutputDirectory(), assemblyConfiguration.getName()));
         for (AssemblyFileSet fileSet : getJKubeAssemblyFileSets(assemblyConfiguration)) {
-            filesToPermissionsMap.putAll(processJKubeProjectAssemblyFileSet(project, fileSet, buildDirs, assemblyConfiguration));
+            filesToPermissionsMap.putAll(processAssemblyFileSet(project.getBaseDirectory(), buildDirs.getOutputDirectory(), fileSet, assemblyConfiguration));
         }
         for (AssemblyFile file : getJKubeAssemblyFiles(assemblyConfiguration)) {
             processJKubeProjectAssemblyFile(project, file, buildDirs, assemblyConfiguration);
         }
         return filesToPermissionsMap;
     }
-
-  private Map<File, String> processJKubeProjectAssemblyFileSet(JavaProject project,
-                                                               AssemblyFileSet jkubeProjectAssemblyFileSet, BuildDirs buildDirs,
-                                                               AssemblyConfiguration jkubeProjectAssemblyConfiguration) throws IOException {
-
-    final Map<File, String> fileToPermissionsMap = new HashMap<>();
-
-    final List<String> includes = Optional.ofNullable(jkubeProjectAssemblyFileSet.getIncludes())
-        .orElse(Collections.singletonList(""));
-    for (String relativePathInclude : includes) {
-      final File sourceDirectory = project.getBaseDirectory().toPath()
-          .resolve(jkubeProjectAssemblyFileSet.getDirectory().toPath())
-          .toFile();
-      final File sourceFile = new File(sourceDirectory, FileUtil.trimWildcardCharactersFromPath(relativePathInclude));
-      File destParentFile = new File(buildDirs.getOutputDirectory(), jkubeProjectAssemblyConfiguration.getName());
-      if (jkubeProjectAssemblyFileSet.getOutputDirectory() != null
-          && !jkubeProjectAssemblyFileSet.getOutputDirectory().getName().equals(".")) {
-        destParentFile = buildDirs.getOutputDirectory().toPath()
-            .resolve(jkubeProjectAssemblyConfiguration.getName())
-            .resolve(jkubeProjectAssemblyFileSet.getOutputDirectory().toPath())
-            .toFile();
-      }
-      FileUtil.createDirectory(destParentFile);
-      File destFile = new File(destParentFile, sourceFile.getName());
-
-      if (sourceFile.exists()) {
-        if (sourceFile.isDirectory()) {
-          FileUtil.copyDirectoryIfNotExists(sourceFile, destFile);
-        } else {
-          FileUtil.copy(sourceFile, destFile);
-        }
-        final String fileMode = jkubeProjectAssemblyFileSet.getFileMode();
-        if (destFile.isFile()) {
-            fileToPermissionsMap.put(destFile, fileMode);
-        } else {
-            final int directoryCanListPermission = Integer.parseInt(fileMode, 8) + 0111;
-            fileToPermissionsMap.put(destFile, Integer.toOctalString(directoryCanListPermission));
-        }
-      }
-    }
-    return fileToPermissionsMap;
-  }
 
     private void processJKubeProjectAssemblyFile(
         JavaProject project, AssemblyFile assemblyFile, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration)
