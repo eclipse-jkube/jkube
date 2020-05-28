@@ -127,18 +127,22 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
         });
 
         // Removing namespace annotation from the namespace and project objects being generated.
-        // to avoid unncessary trouble while applying these resources.
+        // to avoid unnecessary trouble while applying these resources.
         builder.accept(new TypedVisitor<NamespaceBuilder>() {
             @Override
             public void visit(NamespaceBuilder builder) {
-                builder.withNewStatus().withPhase("Active").endStatus().editMetadata().withNamespace(null).endMetadata().build();
+                if (builder.buildStatus().getPhase().equals("active")) {
+                    builder.editOrNewStatus().endStatus().build();
+                }
             }
         });
 
         builder.accept(new TypedVisitor<ProjectBuilder>() {
             @Override
             public void visit(ProjectBuilder builder) {
-                builder.withNewStatus().withPhase("Active").endStatus().editMetadata().withNamespace(null).endMetadata().build();
+                if (builder.buildStatus().getPhase().equals("active")) {
+                    builder.editOrNewStatus().endStatus().build();
+                }
             }
         });
     }

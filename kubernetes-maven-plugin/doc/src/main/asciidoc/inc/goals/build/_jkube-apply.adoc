@@ -69,10 +69,6 @@ endif::[]
 | Do we want to ignore OAuthClients which are already running?. OAuthClients are shared across namespaces so we should not try to update or create/delete global oauth clients, defaults to `true`
 | `jkube.deploy.ignoreRunningOAuthClients`
 
-| *createExternalUrls*
-| Should we create external Ingress for any LoadBalancer Services which don't already have them. Defaults to `false`
-| `jkube.deploy.createExternalUrls`
-
 | *jsonLogDir*
 | The folder we should store any temporary json files or results. Defaults to `${basedir}/target/jkube/applyJson`
 | `jkube.deploy.jsonLogDir`

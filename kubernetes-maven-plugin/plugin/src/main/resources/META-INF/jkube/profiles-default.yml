@@ -48,6 +48,9 @@
     - jkube-openshift-deploymentconfig
     - jkube-openshift-project
 
+    # Ingress
+    - jkube-ingress
+
     # -----------------------------------------
     # TODO: Document and verify enrichers below
     # Health checks
@@ -60,7 +63,7 @@
     - jkube-healthcheck-docker
     - jkube-healthcheck-webapp
     - jkube-prometheus
-    # Dependencies shouldn't be enriched anymore, therefor it's last in the list
+    # Dependencies shouldn't be enriched anymore, therefore it's last in the list
     - jkube-dependency
     - jkube-revision-history
     - jkube-docker-registry-secret
