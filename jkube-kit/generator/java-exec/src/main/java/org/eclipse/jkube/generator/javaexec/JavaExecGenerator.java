@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
@@ -178,7 +178,7 @@ public class JavaExecGenerator extends BaseGenerator {
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
         } else {
-            final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles(getProject()));
+            final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
                 if (fatJar != null) {
@@ -191,10 +191,10 @@ public class JavaExecGenerator extends BaseGenerator {
         }
     }
 
-    public List<AssemblyFileSet> addAdditionalFiles(JavaProject project) {
+    public List<AssemblyFileSet> addAdditionalFiles() {
         List<AssemblyFileSet> fileSets = new ArrayList<>();
-        fileSets.add(createFileSet(project, "src/main/jkube-includes/bin","bin", "0755"));
-        fileSets.add(createFileSet(project, "src/main/jkube-includes",".", "0644"));
+        fileSets.add(createFileSet("src/main/jkube-includes/bin","bin", "0755"));
+        fileSets.add(createFileSet("src/main/jkube-includes",".", "0644"));
         return fileSets;
     }
 
@@ -202,16 +202,15 @@ public class JavaExecGenerator extends BaseGenerator {
         final File buildDirectory = project.getBuildDirectory();
         return AssemblyFileSet.builder()
                 .directory(getRelativePath(project.getBaseDirectory(), buildDirectory))
-                .includes(Collections.singletonList(getRelativePath(buildDirectory, fatJar.getArchiveFile()).getPath()))
+                .include(getRelativePath(buildDirectory, fatJar.getArchiveFile()).getPath())
                 .outputDirectory(new File("."))
                 .fileMode("0640")
                 .build();
     }
 
-    public AssemblyFileSet createFileSet(JavaProject project, String sourceDir, String outputDir, String fileMode) {
+    public AssemblyFileSet createFileSet(String sourceDir, String outputDir, String fileMode) {
         return AssemblyFileSet.builder()
-                .directory(project.getBaseDirectory())
-                .includes(Collections.singletonList(sourceDir))
+                .directory(new File(sourceDir))
                 .outputDirectory(new File(outputDir))
                 .fileMode(fileMode)
                 .build();

@@ -28,7 +28,7 @@ import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
 

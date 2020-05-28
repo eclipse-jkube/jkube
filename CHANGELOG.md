@@ -32,7 +32,7 @@ Usage:
 * Fix #210: WebAppGenerator\>JettyAppSeverHandler uses quay.io/jkube/jkube-jetty9-binary-s2i as base image
 * Fix #211: pom.xml configured runtime mode `<mode>` is considered instead of `<configuredRuntimeMode>`
 * Fix #209: WildFlySwarmGenerator includes required env variables + java options
-
+* Fix #285: fix: KarafGenerator update (Created Karaf Quickstart #188, fix FileSet problems, upgraded base images)
 
 ### 1.0.0-alpha-3 (2020-05-06)
 * Fix #167: Add CMD for wildfly based applications

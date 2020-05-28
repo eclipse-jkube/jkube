@@ -16,7 +16,7 @@ package org.eclipse.jkube.openliberty.generator;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -74,7 +74,7 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
         if (assemblyRef != null) {
             builder.descriptorRef(assemblyRef);
         } else {
-            final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles(getProject()));
+            final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
             if (isFatJar()) {
                 FatJarDetector.Result fatJar = detectFatJar();
                 JavaProject project = getProject();
@@ -93,12 +93,12 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
     }
 
     @Override
-    public List<AssemblyFileSet> addAdditionalFiles(JavaProject project) {
+    public List<AssemblyFileSet> addAdditionalFiles() {
         List<AssemblyFileSet> fileSets = new ArrayList<>();
-        fileSets.add(createFileSet(project, "src/main/jkube-includes/bin","bin", "0755"));
-        fileSets.add(createFileSet(project, "src/main/jkube-includes",".", "0644"));
+        fileSets.add(createFileSet("src/main/jkube-includes/bin","bin", "0755"));
+        fileSets.add(createFileSet("src/main/jkube-includes",".", "0644"));
         // Add server.xml file
-        fileSets.add(createFileSet(project, "src/main/liberty/config","src/wlp/config", "0644"));
+        fileSets.add(createFileSet("src/main/liberty/config","src/wlp/config", "0644"));
         return fileSets;
     }
 

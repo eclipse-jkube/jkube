@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.config.image.build;
 import java.io.File;
 
 import mockit.Expectations;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import mockit.Mocked;
 import org.junit.Test;

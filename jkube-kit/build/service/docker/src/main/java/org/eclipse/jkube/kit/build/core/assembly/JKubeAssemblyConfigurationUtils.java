@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.build.core.assembly;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;

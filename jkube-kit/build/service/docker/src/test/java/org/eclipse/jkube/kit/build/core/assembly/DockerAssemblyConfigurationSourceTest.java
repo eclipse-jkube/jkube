@@ -18,7 +18,7 @@ import java.util.Arrays;
 
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

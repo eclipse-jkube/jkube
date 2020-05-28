@@ -23,7 +23,6 @@ import lombok.Singular;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("JavaDoc")
@@ -58,7 +57,7 @@ public class AssemblyFileSet implements Serializable {
    */
   private boolean filtered;
   /**
-   *  A set of files and directory to include.
+   *  A set of files and directory to include. <b>NO WILDCARDS SUPPORTED</b>
    *
    *  <p> If none is present, then everything is included
    *
@@ -88,20 +87,17 @@ public class AssemblyFileSet implements Serializable {
    * @return The assembly fileSet file mode value.
    */
   private String fileMode;
-
-  public void addInclude(String item) {
-    if (includes == null) {
-      includes = new ArrayList<>();
-    }
-    includes.add(item);
-  }
-
-  public void addExclude(String item) {
-    if (excludes == null) {
-      excludes = new ArrayList<>();
-    }
-    excludes.add(item);
-  }
+  /**
+   * Similar to a UNIX permission, sets the directory mode of the directories included.
+   *
+   * <p> Format: (User)(Group)(Other) where each component is a sum of Read = 4, Write = 2, and Execute = 1.
+   *
+   * <p> For example, the value 0755 translates to User read-write, Group and Other read-only.
+   *
+   * @param directoryMode New file mode value for the assembly fileSet.
+   * @return The assembly fileSet directory mode value.
+   */
+  private String directoryMode;
 
   // Plexus deserialization specific setters
   /**

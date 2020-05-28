@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
@@ -117,14 +117,14 @@ public class QuarkusGenerator extends BaseGenerator {
         jKubeAssemblyFileSet.setOutputDirectory(".");
         return AssemblyConfiguration.builder()
             .targetDir(targetDir)
-            .inline(Assembly.builder().fileSets(Collections.singletonList(jKubeAssemblyFileSet)).build())
+            .inline(Assembly.builder().fileSet(jKubeAssemblyFileSet).build())
             .build();
     }
 
     private AssemblyFileSet getJvmFilesToInclude() {
         AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder =
             getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
-        fileSetBuilder.include("lib/**");
+        fileSetBuilder.include("lib");
         // We also need to exclude default jar file
         File defaultJarFile = JKubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
         if (defaultJarFile != null) {

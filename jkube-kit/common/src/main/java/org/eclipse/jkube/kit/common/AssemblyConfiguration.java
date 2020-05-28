@@ -11,12 +11,10 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.config.image.build;
+package org.eclipse.jkube.kit.common;
 
 import java.io.Serializable;
 import java.util.Optional;
-
-import org.eclipse.jkube.kit.common.Assembly;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
