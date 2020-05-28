@@ -88,12 +88,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
  * Utility class for handling Kubernetes resource descriptors
  *
  * @author roland
  */
 public class KubernetesResourceUtil {
+    private KubernetesResourceUtil() { }
 
     private static final Logger LOG = LoggerFactory.getLogger(KubernetesResourceUtil.class);
 
@@ -880,6 +882,27 @@ public class KubernetesResourceUtil {
         mergeMetadata(item1, item2);
         return item1;
     }
+
+    public static boolean containsLabelInMetadata(ObjectMeta metadata, String labelKey, String labelValue) {
+        if (metadata != null && metadata.getLabels() != null) {
+            Map<String, String> labels = metadata.getLabels();
+            return labels.containsKey(labelKey) && labelValue.equals(labels.get(labelKey));
+        }
+        return false;
+    }
+
+    public static ObjectMeta removeLabel(ObjectMeta metadata, String labelKey, String labelValue) {
+        Map<String, String> labels;
+        if (metadata != null) {
+            labels = metadata.getLabels();
+            if (labels != null && labelValue.equals(labels.get(labelKey))) {
+                labels.remove(labelKey);
+            }
+        }
+        return metadata;
+    }
+
+
 
     protected static HasMetadata mergeConfigMaps(ConfigMap cm1, ConfigMap cm2, KitLogger log, boolean switchOnLocalCustomisation) {
         ConfigMap cm1OrCopy = cm1;

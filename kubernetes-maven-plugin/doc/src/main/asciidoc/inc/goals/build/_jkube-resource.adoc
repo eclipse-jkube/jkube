@@ -327,4 +327,12 @@ endif::[]
 | Skip resource generation. Defaults to `false`
 | `jkube.skip.resource`
 
+| *createExternalUrls*
+| Should we create external Ingress for any LoadBalancer Services which don't already have them. Defaults to `false`
+| `jkube.createExternalUrls`
+
+| *domain*
+| Domain added to the Service ID when creating Kubernetes Ingresses or OpenShift routes
+| `jkube.domain`
+
 |===

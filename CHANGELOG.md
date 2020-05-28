@@ -23,6 +23,7 @@ Usage:
 ### 1.0.0-SNAPSHOT
 * Fix #173: Use OpenShift compliant git/vcs annotations 
 * Fix #182: Assembly is never null
+* Fix #184: IngressEnricher seems to be broken, Port of fabric8io/fabric8-maven-plugin#1730
 * Fix #198: Wildfly works in OpenShift with S2I binary build (Docker)
 * Fix #199: BaseGenerator retrieves runtime mode from context (not from missing properties)
 * Fix #201: Webapp-Wildfly supports S2I source builds too (3 modes Docker, OpenShift-Docker, OpenShift-S2I)

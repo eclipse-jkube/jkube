@@ -185,6 +185,32 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>kubernetes-with-ingress</id>
+      <properties>
+         <jkube.createExternalUrls>true</jkube.createExternalUrls>
+         <jkube.domain>org.eclipse.jkube.quickstart</jkube.domain>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>${project.version}</version>
+
+            <configuration>
+              <enricher>
+                <config>
+                  <jkube-service>
+                    <type>LoadBalancer</type>
+                  </jkube-service>
+                </config>
+              </enricher>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
 </project>

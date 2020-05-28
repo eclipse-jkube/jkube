@@ -116,7 +116,6 @@ items:
   kind: Route
   metadata:
     labels:
-      expose: "true"
       app: jkube-maven-sample-zero-config
       provider: jkube
       version: 0.1-SNAPSHOT

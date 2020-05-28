@@ -53,6 +53,8 @@ public class BaseEnricher implements Enricher {
     public static final String ENRICH_ALL_WITH_IMAGE_TRIGGERS = "jkube.openshift.enrichAllWithImageChangeTrigger";
     public static final String OPENSHIFT_DEPLOY_TIMEOUT_SECONDS = "jkube.openshift.deployTimeoutSeconds";
     private static final String SWITCH_TO_DEPLOYMENT = "jkube.build.switchToDeployment";
+    public static final String CREATE_EXTERNAL_URLS = "jkube.createExternalUrls";
+    public static final String JKUBE_DOMAIN = "jkube.domain";
     protected static final String GENERATE_ROUTE = "jkube.openshift.generateRoute";
 
     protected KitLogger log;

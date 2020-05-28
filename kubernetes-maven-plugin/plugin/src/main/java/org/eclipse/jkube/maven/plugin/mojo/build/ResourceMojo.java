@@ -197,6 +197,20 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.namespace")
     private String namespace;
 
+    /**
+     * Should we create external Ingress/Routes for any LoadBalancer Services which don't already have them.
+     * <p>
+     * if Ingress or Router is being used or whether we should use LoadBalancer or NodePorts for single node clusters
+     */
+    @Parameter(property = "jkube.createExternalUrls", defaultValue = "false")
+    private Boolean createExternalUrls;
+
+    /*
+     * The domain added to the service ID when creating Kubernetes Ingress
+     */
+    @Parameter(property = "jkube.domain")
+    protected String routeDomain;
+
     @Parameter(property = "jkube.sidecar", defaultValue = "false")
     private Boolean sidecar;
 

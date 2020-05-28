@@ -81,6 +81,7 @@ public class ResourceConfig {
   @Singular
   private List<IngressRule> ingressRules;
   private OpenshiftBuildConfig openshiftBuildConfig;
+  private String routeDomain;
 
   public static ResourceConfigBuilder toBuilder(ResourceConfig original) {
     return Optional.ofNullable(original).orElse(new ResourceConfig()).toBuilder();

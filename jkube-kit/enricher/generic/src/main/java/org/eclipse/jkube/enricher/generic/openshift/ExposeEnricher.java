@@ -30,10 +30,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
 /**
  * Enricher for enabling exposing of HTTP / HTTPS based services
  */
 public class ExposeEnricher extends BaseEnricher {
+    public static final String EXPOSE_LABEL = "expose";
 
     public ExposeEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-openshift-service-expose");
@@ -41,11 +43,9 @@ public class ExposeEnricher extends BaseEnricher {
 
     private Set<Integer> webPorts = new HashSet<>(Arrays.asList(80, 443, 8080, 9080, 9090, 9443));
 
-    public static final String EXPOSE_LABEL = "expose";
-
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        List<HasMetadata> items = builder.getItems();
+        List<HasMetadata> items = builder.buildItems();
         if (items != null) {
             for (HasMetadata item : items) {
                 if (item instanceof Service) {
@@ -81,10 +81,8 @@ public class ExposeEnricher extends BaseEnricher {
             if (ports != null) {
                 for (ServicePort port : ports) {
                     Integer portNumber = port.getPort();
-                    if (portNumber != null) {
-                        if (webPorts.contains(portNumber)) {
-                            return true;
-                        }
+                    if (portNumber != null && webPorts.contains(portNumber)) {
+                        return true;
                     }
                 }
             }
