@@ -22,6 +22,7 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import lombok.Builder;
 import lombok.Getter;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
+import org.eclipse.jkube.kit.common.service.MigrateService;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -54,6 +55,7 @@ public class JKubeServiceHub implements Closeable {
     private LazyBuilder<ArtifactResolverService> artifactResolverService;
     private LazyBuilder<BuildService> buildService;
     private LazyBuilder<ApplyService> applyService;
+    private LazyBuilder<MigrateService> migrateService;
 
     @Builder
     public JKubeServiceHub(
@@ -114,6 +116,12 @@ public class JKubeServiceHub implements Closeable {
             protected ArtifactResolverService build() {
                 return new JKubeArtifactResolverService(configuration.getProject()); }
         };
+        migrateService = new LazyBuilder<MigrateService>() {
+            @Override
+            protected MigrateService build() {
+                return new MigrateService(getConfiguration().getBasedir(), log);
+            }
+        };
     }
 
     @Override
@@ -136,6 +144,10 @@ public class JKubeServiceHub implements Closeable {
 
     public ApplyService getApplyService() {
         return applyService.get();
+    }
+
+    public MigrateService getMigrateService() {
+        return migrateService.get();
     }
 
 }

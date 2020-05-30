@@ -27,6 +27,7 @@ Usage:
 * Fix #192: Removed `@Deprecated` fields from ClusterAccess
 * Fix #190: Removed `@Deprecated` fields from AssemblyConfiguration
 * Fix #189: Removed `@Deprecated` fields from BuildConfiguration
+* Fix #195: Added MigrateMojo for migrating projects from FMP to JKube
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 
