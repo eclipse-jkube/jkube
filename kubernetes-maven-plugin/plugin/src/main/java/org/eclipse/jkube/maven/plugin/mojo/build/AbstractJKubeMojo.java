@@ -13,10 +13,13 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 
@@ -28,8 +31,11 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.utils.logging.MessageUtils;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 
+import java.util.Collections;
 import java.util.Optional;
 
 public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLoggerProvider {
@@ -61,12 +67,28 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     @Parameter
     protected ClusterConfiguration access;
 
+    @Parameter(property = "jkube.mode")
+    protected RuntimeMode runtimeMode = RuntimeMode.DEFAULT;
+
     protected KitLogger log;
     protected ClusterAccess clusterAccess;
 
-    protected void init() {
+    // The JKube service hub
+    protected JKubeServiceHub jkubeServiceHub;
+
+    protected void init() throws DependencyResolutionRequiredException {
         log = createLogger(null);
         clusterAccess = new ClusterAccess(log, initClusterConfiguration());
+        final JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        jkubeServiceHub = JKubeServiceHub.builder()
+                .log(log)
+                .configuration(JKubeConfiguration.builder()
+                        .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
+                        .reactorProjects(Collections.singletonList(javaProject))
+                        .build())
+                .clusterAccess(clusterAccess)
+                .platformMode(runtimeMode)
+                .build();
     }
 
     protected boolean canExecute() {
@@ -75,9 +97,13 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        init();
-        if (canExecute()) {
-            executeInternal();
+        try {
+            init();
+            if (canExecute()) {
+                executeInternal();
+            }
+        } catch (DependencyResolutionRequiredException e) {
+            throw new MojoFailureException(e.getMessage());
         }
     }
 
