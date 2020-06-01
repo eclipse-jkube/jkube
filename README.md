@@ -26,13 +26,13 @@ Actually it contains the following abstractions which has been extracted from bo
 [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/kubernetes-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22kubernetes-maven-plugin%22)
 [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin)
 
-![Sample Demo KMP](./kubernetes-maven-plugin/kmp.svg)
+[![Sample Demo KMP](./kubernetes-maven-plugin/kmp.png)](https://asciinema.org/a/335724)
 
 * **OpenShift Maven Plugin** <br/> 
 [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/openshift-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22openshift-maven-plugin%22)
 [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.org/jkube/docs/openshift-maven-plugin)
 
-![Sample Demo OMP](./openshift-maven-plugin/omp.svg)
+[![Sample Demo OMP](./openshift-maven-plugin/omp.png)](https://asciinema.org/a/335743)
 
 * **JKube-kit**, which consists of the following:
 
