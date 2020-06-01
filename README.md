@@ -13,7 +13,12 @@
   </a>
 </p>
 
-This project contains various building blocks for the JKube developer toolbox.
+## Rebranding Notice :loudspeaker:
+This project is not an effort from scratch. It was earlier called [Fabric8 Maven Plugin](https://github.com/fabric8io/fabric8-maven-plugin). It is just refactored and rebranded version of the project targeted towards Java developers who are working on top of Kubernetes. For more information about history, please see [REBRANDING.md](./REBRANDING.md)
+
+## Introduction:
+
+This project contains various building blocks for the Kubernetes Java developer toolbox.
 
 Actually it contains the following abstractions which has been extracted from both projects:
 
