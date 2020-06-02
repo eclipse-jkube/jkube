@@ -88,7 +88,7 @@ public class KarafGeneratorTest {
     new Expectations() {{
       plugin.getGroupId(); result = "org.apache.karaf.tooling"; minTimes = 0;
       plugin.getArtifactId(); result = "karaf-maven-plugin"; minTimes = 0;
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
+      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin); minTimes = 0;
       generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
       generatorContext.getProject().getVersion(); result = "1.33.7-SNAPSHOT";
     }};

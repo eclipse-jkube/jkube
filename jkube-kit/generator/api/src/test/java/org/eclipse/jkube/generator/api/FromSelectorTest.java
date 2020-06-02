@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.generator.api;
 
-import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -22,7 +21,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
 
@@ -31,71 +29,59 @@ import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.do
 import static org.eclipse.jkube.kit.config.resource.RuntimeMode.openshift;
 import static org.junit.Assert.assertEquals;
 
-/**
- * @author roland
- * @since 12/08/16
- */
 public class FromSelectorTest {
 
-    @Mocked
-    JavaProject project;
+  @Mocked
+  JavaProject project;
 
-    @Mocked
-    Plugin plugin;
+  @Mocked
+  Plugin plugin;
 
-    @Mocked
-    KitLogger logger;
+  @Mocked
+  KitLogger logger;
 
-    @Test
-    public void simple() {
-        final Object[] data = new Object[] {
-                openshift, s2i, "1.2.3.redhat-00009", "redhat-s2i-prop", "redhat-istag-prop",
-                openshift, docker, "1.2.3.redhat-00009", "redhat-docker-prop", "redhat-istag-prop",
-                openshift, s2i, "1.2.3.fuse-00009", "redhat-s2i-prop", "redhat-istag-prop",
-                openshift, docker, "1.2.3.fuse-00009", "redhat-docker-prop", "redhat-istag-prop",
-                openshift, s2i, "1.2.3.foo-00009", "s2i-prop", "istag-prop",
-                openshift, docker, "1.2.3.foo-00009", "docker-prop", "istag-prop",
-                openshift, s2i, "1.2.3", "s2i-prop", "istag-prop",
-                openshift, docker, "1.2.3", "docker-prop", "istag-prop",
-                null, s2i, "1.2.3.redhat-00009", "redhat-docker-prop", "redhat-istag-prop",
-                null, docker, "1.2.3.redhat-00009", "redhat-docker-prop", "redhat-istag-prop",
-                null, s2i, "1.2.3.fuse-00009", "redhat-docker-prop", "redhat-istag-prop",
-                null, docker, "1.2.3.fuse-00009", "redhat-docker-prop", "redhat-istag-prop",
-                null, s2i, "1.2.3.foo-00009", "docker-prop", "istag-prop",
-                null, docker, "1.2.3.foo-00009", "docker-prop", "istag-prop",
-                null, s2i, "1.2.3", "docker-prop", "istag-prop",
-                null, docker, "1.2.3", "docker-prop", "istag-prop",
-                openshift, null, "1.2.3.redhat-00009", "redhat-docker-prop", "redhat-istag-prop",
-                openshift, null, "1.2.3.fuse-00009", "redhat-docker-prop", "redhat-istag-prop",
-                openshift, null, "1.2.3.foo-00009", "docker-prop", "istag-prop",
-                openshift, null, "1.2.3", "docker-prop", "istag-prop"
-        };
+  @Test
+  public void simple() {
+    final TestCase[] testCases = new TestCase[]{
+        new TestCase(openshift, s2i, "s2i-prop", "istag-prop"),
+        new TestCase(openshift, docker, "docker-prop", "istag-prop"),
+        new TestCase(null, s2i,  "docker-prop", "istag-prop"),
+        new TestCase(null, docker,  "docker-prop", "istag-prop"),
+        new TestCase(openshift, null,  "docker-prop", "istag-prop"),
+        new TestCase(openshift, null,  "docker-prop", "istag-prop"),
+        new TestCase(null, null,  "docker-prop", "istag-prop"),
+        new TestCase(null, null,  "docker-prop", "istag-prop"),
+    };
+    for (TestCase tc : testCases) {
+      GeneratorContext ctx = GeneratorContext.builder()
+          .project(project)
+          .config(new ProcessorConfig())
+          .logger(logger)
+          .runtimeMode(tc.runtimeMode)
+          .strategy(tc.strategy)
+          .build();
 
-        for (int i = 0; i < data.length; i += 5) {
-            GeneratorContext ctx = GeneratorContext.builder()
-                    .project(project)
-                    .config(new ProcessorConfig())
-                    .logger(logger)
-                    .runtimeMode((RuntimeMode) data[i])
-                    .strategy((OpenShiftBuildStrategy) data[i + 1])
-                    .build();
-
-            final String version = (String) data[i + 2];
-            new Expectations() {{
-                project.getPlugins(); result = Collections.singletonList(plugin);
-                plugin.getGroupId(); result = "org.eclipse.jkube";
-                plugin.getArtifactId(); result = "openshift-maven-plugin";
-                plugin.getVersion(); result = version;
-            }};
-
-            FromSelector selector = new FromSelector.Default(ctx, "test");
-            assertEquals(data[i + 3], selector.getFrom());
-            Map<String, String> fromExt = selector.getImageStreamTagFromExt();
-            assertEquals(fromExt.size(),3);
-            assertEquals(fromExt.get(OpenShiftBuildStrategy.SourceStrategy.kind.key()), "ImageStreamTag");
-            assertEquals(fromExt.get(OpenShiftBuildStrategy.SourceStrategy.namespace.key()), "openshift");
-            assertEquals(fromExt.get(OpenShiftBuildStrategy.SourceStrategy.name.key()), data[i + 4]);
-        }
+      FromSelector selector = new FromSelector.Default(ctx, "test");
+      assertEquals(tc.expectedFrom, selector.getFrom());
+      Map<String, String> fromExt = selector.getImageStreamTagFromExt();
+      assertEquals(3, fromExt.size());
+      assertEquals("ImageStreamTag", fromExt.get(OpenShiftBuildStrategy.SourceStrategy.kind.key()));
+      assertEquals("openshift", fromExt.get(OpenShiftBuildStrategy.SourceStrategy.namespace.key()));
+      assertEquals(tc.expectedName, fromExt.get(OpenShiftBuildStrategy.SourceStrategy.name.key()));
     }
+  }
 
+  private static final class TestCase {
+    private final RuntimeMode runtimeMode;
+    private final OpenShiftBuildStrategy strategy;
+    private final String expectedFrom;
+    private final String expectedName;
+
+    public TestCase(RuntimeMode runtimeMode, OpenShiftBuildStrategy strategy, String expectedFrom, String expectedName) {
+      this.runtimeMode = runtimeMode;
+      this.strategy = strategy;
+      this.expectedFrom = expectedFrom;
+      this.expectedName = expectedName;
+    }
+  }
 }

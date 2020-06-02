@@ -43,7 +43,6 @@ import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.So
 
 /**
  * @author roland
- * @since 10/01/17
  */
 public class BaseGeneratorTest {
 
@@ -81,38 +80,26 @@ public class BaseGeneratorTest {
     public void defaultAddFrom() {
         Properties props = new Properties();
         for (boolean isOpenShift : new Boolean[]{false, true}) {
-            for (boolean isRedHat : new Boolean[]{false, true}) {
-                for (TestFromSelector selector : new TestFromSelector[]{null, new TestFromSelector(ctx, isRedHat)}) {
-                    for (String from : new String[]{null, "openshift/testfrom"}) {
-                        setupContext(props, isOpenShift, from, null);
+            for (TestFromSelector selector : new TestFromSelector[]{null, new TestFromSelector(ctx)}) {
+                for (String from : new String[]{null, "openshift/testfrom"}) {
+                    setupContext(props, isOpenShift, from, null);
 
-                        BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
-                        BaseGenerator generator = createGenerator(selector);
-                        generator.addFrom(builder);
-                        BuildConfiguration config = builder.build();
-                        if (isRedHat && isOpenShift && selector != null) {
-                            if (from != null) {
-                                assertEquals("testfrom:latest", config.getFrom());
-                                assertFromExt(config.getFromExt(), "testfrom:latest", "openshift");
-                            } else {
-                                assertEquals("selectorIstagFromRedhat", config.getFrom());
-                                assertFromExt(config.getFromExt(), selector.getIstagFrom(), "openshift");
-                            }
-                        } else {
-                            if (from != null) {
-                                assertEquals(config.getFrom(), from);
-                                assertNull(config.getFromExt());
-                            } else {
-                                System.out.println(isRedHat + " " + isOpenShift);
-                                assertNull(config.getFromExt());
-                                assertEquals(config.getFrom(),
-                                        selector != null ?
-                                                (isOpenShift ?
-                                                        selector.getS2iBuildFrom() :
-                                                        selector.getDockerBuildFrom())
-                                                : null);
-                            }
-                        }
+                    BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+                    BaseGenerator generator = createGenerator(selector);
+                    generator.addFrom(builder);
+                    BuildConfiguration config = builder.build();
+                    if (from != null) {
+                        assertEquals(config.getFrom(), from);
+                        assertNull(config.getFromExt());
+                    } else {
+                        System.out.println(isOpenShift);
+                        assertNull(config.getFromExt());
+                        assertEquals(config.getFrom(),
+                                selector != null ?
+                                        (isOpenShift ?
+                                                selector.getS2iBuildFrom() :
+                                                selector.getDockerBuildFrom())
+                                        : null);
                     }
                 }
             }
@@ -135,7 +122,7 @@ public class BaseGeneratorTest {
             setupContext(props, false, from, null);
 
             BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
-            BaseGenerator generator = createGenerator(new TestFromSelector(ctx, false));
+            BaseGenerator generator = createGenerator(new TestFromSelector(ctx));
             generator.addFrom(builder);
             BuildConfiguration config = builder.build();
             assertEquals(from == null ? "selectorIstagFromUpstream" : "test_image:2.0", config.getFrom());
@@ -334,31 +321,24 @@ public class BaseGeneratorTest {
 
     private class TestFromSelector extends FromSelector {
 
-        private boolean isRedHat;
 
-        public TestFromSelector(GeneratorContext context, boolean isRedHat) {
+        public TestFromSelector(GeneratorContext context) {
             super(context);
-            this.isRedHat = isRedHat;
-        }
-
-        @Override
-        public boolean isRedHat() {
-            return isRedHat;
         }
 
         @Override
         protected String getDockerBuildFrom() {
-            return !isRedHat ? "selectorDockerFromUpstream" : "selectorDockerFromRedhat";
+            return "selectorDockerFromUpstream";
         }
 
         @Override
         protected String getS2iBuildFrom() {
-            return !isRedHat ? "selectorS2iFromUpstream" : "selectorS2iFromRedhat";
+            return "selectorS2iFromUpstream";
         }
 
         @Override
         protected String getIstagFrom() {
-            return !isRedHat ? "selectorIstagFromUpstream" : "selectorIstagFromRedhat";
+            return "selectorIstagFromUpstream";
         }
     }
 }

@@ -38,7 +38,7 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
   public WildFlyAppSeverHandler(GeneratorContext context) {
     super(HANDLER_NAME, context);
-    this.fromSelector = new FromSelector.NoRedHatSupportFromSelector(context, PROPERTY_IMAGE_NAME);
+    this.fromSelector = new FromSelector.Default(context, PROPERTY_IMAGE_NAME);
   }
 
   @Override
