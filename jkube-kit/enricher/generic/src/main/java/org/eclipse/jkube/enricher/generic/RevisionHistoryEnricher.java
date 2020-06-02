@@ -15,7 +15,6 @@ package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -50,9 +49,17 @@ public class RevisionHistoryEnricher extends BaseEnricher {
         log.info("Adding revision history limit to %s", maxRevisionHistories);
 
         if(platformMode == PlatformMode.kubernetes) {
-            builder.accept(new TypedVisitor<DeploymentBuilder>() {
+            builder.accept(new TypedVisitor<io.fabric8.kubernetes.api.model.apps.DeploymentBuilder>() {
                 @Override
-                public void visit(DeploymentBuilder item) {
+                public void visit(io.fabric8.kubernetes.api.model.apps.DeploymentBuilder item) {
+                    item.editOrNewSpec()
+                            .withRevisionHistoryLimit(maxRevisionHistories)
+                            .endSpec();
+                }
+            });
+            builder.accept(new TypedVisitor<io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder>() {
+                @Override
+                public void visit(io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder item) {
                     item.editOrNewSpec()
                             .withRevisionHistoryLimit(maxRevisionHistories)
                             .endSpec();
