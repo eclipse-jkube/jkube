@@ -34,6 +34,7 @@ Usage:
 * Fix #211: pom.xml configured runtime mode `<mode>` is considered instead of `<configuredRuntimeMode>`
 * Fix #209: WildFlySwarmGenerator includes required env variables + java options
 * Fix #214: fix: KarafGenerator update (Created Karaf Quickstart #188, fix FileSet problems, upgraded base images)
+* Update Fabric8 Kubernetes Client to v4.10.2
 * Fix #220: Remove Red Hat specific image support
 * Fix #221: Role Resources Not Supported by Kubernetes Cluster Configurations
 * Fix #226: Refactored FileUtil#getRelativeFilePath to use native Java File capabilities
