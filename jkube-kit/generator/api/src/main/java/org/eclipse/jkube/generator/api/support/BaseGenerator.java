@@ -117,7 +117,7 @@ public abstract class BaseGenerator implements Generator {
      * @param builder for the build image configuration to add the from to.
      */
     protected void addFrom(BuildConfiguration.BuildConfigurationBuilder builder) {
-        String fromMode = getConfigWithFallback(Config.fromMode, "jkube.generator.fromMode", getFromModeDefault());
+        String fromMode = getConfigWithFallback(Config.fromMode, "jkube.generator.fromMode", "docker");
         String from = getConfigWithFallback(Config.from, "jkube.generator.from", null);
         if ("docker".equalsIgnoreCase(fromMode)) {
             String fromImage = from;
@@ -156,15 +156,6 @@ public abstract class BaseGenerator implements Generator {
             }
         } else {
             throw new IllegalArgumentException(String.format("Invalid 'fromMode' in generator configuration for '%s'", getName()));
-        }
-    }
-
-    // Use "istag" as default for "redhat" versions of this plugin
-    private String getFromModeDefault() {
-        if (context.getRuntimeMode() == RuntimeMode.openshift && fromSelector != null && fromSelector.isRedHat()) {
-            return "istag";
-        } else {
-            return "docker";
         }
     }
 

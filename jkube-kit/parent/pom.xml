@@ -81,19 +81,11 @@
     <version.image.java.upstream.docker>${version.image.jkube-images}</version.image.java.upstream.docker>
     <version.image.java.upstream.s2i>${version.image.jkube-images}</version.image.java.upstream.s2i>
 
-    <!-- RedHat -->
-    <version.image.java.redhat.docker>2.0</version.image.java.redhat.docker>
-    <version.image.java.redhat.s2i>${version.image.java.redhat.docker}</version.image.java.redhat.s2i>
-
     <!-- =======================================================  -->
     <!-- === Karaf base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
     <version.image.karaf.upstream.docker>${version.image.jkube-images}</version.image.karaf.upstream.docker>
     <version.image.karaf.upstream.s2i>${version.image.jkube-images}</version.image.karaf.upstream.s2i>
-
-    <!-- RedHat  -->
-    <version.image.karaf.redhat.docker>2.0</version.image.karaf.redhat.docker>
-    <version.image.karaf.redhat.s2i>${version.image.karaf.redhat.docker}</version.image.karaf.redhat.s2i>
 
     <!-- =======================================================  -->
     <!-- Servlet container images -->
@@ -111,18 +103,10 @@
     <image.java.upstream.docker>quay.io/jkube/jkube-java-binary-s2i:${version.image.java.upstream.docker}</image.java.upstream.docker>
     <image.java.upstream.istag>jkube-java:${version.image.java.upstream.s2i}</image.java.upstream.istag>
 
-    <image.java.redhat.s2i>jboss-fuse-6/fis-java-openshift:${version.image.java.redhat.s2i}</image.java.redhat.s2i>
-    <image.java.redhat.docker>jboss-fuse-6/fis-java-openshift:${version.image.java.redhat.docker}</image.java.redhat.docker>
-    <image.java.redhat.istag>fis-java-openshift:${version.image.java.redhat.s2i}</image.java.redhat.istag>
-
     <!-- karaf -->
     <image.karaf.upstream.docker>quay.io/jkube/jkube-karaf-binary-s2i:${version.image.karaf.upstream.docker}</image.karaf.upstream.docker>
     <image.karaf.upstream.s2i>quay.io/jkube/jkube-karaf-binary-s2i:${version.image.karaf.upstream.s2i}</image.karaf.upstream.s2i>
     <image.karaf.upstream.istag>jkube-karaf:${version.image.karaf.upstream.s2i}</image.karaf.upstream.istag>
-
-    <image.karaf.redhat.docker>jboss-fuse-6/fis-karaf-openshift:${version.image.karaf.redhat.docker}</image.karaf.redhat.docker>
-    <image.karaf.redhat.s2i>jboss-fuse-6/fis-karaf-openshift:${version.image.karaf.redhat.s2i}</image.karaf.redhat.s2i>
-    <image.karaf.redhat.istag>fis-karaf-openshift:${version.image.karaf.redhat.s2i}</image.karaf.redhat.istag>
 
     <!-- webapp -->
     <image.tomcat.upstream>quay.io/jkube/jkube-tomcat9-binary-s2i:${version.image.tomcat.upstream}</image.tomcat.upstream>

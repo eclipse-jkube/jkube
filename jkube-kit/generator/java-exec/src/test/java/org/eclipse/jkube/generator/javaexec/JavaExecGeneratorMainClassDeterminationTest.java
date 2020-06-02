@@ -39,8 +39,7 @@ import static org.junit.Assert.assertNull;
  * Checking how the JavaExecGenerator checks the need to set a main class as environment variable JAVA_MAIN_CLASS
  * in various situations
  *
- * @author: Oliver Weise
- * @since: 2016-11-30
+ * @author Oliver Weise
  */
 public class JavaExecGeneratorMainClassDeterminationTest {
 
@@ -60,8 +59,6 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Before
     public void setUp() throws Exception{
         new Expectations() {{
-            project.getPlugins();
-            result = Collections.emptyList();
             project.getVersion();
             result = "1.33.7-SNAPSHOT";
             project.getBuildDirectory();

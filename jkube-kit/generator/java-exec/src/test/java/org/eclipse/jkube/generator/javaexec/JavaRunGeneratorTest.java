@@ -35,7 +35,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * @author roland
- * @since 22/09/16
  */
 public class JavaRunGeneratorTest {
 
@@ -46,11 +45,11 @@ public class JavaRunGeneratorTest {
   public void fromSelector() throws IOException {
     final List<TestCase> testCases = Arrays.asList(
         new TestCase("3.1.123", false, RuntimeMode.kubernetes, null, "java.upstream.docker"),
-        new TestCase("3.1.redhat-101", true, RuntimeMode.kubernetes, null, "java.redhat.docker"),
+        new TestCase("3.1.redhat-101", true, RuntimeMode.kubernetes, null, "java.upstream.docker"),
         new TestCase("3.1.123", false, RuntimeMode.openshift, OpenShiftBuildStrategy.docker, "java.upstream.docker"),
-        new TestCase("3.1.redhat-101", true, RuntimeMode.openshift, OpenShiftBuildStrategy.docker, "java.redhat.docker"),
+        new TestCase("3.1.redhat-101", true, RuntimeMode.openshift, OpenShiftBuildStrategy.docker, "java.upstream.docker"),
         new TestCase("3.1.123", false, RuntimeMode.openshift, OpenShiftBuildStrategy.s2i, "java.upstream.s2i"),
-        new TestCase("3.1.redhat-101", true, RuntimeMode.openshift, OpenShiftBuildStrategy.s2i, "java.redhat.s2i"));
+        new TestCase("3.1.redhat-101", true, RuntimeMode.openshift, OpenShiftBuildStrategy.s2i, "java.upstream.s2i"));
 
     Properties imageProps = getDefaultImageProps();
 
@@ -71,8 +70,6 @@ public class JavaRunGeneratorTest {
               .version(testCase.version).configuration(Collections.emptyMap()).build()));
     }
     new Expectations() {{
-      ctx.getProject();
-      result = projectBuilder.build();
       ctx.getRuntimeMode();
       result = testCase.mode;
       ctx.getStrategy();

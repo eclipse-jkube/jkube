@@ -16,22 +16,17 @@ The base images chosen are:
 | | Docker Build | S2I Build
 
 | *Tomcat*
-| `jkube.tomcat-9`
-| ---
+| `quay.io/jkube/jkube-tomcat9-binary-s2i`
+| `quay.io/jkube/jkube-tomcat9-binary-s2i`
 
 | *Jetty*
-| `jkube.jetty-9`
-| ---
+| `quay.io/jkube/jkube-jetty9-binary-s2i`
+| `quay.io/jkube/jkube-jetty9-binary-s2i`
 
 | *Wildfly*
 | `jboss/wildfly`
 | https://github.com/wildfly/wildfly-s2i[`quay.io/wildfly/wildfly-centos7`]
 |===
-
-[IMPORTANT]
-====
-S2I builds are currently not yet supported for the webapp generator.
-====
 
 In addition to the  <<generator-options-common, common generator options>> this generator can be configured with the following options:
 

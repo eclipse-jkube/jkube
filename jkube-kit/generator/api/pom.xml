@@ -28,14 +28,6 @@
 
   <name>JKube Kit :: Generator :: API</name>
 
-  <properties>
-    <!-- Default images used in Java based generators -->
-    <generator.java.docker.upstream>fabric8/java-jboss-openjdk8-jdk:${generator.java.docker.upstream.version}</generator.java.docker.upstream>
-    <generator.java.s2i.upstream>fabric8/s2i-java:${generator.java.s2i.upstream.version}</generator.java.s2i.upstream>
-    <generator.java.docker.redhat>jboss-fuse-6/fis-java-openshift:${generator.java.s2i.redhat.version}</generator.java.docker.redhat>
-    <generator.java.s2i.redhat>jboss-fuse-6/fis-java-openshift:${generator.java.s2i.redhat.version}</generator.java.s2i.redhat>
-  </properties>
-
   <dependencies>
 
     <dependency>
