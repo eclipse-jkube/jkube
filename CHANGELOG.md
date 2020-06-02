@@ -34,6 +34,7 @@ Usage:
 * Fix #209: WildFlySwarmGenerator includes required env variables + java options
 * Fix #214: fix: KarafGenerator update (Created Karaf Quickstart #188, fix FileSet problems, upgraded base images)
 * Fix #220: Remove Red Hat specific image support
+* Fix #221: Role Resources Not Supported by Kubernetes Cluster Configurations
 
 ### 1.0.0-alpha-3 (2020-05-06)
 * Fix #167: Add CMD for wildfly based applications
