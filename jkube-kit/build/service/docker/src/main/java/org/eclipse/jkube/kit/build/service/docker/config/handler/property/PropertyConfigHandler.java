@@ -61,6 +61,7 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CAP_DROP;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CLEANUP;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CMD;
+import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CONTAINER_NAME_PATTERN;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CONTEXT_DIR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CPUS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CPUSET;
@@ -105,7 +106,6 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.MEMORY;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.MEMORY_SWAP;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.NAME;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.NAMING_STRATEGY;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.NET;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.NETWORK_ALIAS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.NETWORK_MODE;
@@ -285,7 +285,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .cmd(extractArguments(valueProvider, CMD, config == null ? null : config.getCmd()))
                 .dns(valueProvider.getList(DNS, config == null ? null : config.getDns()))
                 .dependsOn(valueProvider.getList(DEPENDS_ON, config == null ? null : config.getDependsOn()))
-                .net(valueProvider.getString(NET, config == null ? null : config.getNetRaw()))
+                .net(valueProvider.getString(NET, config == null ? null : config.getNet()))
                 .network(extractNetworkConfig(config == null ? null : config.getNetworkingConfig(), valueProvider))
                 .dnsSearch(valueProvider.getList(DNS_SEARCH, config == null ? null : config.getDnsSearch()))
                 .domainname(valueProvider.getString(DOMAINNAME, config == null ? null : config.getDomainname()))
@@ -301,7 +301,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .links(valueProvider.getList(LINKS, config == null ? null : config.getLinks()))
                 .memory(valueProvider.getLong(MEMORY, config == null ? null : config.getMemory()))
                 .memorySwap(valueProvider.getLong(MEMORY_SWAP, config == null ? null : config.getMemorySwap()))
-                .namingStrategyString(valueProvider.getString(NAMING_STRATEGY, config == null || config.getNamingStrategy() == null ? null : config.getNamingStrategy().name()))
+                .containerNamePattern(valueProvider.getString(CONTAINER_NAME_PATTERN, config == null ? null :config.getContainerNamePattern()))
                 .exposedPropertyKey(valueProvider.getString(EXPOSED_PROPERTY_KEY, config == null ? null : config.getExposedPropertyKey()))
                 .portPropertyFile(valueProvider.getString(PORT_PROPERTY_FILE, config == null ? null : config.getPortPropertyFile()))
                 .ports(valueProvider.getList(PORTS, config == null ? null : config.getPorts()))
