@@ -34,6 +34,7 @@ Usage:
 * Fix #209: WildFlySwarmGenerator includes required env variables + java options
 * Fix #214: fix: KarafGenerator update (Created Karaf Quickstart #188, fix FileSet problems, upgraded base images)
 * Fix #220: Remove Red Hat specific image support
+* Fix #224: RoleBinding Resources Not Supported by Kubernetes Cluster Configurations
 * Fix #221: Role Resources Not Supported by Kubernetes Cluster Configurations
 * Fix #224: RoleBinding Resources Not Supported by Kubernetes Cluster Configurations
 * Fix #226: Refactored FileUtil#getRelativeFilePath to use native Java File capabilities
