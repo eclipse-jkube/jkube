@@ -157,13 +157,7 @@ public class ApplyService {
         } else if (dto instanceof RoleBinding) {
             applyRoleBinding((RoleBinding) dto, sourceName);
         } else if (dto instanceof Role) {
-            Role resource = (Role) dto;
-            OpenShiftClient openShiftClient = getOpenShiftClient();
-            if (openShiftClient != null) {
-                applyResource(resource, sourceName, openShiftClient.rbac().roles());
-            } else {
-                log.warn("Not connected to OpenShift cluster so cannot apply entity " + dto);
-            }
+            applyResource((Role)dto, sourceName, kubernetesClient.rbac().roles());
         } else if (dto instanceof ImageStream) {
             applyImageStream((ImageStream) dto, sourceName);
         } else if (dto instanceof OAuthClient) {
