@@ -156,13 +156,8 @@ public class ContainerNamingUtil {
 
     private static String extractContainerNamePattern(ImageConfiguration image, String defaultContainerNamePattern) {
         RunImageConfiguration runConfig = image.getRunConfiguration();
-        if (runConfig != null) {
-            if (runConfig.getContainerNamePattern() != null) {
-                return runConfig.getContainerNamePattern();
-            }
-            if (runConfig.getNamingStrategy() == RunImageConfiguration.NamingStrategy.alias) {
-                return "%a";
-            }
+        if (runConfig != null && runConfig.getContainerNamePattern() != null) {
+            return runConfig.getContainerNamePattern();
         }
         return defaultContainerNamePattern != null ? defaultContainerNamePattern : DEFAULT_CONTAINER_NAME_PATTERN;
     }

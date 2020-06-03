@@ -31,7 +31,6 @@ import org.eclipse.jkube.kit.config.image.build.Arguments;
 /**
  * @author roland
  */
-@SuppressWarnings("JavaDoc")
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
@@ -119,12 +118,6 @@ public class RunImageConfiguration implements Serializable {
    */
   private List<String> ports;
   /**
-   * @deprecated use {@link #getContainerNamePattern} instead
-   * @return NamingStrategy naming strategy
-   */
-  @Deprecated
-  private NamingStrategy namingStrategy;
-  /**
    * A pattern to define the naming of the container where:
    *
    * <ul>
@@ -202,11 +195,6 @@ public class RunImageConfiguration implements Serializable {
     return EnvUtil.removeEmptyEntries(ports);
   }
 
-  @Deprecated
-  public String getNetRaw() {
-    return net;
-  }
-
   public NetworkConfig getNetworkingConfig() {
     if (network != null) {
       return network;
@@ -226,51 +214,12 @@ public class RunImageConfiguration implements Serializable {
     return EnvUtil.splitAtCommasAndTrim(links);
   }
 
-  /**
-   * Naming scheme for how to name container.
-   *
-   * @deprecated for backward compatibility, use containerNamePattern instead
-   */
-  @Deprecated
-  public enum NamingStrategy {
-    /**
-     * No extra naming
-     */
-    none,
-    /**
-     * Use the alias as defined in the configuration
-     */
-    alias
-  }
-
   public RestartPolicy getRestartPolicy() {
     return Optional.ofNullable(restartPolicy).orElse(RestartPolicy.DEFAULT);
   }
 
   public boolean skip() {
     return Optional.ofNullable(skip).orElse(false);
-  }
-
-  public static class RunImageConfigurationBuilder {
-    public RunImageConfigurationBuilder cmdString(String cmdString) {
-      if (cmdString != null) {
-        cmd = Arguments.builder().shell(cmdString).build();
-      }
-      return this;
-    }
-
-    /**
-     * @deprecated use {@link #containerNamePattern} instead
-     * @return RunImageConfigurationBuilder object
-     */
-    @Deprecated
-    public RunImageConfigurationBuilder namingStrategyString(String namingStrategyString) {
-      namingStrategy = Optional.ofNullable(namingStrategyString)
-          .map(String::toLowerCase)
-          .map(NamingStrategy::valueOf)
-          .orElse(NamingStrategy.none);
-      return this;
-    }
   }
 }
 
