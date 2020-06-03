@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -32,9 +31,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -155,147 +153,48 @@ public class FileUtil {
         });
     }
 
-    public static ArrayList<String> fileReadArray(File file) throws IOException {
-        ArrayList<String> lineList = new ArrayList();
-
-        try (Stream<String> lines = Files.lines(Paths.get(file.getAbsolutePath()), Charset.defaultCharset())) {
-            lines.forEachOrdered(line -> lineList.add(line));
-        }
-        return lineList;
-    }
-
-    // Taken from https://github.com/sonatype/plexus-utils/blob/master/src/main/java/org/codehaus/plexus/util/PathTool.java
-    public static final String getRelativeFilePath( final String oldPath, final String newPath )
+    /**
+     * <b>Adapted from https://github.com/sonatype/plexus-utils/blob/5ba6cfcca911200b5b9d2b313bb939e6d7cbbac6/src/main/java/org/codehaus/plexus/util/PathTool.java#L302</b>
+     *
+     * <p>This method can calculate the relative path between two pathes on a file system.
+     * <br>
+     * <pre>{@code
+     * getRelativeFilePath( null, null )                                   = ""
+     * getRelativeFilePath( null, "/usr/local/java/bin" )                  = ""
+     * getRelativeFilePath( "/usr/local", null )                           = ""
+     * getRelativeFilePath( "/usr/local", "/usr/local/java/bin" )          = "java/bin"
+     * getRelativeFilePath( "/usr/local", "/usr/local/java/bin/" )         = "java/bin"
+     * getRelativeFilePath( "/usr/local/java/bin", "/usr/local/" )         = "../.."
+     * getRelativeFilePath( "/usr/local/", "/usr/local/java/bin/java.sh" ) = "java/bin/java.sh"
+     * getRelativeFilePath( "/usr/local/java/bin/java.sh", "/usr/local/" ) = "../../.."
+     * getRelativeFilePath( "/usr/local/", "/bin" )                        = "../../bin"
+     * getRelativeFilePath( "/bin", "/usr/local/" )                        = "../usr/local"
+     * }</pre>
+     * Note: On Windows based system, the <code>/</code> character should be replaced by <code>\</code> character.
+     *
+     * @param oldFilePath the old file path
+     * @param newFilePath the new file path
+     * @return a relative file path from <code>oldFilePath</code>.
+     */
+    //
+    public static String getRelativeFilePath( final String oldFilePath, final String newFilePath )
     {
-        if ( StringUtils.isEmpty( oldPath ) || StringUtils.isEmpty( newPath ) )
-        {
+        if (StringUtils.isEmpty(oldFilePath) || StringUtils.isEmpty(newFilePath)) {
             return "";
         }
-
-        // normalise the path delimiters
-        String fromPath = new File( oldPath ).getPath();
-        String toPath = new File( newPath ).getPath();
-
-        // strip any leading slashes if its a windows path
-        if ( toPath.matches( "^\\[a-zA-Z]:" ) )
-        {
-            toPath = toPath.substring( 1 );
-        }
-        if ( fromPath.matches( "^\\[a-zA-Z]:" ) )
-        {
-            fromPath = fromPath.substring( 1 );
-        }
-
-        // lowercase windows drive letters.
-        if ( fromPath.startsWith( ":", 1 ) )
-        {
-            fromPath = Character.toLowerCase( fromPath.charAt( 0 ) ) + fromPath.substring( 1 );
-        }
-        if ( toPath.startsWith( ":", 1 ) )
-        {
-            toPath = Character.toLowerCase( toPath.charAt( 0 ) ) + toPath.substring( 1 );
-        }
-
-        // check for the presence of windows drives. No relative way of
-        // traversing from one to the other.
-        if ( ( toPath.startsWith( ":", 1 ) && fromPath.startsWith( ":", 1 ) ) && ( !toPath.substring( 0, 1 ).equals(
-                fromPath.substring( 0, 1 ) ) ) )
-        {
-            // they both have drive path element but they dont match, no
-            // relative path
+        final Path oldPath = new File(oldFilePath).toPath();
+        final Path newPath = new File(newFilePath).toPath();
+        if (!Objects.equals(oldPath.getRoot(), newPath.getRoot())) {
             return null;
         }
-
-        if ( ( toPath.startsWith( ":", 1 ) && !fromPath.startsWith( ":", 1 ) ) || ( !toPath.startsWith( ":", 1 )
-                && fromPath.startsWith( ":", 1 ) ) )
-        {
-            // one has a drive path element and the other doesnt, no relative
-            // path.
-            return null;
+        final StringBuilder relativeFilePath = new StringBuilder();
+        relativeFilePath.append(oldPath.relativize(newPath).toString());
+        if (newFilePath.endsWith(File.separator)) {
+            relativeFilePath.append(File.separator);
         }
-
-        String resultPath = buildRelativePath( toPath, fromPath, File.separatorChar );
-
-        if ( newPath.endsWith( File.separator ) && !resultPath.endsWith( File.separator ) )
-        {
-            return resultPath + File.separator;
-        }
-
-        return resultPath;
+        return relativeFilePath.toString();
     }
 
-    private static String buildRelativePath( String toPath, String fromPath, final char separatorChar )
-    {
-        // use tokeniser to traverse paths and for lazy checking
-        StringTokenizer toTokeniser = new StringTokenizer( toPath, String.valueOf( separatorChar ) );
-        StringTokenizer fromTokeniser = new StringTokenizer( fromPath, String.valueOf( separatorChar ) );
-
-        int count = 0;
-
-        // walk along the to path looking for divergence from the from path
-        while ( toTokeniser.hasMoreTokens() && fromTokeniser.hasMoreTokens() )
-        {
-            if ( separatorChar == '\\' )
-            {
-                if ( !fromTokeniser.nextToken().equalsIgnoreCase( toTokeniser.nextToken() ) )
-                {
-                    break;
-                }
-            }
-            else
-            {
-                if ( !fromTokeniser.nextToken().equals( toTokeniser.nextToken() ) )
-                {
-                    break;
-                }
-            }
-
-            count++;
-        }
-
-        // reinitialise the tokenisers to count positions to retrieve the
-        // gobbled token
-
-        toTokeniser = new StringTokenizer( toPath, String.valueOf( separatorChar ) );
-        fromTokeniser = new StringTokenizer( fromPath, String.valueOf( separatorChar ) );
-
-        while ( count-- > 0 )
-        {
-            fromTokeniser.nextToken();
-            toTokeniser.nextToken();
-        }
-
-        String relativePath = "";
-
-        // add back refs for the rest of from location.
-        while ( fromTokeniser.hasMoreTokens() )
-        {
-            fromTokeniser.nextToken();
-
-            relativePath += "..";
-
-            if ( fromTokeniser.hasMoreTokens() )
-            {
-                relativePath += separatorChar;
-            }
-        }
-
-        if ( relativePath.length() != 0 && toTokeniser.hasMoreTokens() )
-        {
-            relativePath += separatorChar;
-        }
-
-        while ( toTokeniser.hasMoreTokens() )
-        {
-            relativePath += toTokeniser.nextToken();
-
-            if ( toTokeniser.hasMoreTokens() )
-            {
-                relativePath += separatorChar;
-            }
-        }
-        return relativePath;
-    }
 
     public static void copy(File sourceFile, File targetFile) throws IOException {
         copy(Paths.get(sourceFile.getAbsolutePath()), Paths.get(targetFile.getAbsolutePath()));
