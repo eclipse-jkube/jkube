@@ -723,57 +723,52 @@ public class ApplyService {
     }
 
     public void applyRoleBinding(RoleBinding entity, String sourceName) {
-        OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient != null) {
-            String id = getName(entity);
+        String id = getName(entity);
 
-            Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-            String namespace = KubernetesHelper.getNamespace(entity);
-            if (StringUtils.isBlank(namespace)) {
-                namespace = getNamespace();
-            }
-            applyNamespace(namespace);
-            RoleBinding old = openShiftClient.rbac().roleBindings().inNamespace(namespace).withName(id).get();
-            if (isRunning(old)) {
-                if (UserConfigurationCompare.configEqual(entity, old)) {
-                    log.info("RoleBinding has not changed so not doing anything");
+        Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
+        String namespace = KubernetesHelper.getNamespace(entity);
+        if (StringUtils.isBlank(namespace)) {
+            namespace = getNamespace();
+        }
+        applyNamespace(namespace);
+        RoleBinding old = kubernetesClient.rbac().roleBindings().inNamespace(namespace).withName(id).get();
+        if (isRunning(old)) {
+            if (UserConfigurationCompare.configEqual(entity, old)) {
+                log.info("RoleBinding has not changed so not doing anything");
+            } else {
+                if (isRecreateMode()) {
+                    log.info("Deleting RoleBinding: " + id);
+                    kubernetesClient.rbac().roleBindings().inNamespace(namespace).withName(id).delete();
+                    doCreateRoleBinding(entity, namespace, sourceName);
                 } else {
-                    if (isRecreateMode()) {
-                        log.info("Deleting RoleBinding: " + id);
-                        openShiftClient.roleBindings().inNamespace(namespace).withName(id).delete();
-                        doCreateRoleBinding(entity, namespace, sourceName);
-                    } else {
-                        log.info("Updating RoleBinding from " + sourceName);
-                        try {
-                            String resourceVersion = KubernetesHelper.getResourceVersion(old);
-                            ObjectMeta metadata = getOrCreateMetadata(entity);
-                            metadata.setNamespace(namespace);
-                            metadata.setResourceVersion(resourceVersion);
-                            Object answer = openShiftClient.rbac().roleBindings().inNamespace(namespace).withName(id).replace(entity);
-                            logGeneratedEntity("Updated RoleBinding: ", namespace, entity, answer);
-                        } catch (Exception e) {
-                            onApplyError("Failed to update RoleBinding from " + sourceName + ". " + e + ". " + entity, e);
-                        }
+                    log.info("Updating RoleBinding from " + sourceName);
+                    try {
+                        String resourceVersion = KubernetesHelper.getResourceVersion(old);
+                        ObjectMeta metadata = getOrCreateMetadata(entity);
+                        metadata.setNamespace(namespace);
+                        metadata.setResourceVersion(resourceVersion);
+                        Object answer = kubernetesClient.rbac().roleBindings().inNamespace(namespace).withName(id).replace(entity);
+                        logGeneratedEntity("Updated RoleBinding: ", namespace, entity, answer);
+                    } catch (Exception e) {
+                        onApplyError("Failed to update RoleBinding from " + sourceName + ". " + e + ". " + entity, e);
                     }
                 }
+            }
+        } else {
+            if (!isAllowCreate()) {
+                log.warn("Creation disabled so not creating RoleBinding from " + sourceName + " namespace " + namespace + " name " + getName(entity));
             } else {
-                if (!isAllowCreate()) {
-                    log.warn("Creation disabled so not creating RoleBinding from " + sourceName + " namespace " + namespace + " name " + getName(entity));
-                } else {
-                    doCreateRoleBinding(entity, namespace, sourceName);
-                }
+                doCreateRoleBinding(entity, namespace, sourceName);
             }
         }
     }
 
     public void doCreateRoleBinding(RoleBinding entity, String namespace , String sourceName) {
-        OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient != null) {
-            try {
-                openShiftClient.rbac().roleBindings().inNamespace(namespace).create(entity);
-            } catch (Exception e) {
-                onApplyError("Failed to create RoleBinding from " + sourceName + ". " + e, e);
-            }
+        try {
+            log.info("Creating RoleBinding from " + sourceName + " namespace " + namespace + " name " + getName(entity));
+            kubernetesClient.rbac().roleBindings().inNamespace(namespace).create(entity);
+        } catch (Exception e) {
+            onApplyError("Failed to create RoleBinding from " + sourceName + ". " + e, e);
         }
     }
 
