@@ -177,7 +177,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
     @Override
     public void executeInternal() throws MojoExecutionException {
         try {
-            KubernetesClient kubernetes = clusterAccess.createDefaultClient(log);
+            KubernetesClient kubernetes = clusterAccess.createDefaultClient();
             applyService = new ApplyService(kubernetes, log);
             initServices(kubernetes);
 
@@ -248,8 +248,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
             applyService.setNamespace(namespace);
 
             applyEntities(kubernetes, namespace, manifest.getName(), entities);
-            log.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShiftImageStream(log) ? "oc" : "kubectl");
-
+            log.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShift() ? "oc" : "kubectl");
         } catch (KubernetesClientException e) {
             KubernetesResourceUtil.handleKubernetesClientException(e, this.log);
         } catch (MojoExecutionException e) {

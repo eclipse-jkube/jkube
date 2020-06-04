@@ -29,8 +29,8 @@ import org.junit.Test;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 public class JKubeServiceHubTest {
 
@@ -54,23 +54,21 @@ public class JKubeServiceHubTest {
 
     @Before
     public void init() {
+      // @formatter:off
         new Expectations() {{
-            clusterAccess.resolveRuntimeMode(RuntimeMode.kubernetes, withInstanceOf(KitLogger.class));
+            clusterAccess.resolveRuntimeMode(RuntimeMode.kubernetes);
             result = RuntimeMode.kubernetes;
             minTimes = 0;
 
-            clusterAccess.resolveRuntimeMode(RuntimeMode.openshift, withInstanceOf(KitLogger.class));
+            clusterAccess.resolveRuntimeMode(RuntimeMode.openshift);
             result = RuntimeMode.openshift;
             minTimes = 0;
 
-            clusterAccess.resolveRuntimeMode(RuntimeMode.auto, withInstanceOf(KitLogger.class));
+            clusterAccess.resolveRuntimeMode(RuntimeMode.auto);
             result = RuntimeMode.kubernetes;
             minTimes = 0;
-
-            clusterAccess.createKubernetesClient();
-            result = openShiftClient;
-            minTimes = 0;
         }};
+      // @formatter:on
     }
 
     @Test(expected = NullPointerException.class)

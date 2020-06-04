@@ -396,8 +396,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
         authConfigFactory = new AuthConfigFactory(log);
         imageConfigResolver.setLog(log);
-        clusterAccess = new ClusterAccess(initClusterConfiguration());
-        runtimeMode = clusterAccess.resolveRuntimeMode(getConfiguredRuntimeMode(), log);
+        clusterAccess = new ClusterAccess(log, initClusterConfiguration());
+        runtimeMode = clusterAccess.resolveRuntimeMode(getConfiguredRuntimeMode());
     }
 
     protected boolean canExecute() {
