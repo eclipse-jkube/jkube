@@ -14,11 +14,16 @@
 package org.eclipse.jkube.quickstart.kit.docker;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
 import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
@@ -37,9 +42,12 @@ public class Main {
     kitLogger.info(" - Creating Docker Build Service Configuration");
     final BuildServiceConfig dockerBuildServiceConfig = BuildServiceConfig.builder().build();
     kitLogger.info(" - Creating configuration for JKube");
+    kitLogger.info(" - Current working directory is: %s", getProjectDir().toFile().toString());
     final JKubeConfiguration configuration = JKubeConfiguration.builder()
-        .project(JavaProject.builder().build())
-        .outputDirectory(new File("target").getAbsolutePath())
+        .project(JavaProject.builder()
+            .baseDirectory(getProjectDir().toFile())
+            .build())
+        .outputDirectory("target")
         .build();
 
     kitLogger.info("Creating configuration for example Docker Image");
@@ -53,6 +61,15 @@ public class Main {
             .port("80/tcp")
             .maintainer("JKube Devs")
             .from("busybox")
+            .assembly(AssemblyConfiguration.builder()
+                .targetDir("/")
+                .inline(Assembly.builder()
+                    .fileSet(AssemblyFileSet.builder()
+                        .directory(new File("static"))
+                        .build())
+                    .build())
+                .build()
+            )
             .cmd(Arguments.builder().shell("/bin/sh").build())
             .build())
         .build();
@@ -71,5 +88,13 @@ public class Main {
     } catch (Exception ex) {
       kitLogger.error("Error occurred: '%s'", ex.getMessage());
     }
+  }
+
+  private static Path getProjectDir() {
+    final Path currentWorkDir = Paths.get("");
+    if (currentWorkDir.toAbsolutePath().endsWith("docker-image")) {
+      return currentWorkDir.toAbsolutePath();
+    }
+    return currentWorkDir.resolve("quickstarts").resolve("kit").resolve("docker-image");
   }
 }
