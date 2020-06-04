@@ -21,7 +21,8 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.0-SNAPSHOT
-* Fix : Remove deprecated fields and method calls
+* Fix #237: Remove deprecated fields and method calls
+* Fix #192: Removed `@Deprecated` fields from ClusterAccess
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 
@@ -44,7 +45,7 @@ Usage:
 * Fix #224: RoleBinding Resources Not Supported by Kubernetes Cluster Configurations
 * Fix #191: Removed `@Deprecated` fields from RunImageConfiguration
 * Fix #233: Provided Slf4j delegate KitLogger implementation
-* Fix #234:Watch works with complex assemblies using AssemblyFile
+* Fix #234: Watch works with complex assemblies using AssemblyFile
 
 ### 1.0.0-alpha-3 (2020-05-06)
 * Fix #167: Add CMD for wildfly based applications

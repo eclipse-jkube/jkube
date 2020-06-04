@@ -83,7 +83,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     @Override
     protected void init() {
         super.init();
-        kubernetesClient = clusterAccess.createDefaultClient(log);
+        kubernetesClient = clusterAccess.createDefaultClient();
     }
 
     @Override

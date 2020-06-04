@@ -428,7 +428,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     }
 
     private void lateInit() {
-        runtimeMode = clusterAccess.resolveRuntimeMode(runtimeMode, log);
+        runtimeMode = clusterAccess.resolveRuntimeMode(runtimeMode);
         if (runtimeMode.equals(RuntimeMode.openshift)) {
             Properties properties = project.getProperties();
             if (!properties.contains(DOCKER_IMAGE_USER)) {

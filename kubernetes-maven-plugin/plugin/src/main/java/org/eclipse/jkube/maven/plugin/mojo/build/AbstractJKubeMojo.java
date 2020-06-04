@@ -66,7 +66,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     protected void init() {
         log = createLogger(null);
-        clusterAccess = new ClusterAccess(initClusterConfiguration());
+        clusterAccess = new ClusterAccess(log, initClusterConfiguration());
     }
 
     protected boolean canExecute() {
