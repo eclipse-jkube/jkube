@@ -103,7 +103,6 @@ public class AssemblyFileSetUtils {
     return fileToPermissionsMap;
   }
 
-
   static File resolveSourceDirectory(File baseDirectory, AssemblyFileSet assemblyFileSet) {
     if (Objects.requireNonNull(assemblyFileSet.getDirectory(), "Assembly FileSet directory is required").isAbsolute()) {
       return assemblyFileSet.getDirectory();
