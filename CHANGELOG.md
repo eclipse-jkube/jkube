@@ -39,6 +39,7 @@ Usage:
 * Fix #226: Refactored FileUtil#getRelativeFilePath to use native Java File capabilities
 * Fix #224: RoleBinding Resources Not Supported by Kubernetes Cluster Configurations
 * Fix #191: Removed `@Deprecated` fields from RunImageConfiguration
+* Fix #233: Provided Slf4j delegate KitLogger implementation
 
 ### 1.0.0-alpha-3 (2020-05-06)
 * Fix #167: Add CMD for wildfly based applications
