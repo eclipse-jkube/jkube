@@ -26,7 +26,6 @@ import java.util.List;
 
 /**
  * @author roland
- * @since 30/11/15
  */
 public class ArchiveService {
 
@@ -78,16 +77,16 @@ public class ArchiveService {
      *
      * @param imageConfig image config for which to get files. The build- and assembly configuration in this image
      *                    config must not be null.
-     * @param mojoParameters needed for tracking the assembly
+     * @param jKubeConfiguration needed for tracking the assembly
      * @return mapping of assembly files
      * @throws IOException IO Exception
      */
-    public AssemblyFiles getAssemblyFiles(ImageConfiguration imageConfig, JKubeConfiguration mojoParameters)
+    public AssemblyFiles getAssemblyFiles(ImageConfiguration imageConfig, JKubeConfiguration jKubeConfiguration)
         throws IOException {
 
         String name = imageConfig.getName();
         try {
-            return dockerAssemblyManager.getAssemblyFiles(name, imageConfig.getBuildConfiguration(), mojoParameters);
+            return dockerAssemblyManager.getAssemblyFiles(name, imageConfig.getBuildConfiguration(), jKubeConfiguration);
         } catch (Exception e) {
             throw new IOException("Cannot extract assembly files for image " + name + ": " + e, e);
         }

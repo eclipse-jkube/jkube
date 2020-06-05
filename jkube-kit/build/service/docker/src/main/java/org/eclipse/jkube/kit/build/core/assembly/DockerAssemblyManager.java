@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
@@ -47,6 +49,8 @@ import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurati
 import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getJKubeAssemblyFileSetsExcludes;
 import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getJKubeAssemblyFiles;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.getAssemblyFileOutputDirectory;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.resolveSourceFile;
 
 /**
  * Tool for creating a docker image tar ball including a Dockerfile for building
@@ -227,21 +231,34 @@ public class DockerAssemblyManager {
      *
      * @param name name of assembly
      * @param buildConfig build configuration
-     * @param mojoParams maven build context
+     * @param jKubeConfiguration JKube kit configuration
      * @return assembly files
      */
-    public AssemblyFiles getAssemblyFiles(String name, BuildConfiguration buildConfig, JKubeConfiguration mojoParams) {
+    public AssemblyFiles getAssemblyFiles(String name, BuildConfiguration buildConfig, JKubeConfiguration jKubeConfiguration) {
 
-        BuildDirs buildDirs = createBuildDirs(name, mojoParams);
+        BuildDirs buildDirs = createBuildDirs(name, jKubeConfiguration);
 
         AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
         String assemblyName = assemblyConfig.getName();
 
         AssemblyFiles assemblyFiles = new AssemblyFiles(buildDirs.getOutputDirectory());
-        File finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(mojoParams.getProject());
-        if (finalOutputArtifact != null) {
-            assemblyFiles.addEntry(finalOutputArtifact, new File(buildDirs.getOutputDirectory().getAbsolutePath() + File.separator + assemblyName, finalOutputArtifact.getName()));
+        if (Optional.ofNullable(assemblyConfig.getInline()).map(Assembly::getFiles).isPresent()) {
+            for (AssemblyFile af : assemblyConfig.getInline().getFiles()){
+                final File outputDirectory = getAssemblyFileOutputDirectory(af, buildDirs.getOutputDirectory(), assemblyConfig);
+                final File targetFile = new File(outputDirectory, Optional.ofNullable(af.getDestName()).orElse(af.getSource().getName()));
+                assemblyFiles.addEntry(
+                    resolveSourceFile(jKubeConfiguration.getProject().getBaseDirectory(), af),
+                    targetFile
+                );
+            }
         }
+        // Add standard artifact
+        File finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(jKubeConfiguration.getProject());
+        Optional.ofNullable(finalOutputArtifact)
+            .map(f -> buildDirs.getOutputDirectory().toPath().resolve(assemblyName).resolve(f.getName()))
+            .map(Path::toFile)
+            .filter(File::exists)
+            .ifPresent(assembledArtifactFile -> assemblyFiles.addEntry(finalOutputArtifact, assembledArtifactFile));
 
         return assemblyFiles;
     }
@@ -415,19 +432,11 @@ public class DockerAssemblyManager {
         JavaProject project, AssemblyFile assemblyFile, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration)
       throws IOException {
 
-        final File outputDirectory;
-        if (assemblyFile.getOutputDirectory().isAbsolute()) {
-            outputDirectory = assemblyFile.getOutputDirectory();
-        } else {
-            outputDirectory = buildDirs.getOutputDirectory().toPath()
-              .resolve(assemblyConfiguration.getName())
-              .resolve(assemblyFile.getOutputDirectory().toPath())
-              .toFile();
-        }
-        final File sourceFile = project.getBaseDirectory().toPath()
-            .resolve(assemblyFile.getSource().toPath()).toFile();
+        final File sourceFile = resolveSourceFile(project.getBaseDirectory(), assemblyFile);
 
+        final File outputDirectory = getAssemblyFileOutputDirectory(assemblyFile, buildDirs.getOutputDirectory(), assemblyConfiguration);
         FileUtil.createDirectory(outputDirectory);
+
         final String destinationFilename = Optional.ofNullable(assemblyFile.getDestName()).orElse(sourceFile.getName());
         final File destinationFile = new File(outputDirectory, destinationFilename);
         FileUtil.copy(sourceFile, destinationFile);

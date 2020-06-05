@@ -22,7 +22,6 @@ import java.util.List;
  * to rebuild an image.
  *
  * @author roland
- * @since 15/06/15
  */
 public class AssemblyFiles {
 
