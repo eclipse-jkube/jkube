@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.common;
 
 /**
  * @author roland
- * @since 30.05.17
  */
 public interface KitLogger {
 
