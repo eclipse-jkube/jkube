@@ -20,7 +20,7 @@
 
     <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
     <artifactId>javaee8-webprofile-liberty</artifactId>
-    <version>1.0.0-alpha-3</version>
+    <version>1.0.0-alpha-4</version>
     <name>Eclipse JKube :: Quickstarts :: Maven :: JavaEE 8 WebProfile</name>
     <packaging>pom</packaging>
 
