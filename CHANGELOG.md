@@ -20,6 +20,8 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+### 1.0.0-SNAPSHOT
+
 ### 1.0.0-alpha-4
 * Fix #173: Use OpenShift compliant git/vcs annotations 
 * Fix #182: Assembly is never null
