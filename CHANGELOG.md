@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.0.0-SNAPSHOT
+### 1.0.0-alpha-4
 * Fix #173: Use OpenShift compliant git/vcs annotations 
 * Fix #182: Assembly is never null
 * Fix #184: IngressEnricher seems to be broken, Port of fabric8io/fabric8-maven-plugin#1730
@@ -41,7 +41,7 @@ Usage:
 * Fix #224: RoleBinding Resources Not Supported by Kubernetes Cluster Configurations
 * Fix #191: Removed `@Deprecated` fields from RunImageConfiguration
 * Fix #233: Provided Slf4j delegate KitLogger implementation
-* Fix :Watch works with complex assemblies using AssemblyFile
+* Fix #234:Watch works with complex assemblies using AssemblyFile
 
 ### 1.0.0-alpha-3 (2020-05-06)
 * Fix #167: Add CMD for wildfly based applications

@@ -26,7 +26,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>spring-boot-watch</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0-alpha-4</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot Watch</name>
   <packaging>jar</packaging>
 

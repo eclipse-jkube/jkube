@@ -20,7 +20,7 @@
 
   <artifactId>jkube-maven-sample-zero-config</artifactId>
   <groupId>org.eclipse.jkube</groupId>
-  <version>1.0.0-alpha-3</version>
+  <version>1.0.0-alpha-4</version>
   <packaging>jar</packaging>
 
   <parent>
