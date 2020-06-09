@@ -41,7 +41,7 @@ public class PodAnnotationEnricher extends BaseEnricher {
     public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
         super.enrich(platformMode, builder);
 
-        List<HasMetadata> items = builder.getItems();
+        List<HasMetadata> items = builder.buildItems();
         for (HasMetadata item : items) {
             if (platformMode == PlatformMode.kubernetes && item instanceof Deployment) {
                 Deployment deployment = (Deployment) item;

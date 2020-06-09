@@ -25,15 +25,14 @@ import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.bzip2;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.none;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
  * @author roland
- * @since 04/04/16
  */
 
 public class BuildConfigurationTest {

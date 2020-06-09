@@ -31,7 +31,6 @@ import org.apache.commons.lang3.StringUtils;
  * Utility for resource file handling
  *
  * @author roland
- * @since 07/02/17
  */
 public class ResourceUtil {
 

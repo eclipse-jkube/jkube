@@ -63,7 +63,7 @@ public class DeploymentConfigEnricherTest {
         deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
 
         // Then
-        assertEquals(1, kubernetesListBuilder.getItems().size());
+        assertEquals(1, kubernetesListBuilder.buildItems().size());
         HasMetadata result = kubernetesListBuilder.buildFirstItem();
         assertTrue(result instanceof DeploymentConfig);
         assertDeploymentConfig((DeploymentConfig) result, "Rolling");
@@ -102,7 +102,7 @@ public class DeploymentConfigEnricherTest {
         deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
 
         // Then
-        assertEquals(1, kubernetesListBuilder.getItems().size());
+        assertEquals(1, kubernetesListBuilder.buildItems().size());
         HasMetadata result = kubernetesListBuilder.buildFirstItem();
         assertTrue(result instanceof DeploymentConfig);
         assertDeploymentConfig((DeploymentConfig) result, "Recreate");
@@ -142,7 +142,7 @@ public class DeploymentConfigEnricherTest {
         deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
 
         // Then
-        assertEquals(1, kubernetesListBuilder.getItems().size());
+        assertEquals(1, kubernetesListBuilder.buildItems().size());
         HasMetadata result = kubernetesListBuilder.buildFirstItem();
         assertTrue(result instanceof DeploymentConfig);
         assertDeploymentConfig((DeploymentConfig) result, "Rolling");

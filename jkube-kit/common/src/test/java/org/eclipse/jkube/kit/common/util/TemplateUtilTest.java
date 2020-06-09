@@ -17,7 +17,7 @@ import org.junit.Test;
 
 import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TemplateUtilTest {
 

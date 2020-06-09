@@ -135,7 +135,7 @@ public class AutoTLSEnricherTest {
             KubernetesListBuilder klb = new KubernetesListBuilder().addNewPodTemplateItem().withNewMetadata().and()
                     .withNewTemplate().withNewMetadata().and().withNewSpec().and().and().and();
             enricher.enrich(PlatformMode.kubernetes, klb);
-            PodTemplate pt = (PodTemplate) klb.getItems().get(0);
+            PodTemplate pt = (PodTemplate) klb.buildItems().get(0);
 
             List<Container> initContainers = pt.getTemplate().getSpec().getInitContainers();
             assertEquals(tc.mode == PlatformMode.openshift, !initContainers.isEmpty());

@@ -75,7 +75,7 @@ public class IngressEnricherTest {
         assertNotNull(ingress);
         assertEquals(testSvcBuilder.buildMetadata().getName(), ingress.getMetadata().getName());
         assertEquals(1, ingress.getSpec().getRules().size());
-        assertEquals(testSvcBuilder.getMetadata().getName() + "." + "org.eclipse.jkube", ingress.getSpec().getRules().get(0).getHost());
+        assertEquals(testSvcBuilder.buildMetadata().getName() + "." + "org.eclipse.jkube", ingress.getSpec().getRules().get(0).getHost());
     }
 
     private ServiceBuilder getTestService() {
