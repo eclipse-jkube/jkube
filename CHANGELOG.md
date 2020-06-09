@@ -21,8 +21,9 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.0-SNAPSHOT
+* Fix : Remove deprecated fields and method calls
 
-### 1.0.0-alpha-4
+### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 
 * Fix #182: Assembly is never null
 * Fix #184: IngressEnricher seems to be broken, Port of fabric8io/fabric8-maven-plugin#1730

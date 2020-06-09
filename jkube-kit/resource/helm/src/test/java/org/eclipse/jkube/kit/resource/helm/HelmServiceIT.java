@@ -32,9 +32,9 @@ import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class HelmServiceIT {
 

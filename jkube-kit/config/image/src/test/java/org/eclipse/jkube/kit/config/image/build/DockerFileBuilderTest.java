@@ -20,15 +20,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.hamcrest.Matchers.hasEntry;
 
@@ -72,7 +74,7 @@ public class DockerFileBuilderTest {
     }
 
     @Test
-    public void testBuildLabelWithSpace() throws Exception {
+    public void testBuildLabelWithSpace() {
         String dockerfileContent = new DockerFileBuilder()
                 .labels(Collections.singletonMap("key", "label with space"))
                 .content();
@@ -114,7 +116,7 @@ public class DockerFileBuilderTest {
     }
 
     @Test(expected= IllegalArgumentException.class)
-    public void testBuildDockerFileBadPort() throws Exception {
+    public void testBuildDockerFileBadPort() {
         Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
         new DockerFileBuilder().add("/src", "/dest")
                 .baseImage("image")
@@ -131,7 +133,7 @@ public class DockerFileBuilderTest {
     }
 
     @Test(expected= IllegalArgumentException.class)
-    public void testBuildDockerFileBadProtocol() throws Exception {
+    public void testBuildDockerFileBadProtocol() {
         Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
         new DockerFileBuilder().add("/src", "/dest")
                 .baseImage("image")
@@ -181,7 +183,8 @@ public class DockerFileBuilderTest {
 
     @Test
     public void testOptimiseOnEmptyRunCommandListDoesNotThrowException() {
-        new DockerFileBuilder().optimise().content();
+        final String result = new DockerFileBuilder().optimise().content();
+        assertThat(result, notNullValue());
     }
 
     @Test
@@ -262,7 +265,7 @@ public class DockerFileBuilderTest {
         assertEquals("RUN apt-get update\n", b.toString());
 
         b = new StringBuilder();
-        DockerFileKeyword.EXPOSE.addTo(b, new String[]{"1010", "2020"});
+        DockerFileKeyword.EXPOSE.addTo(b, "1010", "2020");
         assertEquals("EXPOSE 1010 2020\n",b.toString());
 
         b = new StringBuilder();
@@ -275,7 +278,7 @@ public class DockerFileBuilderTest {
     }
 
     private String loadFile(String fileName) throws IOException {
-        return stripCR(IOUtils.toString(getClass().getClassLoader().getResource(fileName), Charset.defaultCharset()));
+        return stripCR(IOUtils.toString(Objects.requireNonNull(getClass().getClassLoader().getResource(fileName)), Charset.defaultCharset()));
     }
 
     private static Map<String, String> dockerfileToMap(String dockerFile) {

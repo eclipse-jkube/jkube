@@ -180,8 +180,8 @@ public class DependencyEnricher extends BaseEnricher {
         int nItems = 0;
 
         // Populate map with existing items in the builder
-        for(int index = 0; index < builder.getItems().size(); index++, nItems++) {
-            HasMetadata aItem = builder.getItems().get(index);
+        for(int index = 0; index < builder.buildItems().size(); index++, nItems++) {
+            HasMetadata aItem = builder.buildItems().get(index);
             KindAndName aKey = new KindAndName(aItem);
             aIndexMap.put(aKey, index);
         }
@@ -190,7 +190,7 @@ public class DependencyEnricher extends BaseEnricher {
             KindAndName aKey = new KindAndName(item);
 
             if(aIndexMap.containsKey(aKey)) { // Merge the override fragments, and remove duplicate
-                HasMetadata duplicateItem = builder.getItems().get(aIndexMap.get(aKey));
+                HasMetadata duplicateItem = builder.buildItems().get(aIndexMap.get(aKey));
                 item = KubernetesResourceUtil.mergeResources(item, duplicateItem, log, false);
                 builder.setToItems(aIndexMap.get(aKey), item);
             }

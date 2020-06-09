@@ -19,8 +19,8 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Properties;
@@ -30,7 +30,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * @author roland
- * @since 21/01/16
  */
 public class DockerFileUtilTest {
 
@@ -93,7 +92,7 @@ public class DockerFileUtilTest {
         File actualDockerFile = createTmpFile(dockerFile.getName());
         FileUtils.write(actualDockerFile, DockerFileUtil.interpolate(dockerFile, projectProperties), "UTF-8");
         // Compare text lines without regard to EOL delimiters
-        assertEquals(FileUtils.readLines(expectedDockerFile), FileUtils.readLines(actualDockerFile));
+        assertEquals(FileUtils.readLines(expectedDockerFile, StandardCharsets.UTF_8), FileUtils.readLines(actualDockerFile, StandardCharsets.UTF_8));
     }
 
     private File getDockerfilePath(String dir) {

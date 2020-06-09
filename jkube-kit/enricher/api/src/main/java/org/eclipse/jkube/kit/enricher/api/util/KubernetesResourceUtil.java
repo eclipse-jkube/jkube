@@ -376,7 +376,7 @@ public class KubernetesResourceUtil {
         TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
         try {
             Map<String, Object> ret = mapper.readValue(file, typeRef);
-            return ret != null ? ret : new HashMap<String, Object>();
+            return ret != null ? ret : new HashMap<>();
         } catch (JsonProcessingException e) {
             throw new JsonMappingException(String.format("[%s] %s", file, e.getMessage()), e.getLocation(), e);
         }
@@ -416,7 +416,7 @@ public class KubernetesResourceUtil {
 
     public static boolean checkForKind(KubernetesListBuilder builder, String... kinds) {
         Set<String> kindSet = new HashSet<>(Arrays.asList(kinds));
-        for (HasMetadata item : builder.getItems()) {
+        for (HasMetadata item : builder.buildItems()) {
             if (kindSet.contains(item.getKind())) {
                 return true;
             }

@@ -58,7 +58,7 @@ public class DebugEnricher extends BaseEnricher {
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
         if (debugEnabled()) {
             int count = 0;
-            List<HasMetadata> items = builder.getItems();
+            List<HasMetadata> items = builder.buildItems();
             if (items != null) {
                 for (HasMetadata item : items) {
                     if (enableDebug(item)) {
@@ -127,7 +127,7 @@ public class DebugEnricher extends BaseEnricher {
             PodSpec podSpec = template.getSpec();
             if (podSpec != null) {
                 List<Container> containers = podSpec.getContainers();
-                if (containers.size() > 0) {
+                if (!containers.isEmpty()) {
                     Container container = containers.get(0);
                     List<EnvVar> env = container.getEnv();
                     if (env == null) {

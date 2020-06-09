@@ -44,7 +44,6 @@ import static org.junit.Assert.assertNull;
 
 /**
  * @author roland
- * @since 23.10.18
  */
 public class DockerRegistryAuthHandlerTest {
 

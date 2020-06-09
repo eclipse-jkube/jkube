@@ -27,8 +27,8 @@ import java.util.Date;
 
 import static org.eclipse.jkube.kit.common.util.EnvUtil.loadTimestamp;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
 
 public class EnvUtilTest {
 
