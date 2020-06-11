@@ -13,7 +13,7 @@
 #
 
 FROM openjdk:latest
-COPY maven/target/zero-config-dockerfile.jar /tmp/zero-config-dockerfile.jar
+COPY maven/target/docker-file-simple.jar /deployments/docker-file-simple.jar
 # Copying a file inside project root directory
-COPY maven/static-dir-in-project-root/my-file.txt /tmp/my-file.txt
-CMD ["java", "-jar", "/tmp/zero-config-dockerfile.jar"]
+COPY maven/static-dir-in-project-root/my-file.txt /deployments/my-file.txt
+CMD ["java", "-jar", "/deployments/docker-file-simple.jar"]
