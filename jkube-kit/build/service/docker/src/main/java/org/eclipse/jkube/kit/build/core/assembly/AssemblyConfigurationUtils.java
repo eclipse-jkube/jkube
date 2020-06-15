@@ -28,12 +28,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class JKubeAssemblyConfigurationUtils {
+public class AssemblyConfigurationUtils {
 
   private static final String DEFAULT_NAME = "maven";
   private static final String DEFAULT_USER = "root";
 
-  private JKubeAssemblyConfigurationUtils() {}
+  private AssemblyConfigurationUtils() {}
 
   static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(BuildConfiguration buildConfiguration) {
     final AssemblyConfiguration ac = Optional.ofNullable(buildConfiguration)

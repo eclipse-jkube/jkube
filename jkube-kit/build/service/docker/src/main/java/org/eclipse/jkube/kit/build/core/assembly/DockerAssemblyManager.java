@@ -44,10 +44,10 @@ import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 
-import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
-import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getJKubeAssemblyFileSets;
-import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getJKubeAssemblyFileSetsExcludes;
-import static org.eclipse.jkube.kit.build.core.assembly.JKubeAssemblyConfigurationUtils.getJKubeAssemblyFiles;
+import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
+import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
+import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSetsExcludes;
+import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.getAssemblyFileOutputDirectory;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.resolveSourceFile;
@@ -269,7 +269,6 @@ public class DockerAssemblyManager {
     }
 
     // visible for testing
-    @SuppressWarnings("deprecation")
     DockerFileBuilder createDockerFileBuilder(BuildConfiguration buildConfig, AssemblyConfiguration assemblyConfig) {
         DockerFileBuilder builder =
                 new DockerFileBuilder()
@@ -289,7 +288,7 @@ public class DockerAssemblyManager {
             builder.add(assemblyConfig.getName(), "")
                    .basedir(assemblyConfig.getTargetDir())
                    .assemblyUser(assemblyConfig.getUser())
-                   .exportTargetDir(assemblyConfig.exportTargetDir());
+                   .exportTargetDir(assemblyConfig.getExportTargetDir());
         } else {
             builder.exportTargetDir(false);
         }
@@ -370,7 +369,7 @@ public class DockerAssemblyManager {
         JavaProject project, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration) throws IOException {
 
         final Map<File, String> filesToPermissionsMap = new HashMap<>();
-        FileUtil.createDirectory(new File(buildDirs.getOutputDirectory(), assemblyConfiguration.getName()));
+        FileUtil.createDirectory(new File(buildDirs.getOutputDirectory(), assemblyConfiguration.getTargetDir()));
         for (AssemblyFileSet fileSet : getJKubeAssemblyFileSets(assemblyConfiguration)) {
             filesToPermissionsMap.putAll(processAssemblyFileSet(project.getBaseDirectory(), buildDirs.getOutputDirectory(), fileSet, assemblyConfiguration));
         }

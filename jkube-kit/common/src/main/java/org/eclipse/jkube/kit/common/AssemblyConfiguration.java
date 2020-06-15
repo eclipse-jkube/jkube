@@ -22,6 +22,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@SuppressWarnings("JavaDoc")
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,26 +31,30 @@ import lombok.NoArgsConstructor;
 public class AssemblyConfiguration implements Serializable {
 
     /**
-     * New replacement for base directory which better reflects its
-     * purpose.
+     * Assembly name, which is maven by default. This name is used for the archives and directories created during the
+     * build.
+     *
+     * <p> If an external Dockerfile is used than this name is also the relative directory which contains the assembly
+     * files.
+     */
+    private String name;
+    /**
+     * Directory under which the files and artifacts contained in the assembly will be copied within the container.
+     *
+     * <p> The default value for this is <code>/&lt;assembly name&gt;</code>, so <code>/maven</code> if name is not set
+     * to a different value.
+     *
+     * <p> This option has no meaning when an external Dockerfile is used.
      */
     private String targetDir;
     /**
-     * Name of the assembly which is used also as name of the archive
-     * which is created and has to be used when providing an own Dockerfile.
+     * Path to an assembly descriptor file.
      */
-    private String name;
     private String descriptor;
-    private String descriptorRef;
     /**
-     * @deprecated use 'exportTargetDir' instead
+     * Alias to a predefined assembly descriptor.
      */
-    @Deprecated
-    private Boolean exportBasedir;
-    @Deprecated
-    private String dockerFileDir;
-    @Deprecated
-    private Boolean ignorePermissions;
+    private String descriptorRef;
     /**
      * Whether the target directory should be exported.
      */
@@ -61,24 +66,34 @@ public class AssemblyConfiguration implements Serializable {
      * @return true if artifact must be excluded from the assembly false otherwise.
      */
     private boolean excludeFinalOutputArtifact;
+    /**
+     * Permission of the files to add
+     */
     private PermissionMode permissions;
+    /**
+     * Mode how the assembled files should be collected:
+     */
     private AssemblyMode mode;
+    /**
+     * User and/or group under which the files should be added. The user must already exist in the base image.
+     *
+     * <p> It has the general format user[:group[:run-user]]. The user and group can be given either as numeric user
+     * and group-id or as names. The group id is optional.
+     *
+     * <p> If a third part is given, then the build changes to user root before changing the ownerships, changes the
+     * ownerships and then change to user run-user which is then used for the final command to execute.
+     */
     private String user;
+    /**
+     * Sets the TarArchiver behaviour on file paths with more than 100 characters length.
+     *
+     * <p> Valid values are: "warn"(default), "fail", "truncate", "gnu", "posix", "posix_warn" or "omit".
+     */
     private String tarLongFileMode;
     /**
      * Assembly defined inline in the pom.xml
      */
     private Assembly inline;
-
-    public Boolean exportTargetDir() {
-        if (exportTargetDir != null) {
-            return exportTargetDir;
-        } else if (exportBasedir != null) {
-            return exportBasedir;
-        } else {
-            return null;
-        }
-    }
 
     public AssemblyMode getMode() {
         return mode != null ? mode : AssemblyMode.dir;
@@ -125,7 +140,7 @@ public class AssemblyConfiguration implements Serializable {
         exec,
 
         /**
-         * Leave all as it is
+         * Respect the assembly provided permissions
          */
         keep,
 
