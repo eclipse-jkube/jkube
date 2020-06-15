@@ -44,12 +44,12 @@ public class JavaRunGeneratorTest {
   @Test
   public void fromSelector() throws IOException {
     final List<TestCase> testCases = Arrays.asList(
-        new TestCase("3.1.123", false, RuntimeMode.kubernetes, null, "java.upstream.docker"),
-        new TestCase("3.1.redhat-101", true, RuntimeMode.kubernetes, null, "java.upstream.docker"),
-        new TestCase("3.1.123", false, RuntimeMode.openshift, OpenShiftBuildStrategy.docker, "java.upstream.docker"),
-        new TestCase("3.1.redhat-101", true, RuntimeMode.openshift, OpenShiftBuildStrategy.docker, "java.upstream.docker"),
-        new TestCase("3.1.123", false, RuntimeMode.openshift, OpenShiftBuildStrategy.s2i, "java.upstream.s2i"),
-        new TestCase("3.1.redhat-101", true, RuntimeMode.openshift, OpenShiftBuildStrategy.s2i, "java.upstream.s2i"));
+        new TestCase("3.1.123", false, RuntimeMode.KUBERNETES, null, "java.upstream.docker"),
+        new TestCase("3.1.redhat-101", true, RuntimeMode.KUBERNETES, null, "java.upstream.docker"),
+        new TestCase("3.1.123", false, RuntimeMode.OPENSHIFT, OpenShiftBuildStrategy.docker, "java.upstream.docker"),
+        new TestCase("3.1.redhat-101", true, RuntimeMode.OPENSHIFT, OpenShiftBuildStrategy.docker, "java.upstream.docker"),
+        new TestCase("3.1.123", false, RuntimeMode.OPENSHIFT, OpenShiftBuildStrategy.s2i, "java.upstream.s2i"),
+        new TestCase("3.1.redhat-101", true, RuntimeMode.OPENSHIFT, OpenShiftBuildStrategy.s2i, "java.upstream.s2i"));
 
     Properties imageProps = getDefaultImageProps();
 

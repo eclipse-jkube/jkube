@@ -63,7 +63,7 @@ public class AutoTLSEnricherTest {
     }
 
     private static final class AdaptTestConfig {
-        private final PlatformMode mode;
+        private final RuntimeMode mode;
         private final String initContainerNameConfig;
         private final String initContainerName;
         private final String initContainerImageConfig;
@@ -73,7 +73,7 @@ public class AutoTLSEnricherTest {
         private final String jksVolumeNameConfig;
         private final String jksVolumeName;
 
-        private AdaptTestConfig(PlatformMode mode, String initContainerNameConfig, String initContainerName,
+        private AdaptTestConfig(RuntimeMode mode, String initContainerNameConfig, String initContainerName,
                                 String initContainerImageConfig, String initContainerImage, String tlsSecretVolumeNameConfig,
                                 String tlsSecretVolumeName, String jksVolumeNameConfig, String jksVolumeName) {
             this.mode = mode;
@@ -91,30 +91,28 @@ public class AutoTLSEnricherTest {
     @Test
     public void testAdapt() throws Exception {
         final AdaptTestConfig[] data = new AdaptTestConfig[] {
-                new AdaptTestConfig(PlatformMode.kubernetes, null, null, null, null, null, null, null, null),
-                new AdaptTestConfig(PlatformMode.openshift, null, "tls-jks-converter", null,
+                new AdaptTestConfig(RuntimeMode.KUBERNETES, null, null, null, null, null, null, null, null),
+                new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
                         "jimmidyson/pemtokeystore:v0.1.0", null, "tls-pem", null, "tls-jks"),
-                new AdaptTestConfig(PlatformMode.openshift, null, "tls-jks-converter", null,
+                new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
                         "jimmidyson/pemtokeystore:v0.1.0", "tls-a", "tls-a", null, "tls-jks"),
-                new AdaptTestConfig(PlatformMode.openshift, null, "tls-jks-converter", null,
+                new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
                         "jimmidyson/pemtokeystore:v0.1.0", null, "tls-pem", "jks-b", "jks-b"),
-                new AdaptTestConfig(PlatformMode.openshift, "test-container-name", "test-container-name", "image/123",
+                new AdaptTestConfig(RuntimeMode.OPENSHIFT, "test-container-name", "test-container-name", "image/123",
                         "image/123", "tls-a", "tls-a", "jks-b", "jks-b") };
 
         for (final AdaptTestConfig tc : data) {
-            TreeMap configMap = new TreeMap() {
-                {
-                    put(AutoTLSEnricher.Config.pemToJKSInitContainerName.name(), tc.initContainerNameConfig);
-                    put(AutoTLSEnricher.Config.pemToJKSInitContainerImage.name(), tc.initContainerImageConfig);
-                    put(AutoTLSEnricher.Config.tlsSecretVolumeName.name(), tc.tlsSecretVolumeNameConfig);
-                    put(AutoTLSEnricher.Config.jksVolumeName.name(), tc.jksVolumeNameConfig);
-                }
-            };
+            TreeMap<String, String> configMap = new TreeMap<>();
+            configMap.put(AutoTLSEnricher.Config.pemToJKSInitContainerName.name(), tc.initContainerNameConfig);
+            configMap.put(AutoTLSEnricher.Config.pemToJKSInitContainerImage.name(), tc.initContainerImageConfig);
+            configMap.put(AutoTLSEnricher.Config.tlsSecretVolumeName.name(), tc.tlsSecretVolumeNameConfig);
+            configMap.put(AutoTLSEnricher.Config.jksVolumeName.name(), tc.jksVolumeNameConfig);
+
             final ProcessorConfig config = new ProcessorConfig(null, null,
                     Collections.singletonMap(AutoTLSEnricher.ENRICHER_NAME, configMap));
 
             final Properties projectProps = new Properties();
-            projectProps.put(RuntimeMode.FABRIC8_EFFECTIVE_PLATFORM_MODE, tc.mode.name());
+            projectProps.put(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, tc.mode.name());
 
             // Setup mock behaviour
             new Expectations() {
@@ -138,9 +136,9 @@ public class AutoTLSEnricherTest {
             PodTemplate pt = (PodTemplate) klb.buildItems().get(0);
 
             List<Container> initContainers = pt.getTemplate().getSpec().getInitContainers();
-            assertEquals(tc.mode == PlatformMode.openshift, !initContainers.isEmpty());
+            assertEquals(tc.mode == RuntimeMode.OPENSHIFT, !initContainers.isEmpty());
 
-            if (tc.mode == PlatformMode.kubernetes) {
+            if (tc.mode == RuntimeMode.KUBERNETES) {
                 continue;
             }
 

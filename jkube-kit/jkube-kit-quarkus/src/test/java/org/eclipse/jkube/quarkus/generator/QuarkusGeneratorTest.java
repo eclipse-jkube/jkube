@@ -173,7 +173,7 @@ public class QuarkusGeneratorTest {
             ctx.getConfig(); result = config;
             config.getConfig("test-generator", "from"); result = configFrom; minTimes = 0;
             config.getConfig("test-generator", "fromMode"); result = configFromMode; minTimes = 0;
-            ctx.getRuntimeMode(); result = RuntimeMode.openshift; minTimes = 0;
+            ctx.getRuntimeMode(); result = RuntimeMode.OPENSHIFT; minTimes = 0;
             ctx.getStrategy(); result = OpenShiftBuildStrategy.s2i; minTimes = 0;
         }};
         // @formatter:on

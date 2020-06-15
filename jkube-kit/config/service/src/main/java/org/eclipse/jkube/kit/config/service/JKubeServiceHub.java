@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.service.MigrateService;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
@@ -43,13 +44,14 @@ public class JKubeServiceHub implements Closeable {
     private JKubeConfiguration configuration;
     @Getter
     private ClusterAccess clusterAccess;
+    @Getter
+    @Setter
     private RuntimeMode platformMode;
     private KitLogger log;
     @Getter
     private ServiceHub dockerServiceHub;
     @Getter
     private BuildServiceConfig buildServiceConfig;
-    private RuntimeMode resolvedMode;
     @Getter
     private KubernetesClient client;
     private LazyBuilder<ArtifactResolverService> artifactResolverService;
@@ -59,8 +61,8 @@ public class JKubeServiceHub implements Closeable {
 
     @Builder
     public JKubeServiceHub(
-        ClusterAccess clusterAccess, RuntimeMode platformMode, KitLogger log,
-        ServiceHub dockerServiceHub, JKubeConfiguration configuration, BuildServiceConfig buildServiceConfig) {
+            ClusterAccess clusterAccess, RuntimeMode platformMode, KitLogger log,
+            ServiceHub dockerServiceHub, JKubeConfiguration configuration, BuildServiceConfig buildServiceConfig) {
         this.clusterAccess = clusterAccess;
         this.platformMode = platformMode;
         this.log = log;
@@ -73,15 +75,9 @@ public class JKubeServiceHub implements Closeable {
     private void init() {
         Objects.requireNonNull(configuration, "JKubeKitConfiguration is required");
         Objects.requireNonNull(log, "log is a required parameter");
-        if (platformMode == null) {
-            platformMode = RuntimeMode.DEFAULT;
-        }
+        Objects.requireNonNull(platformMode, "platformMode is a required parameter");
         if (clusterAccess == null) {
             clusterAccess = new ClusterAccess(log, ClusterConfiguration.from(System.getProperties()).build());
-        }
-        this.resolvedMode = clusterAccess.resolveRuntimeMode(platformMode);
-        if (resolvedMode != RuntimeMode.kubernetes && resolvedMode != RuntimeMode.openshift) {
-            throw new IllegalArgumentException("Unknown platform mode " + platformMode + " resolved as "+ resolvedMode);
         }
         this.client = clusterAccess.createDefaultClient();
 
@@ -89,7 +85,7 @@ public class JKubeServiceHub implements Closeable {
         buildService = new LazyBuilder<>(() -> {
             BuildService ret;
             // Creating platform-dependent services
-            if (resolvedMode == RuntimeMode.openshift) {
+            if (platformMode == RuntimeMode.OPENSHIFT) {
                 if (!(client instanceof OpenShiftClient)) {
                     throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
                 }
@@ -112,7 +108,7 @@ public class JKubeServiceHub implements Closeable {
     }
 
     public RuntimeMode getRuntimeMode() {
-        return resolvedMode;
+        return platformMode;
     }
 
     public ArtifactResolverService getArtifactResolverService() {
@@ -132,4 +128,3 @@ public class JKubeServiceHub implements Closeable {
     }
 
 }
-

@@ -83,12 +83,12 @@ public class WebAppGenerator extends BaseGenerator {
   @Override
   public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
     final AppServerHandler handler = getAppServerHandler(getContext());
-    if (getContext().getRuntimeMode() == RuntimeMode.openshift &&
+    if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT &&
         getContext().getStrategy() == OpenShiftBuildStrategy.s2i &&
         !prePackagePhase &&
         !handler.supportsS2iBuild()
     ) {
-      throw new IllegalArgumentException("S2I not yet supported for the webapp-generator. Use -Djkube.mode=kubernetes or " +
+      throw new IllegalArgumentException("S2I not yet supported for the webapp-generator. Use " +
           "-Djkube.build.strategy=docker for OpenShift mode. Please refer to the reference manual at " +
           "https://www.eclipse.org/jkube/docs for details about build modes.");
     }

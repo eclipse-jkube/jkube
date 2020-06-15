@@ -27,7 +27,7 @@ import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 import java.util.List;
 
-import static org.eclipse.jkube.kit.config.resource.RuntimeMode.kubernetes;
+import static org.eclipse.jkube.kit.config.resource.RuntimeMode.KUBERNETES;
 
 /**
  * Builds the docker images configured for this project via a Docker or S2I binary build.
@@ -37,12 +37,6 @@ import static org.eclipse.jkube.kit.config.resource.RuntimeMode.kubernetes;
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class OpenshiftBuildMojo extends BuildMojo {
 
-    /**
-     * Whether to perform a Kubernetes build (i.e. against a vanilla Docker daemon) or
-     * an OpenShift build (with a Docker build against the OpenShift API server.
-     */
-    @Parameter(name="mode", property = "jkube.mode")
-    protected RuntimeMode configuredRuntimeMode = RuntimeMode.DEFAULT;
 
     /**
      * OpenShift build mode when an OpenShift build is performed.
@@ -75,16 +69,16 @@ public class OpenshiftBuildMojo extends BuildMojo {
 
     @Override
     protected boolean isDockerAccessRequired() {
-        return runtimeMode == kubernetes;
+        return runtimeMode == KUBERNETES;
     }
 
     @Override
     public RuntimeMode getConfiguredRuntimeMode() {
-        return configuredRuntimeMode;
+        return RuntimeMode.OPENSHIFT;
     }
 
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
-        if (runtimeMode == RuntimeMode.openshift) {
+        if (runtimeMode == RuntimeMode.OPENSHIFT) {
             log.info("Using [[B]]OpenShift[[B]] build with strategy [[B]]%s[[B]]", buildStrategy.getLabel());
         }
         return super.customizeConfig(configs);
@@ -110,17 +104,4 @@ public class OpenshiftBuildMojo extends BuildMojo {
         return OpenShift.DEFAULT_LOG_PREFIX;
     }
 
-    /**
-     * Sets the configured {@link RuntimeMode} to be considered when resolving the effective runtime mode.
-     *
-     * <p>n.b this is a workaround for <code>{@code @Parameter(name="mode")}</code> being ignored
-     *
-     * @see <a href="https://issues.apache.org/jira/browse/MPLUGINTESTING-56">MPLUGINTESTING-56</a>
-     * @see <a href="https://stackoverflow.com/questions/30913685/maven-annotation-api-parameter-name-method-seems-to-not-work">maven-annotation-api-parameter-name-method-seems-to-not-work</a>
-     *
-     * @param mode configured RuntimeMode
-     */
-    public void setMode(RuntimeMode mode) {
-        configuredRuntimeMode = mode;
-    }
 }

@@ -77,7 +77,7 @@ public class Main {
         JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
             .log(kitLogger)
             .configuration(configuration)
-            .platformMode(RuntimeMode.kubernetes)
+            .platformMode(RuntimeMode.KUBERNETES)
             .dockerServiceHub(serviceHub)
             .buildServiceConfig(dockerBuildServiceConfig)
             .build()) {

@@ -4,15 +4,6 @@
 
 This goal is for building Docker images.
 
-ifeval::["{goal-prefix}" == "oc"]
-Images can be built in two different ways depending on the `mode` configuration (controlled by the `jkube.mode`
-property).
-By default the mode is set to `auto`. In this case the plugin tries to detect which kind of build should be performed by
-contacting the API server. If this fails or if no cluster access is configured e.g. with `oc login` then the mode is set
-to `kubernetes` in which case a standard Docker build is performed. It can also be forced to `openshift` to perform an
-OpenShift build.
-endif::[]
-
 [[build-kubernetes]]
 === Kubernetes Build
 
@@ -159,17 +150,6 @@ the URL is:
 | Docker machine configuration. See <<docker-machine, Docker Machine>> for possible values
 |
 
-ifeval::["{goal-prefix}" == "oc"]
-| [[build-mode]] *mode*
-a| The build mode which can be
-
-* `kubernetes` : A Docker image will be created by calling a Docker daemon. See <<build-kubernetes, Kubernetes Build>> for details.
-* `openshift` : An OpenShift Build will be triggered, which can be either a _Docker binary build_ or a _S2I binary build_, depending on the configuration `buildStrategy`. See <<build-openshift, OpenShift Build>> for details.
-* `auto` : The plugin tries to detect the mode by contacting the configured cluster.
-
-`auto` is the default. (_Because of technical reasons, "kubernetes" is currently the default, but will change to "auto" eventually_)
-| `jkube.mode`
-endif::[]
 
 | *maxConnections*
 | Number of parallel connections are allowed to be opened to the Docker Host. For parsing log output, a connection needs to be kept open (as well for the wait features), so don't put that number to low. Default is 100 which should be suitable for most of the cases.

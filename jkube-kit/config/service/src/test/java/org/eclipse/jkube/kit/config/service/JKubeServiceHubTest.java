@@ -21,9 +21,7 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
-import mockit.Expectations;
 import mockit.Mocked;
-import org.junit.Before;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertTrue;
@@ -52,25 +50,6 @@ public class JKubeServiceHubTest {
     @Mocked
     private BuildServiceConfig buildServiceConfig;
 
-    @Before
-    public void init() {
-      // @formatter:off
-        new Expectations() {{
-            clusterAccess.resolveRuntimeMode(RuntimeMode.kubernetes);
-            result = RuntimeMode.kubernetes;
-            minTimes = 0;
-
-            clusterAccess.resolveRuntimeMode(RuntimeMode.openshift);
-            result = RuntimeMode.openshift;
-            minTimes = 0;
-
-            clusterAccess.resolveRuntimeMode(RuntimeMode.auto);
-            result = RuntimeMode.kubernetes;
-            minTimes = 0;
-        }};
-      // @formatter:on
-    }
-
     @Test(expected = NullPointerException.class)
     public void testMissingClusterAccess() {
       JKubeServiceHub.builder()
@@ -89,6 +68,7 @@ public class JKubeServiceHubTest {
   public void testBasicInit() {
     // When
     try (final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
+        .platformMode(RuntimeMode.KUBERNETES)
         .configuration(configuration)
         .log(logger)
         .build()
@@ -96,7 +76,7 @@ public class JKubeServiceHubTest {
       // Then
       assertThat(jKubeServiceHub, notNullValue());
       assertThat(jKubeServiceHub.getClient(), notNullValue());
-      assertThat(jKubeServiceHub.getRuntimeMode(), is(RuntimeMode.kubernetes));
+      assertThat(jKubeServiceHub.getRuntimeMode(), is(RuntimeMode.KUBERNETES));
     }
   }
 
@@ -106,7 +86,7 @@ public class JKubeServiceHubTest {
                 .configuration(configuration)
                 .clusterAccess(clusterAccess)
                 .log(logger)
-                .platformMode(RuntimeMode.kubernetes)
+                .platformMode(RuntimeMode.KUBERNETES)
                 .dockerServiceHub(dockerServiceHub)
                 .buildServiceConfig(buildServiceConfig)
                 .build();
@@ -123,7 +103,7 @@ public class JKubeServiceHubTest {
                 .configuration(configuration)
                 .clusterAccess(clusterAccess)
                 .log(logger)
-                .platformMode(RuntimeMode.openshift)
+                .platformMode(RuntimeMode.OPENSHIFT)
                 .dockerServiceHub(dockerServiceHub)
                 .buildServiceConfig(buildServiceConfig)
                 .build();
@@ -140,7 +120,7 @@ public class JKubeServiceHubTest {
                 .configuration(configuration)
                 .clusterAccess(clusterAccess)
                 .log(logger)
-                .platformMode(RuntimeMode.kubernetes)
+                .platformMode(RuntimeMode.KUBERNETES)
                 .dockerServiceHub(dockerServiceHub)
                 .build();
 

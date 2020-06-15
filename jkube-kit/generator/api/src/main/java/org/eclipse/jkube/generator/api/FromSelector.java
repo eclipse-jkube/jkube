@@ -40,7 +40,7 @@ public abstract class FromSelector {
     public String getFrom() {
         RuntimeMode mode = context.getRuntimeMode();
         OpenShiftBuildStrategy strategy = context.getStrategy();
-        if (mode == RuntimeMode.openshift && strategy == OpenShiftBuildStrategy.s2i) {
+        if (mode == RuntimeMode.OPENSHIFT && strategy == OpenShiftBuildStrategy.s2i) {
             return getS2iBuildFrom();
         } else {
             return getDockerBuildFrom();

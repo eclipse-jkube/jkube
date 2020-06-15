@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.s2i;
 import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.docker;
-import static org.eclipse.jkube.kit.config.resource.RuntimeMode.openshift;
+import static org.eclipse.jkube.kit.config.resource.RuntimeMode.OPENSHIFT;
 import static org.junit.Assert.assertEquals;
 
 public class FromSelectorTest {
@@ -43,12 +43,12 @@ public class FromSelectorTest {
   @Test
   public void simple() {
     final TestCase[] testCases = new TestCase[]{
-        new TestCase(openshift, s2i, "s2i-prop", "istag-prop"),
-        new TestCase(openshift, docker, "docker-prop", "istag-prop"),
+        new TestCase(OPENSHIFT, s2i, "s2i-prop", "istag-prop"),
+        new TestCase(OPENSHIFT, docker, "docker-prop", "istag-prop"),
         new TestCase(null, s2i,  "docker-prop", "istag-prop"),
         new TestCase(null, docker,  "docker-prop", "istag-prop"),
-        new TestCase(openshift, null,  "docker-prop", "istag-prop"),
-        new TestCase(openshift, null,  "docker-prop", "istag-prop"),
+        new TestCase(OPENSHIFT, null,  "docker-prop", "istag-prop"),
+        new TestCase(OPENSHIFT, null,  "docker-prop", "istag-prop"),
         new TestCase(null, null,  "docker-prop", "istag-prop"),
         new TestCase(null, null,  "docker-prop", "istag-prop"),
     };

@@ -42,13 +42,6 @@ import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_OPENSH
 public class OpenshiftWatchMojo extends WatchMojo {
 
     /**
-     * Whether to perform a Kubernetes build (i.e. against a vanilla Docker daemon) or
-     * an OpenShift build (with a Docker build against the OpenShift API server.
-     */
-    @Parameter(property = "jkube.mode")
-    protected RuntimeMode configuredRuntimeMode = RuntimeMode.DEFAULT;
-
-    /**
      * OpenShift build mode when an OpenShift build is performed.
      * Can be either "s2i" for an s2i binary build mode or "docker" for a binary
      * docker mode.
@@ -64,7 +57,7 @@ public class OpenshiftWatchMojo extends WatchMojo {
 
     @Override
     public RuntimeMode getConfiguredRuntimeMode() {
-        return configuredRuntimeMode;
+        return RuntimeMode.OPENSHIFT;
     }
 
     @Override

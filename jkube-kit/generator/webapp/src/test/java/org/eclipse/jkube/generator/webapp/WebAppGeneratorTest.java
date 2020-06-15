@@ -72,7 +72,7 @@ public class WebAppGeneratorTest {
     final Properties projectProperties = new Properties();
     projectProperties.put("jkube.generator.from", "image-to-trigger-custom-app-server-handler");
     new Expectations() {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.openshift;
+      generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
       generatorContext.getStrategy(); result = OpenShiftBuildStrategy.s2i;
       generatorContext.getProject().getProperties(); result = projectProperties;
     }};

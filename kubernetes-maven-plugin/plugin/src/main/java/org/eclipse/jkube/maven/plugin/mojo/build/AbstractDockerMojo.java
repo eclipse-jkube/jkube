@@ -390,7 +390,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     }
 
     public RuntimeMode getConfiguredRuntimeMode() {
-        return RuntimeMode.kubernetes;
+        return RuntimeMode.KUBERNETES;
     }
 
     protected void init() {
@@ -398,7 +398,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         authConfigFactory = new AuthConfigFactory(log);
         imageConfigResolver.setLog(log);
         clusterAccess = new ClusterAccess(log, initClusterConfiguration());
-        runtimeMode = clusterAccess.resolveRuntimeMode(getConfiguredRuntimeMode());
+        runtimeMode = getConfiguredRuntimeMode();
     }
 
     protected boolean canExecute() {
@@ -680,7 +680,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
      */
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
         log.info("Running in [[B]]%s[[B]] mode", runtimeMode.getLabel());
-        if (runtimeMode != RuntimeMode.openshift) {
+        if (runtimeMode != RuntimeMode.OPENSHIFT) {
             log.info("Building Docker image in [[B]]Kubernetes[[B]] mode");
         }
         try {

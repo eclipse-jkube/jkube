@@ -112,7 +112,7 @@ public class WildFlyAppSeverHandlerTest {
     // Given
     // @formatter:off
     new Expectations(GeneratorContext.class) {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.kubernetes;
+      generatorContext.getRuntimeMode(); result = RuntimeMode.KUBERNETES;
     }};
     // @formatter:on
     // When
@@ -129,7 +129,7 @@ public class WildFlyAppSeverHandlerTest {
     // Given
     // @formatter:off
     new Expectations(GeneratorContext.class) {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.openshift;
+      generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
       generatorContext.getStrategy(); result = OpenShiftBuildStrategy.docker;
     }};
     // @formatter:on
@@ -147,7 +147,7 @@ public class WildFlyAppSeverHandlerTest {
     // Given
     // @formatter:off
     new Expectations(GeneratorContext.class) {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.openshift;
+      generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
       generatorContext.getStrategy(); result = OpenShiftBuildStrategy.s2i;
     }};
     // @formatter:on
