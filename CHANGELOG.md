@@ -24,6 +24,8 @@ Usage:
 * Fix #187: Provided Dockerfile is always skipped in simple Dockerfile mode
 * Fix #237: Remove deprecated fields and method calls
 * Fix #192: Removed `@Deprecated` fields from ClusterAccess
+* Fix #190: Removed `@Deprecated` fields from AssemblyConfiguration
+
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 

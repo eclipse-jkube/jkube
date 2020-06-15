@@ -47,9 +47,7 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_BASEDIR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_DESCRIPTOR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_DESCRIPTOR_REF;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_DOCKER_FILE_DIR;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_EXPORT_BASEDIR;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_IGNORE_PERMISSIONS;
+import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_EXPORT_TARGET_DIR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_MODE;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_PERMISSIONS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_TARLONGFILEMODE;
@@ -333,19 +331,16 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
             .build();
     }
 
-    @SuppressWarnings("deprecation")
     private AssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
         return AssemblyConfiguration.builder()
-                .targetDir(valueProvider.getString(ASSEMBLY_BASEDIR, config == null ? null : config.getTargetDir()))
-                .descriptor(valueProvider.getString(ASSEMBLY_DESCRIPTOR, config == null ? null : config.getDescriptor()))
-                .descriptorRef(valueProvider.getString(ASSEMBLY_DESCRIPTOR_REF, config == null ? null : config.getDescriptorRef()))
-                .dockerFileDir(valueProvider.getString(ASSEMBLY_DOCKER_FILE_DIR, config == null ? null : config.getDockerFileDir()))
-                .exportBasedir(valueProvider.getBoolean(ASSEMBLY_EXPORT_BASEDIR, config == null ? null : config.getExportTargetDir()))
-                .ignorePermissions(valueProvider.getBoolean(ASSEMBLY_IGNORE_PERMISSIONS, config == null ? null : config.getIgnorePermissions()))
-                .permissionsString(valueProvider.getString(ASSEMBLY_PERMISSIONS, config == null ? null : config.getPermissionsRaw()))
-                .user(valueProvider.getString(ASSEMBLY_USER, config == null ? null : config.getUser()))
-                .modeString(valueProvider.getString(ASSEMBLY_MODE, config == null ? null : config.getModeRaw()))
-                .tarLongFileMode(valueProvider.getString(ASSEMBLY_TARLONGFILEMODE, config == null ? null : config.getTarLongFileMode()))
+                .targetDir(valueProvider.getString(ASSEMBLY_BASEDIR, valueOrNull(config, AssemblyConfiguration::getTargetDir)))
+                .descriptor(valueProvider.getString(ASSEMBLY_DESCRIPTOR, valueOrNull(config, AssemblyConfiguration::getDescriptor)))
+                .descriptorRef(valueProvider.getString(ASSEMBLY_DESCRIPTOR_REF, valueOrNull(config, AssemblyConfiguration::getDescriptorRef)))
+                .exportTargetDir(valueProvider.getBoolean(ASSEMBLY_EXPORT_TARGET_DIR, valueOrNull(config, AssemblyConfiguration::getExportTargetDir)))
+                .permissionsString(valueProvider.getString(ASSEMBLY_PERMISSIONS, valueOrNull(config, AssemblyConfiguration::getPermissionsRaw)))
+                .user(valueProvider.getString(ASSEMBLY_USER, valueOrNull(config, AssemblyConfiguration::getUser)))
+                .modeString(valueProvider.getString(ASSEMBLY_MODE, valueOrNull(config, AssemblyConfiguration::getModeRaw)))
+                .tarLongFileMode(valueProvider.getString(ASSEMBLY_TARLONGFILEMODE, valueOrNull(config, AssemblyConfiguration::getTarLongFileMode)))
                 .build();
     }
 

@@ -22,15 +22,8 @@ The `<assembly>` element within `<build>` is has an XML struture and defines how
 | <<build-assembly-descriptor-refs, *descriptorRef*>>
 | Alias to a predefined assembly descriptor. The available aliases are also described in <<build-assembly-descriptor,Assembly Descriptor>> below.
 
-| *dockerFileDir*
-| Directory containing an external Dockerfile. _This option is deprecated, please use <dockerFileDir> directly in the <build> section_.
-
 | *exportTargetDir*
 | Specification whether the `targetDir` should be exported as a volume.  This value is `true` by default except in the case the `targetDir` is set to the container root (`/`). It is also `false` by default when a base image is used with `from` since exporting makes no sense in this case and will waste disk space unnecessarily.
-
-| *ignorePermissions*
-| Specification if existing file permissions should be ignored
-when creating the assembly archive with a mode `dir`. This value is `false` by default. _This property is deprecated, use a `permissions` of `ignore` instead._
 
 | *mode*
 a| Mode how the how the assembled files should be collected:
@@ -49,7 +42,8 @@ a| Permission of the files to add:
 
 * `ignore` to use the permission as found on files regardless on any
 assembly configuration
-* `keep` to respect the assembly provided permissions, `exec` for setting the executable bit on all files (required for Windows when using an assembly mode `dir`)
+* `keep` to respect the assembly provided permissions
+* `exec` for setting the executable bit on all files (required for Windows when using an assembly mode `dir`)
 * `auto` to let the plugin select `exec` on Windows and `keep` on others.
 
 `keep` is the default value.

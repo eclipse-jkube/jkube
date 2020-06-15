@@ -305,19 +305,6 @@ public class BuildConfiguration implements Serializable {
             return new File(dockerFileDir, "Dockerfile");
         }
 
-        // TODO: Remove the following deprecated handling section
-        if (dockerArchive == null) {
-            String deprecatedDockerFileDir =
-                    getAssemblyConfiguration() != null ?
-                            getAssemblyConfiguration().getDockerFileDir() :
-                            null;
-            if (deprecatedDockerFileDir != null) {
-                log.warn("<dockerFileDir> in the <assembly> section of a <build> configuration is deprecated");
-                log.warn("Please use <dockerFileDir> or <dockerFile> directly within the <build> configuration instead");
-                return new File(deprecatedDockerFileDir,"Dockerfile");
-            }
-        }
-
         // No dockerfile mode
         return null;
     }
