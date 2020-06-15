@@ -17,7 +17,6 @@ import java.net.UnknownHostException;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -28,7 +27,6 @@ import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -114,36 +112,5 @@ public class ClusterAccessTest {
     // Then
     assertNotNull(result);
     assertTrue(result instanceof OpenShiftClient);
-  }
-
-  @Test
-  public void resolveRuntimeModeWithAutoInKubernetesShouldReturnKubernetes() {
-    // When
-    final RuntimeMode result = new ClusterAccess(logger, null).resolveRuntimeMode(null);
-    // Then
-    assertEquals(RuntimeMode.kubernetes, result);
-  }
-
-  @Test
-  public void resolveRuntimeModeWithAutoInOpenShiftShouldReturnOpenShift() {
-    // Given
-    // @formatter:off
-    new Expectations() {{
-      defaultKubernetesClient.isAdaptable(OpenShiftClient.class); result = true;
-      defaultOpenShiftClient.supportsOpenShiftAPIGroup("image.openshift.io"); result = true;
-    }};
-    // @formatter:on
-    // When
-    final RuntimeMode result = new ClusterAccess(logger, null).resolveRuntimeMode(null);
-    // Then
-    assertEquals(RuntimeMode.openshift, result);
-  }
-
-  @Test
-  public void resolveRuntimeModeWithSpecificShouldReturnSpecific() {
-    // When
-    final RuntimeMode result = new ClusterAccess(logger, null).resolveRuntimeMode(RuntimeMode.openshift);
-    // Then
-    assertEquals(RuntimeMode.openshift, result);
   }
 }

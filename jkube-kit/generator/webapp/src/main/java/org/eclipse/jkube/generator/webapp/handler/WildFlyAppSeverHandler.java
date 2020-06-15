@@ -86,7 +86,7 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
   @Override
   public String getDeploymentDir() {
-    if (generatorContext.getRuntimeMode() == RuntimeMode.openshift
+    if (generatorContext.getRuntimeMode() == RuntimeMode.OPENSHIFT
         && generatorContext.getStrategy() == OpenShiftBuildStrategy.s2i) {
       return "/deployments";
     }
@@ -113,7 +113,7 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
   @Override
   public List<String> runCmds() {
-    if (generatorContext.getRuntimeMode() == RuntimeMode.openshift
+    if (generatorContext.getRuntimeMode() == RuntimeMode.OPENSHIFT
         && generatorContext.getStrategy() == OpenShiftBuildStrategy.docker) {
       // OpenShift runs pods in a restricted security context (SCC) which randomizes the user.
       // Make required runtime directories writeable for all users

@@ -33,34 +33,21 @@ public enum RuntimeMode {
      * onto cluster. It can be used both on vanilla Kubernetes and
      * OpenShift.
      */
-    kubernetes(false, "Kubernetes"),
+    KUBERNETES("Kubernetes"),
 
     /**
      * Use special OpenShift features like BuildConfigs, DeploymentConfigs
      * ImageStreams and S2I builds while deploying onto cluster. It can be
      * used only when on OpenShift.
      */
-    openshift(false, "OpenShift"),
+    OPENSHIFT("OpenShift");
 
-    /**
-     * Detect automatically whether running cluster is OpenShift or Kuberentes.
-     * This is done by contacting cluster API server.
-     */
-    auto(true, "Auto");
+    public static final String JKUBE_EFFECTIVE_PLATFORM_MODE = "jkube.internal.effective.platform.mode";
 
-    public static final RuntimeMode DEFAULT = RuntimeMode.auto;
-    public static final String FABRIC8_EFFECTIVE_PLATFORM_MODE = "jkube.internal.effective.platform.mode";
-
-    private boolean autoFlag;
     private String label;
 
-    RuntimeMode(boolean autoFlag, String label) {
-        this.autoFlag = autoFlag;
+    RuntimeMode(String label) {
         this.label = label;
-    }
-
-    public boolean isAuto() {
-        return autoFlag;
     }
 
     public String getLabel() {
@@ -71,7 +58,7 @@ public enum RuntimeMode {
      * Returns true if the given maven properties indicate running in OpenShift platform mode
      */
     public static boolean isOpenShiftMode(Properties properties) {
-        return properties != null && Objects.equals(openshift.toString(), properties.getProperty(FABRIC8_EFFECTIVE_PLATFORM_MODE, ""));
+        return properties != null && Objects.equals(OPENSHIFT.toString(), properties.getProperty(JKUBE_EFFECTIVE_PLATFORM_MODE, ""));
     }
 }
 

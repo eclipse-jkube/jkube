@@ -23,7 +23,6 @@ import io.fabric8.openshift.client.OpenShiftAPIGroups;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import java.net.UnknownHostException;
 
@@ -90,17 +89,5 @@ public class ClusterAccess {
         return false;
     }
 
-    public RuntimeMode resolveRuntimeMode(RuntimeMode mode) {
-        RuntimeMode resolvedMode;
-        if (mode == null) {
-            mode = RuntimeMode.DEFAULT;
-        }
-        if (mode.isAuto()) {
-            resolvedMode = isOpenShiftImageStream() ? RuntimeMode.openshift : RuntimeMode.kubernetes;
-        } else {
-            resolvedMode = mode;
-        }
-        return resolvedMode;
-    }
 }
 

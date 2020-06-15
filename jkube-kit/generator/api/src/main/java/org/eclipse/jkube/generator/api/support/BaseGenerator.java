@@ -166,7 +166,7 @@ public abstract class BaseGenerator implements Generator {
      * @return Docker image name which is never null
      */
     protected String getImageName() {
-        if (getContext().getRuntimeMode() == RuntimeMode.openshift) {
+        if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT) {
             return getConfigWithFallback(Config.name, "jkube.generator.name", "%a:%l");
         } else {
             return getConfigWithFallback(Config.name, "jkube.generator.name", "%g/%a:%l");
@@ -180,7 +180,7 @@ public abstract class BaseGenerator implements Generator {
      * @return The docker registry if configured
      */
     protected String getRegistry() {
-        if (getContext().getRuntimeMode() == RuntimeMode.openshift &&
+        if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT &&
             getContext().getStrategy() == OpenShiftBuildStrategy.s2i) {
             return null;
         }

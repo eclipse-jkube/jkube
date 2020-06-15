@@ -67,9 +67,6 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     @Parameter
     protected ClusterConfiguration access;
 
-    @Parameter(property = "jkube.mode")
-    protected RuntimeMode runtimeMode = RuntimeMode.DEFAULT;
-
     protected KitLogger log;
     protected ClusterAccess clusterAccess;
 
@@ -87,7 +84,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
                         .reactorProjects(Collections.singletonList(javaProject))
                         .build())
                 .clusterAccess(clusterAccess)
-                .platformMode(runtimeMode)
+                .platformMode(RuntimeMode.KUBERNETES)
                 .build();
     }
 

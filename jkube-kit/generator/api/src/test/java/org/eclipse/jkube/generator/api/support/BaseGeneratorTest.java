@@ -272,7 +272,7 @@ public class BaseGeneratorTest {
     public void getRegistryInOpenshift() {
         Properties props = new Properties();
         props.put("jkube.generator.registry", "jkube.io");
-        props.put(RuntimeMode.FABRIC8_EFFECTIVE_PLATFORM_MODE, "openshift");
+        props.put(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, "openshift");
         setupContextOpenShift(props, null, null);
 
         BaseGenerator generator = createGenerator(null);
@@ -307,7 +307,7 @@ public class BaseGeneratorTest {
             ctx.getConfig(); result = config;
             config.getConfig("test-generator", "from"); result = configFrom; minTimes = 0;
             config.getConfig("test-generator", "fromMode"); result = configFromMode; minTimes = 0;
-            ctx.getRuntimeMode();result = RuntimeMode.kubernetes;minTimes = 0;
+            ctx.getRuntimeMode();result = RuntimeMode.KUBERNETES;minTimes = 0;
             ctx.getStrategy(); result = null; minTimes = 0;
         }};
     }
@@ -319,7 +319,7 @@ public class BaseGeneratorTest {
             ctx.getConfig(); result = config;
             config.getConfig("test-generator", "from"); result = configFrom; minTimes = 0;
             config.getConfig("test-generator", "fromMode"); result = configFromMode; minTimes = 0;
-            ctx.getRuntimeMode();result = RuntimeMode.openshift;minTimes = 0;
+            ctx.getRuntimeMode();result = RuntimeMode.OPENSHIFT;minTimes = 0;
             ctx.getStrategy(); result = OpenShiftBuildStrategy.s2i; minTimes = 0;
         }};
     }

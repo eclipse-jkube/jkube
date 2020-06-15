@@ -24,6 +24,7 @@ Usage:
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)
 * Fix #187: Provided Dockerfile is always skipped in simple Dockerfile mode
 * Fix #237: Remove deprecated fields and method calls
+* Fix #218: Remove build mode from mojos
 * Fix #192: Removed `@Deprecated` fields from ClusterAccess
 * Fix #190: Removed `@Deprecated` fields from AssemblyConfiguration
 * Fix #189: Removed `@Deprecated` fields from BuildConfiguration
