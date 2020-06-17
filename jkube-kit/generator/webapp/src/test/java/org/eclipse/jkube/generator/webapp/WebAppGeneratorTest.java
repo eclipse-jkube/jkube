@@ -108,7 +108,7 @@ public class WebAppGeneratorTest {
     assertThat(imageConfiguration.getName(), equalTo("%g/%a:%l"));
     assertThat(imageConfiguration.getAlias(), equalTo("webapp"));
     assertThat(imageConfiguration.getBuildConfiguration().getTags(), contains("latest"));
-    assertThat(imageConfiguration.getBuildConfiguration().getAssemblyConfiguration().isExcludeFinalOutputArtifact(),
+    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().isExcludeFinalOutputArtifact(),
         equalTo(true));
   }
 }

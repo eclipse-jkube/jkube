@@ -9,7 +9,7 @@ of an image configuration. The following configuration options are supported:
 | Element | Description
 
 | <<config-image-build-assembly, *assembly*>>
-| specifies the assembly configuration as described in <<build-assembly,Build Assembly>>
+| Specifies the assembly configuration as described in <<build-assembly,Build Assembly>>
 
 | <<build-buildargs, *args*>>
 | Map specifying the value of https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables-build-arg[Docker build args]
@@ -36,9 +36,6 @@ https://docs.docker.com/engine/reference/api/docker_remote_api_v1.24/#build-imag
 
 | *dockerFile*
 | Path to a `Dockerfile` which also triggers _Dockerfile mode_. See <<external-dockerfile, External Dockerfile>> for details.
-
-| *dockerFileDir* (_deprecated_ in favor of *<<context-dir, contextDir>>*)
-| Path to a directory holding a `Dockerfile` and switch on _Dockerfile mode_. See <<external-dockerfile, External Dockerfile>> for details. _This option is deprecated in favor of _contextDir_ and will be removed for the next major release_.
 
 | *dockerArchive*
 | Path to a saved image archive which is then imported. See <<external-dockerfile, Docker archive>> for details.
@@ -75,7 +72,7 @@ A provided `<from>` takes precedence over the name given here. This tag is usefu
 | Definition of a health check as described in <<build-healthcheck, Healthcheck>>
 
 | *imagePullPolicy*
-| Specific pull policy for the base image. This overwrites any global pull policy. See the globale configuration option <<image-pull-policy, imagePullPolicy>> for the possible values and the default.
+| Specific pull policy for the base image. This overwrites any global pull policy. See the global configuration option <<image-pull-policy, imagePullPolicy>> for the possible values and the default.
 
 | *loadNamePattern*
 a| Scan the images in the archive specified in `dockerArchive` and match the associated repository and tag information against this pattern. When a matching repository and tag is found, create a tag linking the `name` for this image to the repository and tag that matched the pattern.

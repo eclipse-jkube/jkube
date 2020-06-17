@@ -45,7 +45,7 @@ public class AssemblyConfigurationUtilsTest {
 
     // Given
     new Expectations() {{
-      buildConfiguration.getAssemblyConfiguration();
+      buildConfiguration.getAssembly();
       result = null;
     }};
     // When
@@ -63,7 +63,7 @@ public class AssemblyConfigurationUtilsTest {
     // Given
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
     new Expectations() {{
-      buildConfiguration.getAssemblyConfiguration();
+      buildConfiguration.getAssembly();
       result = configuration;
     }};
     // When

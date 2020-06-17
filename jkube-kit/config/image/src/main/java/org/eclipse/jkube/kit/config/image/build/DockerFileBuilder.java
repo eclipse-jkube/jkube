@@ -39,6 +39,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class DockerFileBuilder {
 
+    private static final String DEFAULT_BASE_IMAGE = "busybox";
+
     // Base image to use as from
     private String baseImage;
 
@@ -110,7 +112,7 @@ public class DockerFileBuilder {
 
         StringBuilder b = new StringBuilder();
 
-        DockerFileKeyword.FROM.addTo(b, baseImage != null ? baseImage : "busybox");
+        DockerFileKeyword.FROM.addTo(b, baseImage != null ? baseImage : DEFAULT_BASE_IMAGE);
         if (maintainer != null) {
             DockerFileKeyword.MAINTAINER.addTo(b, maintainer);
         }
@@ -239,7 +241,7 @@ public class DockerFileBuilder {
 
     private void addMap(StringBuilder b, DockerFileKeyword keyword, Map<String,String> map) {
         if (map != null && map.size() > 0) {
-            String entries[] = new String[map.size()];
+            final String[] entries = new String[map.size()];
             int i = 0;
             for (Map.Entry<String, String> entry : map.entrySet()) {
                 entries[i++] = createKeyValue(entry.getKey(), entry.getValue());

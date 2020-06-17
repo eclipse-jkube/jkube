@@ -107,7 +107,7 @@ public class KarafGeneratorTest {
     assertThat(bc.getPorts(), contains("8181"));
     assertThat(bc.getEnv(), hasEntry("DEPLOYMENTS_DIR", "/deployments"));
     assertThat(bc.getEnv(), hasEntry("KARAF_HOME", "/deployments/karaf"));
-    final AssemblyConfiguration ac = bc.getAssemblyConfiguration();
+    final AssemblyConfiguration ac = bc.getAssembly();
     assertThat(ac.getName(), equalTo("deployments"));
     assertThat(ac.isExcludeFinalOutputArtifact(), equalTo(false));
     assertThat(ac.getInline().getFileSets(), contains(

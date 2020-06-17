@@ -381,10 +381,10 @@ public class OpenshiftBuildService implements BuildService {
     private Boolean checkForNocache(ImageConfiguration imageConfig) {
         String nocache = System.getProperty("docker.nocache");
         if (nocache != null) {
-            return nocache.length() == 0 || Boolean.valueOf(nocache);
+            return nocache.length() == 0 || Boolean.parseBoolean(nocache);
         } else {
             BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
-            return buildConfig.getNoCache();
+            return buildConfig.nocache();
         }
     }
 
@@ -474,7 +474,7 @@ public class OpenshiftBuildService implements BuildService {
         String fromImage;
         fromImage = buildConfig.getFrom();
         if (fromImage == null) {
-            AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+            AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
             if (assemblyConfig == null) {
                 fromImage = DockerAssemblyManager.DEFAULT_DATA_BASE_IMAGE;
             }

@@ -46,7 +46,7 @@ public class AssemblyFileUtilsTest {
     // Given
     final AssemblyFile af = AssemblyFile.builder().outputDirectory(new File("target")).build();
     final File outputDirectoryForRelativePaths = temporaryFolder.newFolder("output");
-    final AssemblyConfiguration ac = AssemblyConfiguration.builder().name("project").build();
+    final AssemblyConfiguration ac = AssemblyConfiguration.builder().targetDir("/project").build();
     // When
     final File result = AssemblyFileUtils.getAssemblyFileOutputDirectory(af, outputDirectoryForRelativePaths, ac);
     // Then

@@ -147,7 +147,7 @@ public class DockerAssemblyManager {
 
     // visible for testing
     void verifyGivenDockerfile(File dockerFile, BuildConfiguration buildConfig, Properties properties, KitLogger log) throws IOException {
-        AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
         if (assemblyConfig == null) {
             return;
         }
@@ -190,7 +190,7 @@ public class DockerAssemblyManager {
 
         BuildDirs buildDirs = createBuildDirs(name, jKubeConfiguration);
 
-        AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
         String assemblyName = assemblyConfig.getName();
 
         AssemblyFiles assemblyFiles = new AssemblyFiles(buildDirs.getOutputDirectory());
@@ -285,7 +285,7 @@ public class DockerAssemblyManager {
             builder.workdir(buildConfig.getWorkdir());
         }
         if (assemblyConfig != null) {
-            builder.add(assemblyConfig.getName(), "")
+            builder.add(assemblyConfig.getTargetDir(), "")
                    .basedir(assemblyConfig.getTargetDir())
                    .assemblyUser(assemblyConfig.getUser())
                    .exportTargetDir(assemblyConfig.getExportTargetDir());
@@ -472,13 +472,13 @@ public class DockerAssemblyManager {
             archiveCustomizers.add(archiver -> {
                 File finalArtifactFile = JKubeProjectUtil.getFinalOutputArtifact(params.getProject());
                 if (finalArtifactFile != null) {
-                    archiver.includeFile(finalArtifactFile, assemblyConfig.getName() + File.separator + finalArtifactFile.getName());
+                    archiver.includeFile(finalArtifactFile, assemblyConfig.getTargetDir() + File.separator + finalArtifactFile.getName());
                 }
                 return archiver;
             });
         }
 
-        List<String> filesToExclude = getJKubeAssemblyFileSetsExcludes(buildConfig.getAssemblyConfiguration());
+        List<String> filesToExclude = getJKubeAssemblyFileSetsExcludes(buildConfig.getAssembly());
         archiveCustomizers.add(archiver -> {
             filesToExclude.forEach(archiver::excludeFile);
             fileToPermissionsMap.forEach(archiver::setFilePermissions);

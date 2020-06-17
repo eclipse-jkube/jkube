@@ -115,14 +115,12 @@ public class ConfigHelper {
      * @param images the images to check
      * @param apiVersion the original API version intended to use
      * @param nameFormatter formatter for image names
-     * @param log a logger for printing out diagnostic messages
      * @return the minimal API Docker API required to be used for the given configuration.
      */
-    public static String initAndValidate(List<ImageConfiguration> images, String apiVersion, NameFormatter nameFormatter,
-                                         KitLogger log) {
+    public static String initAndValidate(List<ImageConfiguration> images, String apiVersion, NameFormatter nameFormatter) {
         // Init and validate configs. After this step, getResolvedImages() contains the valid configuration.
         for (ImageConfiguration imageConfiguration : images) {
-            apiVersion = EnvUtil.extractLargerVersion(apiVersion, imageConfiguration.initAndValidate(nameFormatter, log));
+            apiVersion = EnvUtil.extractLargerVersion(apiVersion, imageConfiguration.initAndValidate(nameFormatter));
         }
         return apiVersion;
     }

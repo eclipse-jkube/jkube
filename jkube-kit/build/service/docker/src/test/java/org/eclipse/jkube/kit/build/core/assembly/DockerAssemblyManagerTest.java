@@ -57,7 +57,7 @@ public class DockerAssemblyManagerTest {
     @Test
     public void testNoAssembly() {
         BuildConfiguration buildConfig = BuildConfiguration.builder().build();
-        AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+        AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
 
         DockerFileBuilder builder = assemblyManager.createDockerFileBuilder(buildConfig, assemblyConfig);
         String content = builder.content();
@@ -253,7 +253,7 @@ public class DockerAssemblyManagerTest {
         File dockerDirectory = new File(targetDirectory, "docker");
 
 
-        final JKubeConfiguration jKubeBuildContext = JKubeConfiguration.builder()
+        final JKubeConfiguration configuration = JKubeConfiguration.builder()
                 .project(JavaProject.builder()
                         .groupId("org.eclipse.jkube")
                         .artifactId("test")
@@ -269,14 +269,13 @@ public class DockerAssemblyManagerTest {
                 .sourceDirectory(baseProjectDir.getPath() + "/src/main/docker")
                 .build();
         final BuildConfiguration jKubeBuildConfiguration = BuildConfiguration.builder()
-                .dockerFileDir(baseProjectDir.getPath())
                 .dockerFile(dockerFile.getPath())
                 .dockerFileFile(dockerFile)
                 .build();
 
 
         // When
-        File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", jKubeBuildContext, jKubeBuildConfiguration, prefixedLogger, null);
+        File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
 
         // Then
         assertNotNull(dockerArchiveFile);

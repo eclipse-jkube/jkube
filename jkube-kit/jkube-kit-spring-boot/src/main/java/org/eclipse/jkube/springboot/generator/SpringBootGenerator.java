@@ -258,7 +258,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
         appendSecretTokenToFile("src/main/resources/application.properties", newToken);
     }
 
-    private void appendSecretTokenToFile(String path, String token) throws IllegalStateException {
+    private void appendSecretTokenToFile(String path, String token) {
         File file = new File(getProject().getBaseDirectory(), path);
         file.getParentFile().mkdirs();
         String text = String.format("%s" +

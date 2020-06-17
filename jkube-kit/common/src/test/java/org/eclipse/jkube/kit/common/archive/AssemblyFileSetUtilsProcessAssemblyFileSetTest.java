@@ -120,7 +120,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void assemblyConfigurationHasNoNameShouldThrowException() {
+  public void assemblyConfigurationHasNoTargetDirShouldThrowException() {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -131,13 +131,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac)
     );
     // Then
-    assertThat(result.getMessage(), equalTo("Assembly Configuration name is required"));
+    assertThat(result.getMessage(), equalTo("Assembly Configuration target dir is required"));
   }
 
   /**
-   * Has AssemblyFileSet#directory and AssemblyConfiguration#name options.
+   * Has AssemblyFileSet#directory and AssemblyConfiguration#targetDir options.
    *
-   * Should copy the AssemblyFileSet#directory to the outputDirectory in a subdirectory named as the AssemblyConfiguration#name.
+   * Should copy the AssemblyFileSet#directory to the outputDirectory in a subdirectory named as the AssemblyConfiguration#targetDir.
    *
    * n.b. this is the only case where the source directory and not its contents is copied.
    */
@@ -148,7 +148,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .directory(sourceDirectory)
         .build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
-        .name("deployments")
+        .targetDir("deployments")
         .build();
     // When
     final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
@@ -165,7 +165,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   /**
-   * Has AssemblyFileSet#directory and AssemblyConfiguration#name options.
+   * Has AssemblyFileSet#directory and AssemblyConfiguration#targetDir options.
    *
    * Source directory doesn't exist
    *
@@ -178,7 +178,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .directory(new File(sourceDirectory, "non-existent"))
         .build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
-        .name("deployments")
+        .targetDir("deployments")
         .build();
     // When
     final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
@@ -190,9 +190,10 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
 
   /**
    * Has AssemblyFileSet with directory and outputDirectory relative path resolving to self.
-   * Has AssemblyConfiguration name.
+   * Has AssemblyConfiguration targetDir.
    *
-   * Should copy <b>contents</b> of AssemblyFileSet#directory to the outputDirectory in a subdirectory named as the AssemblyConfiguration#name.
+   * Should copy <b>contents</b> of AssemblyFileSet#directory to the outputDirectory in a subdirectory named as the
+   * AssemblyConfiguration#targetDir.
    */
   @Test
   public void fileSetDirectoryAndOutputDirectoryResolvingToSelf() throws Exception {
@@ -202,7 +203,8 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .outputDirectory(new File("."))
         .build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
-        .name("deployments")
+        .name("NotImportant")
+        .targetDir("deployments")
         .build();
     // When
     final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
@@ -217,7 +219,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
 
   /**
    * Has AssemblyFileSet directory and absolute outputDirectory.
-   * Has AssemblyConfiguration name.
+   * Has AssemblyConfiguration targetDir.
    *
    * Should copy contents of AssemblyFileSet#directory to the absoluteOutputDirectory.
    */
@@ -231,7 +233,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .outputDirectory(absoluteOutputDirectory)
         .build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
-        .name("deployments")
+        .targetDir("/deployments")
         .build();
     // When
     final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
@@ -243,10 +245,10 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   /**
-   * No options provided except of the AssemblyFileSet#directory, relative outputDirectory and AssemblyConfiguration#name.
+   * No options provided except of the AssemblyFileSet#directory, relative outputDirectory and AssemblyConfiguration#targetDir.
    *
    * Should copy contents of AssemblyFileSet#directory to the outputDirectory in a relative subdirectory with path
-   * composed of AssemblyConfiguration#name and the relative outputDirectory.
+   * composed of AssemblyConfiguration#targetDir and the relative outputDirectory.
    */
   @Test
   public void fileSetDirectoryAndRelativeOutputDirectory() throws Exception {
@@ -257,7 +259,8 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .outputDirectory(relativeOutputDirectory)
         .build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
-        .name("deployments")
+        .name("MyNameIsAl")
+        .targetDir("/deployments/")
         .build();
     // When
     final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
@@ -275,9 +278,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
 
   /**
    * Has AssemblyFileSet#directory and includes for files in several hierarchic levels.
-   * Has AssemblyConfiguration name.
+   * Has AssemblyConfiguration targetDir.
    *
-   * Should copy contents of AssemblyFileSet#directory to the outputDirectory in a subdirectory named as the AssemblyConfiguration#name.
+   * Should copy contents of AssemblyFileSet#directory to the outputDirectory in a subdirectory named as the AssemblyConfiguration#targetDir.
    */
   @Test
   public void hierarchicalInclude() throws Exception {
@@ -290,6 +293,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("deployments")
+        .targetDir("/deployments")
         .build();
     // When
     final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
@@ -309,9 +313,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
 
   /**
    * AssemblyFileSet#directory, relative outputDirectory and includes for files in several hierarchic levels.
-   * Has AssemblyConfiguration name.
+   * Has AssemblyConfiguration targetDir.
    *
-   * Should copy contents of AssemblyFileSet#directory to the outputDirectory in a subdirectory named as the AssemblyConfiguration#name.
+   * Should copy contents of AssemblyFileSet#directory to the outputDirectory in a subdirectory named as the AssemblyConfiguration#targetDir.
    */
   @Test
   public void hierarchicalIncludeInRelativeDirectory() throws Exception {
@@ -324,7 +328,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .include("three")
         .build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
-        .name("maven")
+        .targetDir("maven")
         .build();
     // When
     final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);

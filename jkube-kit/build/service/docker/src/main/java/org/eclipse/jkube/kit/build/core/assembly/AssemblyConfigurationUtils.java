@@ -37,7 +37,7 @@ public class AssemblyConfigurationUtils {
 
   static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(BuildConfiguration buildConfiguration) {
     final AssemblyConfiguration ac = Optional.ofNullable(buildConfiguration)
-            .map(BuildConfiguration::getAssemblyConfiguration)
+            .map(BuildConfiguration::getAssembly)
             .orElse(AssemblyConfiguration.builder().user(DEFAULT_USER).build());
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = ac.toBuilder();
     final String name;

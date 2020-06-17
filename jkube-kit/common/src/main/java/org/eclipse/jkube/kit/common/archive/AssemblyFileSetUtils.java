@@ -74,9 +74,8 @@ public class AssemblyFileSetUtils {
 
     final Map<File, String> fileToPermissionsMap = new HashMap<>();
     final File sourceDirectory = resolveSourceDirectory(baseDirectory, assemblyFileSet);
-    final File targetDirectory = outputDirectory.toPath()
-        .resolve(Objects.requireNonNull(assemblyConfiguration.getName(), "Assembly Configuration name is required"))
-        .toFile();
+    final File targetDirectory = new File(outputDirectory, Objects.requireNonNull(
+        assemblyConfiguration.getTargetDir(), "Assembly Configuration target dir is required"));
     final File destinationDirectory;
     if (assemblyFileSet.getOutputDirectory() == null) {
       destinationDirectory = new File(targetDirectory, sourceDirectory.getName());

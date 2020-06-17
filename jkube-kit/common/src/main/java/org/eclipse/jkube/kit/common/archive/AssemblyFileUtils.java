@@ -29,10 +29,10 @@ public class AssemblyFileUtils {
     if (assemblyFile.getOutputDirectory().isAbsolute()) {
       outputDirectory = assemblyFile.getOutputDirectory();
     } else {
-      outputDirectory = outputDirectoryForRelativePaths.toPath()
-          .resolve(Objects.requireNonNull(assemblyConfiguration.getName(), "Assembly Configuration name is required"))
-          .resolve(assemblyFile.getOutputDirectory().toPath())
-          .toFile();
+      outputDirectory = new File(outputDirectoryForRelativePaths, Objects.requireNonNull(
+          assemblyConfiguration.getTargetDir(), "Assembly Configuration target dir is required")).toPath()
+      .resolve(assemblyFile.getOutputDirectory().toPath())
+      .toFile();
     }
     return outputDirectory;
   }

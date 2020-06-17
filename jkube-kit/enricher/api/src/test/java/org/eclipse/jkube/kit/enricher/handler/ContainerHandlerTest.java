@@ -210,7 +210,7 @@ public class ContainerHandlerTest {
         //container name with group id and aritact id without alias and user
         final BuildConfiguration buildImageConfiguration = BuildConfiguration.builder()
                 .ports(ports).from("fabric8/").cleanup("try").tags(tags)
-                .compressionString("gzip").dockerFile("testFile").dockerFileDir("/demo").build();
+                .compressionString("gzip").dockerFile("testFile").build();
 
         ImageConfiguration imageConfiguration = ImageConfiguration.builder()
                 .name("test").build(buildImageConfiguration).registry("docker.io").build();
@@ -240,7 +240,7 @@ public class ContainerHandlerTest {
 
         final BuildConfiguration buildImageConfiguration = BuildConfiguration.builder()
                 .ports(ports).from("fabric8/").cleanup("try").tags(tags)
-                .compressionString("gzip").dockerFile("testFile").dockerFileDir("/demo").build();
+                .compressionString("gzip").dockerFile("testFile").build();
 
         ImageConfiguration imageConfiguration = ImageConfiguration.builder()
                 .name("user/test:latest").build(buildImageConfiguration).registry("docker.io").build();
