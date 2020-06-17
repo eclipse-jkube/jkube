@@ -26,7 +26,6 @@ import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.RunVolumeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.WatchImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
@@ -156,11 +155,11 @@ public class ImageConfiguration implements StartOrderResolver.Resolvable, Serial
         return String.format("[%s] %s", new ImageName(name).getFullName(), (alias != null ? "\"" + alias + "\"" : "")).trim();
     }
 
-    public String initAndValidate(ConfigHelper.NameFormatter nameFormatter, KitLogger log) {
+    public String initAndValidate(ConfigHelper.NameFormatter nameFormatter) {
         name = nameFormatter.format(name);
         String minimalApiVersion = null;
         if (build != null) {
-            minimalApiVersion = build.initAndValidate(log);
+            minimalApiVersion = build.initAndValidate();
         }
         if (run != null) {
             minimalApiVersion = EnvUtil.extractLargerVersion(minimalApiVersion, run.initAndValidate());

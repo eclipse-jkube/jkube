@@ -69,7 +69,6 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.DNS_SEARCH;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.DOCKER_ARCHIVE;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.DOCKER_FILE;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.DOCKER_FILE_DIR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.DOMAINNAME;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ENTRYPOINT;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ENV;
@@ -114,7 +113,6 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.PORT_PROPERTY_FILE;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.PRIVILEGED;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.READ_ONLY;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.REGISTRY;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.RESTART_POLICY_NAME;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.RESTART_POLICY_RETRY;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.RUN;
@@ -195,9 +193,8 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         return valueProvider.getString(key, config == null ? null : supplier.get()) != null;
     }
 
-    // Enable build config only when a `.from.`, `.dockerFile.`, or `.dockerFileDir.` is configured
+    // Enable build config only when a `.from.`, or `.dockerFile.` is configured
     private boolean buildConfigured(BuildConfiguration config, ValueProvider valueProvider, JavaProject project) {
-
 
         if (isStringValueNull(valueProvider, config, FROM, config::getFrom)) {
             return true;
@@ -206,18 +203,14 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         if (valueProvider.getMap(FROM_EXT, config == null ? null : config.getFromExt()) != null) {
             return true;
         }
-        if (isStringValueNull(valueProvider, config, DOCKER_FILE, () -> config.getDockerFileRaw() ))  {
+        if (isStringValueNull(valueProvider, config, DOCKER_FILE, config::getDockerFileRaw))  {
             return true;
         }
-        if (isStringValueNull(valueProvider, config, DOCKER_ARCHIVE, () -> config.getDockerArchiveRaw())) {
-            return true;
-        }
-
-        if (isStringValueNull(valueProvider, config, CONTEXT_DIR, () -> config.getContextDirRaw())) {
+        if (isStringValueNull(valueProvider, config, DOCKER_ARCHIVE, config::getDockerArchiveRaw)) {
             return true;
         }
 
-        if (isStringValueNull(valueProvider, config, DOCKER_FILE_DIR, () -> config.getDockerFileDirRaw())) {
+        if (isStringValueNull(valueProvider, config, CONTEXT_DIR, config::getContextDirRaw)) {
             return true;
         }
 
@@ -237,10 +230,10 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         return BuildConfiguration.builder()
                 .cmd(extractArguments(valueProvider, CMD, valueOrNull(config, BuildConfiguration::getCmd)))
                 .cleanup(valueProvider.getString(CLEANUP, valueOrNull(config, BuildConfiguration::getCleanup)))
-                .nocache(valueProvider.getBoolean(NOCACHE, valueOrNull(config, BuildConfiguration::getNoCache)))
+                .nocache(valueProvider.getBoolean(NOCACHE, valueOrNull(config, BuildConfiguration::getNocache)))
                 .optimise(valueProvider.getBoolean(OPTIMISE, valueOrNull(config, BuildConfiguration::getOptimise)))
                 .entryPoint(extractArguments(valueProvider, ENTRYPOINT, valueOrNull(config, BuildConfiguration::getEntryPoint)))
-                .assembly(extractAssembly(valueOrNull(config, BuildConfiguration::getAssemblyConfiguration), valueProvider))
+                .assembly(extractAssembly(valueOrNull(config, BuildConfiguration::getAssembly), valueProvider))
                 .env(MapUtil.mergeMaps(
                         valueProvider.getMap(ENV_BUILD, valueOrNull(config, BuildConfiguration::getEnv)),
                         valueProvider.getMap(ENV, Collections.emptyMap())
@@ -252,7 +245,6 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .runCmds(valueProvider.getList(RUN, valueOrNull(config, BuildConfiguration::getRunCmds)))
                 .from(valueProvider.getString(FROM, valueOrNull(config, BuildConfiguration::getFrom)))
                 .fromExt(valueProvider.getMap(FROM_EXT, valueOrNull(config, BuildConfiguration::getFromExt)))
-                .registry(valueProvider.getString(REGISTRY, valueOrNull(config, BuildConfiguration::getRegistry)))
                 .volumes(valueProvider.getList(VOLUMES, valueOrNull(config, BuildConfiguration::getVolumes)))
                 .tags(valueProvider.getList(TAGS, valueOrNull(config, BuildConfiguration::getTags)))
                 .maintainer(valueProvider.getString(MAINTAINER, valueOrNull(config, BuildConfiguration::getMaintainer)))
@@ -262,9 +254,8 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .contextDir(valueProvider.getString(CONTEXT_DIR, valueOrNull(config, BuildConfiguration::getContextDirRaw)))
                 .dockerArchive(valueProvider.getString(DOCKER_ARCHIVE, valueOrNull(config, BuildConfiguration::getDockerArchiveRaw)))
                 .dockerFile(valueProvider.getString(DOCKER_FILE, valueOrNull(config, BuildConfiguration::getDockerFileRaw)))
-                .dockerFileDir(valueProvider.getString(DOCKER_FILE_DIR, valueOrNull(config, BuildConfiguration::getDockerFileDirRaw)))
                 .buildOptions(valueProvider.getMap(BUILD_OPTIONS, valueOrNull(config, BuildConfiguration::getBuildOptions)))
-                .filter(valueProvider.getString(FILTER, valueOrNull(config, BuildConfiguration::getFilterRaw)))
+                .filter(valueProvider.getString(FILTER, valueOrNull(config, BuildConfiguration::getFilter)))
                 .user(valueProvider.getString(USER, valueOrNull(config, BuildConfiguration::getUser)))
                 .healthCheck(extractHealthCheck(valueOrNull(config, BuildConfiguration::getHealthCheck), valueProvider))
                 .build();

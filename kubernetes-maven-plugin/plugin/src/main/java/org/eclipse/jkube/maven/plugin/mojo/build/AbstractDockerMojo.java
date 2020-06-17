@@ -799,7 +799,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         }
 
         // Initialize configuration and detect minimal API version
-        return ConfigHelper.initAndValidate(resolvedImages, apiVersion, new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), buildTimeStamp), log);
+        return ConfigHelper.initAndValidate(resolvedImages, apiVersion, new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), buildTimeStamp));
     }
 
     /**
@@ -825,7 +825,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     }
 
     protected boolean follow() {
-        return Boolean.valueOf(System.getProperty("docker.follow", "false"));
+        return Boolean.parseBoolean(System.getProperty("docker.follow", "false"));
     }
 
     protected LogDispatcher getLogDispatcher(ServiceHub hub) {

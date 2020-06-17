@@ -585,7 +585,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
             }
         }
         String minimalApiVersion = ConfigHelper.initAndValidate(ret, null /* no minimal api version */,
-            new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), now), log);
+            new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), now));
         return ret;
     }
 

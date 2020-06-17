@@ -25,6 +25,7 @@ Usage:
 * Fix #237: Remove deprecated fields and method calls
 * Fix #192: Removed `@Deprecated` fields from ClusterAccess
 * Fix #190: Removed `@Deprecated` fields from AssemblyConfiguration
+* Fix #189: Removed `@Deprecated` fields from BuildConfiguration
 
 
 ### 1.0.0-alpha-4 (2020-06-08)

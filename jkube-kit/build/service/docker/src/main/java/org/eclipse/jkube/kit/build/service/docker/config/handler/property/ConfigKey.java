@@ -52,7 +52,6 @@ public enum ConfigKey {
     DNS_SEARCH,
     DOCKER_ARCHIVE,
     DOCKER_FILE,
-    DOCKER_FILE_DIR,
     ENTRYPOINT,
     ENV,
     ENV_PROPERTY_FILE,

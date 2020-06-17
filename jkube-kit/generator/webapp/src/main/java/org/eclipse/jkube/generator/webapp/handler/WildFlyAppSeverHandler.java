@@ -86,7 +86,10 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
   @Override
   public String getDeploymentDir() {
-    // Applicable for Docker image - ignored for s2i
+    if (generatorContext.getRuntimeMode() == RuntimeMode.openshift
+        && generatorContext.getStrategy() == OpenShiftBuildStrategy.s2i) {
+      return "/deployments";
+    }
     return "/opt/jboss/wildfly/standalone/deployments";
   }
 
