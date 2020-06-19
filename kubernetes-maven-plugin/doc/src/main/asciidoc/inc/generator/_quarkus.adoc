@@ -11,7 +11,7 @@ The base images chosen are:
 | | Docker Build | S2I Build
 
 | *Native*
-| `registry.fedoraproject.org/fedora-minimal`
+| `registry.access.redhat.com/ubi8/ubi-minimal:8.1`
 | ---
 
 | *Normal Build*

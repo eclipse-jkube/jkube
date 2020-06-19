@@ -84,7 +84,7 @@ public class QuarkusGenerator extends BaseGenerator {
 
         Optional<String> fromConfigured = Optional.ofNullable(getFromAsConfigured());
         if (isNative) {
-            buildBuilder.from(fromConfigured.orElse("registry.fedoraproject.org/fedora-minimal"))
+            buildBuilder.from(fromConfigured.orElse("registry.access.redhat.com/ubi8/ubi-minimal:8.1"))
                         .entryPoint(Arguments.builder()
                                         .execArgument("./" + findSingleFileThatEndsWith("-runner"))
                                         .execArgument("-Dquarkus.http.host=0.0.0.0")
