@@ -42,9 +42,6 @@ import mockit.Mocked;
  */
 public class QuarkusGeneratorTest {
 
-    private static final String QUARKUS_GROUP = "io.quarkus";
-    private static final String QUARKUS_MAVEN_PLUGIN = "quarkus-maven-plugin";
-
     private static final String BASE_JAVA_IMAGE = "java:latest";
     private static final String BASE_NATIVE_IMAGE = "fedora:latest";
 
@@ -69,7 +66,6 @@ public class QuarkusGeneratorTest {
             project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
             // project.getPlugin(QUARKUS_GROUP + ":" + QUARKUS_MAVEN_PLUGIN); result = quarkusPlugin;
         }};
-
         // @formatter:on
         projectProps.put("jkube.generator.name", "quarkus");
         setupContextOpenShift(projectProps, null, null);
@@ -78,12 +74,11 @@ public class QuarkusGeneratorTest {
     @Test
     public void testCustomizeReturnsDefaultFrom () {
         QuarkusGenerator generator = new QuarkusGenerator(ctx);
-        List<ImageConfiguration> resultImages = null;
         List<ImageConfiguration> existingImages = new ArrayList<>();
 
-        resultImages = generator.customize(existingImages, true);
+        final List<ImageConfiguration> result = generator.customize(existingImages, true);
 
-        assertBuildFrom(resultImages, "openjdk:11");
+        assertBuildFrom(result, "openjdk:11");
     }
 
     @Test
@@ -96,7 +91,7 @@ public class QuarkusGeneratorTest {
 
         resultImages = generator.customize(existingImages, true);
 
-        assertBuildFrom(resultImages, "registry.fedoraproject.org/fedora-minimal");
+        assertBuildFrom(resultImages, "registry.access.redhat.com/ubi8/ubi-minimal:8.1");
     }
 
     @Test
