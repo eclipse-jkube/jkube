@@ -13,22 +13,22 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
+import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.xpath.XPathExpressionException;
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-
+import static org.eclipse.jkube.kit.common.util.XMLUtil.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -38,16 +38,14 @@ public class XMLUtilTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Test
-    public void testReadXML() throws URISyntaxException, IOException, SAXException, ParserConfigurationException, XPathExpressionException {
+    public void testReadXML() throws Exception {
         // Given
-        File sampleXML = new File(getClass().getResource("/test-project/pom.xml").toURI());
-
+        File sampleXML = new File(getClass().getResource("/util/xml-util.xml").toURI());
         // When
         Document document = XMLUtil.readXML(sampleXML);
-
         // Then
         assertNotNull(document);
-        assertEquals("random-generator", XMLUtil.getNodeValueFromDocument(document, "/project/name"));
+        assertEquals(1, document.getElementsByTagName("root").getLength());
     }
 
     @Test
@@ -70,18 +68,26 @@ public class XMLUtilTest {
     }
 
     @Test
-    public void testGetNodeFromDocument() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException, URISyntaxException {
+    public void testEvaluateExpressionForItem() throws Exception {
         // Given
-        File sampleXML = new File(getClass().getResource("/test-project/pom.xml").toURI());
-
-        // When
+        File sampleXML = new File(getClass().getResource("/util/xml-util.xml").toURI());
         Document document = XMLUtil.readXML(sampleXML);
-        Node node = XMLUtil.getNodeFromDocument(document, "/project/build");
-
+        // When
+        final NodeList result = XMLUtil.evaluateExpressionForItem(document, "/root");
         // Then
         assertNotNull(document);
-        assertEquals("build", node.getNodeName());
-        assertEquals(3, node.getChildNodes().getLength());
+        assertEquals(1, result.getLength());
+        assertEquals("root", result.item(0).getNodeName());
+    }
+
+    @Test
+    public void testStream() throws Exception {
+        // Given
+        final Document document = XMLUtil.readXML(new File(getClass().getResource("/util/xml-util.xml").toURI()));
+        // When
+        final boolean result = stream(document.getChildNodes()).anyMatch(node -> node.getNodeName().equals("root"));
+        // Then
+        assertTrue(result);
     }
 
     private Node createSimpleTextNode(Document doc, String name, String value) {

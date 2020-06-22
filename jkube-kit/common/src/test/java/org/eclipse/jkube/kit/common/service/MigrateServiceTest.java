@@ -13,84 +13,106 @@
  */
 package org.eclipse.jkube.kit.common.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+
 import mockit.Mocked;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.XMLUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.w3c.dom.Document;
-
-import java.io.File;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class MigrateServiceTest {
-    @Mocked
-    KitLogger logger;
+  @Mocked
+  KitLogger logger;
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+  @Rule
+  public TemporaryFolder folder = new TemporaryFolder();
 
-    @Test
-    public void testPomPluginMigrationInBuild() throws Exception {
-        // Given
-        File projectPom = new File(getClass().getResource("/test-project/pom.xml").toURI());
-        File pomFile = folder.newFile("pom.xml");
-        FileUtils.copyFile(projectPom, pomFile);
-        MigrateService migrateService = new MigrateService(folder.getRoot(), logger);
+  @Test
+  public void testPomPluginMigrationInBuild() throws Exception {
+    // Given
+    File pomFile = copyToTempDirectory("/service/migrate/test-project/fabric8-pom.xml");
+    // When
+    new MigrateService(folder.getRoot(), logger).migrate(
+        "org.eclipse.jkube", "kubernetes-maven-plugin", "1.0.0-SNAPSHOT");
+    // Then
+    assertExpectedDocument("/service/migrate/test-project/expected-pom.xml").accept(pomFile);
+  }
 
-        // When
-        migrateService.migrate("org.eclipse.jkube", "kubernetes-maven-plugin", "1.0.0-SNAPSHOT");
+  @Test
+  public void testPomPluginMigrationInProfile() throws Exception {
+    // Given
+    File pomFile = copyToTempDirectory("/service/migrate/test-project-profile/fabric8-pom.xml");
+    // When
+    new MigrateService(folder.getRoot(), logger).migrate(
+        "org.eclipse.jkube", "openshift-maven-plugin", "1.0.0-SNAPSHOT");
+    // Then
+    assertExpectedDocument("/service/migrate/test-project-profile/expected-pom.xml").accept(pomFile);
+  }
 
-        // Then
-        Document document = XMLUtil.readXML(pomFile);
-        assertTrue(pomFile.exists());
-        assertEquals("org.eclipse.jkube", XMLUtil.getNodeValueFromDocument(document, "/project/build/plugins/plugin[2]/groupId"));
-        assertEquals("kubernetes-maven-plugin", XMLUtil.getNodeValueFromDocument(document, "/project/build/plugins/plugin[2]/artifactId"));
-        assertEquals("1.0.0-SNAPSHOT", XMLUtil.getNodeValueFromDocument(document, "/project/build/plugins/plugin[2]/version"));
+  @Test
+  public void testProjectResourceFragmentDirectoryRename() throws Exception {
+    // Given
+    copyToTempDirectory("/service/migrate/test-project/fabric8-pom.xml");
+    final File fabric8 = folder.newFolder("src", "main", "fabric8");
+    assertTrue(new File(fabric8, "file1").createNewFile());
+    // When
+    new MigrateService(folder.getRoot(), logger)
+        .migrate("org.eclipse.jkube", "openshift-maven-plugin", "1.0.0-SNAPSHOT");
+    // Then
+    assertFalse(fabric8.exists());
+    assertTrue(new File(folder.getRoot(), "src/main/jkube").exists());
+    assertTrue(new File(folder.getRoot(), "src/main/jkube/file1").exists());
+  }
+
+  @Test
+  public void testProjectResourceFragmentDirectoryRenameWithMerge() throws Exception {
+    // Given
+    copyToTempDirectory("/service/migrate/test-project/fabric8-pom.xml");
+    final File fabric8 = folder.newFolder("src", "main", "fabric8");
+    assertTrue(new File(fabric8, "file1").createNewFile());
+    final File jkube = folder.newFolder("src", "main", "jkube");
+    assertTrue(new File(jkube, "existing-file").createNewFile());
+    // When
+    new MigrateService(folder.getRoot(), logger)
+        .migrate("org.eclipse.jkube", "openshift-maven-plugin", "1.0.0-SNAPSHOT");
+    // Then
+    assertFalse(fabric8.exists());
+    assertTrue(new File(folder.getRoot(), "src/main/jkube").exists());
+    assertTrue(new File(folder.getRoot(), "src/main/jkube/file1").exists());
+    assertTrue(new File(folder.getRoot(), "src/main/jkube/existing-file").exists());
+  }
+
+  private File copyToTempDirectory(String fabric8PomResource) throws Exception {
+    File projectPom = new File(MigrateServiceTest.class.getResource(fabric8PomResource).toURI());
+    File pomFile = folder.newFile("pom.xml");
+    FileUtils.copyFile(projectPom, pomFile);
+    return pomFile;
+  }
+
+  private static Consumer<File> assertExpectedDocument(String expectedResource) throws IOException {
+    try (final InputStream is = MigrateServiceTest.class.getResourceAsStream(expectedResource)) {
+      final String expected = IOUtils.toString(is, StandardCharsets.UTF_8).trim();
+      return convertedProject -> {
+        try {
+          final String result = FileUtils.readFileToString(convertedProject, StandardCharsets.UTF_8).trim();
+          assertEquals(expected, result);
+        } catch (IOException exception){
+          fail(exception.getMessage());
+        }
+      };
     }
-
-
-    @Test
-    public void testPomPluginMigrationInProfile() throws Exception {
-        // Given
-        File projectPom = new File(getClass().getResource("/test-project-profile/pom.xml").toURI());
-        File pomFile = folder.newFile("pom.xml");
-        FileUtils.copyFile(projectPom, pomFile);
-        MigrateService migrateService = new MigrateService(folder.getRoot(), logger);
-
-        // When
-        migrateService.migrate("org.eclipse.jkube", "kubernetes-maven-plugin", "1.0.0-SNAPSHOT");
-
-        // Then
-        Document document = XMLUtil.readXML(pomFile);
-        assertTrue(pomFile.exists());
-        assertEquals("org.eclipse.jkube", XMLUtil.getNodeValueFromDocument(document, "/project/profiles/profile[1]/build/plugins/plugin[1]/groupId"));
-        assertEquals("kubernetes-maven-plugin", XMLUtil.getNodeValueFromDocument(document, "/project/profiles/profile[1]/build/plugins/plugin[1]/artifactId"));
-        assertEquals("1.0.0-SNAPSHOT", XMLUtil.getNodeValueFromDocument(document, "/project/profiles/profile[1]/build/plugins/plugin[1]/version"));
-    }
-
-    @Test
-    public void testProjectResourceFragmentDirectoryRename() throws Exception {
-        // Given
-        File projectPom = new File(getClass().getResource("/test-project-profile/pom.xml").toURI());
-        File pomFile = folder.newFile("pom.xml");
-        folder.newFolder("src", "main", "fabric8");
-        FileUtils.copyFile(projectPom, pomFile);
-        MigrateService migrateService = new MigrateService(folder.getRoot(), logger);
-
-        // When
-        migrateService.migrate("org.eclipse.jkube", "kubernetes-maven-plugin", "1.0.0-SNAPSHOT");
-
-        // Then
-        Document document = XMLUtil.readXML(pomFile);
-        assertTrue(pomFile.exists());
-        assertTrue(new File(folder.getRoot(), "src/main/jkube").exists());
-        assertEquals("org.eclipse.jkube", XMLUtil.getNodeValueFromDocument(document, "/project/profiles/profile[1]/build/plugins/plugin[1]/groupId"));
-        assertEquals("kubernetes-maven-plugin", XMLUtil.getNodeValueFromDocument(document, "/project/profiles/profile[1]/build/plugins/plugin[1]/artifactId"));
-        assertEquals("1.0.0-SNAPSHOT", XMLUtil.getNodeValueFromDocument(document, "/project/profiles/profile[1]/build/plugins/plugin[1]/version"));
-    }
+  }
 }
