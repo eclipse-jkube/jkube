@@ -13,9 +13,12 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Stream;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -30,16 +33,19 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class XMLUtil {
-    private static List<String> featuresToDisable = Arrays.asList("http://apache.org/xml/features/nonvalidating/load-external-dtd",
-            "http://apache.org/xml/features/disallow-doctype-decl",
-            "http://xml.org/sax/features/external-general-entities",
-            "http://xml.org/sax/features/external-parameter-entities");
+    private static final List<String> DISABLED_FEATURES = Collections.unmodifiableList(Arrays.asList(
+        "http://apache.org/xml/features/nonvalidating/load-external-dtd",
+        "http://apache.org/xml/features/disallow-doctype-decl",
+        "http://xml.org/sax/features/external-general-entities",
+        "http://xml.org/sax/features/external-parameter-entities"
+    ));
 
     private XMLUtil() { }
 
@@ -67,16 +73,18 @@ public class XMLUtil {
         transformer.transform(source, result);
     }
 
-    public static Node getNodeFromDocument(Document doc, String xPathExpression) throws XPathExpressionException {
+    public static NodeList evaluateExpressionForItem(Object item, String expression) throws XPathExpressionException {
         XPathFactory xPathfactory = XPathFactory.newInstance();
         XPath xpath = xPathfactory.newXPath();
-        return (Node) xpath.compile(xPathExpression).evaluate(doc, XPathConstants.NODE);
+        return (NodeList) xpath.compile(expression).evaluate(item, XPathConstants.NODESET);
     }
 
-    public static String getNodeValueFromDocument(Document doc, String xPathExpression) throws XPathExpressionException {
-        XPathFactory xPathfactory = XPathFactory.newInstance();
-        XPath xpath = xPathfactory.newXPath();
-        return (String) xpath.compile(xPathExpression).evaluate(doc, XPathConstants.STRING);
+    public static Stream<Node> stream(NodeList nodeList) {
+        final Stream.Builder<Node> sb = Stream.builder();
+        for (int it = 0; it < nodeList.getLength(); it++) {
+            sb.accept(nodeList.item(it));
+        }
+        return sb.build();
     }
 
     private static DocumentBuilderFactory getDocumentBuilderFactory() throws ParserConfigurationException {
@@ -84,7 +92,7 @@ public class XMLUtil {
         documentBuilderFactory.setAttribute(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
         documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-        for (String feature : featuresToDisable) {
+        for (String feature : DISABLED_FEATURES) {
             documentBuilderFactory.setFeature(feature, false);
         }
         documentBuilderFactory.setXIncludeAware(false);

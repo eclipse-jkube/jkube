@@ -85,43 +85,24 @@ public class JKubeServiceHub implements Closeable {
         }
         this.client = clusterAccess.createDefaultClient();
 
-        // Lazily building services
-
-        applyService = new LazyBuilder<ApplyService>() {
-            @Override
-            protected ApplyService build() {
-                return new ApplyService(client, log);
-            }
-        };
-        buildService = new LazyBuilder<BuildService>() {
-            @Override
-            protected BuildService build() {
-                BuildService ret;
-                // Creating platform-dependent services
-                if (resolvedMode == RuntimeMode.openshift) {
-                    if (!(client instanceof OpenShiftClient)) {
-                        throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
-                    }
-                    // OpenShift services
-                    ret = new OpenshiftBuildService((OpenShiftClient) client, log, JKubeServiceHub.this);
-                } else {
-                    // Kubernetes services
-                    ret = new DockerBuildService(JKubeServiceHub.this);
+        applyService = new LazyBuilder<>(() -> new ApplyService(client, log));
+        buildService = new LazyBuilder<>(() -> {
+            BuildService ret;
+            // Creating platform-dependent services
+            if (resolvedMode == RuntimeMode.openshift) {
+                if (!(client instanceof OpenShiftClient)) {
+                    throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
                 }
-                return ret;
+                // OpenShift services
+                ret = new OpenshiftBuildService((OpenShiftClient) client, log, JKubeServiceHub.this);
+            } else {
+                // Kubernetes services
+                ret = new DockerBuildService(JKubeServiceHub.this);
             }
-        };
-        artifactResolverService = new LazyBuilder<ArtifactResolverService>() {
-            @Override
-            protected ArtifactResolverService build() {
-                return new JKubeArtifactResolverService(configuration.getProject()); }
-        };
-        migrateService = new LazyBuilder<MigrateService>() {
-            @Override
-            protected MigrateService build() {
-                return new MigrateService(getConfiguration().getBasedir(), log);
-            }
-        };
+            return ret;
+        });
+        artifactResolverService = new LazyBuilder<>(() -> new JKubeArtifactResolverService(configuration.getProject()));
+        migrateService = new LazyBuilder<>(() -> new MigrateService(getConfiguration().getBasedir(), log));
     }
 
     @Override

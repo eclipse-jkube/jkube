@@ -13,140 +13,154 @@
  */
 package org.eclipse.jkube.kit.common.service;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.function.BiConsumer;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
+
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.XMLUtil;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.xpath.XPathExpressionException;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
+import static org.eclipse.jkube.kit.common.util.XMLUtil.stream;
 
 public class MigrateService {
-    private File projectBasedir;
-    private static final String POM_XML = "pom.xml";
-    private static final String FABRIC8 = "fabric8";
-    private static final String JKUBE = "jkube";
-    private static final String DEFAULT_FABRIC8_RESOURCE_FRAGMENT_DIRECTORY = "src/main/" + FABRIC8;
-    private static final String DEFAULT_RESOURCE_FRAGMENT_DIRECTORY = "src/main/" + JKUBE;
-    private static final String ARTIFACT_ID = "artifactId";
-    private static final String GROUP_ID = "groupId";
-    private static final String VERSION = "version";
-    private static final String FABRIC8_MAVEN_PLUGIN_ARTIFACT_ID = FABRIC8 + "-maven-plugin";
-    private static final String POM_PROJECT_PATH = "/project";
-    private static final String POM_PROFILES_PATH = POM_PROJECT_PATH + "/profiles";
-    private static final String POM_PLUGINS_PATH = "/build/plugins";
-    private static final String POM_PROPERTIES_PATH = "/properties";
-    private static final String POM_PLUGIN_PATH = "/plugin";
-    private KitLogger logger;
+  private static final String POM_XML = "pom.xml";
+  private static final String JKUBE = "jkube";
+  private static final String FABRIC8 = "fabric8";
+  private static final String PREFIX_FMP = "fmp-";
+  private static final String PREFIX_F8 = "f8-";
+  private static final String PREFIX_JKUBE = "jkube-";
+  private static final String DEFAULT_FABRIC8_RESOURCE_FRAGMENT_DIRECTORY = "src/main/fabric8";
+  private static final String DEFAULT_RESOURCE_FRAGMENT_DIRECTORY = "src/main/jkube";
+  private static final String ARTIFACT_ID = "artifactId";
+  private static final String GROUP_ID = "groupId";
+  private static final String VERSION = "version";
+  private static final String FABRIC8_MAVEN_PLUGIN_ARTIFACT_ID = "fabric8-maven-plugin";
+  private File projectBasedir;
+  private KitLogger logger;
 
-    public MigrateService(File projectBaseDirectory, KitLogger logger) {
-        this.projectBasedir = projectBaseDirectory;
-        this.logger = logger;
+  public MigrateService(File projectBaseDirectory, KitLogger logger) {
+    this.projectBasedir = projectBaseDirectory;
+    this.logger = logger;
+  }
+
+  public void migrate(String pluginGroupId, String pluginArtifactId, String pluginVersion) throws IOException, ParserConfigurationException, SAXException, TransformerException, XPathExpressionException {
+    final File pomFile = findPomFile();
+    final Document pom = XMLUtil.readXML(pomFile);
+    if (pomContainsFMP(pom)) {
+      replaceFabric8Properties(pom);
+      replaceFabric8Plugin(pom, pluginGroupId, pluginArtifactId, pluginVersion);
+      XMLUtil.writeXML(pom, pomFile);
+      renameResourceFragmentDirectoryToJKube();
+    } else {
+      logger.warn("Unable to find Fabric8 Maven Plugin inside pom.xml ({})", pomFile.getAbsolutePath());
     }
+  }
 
-    public void migrate(String pluginGroupId, String pluginArtifactId, String pluginVersion) throws IOException, ParserConfigurationException, SAXException, TransformerException, XPathExpressionException {
-        File pomFile = getPomFile();
-        String pomContent = new String(Files.readAllBytes(pomFile.toPath()), StandardCharsets.UTF_8);
-        String modifiedPomContent = searchAndReplaceEnricherRefsInPomToJKube(pomContent);
-        Files.write(pomFile.toPath(), modifiedPomContent.getBytes(StandardCharsets.UTF_8));
-        if (pomContainsFMP(pomContent)) {
-            Document dom = XMLUtil.readXML(pomFile);
+  private boolean pomContainsFMP(Document document) throws XPathExpressionException {
+    return XMLUtil.evaluateExpressionForItem(document,
+        String.format("//plugins/plugin[artifactId='%s']", FABRIC8_MAVEN_PLUGIN_ARTIFACT_ID)).getLength() > 0;
+  }
 
-            // Check Whether plugin is present in project.build.plugins
-            modifyFMPPluginSectionInsideBuild(dom, pluginGroupId, pluginArtifactId, pluginVersion);
-            // Check Whether plugin is present in project.profiles.build.plugins
-            modifyFMPSectionInsideProfile(dom, pluginGroupId, pluginArtifactId, pluginVersion);
-            // Rename all Fabric8 related properties to JKube
-            modifyFMPPropertiesInsidePom(dom);
-
-            XMLUtil.writeXML(dom, pomFile);
-            renameResourceFragmentDirectoryToJKube();
-        } else {
-            logger.warn("Unable to find Fabric8 Maven Plugin inside pom");
-        }
+  private File findPomFile() throws FileNotFoundException {
+    final File pomFile = new File(projectBasedir, POM_XML);
+    if (pomFile.exists() && pomFile.isFile()){
+      return pomFile;
     }
+    throw new FileNotFoundException("Project pom.xml was not found, check a pom.xml file exists in your project root");
+  }
 
-    private String searchAndReplaceEnricherRefsInPomToJKube(String pomContent) {
-        pomContent = pomContent.replace("fmp-", JKUBE + "-");
-        pomContent = pomContent.replace("f8-", JKUBE + "-");
+  private File getFabric8ResourceFragmentDirectory(File projectBasedir) {
+    return new File(projectBasedir, DEFAULT_FABRIC8_RESOURCE_FRAGMENT_DIRECTORY);
+  }
 
-        return pomContent;
+  @SuppressWarnings("squid:S3864")
+  private void replaceFabric8Plugin(
+      Document document, String groupId, String artifactId, String version) throws XPathExpressionException {
+
+    final NodeList nodeList = XMLUtil.evaluateExpressionForItem(document,
+        String.format("/project//build//plugins/plugin[artifactId='%s']", FABRIC8_MAVEN_PLUGIN_ARTIFACT_ID));
+    stream(nodeList)
+        .map(Element.class::cast)
+        .peek(e -> stream(e.getElementsByTagName(VERSION))
+            .forEach(v -> logger.info("Found Fabric8 Maven Plugin in pom with version %s", v.getTextContent())))
+        .peek(this::replaceConfigurationTagNames)
+        .peek(this::replaceConfigurationIncludesExcludes)
+        .map(MigrateService::replaceChildNodeValues)
+        .forEach(bc -> {
+          bc.accept(GROUP_ID, groupId);
+          bc.accept(ARTIFACT_ID, artifactId);
+          bc.accept(VERSION, version);
+        });
+  }
+
+  private void replaceFabric8Properties(Document document) throws XPathExpressionException {
+    final NodeList nodeList = XMLUtil.evaluateExpressionForItem(document,
+        "(/project/properties|/project/profiles/profile/properties)");
+    stream(nodeList).map(Node::getChildNodes).flatMap(XMLUtil::stream)
+        .filter(n -> Element.class.isAssignableFrom(n.getClass()))
+        .map(Element.class::cast)
+        .filter(e -> e.getTagName().startsWith(FABRIC8 + "."))
+        .forEach(e -> document.renameNode(e, null, e.getNodeName()
+            .replace(FABRIC8, JKUBE)
+            .replace(PREFIX_FMP, PREFIX_JKUBE)
+            .replace(PREFIX_F8, PREFIX_JKUBE)));
+  }
+
+  private void replaceConfigurationTagNames(Element pluginNode) {
+    try {
+      final NodeList nodeList = XMLUtil.evaluateExpressionForItem(pluginNode, "configuration//child::*");
+      stream(nodeList).map(Element.class::cast)
+          .filter(e -> e.getTagName().startsWith(PREFIX_F8) || e.getTagName().startsWith(PREFIX_FMP))
+          .forEach(e -> e.getOwnerDocument().renameNode(e, null, e.getNodeName()
+              .replaceFirst(PREFIX_FMP, PREFIX_JKUBE)
+              .replaceFirst(PREFIX_F8, PREFIX_JKUBE)));
+    } catch (XPathExpressionException e) {
+      logger.error("Could not replace configuration for plugin (%s)", e.getMessage());
     }
+  }
 
-    private boolean pomContainsFMP(String pomContent) {
-        return pomContent.contains(FABRIC8_MAVEN_PLUGIN_ARTIFACT_ID);
+  private void replaceConfigurationIncludesExcludes(Element pluginNode) {
+    try {
+    final NodeList nodeList = XMLUtil.evaluateExpressionForItem(pluginNode, "(configuration//exclude|configuration//include)");
+    stream(nodeList).map(Element.class::cast)
+        .filter(e -> e.getTextContent().startsWith(PREFIX_FMP) || e.getTextContent().startsWith(PREFIX_F8))
+        .forEach(e -> e.setTextContent(e.getTextContent()
+            .replaceFirst(PREFIX_FMP, PREFIX_JKUBE)
+            .replaceFirst(PREFIX_F8, PREFIX_JKUBE)
+        ));
+    } catch (XPathExpressionException e) {
+      logger.error("Could not replace configuration includes/excludes for plugin (%s)", e.getMessage());
     }
+  }
 
-    private File getPomFile() {
-        return new File(projectBasedir, POM_XML);
-    }
+  private static BiConsumer<String, String> replaceChildNodeValues(Element element) {
+    return (tagName, newValue) -> stream(element.getElementsByTagName(tagName)).forEach(n -> n.setTextContent(newValue));
+  }
 
-    private File getResourceFragmentDirectory(File projectBasedir) {
-        return new File(projectBasedir, DEFAULT_FABRIC8_RESOURCE_FRAGMENT_DIRECTORY);
+  private void renameResourceFragmentDirectoryToJKube() {
+    File fabric8FragmentDirectory = getFabric8ResourceFragmentDirectory(projectBasedir);
+    if (fabric8FragmentDirectory.exists()) {
+      File jkubeResourceDir = new File(projectBasedir, DEFAULT_RESOURCE_FRAGMENT_DIRECTORY);
+      try {
+        FileUtils.copyDirectory(fabric8FragmentDirectory, jkubeResourceDir);
+        FileUtils.deleteDirectory(fabric8FragmentDirectory);
+        logger.info("Renamed " + DEFAULT_FABRIC8_RESOURCE_FRAGMENT_DIRECTORY + " to " + DEFAULT_RESOURCE_FRAGMENT_DIRECTORY);
+      } catch(IOException ex) {
+        logger.warn("Unable to rename resource fragment directory in project: %s", ex.getMessage());
+      }
     }
-
-    private void modifyFMPPluginSectionInsideBuild(Document dom, String pluginGroupId, String pluginArtifactId, String pluginVersion) throws XPathExpressionException {
-        convertFMPNodeToJKube(dom,  pluginGroupId, pluginArtifactId, pluginVersion, POM_PROJECT_PATH + POM_PLUGINS_PATH);
-    }
-
-    private void modifyFMPSectionInsideProfile(Document dom, String pluginGroupId, String pluginArtifactId, String pluginVersion) throws XPathExpressionException {
-        Node profilesNode = XMLUtil.getNodeFromDocument(dom, POM_PROFILES_PATH);
-        if (profilesNode != null) {
-            NodeList nodeList = profilesNode.getChildNodes();
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                convertFMPNodeToJKube(dom, pluginGroupId, pluginArtifactId, pluginVersion, POM_PROFILES_PATH + "/profile[" + i + "]" + POM_PLUGINS_PATH);
-            }
-        }
-    }
-
-    private void convertFMPNodeToJKube(Document dom, String pluginGroupId, String pluginArtifactId, String pluginVersion, String parentXPathExpression) throws XPathExpressionException {
-        Node fmpNode = XMLUtil.getNodeFromDocument(dom, parentXPathExpression + POM_PLUGIN_PATH + "[artifactId='" + FABRIC8_MAVEN_PLUGIN_ARTIFACT_ID + "']");
-        if (fmpNode != null) {
-            Element fmpNodeElem = (Element) fmpNode;
-            Node artifactNode = fmpNodeElem.getElementsByTagName(ARTIFACT_ID).item(0);
-            Node groupNode = fmpNodeElem.getElementsByTagName(GROUP_ID).item(0);
-            Node versionNode = fmpNodeElem.getElementsByTagName(VERSION).item(0);
-            logger.info("Found Fabric8 Maven Plugin in pom with version " + versionNode.getTextContent());
-            groupNode.setTextContent(pluginGroupId);
-            artifactNode.setTextContent(pluginArtifactId);
-            versionNode.setTextContent(pluginVersion);
-        }
-    }
-
-    private void renameResourceFragmentDirectoryToJKube() {
-        File resourceFragmentDir = getResourceFragmentDirectory(projectBasedir);
-        if (resourceFragmentDir.exists()) {
-            File jkubeResourceDir = new File(projectBasedir, DEFAULT_RESOURCE_FRAGMENT_DIRECTORY);
-            boolean isRenamed = resourceFragmentDir.renameTo(jkubeResourceDir);
-            if (!isRenamed) {
-                logger.warn("Unable to rename resource fragment directory in project");
-            } else {
-                logger.info("Renamed " + DEFAULT_FABRIC8_RESOURCE_FRAGMENT_DIRECTORY + " to " + DEFAULT_RESOURCE_FRAGMENT_DIRECTORY);
-            }
-        }
-    }
-
-    private void modifyFMPPropertiesInsidePom(Document dom) throws XPathExpressionException {
-        Node propertiesNode = XMLUtil.getNodeFromDocument(dom, POM_PROJECT_PATH + POM_PROPERTIES_PATH);
-        if (propertiesNode != null) {
-            NodeList nodeList = propertiesNode.getChildNodes();
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node property = nodeList.item(i);
-                if (property.getNodeName().contains(FABRIC8)) {
-                    String nodeName = property.getNodeName();
-                    nodeName = nodeName.replace(FABRIC8, JKUBE);
-                    dom.renameNode(property, null, nodeName);
-                }
-            }
-        }
-    }
+  }
 
 }

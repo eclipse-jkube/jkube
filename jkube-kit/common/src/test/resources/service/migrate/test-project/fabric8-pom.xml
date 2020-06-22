@@ -25,7 +25,10 @@
 
     <name>random-generator</name>
     <description>Demo project for Spring Boot</description>
-
+    <!--
+    This comment contains a fabric8 keyword and also some fmp- or f8- prefixes that shouldn't be modified
+    We all love the Fabric8 organization. The name is also great, because fabric8 is shorter than fabricate.
+     -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -63,19 +66,45 @@
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>io.fabric8</groupId>
+                    <artifactId>fabric8-maven-plugin</artifactId>
+                    <version>4.4.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <excludeDevtools>false</excludeDevtools>
+                    <additionalProperties>
+                        <fmp-fake>I'm preserved</fmp-fake>
+                        <f8-fake>I'm preserved too</f8-fake>
+                    </additionalProperties>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>fabric8-maven-plugin</artifactId>
-                <version>4.4.1</version>
+                <configuration>
+                    <enricher>
+                        <config>
+                            <fmp-service>
+                                <type>NodePort</type>
+                            </fmp-service>
+                            <fmp-revision-history>
+                                <limit>8</limit>
+                            </fmp-revision-history>
+                            <f8-healthcheck-spring-boot>
+                                <path>/</path>
+                            </f8-healthcheck-spring-boot>
+                        </config>
+                    </enricher>
+                </configuration>
             </plugin>
         </plugins>
     </build>
