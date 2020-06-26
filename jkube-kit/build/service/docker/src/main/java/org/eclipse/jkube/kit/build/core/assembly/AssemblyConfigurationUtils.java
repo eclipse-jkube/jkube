@@ -20,7 +20,6 @@ import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.Assembly;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -28,8 +27,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class AssemblyConfigurationUtils {
+class AssemblyConfigurationUtils {
 
+  private static final String LINUX_FILE_SEPARATOR = "/";
   private static final String DEFAULT_NAME = "maven";
   private static final String DEFAULT_USER = "root";
 
@@ -48,7 +48,7 @@ public class AssemblyConfigurationUtils {
       name = ac.getName();
     }
     if (StringUtils.isBlank(ac.getTargetDir())) {
-      builder.targetDir(File.separator.concat(name));
+      builder.targetDir(LINUX_FILE_SEPARATOR.concat(name));
     }
     return builder.build();
   }
