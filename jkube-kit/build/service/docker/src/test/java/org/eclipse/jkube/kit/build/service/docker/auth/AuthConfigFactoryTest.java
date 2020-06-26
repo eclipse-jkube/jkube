@@ -178,7 +178,8 @@ public class AuthConfigFactoryTest {
         System.setProperty(lookupMode.asSysProperty(AuthConfigFactory.AUTH_PASSWORD), "testpass");
 
         // When
-        AuthConfig authConfig = AuthConfigFactory.createStandardAuthConfig(true, Collections.emptyMap(), Collections.emptyList(), "testuser", "testregistry.io", s -> s, logger);
+        AuthConfigFactory authConfigFactory = new AuthConfigFactory(logger);
+        AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), Collections.emptyList(), "testuser", "testregistry.io", s -> s);
 
         // Then
         assertAuthConfig(authConfig, "testuser", "testpass");
@@ -195,7 +196,8 @@ public class AuthConfigFactoryTest {
                 .build());
 
         // When
-        AuthConfig authConfig = AuthConfigFactory.createStandardAuthConfig(true, Collections.emptyMap(), settings, "testuser", "testregistry.io", s -> s, logger);
+        AuthConfigFactory authConfigFactory = new AuthConfigFactory(logger);
+        AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), settings, "testuser", "testregistry.io", s -> s);
 
         // Then
         assertAuthConfig(authConfig, "testuser", "testpass");

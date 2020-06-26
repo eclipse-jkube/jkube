@@ -31,21 +31,22 @@ import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
-import org.eclipse.jkube.kit.build.service.docker.RegistryConfig;
+import org.eclipse.jkube.kit.config.image.RegistryConfig;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
-import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
+import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.WatchMode;
+import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
@@ -193,6 +194,15 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     @Parameter(property = "docker.pull.registry")
     protected String pullRegistry;
+
+    /**
+     * Build mode when build is performed.
+     * Can be either "s2i" for an s2i binary build mode (in case of OpenShift) or
+     * "docker" for a binary docker mode or
+     * "jib" for binary jib build
+     */
+    @Parameter(property = "jkube.build.strategy")
+    protected JKubeBuildStrategy buildStrategy;
 
     /**
      * Profile to use. A profile contains the enrichers and generators to
@@ -534,7 +544,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         return RegistryConfig.builder()
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                 .authConfig(authConfig != null ? authConfig.toMap() : null)
-                .authConfigFactory(authConfigFactory)
                 .skipExtendedAuth(skipExtendedAuth)
                 .registry(specificRegistry != null ? specificRegistry : registry)
                 .passwordDecryptionMethod(password -> {
@@ -598,7 +607,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     }
 
     protected boolean isDockerAccessRequired() {
-        return true; // True in case of kubernetes maven plugin
+        return !getJKubeBuildStrategy().getLabel().equalsIgnoreCase("jib");// True in case of kubernetes maven plugin
     }
 
     void executeBuildGoal() throws MojoExecutionException {
@@ -686,6 +695,13 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     protected String getLogPrefix() {
         return DEFAULT_LOG_PREFIX;
+    }
+
+    protected JKubeBuildStrategy getJKubeBuildStrategy() {
+        if (buildStrategy != null) {
+            return buildStrategy;
+        }
+        return JKubeBuildStrategy.docker;
     }
 
     // ==================================================================================================

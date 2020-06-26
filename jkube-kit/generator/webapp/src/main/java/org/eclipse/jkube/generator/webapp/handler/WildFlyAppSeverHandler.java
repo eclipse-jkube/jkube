@@ -21,7 +21,7 @@ import java.util.Map;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 /**
@@ -87,7 +87,7 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
   @Override
   public String getDeploymentDir() {
     if (generatorContext.getRuntimeMode() == RuntimeMode.OPENSHIFT
-        && generatorContext.getStrategy() == OpenShiftBuildStrategy.s2i) {
+        && generatorContext.getStrategy() == JKubeBuildStrategy.s2i) {
       return "/deployments";
     }
     return "/opt/jboss/wildfly/standalone/deployments";
@@ -114,7 +114,7 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
   @Override
   public List<String> runCmds() {
     if (generatorContext.getRuntimeMode() == RuntimeMode.OPENSHIFT
-        && generatorContext.getStrategy() == OpenShiftBuildStrategy.docker) {
+        && generatorContext.getStrategy() == JKubeBuildStrategy.docker) {
       // OpenShift runs pods in a restricted security context (SCC) which randomizes the user.
       // Make required runtime directories writeable for all users
       return Collections.singletonList(

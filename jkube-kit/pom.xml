@@ -40,6 +40,7 @@
       <module>config/service</module>
       <module>build/api</module>
       <module>build/service/docker</module>
+      <module>build/service/jib</module>
       <module>generator/api</module>
       <module>generator/java-exec</module>
       <module>generator/wildfly-swarm</module>

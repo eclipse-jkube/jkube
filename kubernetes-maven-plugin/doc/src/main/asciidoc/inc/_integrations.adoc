@@ -44,3 +44,8 @@ https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot-dekor
 An *experimental* feature is also provided to merge resources generated both by *{plugin}*
 and Dekorate. You can activate this feature by using the following flag `-Djkube.mergeWithDekorate`
 in the command-line, or setting it up as a property (`<jkube.mergeWithDekorate>true</jkube.mergeWithDekorate>`).
+
+== JIB (Java Image Builder)
+*{plugin}* also provides user an option to build container images without having access to any docker daemon. You just need to set `jkube.build.strategy` property to `jib`. It would delegate the build process to https://github.com/GoogleContainerTools/jib[JIB]. It creates a tarball inside your target directory which can be loaded into any docker daemon afterwards. You may also push the image to your specified registry using push goal with feature flag enabled.
+
+You can find more details at https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot-with-jib[Spring Boot JIB Quickstart]

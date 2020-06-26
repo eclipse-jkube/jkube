@@ -29,6 +29,7 @@ import org.apache.commons.io.FileUtils;
 
 public class JKubeBuildTarArchiver {
 
+    public static final String ARCHIVE_FILE_NAME = "docker-build.";
     private Map<File, String> filesToIncludeNameMap = new HashMap<>();
     private Map<File, String> fileToPermissionsMap = new HashMap<>();
     private List<String> filesNamesToExclude = new ArrayList<>();
@@ -46,7 +47,7 @@ public class JKubeBuildTarArchiver {
     }
 
     public File createArchive(File inputDirectory, BuildDirs buildDirs, ArchiveCompression compression) throws IOException {
-        File outputFile = new File(buildDirs.getTemporaryRootDirectory(), "docker-build." + (compression.equals(ArchiveCompression.none) ? "tar" : compression.getFileSuffix()));
+        File outputFile = new File(buildDirs.getTemporaryRootDirectory(), ARCHIVE_FILE_NAME + (compression.equals(ArchiveCompression.none) ? "tar" : compression.getFileSuffix()));
         List<File> files = FileUtil.listFilesAndDirsRecursivelyInDirectory(inputDirectory);
 
         if (!filesToIncludeNameMap.isEmpty()) {

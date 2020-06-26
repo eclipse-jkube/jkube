@@ -23,27 +23,27 @@ public enum WatchMode {
     /**
      * Copy watched artifacts into container
      */
-    COPY(false, false, true, "build"),
+    copy(false, false, true, "build"),
 
     /**
      * Build only images
      */
-    BUILD(true, false, false, "build"),
+    build(true, false, false, "build"),
 
     /**
      * Run images
      */
-    RUN(false, true, false, "run"),
+    run(false, true, false, "run"),
 
     /**
      * Build and run images
      */
-    BOTH(true, true, false, "build and run"),
+    both(true, true, false, "build and run"),
 
     /**
      * Neither build nor run
      */
-    NONE(false, false, false, "no build and no run");
+    none(false, false, false, "no build and no run");
 
     private final boolean doRun;
     private final boolean doBuild;

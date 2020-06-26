@@ -21,7 +21,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
@@ -47,7 +47,7 @@ public class OpenshiftWatchMojo extends WatchMojo {
      * docker mode.
      */
     @Parameter(property = "jkube.build.strategy")
-    protected OpenShiftBuildStrategy buildStrategy = OpenShiftBuildStrategy.s2i;
+    protected JKubeBuildStrategy buildStrategy = JKubeBuildStrategy.s2i;
 
     /**
      * The generated openshift YAML file

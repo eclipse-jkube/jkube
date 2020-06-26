@@ -14,10 +14,9 @@
 package org.eclipse.jkube.kit.build.api.helper;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Test;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -95,7 +94,7 @@ public class DockerFileUtilTest {
         projectProperties.put("user.name", "somebody"); // Java system property: -Duser.name=somebody
         File dockerFile = getDockerfilePath("interpolate");
         File expectedDockerFile = new File(dockerFile.getParent(), dockerFile.getName() + ".expected");
-        File actualDockerFile = createTmpFile(dockerFile.getName());
+        File actualDockerFile = PathTestUtil.createTmpFile(dockerFile.getName());
         FileUtils.write(actualDockerFile, DockerFileUtil.interpolate(dockerFile, projectProperties, BuildConfiguration.DEFAULT_FILTER), "UTF-8");
         // Compare text lines without regard to EOL delimiters
         assertEquals(FileUtils.readLines(expectedDockerFile, StandardCharsets.UTF_8), FileUtils.readLines(actualDockerFile, StandardCharsets.UTF_8));

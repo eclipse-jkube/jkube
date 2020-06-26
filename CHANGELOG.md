@@ -28,6 +28,7 @@ Usage:
 * Fix #192: Removed `@Deprecated` fields from ClusterAccess
 * Fix #190: Removed `@Deprecated` fields from AssemblyConfiguration
 * Fix #189: Removed `@Deprecated` fields from BuildConfiguration
+* Fix #73: Jib Support, Port of fabric8io/fabric8-maven-plugin#1766
 * Fix #195: Added MigrateMojo for migrating projects from FMP to JKube
 * Fix #238: Watch uses same logic as build to monitor changed assembly files
 * Fix #245: Debug goals work on webapp (Tomcat & Jetty) > See https://github.com/jkubeio/jkube-images/releases/tag/v0.0.7
