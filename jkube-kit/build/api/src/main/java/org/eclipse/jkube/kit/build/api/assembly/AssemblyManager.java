@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
@@ -38,11 +39,17 @@ import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 
 import javax.annotation.Nonnull;
 
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSetsExcludes;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.getAssemblyFileOutputDirectory;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.resolveSourceFile;
@@ -198,7 +205,7 @@ public class AssemblyManager {
     // Create final tar-ball to be used for building the archive to send to the Docker daemon
     private File createBuildTarBall(JKubeConfiguration params, BuildDirs buildDirs, List<ArchiverCustomizer> archiverCustomizers,
                                     AssemblyConfiguration assemblyConfig, ArchiveCompression compression) throws IOException {
-        DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
+        AssemblyConfigurationSource source = new AssemblyConfigurationSource(params, buildDirs, assemblyConfig);
 
         JKubeBuildTarArchiver jkubeTarArchiver = new JKubeBuildTarArchiver();
         for (ArchiverCustomizer customizer : archiverCustomizers) {
@@ -276,7 +283,7 @@ public class AssemblyManager {
         if (!hasAssemblyConfiguration(assemblyConfig)) {
             return;
         }
-        DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(params, buildDirs, assemblyConfig);
+        AssemblyConfigurationSource source = new AssemblyConfigurationSource(params, buildDirs, assemblyConfig);
         JKubeBuildTarArchiver jkubeTarArchiver = new JKubeBuildTarArchiver();
 
         AssemblyMode buildMode = assemblyConfig.getMode();

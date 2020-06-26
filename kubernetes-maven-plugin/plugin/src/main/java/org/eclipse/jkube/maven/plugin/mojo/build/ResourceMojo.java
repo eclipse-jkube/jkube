@@ -20,10 +20,10 @@ import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -36,7 +36,7 @@ import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.ValidationUtil;
 import org.eclipse.jkube.kit.common.util.validator.ResourceValidator;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.MappingConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -492,7 +492,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
                                 .project(jkubeProject)
                                 .runtimeMode(getRuntimeMode())
                                 .logger(log)
-                                .strategy(OpenShiftBuildStrategy.docker)
+                                .strategy(JKubeBuildStrategy.docker)
                                 .useProjectClasspath(useProjectClasspath)
                                 .build();
                         return GeneratorManager.generate(configs, ctx, true);

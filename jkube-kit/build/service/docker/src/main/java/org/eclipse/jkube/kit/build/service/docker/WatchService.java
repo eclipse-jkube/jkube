@@ -31,6 +31,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.core.GavLabel;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
@@ -99,7 +100,7 @@ public class WatchService {
                     }
 
                     if (watcher.isBuild()) {
-                        schedule(executor, createBuildWatchTask(watcher, context.getBuildContext(), watchMode == WatchMode.BOTH, buildContext), interval);
+                        schedule(executor, createBuildWatchTask(watcher, context.getBuildContext(), watchMode == WatchMode.both, buildContext), interval);
                         tasks.add("rebuilding");
                     }
                 }

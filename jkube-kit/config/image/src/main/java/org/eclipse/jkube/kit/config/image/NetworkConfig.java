@@ -60,9 +60,9 @@ public class NetworkConfig implements Serializable {
         String name = null;
         if (net != null) {
             mode = extractMode(net);
-            if (mode == Mode.CONTAINER) {
-                name = net.substring(Mode.CONTAINER.name().length() + 1);
-            } else if (mode == Mode.CUSTOM) {
+            if (mode == Mode.container) {
+                name = net.substring(Mode.container.name().length() + 1);
+            } else if (mode == Mode.custom) {
                 name = net;
             }
         }
@@ -74,21 +74,21 @@ public class NetworkConfig implements Serializable {
             try {
                 return Mode.valueOf(mode.toLowerCase());
             } catch (IllegalArgumentException exp) { /* could be a custom mode, too */ }
-            if (mode.toLowerCase().startsWith(Mode.CONTAINER.name() + ":")) {
-                return Mode.CONTAINER;
+            if (mode.toLowerCase().startsWith(Mode.container.name() + ":")) {
+                return Mode.container;
             } else {
-                return Mode.CUSTOM;
+                return Mode.custom;
             }
         }
         return null;
     }
 
     public boolean isCustomNetwork() {
-        return (mode != null && mode == Mode.CUSTOM) || (mode == null && name != null);
+        return (mode != null && mode == Mode.custom) || (mode == null && name != null);
     }
 
     public boolean isStandardNetwork() {
-        return mode != null && mode != Mode.CUSTOM;
+        return mode != null && mode != Mode.custom;
     }
 
     public String getStandardMode(String containerId) {
@@ -99,15 +99,15 @@ public class NetworkConfig implements Serializable {
         if (mode == null) {
             return null;
         }
-        return mode.name().toLowerCase() + (mode == Mode.CONTAINER ? ":" + containerId : "");
+        return mode.name().toLowerCase() + (mode == Mode.container ? ":" + containerId : "");
     }
 
     public String getContainerAlias() {
-        return mode == Mode.CONTAINER ? name : null;
+        return mode == Mode.container ? name : null;
     }
 
     public String getCustomNetwork() {
-        return mode == Mode.CUSTOM || mode == null ? name : null;
+        return mode == Mode.custom || mode == null ? name : null;
     }
 
     public boolean hasAliases() {
@@ -117,11 +117,11 @@ public class NetworkConfig implements Serializable {
 
     // Mode used for determining the network
     public enum Mode {
-        NONE,
-        BRIDGE,
-        HOST,
-        CONTAINER,
-        CUSTOM;
+        none,
+        bridge,
+        host,
+        container,
+        custom;
     }
 
     public static class NetworkConfigBuilder {
