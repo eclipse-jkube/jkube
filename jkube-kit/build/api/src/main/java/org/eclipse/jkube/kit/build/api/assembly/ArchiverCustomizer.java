@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.core.assembly;
+package org.eclipse.jkube.kit.build.api.assembly;
 
 import java.io.IOException;
 
