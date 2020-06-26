@@ -14,9 +14,11 @@
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Objects;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RegistryConfig;
 import org.eclipse.jkube.kit.config.service.BuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
@@ -48,6 +50,16 @@ public class DockerBuildService implements BuildService {
             jKubeServiceHub.getDockerServiceHub().getBuildService().tagImage(imageConfig.getName(), imageConfig);
         } catch (IOException ex) {
             throw new JKubeServiceException("Error while trying to build the image", ex);
+        }
+    }
+
+    @Override
+    public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+        try {
+            jKubeServiceHub.getDockerServiceHub().getRegistryService()
+                    .pushImages(imageConfigs, retries, registryConfig, skipTag);
+        } catch (IOException ex) {
+            throw new JKubeServiceException("Error while trying to push the image", ex);
         }
     }
 

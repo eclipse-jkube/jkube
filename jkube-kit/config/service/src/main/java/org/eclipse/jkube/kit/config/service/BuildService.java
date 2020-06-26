@@ -13,7 +13,10 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RegistryConfig;
+
+import java.util.Collection;
 
 /**
  * @author nicola
@@ -27,6 +30,17 @@ public interface BuildService {
      * @param imageConfig the image to build
      */
     void build(ImageConfiguration imageConfig) throws JKubeServiceException;
+
+
+    /**
+     * Pushes to given image to specified Registry
+     *
+     * @param imageConfigs image configurations to process
+     * @param retries number of retries
+     * @param registryConfig registry configuration
+     * @param skipTag boolean value whether skip tagging or not
+     */
+    void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException;
 
     /**
      * Post processing step called after all images has been build

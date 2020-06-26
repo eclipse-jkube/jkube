@@ -24,7 +24,7 @@ import java.util.Properties;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.generator.api.FromSelector;
@@ -41,9 +41,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.name;
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.kind;
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.namespace;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.name;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.kind;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.namespace;
 
 /**
  * @author roland
@@ -320,7 +320,7 @@ public class BaseGeneratorTest {
             config.getConfig("test-generator", "from"); result = configFrom; minTimes = 0;
             config.getConfig("test-generator", "fromMode"); result = configFromMode; minTimes = 0;
             ctx.getRuntimeMode();result = RuntimeMode.OPENSHIFT;minTimes = 0;
-            ctx.getStrategy(); result = OpenShiftBuildStrategy.s2i; minTimes = 0;
+            ctx.getStrategy(); result = JKubeBuildStrategy.s2i; minTimes = 0;
         }};
     }
 

@@ -19,13 +19,18 @@ package org.eclipse.jkube.kit.config.image.build;
  * @author roland
  * @since 01/08/16
  */
-public enum OpenShiftBuildStrategy {
+public enum JKubeBuildStrategy {
 
     // Constants used to extract extra information from a `fromExt` build configuration
     /**
      * S2i build with a binary source
      */
     s2i("S2I"),
+
+    /**
+     * JIB build
+     */
+    jib("Jib"),
 
     /**
      * Docker build with a binary source
@@ -47,7 +52,7 @@ public enum OpenShiftBuildStrategy {
 
     private final String label;
 
-    OpenShiftBuildStrategy(String label) {
+    JKubeBuildStrategy(String label) {
         this.label = label;
     }
 

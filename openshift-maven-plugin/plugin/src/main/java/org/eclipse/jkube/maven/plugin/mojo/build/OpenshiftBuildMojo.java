@@ -19,8 +19,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
@@ -36,15 +36,6 @@ import static org.eclipse.jkube.kit.config.resource.RuntimeMode.KUBERNETES;
  */
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class OpenshiftBuildMojo extends BuildMojo {
-
-
-    /**
-     * OpenShift build mode when an OpenShift build is performed.
-     * Can be either "s2i" for an s2i binary build mode or "docker" for a binary
-     * docker mode.
-     */
-    @Parameter(property = "jkube.build.strategy")
-    protected OpenShiftBuildStrategy buildStrategy = OpenShiftBuildStrategy.s2i;
 
     /**
      * The name of pullSecret to be used to pull the base image in case pulling from a protected
@@ -79,7 +70,7 @@ public class OpenshiftBuildMojo extends BuildMojo {
 
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
         if (runtimeMode == RuntimeMode.OPENSHIFT) {
-            log.info("Using [[B]]OpenShift[[B]] build with strategy [[B]]%s[[B]]", buildStrategy.getLabel());
+            log.info("Using [[B]]OpenShift[[B]] build with strategy [[B]]%s[[B]]", getJKubeBuildStrategy().getLabel());
         }
         return super.customizeConfig(configs);
     }
@@ -87,7 +78,7 @@ public class OpenshiftBuildMojo extends BuildMojo {
     @Override
     protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
         return super.buildServiceConfigBuilder()
-            .openshiftBuildStrategy(buildStrategy)
+            .jKubeBuildStrategy(getJKubeBuildStrategy())
             .openshiftPullSecret(openshiftPullSecret)
             .s2iBuildNameSuffix(s2iBuildNameSuffix)
             .s2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal);
@@ -96,12 +87,20 @@ public class OpenshiftBuildMojo extends BuildMojo {
     @Override
     protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() throws DependencyResolutionRequiredException {
         return super.generatorContextBuilder()
-            .strategy(buildStrategy);
+            .strategy(getJKubeBuildStrategy());
     }
 
     @Override
     protected String getLogPrefix() {
         return OpenShift.DEFAULT_LOG_PREFIX;
+    }
+
+    @Override
+    protected JKubeBuildStrategy getJKubeBuildStrategy() {
+        if (buildStrategy != null) {
+            return buildStrategy;
+        }
+        return JKubeBuildStrategy.s2i;
     }
 
 }

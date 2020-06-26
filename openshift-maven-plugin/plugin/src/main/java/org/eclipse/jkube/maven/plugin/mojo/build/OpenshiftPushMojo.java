@@ -16,6 +16,7 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 @Mojo(name = "push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
@@ -26,8 +27,13 @@ public class OpenshiftPushMojo extends PushMojo {
   }
 
   @Override
-  protected boolean canExecute() {
-    log.warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
-    return false;
+  protected boolean isDockerAccessRequired() {
+      return false;
   }
+
+  @Override
+  public RuntimeMode getConfiguredRuntimeMode() {
+    return RuntimeMode.OPENSHIFT;
+  }
+
 }

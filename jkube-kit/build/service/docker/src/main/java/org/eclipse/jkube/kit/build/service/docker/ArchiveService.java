@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyFiles;
@@ -23,6 +24,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author roland
@@ -100,7 +102,7 @@ public class ArchiveService {
      * @throws IOException in case of any I/O exception
      */
     public File createChangedFilesArchive(
-            List<AssemblyFileEntry> entries, File assemblyDir,String imageName,
+            List<AssemblyFileEntry> entries, File assemblyDir, String imageName,
             JKubeConfiguration jKubeConfiguration) throws IOException {
 
         return assemblyManager.createChangedFilesArchive(entries, assemblyDir, imageName, jKubeConfiguration);

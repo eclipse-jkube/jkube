@@ -34,7 +34,7 @@ import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.GitUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.image.build.util.BuildLabelAnnotations;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.apache.commons.lang3.StringUtils;
@@ -136,22 +136,22 @@ public abstract class BaseGenerator implements Generator {
                 if (StringUtils.isBlank(tag)) {
                     tag = "latest";
                 }
-                fromExt.put(OpenShiftBuildStrategy.SourceStrategy.name.key(), iName.getSimpleName() + ":" + tag);
+                fromExt.put(JKubeBuildStrategy.SourceStrategy.name.key(), iName.getSimpleName() + ":" + tag);
                 if (iName.getUser() != null) {
-                    fromExt.put(OpenShiftBuildStrategy.SourceStrategy.namespace.key(), iName.getUser());
+                    fromExt.put(JKubeBuildStrategy.SourceStrategy.namespace.key(), iName.getUser());
                 }
-                fromExt.put(OpenShiftBuildStrategy.SourceStrategy.kind.key(), "ImageStreamTag");
+                fromExt.put(JKubeBuildStrategy.SourceStrategy.kind.key(), "ImageStreamTag");
             } else {
                 fromExt = fromSelector != null ? fromSelector.getImageStreamTagFromExt() : null;
             }
             if (fromExt != null) {
-                String namespace = fromExt.get(OpenShiftBuildStrategy.SourceStrategy.namespace.key());
+                String namespace = fromExt.get(JKubeBuildStrategy.SourceStrategy.namespace.key());
                 if (namespace != null) {
                     log.info("Using ImageStreamTag '%s' from namespace '%s' as builder image",
-                             fromExt.get(OpenShiftBuildStrategy.SourceStrategy.name.key()), namespace);
+                             fromExt.get(JKubeBuildStrategy.SourceStrategy.name.key()), namespace);
                 } else {
                     log.info("Using ImageStreamTag '%s' as builder image",
-                             fromExt.get(OpenShiftBuildStrategy.SourceStrategy.name.key()));
+                             fromExt.get(JKubeBuildStrategy.SourceStrategy.name.key()));
                 }
                 builder.fromExt(fromExt);
             }
@@ -181,7 +181,7 @@ public abstract class BaseGenerator implements Generator {
      */
     protected String getRegistry() {
         if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT &&
-            getContext().getStrategy() == OpenShiftBuildStrategy.s2i) {
+            getContext().getStrategy() == JKubeBuildStrategy.s2i) {
             return null;
         }
         return getConfigWithFallback(Config.registry, "jkube.generator.registry", null);

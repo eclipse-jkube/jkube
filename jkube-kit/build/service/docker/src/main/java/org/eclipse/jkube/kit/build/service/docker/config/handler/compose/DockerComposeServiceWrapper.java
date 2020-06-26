@@ -196,14 +196,14 @@ class DockerComposeServiceWrapper {
             if (toJoin.size() > 1) {
                 throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
             }
-            return NetworkConfig.builder().mode(NetworkConfig.Mode.CUSTOM).name(toJoin.get(0)).build();
+            return NetworkConfig.builder().mode(NetworkConfig.Mode.custom).name(toJoin.get(0)).build();
         } else if (networks instanceof Map) {
             Map<String,Object> toJoin = (Map<String, Object>) networks;
             if (toJoin.size() > 1) {
                 throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
             }
             String custom = toJoin.keySet().iterator().next();
-            NetworkConfig ret = NetworkConfig.builder().mode(NetworkConfig.Mode.CUSTOM).name(custom).build();
+            NetworkConfig ret = NetworkConfig.builder().mode(NetworkConfig.Mode.custom).name(custom).build();
             Object aliases = toJoin.get(custom);
             if (aliases != null) {
                 if (aliases instanceof List) {
