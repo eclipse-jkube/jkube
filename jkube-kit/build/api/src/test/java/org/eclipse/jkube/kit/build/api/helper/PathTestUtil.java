@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.helper;
+package org.eclipse.jkube.kit.build.api.helper;
 
 import java.io.File;
 import java.io.IOException;

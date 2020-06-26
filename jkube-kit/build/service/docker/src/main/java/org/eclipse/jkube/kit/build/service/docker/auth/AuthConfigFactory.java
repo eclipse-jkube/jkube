@@ -102,6 +102,7 @@ public class AuthConfigFactory {
      * @param settings the global Maven settings object
      * @param user user to check for
      * @param registry registry to use, might be null in which case a default registry is checked,
+     * @param passwordDecryptionMethod a functional interface to customize how password should be decoded
      * @return the authentication configuration or <code>null</code> if none could be found
      *
      * @throws IOException mojo failure exception
@@ -177,11 +178,13 @@ public class AuthConfigFactory {
      * @param settings the global Maven settings object
      * @param user user to check for
      * @param registry registry to use, might be null in which case a default registry is checked,
+     * @param passwordDecryptionMethod a function to customize how password should be decoded
+     * @param log Kit logger
      * @return the authentication configuration or <code>null</code> if none could be found
      *
-     * @throws Exception any exception in case of fetching authConfig
+     * @throws IOException any exception in case of fetching authConfig
      */
-    public static AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod, KitLogger log)
+    private static AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod, KitLogger log)
             throws IOException {
         AuthConfig ret;
 

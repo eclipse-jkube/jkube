@@ -26,7 +26,7 @@ import org.eclipse.jkube.kit.common.Plugin;
 
 import mockit.Expectations;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,7 +73,7 @@ public class WebAppGeneratorTest {
     projectProperties.put("jkube.generator.from", "image-to-trigger-custom-app-server-handler");
     new Expectations() {{
       generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-      generatorContext.getStrategy(); result = OpenShiftBuildStrategy.s2i;
+      generatorContext.getStrategy(); result = JKubeBuildStrategy.s2i;
       generatorContext.getProject().getProperties(); result = projectProperties;
     }};
     // @formatter:on

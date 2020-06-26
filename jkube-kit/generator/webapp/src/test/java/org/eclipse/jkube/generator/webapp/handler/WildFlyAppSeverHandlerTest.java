@@ -20,7 +20,7 @@ import java.util.Collections;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Plugin;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import mockit.Expectations;
@@ -130,7 +130,7 @@ public class WildFlyAppSeverHandlerTest {
     // @formatter:off
     new Expectations(GeneratorContext.class) {{
       generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-      generatorContext.getStrategy(); result = OpenShiftBuildStrategy.docker;
+      generatorContext.getStrategy(); result = JKubeBuildStrategy.docker;
     }};
     // @formatter:on
     // When
@@ -148,7 +148,7 @@ public class WildFlyAppSeverHandlerTest {
     // @formatter:off
     new Expectations(GeneratorContext.class) {{
       generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-      generatorContext.getStrategy(); result = OpenShiftBuildStrategy.s2i;
+      generatorContext.getStrategy(); result = JKubeBuildStrategy.s2i;
     }};
     // @formatter:on
     // When
