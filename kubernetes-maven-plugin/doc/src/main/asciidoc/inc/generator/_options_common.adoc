@@ -19,7 +19,7 @@ There are some configuration options which are shared by all generators:
 | `jkube.generator.from`
 
 | *fromMode*
-| Whe using OpenShift S2I builds the base image can be either a plain docker image (mode: `docker`) or a reference to an
+| Whe using OpenShift S2I builds the base image can be either a plain docker image (mode: `jib`) or a reference to an
   https://docs.openshift.com/container-platform/3.3/architecture/core_concepts/builds_and_image_streams.html[ ImageStreamTag] (mode: `istag`). In the case of an ImageStreamTag, `from` has to be specified in the form `namespace/image-stream:tag`. The mode takes only effect when running in OpenShift mode.
 | `jkube.generator.fromMode`
 

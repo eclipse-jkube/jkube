@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
@@ -41,7 +41,7 @@ public class GeneratorContext {
     private ProcessorConfig config;
     private KitLogger logger;
     private RuntimeMode runtimeMode;
-    private OpenShiftBuildStrategy strategy;
+    private JKubeBuildStrategy strategy;
 
     private boolean useProjectClasspath;
     private boolean prePackagePhase;

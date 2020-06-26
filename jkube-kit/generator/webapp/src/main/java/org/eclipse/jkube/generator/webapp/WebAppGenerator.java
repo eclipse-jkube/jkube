@@ -29,7 +29,7 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
 import org.eclipse.jkube.generator.webapp.handler.CustomAppServerHandler;
@@ -84,7 +84,7 @@ public class WebAppGenerator extends BaseGenerator {
   public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
     final AppServerHandler handler = getAppServerHandler(getContext());
     if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT &&
-        getContext().getStrategy() == OpenShiftBuildStrategy.s2i &&
+        getContext().getStrategy() == JKubeBuildStrategy.s2i &&
         !prePackagePhase &&
         !handler.supportsS2iBuild()
     ) {

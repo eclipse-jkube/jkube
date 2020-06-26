@@ -119,9 +119,9 @@ public class WaitConfiguration implements Serializable {
 
   public enum TcpConfigMode {
     // Use mapped ports
-    MAPPED,
+    mapped,
     // Use ports directly on the container
-    DIRECT,
+    direct,
   }
 
   @AllArgsConstructor

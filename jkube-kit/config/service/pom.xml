@@ -38,6 +38,10 @@
             <artifactId>jkube-kit-build-service-docker</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-build-service-jib</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>

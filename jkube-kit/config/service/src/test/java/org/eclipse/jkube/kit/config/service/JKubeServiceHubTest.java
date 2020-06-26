@@ -14,15 +14,19 @@
 package org.eclipse.jkube.kit.config.service;
 
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
+import mockit.Expectations;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
+import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 import mockit.Mocked;
 import org.junit.Test;
+
+import java.util.Properties;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
@@ -82,6 +86,10 @@ public class JKubeServiceHubTest {
 
     @Test
     public void testObtainBuildService() {
+        new Expectations() {{
+            configuration.getProperties();
+            result = new Properties();
+        }};
         JKubeServiceHub hub = JKubeServiceHub.builder()
                 .configuration(configuration)
                 .clusterAccess(clusterAccess)
@@ -99,6 +107,11 @@ public class JKubeServiceHubTest {
 
     @Test
     public void testObtainOpenshiftBuildService() {
+        new Expectations() {{
+            configuration.getProperties();
+            result = new Properties();
+        }};
+
         JKubeServiceHub hub = JKubeServiceHub.builder()
                 .configuration(configuration)
                 .clusterAccess(clusterAccess)
@@ -125,5 +138,31 @@ public class JKubeServiceHubTest {
                 .build();
 
         assertNotNull(hub.getArtifactResolverService());
+    }
+
+    @Test
+    public void testObtainJibBuildService() {
+        // Given
+        new Expectations() {{
+            Properties properties = new Properties();
+            properties.put("jkube.build.strategy", "jib");
+            configuration.getProperties();
+            result = properties;
+        }};
+        JKubeServiceHub hub = JKubeServiceHub.builder()
+                .configuration(configuration)
+                .clusterAccess(clusterAccess)
+                .log(logger)
+                .platformMode(RuntimeMode.KUBERNETES)
+                .dockerServiceHub(dockerServiceHub)
+                .buildServiceConfig(BuildServiceConfig.builder().build())
+                .build();
+
+        // When
+        BuildService buildService = hub.getBuildService();
+
+        // Then
+        assertNotNull(buildService);
+        assertTrue(buildService instanceof JibBuildService);
     }
 }
