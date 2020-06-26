@@ -11,7 +11,9 @@ What types of changes does your code introduce? Put an `x` in all the boxes that
 -->
  - [ ] Bug fix (non-breaking change which fixes an issue)
  - [ ] Feature (non-breaking change which adds functionality)
- - [ ] Breaking change (fix or feature that would cause existing functionality to change)
+ - [ ] Breaking change (fix or feature that would cause existing functionality to change
+ - [ ] Chore (non-breaking change which doesn't affect codebase;
+   test, version modification, documentation, etc.)
 
 ## Checklist
  - [ ] I have read the [contributing guidelines](https://www.eclipse.org/jkube/contributing)
