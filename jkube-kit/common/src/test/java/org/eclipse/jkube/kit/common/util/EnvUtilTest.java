@@ -14,6 +14,9 @@
 package org.eclipse.jkube.kit.common.util;
 
 import mockit.Expectations;
+import mockit.Invocation;
+import mockit.Mock;
+import mockit.MockUp;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Ignore;
@@ -27,11 +30,13 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.loadTimestamp;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,6 +47,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 
 public class EnvUtilTest {
@@ -260,15 +267,30 @@ public class EnvUtilTest {
 
     @Test
     public void testPrepareAbsolutePath() {
+        assumeFalse(isWindows());
         assertEquals("test-project/target/testDir/bar",EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "bar").getPath());
         assertEquals("/home/redhat/jkube",EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "/home/redhat/jkube").getPath());
+    }
 
+    @Test
+    public void testPrepareAbsolutePathWindows() {
+        assumeTrue(isWindows());
+        assertEquals("test-project\\target\\testDir\\bar", EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "bar").getPath());
+        assertEquals("C:\\users\\redhat\\jkube", EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "C:\\users\\redhat\\jkube").getPath());
     }
 
     @Test
     public void testPrepareAbsoluteSourceDirPath() {
+        assumeFalse(isWindows());
         assertEquals("test-project/target/testDir",EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "testDir").getPath());
         assertEquals("/home/redhat/jkube",EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "/home/redhat/jkube").getPath());
+    }
+
+    @Test
+    public void testPrepareAbsoluteSourceDirPathWindows() {
+        assumeTrue(isWindows());
+        assertEquals("test-project\\target\\testDir", EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "testDir").getPath());
+        assertEquals("C:\\users\\redhat\\jkube", EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "C:\\users\\redhat\\jkube").getPath());
     }
 
     @Test
@@ -288,7 +310,6 @@ public class EnvUtilTest {
     public void testExtractMavenPropertyName() {
         assertEquals("project.baseDir", EnvUtil.extractMavenPropertyName("${project.baseDir}"));
         assertNull(EnvUtil.extractMavenPropertyName("roject.notbaseDi"));
-
     }
 
     @Test
@@ -365,7 +386,8 @@ public class EnvUtilTest {
     @Test
     public  void testIsWindowsFalse(){
         //Given
-        System.setProperty("os.name","random");
+        new SystemMock();
+        SystemMock.FAKE_PROPS.put("os.name", "random");
         //When
         boolean result= EnvUtil.isWindows();
         //Then
@@ -375,11 +397,21 @@ public class EnvUtilTest {
     @Test
     public  void testIsWindows(){
         //Given
-        System.setProperty("os.name", "windows");
+        new SystemMock();
+        SystemMock.FAKE_PROPS.put("os.name", "windows");
         //When
         boolean result= EnvUtil.isWindows();
         //Then
         assertTrue(result);
     }
 
+    private static final class SystemMock extends MockUp<System> {
+        private static Map<String, String> FAKE_PROPS = new HashMap<>();
+
+        @Mock
+        public static String getProperty(Invocation invocation, String key) {
+            return FAKE_PROPS.getOrDefault(key, invocation.proceed(key));
+        }
+
+    }
 }
