@@ -374,7 +374,7 @@ public class DockerFileBuilder {
     public DockerFileBuilder basedir(String dir) {
         if (dir != null) {
             if (!dir.startsWith("/")) {
-                throw new IllegalArgumentException("'basedir' must be an absolute path starting with / (and not " +
+                throw new IllegalArgumentException("'basedir' must be an *nix absolute path starting with / (and not " +
                                                    "'" + basedir + "')");
             }
             basedir = dir;

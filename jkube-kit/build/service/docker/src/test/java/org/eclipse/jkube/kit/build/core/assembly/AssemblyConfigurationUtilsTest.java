@@ -71,7 +71,7 @@ public class AssemblyConfigurationUtilsTest {
     // Then
     assertNotNull(result);
     assertEquals("ImageName", result.getName());
-    assertEquals(File.separator + "ImageName", result.getTargetDir());
+    assertEquals("/ImageName", result.getTargetDir());
     assertEquals("OtherUser", result.getUser());
   }
 
