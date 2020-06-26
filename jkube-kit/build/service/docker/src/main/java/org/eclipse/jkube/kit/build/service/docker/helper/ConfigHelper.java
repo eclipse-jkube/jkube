@@ -11,9 +11,9 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.config;
+package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyMode;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -120,7 +120,7 @@ public class ConfigHelper {
     public static String initAndValidate(List<ImageConfiguration> images, String apiVersion, NameFormatter nameFormatter) {
         // Init and validate configs. After this step, getResolvedImages() contains the valid configuration.
         for (ImageConfiguration imageConfiguration : images) {
-            apiVersion = EnvUtil.extractLargerVersion(apiVersion, imageConfiguration.initAndValidate(nameFormatter));
+            apiVersion = EnvUtil.extractLargerVersion(apiVersion, initAndValidate(nameFormatter, imageConfiguration));
         }
         return apiVersion;
     }
@@ -191,17 +191,23 @@ public class ConfigHelper {
         List<ImageConfiguration> resolve(ImageConfiguration image);
     }
 
+    public static String initAndValidate(ConfigHelper.NameFormatter nameFormatter, ImageConfiguration imageConfiguration) {
+        imageConfiguration.setName(nameFormatter.format(imageConfiguration.getName()));
+        String minimalApiVersion = null;
+        if (imageConfiguration.getBuild() != null) {
+            minimalApiVersion = imageConfiguration.getBuild().initAndValidate();
+        }
+        if (imageConfiguration.getRun() != null) {
+            minimalApiVersion = EnvUtil.extractLargerVersion(minimalApiVersion, imageConfiguration.getRun().initAndValidate());
+        }
+        return minimalApiVersion;
+    }
+
     /**
      * Format an image name by replacing certain placeholders
      */
     public interface NameFormatter {
         String format(String name);
-
-        NameFormatter IDENTITY = new NameFormatter() {
-            public String format(String name) {
-                return name;
-            }
-        };
     }
 
 

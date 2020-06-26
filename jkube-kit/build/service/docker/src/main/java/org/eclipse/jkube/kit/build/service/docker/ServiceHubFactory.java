@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -39,7 +39,7 @@ public class ServiceHubFactory {
 
   public ServiceHub createServiceHub(DockerAccess access, KitLogger kitLogger, LogOutputSpecFactory logSpecFactory) {
     this.logOutputSpecFactory = logSpecFactory;
-    return new ServiceHub(access, containerTracker, DockerAssemblyManager.getInstance(),
+    return new ServiceHub(access, containerTracker, AssemblyManager.getInstance(),
         kitLogger, logSpecFactory);
   }
 

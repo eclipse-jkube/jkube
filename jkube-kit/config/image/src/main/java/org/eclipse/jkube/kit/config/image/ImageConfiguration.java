@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.image;
 
-import java.io.Serializable;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -22,32 +20,130 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 
-/**
- * @author roland
- */
-@Builder
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@SuppressWarnings("JavaDoc")
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode
 public class ImageConfiguration implements Serializable {
-
+    /**
+     * Change the name which can be useful in long running runs e.g. for updating
+     * images when doing updates. Use with caution and only for those circumstances.
+     *
+     * @param name image name to set.
+     */
     private String name;
-
     private String alias;
-
+    private RunImageConfiguration run;
+    private BuildConfiguration build;
+    private WatchImageConfiguration watch;
+    /**
+     * Override externalConfiguration when defined via special property.
+     *
+     * @param external Map with alternative config
+     */
+    private Map<String,String> external;
     private String registry;
 
-    private BuildConfiguration build;
+
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Override externalConfiguration when defined via special property.
+     *
+     * @param externalConfiguration Map with alternative config
+     */
+    public void setExternalConfiguration(Map<String, String> externalConfiguration) {
+        this.external = externalConfiguration;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public RunImageConfiguration getRunConfiguration() {
+        return (run == null) ? RunImageConfiguration.DEFAULT : run;
+    }
 
     public BuildConfiguration getBuildConfiguration() {
         return build;
     }
 
+    public WatchImageConfiguration getWatchConfiguration() {
+        return watch;
+    }
+
+    public Map<String, String> getExternalConfig() {
+        return external;
+    }
+
+    public List<String> getDependencies() {
+        RunImageConfiguration runConfig = getRunConfiguration();
+        List<String> ret = new ArrayList<>();
+        if (runConfig != null) {
+            addVolumes(runConfig, ret);
+            addLinks(runConfig, ret);
+            addContainerNetwork(runConfig, ret);
+            addDependsOn(runConfig, ret);
+        }
+        return ret;
+    }
+
+    private void addVolumes(RunImageConfiguration runConfig, List<String> ret) {
+        RunVolumeConfiguration volConfig = runConfig.getVolumeConfiguration();
+        if (volConfig != null) {
+            List<String> volumeImages = volConfig.getFrom();
+            if (volumeImages != null) {
+                ret.addAll(volumeImages);
+            }
+        }
+    }
+
+    private void addLinks(RunImageConfiguration runConfig, List<String> ret) {
+        // Custom networks can have circular links, no need to be considered for the starting order.
+        if (!runConfig.getNetworkingConfig().isCustomNetwork()) {
+            for (String[] link : EnvUtil.splitOnLastColon(runConfig.getLinks())) {
+                ret.add(link[0]);
+            }
+        }
+    }
+
+    private void addContainerNetwork(RunImageConfiguration runConfig, List<String> ret) {
+        NetworkConfig config = runConfig.getNetworkingConfig();
+        String containerAlias = config.getContainerAlias();
+        if (containerAlias != null) {
+            ret.add(containerAlias);
+        }
+    }
+
+    private void addDependsOn(RunImageConfiguration runConfig, List<String> ret) {
+        // Only used in custom networks.
+        if (runConfig.getNetworkingConfig().isCustomNetwork()) {
+            ret.addAll(runConfig.getDependsOn());
+        }
+    }
+
+    public boolean isDataImage() {
+        // If there is no explicit run configuration, its a data image
+        // TODO: Probably add an explicit property so that a user can indicated whether it
+        // is a data image or not on its own.
+        return getRunConfiguration() == null;
+    }
+
     public String getDescription() {
         return String.format("[%s] %s", new ImageName(name).getFullName(), (alias != null ? "\"" + alias + "\"" : "")).trim();
     }
+
 
 }

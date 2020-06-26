@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Named;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 

@@ -11,14 +11,13 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker;
+package org.eclipse.jkube.kit.config.image;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
 import java.io.Serializable;
@@ -37,7 +36,6 @@ public class RegistryConfig implements Serializable {
 
   private String registry;
   private List<RegistryServerConfiguration> settings;
-  private AuthConfigFactory authConfigFactory;
   private boolean skipExtendedAuth;
   private Map authConfig;
   private transient UnaryOperator<String> passwordDecryptionMethod;
