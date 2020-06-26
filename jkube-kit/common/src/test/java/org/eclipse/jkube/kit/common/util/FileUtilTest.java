@@ -21,6 +21,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativeFilePath;
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 import static org.hamcrest.CoreMatchers.is;
@@ -30,8 +31,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 public class FileUtilTest {
+
   @Rule
   public TemporaryFolder folder = new TemporaryFolder();
 
@@ -40,19 +44,44 @@ public class FileUtilTest {
    * https://github.com/sonatype/plexus-utils/blob/5ba6cfcca911200b5b9d2b313bb939e6d7cbbac6/src/test/java/org/codehaus/plexus/util/PathToolTest.java#L90
    */
   @Test
-  public void testGetRelativeFilePath() {
+  public void testGetRelativeFilePathWindows() {
+    assumeTrue(isWindows());
     assertEquals("", getRelativeFilePath(null, null));
-    assertEquals("", getRelativeFilePath(null, "/usr/local/java/bin"));
-    assertEquals("", getRelativeFilePath("/usr/local", null));
-    assertEquals("java/bin", getRelativeFilePath("/usr/local", "/usr/local/java/bin"));
-    assertEquals("java/bin/", getRelativeFilePath("/usr/local", "/usr/local/java/bin/"));
-    assertEquals("../../", getRelativeFilePath("/usr/local/java/bin", "/usr/local/"));
-    assertEquals("java/bin/java.sh", getRelativeFilePath("/usr/local/", "/usr/local/java/bin/java.sh"));
-    assertEquals("../../../", getRelativeFilePath("/usr/local/java/bin/java.sh", "/usr/local/"));
-    assertEquals("../../bin", getRelativeFilePath("/usr/local/", "/bin"));
-    assertEquals("../usr/local", getRelativeFilePath("/bin", "/usr/local"));
-    assertEquals("", getRelativeFilePath("/bin", "/bin"));
+    assertEquals("", getRelativeFilePath(null, "\\usr\\local\\java\\bin"));
+    assertEquals("", getRelativeFilePath("\\usr\\local", null));
+    assertEquals("java\\bin", getRelativeFilePath("\\usr\\local", "\\usr\\local\\java\\bin"));
+    assertEquals("java\\bin\\", getRelativeFilePath("\\usr\\local", "\\usr\\local\\java\\bin\\"));
+    assertEquals("..\\..\\", getRelativeFilePath("\\usr\\local\\java\\bin", "\\usr\\local\\"));
+    assertEquals("java\\bin\\java.sh",
+      getRelativeFilePath("\\usr\\local\\", "\\usr\\local\\java\\bin\\java.sh"));
+    assertEquals("..\\..\\..\\",
+      getRelativeFilePath("\\usr\\local\\java\\bin\\java.sh", "\\usr\\local\\"));
+    assertEquals("..\\..\\bin", getRelativeFilePath("\\usr\\local\\", "\\bin"));
+    assertEquals("..\\usr\\local", getRelativeFilePath("\\bin", "\\usr\\local"));
+    assertEquals("", getRelativeFilePath("\\bin", "\\bin"));
   }
+
+    /**
+     * Taken from
+     * https://github.com/sonatype/plexus-utils/blob/5ba6cfcca911200b5b9d2b313bb939e6d7cbbac6/src/test/java/org/codehaus/plexus/util/PathToolTest.java#L90
+     */
+    @Test
+    public void testGetRelativeFilePathUnix() {
+      assumeFalse(isWindows());
+      assertEquals("", getRelativeFilePath(null, null));
+      assertEquals("", getRelativeFilePath(null, "/usr/local/java/bin"));
+      assertEquals("", getRelativeFilePath("/usr/local", null));
+      assertEquals("java/bin", getRelativeFilePath("/usr/local", "/usr/local/java/bin"));
+      assertEquals("java/bin/", getRelativeFilePath("/usr/local", "/usr/local/java/bin/"));
+      assertEquals("../../", getRelativeFilePath("/usr/local/java/bin", "/usr/local/"));
+      assertEquals("java/bin/java.sh",
+        getRelativeFilePath("/usr/local/", "/usr/local/java/bin/java.sh"));
+      assertEquals("../../../", getRelativeFilePath("/usr/local/java/bin/java.sh", "/usr/local/"));
+      assertEquals("../../bin", getRelativeFilePath("/usr/local/", "/bin"));
+      assertEquals("../usr/local", getRelativeFilePath("/bin", "/usr/local"));
+      assertEquals("", getRelativeFilePath("/bin", "/bin"));
+  }
+
   @Test
   public void testCreateDirectory() throws IOException {
     File newDirectory = new File(folder.getRoot(), "firstdirectory");
@@ -120,7 +149,7 @@ public class FileUtilTest {
     assertEquals("foo", relativeFile.getPath());
     relativeFile = getRelativePath(folder.getRoot(),
         new File(folder.getRoot().getAbsolutePath() + File.separator + "foo" + File.separator + "fileInFoo1"));
-    assertEquals("foo/fileInFoo1", relativeFile.getPath());
+    assertEquals("foo" + File.separator + "fileInFoo1", relativeFile.getPath());
   }
 
   private void prepareDirectory() throws IOException {

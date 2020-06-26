@@ -104,10 +104,12 @@ public class MigrateServiceTest {
 
   private static Consumer<File> assertExpectedDocument(String expectedResource) throws IOException {
     try (final InputStream is = MigrateServiceTest.class.getResourceAsStream(expectedResource)) {
-      final String expected = IOUtils.toString(is, StandardCharsets.UTF_8).trim();
+      final String expected = IOUtils.toString(is, StandardCharsets.UTF_8)
+        .trim().replace("\r\n", "\n");
       return convertedProject -> {
         try {
-          final String result = FileUtils.readFileToString(convertedProject, StandardCharsets.UTF_8).trim();
+          final String result = FileUtils.readFileToString(convertedProject, StandardCharsets.UTF_8)
+            .trim().replace("\r\n", "\n");;
           assertEquals(expected, result);
         } catch (IOException exception){
           fail(exception.getMessage());

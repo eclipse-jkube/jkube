@@ -22,7 +22,10 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 public class AssemblyFileUtilsTest {
 
@@ -32,6 +35,7 @@ public class AssemblyFileUtilsTest {
   @Test
   public void getAssemblyFileOutputDirectoryWithAbsoluteDirectoryShouldReturnSame() throws IOException {
     // Given
+    assumeFalse(isWindows());
     final AssemblyFile af = AssemblyFile.builder().outputDirectory(new File("/")).build();
     final File outputDirectoryForRelativePaths = temporaryFolder.newFolder("output");
     final AssemblyConfiguration ac = AssemblyConfiguration.builder().build();
@@ -39,6 +43,19 @@ public class AssemblyFileUtilsTest {
     final File result = AssemblyFileUtils.getAssemblyFileOutputDirectory(af, outputDirectoryForRelativePaths, ac);
     // Then
     assertEquals("/", result.getAbsolutePath());
+  }
+
+  @Test
+  public void getAssemblyFileOutputDirectoryWithAbsoluteDirectoryShouldReturnSameWindows() throws IOException {
+    // Given
+    assumeTrue(isWindows());
+    final AssemblyFile af = AssemblyFile.builder().outputDirectory(new File("C:\\")).build();
+    final File outputDirectoryForRelativePaths = temporaryFolder.newFolder("output");
+    final AssemblyConfiguration ac = AssemblyConfiguration.builder().build();
+    // When
+    final File result = AssemblyFileUtils.getAssemblyFileOutputDirectory(af, outputDirectoryForRelativePaths, ac);
+    // Then
+    assertEquals("C:\\", result.getAbsolutePath());
   }
 
   @Test
@@ -58,12 +75,25 @@ public class AssemblyFileUtilsTest {
   @Test
   public void resolveSourceFileAbsoluteFileShouldReturnSame() throws IOException {
     // Given
+    assumeFalse(isWindows());
     final File baseDirectory = temporaryFolder.newFolder("base");
     final AssemblyFile af = AssemblyFile.builder().source(new File("/")).build();
     // When
     final File result = AssemblyFileUtils.resolveSourceFile(baseDirectory, af);
     // Then
     assertEquals("/", result.getAbsolutePath());
+  }
+
+  @Test
+  public void resolveSourceFileAbsoluteFileShouldReturnSameWindows() throws IOException {
+    // Given
+    assumeTrue(isWindows());
+    final File baseDirectory = temporaryFolder.newFolder("base");
+    final AssemblyFile af = AssemblyFile.builder().source(new File("C:\\")).build();
+    // When
+    final File result = AssemblyFileUtils.resolveSourceFile(baseDirectory, af);
+    // Then
+    assertEquals("C:\\", result.getAbsolutePath());
   }
 
   @Test
