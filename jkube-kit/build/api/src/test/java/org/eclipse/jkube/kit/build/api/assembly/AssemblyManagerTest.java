@@ -11,8 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.core.assembly;
-
+package org.eclipse.jkube.kit.build.api.assembly;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,9 +22,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -49,10 +46,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-public class DockerAssemblyManagerTest {
+public class AssemblyManagerTest {
 
     @Tested
-    private DockerAssemblyManager assemblyManager;
+    private AssemblyManager assemblyManager;
 
     @Mocked
     private PrefixedLogger prefixedLogger;
@@ -63,8 +60,8 @@ public class DockerAssemblyManagerTest {
     @Test
     public void testGetInstanceShouldBeSingleton() {
         // When
-        final DockerAssemblyManager dam1 = DockerAssemblyManager.getInstance();
-        final DockerAssemblyManager dam2 = DockerAssemblyManager.getInstance();
+        final AssemblyManager dam1 = AssemblyManager.getInstance();
+        final AssemblyManager dam2 = AssemblyManager.getInstance();
         // Then
         assertSame(dam1, dam2);
     }
@@ -83,7 +80,7 @@ public class DockerAssemblyManagerTest {
 
     @Test
     public void assemblyFiles(@Injectable final JKubeConfiguration configuration, @Injectable final JavaProject project)
-        throws Exception {
+            throws Exception {
 
         // Given
         final File baseDirectory = temporaryFolder.newFolder("buildDirs");
@@ -97,8 +94,8 @@ public class DockerAssemblyManagerTest {
             result = baseDirectory;
         }};
         ImageConfiguration imageConfiguration = ImageConfiguration.builder()
-            .name("testImage").build(createBuildConfig())
-            .build();
+                .name("testImage").build(createBuildConfig())
+                .build();
         // When
         AssemblyFiles assemblyFiles = assemblyManager.getAssemblyFiles(imageConfiguration, configuration);
         // Then
@@ -114,10 +111,10 @@ public class DockerAssemblyManagerTest {
         final File assemblyDirectory = temporaryFolder.getRoot().toPath().resolve("target").resolve("docker").toFile();
         final JKubeConfiguration jc = createNoDockerfileConfiguration();
         entries.add(AssemblyFileEntry.builder()
-            .source(temporaryFolder.getRoot().toPath().resolve("target").resolve("test-0.1.0.jar").toFile())
-            .dest(temporaryFolder.getRoot().toPath().resolve("target").resolve("docker").resolve("test-0.1.0.jar").toFile())
-            .permission("0655")
-            .build());
+                .source(temporaryFolder.getRoot().toPath().resolve("target").resolve("test-0.1.0.jar").toFile())
+                .dest(temporaryFolder.getRoot().toPath().resolve("target").resolve("docker").resolve("test-0.1.0.jar").toFile())
+                .permission("0655")
+                .build());
         // When
         final File result = assemblyManager.createChangedFilesArchive(entries, assemblyDirectory, "image-name", jc);
         // Then
@@ -267,7 +264,7 @@ public class DockerAssemblyManagerTest {
 
         // When
         File dockerArchiveFile = assemblyManager.createDockerTarArchive(
-            "test-image", jKubeBuildContext, jKubeBuildConfiguration, prefixedLogger, finalCustomizer);
+                "test-image", jKubeBuildContext, jKubeBuildConfiguration, prefixedLogger, finalCustomizer);
 
         // Then
         assertNotNull(dockerArchiveFile);
@@ -296,17 +293,17 @@ public class DockerAssemblyManagerTest {
         assertTrue(finalArtifactFile.createNewFile());
         File outputDirectory = new File(targetFolder, "docker");
         return JKubeConfiguration.builder()
-            .project(JavaProject.builder()
-                .groupId("org.eclipse.jkube")
-                .artifactId("test")
-                .packaging("jar")
-                .version("0.1.0")
-                .buildDirectory(targetFolder)
-                .artifact(finalArtifactFile)
-                .build())
-            .outputDirectory(outputDirectory.getAbsolutePath())
-            .sourceDirectory(temporaryFolder.getRoot().getAbsolutePath() + "/src/main/docker")
-            .build();
+                .project(JavaProject.builder()
+                        .groupId("org.eclipse.jkube")
+                        .artifactId("test")
+                        .packaging("jar")
+                        .version("0.1.0")
+                        .buildDirectory(targetFolder)
+                        .artifact(finalArtifactFile)
+                        .build())
+                .outputDirectory(outputDirectory.getAbsolutePath())
+                .sourceDirectory(temporaryFolder.getRoot().getAbsolutePath() + "/src/main/docker")
+                .build();
     }
 
     @Test
@@ -371,4 +368,3 @@ public class DockerAssemblyManagerTest {
     }
 
 }
-

@@ -27,10 +27,10 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.ExecException;
 import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
-import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
-import org.eclipse.jkube.kit.build.service.docker.config.RestartPolicy;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.RunVolumeConfiguration;
+import org.eclipse.jkube.kit.config.image.NetworkConfig;
+import org.eclipse.jkube.kit.config.image.RestartPolicy;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.VolumeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
 import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
@@ -38,6 +38,7 @@ import org.eclipse.jkube.kit.build.service.docker.wait.WaitTimeoutException;
 import org.eclipse.jkube.kit.build.service.docker.wait.WaitUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 
 import java.io.File;
@@ -240,7 +241,7 @@ public class RunService {
      * @param images list of images for which the order should be created
      * @return list of images in the right startup order
      */
-    public List<StartOrderResolver.Resolvable> getImagesConfigsInOrder(QueryService queryService, List<ImageConfiguration> images) {
+    public List<ImageConfiguration> getImagesConfigsInOrder(QueryService queryService, List<ImageConfiguration> images) {
         return StartOrderResolver.resolve(queryService, convertToResolvables(images));
     }
 
@@ -279,8 +280,8 @@ public class RunService {
         });
     }
 
-    private List<StartOrderResolver.Resolvable> convertToResolvables(List<ImageConfiguration> images) {
-        List<StartOrderResolver.Resolvable> ret = new ArrayList<>();
+    private List<ImageConfiguration> convertToResolvables(List<ImageConfiguration> images) {
+        List<ImageConfiguration> ret = new ArrayList<>();
         for (ImageConfiguration config : images) {
             if (config.getRunConfiguration().skip()) {
                 log.info("%s: Skipped running", config.getDescription());

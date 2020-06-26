@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.core.assembly;
+package org.eclipse.jkube.kit.build.api.assembly;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,8 +26,6 @@ import java.util.Optional;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
@@ -40,15 +38,11 @@ import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 
 import javax.annotation.Nonnull;
 
-import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
-import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSetsExcludes;
-import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.getAssemblyFileOutputDirectory;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.resolveSourceFile;
@@ -59,20 +53,20 @@ import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.resolveSour
  *
  * @author roland
  */
-public class DockerAssemblyManager {
+public class AssemblyManager {
 
-    private static DockerAssemblyManager dockerAssemblyManager = null;
+    private static AssemblyManager dockerAssemblyManager = null;
     public static final String DEFAULT_DATA_BASE_IMAGE = "busybox:latest";
     public static final String SCRATCH_IMAGE = "scratch";
 
     // Assembly name used also as build directory within outputBuildDir
     private static final String DOCKERFILE_NAME = "Dockerfile";
 
-    private DockerAssemblyManager() { }
+    private AssemblyManager() { }
 
-    public static DockerAssemblyManager getInstance() {
+    public static AssemblyManager getInstance() {
         if (dockerAssemblyManager == null) {
-            dockerAssemblyManager = new DockerAssemblyManager();
+            dockerAssemblyManager = new AssemblyManager();
         }
         return dockerAssemblyManager;
     }
@@ -90,8 +84,8 @@ public class DockerAssemblyManager {
      * @throws IOException IO exception
      */
     public File createDockerTarArchive(
-        String imageName, final JKubeConfiguration configuration, final BuildConfiguration buildConfig, KitLogger log,
-        ArchiverCustomizer finalCustomizer) throws IOException {
+            String imageName, final JKubeConfiguration configuration, final BuildConfiguration buildConfig, KitLogger log,
+            ArchiverCustomizer finalCustomizer) throws IOException {
 
         final BuildDirs buildDirs = createBuildDirs(imageName, configuration);
         final List<ArchiverCustomizer> archiveCustomizers = new ArrayList<>();
@@ -110,7 +104,7 @@ public class DockerAssemblyManager {
                 createDockerTarArchiveForGeneratorMode(buildConfig, buildDirs, archiveCustomizers, assemblyConfig);
             }
             archiveCustomizers.addAll(
-                getDefaultCustomizers(buildConfig, configuration, assemblyConfig, finalCustomizer, assemblyFileEntries));
+                    getDefaultCustomizers(buildConfig, configuration, assemblyConfig, finalCustomizer, assemblyFileEntries));
             return createBuildTarBall(configuration, buildDirs, archiveCustomizers, assemblyConfig, buildConfig.getCompression());
         } catch (IOException e) {
             throw new IOException(String.format("Cannot create %s in %s", DOCKERFILE_NAME, buildDirs.getOutputDirectory()), e);
@@ -133,28 +127,28 @@ public class DockerAssemblyManager {
         }
 
         String name = assemblyConfig.getName();
-            for (String keyword : new String[] { "ADD", "COPY" }) {
-                List<String[]> lines = DockerFileUtil.extractLines(dockerFile, keyword, properties, buildConfig.getFilter());
-                for (String[] line : lines) {
-                    if (!line[0].startsWith("#")) {
-                        // Skip command flags like --chown
-                        int i;
-                        for (i = 1; i < line.length; i++) {
-                            String component = line[i];
-                            if (!component.startsWith("--")) {
-                                break;
-                            }
+        for (String keyword : new String[] { "ADD", "COPY" }) {
+            List<String[]> lines = DockerFileUtil.extractLines(dockerFile, keyword, properties, buildConfig.getFilter());
+            for (String[] line : lines) {
+                if (!line[0].startsWith("#")) {
+                    // Skip command flags like --chown
+                    int i;
+                    for (i = 1; i < line.length; i++) {
+                        String component = line[i];
+                        if (!component.startsWith("--")) {
+                            break;
                         }
+                    }
 
-                        // contains an ADD/COPY ... targetDir .... All good.
-                        if (i < line.length && line[i].contains(name)) {
-                            return;
-                        }
+                    // contains an ADD/COPY ... targetDir .... All good.
+                    if (i < line.length && line[i].contains(name)) {
+                        return;
                     }
                 }
             }
+        }
         log.warn("Dockerfile %s does not contain an ADD or COPY directive to include assembly created at %s. Ignoring assembly.",
-                 dockerFile.getPath(), name);
+                dockerFile.getPath(), name);
     }
 
     /**
@@ -166,19 +160,19 @@ public class DockerAssemblyManager {
      * @return assembly files
      */
     public AssemblyFiles getAssemblyFiles(ImageConfiguration imageConfiguration, JKubeConfiguration jKubeConfiguration)
-        throws IOException {
+            throws IOException {
 
         BuildDirs buildDirs = createBuildDirs(imageConfiguration.getName(), jKubeConfiguration);
         AssemblyConfiguration assemblyConfig = imageConfiguration.getBuildConfiguration().getAssembly();
         AssemblyFiles assemblyFiles = new AssemblyFiles(buildDirs.getOutputDirectory());
         copyFilesToFinalTarballDirectory(jKubeConfiguration.getProject(), buildDirs, assemblyConfig)
-            .forEach(assemblyFiles::addEntry);
+                .forEach(assemblyFiles::addEntry);
         return assemblyFiles;
     }
 
     public File createChangedFilesArchive(
-        List<AssemblyFileEntry> entries, File assemblyDirectory, String imageName,
-        JKubeConfiguration jKubeConfiguration) throws IOException {
+            List<AssemblyFileEntry> entries, File assemblyDirectory, String imageName,
+            JKubeConfiguration jKubeConfiguration) throws IOException {
 
         BuildDirs dirs = createBuildDirs(imageName, jKubeConfiguration);
         try {
@@ -191,7 +185,7 @@ public class DockerAssemblyManager {
             return JKubeTarArchiver.createTarBallOfDirectory(archive, archiveDir, ArchiveCompression.none);
         } catch (IOException exp) {
             throw new IOException("Error while creating " + dirs.getTemporaryRootDirectory() +
-                                             "/changed-files.tar: " + exp);
+                    "/changed-files.tar: " + exp);
         }
     }
 
@@ -246,9 +240,9 @@ public class DockerAssemblyManager {
         }
         if (assemblyConfig != null) {
             builder.add(assemblyConfig.getTargetDir(), "")
-                   .basedir(assemblyConfig.getTargetDir())
-                   .assemblyUser(assemblyConfig.getUser())
-                   .exportTargetDir(assemblyConfig.getExportTargetDir());
+                    .basedir(assemblyConfig.getTargetDir())
+                    .assemblyUser(assemblyConfig.getUser())
+                    .exportTargetDir(assemblyConfig.getExportTargetDir());
         } else {
             builder.exportTargetDir(false);
         }
@@ -275,9 +269,9 @@ public class DockerAssemblyManager {
     }
 
     private void createAssemblyArchive(
-        AssemblyConfiguration assemblyConfig, JKubeConfiguration params, BuildDirs buildDirs, ArchiveCompression compression,
-        List<AssemblyFileEntry> assemblyFileEntries)
-        throws IOException {
+            AssemblyConfiguration assemblyConfig, JKubeConfiguration params, BuildDirs buildDirs, ArchiveCompression compression,
+            List<AssemblyFileEntry> assemblyFileEntries)
+            throws IOException {
 
         if (!hasAssemblyConfiguration(assemblyConfig)) {
             return;
@@ -288,15 +282,15 @@ public class DockerAssemblyManager {
         AssemblyMode buildMode = assemblyConfig.getMode();
         try {
             assemblyFileEntries.stream().filter(afe -> StringUtils.isNotBlank(afe.getPermission()))
-                .forEach(jkubeTarArchiver::setFilePermissions);
+                    .forEach(jkubeTarArchiver::setFilePermissions);
             jkubeTarArchiver.createArchive(source.getOutputDirectory(), buildDirs, compression);
         } catch (IOException e) {
             String error = "Failed to create assembly for docker image " +
-                           " (with mode '" + buildMode + "'): " + e.getMessage() + ".";
+                    " (with mode '" + buildMode + "'): " + e.getMessage() + ".";
             if (params.getProject().getArtifact() == null) {
                 error += " If you include the build artifact please ensure that you have " +
-                         "built the artifact before with 'mvn package' (should be available in the target/ dir). " +
-                         "Please see the documentation (section \"Assembly\") for more information.";
+                        "built the artifact before with 'mvn package' (should be available in the target/ dir). " +
+                        "Please see the documentation (section \"Assembly\") for more information.";
             }
             throw new IOException(error, e);
         }
@@ -332,7 +326,7 @@ public class DockerAssemblyManager {
     }
 
     private List<AssemblyFileEntry> copyFilesToFinalTarballDirectory(
-        JavaProject project, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration) throws IOException {
+            JavaProject project, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration) throws IOException {
 
         final List<AssemblyFileEntry> files = new ArrayList<>();
         FileUtil.createDirectory(new File(buildDirs.getOutputDirectory(), assemblyConfiguration.getTargetDir()));
@@ -346,8 +340,8 @@ public class DockerAssemblyManager {
     }
 
     private AssemblyFileEntry processJKubeProjectAssemblyFile(
-        JavaProject project, AssemblyFile assemblyFile, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration)
-      throws IOException {
+            JavaProject project, AssemblyFile assemblyFile, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration)
+            throws IOException {
 
         final File sourceFile = resolveSourceFile(project.getBaseDirectory(), assemblyFile);
 
@@ -369,15 +363,15 @@ public class DockerAssemblyManager {
 
     private static boolean hasAssemblyConfiguration(AssemblyConfiguration assemblyConfig) {
         return assemblyConfig != null &&
-          (assemblyConfig.getInline() != null ||
-            assemblyConfig.getDescriptor() != null ||
-            assemblyConfig.getDescriptorRef() != null);
+                (assemblyConfig.getInline() != null ||
+                        assemblyConfig.getDescriptor() != null ||
+                        assemblyConfig.getDescriptorRef() != null);
     }
 
     private static boolean isArchive(AssemblyConfiguration assemblyConfig) {
         return hasAssemblyConfiguration(assemblyConfig) &&
-          assemblyConfig.getMode() != null &&
-          assemblyConfig.getMode().isArchive();
+                assemblyConfig.getMode() != null &&
+                assemblyConfig.getMode().isArchive();
     }
 
     private void createDockerTarArchiveForDockerFile(BuildConfiguration buildConfig, AssemblyConfiguration assemblyConfig, JKubeConfiguration params, BuildDirs buildDirs, KitLogger log, List<ArchiverCustomizer> archiveCustomizers) throws IOException {
@@ -418,8 +412,8 @@ public class DockerAssemblyManager {
 
     @Nonnull
     private static List<ArchiverCustomizer> getDefaultCustomizers(
-        BuildConfiguration buildConfiguration, JKubeConfiguration configuration,
-        AssemblyConfiguration assemblyConfiguration, ArchiverCustomizer finalCustomizer, List<AssemblyFileEntry> fileEntries) {
+            BuildConfiguration buildConfiguration, JKubeConfiguration configuration,
+            AssemblyConfiguration assemblyConfiguration, ArchiverCustomizer finalCustomizer, List<AssemblyFileEntry> fileEntries) {
         final List<ArchiverCustomizer> archiverCustomizers = new ArrayList<>();
         if (!assemblyConfiguration.isExcludeFinalOutputArtifact()) {
             archiverCustomizers.add(finalOutputArtifactCustomizer(configuration, assemblyConfiguration));
@@ -434,7 +428,7 @@ public class DockerAssemblyManager {
 
     @Nonnull
     private static AssemblyConfiguration getAssemblyConfigurationForDockerfileMode(
-        BuildConfiguration buildConfiguration, JKubeConfiguration params) {
+            BuildConfiguration buildConfiguration, JKubeConfiguration params) {
 
         AssemblyConfiguration assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
         final AssemblyConfiguration.AssemblyConfigurationBuilder builder = assemblyConfig.toBuilder();
@@ -452,7 +446,7 @@ public class DockerAssemblyManager {
 
     @Nonnull
     private static ArchiverCustomizer finalOutputArtifactCustomizer(
-        @Nonnull JKubeConfiguration configuration, @Nonnull AssemblyConfiguration assemblyConfiguration) {
+            @Nonnull JKubeConfiguration configuration, @Nonnull AssemblyConfiguration assemblyConfiguration) {
 
         return ac -> {
             File finalArtifactFile = JKubeProjectUtil.getFinalOutputArtifact(configuration.getProject());
@@ -467,7 +461,7 @@ public class DockerAssemblyManager {
     private static ArchiverCustomizer filePermissionCustomizer(@Nonnull List<AssemblyFileEntry> fileEntries) {
         return ac -> {
             fileEntries.stream().filter(afe -> StringUtils.isNotBlank(afe.getPermission()))
-                .forEach(ac::setFilePermissions);
+                    .forEach(ac::setFilePermissions);
             return ac;
         };
     }

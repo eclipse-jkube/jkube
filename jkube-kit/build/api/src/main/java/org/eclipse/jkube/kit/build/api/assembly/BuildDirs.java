@@ -11,11 +11,11 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.core.assembly;
+package org.eclipse.jkube.kit.build.api.assembly;
 
 
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 
 import java.io.File;
 
@@ -25,7 +25,7 @@ import java.io.File;
  *
  * @author roland
  */
-class BuildDirs {
+public class BuildDirs {
 
     private final String buildTopDir;
     private final JKubeConfiguration params;
@@ -36,22 +36,22 @@ class BuildDirs {
      * @param imageName image name for the image to build
      * @param params mojo params holding base and global output dir
      */
-    BuildDirs(String imageName, JKubeConfiguration params) {
+    public BuildDirs(String imageName, JKubeConfiguration params) {
         this.params = params;
         // Replace tag separator with a slash to avoid problems
         // with OSs which gets confused by colons.
         this.buildTopDir = imageName != null ? imageName.replace(':', '/') : null;
     }
 
-    File getOutputDirectory() {
+    public File getOutputDirectory() {
         return getDir("build");
     }
 
-    File getWorkingDirectory() {
+    public File getWorkingDirectory() {
         return getDir("work");
     }
 
-    File getTemporaryRootDirectory() {
+    public File getTemporaryRootDirectory() {
         return getDir("tmp");
     }
 

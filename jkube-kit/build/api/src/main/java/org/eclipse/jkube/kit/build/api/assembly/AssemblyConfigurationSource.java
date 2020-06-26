@@ -11,26 +11,26 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.core.assembly;
+package org.eclipse.jkube.kit.build.api.assembly;
 
 import java.io.File;
 import java.util.List;
 
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 
 /**
  * @author roland
  * @since 07.05.14
  */
-public class DockerAssemblyConfigurationSource {
+public class AssemblyConfigurationSource {
 
     private final AssemblyConfiguration assemblyConfig;
     private final JKubeConfiguration context;
     private final BuildDirs buildDirs;
 
-    public DockerAssemblyConfigurationSource(
+    public AssemblyConfigurationSource(
         JKubeConfiguration context, BuildDirs buildDirs, AssemblyConfiguration assemblyConfig) {
 
         this.context = context;

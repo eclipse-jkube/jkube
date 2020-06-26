@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.config;
+package org.eclipse.jkube.kit.config.image;
 
 /**
  * How to watch for image changes
@@ -23,27 +23,27 @@ public enum WatchMode {
     /**
      * Copy watched artifacts into container
      */
-    copy(false, false, true, "build"),
+    COPY(false, false, true, "build"),
 
     /**
      * Build only images
      */
-    build(true, false, false, "build"),
+    BUILD(true, false, false, "build"),
 
     /**
      * Run images
      */
-    run(false, true, false, "run"),
+    RUN(false, true, false, "run"),
 
     /**
      * Build and run images
      */
-    both(true, true, false, "build and run"),
+    BOTH(true, true, false, "build and run"),
 
     /**
      * Neither build nor run
      */
-    none(false, false, false, "no build and no run");
+    NONE(false, false, false, "no build and no run");
 
     private final boolean doRun;
     private final boolean doBuild;

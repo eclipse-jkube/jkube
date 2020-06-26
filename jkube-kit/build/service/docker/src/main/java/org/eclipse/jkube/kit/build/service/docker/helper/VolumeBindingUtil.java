@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
 
-import org.eclipse.jkube.kit.build.service.docker.config.RunVolumeConfiguration;
+import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
 
 import java.io.File;
 import java.io.IOException;

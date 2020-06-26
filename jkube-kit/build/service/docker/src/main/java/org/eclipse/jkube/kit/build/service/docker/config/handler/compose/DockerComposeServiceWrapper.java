@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.compose;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.LogConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
-import org.eclipse.jkube.kit.build.service.docker.config.RestartPolicy;
-import org.eclipse.jkube.kit.build.service.docker.config.RunVolumeConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.UlimitConfig;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.LogConfiguration;
+import org.eclipse.jkube.kit.config.image.NetworkConfig;
+import org.eclipse.jkube.kit.config.image.RestartPolicy;
+import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
+import org.eclipse.jkube.kit.config.image.UlimitConfig;
 import org.eclipse.jkube.kit.build.service.docker.helper.VolumeBindingUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 
@@ -196,14 +196,14 @@ class DockerComposeServiceWrapper {
             if (toJoin.size() > 1) {
                 throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
             }
-            return NetworkConfig.builder().mode(NetworkConfig.Mode.custom).name(toJoin.get(0)).build();
+            return NetworkConfig.builder().mode(NetworkConfig.Mode.CUSTOM).name(toJoin.get(0)).build();
         } else if (networks instanceof Map) {
             Map<String,Object> toJoin = (Map<String, Object>) networks;
             if (toJoin.size() > 1) {
                 throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
             }
             String custom = toJoin.keySet().iterator().next();
-            NetworkConfig ret = NetworkConfig.builder().mode(NetworkConfig.Mode.custom).name(custom).build();
+            NetworkConfig ret = NetworkConfig.builder().mode(NetworkConfig.Mode.CUSTOM).name(custom).build();
             Object aliases = toJoin.get(custom);
             if (aliases != null) {
                 if (aliases instanceof List) {
