@@ -11,14 +11,14 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.core.assembly;
+package org.eclipse.jkube.kit.build.api.assembly;
 
 import java.io.File;
 import java.util.Arrays;
 
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-public class DockerAssemblyConfigurationSourceTest {
+public class AssemblyConfigurationSourceTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -74,7 +74,7 @@ public class DockerAssemblyConfigurationSourceTest {
     public void testOutputDirHasImage() {
         String image = "image";
         JKubeConfiguration context = buildBuildContext("src/docker", "output/docker");
-        DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(context,
+        AssemblyConfigurationSource source = new AssemblyConfigurationSource(context,
                 new BuildDirs(image, context), assemblyConfig);
 
         assertTrue(containsDir(image, source.getOutputDirectory()));
@@ -96,13 +96,13 @@ public class DockerAssemblyConfigurationSourceTest {
                 .sourceDirectory("/src/docker")
                 .outputDirectory("/output/docker")
                 .build();
-        DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(buildContext,null,null);
+        AssemblyConfigurationSource source = new AssemblyConfigurationSource(buildContext,null,null);
         assertEquals(0,source.getDescriptors().length);
     }
 
     private void testCreateSource(JKubeConfiguration context) {
-        DockerAssemblyConfigurationSource source =
-                new DockerAssemblyConfigurationSource(context, new BuildDirs("image", context), assemblyConfig);
+        AssemblyConfigurationSource source =
+                new AssemblyConfigurationSource(context, new BuildDirs("image", context), assemblyConfig);
 
         String[] descriptors = source.getDescriptors();
         String[] descriptorRefs = source.getDescriptorReferences();
@@ -143,7 +143,7 @@ public class DockerAssemblyConfigurationSourceTest {
                 .outputDirectory("/output/docker")
                 .reactorProjects(Arrays.asList(project1, project2))
                 .build();
-        DockerAssemblyConfigurationSource source = new DockerAssemblyConfigurationSource(buildContext,null,null);
+        AssemblyConfigurationSource source = new AssemblyConfigurationSource(buildContext,null,null);
         assertEquals(2, source.getReactorProjects().size());
     }
 }

@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.core.assembly;
+package org.eclipse.jkube.kit.build.api.assembly;
 
 import java.io.File;
 import java.util.Arrays;
@@ -28,10 +28,10 @@ import mockit.Expectations;
 import mockit.Injectable;
 import org.junit.Test;
 
-import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
-import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
-import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSetsExcludes;
-import static org.eclipse.jkube.kit.build.core.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSetsExcludes;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

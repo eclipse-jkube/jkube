@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import com.google.common.base.Strings;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

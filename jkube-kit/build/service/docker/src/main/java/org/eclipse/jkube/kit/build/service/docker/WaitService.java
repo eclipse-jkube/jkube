@@ -25,7 +25,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.log.DefaultLogCallback;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpec;
-import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.wait.ExitCodeChecker;
 import org.eclipse.jkube.kit.build.service.docker.wait.HealthCheckChecker;
 import org.eclipse.jkube.kit.build.service.docker.wait.HttpPingChecker;
@@ -37,6 +37,7 @@ import org.eclipse.jkube.kit.build.service.docker.wait.WaitTimeoutException;
 import org.eclipse.jkube.kit.build.service.docker.wait.WaitUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.commons.text.StrSubstitutor;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * @author roland
@@ -170,7 +171,7 @@ public class WaitService {
         String host = getTcpHost(tcpConfig, projectProperties);
         WaitConfiguration.TcpConfigMode mode = getTcpMode(tcpConfig, host);
 
-        if (mode == WaitConfiguration.TcpConfigMode.mapped) {
+        if (mode == WaitConfiguration.TcpConfigMode.MAPPED) {
             for (int port : portsConfigured) {
                 Container.PortBinding binding = container.getPortBindings().get(port + "/tcp");
                 if (binding == null) {
@@ -208,7 +209,7 @@ public class WaitService {
     private WaitConfiguration.TcpConfigMode getTcpMode(WaitConfiguration.TcpConfiguration tcpConfig, String host) {
         WaitConfiguration.TcpConfigMode mode = tcpConfig.getMode();
         if (mode == null) {
-            return "localhost".equals(host) ? WaitConfiguration.TcpConfigMode.direct : WaitConfiguration.TcpConfigMode.mapped;
+            return "localhost".equals(host) ? WaitConfiguration.TcpConfigMode.DIRECT : WaitConfiguration.TcpConfigMode.MAPPED;
         } else {
             return mode;
         }

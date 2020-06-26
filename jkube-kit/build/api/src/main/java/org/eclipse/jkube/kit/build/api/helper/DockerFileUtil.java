@@ -11,12 +11,12 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.helper;
+package org.eclipse.jkube.kit.build.api.helper;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.yaml.snakeyaml.Yaml;
 
@@ -143,7 +143,7 @@ public class DockerFileUtil {
         if (filter == null ||
                 filter.equalsIgnoreCase("false") ||
                 filter.equalsIgnoreCase("none")) {
-            return null;
+            return new String[0];
         }
         if (filter.contains("*")) {
             Matcher matcher = Pattern.compile("^(?<start>[^*]+)\\*(?<end>.*)$").matcher(filter);

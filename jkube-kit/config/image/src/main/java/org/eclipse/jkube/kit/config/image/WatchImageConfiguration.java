@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.config;
+package org.eclipse.jkube.kit.config.image;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

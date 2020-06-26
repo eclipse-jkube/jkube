@@ -14,7 +14,7 @@
 package org.eclipse.jkube.springboot.generator;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.common.JavaProject;

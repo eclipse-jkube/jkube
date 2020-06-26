@@ -11,14 +11,13 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.config;
+package org.eclipse.jkube.kit.config.image;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.nullness.Opt;
 
 import java.io.Serializable;
 import java.util.List;
@@ -120,9 +119,9 @@ public class WaitConfiguration implements Serializable {
 
   public enum TcpConfigMode {
     // Use mapped ports
-    mapped,
+    MAPPED,
     // Use ports directly on the container
-    direct,
+    DIRECT,
   }
 
   @AllArgsConstructor
