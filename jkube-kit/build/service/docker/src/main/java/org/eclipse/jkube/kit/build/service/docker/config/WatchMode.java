@@ -21,7 +21,7 @@ package org.eclipse.jkube.kit.build.service.docker.config;
 public enum WatchMode {
 
     /**
-     * Copy watched artefacts into contaienr
+     * Copy watched artifacts into container
      */
     copy(false, false, true, "build"),
 

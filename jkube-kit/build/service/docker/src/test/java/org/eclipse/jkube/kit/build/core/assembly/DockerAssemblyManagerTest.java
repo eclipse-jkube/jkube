@@ -18,8 +18,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -41,18 +46,28 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class DockerAssemblyManagerTest {
 
-    @Mocked
-    private PrefixedLogger prefixedLogger;
-
     @Tested
     private DockerAssemblyManager assemblyManager;
 
+    @Mocked
+    private PrefixedLogger prefixedLogger;
+
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Test
+    public void testGetInstanceShouldBeSingleton() {
+        // When
+        final DockerAssemblyManager dam1 = DockerAssemblyManager.getInstance();
+        final DockerAssemblyManager dam2 = DockerAssemblyManager.getInstance();
+        // Then
+        assertSame(dam1, dam2);
+    }
 
     @Test
     public void testNoAssembly() {
@@ -67,27 +82,50 @@ public class DockerAssemblyManagerTest {
     }
 
     @Test
-    public void assemblyFiles(@Injectable final JKubeConfiguration mojoParams, @Injectable final JavaProject project)
+    public void assemblyFiles(@Injectable final JKubeConfiguration configuration, @Injectable final JavaProject project)
         throws Exception {
 
+        // Given
         final File baseDirectory = temporaryFolder.newFolder("buildDirs");
         final File targetDir = new File(baseDirectory, "target");
         assertTrue(targetDir.mkdirs());
         new Expectations() {{
-            mojoParams.getProject();
+            configuration.getProject();
             result = project;
 
             project.getBaseDirectory();
             result = baseDirectory;
-            project.getBuildDirectory();
-            result = targetDir;
         }};
-
-        BuildConfiguration buildConfig = createBuildConfig();
-
-        AssemblyFiles assemblyFiles = assemblyManager.getAssemblyFiles("testImage", buildConfig, mojoParams);
+        ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+            .name("testImage").build(createBuildConfig())
+            .build();
+        // When
+        AssemblyFiles assemblyFiles = assemblyManager.getAssemblyFiles(imageConfiguration, configuration);
+        // Then
         assertNotNull(assemblyFiles);
         assertEquals(baseDirectory.toPath().resolve("testImage").resolve("build").toFile(), assemblyFiles.getAssemblyDirectory());
+        assertTrue(assemblyFiles.getUpdatedEntriesAndRefresh().isEmpty());
+    }
+
+    @Test
+    public void testCreateChangedFilesArchive() throws IOException {
+        // Given
+        final List<AssemblyFileEntry> entries = new ArrayList<>();
+        final File assemblyDirectory = temporaryFolder.getRoot().toPath().resolve("target").resolve("docker").toFile();
+        final JKubeConfiguration jc = createNoDockerfileConfiguration();
+        entries.add(AssemblyFileEntry.builder()
+            .source(temporaryFolder.getRoot().toPath().resolve("target").resolve("test-0.1.0.jar").toFile())
+            .dest(temporaryFolder.getRoot().toPath().resolve("target").resolve("docker").resolve("test-0.1.0.jar").toFile())
+            .permission("0655")
+            .build());
+        // When
+        final File result = assemblyManager.createChangedFilesArchive(entries, assemblyDirectory, "image-name", jc);
+        // Then
+        assertNotNull(result);
+        assertTrue(result.exists());
+        assertTrue(result.isFile());
+        assertEquals("changed-files.tar", result.getName());
+        assertEquals(1536, result.length());
     }
 
     @Test
@@ -151,10 +189,8 @@ public class DockerAssemblyManagerTest {
         JavaProject project = JavaProject.builder()
                 .artifact(temporaryFolder.newFile("temp-project-0.0.1.jar"))
                 .build();
-
         // When
         File artifactFile = assemblyManager.ensureThatArtifactFileIsSet(project);
-
         // Then
         assertNotNull(artifactFile);
         assertEquals("temp-project-0.0.1.jar", artifactFile.getName());
@@ -171,10 +207,8 @@ public class DockerAssemblyManagerTest {
                 .packaging("jar")
                 .buildFinalName("foo-project-0.0.1")
                 .build();
-
         // When
         File artifactFile = assemblyManager.ensureThatArtifactFileIsSet(project);
-
         // Then
         assertNotNull(artifactFile);
         assertTrue(artifactFile.exists());
@@ -185,10 +219,8 @@ public class DockerAssemblyManagerTest {
     public void testEnsureThatArtifactFileIsSetWithEverythingNull() throws IOException {
         // Given
         JavaProject project = JavaProject.builder().build();
-
         // When
         File artifactFile = assemblyManager.ensureThatArtifactFileIsSet(project);
-
         // Then
         assertNull(artifactFile);
     }
@@ -196,23 +228,7 @@ public class DockerAssemblyManagerTest {
     @Test
     public void testCreateDockerTarArchiveWithoutDockerfile() throws IOException {
         // Given
-        File targetFolder = temporaryFolder.newFolder("target");
-        File finalArtifactFile = new File(targetFolder, "test-0.1.0.jar");
-        assertTrue(finalArtifactFile.createNewFile());
-        File outputDirectory = new File(targetFolder, "docker");
-
-        final JKubeConfiguration jKubeBuildContext = JKubeConfiguration.builder()
-                .project(JavaProject.builder()
-                        .groupId("org.eclipse.jkube")
-                        .artifactId("test")
-                        .packaging("jar")
-                        .version("0.1.0")
-                        .buildDirectory(targetFolder)
-                        .artifact(finalArtifactFile)
-                  .build())
-                .outputDirectory(outputDirectory.getAbsolutePath())
-                .sourceDirectory(temporaryFolder.getRoot().getAbsolutePath() + "/src/main/docker")
-                .build();
+        final JKubeConfiguration jKubeBuildContext = createNoDockerfileConfiguration();
         final BuildConfiguration jKubeBuildConfiguration = BuildConfiguration.builder().build();
 
         // When
@@ -222,6 +238,7 @@ public class DockerAssemblyManagerTest {
         assertNotNull(dockerArchiveFile);
         assertTrue(dockerArchiveFile.exists());
         assertEquals(3072, dockerArchiveFile.length());
+        final File outputDirectory = temporaryFolder.getRoot().toPath().resolve("target").resolve("docker").toFile();
         assertTrue(outputDirectory.isDirectory() && outputDirectory.exists());
         File buildOutputDir = new File(outputDirectory, "test-image");
         assertTrue(buildOutputDir.isDirectory() && buildOutputDir.exists());
@@ -235,7 +252,61 @@ public class DockerAssemblyManagerTest {
         File assemblyNameDirInBuild = new File(buildDir, "maven");
         assertTrue(assemblyNameDirInBuild.isDirectory() && assemblyNameDirInBuild.exists());
         assertTrue(new File(assemblyNameDirInBuild, "test-0.1.0.jar").exists());
+    }
 
+    @Test
+    public void testCreateDockerTarArchiveWithoutDockerfileAndFinalCustomizer() throws IOException {
+        // Given
+        final JKubeConfiguration jKubeBuildContext = createNoDockerfileConfiguration();
+        final BuildConfiguration jKubeBuildConfiguration = BuildConfiguration.builder().build();
+        final AtomicBoolean customized = new AtomicBoolean(false);
+        final ArchiverCustomizer finalCustomizer = ac -> {
+            customized.set(true);
+            return ac;
+        };
+
+        // When
+        File dockerArchiveFile = assemblyManager.createDockerTarArchive(
+            "test-image", jKubeBuildContext, jKubeBuildConfiguration, prefixedLogger, finalCustomizer);
+
+        // Then
+        assertNotNull(dockerArchiveFile);
+        assertTrue(dockerArchiveFile.exists());
+        assertEquals(3072, dockerArchiveFile.length());
+        final File outputDirectory = temporaryFolder.getRoot().toPath().resolve("target").resolve("docker").toFile();
+        assertTrue(outputDirectory.isDirectory() && outputDirectory.exists());
+        File buildOutputDir = new File(outputDirectory, "test-image");
+        assertTrue(buildOutputDir.isDirectory() && buildOutputDir.exists());
+        File buildDir = new File(buildOutputDir, "build");
+        File workDir = new File(buildOutputDir, "work");
+        File tmpDir = new File(buildOutputDir, "tmp");
+        assertTrue(buildDir.isDirectory() && buildDir.exists());
+        assertTrue(workDir.isDirectory() && workDir.exists());
+        assertTrue(tmpDir.isDirectory() && tmpDir.exists());
+        assertTrue(new File(buildDir, "Dockerfile").exists());
+        File assemblyNameDirInBuild = new File(buildDir, "maven");
+        assertTrue(assemblyNameDirInBuild.isDirectory() && assemblyNameDirInBuild.exists());
+        assertTrue(new File(assemblyNameDirInBuild, "test-0.1.0.jar").exists());
+        assertTrue(customized.get());
+    }
+
+    private JKubeConfiguration createNoDockerfileConfiguration() throws IOException {
+        File targetFolder = temporaryFolder.newFolder("target");
+        File finalArtifactFile = new File(targetFolder, "test-0.1.0.jar");
+        assertTrue(finalArtifactFile.createNewFile());
+        File outputDirectory = new File(targetFolder, "docker");
+        return JKubeConfiguration.builder()
+            .project(JavaProject.builder()
+                .groupId("org.eclipse.jkube")
+                .artifactId("test")
+                .packaging("jar")
+                .version("0.1.0")
+                .buildDirectory(targetFolder)
+                .artifact(finalArtifactFile)
+                .build())
+            .outputDirectory(outputDirectory.getAbsolutePath())
+            .sourceDirectory(temporaryFolder.getRoot().getAbsolutePath() + "/src/main/docker")
+            .build();
     }
 
     @Test
@@ -251,7 +322,6 @@ public class DockerAssemblyManagerTest {
         File finalArtifactFile = new File(targetDirectory, "test-0.1.0.jar");
         assertTrue(finalArtifactFile.createNewFile());
         File dockerDirectory = new File(targetDirectory, "docker");
-
 
         final JKubeConfiguration configuration = JKubeConfiguration.builder()
                 .project(JavaProject.builder()

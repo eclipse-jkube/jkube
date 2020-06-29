@@ -17,12 +17,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 
 import org.apache.commons.io.FileUtils;
@@ -151,9 +151,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .targetDir("deployments")
         .build();
     // When
-    final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(permissions.entrySet(), hasSize(4));
+    assertThat(result, hasSize(4));
     final File deployments = new File(outputDirectory, "deployments");
     assertThat(deployments.exists(), equalTo(true));
     assertThat(deployments.listFiles(), arrayWithSize(1));
@@ -181,9 +181,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .targetDir("deployments")
         .build();
     // When
-    final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(permissions.entrySet(), empty());
+    assertThat(result, empty());
     final File deployments = new File(outputDirectory, "deployments");
     assertThat(deployments.exists(), equalTo(false));
   }
@@ -207,9 +207,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .targetDir("deployments")
         .build();
     // When
-    final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(permissions.entrySet(), hasSize(4));
+    assertThat(result, hasSize(4));
     final File deployments = new File(outputDirectory, "deployments");
     assertThat(deployments.exists(), equalTo(true));
     assertThat(deployments.listFiles(), arrayWithSize(6));
@@ -236,9 +236,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .targetDir("/deployments")
         .build();
     // When
-    final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(permissions.entrySet(), hasSize(4));
+    assertThat(result, hasSize(4));
     assertThat(new File(outputDirectory, "deployments").exists(), equalTo(false));
     assertThat(absoluteOutputDirectory.listFiles(), arrayWithSize(6));
     assertThat(absoluteOutputDirectory.list(), arrayContainingInAnyOrder("one", "two", "three", "1.txt", "3.other", "37"));
@@ -263,9 +263,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .targetDir("/deployments/")
         .build();
     // When
-    final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(permissions.entrySet(), hasSize(4));
+    assertThat(result, hasSize(4));
     final File deployments = new File(outputDirectory, "deployments");
     assertThat(deployments.exists(), equalTo(true));
     assertThat(deployments.listFiles(), arrayWithSize(1));
@@ -296,9 +296,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .targetDir("/deployments")
         .build();
     // When
-    final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(permissions.entrySet(), hasSize(1));
+    assertThat(result, hasSize(1));
     final File deployments = new File(outputDirectory, "deployments");
     assertThat(deployments.exists(), equalTo(true));
     assertThat(deployments.listFiles(), arrayWithSize(1));
@@ -331,9 +331,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .targetDir("maven")
         .build();
     // When
-    final Map<File, String> permissions = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(permissions.entrySet(), hasSize(1));
+    assertThat(result, hasSize(1));
     final File maven = new File(outputDirectory, "maven");
     assertThat(maven.exists(), equalTo(true));
     assertThat(maven.listFiles(), arrayWithSize(1));

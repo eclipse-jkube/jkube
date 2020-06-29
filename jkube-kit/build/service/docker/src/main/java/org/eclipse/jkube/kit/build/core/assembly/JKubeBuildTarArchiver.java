@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.util.FileUtil;
@@ -27,6 +28,7 @@ import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.apache.commons.io.FileUtils;
 
 public class JKubeBuildTarArchiver {
+
     private Map<File, String> filesToIncludeNameMap = new HashMap<>();
     private Map<File, String> fileToPermissionsMap = new HashMap<>();
     private List<String> filesNamesToExclude = new ArrayList<>();
@@ -35,20 +37,12 @@ public class JKubeBuildTarArchiver {
         filesToIncludeNameMap.put(inputFile, destinationFileName);
     }
 
-    public void setFilePermissions(File file, String permissions) {
-        fileToPermissionsMap.put(file, permissions);
+    public void setFilePermissions(AssemblyFileEntry assemblyFileEntry) {
+        fileToPermissionsMap.put(assemblyFileEntry.getDest(), assemblyFileEntry.getPermission());
     }
 
     public void excludeFile(String inputFilePath) {
         filesNamesToExclude.add(inputFilePath);
-    }
-
-    public Map<File, String> getFilesToIncludeNameMap() {
-        return filesToIncludeNameMap;
-    }
-
-    public List<String> getFilesNamesToExcludeName() {
-        return filesNamesToExclude;
     }
 
     public File createArchive(File inputDirectory, BuildDirs buildDirs, ArchiveCompression compression) throws IOException {

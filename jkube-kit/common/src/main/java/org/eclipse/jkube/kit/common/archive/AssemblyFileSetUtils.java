@@ -15,15 +15,15 @@ package org.eclipse.jkube.kit.common.archive;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -34,21 +34,22 @@ public class AssemblyFileSetUtils {
 
   private AssemblyFileSetUtils() {}
 
-  public static Map<File, String> calculateFilePermissions(File destFile, AssemblyFileSet assemblyFileSet) {
-    final Map<File, String> ret = new HashMap<>();
-    if (destFile.isDirectory()) {
+  public static List<AssemblyFileEntry> calculateFilePermissions(File source, File dest, AssemblyFileSet assemblyFileSet) {
+    final List<AssemblyFileEntry> ret = new ArrayList<>();
+    if (dest.isDirectory()) {
       final String directoryMode = Optional.ofNullable(assemblyFileSet.getDirectoryMode())
           .orElse(DIRECTORY_CAN_LIST_PERMISSION);
-      ret.put(destFile, directoryMode);
-      FileUtil.listFilesAndDirsRecursivelyInDirectory(destFile).forEach(f -> {
+      ret.add(new AssemblyFileEntry(source, dest, directoryMode));
+      FileUtil.listFilesAndDirsRecursivelyInDirectory(dest).forEach(f -> {
+        final File s = source.toPath().resolve(dest.toPath().relativize(f.toPath())).toFile();
         if (f.isDirectory()) {
-          ret.put(f, directoryMode);
+          ret.add(new AssemblyFileEntry(s, f, directoryMode));
         } else if(f.isFile() && assemblyFileSet.getFileMode() != null) {
-          ret.put(f, assemblyFileSet.getFileMode());
+          ret.add(new AssemblyFileEntry(s, f, assemblyFileSet.getFileMode()));
         }
       });
-    } else if (destFile.isFile() && assemblyFileSet.getFileMode() != null) {
-      ret.put(destFile, assemblyFileSet.getFileMode());
+    } else if (dest.isFile() && assemblyFileSet.getFileMode() != null) {
+      ret.add(new AssemblyFileEntry(source, dest, assemblyFileSet.getFileMode()));
     }
     return ret;
   }
@@ -68,11 +69,10 @@ public class AssemblyFileSetUtils {
    *
    * @see <a href="https://books.sonatype.com/mvnref-book/reference/assemblies-sect-controlling-contents.html">Maven Assemblies</a> (Spec <b>partially</b> compliant)
    */
-  public static Map<File, String> processAssemblyFileSet(
+  public static List<AssemblyFileEntry> processAssemblyFileSet(
       File baseDirectory, File outputDirectory, AssemblyFileSet assemblyFileSet,
       AssemblyConfiguration assemblyConfiguration) throws IOException {
 
-    final Map<File, String> fileToPermissionsMap = new HashMap<>();
     final File sourceDirectory = resolveSourceDirectory(baseDirectory, assemblyFileSet);
     final File targetDirectory = new File(outputDirectory, Objects.requireNonNull(
         assemblyConfiguration.getTargetDir(), "Assembly Configuration target dir is required"));
@@ -89,17 +89,18 @@ public class AssemblyFileSetUtils {
     final List<String> includes = Optional.ofNullable(assemblyFileSet.getIncludes())
         .filter(i -> !i.isEmpty())
         .orElse(Collections.singletonList(PATH_TO_SELF));
+    final List<AssemblyFileEntry> entries = new ArrayList<>();
     for (String include : includes) {
       if (isSelfPath(include)) {
-        fileToPermissionsMap.putAll(copy(sourceDirectory, destinationDirectory, assemblyFileSet));
+        entries.addAll(copy(sourceDirectory, destinationDirectory, assemblyFileSet));
       } else {
         final File sourceFile = new File(sourceDirectory, include);
         final File destFile = destinationDirectory.toPath().resolve(sourceDirectory.toPath().relativize(sourceFile.toPath())).toFile();
         FileUtil.createDirectory(destFile.getParentFile());
-        fileToPermissionsMap.putAll(copy(sourceFile, destFile, assemblyFileSet));
+        entries.addAll(copy(sourceFile, destFile, assemblyFileSet));
       }
     }
-    return fileToPermissionsMap;
+    return entries;
   }
 
   static File resolveSourceDirectory(File baseDirectory, AssemblyFileSet assemblyFileSet) {
@@ -116,15 +117,15 @@ public class AssemblyFileSetUtils {
     return StringUtils.isBlank(path) || path.equals(PATH_TO_SELF);
   }
 
-  private static  Map<File, String> copy(File source, File target, AssemblyFileSet assemblyFileSet) throws IOException {
+  private static List<AssemblyFileEntry> copy(File source, File target, AssemblyFileSet assemblyFileSet) throws IOException {
     if (source.exists()) {
       if (source.isDirectory()) {
         FileUtil.copyDirectoryIfNotExists(source, target);
       } else {
         FileUtil.copy(source, target);
       }
-      return calculateFilePermissions(target, assemblyFileSet);
+      return calculateFilePermissions(source, target, assemblyFileSet);
     }
-    return Collections.emptyMap();
+    return Collections.emptyList();
   }
 }

@@ -64,7 +64,7 @@ public class DockerImageWatcher extends BaseWatcher {
                 .imageCustomizer(this::buildImage).containerRestarter(imageWatcher -> restartContainer(imageWatcher, resources))
                 .build();
 
-        ServiceHub hub = getContext().getServiceHub();
+        ServiceHub hub = getContext().getJKubeServiceHub().getDockerServiceHub();
         try {
             hub.getWatchService().watch(watchContext, getContext().getBuildContext(), configs);
         } catch (Exception ex) {
@@ -78,7 +78,7 @@ public class DockerImageWatcher extends BaseWatcher {
         try {
             String imagePrefix = getImagePrefix(imageName);
             imageName = imagePrefix + "%t";
-            ImageNameFormatter formatter = new ImageNameFormatter(getContext().getProject(), new Date());
+            ImageNameFormatter formatter = new ImageNameFormatter(getContext().getBuildContext().getProject(), new Date());
             imageName = formatter.format(imageName);
             imageConfig.setName(imageName);
             log.info("New image name: " + imageConfig.getName());
@@ -101,7 +101,7 @@ public class DockerImageWatcher extends BaseWatcher {
     protected void restartContainer(WatchService.ImageWatcher watcher, Set<HasMetadata> resources) {
         ImageConfiguration imageConfig = watcher.getImageConfiguration();
         String imageName = imageConfig.getName();
-        ClusterAccess clusterAccess = new ClusterAccess(log, getContext().getClusterConfiguration());
+        ClusterAccess clusterAccess = getContext().getJKubeServiceHub().getClusterAccess();
         try (KubernetesClient client = clusterAccess.createDefaultClient()) {
 
             String namespace = clusterAccess.getNamespace();

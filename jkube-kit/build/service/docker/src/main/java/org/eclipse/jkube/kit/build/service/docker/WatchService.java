@@ -33,6 +33,7 @@ import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
@@ -87,7 +88,7 @@ public class WatchService {
                 long interval = watcher.getInterval();
 
                 WatchMode watchMode = watcher.getWatchMode(imageConfig);
-                log.info("Watching " + imageConfig.getName() + (watchMode != null ? " using " + watchMode.getDescription() : ""));
+                log.info("Watching %s %s", imageConfig.getName(), (watchMode != null ? " using " + watchMode.getDescription() : ""));
 
                 ArrayList<String> tasks = new ArrayList<>();
 
@@ -134,20 +135,20 @@ public class WatchService {
     }
 
     private Runnable createCopyWatchTask(final ImageWatcher watcher,
-                                         final JKubeConfiguration mojoParameters, final String containerBaseDir) throws IOException {
+                                         final JKubeConfiguration jKubeConfiguration, final String containerBaseDir) throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
 
-        final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, mojoParameters);
+        final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, jKubeConfiguration);
         return new Runnable() {
             @Override
             public void run() {
-                List<AssemblyFiles.Entry> entries = files.getUpdatedEntriesAndRefresh();
-                if (entries != null && entries.size() > 0) {
+                List<AssemblyFileEntry> entries = files.getUpdatedEntriesAndRefresh();
+                if (!entries.isEmpty()) {
                     try {
                         log.info("%s: Assembly changed. Copying changed files to container ...", imageConfig.getDescription());
 
                         File changedFilesArchive = archiveService.createChangedFilesArchive(entries, files.getAssemblyDirectory(),
-                                imageConfig.getName(), mojoParameters);
+                                imageConfig.getName(), jKubeConfiguration);
                         dockerAccess.copyArchive(watcher.getContainerId(), changedFilesArchive, containerBaseDir);
                         callPostExec(watcher);
                     } catch (IOException | ExecException e) {
@@ -171,7 +172,7 @@ public class WatchService {
             throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, mojoParameters);
-        if (files != null && files.isEmpty()) {
+        if (files.isEmpty()) {
             log.error("No assembly files for %s. Are you sure you invoked together with the `package` goal?", imageConfig.getDescription());
             throw new IOException("No files to watch found for " + imageConfig);
         }
@@ -179,7 +180,7 @@ public class WatchService {
         return new Runnable() {
             @Override
             public void run() {
-                List<AssemblyFiles.Entry> entries = files.getUpdatedEntriesAndRefresh();
+                List<AssemblyFileEntry> entries = files.getUpdatedEntriesAndRefresh();
                 if (entries != null && !entries.isEmpty()) {
                     try {
                         log.info("%s: Assembly changed. Rebuild ...", imageConfig.getDescription());
