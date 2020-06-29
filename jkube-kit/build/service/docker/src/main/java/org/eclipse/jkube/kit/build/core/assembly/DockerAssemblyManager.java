@@ -117,9 +117,9 @@ public class DockerAssemblyManager {
         }
     }
 
-    private void interpolateDockerfile(File dockerFile, BuildDirs params, Properties properties) throws IOException {
+    private void interpolateDockerfile(File dockerFile, BuildDirs params, Properties properties, String filter) throws IOException {
         File targetDockerfile = new File(params.getOutputDirectory(), dockerFile.getName());
-        String dockerFileInterpolated = DockerFileUtil.interpolate(dockerFile, properties);
+        String dockerFileInterpolated = DockerFileUtil.interpolate(dockerFile, properties, filter);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(targetDockerfile))) {
             writer.write(dockerFileInterpolated);
         }
@@ -134,7 +134,7 @@ public class DockerAssemblyManager {
 
         String name = assemblyConfig.getName();
             for (String keyword : new String[] { "ADD", "COPY" }) {
-                List<String[]> lines = DockerFileUtil.extractLines(dockerFile, keyword, properties);
+                List<String[]> lines = DockerFileUtil.extractLines(dockerFile, keyword, properties, buildConfig.getFilter());
                 for (String[] line : lines) {
                     if (!line[0].startsWith("#")) {
                         // Skip command flags like --chown
@@ -389,7 +389,7 @@ public class DockerAssemblyManager {
         }
 
         verifyGivenDockerfile(dockerFile, buildConfig, params.getProperties(), log);
-        interpolateDockerfile(dockerFile, buildDirs, params.getProperties());
+        interpolateDockerfile(dockerFile, buildDirs, params.getProperties(), buildConfig.getFilter());
         // User dedicated Dockerfile from extra directory
         archiveCustomizers.add(archiver -> {
             // If the content is added as archive, then we need to add the Dockerfile from the builddir
