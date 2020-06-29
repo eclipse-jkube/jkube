@@ -30,6 +30,7 @@ Usage:
 * Fix #189: Removed `@Deprecated` fields from BuildConfiguration
 * Fix #195: Added MigrateMojo for migrating projects from FMP to JKube
 * Fix #261: DockerFileBuilder only supports *nix paths (Dockerfile Linux only), fixed invalid default configs
+* Fix #238: Watch uses same logic as build to monitor changed assembly files
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 

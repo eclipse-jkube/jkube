@@ -20,6 +20,8 @@ import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.Assembly;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +37,8 @@ class AssemblyConfigurationUtils {
 
   private AssemblyConfigurationUtils() {}
 
-  static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(BuildConfiguration buildConfiguration) {
+  @Nonnull
+  static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(@Nullable BuildConfiguration buildConfiguration) {
     final AssemblyConfiguration ac = Optional.ofNullable(buildConfiguration)
             .map(BuildConfiguration::getAssembly)
             .orElse(AssemblyConfiguration.builder().user(DEFAULT_USER).build());
@@ -53,14 +56,16 @@ class AssemblyConfigurationUtils {
     return builder.build();
   }
 
-  static List<AssemblyFileSet> getJKubeAssemblyFileSets(AssemblyConfiguration configuration) {
+  @Nonnull
+  static List<AssemblyFileSet> getJKubeAssemblyFileSets(@Nullable AssemblyConfiguration configuration) {
     return Optional.ofNullable(configuration)
             .map(AssemblyConfiguration::getInline)
             .map(Assembly::getFileSets)
             .orElse(Collections.emptyList());
   }
 
-  static List<String> getJKubeAssemblyFileSetsExcludes(AssemblyConfiguration assemblyConfiguration) {
+  @Nonnull
+  static List<String> getJKubeAssemblyFileSetsExcludes(@Nullable AssemblyConfiguration assemblyConfiguration) {
     return getJKubeAssemblyFileSets(assemblyConfiguration).stream()
             .filter(Objects::nonNull)
             .map(AssemblyFileSet::getExcludes)
@@ -70,6 +75,7 @@ class AssemblyConfigurationUtils {
             .collect(Collectors.toList());
   }
 
+  @Nonnull
   static List<AssemblyFile> getJKubeAssemblyFiles(AssemblyConfiguration configuration) {
     return Optional.ofNullable(configuration)
             .map(AssemblyConfiguration::getInline)

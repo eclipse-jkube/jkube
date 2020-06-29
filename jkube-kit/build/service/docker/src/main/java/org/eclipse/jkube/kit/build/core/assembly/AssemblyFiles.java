@@ -13,9 +13,12 @@
  */
 package org.eclipse.jkube.kit.build.core.assembly;
 
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Collection of assembly files which need to be monitored for checking when
@@ -26,7 +29,7 @@ import java.util.List;
 public class AssemblyFiles {
 
     private final File assemblyDirectory;
-    private List<Entry> entries = new ArrayList<>();
+    private List<AssemblyFileEntry> entries = new ArrayList<>();
 
     /**
      * Create a collection of assembly files
@@ -40,28 +43,21 @@ public class AssemblyFiles {
     /**
      * Add a entry to the list of assembly files which possible should be monitored
      *
-     * @param srcFile source file to monitor. The source file must exist.
-     * @param destFile the destination to which it is eventually copied. The destination file must be relative.
+     * @param assemblyFileEntry to monitor.
      */
-    public void addEntry(File srcFile, File destFile) {
-        entries.add(new Entry(srcFile, destFile));
+    public void addEntry(AssemblyFileEntry assemblyFileEntry) {
+        entries.add(assemblyFileEntry);
     }
 
     /**
      * Get the list of all updated entries i.e. all entries which have modification date
      * which is newer than the last time check. ATTENTION: As a side effect this method also
-     * updates the timestamp of entries.
+     * updates the timestamp of updated entries.
      *
      * @return list of all entries which has been updated since the last call to this method or an empty list
      */
-    public List<Entry> getUpdatedEntriesAndRefresh() {
-        List<Entry> ret = new ArrayList<>();
-        for (Entry entry : entries) {
-            if (entry.isUpdated()) {
-                ret.add(entry);
-            }
-        }
-        return ret;
+    public List<AssemblyFileEntry> getUpdatedEntriesAndRefresh() {
+        return entries.stream().filter(AssemblyFileEntry::isUpdated).collect(Collectors.toList());
     }
 
     /**
@@ -82,49 +78,4 @@ public class AssemblyFiles {
         return assemblyDirectory;
     }
 
-    // ===============================================================================
-    // Inner class remembering the modification date of a source file and its destination
-
-    public static class Entry {
-
-        private long lastModified;
-        private File srcFile;
-        private File destFile;
-
-        private Entry(File srcFile, File destFile) {
-            this.srcFile = srcFile;
-            this.destFile = destFile;
-            if (!srcFile.exists()) {
-                throw new IllegalArgumentException("Source " + srcFile + " does not exist");
-            }
-            if (!destFile.exists()) {
-                throw new IllegalArgumentException("Destination " + destFile + " does not exist");
-            }
-            if (srcFile.isDirectory()) {
-                throw new IllegalArgumentException("Can only watch files, not directories: " + srcFile);
-            }
-            this.lastModified = this.srcFile.lastModified();
-        }
-
-        public File getSrcFile() {
-            return srcFile;
-        }
-
-        /**
-         * @return destination file which is absolute (and withing AssemblyFiles.assemblyDirectory)
-         */
-        public File getDestFile() {
-            return destFile;
-        }
-
-        boolean isUpdated() {
-            if (srcFile.lastModified() > lastModified) {
-                // Update last modified as a side effect
-                lastModified = srcFile.lastModified();
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
 }

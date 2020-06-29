@@ -32,7 +32,7 @@ public abstract class BaseWatcher implements Watcher {
 
     public BaseWatcher(WatcherContext context, String name) {
         this.context = context;
-        this.config = new WatcherConfig(context.getProject().getProperties(), name, context.getConfig());
+        this.config = new WatcherConfig(context.getBuildContext().getProject().getProperties(), name, context.getConfig());
         this.name = name;
         this.log = new PrefixedLogger(name, context.getLogger());
     }

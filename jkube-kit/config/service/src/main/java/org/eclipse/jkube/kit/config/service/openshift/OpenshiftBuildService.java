@@ -157,16 +157,8 @@ public class OpenshiftBuildService implements BuildService {
         final ArchiverCustomizer customizer = getS2ICustomizer(imageConfig);
 
         try {
-            // Create tar file with Docker archive
-            File dockerTar;
-            if (customizer != null) {
-                dockerTar = jKubeServiceHub.getDockerServiceHub().getArchiveService()
-                    .createDockerBuildArchive(imageConfig, jKubeServiceHub.getConfiguration(), customizer);
-            } else {
-                dockerTar = jKubeServiceHub.getDockerServiceHub()
-                    .getArchiveService().createDockerBuildArchive(imageConfig, jKubeServiceHub.getConfiguration());
-            }
-            return dockerTar;
+            return jKubeServiceHub.getDockerServiceHub().getArchiveService()
+                .createDockerBuildArchive(imageConfig, jKubeServiceHub.getConfiguration(), customizer);
         } catch (IOException e) {
             throw new JKubeServiceException("Unable to create the build archive", e);
         }

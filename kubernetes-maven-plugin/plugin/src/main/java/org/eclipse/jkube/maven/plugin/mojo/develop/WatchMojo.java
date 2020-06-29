@@ -110,18 +110,13 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
             WatchService.WatchContext watchContext = jkubeServiceHub.getDockerServiceHub() != null ? getWatchContext() : null;
 
             return WatcherContext.builder()
-                    .serviceHub(jkubeServiceHub.getDockerServiceHub())
                     .buildContext(buildContext)
                     .watchContext(watchContext)
                     .config(extractWatcherConfig())
                     .logger(log)
                     .newPodLogger(createLogger("[[C]][NEW][[C]] "))
                     .oldPodLogger(createLogger("[[R]][OLD][[R]] "))
-                    .mode(getConfiguredRuntimeMode())
-                    .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                     .useProjectClasspath(useProjectClasspath)
-                    .clusterConfiguration(initClusterConfiguration())
-                    .kubernetesClient(kubernetesClient)
                     .jKubeServiceHub(jkubeServiceHub)
                     .build();
         } catch (IOException exception) {

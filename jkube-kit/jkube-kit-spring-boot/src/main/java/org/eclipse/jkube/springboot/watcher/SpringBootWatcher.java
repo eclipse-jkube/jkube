@@ -73,18 +73,18 @@ public class SpringBootWatcher extends BaseWatcher {
 
     public SpringBootWatcher(WatcherContext watcherContext) {
         super(watcherContext, "spring-boot");
-        portForwardService = new PortForwardService(watcherContext.getKubernetesClient(), watcherContext.getLogger());
+        portForwardService = new PortForwardService(watcherContext.getJKubeServiceHub().getClient(), watcherContext.getLogger());
     }
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) {
-        return JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getProject(),
+        return JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(),
             SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
     }
 
     @Override
     public void watch(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) throws Exception {
-        KubernetesClient kubernetes = getContext().getKubernetesClient();
+        KubernetesClient kubernetes = getContext().getJKubeServiceHub().getClient();
 
         PodLogService.PodLogServiceContext logContext = PodLogService.PodLogServiceContext.builder()
                 .log(log)
@@ -92,7 +92,10 @@ public class SpringBootWatcher extends BaseWatcher {
                 .oldPodLog(getContext().getOldPodLogger())
                 .build();
 
-        new PodLogService(logContext).tailAppPodsLogs(kubernetes, getContext().getClusterConfiguration().getNamespace(), resources, false, null, true, null, false);
+        new PodLogService(logContext).tailAppPodsLogs(
+            kubernetes,
+            getContext().getJKubeServiceHub().getClusterAccess().getNamespace(),
+            resources, false, null, true, null, false);
 
         String url = getServiceExposeUrl(kubernetes, resources);
         if (url == null) {
@@ -114,8 +117,9 @@ public class SpringBootWatcher extends BaseWatcher {
         }
 
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
-            JKubeProjectUtil.getClassLoader(getContext().getProject()));
-        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getContext().getProject()));
+            JKubeProjectUtil.getClassLoader(getContext().getBuildContext().getProject()));
+        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(
+            SpringBootUtil.getSpringBootVersion(getContext().getBuildContext().getProject()));
 
         int port = IoUtil.getFreeRandomPort();
         int containerPort = propertyHelper.getServerPort(properties);
@@ -136,7 +140,9 @@ public class SpringBootWatcher extends BaseWatcher {
             if (entity instanceof Service) {
                 Service service = (Service) entity;
                 String name = KubernetesHelper.getName(service);
-                Resource<Service, DoneableService> serviceResource = kubernetes.services().inNamespace(getContext().getClusterConfiguration().getNamespace()).withName(name);
+                Resource<Service, DoneableService> serviceResource = kubernetes.services()
+                    .inNamespace(getContext().getJKubeServiceHub().getClusterAccess().getNamespace())
+                    .withName(name);
                 String url = null;
                 // lets wait a little while until there is a service URL in case the exposecontroller is running slow
                 for (int i = 0; i < serviceUrlWaitTimeSeconds; i++) {
@@ -180,10 +186,9 @@ public class SpringBootWatcher extends BaseWatcher {
         ClassLoader classLoader = getClass().getClassLoader();
         if (classLoader instanceof URLClassLoader) {
             URLClassLoader pluginClassLoader = (URLClassLoader) classLoader;
-            try(
-                    URLClassLoader projectClassLoader =
-                            ClassUtil.createProjectClassLoader(getContext().getProject().getCompileClassPathElements(), log)) {
-
+            try(URLClassLoader projectClassLoader = ClassUtil.createProjectClassLoader(
+                        getContext().getBuildContext().getProject().getCompileClassPathElements(), log)
+            ) {
                 URLClassLoader[] classLoaders = {projectClassLoader, pluginClassLoader};
 
                 StringBuilder buffer = new StringBuilder("java -cp ");
@@ -206,7 +211,7 @@ public class SpringBootWatcher extends BaseWatcher {
 
                 // Add dev tools to the classpath (the main class is not read from BOOT-INF/lib)
                 try {
-                    File devtools = getSpringBootDevToolsJar(getContext().getProject());
+                    File devtools = getSpringBootDevToolsJar(getContext().getBuildContext().getProject());
                     buffer.append(File.pathSeparator);
                     buffer.append(devtools.getCanonicalPath());
                 } catch (Exception e) {
@@ -289,7 +294,7 @@ public class SpringBootWatcher extends BaseWatcher {
 
     private String validateSpringBootDevtoolsSettings() {
         final Map<String, Object> configuration = JKubeProjectUtil
-            .getPlugin(getContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID)
+            .getPlugin(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID)
             .getConfiguration();
         if(!configuration.containsKey("excludeDevtools") || !configuration.get("excludeDevtools").equals("false")) {
             log.warn("devtools need to be included in repacked archive, please set <excludeDevtools> to false in plugin configuration");
@@ -297,7 +302,7 @@ public class SpringBootWatcher extends BaseWatcher {
         }
 
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
-            JKubeProjectUtil.getClassLoader(getContext().getProject()));
+            JKubeProjectUtil.getClassLoader(getContext().getBuildContext().getProject()));
         String remoteSecret = properties.getProperty(DEV_TOOLS_REMOTE_SECRET, System.getProperty(DEV_TOOLS_REMOTE_SECRET));
         if (StringUtils.isBlank(remoteSecret)) {
             log.warn("There is no `%s` property defined in your src/main/resources/application.properties. Please add one!", DEV_TOOLS_REMOTE_SECRET);

@@ -102,9 +102,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     public static final String DMP_PLUGIN_DESCRIPTOR = "META-INF/maven/org.eclipse.jkube/k8s-plugin";
     public static final String DOCKER_EXTRA_DIR = "docker-extra";
 
-    // Key for indicating that a "start" goal has run
-    public static final String CONTEXT_KEY_START_CALLED = "CONTEXT_KEY_DOCKER_START_CALLED";
-
     // Key holding the log dispatcher
     public static final String CONTEXT_KEY_LOG_DISPATCHER = "CONTEXT_KEY_DOCKER_LOG_DISPATCHER";
 

@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
@@ -29,10 +30,8 @@ import java.util.List;
  */
 public class ArchiveService {
 
-
     private final KitLogger log;
     private DockerAssemblyManager dockerAssemblyManager;
-
 
     public ArchiveService(DockerAssemblyManager dockerAssemblyManager, KitLogger log) {
         this.log = log;
@@ -84,11 +83,10 @@ public class ArchiveService {
     public AssemblyFiles getAssemblyFiles(ImageConfiguration imageConfig, JKubeConfiguration jKubeConfiguration)
         throws IOException {
 
-        String name = imageConfig.getName();
         try {
-            return dockerAssemblyManager.getAssemblyFiles(name, imageConfig.getBuildConfiguration(), jKubeConfiguration);
-        } catch (Exception e) {
-            throw new IOException("Cannot extract assembly files for image " + name + ": " + e, e);
+            return dockerAssemblyManager.getAssemblyFiles(imageConfig, jKubeConfiguration);
+        } catch (IOException e) {
+            throw new IOException("Cannot extract assembly files for image " + imageConfig.getName() + ": " + e.getMessage(), e);
         }
     }
 
@@ -98,16 +96,16 @@ public class ArchiveService {
      * @param entries changed files. List must not be empty or null
      * @param assemblyDir assembly directory
      * @param imageName image's name
-     * @param mojoParameters maven build context
+     * @param jKubeConfiguration maven build context
      * @return created archive
      * @throws IOException in case of any I/O exception
      */
-    public File createChangedFilesArchive(List<AssemblyFiles.Entry> entries, File assemblyDir,
-                                          String imageName, JKubeConfiguration mojoParameters) throws IOException {
-        return dockerAssemblyManager.createChangedFilesArchive(entries, assemblyDir, imageName, mojoParameters);
-    }
+    public File createChangedFilesArchive(
+        List<AssemblyFileEntry> entries, File assemblyDir,String imageName,
+        JKubeConfiguration jKubeConfiguration) throws IOException {
 
-    // =============================================
+        return dockerAssemblyManager.createChangedFilesArchive(entries, assemblyDir, imageName, jKubeConfiguration);
+    }
 
     File createArchive(String imageName, BuildConfiguration buildConfig, JKubeConfiguration params, KitLogger log)
             throws IOException {

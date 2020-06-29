@@ -13,25 +13,24 @@
  */
 package org.eclipse.jkube.maven.plugin.watcher;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.watcher.api.Watcher;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
-import java.util.List;
-import java.util.Set;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 
 /**
  * Manager responsible for finding and calling watchers
  *
  * @author nicola
- * @since 06/02/17
  */
 public class WatcherManager {
 
@@ -39,10 +38,10 @@ public class WatcherManager {
 
         PluginServiceFactory<WatcherContext> pluginFactory =
                 watcherCtx.isUseProjectClasspath() ?
-            new PluginServiceFactory<>(watcherCtx, ClassUtil.createProjectClassLoader(watcherCtx.getProject().getCompileClassPathElements(), watcherCtx.getLogger())) :
+            new PluginServiceFactory<>(watcherCtx, ClassUtil.createProjectClassLoader(watcherCtx.getBuildContext().getProject().getCompileClassPathElements(), watcherCtx.getLogger())) :
             new PluginServiceFactory<>(watcherCtx);
 
-        boolean isOpenshift = OpenshiftHelper.isOpenShift(watcherCtx.getKubernetesClient());
+        boolean isOpenshift = watcherCtx.getJKubeServiceHub().getClusterAccess().isOpenShift();
         PlatformMode mode = isOpenshift ? PlatformMode.openshift : PlatformMode.kubernetes;
 
         List<Watcher> watchers =
