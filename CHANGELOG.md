@@ -29,9 +29,10 @@ Usage:
 * Fix #190: Removed `@Deprecated` fields from AssemblyConfiguration
 * Fix #189: Removed `@Deprecated` fields from BuildConfiguration
 * Fix #195: Added MigrateMojo for migrating projects from FMP to JKube
-* Fix #261: DockerFileBuilder only supports *nix paths (Dockerfile Linux only), fixed invalid default configs
 * Fix #238: Watch uses same logic as build to monitor changed assembly files
 * Fix #245: Debug goals work on webapp (Tomcat & Jetty) > See https://github.com/jkubeio/jkube-images/releases/tag/v0.0.7
+* Fix #261: DockerFileBuilder only supports \*nix paths (Dockerfile Linux only), fixed invalid default configs
+* Fix #246: Dockerfile custom interpolation is broken
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 

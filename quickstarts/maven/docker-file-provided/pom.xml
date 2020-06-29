@@ -93,6 +93,9 @@
         </profile>
         <profile>
             <id>docker-file</id>
+            <properties>
+              <from.image>fabric8/s2i-java</from.image>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -104,6 +107,7 @@
                                     <name>jkube/docker-file-provided</name>
                                     <build>
                                         <dockerFile>subdir/Dockerfile</dockerFile>
+                                        <filter>@</filter>
                                     </build>
                                 </image>
                             </images>

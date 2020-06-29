@@ -24,11 +24,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.eclipse.jkube.kit.build.service.docker.helper.PathTestUtil.createTmpFile;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -39,23 +42,23 @@ public class DockerFileUtilTest {
     @Test
     public void testSimple() throws Exception {
         File toTest = copyToTempDir("Dockerfile_from_simple");
-        assertEquals("fabric8/s2i-java", DockerFileUtil.extractBaseImages(toTest, new Properties()).get(0));
+        assertEquals("fabric8/s2i-java", DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER).get(0));
     }
 
     @Test
     public void testMultiStage() throws Exception {
         File toTest = copyToTempDir("Dockerfile_multi_stage");
-        Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties()).iterator();
+        Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER).iterator();
 
         assertEquals("fabric8/s2i-java", fromClauses.next());
         assertEquals("fabric8/s1i-java", fromClauses.next());
-        assertEquals(false, fromClauses.hasNext());
+        assertFalse(fromClauses.hasNext());
     }
 
     @Test
     public void testMultiStageNamed() throws Exception {
         File toTest = copyToTempDir("Dockerfile_multi_stage_named_build_stages");
-        Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties()).iterator();
+        Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER).iterator();
 
         assertEquals("fabric8/s2i-java", fromClauses.next());
         assertEquals(false, fromClauses.hasNext());
@@ -64,7 +67,7 @@ public class DockerFileUtilTest {
     @Test
     public void testMultiStageNamedWithDuplicates() throws Exception {
         File toTest = copyToTempDir("Dockerfile_multi_stage_named_redundant_build_stages");
-        Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties()).iterator();
+        Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER).iterator();
 
         assertEquals("centos", fromClauses.next());
         assertEquals(false, fromClauses.hasNext());
@@ -93,7 +96,7 @@ public class DockerFileUtilTest {
         File dockerFile = getDockerfilePath("interpolate");
         File expectedDockerFile = new File(dockerFile.getParent(), dockerFile.getName() + ".expected");
         File actualDockerFile = createTmpFile(dockerFile.getName());
-        FileUtils.write(actualDockerFile, DockerFileUtil.interpolate(dockerFile, projectProperties), "UTF-8");
+        FileUtils.write(actualDockerFile, DockerFileUtil.interpolate(dockerFile, projectProperties, BuildConfiguration.DEFAULT_FILTER), "UTF-8");
         // Compare text lines without regard to EOL delimiters
         assertEquals(FileUtils.readLines(expectedDockerFile, StandardCharsets.UTF_8), FileUtils.readLines(actualDockerFile, StandardCharsets.UTF_8));
     }
@@ -128,6 +131,32 @@ public class DockerFileUtilTest {
         // Then
         assertNotNull(result.getBuild());
         assertEquals(dockerFile.getPath(), result.getBuild().getDockerFileRaw());
+    }
+
+    @Test
+    public void testCustomInterpolation() throws IOException {
+        // Given
+        Map<File, String> input = new HashMap<>();
+        input.put(new File(getClass().getResource("/interpolate/at/Dockerfile_1").getFile()), "@");
+        input.put(new File(getClass().getResource("/interpolate/var/Dockerfile_1").getFile()), "${*}");
+        input.put(new File(getClass().getResource("/interpolate/none/Dockerfile_1").getFile()), "false");
+        Properties projectProperties = new Properties();
+        projectProperties.put("base", "java");
+        projectProperties.put("name", "guenther");
+        projectProperties.put("age", "42");
+        projectProperties.put("ext", "png");
+        projectProperties.put("cliOverride", "cliValue"); // Maven CLI override: -DcliOverride=cliValue
+        projectProperties.put("user.name", "somebody");
+        projectProperties.put("project.artifactId", "eclipse-jkube");
+
+        // When
+        for (Map.Entry<File, String> e : input.entrySet()) {
+            String value = DockerFileUtil.interpolate(e.getKey(), projectProperties, e.getValue());
+            File expectedDockerfile = new File(e.getKey().getParent(), "Dockerfile_1.expected");
+            String actualContents = new String(Files.readAllBytes(expectedDockerfile.toPath()));
+            // Then
+            assertEquals(actualContents, value);
+        }
     }
 
     private File getDockerfilePath(String dir) {
