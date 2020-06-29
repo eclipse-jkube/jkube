@@ -13,37 +13,156 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 public class JKubeDockerfileInterpolator {
-    private static Map<String, String> delimiters;
-    static {
-        delimiters = new HashMap<>();
-        delimiters.put("@", "@");
-        delimiters.put("${", "}");
-    }
 
     private JKubeDockerfileInterpolator() { }
 
-    public static String interpolate(String line, Properties properties) {
+    /**
+     * Replace properties in a string
+     *
+     * @param line        string provided with parameters
+     * @param properties  project properties
+     * @param filter      filter for interpolation
+     * @return            interpolated string
+     */
+    public static String interpolate(String line, Properties properties, String filter) {
+        return interpolate(line, properties, getExpressionMarkersFromFilter(filter));
+    }
+
+    /**
+     * Replace properties in a string
+     *
+     * @param line              string provided with parameters
+     * @param properties        properties provided
+     * @param expressionMarkers additional markers to use for parameterized expressions
+     * @return string with properties parameters replaced
+     */
+    public static String interpolate(String line, Properties properties, Map<String, String> expressionMarkers) {
+        return checkForPropertiesInLine(line, properties, expressionMarkers);
+    }
+
+    protected static Map<String, String> getExpressionMarkersFromFilter(String filter) {
+        Map<String, String> expressionMarkers = new HashMap<>();
+        if (filter != null && !filter.isEmpty() && !filter.equalsIgnoreCase("false")) {
+            if (filter.length() == 1) { // Filter is single character: @, # etc
+                expressionMarkers.put(filter, filter);
+            }
+
+            if (filter.length() > 1 && filter.contains("*")) { // Filter in regex form: ${*}, ${env.*}, etc
+                String[] filterParts = filter.split("\\*");
+                if (filterParts.length == 2) {
+                    expressionMarkers.put(filterParts[0], filterParts[1]);
+                }
+            }
+        }
+
+        return expressionMarkers;
+    }
+
+    private static String checkForPropertiesInLine(String line, Properties properties, Map<String, String> delimiters) {
+        // Provided properties
         for (String property : properties.stringPropertyNames()) {
-            String value = checkPropertyWithDelimiters(line, property, properties);
-            if (value != null) {
+            String value = checkPropertyWithDelimiters(line, property, getPropertyAsMap(properties), delimiters);
+            if (!StringUtils.isEmpty(value)) {
                 line = value;
             }
         }
+
+        // System Properties
+        for (String property : System.getProperties().stringPropertyNames()) {
+            String value = checkPropertyWithDelimiters(line, property, getPropertyAsMap(properties), delimiters);
+            if (!StringUtils.isEmpty(value)) {
+                line = value;
+            }
+        }
+
+        // Environment variables
+        Map<String, String> environmentVariables = System.getenv();
+        for (Map.Entry<String, String> e : environmentVariables.entrySet()) {
+            String value = checkPropertyWithDelimiters(line, e.getKey(), environmentVariables, delimiters);
+            if (!StringUtils.isEmpty(value)) {
+                line = value;
+            }
+        }
+
         return line;
     }
 
-    private static String checkPropertyWithDelimiters(String line, String property, Properties properties) {
-        for (Map.Entry<String, String> delimiter : delimiters.entrySet()) {
-            String searchPhrase = delimiter.getKey() + property + delimiter.getValue();
-            if (line.contains(searchPhrase)) {
-                return line.replace(searchPhrase, properties.getProperty(property));
+    private static String checkPropertyWithDelimiters(String line, String property, Map<String, String> properties, Map<String, String> expressionMarkers) {
+        for (Map.Entry<String, String> delimiter : expressionMarkers.entrySet()) {
+            String searchPhrase;
+
+            // form expression string
+            if (!property.contains(delimiter.getKey()) && !property.contains(delimiter.getValue())) {
+                searchPhrase = (delimiter.getKey() + property + delimiter.getValue());
+            } else {
+                // Skip if property already contains delimiters
+                searchPhrase = property;
+            }
+
+            // search line for expression phrase
+            if (line != null && line.contains(searchPhrase)) {
+                if (isExpressionCycle(properties, expressionMarkers, property)) {
+                    throw new IllegalArgumentException("Expression cycle detected, aborting.");
+                }
+
+                return replaceWithEscapeStr(line, searchPhrase, properties.get(property));
             }
         }
-        return null;
+        return StringUtils.EMPTY;
+    }
+
+    private static boolean isExpressionCycle(Map<String, String> properties, Map<String, String> expressionMarkers, String property) {
+        String value = properties.get(property);
+        // Check normal value
+        if (properties.get(value) != null) {
+            return true;
+        }
+
+        // Check value without delimiters
+        if (value != null) {
+            value = parsePropertyKey(value, expressionMarkers);
+        }
+        return properties.get(value) != null;
+    }
+
+    private static String parsePropertyKey(String property, Map<String, String> expressionMarkers) {
+        for (Map.Entry<String, String> entry : expressionMarkers.entrySet()) {
+            if (property.contains(entry.getKey())) {
+                property = property.substring(entry.getKey().length(), property.length() - entry.getValue().length());
+            }
+        }
+        return property;
+    }
+
+    private static Map<String, String> getPropertyAsMap(Properties properties) {
+        Map<String, String> propertyAsMap = new HashMap<>();
+        properties.forEach((k, v) -> propertyAsMap.put((String) k, (String) v));
+        return propertyAsMap;
+    }
+
+    private static String replaceWithEscapeStr(String line, String searchPhrase, String value) {
+        StringBuilder stringBuilder = new StringBuilder();
+        int i = 0;
+        while (i < line.length()) {
+            if (line.charAt(i) == searchPhrase.charAt(0) && i + searchPhrase.length() <= line.length()) {
+                String searchSubStr = line.substring(i, i + searchPhrase.length());
+                if (searchPhrase.equals(searchSubStr)) {
+                    // Replace with value
+                    stringBuilder.append(value);
+                    i += searchPhrase.length();
+                    continue;
+                }
+            }
+            stringBuilder.append(line.charAt(i));
+            i++;
+        }
+        return stringBuilder.toString();
     }
 }
