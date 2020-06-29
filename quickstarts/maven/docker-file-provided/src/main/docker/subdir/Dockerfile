@@ -12,7 +12,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-FROM fabric8/s2i-java:latest-java11
+FROM @from.image@:latest-java11
 LABEL location="src/main/docker/subdir"
 EXPOSE 8080/tcp
 COPY maven/*.jar /opt/app.jar

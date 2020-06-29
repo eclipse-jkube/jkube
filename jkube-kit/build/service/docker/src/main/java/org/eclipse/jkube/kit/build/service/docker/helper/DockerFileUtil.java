@@ -43,7 +43,6 @@ import java.util.regex.Pattern;
  */
 public class DockerFileUtil {
 
-
     private DockerFileUtil() {}
 
     /**
@@ -55,8 +54,8 @@ public class DockerFileUtil {
      * @return LinkedList of base images name or empty collection if none is found.
      * @throws IOException if there's a problem while performin IO operations.
      */
-    public static List<String> extractBaseImages(File dockerFile, Properties properties) throws IOException {
-        List<String[]> fromLines = extractLines(dockerFile, "FROM", properties);
+    public static List<String> extractBaseImages(File dockerFile, Properties properties, String filter) throws IOException {
+        List<String[]> fromLines = extractLines(dockerFile, "FROM", properties, filter);
         Set<String> result = new LinkedHashSet<>();
         Set<String> fromAlias = new HashSet<>();
         for (String[] fromLine :  fromLines) {
@@ -80,15 +79,15 @@ public class DockerFileUtil {
      * @param dockerFile dockerfile to examine.
      * @param keyword keyword to extract the lines for.
      * @param properties properties to interpolate in the provided dockerFile.
+     * @param filter string representing filter parameters for properties in dockerfile
      * @return list of matched lines or an empty list.
-     * @throws IOException if there's a problem while performin IO operations.
      */
-    public static List<String[]> extractLines(File dockerFile, String keyword, Properties properties) throws IOException {
+    public static List<String[]> extractLines(File dockerFile, String keyword, Properties properties, String filter) throws IOException {
         List<String[]> ret = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(dockerFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String lineInterpolated = JKubeDockerfileInterpolator.interpolate(line, properties);
+                String lineInterpolated = JKubeDockerfileInterpolator.interpolate(line, properties, filter);
                 String[] lineParts = lineInterpolated.split("\\s+");
                 if (lineParts.length > 0 && lineParts[0].equalsIgnoreCase(keyword)) {
                     ret.add(lineParts);
@@ -103,15 +102,16 @@ public class DockerFileUtil {
      *
      * @param dockerFile docker file to interpolate.
      * @param properties properties to interpolate in the provided dockerFile.
+     * @param filter filter for parsing properties from Dockerfile
      * @return The interpolated contents of the file.
      * @throws IOException if there's a problem while performin IO operations.
      */
-    public static String interpolate(File dockerFile, Properties properties) throws IOException {
+    public static String interpolate(File dockerFile, Properties properties, String filter) throws IOException {
         StringBuilder ret = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(dockerFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                ret.append(JKubeDockerfileInterpolator.interpolate(line, properties)).append(System.lineSeparator());
+                ret.append(JKubeDockerfileInterpolator.interpolate(line, properties, filter)).append(System.lineSeparator());
             }
         }
         return ret.toString();
