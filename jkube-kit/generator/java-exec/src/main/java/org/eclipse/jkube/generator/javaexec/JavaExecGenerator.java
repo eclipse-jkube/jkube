@@ -80,10 +80,7 @@ public class JavaExecGenerator extends BaseGenerator {
 
         // The name of the main class for non-fat jars. If not specified it is tried
         // to find a main class within target/classes.
-        mainClass,
-
-        // Reference to a predefined assembly descriptor to use. By default it is tried to be detected
-        assemblyRef;
+        mainClass;
 
         public String def() { return d; } protected String d;
     }
@@ -173,21 +170,17 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     protected void addAssembly(AssemblyConfiguration.AssemblyConfigurationBuilder builder) {
-        String assemblyRef = getConfig(Config.assemblyRef);
-        if (assemblyRef != null) {
-            builder.descriptorRef(assemblyRef);
-        } else {
-            final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
-            if (isFatJar()) {
-                FatJarDetector.Result fatJar = detectFatJar();
-                if (fatJar != null) {
-                    fileSets.add(getOutputDirectoryFileSet(fatJar, getProject()));
-                }
-            } else {
-                builder.descriptorRef("artifact-with-dependencies");
+        final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
+        if (isFatJar()) {
+            FatJarDetector.Result fatJar = detectFatJar();
+            if (fatJar != null) {
+                fileSets.add(getOutputDirectoryFileSet(fatJar, getProject()));
             }
-            builder.inline(Assembly.builder().fileSets(fileSets).build());
+        } else {
+            log.warn("No fat Jar detected, make sure your image assembly configuration contains all the required" +
+                " dependencies for your application to run.");
         }
+        builder.inline(Assembly.builder().fileSets(fileSets).build());
     }
 
     public List<AssemblyFileSet> addAdditionalFiles() {

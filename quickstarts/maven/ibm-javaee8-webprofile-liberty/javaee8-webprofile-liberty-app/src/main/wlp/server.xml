@@ -29,6 +29,6 @@
     <config updateTrigger='mbean'/>
     <cdi12 enableImplicitBeanArchives='false'/>
 
-    <webApplication id="javaee8-webprofile-liberty-app" name="javaee8-webprofile-liberty-app" context-root="/${libertyapi.context.root}" 
-    				location="javaee8-webprofile-liberty-app.war"/>
+    <webApplication id="${project.artifactId}" name="${project.artifactId}" context-root="/${libertyapi.context.root}"
+                    location="${project.artifactId}.war"/>
 </server>

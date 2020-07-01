@@ -18,15 +18,12 @@ package org.eclipse.jkube.kit.build.service.docker.config.handler.property;
  * Enum holding possible configuration keys
  *
  * @author roland
- * @since 07/12/14
  */
 public enum ConfigKey {
 
     ALIAS,
     ARGS(ValueCombinePolicy.Merge),
     ASSEMBLY_BASEDIR("assembly.baseDir"),
-    ASSEMBLY_DESCRIPTOR("assembly.descriptor"),
-    ASSEMBLY_DESCRIPTOR_REF("assembly.descriptorRef"),
     ASSEMBLY_EXPORT_TARGET_DIR("assembly.exportTargetDir"),
     ASSEMBLY_PERMISSIONS("assembly.permissions"),
     ASSEMBLY_USER("assembly.user"),
