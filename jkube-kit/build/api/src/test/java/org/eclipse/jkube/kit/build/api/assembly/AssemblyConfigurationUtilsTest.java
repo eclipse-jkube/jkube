@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.build.api.assembly;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,7 +29,6 @@ import org.junit.Test;
 
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
-import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSetsExcludes;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -108,33 +106,6 @@ public class AssemblyConfigurationUtilsTest {
   }
 
 
-  @Test
-  public void getJKubeAssemblyFileSetsExcludesShouldReturnExcludes(
-    @Injectable AssemblyConfiguration configuration, @Injectable Assembly assembly,
-    @Injectable AssemblyFileSet fileSet) {
-
-    // Given
-    new Expectations() {{
-      configuration.getInline();
-      result = assembly;
-      assembly.getFileSets();
-      result = Arrays.asList(fileSet, null, fileSet, fileSet);
-      fileSet.getExcludes();
-      result = Collections.singletonList("1337");
-      result = Arrays.asList("1","3", null, "3", "7");
-      result = null;
-    }};
-    // When
-    final List<String> result = getJKubeAssemblyFileSetsExcludes(configuration);
-    // Then
-    assertNotNull(result);
-    assertEquals(5, result.size());
-    assertEquals("1337", result.get(0));
-    assertEquals("1", result.get(1));
-    assertEquals("3", result.get(2));
-    assertEquals("3", result.get(3));
-    assertEquals("7", result.get(4));
-  }
 
   @Test
   public void getJKubeAssemblyFilesNullShouldReturnEmptyList() {

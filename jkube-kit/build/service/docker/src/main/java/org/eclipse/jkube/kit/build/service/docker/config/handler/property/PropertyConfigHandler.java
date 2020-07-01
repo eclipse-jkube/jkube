@@ -45,8 +45,6 @@ import java.util.function.Supplier;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ALIAS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ARGS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_BASEDIR;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_DESCRIPTOR;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_DESCRIPTOR_REF;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_EXPORT_TARGET_DIR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_MODE;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_PERMISSIONS;
@@ -325,8 +323,6 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     private AssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
         return AssemblyConfiguration.builder()
                 .targetDir(valueProvider.getString(ASSEMBLY_BASEDIR, valueOrNull(config, AssemblyConfiguration::getTargetDir)))
-                .descriptor(valueProvider.getString(ASSEMBLY_DESCRIPTOR, valueOrNull(config, AssemblyConfiguration::getDescriptor)))
-                .descriptorRef(valueProvider.getString(ASSEMBLY_DESCRIPTOR_REF, valueOrNull(config, AssemblyConfiguration::getDescriptorRef)))
                 .exportTargetDir(valueProvider.getBoolean(ASSEMBLY_EXPORT_TARGET_DIR, valueOrNull(config, AssemblyConfiguration::getExportTargetDir)))
                 .permissionsString(valueProvider.getString(ASSEMBLY_PERMISSIONS, valueOrNull(config, AssemblyConfiguration::getPermissionsRaw)))
                 .user(valueProvider.getString(ASSEMBLY_USER, valueOrNull(config, AssemblyConfiguration::getUser)))

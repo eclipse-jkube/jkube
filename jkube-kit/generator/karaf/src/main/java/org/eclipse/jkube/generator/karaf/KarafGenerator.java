@@ -87,7 +87,6 @@ public class KarafGenerator extends BaseGenerator {
   private AssemblyConfiguration createDefaultAssembly() {
     return AssemblyConfiguration.builder()
         .targetDir(getConfig(Config.baseDir))
-        .descriptorRef(KARAF)
         .name("deployments")
         .inline(Assembly.builder()
             .fileSet(AssemblyFileSet.builder()

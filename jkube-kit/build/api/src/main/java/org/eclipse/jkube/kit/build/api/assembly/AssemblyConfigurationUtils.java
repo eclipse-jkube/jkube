@@ -22,12 +22,9 @@ import org.eclipse.jkube.kit.common.Assembly;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 class AssemblyConfigurationUtils {
 
@@ -62,17 +59,6 @@ class AssemblyConfigurationUtils {
             .map(AssemblyConfiguration::getInline)
             .map(Assembly::getFileSets)
             .orElse(Collections.emptyList());
-  }
-
-  @Nonnull
-  static List<String> getJKubeAssemblyFileSetsExcludes(@Nullable AssemblyConfiguration assemblyConfiguration) {
-    return getJKubeAssemblyFileSets(assemblyConfiguration).stream()
-            .filter(Objects::nonNull)
-            .map(AssemblyFileSet::getExcludes)
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
   }
 
   @Nonnull

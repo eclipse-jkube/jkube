@@ -31,15 +31,15 @@ public class JKubeBuildTarArchiver {
 
     public static final String ARCHIVE_FILE_NAME = "docker-build.";
     private Map<File, String> filesToIncludeNameMap = new HashMap<>();
-    private Map<File, String> fileToPermissionsMap = new HashMap<>();
+    private Map<File, String> fileModeMap = new HashMap<>();
     private List<String> filesNamesToExclude = new ArrayList<>();
 
     public void includeFile(File inputFile, String destinationFileName) {
         filesToIncludeNameMap.put(inputFile, destinationFileName);
     }
 
-    public void setFilePermissions(AssemblyFileEntry assemblyFileEntry) {
-        fileToPermissionsMap.put(assemblyFileEntry.getDest(), assemblyFileEntry.getPermission());
+    public void setFileMode(AssemblyFileEntry assemblyFileEntry) {
+        fileModeMap.put(assemblyFileEntry.getDest(), assemblyFileEntry.getFileMode());
     }
 
     public void excludeFile(String inputFilePath) {
@@ -78,7 +78,7 @@ public class JKubeBuildTarArchiver {
             fileListToAddInTarball.add(currentFile);
         }
 
-        return JKubeTarArchiver.createTarBall(outputFile, inputDirectory, fileListToAddInTarball, fileToPermissionsMap, compression);
+        return JKubeTarArchiver.createTarBall(outputFile, inputDirectory, fileListToAddInTarball, fileModeMap, compression);
     }
 
 }

@@ -38,30 +38,6 @@ public class AssemblyConfigurationSource {
         this.buildDirs = buildDirs;
     }
 
-    public String[] getDescriptors() {
-        if (assemblyConfig != null) {
-          String descriptor = assemblyConfig.getDescriptor();
-
-          if (descriptor != null) {
-            return new String[] {
-                context.inSourceDir(descriptor).getAbsolutePath() };
-          }
-        }
-        return new String[0];
-    }
-
-    public String[] getDescriptorReferences() {
-        if (assemblyConfig != null) {
-            String descriptorRef = assemblyConfig.getDescriptorRef();
-            if (descriptorRef != null) {
-                return new String[]{descriptorRef};
-            }
-        }
-        return new String[0];
-    }
-
-    // ============================================================================================
-
     public File getOutputDirectory() {
         return buildDirs.getOutputDirectory();
     }

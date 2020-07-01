@@ -20,7 +20,9 @@ For the full power, in order to tune all facets of the creation, external _resou
 
 The <<jkube:build>> goal is for creating Docker images containing the actual application. These then can be deployed later on Kubernetes or OpenShift.
 It is easy to include build artifacts and their dependencies into these images.
-This plugin uses the assembly descriptor format from the http://maven.apache.org/plugins/maven-assembly-plugin/[maven-assembly-plugin] to specify the content which will be added to the image.
+This plugin uses the assembly descriptor format similar to the one used in
+http://maven.apache.org/plugins/maven-assembly-plugin/[maven-assembly-plugin] to specify the content which will be added
+to the image.
 That images can then be pushed to public or private Docker registries with <<jkube:push>>.
 
 Depending on the operational mode, for building the actual image either a Docker daemon is used directly or an https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html#docker-build[OpenShift Docker Build] is performed.
