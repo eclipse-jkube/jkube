@@ -19,8 +19,8 @@ import java.io.IOException;
  * Archiver used to adapt for customizations.
  *
  * @author nicola
- * @since 04/08/2017
  */
+@FunctionalInterface
 public interface ArchiverCustomizer {
   JKubeBuildTarArchiver customize(JKubeBuildTarArchiver archiver) throws IOException;
 }

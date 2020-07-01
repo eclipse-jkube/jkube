@@ -141,6 +141,17 @@ public class BaseEnricher implements Enricher {
     }
 
     /**
+     * This method overrides the controller name value by the value provided in XML config.
+     *
+     * @param resourceConfig resource config from plugin configuration
+     * @param defaultValue default value
+     * @return string as controller name
+     */
+    protected String getControllerName(ResourceConfig resourceConfig, String defaultValue) {
+        return Optional.ofNullable(resourceConfig).map(ResourceConfig::getControllerName).orElse(defaultValue);
+    }
+
+    /**
      * This method overrides the ImagePullPolicy value by the value provided in
      * XML config.
      *
