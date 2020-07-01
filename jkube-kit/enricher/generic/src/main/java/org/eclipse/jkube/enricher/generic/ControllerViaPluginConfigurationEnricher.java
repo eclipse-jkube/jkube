@@ -68,7 +68,7 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
         final String name = getConfig(Config.name, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
         ResourceConfig xmlResourceConfig = getConfiguration().getResource();
         final ResourceConfig config = ResourceConfig.builder()
-                .controllerName(name)
+                .controllerName(getControllerName(xmlResourceConfig, name))
                 .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, getConfig(Config.pullPolicy)))
                 .replicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.replicaCount))))
                 .build();

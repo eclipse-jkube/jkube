@@ -54,8 +54,6 @@ public class AssemblyConfigurationTest {
     assertThat(result, notNullValue());
     assertThat(result.getName(), is("assembly"));
     assertThat(result.getTargetDir(), is("target"));
-    assertThat(result.getDescriptor(), is("assDescriptor"));
-    assertThat(result.getDescriptorRef(), is("ass reference"));
     assertThat(result.getExportTargetDir(), is(false));
     assertThat(result.isExcludeFinalOutputArtifact(), is(true));
     assertThat(result.getPermissions(), is(AssemblyConfiguration.PermissionMode.exec));

@@ -158,7 +158,6 @@ public class WebAppGenerator extends BaseGenerator {
     }
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
     builder
-        .descriptorRef("webapp")
         .name(handler.getAssemblyName())
         .targetDir(getDeploymentDir(handler))
         .excludeFinalOutputArtifact(true)

@@ -35,6 +35,7 @@ Usage:
 * Fix #261: DockerFileBuilder only supports \*nix paths (Dockerfile Linux only), fixed invalid default configs
 * Fix #246: Dockerfile custom interpolation is broken
 * Fix #259: Cleanup unused properties inside Mojos
+* Fix #94: Properly define + document JKubeProjectAssembly behavior
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 
