@@ -42,8 +42,6 @@ public class AssemblyConfigurationSourceTest {
         buildDirectory = temporaryFolder.newFolder("build");
         // set 'ignorePermissions' to something other then default
         this.assemblyConfig = AssemblyConfiguration.builder()
-                .descriptor("assembly.xml")
-                .descriptorRef("project")
                 .permissionsString("keep")
                 .build();
     }
@@ -90,28 +88,9 @@ public class AssemblyConfigurationSourceTest {
                 .build();
     }
 
-    @Test
-    public void testEmptyAssemblyConfig() {
-        JKubeConfiguration buildContext = JKubeConfiguration.builder()
-                .sourceDirectory("/src/docker")
-                .outputDirectory("/output/docker")
-                .build();
-        AssemblyConfigurationSource source = new AssemblyConfigurationSource(buildContext,null,null);
-        assertEquals(0,source.getDescriptors().length);
-    }
-
     private void testCreateSource(JKubeConfiguration context) {
         AssemblyConfigurationSource source =
                 new AssemblyConfigurationSource(context, new BuildDirs("image", context), assemblyConfig);
-
-        String[] descriptors = source.getDescriptors();
-        String[] descriptorRefs = source.getDescriptorReferences();
-
-        assertEquals("count of descriptors", 1, descriptors.length);
-        assertEquals("directory of assembly", context.inSourceDir("assembly.xml").getAbsolutePath(), descriptors[0]);
-
-        assertEquals("count of descriptors references", 1, descriptorRefs.length);
-        assertEquals("reference must be project", "project", descriptorRefs[0]);
 
         assertFalse("we must not ignore permissions when creating the archive", source.isIgnorePermissions());
 

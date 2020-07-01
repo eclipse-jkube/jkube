@@ -70,26 +70,22 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
 
     @Override
     protected void addAssembly(AssemblyConfiguration.AssemblyConfigurationBuilder builder) {
-        String assemblyRef = getConfig(Config.assemblyRef);
-        if (assemblyRef != null) {
-            builder.descriptorRef(assemblyRef);
-        } else {
-            final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
-            if (isFatJar()) {
-                FatJarDetector.Result fatJar = detectFatJar();
-                JavaProject project = getProject();
-                if (fatJar != null) {
-                    AssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
-                    if (LIBERTY_SELF_EXTRACTOR.equals(fatJar.getMainClass())) {
-                        this.runnableJarName = fatJar.getArchiveFile().getName();
-                    }
-                    fileSets.add(fileSet);
+        final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
+        if (isFatJar()) {
+            FatJarDetector.Result fatJar = detectFatJar();
+            JavaProject project = getProject();
+            if (fatJar != null) {
+                AssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
+                if (LIBERTY_SELF_EXTRACTOR.equals(fatJar.getMainClass())) {
+                    this.runnableJarName = fatJar.getArchiveFile().getName();
                 }
-            } else {
-                builder.descriptorRef("artifact-with-dependencies");
+                fileSets.add(fileSet);
             }
-            builder.inline(Assembly.builder().fileSets(fileSets).build());
+        } else {
+            log.warn("No fat Jar detected, make sure your image assembly configuration contains all the required" +
+                " dependencies for your application to run.");
         }
+        builder.inline(Assembly.builder().fileSets(fileSets).build());
     }
 
     @Override
