@@ -61,8 +61,8 @@ public class DockerHealthCheckEnricher extends AbstractHealthCheckEnricher {
             HealthCheckConfiguration health = image.getBuildConfiguration().getHealthCheck();
             return new ProbeBuilder()
                     .withExec(new ExecAction(health.getCmd().asStrings()))
-                    .withTimeoutSeconds(durationSeconds(health.getTimeout()))
-                    .withPeriodSeconds(durationSeconds(health.getInterval()))
+                    .withTimeoutSeconds(durationSeconds(health.getTimeout()).orElse(null))
+                    .withPeriodSeconds(durationSeconds(health.getInterval()).orElse(null))
                     .withFailureThreshold(health.getRetries())
                     .build();
         }

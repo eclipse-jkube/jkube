@@ -44,6 +44,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -232,7 +233,8 @@ public class EnvUtilTest {
         //When
         List<String> result = EnvUtil.extractFromPropertiesAsList(string,properties);
         //Then
-        assertEquals(2,result.size());
+        assertNotNull(result);
+        assertEquals(2, result.size());
         assertArrayEquals(new String[]{"valu", "value"}, result.toArray());
     }
 
@@ -249,12 +251,13 @@ public class EnvUtilTest {
         //when
         Map<String, String> result = EnvUtil.extractFromPropertiesAsMap(prefix,properties);
         //Then
+        assertNotNull(result);
         assertEquals(2 ,result.size());
         assertEquals("value",result.get("name"));
     }
 
     @Test
-    public void testFormatDurationTill() throws InterruptedException {
+    public void testFormatDurationTill() {
         long startTime = System.currentTimeMillis() - 200L;
         assertTrue(EnvUtil.formatDurationTill(startTime).contains("milliseconds"));
     }

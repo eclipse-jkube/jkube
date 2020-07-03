@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.junit.Test;
@@ -58,7 +59,7 @@ public class ClassUtilTest {
 
     private File getRelativePackagePath(String subpath) {
     	File parent =        		
-            new File(getAbsolutePath(this.getClass().getProtectionDomain().getCodeSource().getLocation()));
+            new File(Objects.requireNonNull(getAbsolutePath(this.getClass().getProtectionDomain().getCodeSource().getLocation())));
         String intermediatePath = getClass().getPackage().getName().replace(".","/");
         return new File(new File(parent, intermediatePath),subpath);
     }

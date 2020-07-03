@@ -193,7 +193,7 @@ public class ProbeHandlerTest {
         assertEquals(5,probe.getInitialDelaySeconds().intValue());
         assertEquals(5,probe.getTimeoutSeconds().intValue());
         assertEquals("www.healthcheck.com",probe.getHttpGet().getHost());
-        assertEquals(null,probe.getHttpGet().getHttpHeaders());
+        assertNull(probe.getHttpGet().getHttpHeaders());
         assertEquals("/healthz",probe.getHttpGet().getPath());
         assertEquals(8080,probe.getHttpGet().getPort().getIntVal().intValue());
         assertEquals("HTTP",probe.getHttpGet().getScheme());

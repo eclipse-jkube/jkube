@@ -70,6 +70,7 @@ public class KubernetesHelperTest {
         File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(localResourceDir, Collections.emptyList(), "service.yml", logger);
 
         // Then
+        assertNotNull(fragmentFile);
         assertTrue(fragmentFile.exists());
         assertEquals("service.yml", fragmentFile.getName());
     }
@@ -88,6 +89,7 @@ public class KubernetesHelperTest {
         File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(null, remotes, "deployment.yaml", logger);
 
         // Then
+        assertNotNull(fragmentFile);
         assertTrue(fragmentFile.exists());
         assertEquals("deployment.yaml", fragmentFile.getName());
     }

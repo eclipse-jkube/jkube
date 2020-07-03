@@ -43,7 +43,7 @@ public class ProfileUtilTest {
         assertNotNull(is);
         List<Profile> profiles = ProfileUtil.fromYaml(is);
         assertNotNull(profiles);
-        assertEquals(profiles.size(),3);
+        assertEquals(3, profiles.size());
         Profile profile = profiles.get(0);
         assertEquals("simple", profile.getName());
         ProcessorConfig config = profile.getEnricherConfig();
@@ -115,7 +115,7 @@ public class ProfileUtilTest {
                                                                                 origConfig);
         assertTrue(mergeConfig.use("base"));
         assertTrue(mergeConfig.use("i1"));
-        assertEquals(mergeConfig.getConfig("base", "url"),"http://jolokia.org");
+        assertEquals("http://jolokia.org", mergeConfig.getConfig("base", "url"));
 
 
         mergeConfig = ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG,
