@@ -39,6 +39,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author roland
@@ -160,7 +161,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void headlessServiceNegative() throws Exception {
+    public void headlessServiceNegative() {
         setupExpectations(false, "headless", "false");
         DefaultServiceEnricher serviceEnricher = new DefaultServiceEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -168,7 +169,7 @@ public class DefaultServiceEnricherTest {
 
         // Validate that the generated resource contains
         KubernetesList list = builder.build();
-        assertEquals(list.getItems().size(),0);
+        assertTrue(list.getItems().isEmpty());
     }
 
     @Test
@@ -244,7 +245,7 @@ public class DefaultServiceEnricherTest {
 
     private void setupExpectations(final boolean withPorts, String ... configParams) {
         // Setup mock behaviour
-        final TreeMap config = new TreeMap();
+        final TreeMap<String, String> config = new TreeMap<>();
         for (int i = 0; i < configParams.length; i += 2) {
                 config.put(configParams[i],configParams[i+1]);
         }

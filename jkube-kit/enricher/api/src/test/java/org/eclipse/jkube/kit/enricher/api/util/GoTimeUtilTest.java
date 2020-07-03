@@ -13,33 +13,39 @@
  */
 package org.eclipse.jkube.kit.enricher.api.util;
 
-import org.junit.Assert;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.Assert.assertTrue;
 
 public class GoTimeUtilTest {
 
     @Test
     public void testConversion() {
-        Assert.assertEquals(new Integer(23), GoTimeUtil.durationSeconds("23s"));
-        Assert.assertEquals(new Integer(0), GoTimeUtil.durationSeconds("0.5s"));
-        Assert.assertEquals(new Integer(0), GoTimeUtil.durationSeconds("3ms"));
-        Assert.assertEquals(new Integer(0), GoTimeUtil.durationSeconds("3ns"));
-        Assert.assertEquals(new Integer(1), GoTimeUtil.durationSeconds("1002ms"));
-        Assert.assertEquals(new Integer(123), GoTimeUtil.durationSeconds("2m3s"));
-        Assert.assertEquals(new Integer(3663), GoTimeUtil.durationSeconds("1h1m3s"));
-        Assert.assertEquals(new Integer(1810), GoTimeUtil.durationSeconds("0.5h0.1m4s"));
-        Assert.assertEquals(new Integer(-15), GoTimeUtil.durationSeconds("-15s"));
-        Assert.assertEquals(new Integer(30), GoTimeUtil.durationSeconds("2h-119.5m"));
+        // Given
+        List<String> inputs = Arrays.asList("23s", "0.5s", "3ms", "3ns", "1002ms",
+                "2m3s", "1h1m3s", "0.5h0.1m4s", "-15s", "2h-119.5m");
+        List<Integer> expectations = Arrays.asList(23, 0, 0, 0, 1, 123, 3663, 1810, -15, 30);
+
+        for (int i = 0; i < inputs.size(); i++) {
+            // When
+            Optional<Integer> result = GoTimeUtil.durationSeconds(inputs.get(i));
+
+            // Then
+            assertTrue(result.isPresent());
+            Assertions.assertThat(result.get()).isEqualTo(expectations.get(i).intValue());
+        }
     }
 
     @Test
     public void testEmpty() {
-        assertNull(GoTimeUtil.durationSeconds(null));
-        assertNull(GoTimeUtil.durationSeconds(""));
-        assertNull(GoTimeUtil.durationSeconds(" "));
+        Assertions.assertThat(GoTimeUtil.durationSeconds(null)).isEqualTo(Optional.empty());
+        Assertions.assertThat(GoTimeUtil.durationSeconds("")).isEqualTo(Optional.empty());
+        Assertions.assertThat(GoTimeUtil.durationSeconds(" ")).isEqualTo(Optional.empty());
     }
 
     @Test(expected = IllegalArgumentException.class)

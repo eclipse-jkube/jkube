@@ -19,6 +19,9 @@ import org.junit.Test;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class ConfigsTest {
 
@@ -50,22 +53,22 @@ public class ConfigsTest {
     @Test
     public void getBooleanValueTest(){
         boolean result = Configs.asBoolean("85");
-        assertEquals(false,result);
+        assertFalse(result);
 
         result = Configs.asBoolean(null);
-        assertEquals(false,result);
+        assertFalse(result);
 
         result = Configs.asBoolean("false");
-        assertEquals(false,result);
+        assertFalse(result);
 
         result = Configs.asBoolean("true");
-        assertEquals(true,result);
+        assertTrue(result);
 
         result = Configs.asBoolean("0");
-        assertEquals(false,result);
+        assertFalse(result);
 
         result = Configs.asBoolean("1");
-        assertEquals(false,result);
+        assertFalse(result);
 
     }
 
@@ -82,6 +85,6 @@ public class ConfigsTest {
 
         assertEquals("value",Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, KEY_1));
         assertEquals("value",Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, KEY_2));
-        assertEquals(null,Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, KEY_3));
+        assertNull(Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, KEY_3));
     }
 }

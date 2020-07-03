@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.enricher.api.util;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 /**
  * Utility methods for using durations according to Docker/Go format (https://golang.org/pkg/time/#ParseDuration).
@@ -32,17 +33,17 @@ public class GoTimeUtil {
      * @param duration duration in string
      * @return returns integer value
      */
-    public static Integer durationSeconds(String duration) {
+    public static Optional<Integer> durationSeconds(String duration) {
         BigDecimal ns = durationNs(duration);
         if (ns == null) {
-            return null;
+            return Optional.empty();
         }
 
         BigDecimal sec = ns.divide(new BigDecimal(1_000_000_000));
         if (sec.compareTo(new BigDecimal(Integer.MAX_VALUE)) > 0) {
             throw new IllegalArgumentException("Integer Overflow");
         }
-        return sec.intValue();
+        return Optional.of(sec.intValue());
     }
 
     /**
