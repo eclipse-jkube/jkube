@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 import static org.eclipse.jkube.kit.build.service.docker.helper.PathTestUtil.createTmpFile;
@@ -61,7 +62,7 @@ public class DockerFileUtilTest {
         Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER).iterator();
 
         assertEquals("fabric8/s2i-java", fromClauses.next());
-        assertEquals(false, fromClauses.hasNext());
+        assertFalse(fromClauses.hasNext());
     }
 
     @Test
@@ -70,7 +71,7 @@ public class DockerFileUtilTest {
         Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER).iterator();
 
         assertEquals("centos", fromClauses.next());
-        assertEquals(false, fromClauses.hasNext());
+        assertFalse(fromClauses.hasNext());
 
     }
 
@@ -161,7 +162,7 @@ public class DockerFileUtilTest {
 
     private File getDockerfilePath(String dir) {
         ClassLoader classLoader = getClass().getClassLoader();
-        return new File(classLoader.getResource(
-            String.format("%s/Dockerfile_1", dir)).getFile());
+        return new File(Objects.requireNonNull(classLoader.getResource(
+                String.format("%s/Dockerfile_1", dir))).getFile());
     }
 }
