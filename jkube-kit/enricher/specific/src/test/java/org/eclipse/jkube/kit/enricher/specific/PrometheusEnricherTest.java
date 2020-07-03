@@ -57,10 +57,10 @@ public class PrometheusEnricherTest {
             null,
             Collections.singletonMap(
                 PrometheusEnricher.ENRICHER_NAME,
-                new TreeMap(Collections.singletonMap(
-                    Config.prometheusPort.name(),
-                    "1234")
-                )
+                    new TreeMap<>(Collections.singletonMap(
+                            Config.prometheusPort.name(),
+                            "1234")
+                    )
             )
         );
 
@@ -123,7 +123,7 @@ public class PrometheusEnricherTest {
             null,
             Collections.singletonMap(
                 PrometheusEnricher.ENRICHER_NAME,
-                new TreeMap()
+                new TreeMap<>()
             )
         );
 
@@ -150,7 +150,7 @@ public class PrometheusEnricherTest {
     }
 
     @Test
-    public void testCustomPrometheusPath() throws Exception {
+    public void testCustomPrometheusPath() {
         final ProcessorConfig config = new ProcessorConfig(
                 null,
                 null,

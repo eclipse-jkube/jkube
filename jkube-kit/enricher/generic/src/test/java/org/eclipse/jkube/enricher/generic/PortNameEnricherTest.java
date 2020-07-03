@@ -54,14 +54,14 @@ public class PortNameEnricherTest {
         setupExpectations("type", "LoadBalancer");
 
         KubernetesList list = enrich();
-        assertEquals(list.getItems().size(), 1);
+        assertEquals(1, list.getItems().size());
 
         String json = ResourceUtil.toJson(list.getItems().get(0));
         assertThat(json, isJson());
         assertPort(json, 0, 80, 80, "http", "TCP");
     }
 
-    private KubernetesList enrich() throws com.fasterxml.jackson.core.JsonProcessingException {
+    private KubernetesList enrich() {
         // Enrich
         PortNameEnricher portNameEnricher = new PortNameEnricher(context);
         KubernetesListBuilder builder = getPodTemplateList();
@@ -97,7 +97,7 @@ public class PortNameEnricherTest {
 
     private void setupExpectations(final boolean withPorts, String ... configParams) {
         // Setup mock behaviour
-        final TreeMap config = new TreeMap();
+        final TreeMap<String, String> config = new TreeMap<>();
         for (int i = 0; i < configParams.length; i += 2) {
             config.put(configParams[i],configParams[i+1]);
         }
