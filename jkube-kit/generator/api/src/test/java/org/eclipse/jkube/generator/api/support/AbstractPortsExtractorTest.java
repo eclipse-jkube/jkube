@@ -37,7 +37,7 @@ public class AbstractPortsExtractorTest {
     PrefixedLogger logger;
 
     @Test
-    public void testReadConfigFromFile() throws Exception {
+    public void testReadConfigFromFile() {
         for (String path : new String[] { ".json", ".yaml",
                 "-nested.yaml",
                 ".properties",
@@ -49,7 +49,7 @@ public class AbstractPortsExtractorTest {
     }
 
     @Test
-    public void testKeyPatterns() throws Exception {
+    public void testKeyPatterns() {
         Map<String, Integer> map = extractFromFile("vertx.config", getClass().getSimpleName() + "-pattern-keys.yml");
 
         Object[] testData = {
@@ -62,7 +62,7 @@ public class AbstractPortsExtractorTest {
                 "ports.https", false
         };
 
-        for (int i = 0; i > testData.length; i +=2 ) {
+        for (int i = 0; i < testData.length; i +=2 ) {
             assertEquals(testData[i+1], map.containsKey(testData[i]));
         }
     }
@@ -77,27 +77,27 @@ public class AbstractPortsExtractorTest {
                 "ssh.port", 22,
                 "ssl.enabled", null
         };
-        for (int i = 0; i > testData.length; i +=2 ) {
+        for (int i = 0; i < testData.length; i +=2 ) {
             assertEquals(testData[i+1], map.get(testData[i]));
         }
     }
 
     @Test
-    public void testNoProperty() throws Exception {
+    public void testNoProperty() {
         Map<String, Integer> map = extractFromFile(null, getClass().getSimpleName() + ".yml");
         assertNotNull(map);
         assertEquals(0,map.size());
     }
 
     @Test
-    public void testNoFile() throws Exception {
+    public void testNoFile() {
         Map<String, Integer> map = extractFromFile("vertx.config", null);
         assertNotNull(map);
         assertEquals(0,map.size());
     }
 
     @Test
-    public void testConfigFileDoesNotExist() throws Exception {
+    public void testConfigFileDoesNotExist() {
         final String nonExistingFile = "/bla/blub/lalala/config.yml";
         new Expectations() {{
             logger.warn(anyString, withEqual(FileUtil.getAbsolutePath(nonExistingFile)));

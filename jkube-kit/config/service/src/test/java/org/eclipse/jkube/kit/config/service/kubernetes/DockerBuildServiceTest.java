@@ -61,7 +61,7 @@ public class DockerBuildServiceTest {
         }};
     }
 
-    private class TestCacheStore implements ImagePullManager.CacheStore {
+    private static class TestCacheStore implements ImagePullManager.CacheStore {
 
         String cache;
 

@@ -84,12 +84,11 @@ public class DependencyEnricherTest {
          * Our override file also contains a ConfigMap item with name jenkins, load it while
          * loading Kubernetes resources.
          */
-        KubernetesListBuilder builder = KubernetesResourceUtil.readResourceFragmentsFrom(
+        return KubernetesResourceUtil.readResourceFragmentsFrom(
                 PlatformMode.kubernetes,
                 KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING,
                 project.getName(),
                 resourceList.toArray(new File[resourceList.size()]));
-        return builder;
     }
 
     private void setupExpectations() {
