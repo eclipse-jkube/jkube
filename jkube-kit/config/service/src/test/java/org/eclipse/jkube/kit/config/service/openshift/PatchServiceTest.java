@@ -20,12 +20,14 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.openshift.client.OpenShiftClient;
+import io.fabric8.openshift.api.model.Route;
+import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.PatchService;
 import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -35,9 +37,16 @@ import static junit.framework.TestCase.assertTrue;
 
 public class PatchServiceTest {
     @Mocked
-    KitLogger log;
+    private KitLogger log;
 
-    OpenShiftMockServer mockServer = new OpenShiftMockServer(false);
+    private OpenShiftMockServer mockServer = new OpenShiftMockServer(false);
+
+    private PatchService patchService;
+
+    @Before
+    public void setUp() {
+        patchService = new PatchService(mockServer.createOpenShiftClient(), log);
+    }
 
     @Test
     public void testResourcePatching() {
@@ -60,9 +69,6 @@ public class PatchServiceTest {
 
         mockServer.expect().get().withPath("/api/v1/namespaces/test/services/service1").andReturn(200, oldService).always();
         mockServer.expect().patch().withPath("/api/v1/namespaces/test/services/service1").andReturn(200, new ServiceBuilder().withMetadata(newService.getMetadata()).withSpec(oldService.getSpec()).build()).once();
-
-        OpenShiftClient client = mockServer.createOpenShiftClient();
-        PatchService patchService = new PatchService(client, log);
 
         Service patchedService = patchService.compareAndPatchEntity("test", newService, oldService);
 
@@ -87,14 +93,48 @@ public class PatchServiceTest {
                         .andReturn(200, new SecretBuilder().withMetadata(newSecret.getMetadata())
                                 .addToStringData(oldSecret.getData()).build())).once();
 
-        OpenShiftClient client = mockServer.createOpenShiftClient();
-
-        PatchService patchService = new PatchService(client, log);
-
         patchService.compareAndPatchEntity("test", newSecret, oldSecret);
         collector.assertEventsRecordedInOrder("get-secret", "get-secret", "patch-secret");
         assertEquals("[{\"op\":\"remove\",\"path\":\"/data\"},{\"op\":\"add\",\"path\":\"/stringData\",\"value\":{\"test\":\"test\"}}]", collector.getBodies().get(2));
 
+    }
+
+    @Test
+    public void testRoutePatching() {
+        Route oldRoute = new RouteBuilder()
+                .withNewMetadata()
+                    .withName("route")
+                .endMetadata()
+                .withNewSpec()
+                    .withHost("www.example.com")
+                    .withNewTo()
+                        .withKind("Service")
+                        .withName("frontend")
+                    .endTo()
+                .endSpec()
+                .build();
+        Route newRoute = new RouteBuilder()
+                .withNewMetadata()
+                    .withName("route")
+                    .addToAnnotations("haproxy.router.openshift.io/balance", "roundrobin")
+                .endMetadata()
+                .withSpec(oldRoute.getSpec())
+                .build();
+
+        mockServer.expect().get()
+                .withPath("/apis/route.openshift.io/v1/namespaces/test/routes/route")
+                .andReturn(200, oldRoute)
+                .always();
+        mockServer.expect().patch()
+                .withPath("/apis/route.openshift.io/v1/namespaces/test/routes/route")
+                .andReturn(200, new RouteBuilder()
+                        .withMetadata(newRoute.getMetadata())
+                        .withSpec(oldRoute.getSpec())
+                        .build())
+                .once();
+
+        Route patchedRoute = patchService.compareAndPatchEntity("test", newRoute, oldRoute);
+        assertTrue(UserConfigurationCompare.configEqual(patchedRoute, newRoute));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -108,9 +148,7 @@ public class PatchServiceTest {
                 .addToData(Collections.singletonMap("FOO", "BAR"))
                 .build();
 
-        OpenShiftClient client = mockServer.createOpenShiftClient();
-        PatchService patchService = new PatchService(client, log);
-
         patchService.compareAndPatchEntity("test", newResource, oldResource);
     }
+
 }
