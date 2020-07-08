@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.SystemMock;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -37,13 +38,11 @@ public class AuthConfigFactoryTest {
     @Test
     public void testGetAuthConfigFromSystemProperties() throws IOException {
         // Given
-        AuthConfigFactory.LookupMode lookupMode = AuthConfigFactory.LookupMode.DEFAULT;
-        System.setProperty(lookupMode.asSysProperty(AuthConfigFactory.AUTH_USERNAME), "testuser");
-        System.setProperty(lookupMode.asSysProperty(AuthConfigFactory.AUTH_PASSWORD), "testpass");
-
+        new SystemMock()
+            .put("jkube.docker.username", "testuser")
+            .put("jkube.docker.password", "testpass");
         // When
         AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromSystemProperties(AuthConfigFactory.LookupMode.DEFAULT, s -> s);
-
         // Then
         assertAuthConfig(authConfig, "testuser", "testpass");
     }
@@ -51,8 +50,7 @@ public class AuthConfigFactoryTest {
     @Test
     public void testGetAuthConfigFromOpenShiftConfig() {
         // Given
-        AuthConfigFactory.LookupMode lookupMode = AuthConfigFactory.LookupMode.DEFAULT;
-        System.setProperty(lookupMode.asSysProperty(AuthConfigFactory.AUTH_USE_OPENSHIFT_AUTH), "true");
+        new SystemMock().put("jkube.docker.useOpenShiftAuth", "true");
         Map<String, Object> authConfigMap = new HashMap<>();
         new MockUp<DockerFileUtil>() {
             @Mock
@@ -73,10 +71,8 @@ public class AuthConfigFactoryTest {
                 return kubeConfig;
             }
         };
-
         // When
         AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromOpenShiftConfig(AuthConfigFactory.LookupMode.DEFAULT, authConfigMap);
-
         // Then
         assertAuthConfig(authConfig, "test", "sometoken");
     }
@@ -85,7 +81,7 @@ public class AuthConfigFactoryTest {
     public void testGetAuthConfigFromOpenShiftConfigWithAuthConfigMap() {
         // Given
         Map<String, Object> authConfigMap = new HashMap<>();
-        authConfigMap.put(AuthConfigFactory.AUTH_USE_OPENSHIFT_AUTH, "true");
+        authConfigMap.put("useOpenShiftAuth", "true");
         new MockUp<DockerFileUtil>() {
             @Mock
             Map<String, ?> readKubeConfig() {
@@ -117,9 +113,9 @@ public class AuthConfigFactoryTest {
     public void testGetAuthConfigFromPluginConfiguration() {
         // Given
         Map<String, Object> authConfigMap = new HashMap<>();
-        authConfigMap.put(AuthConfigFactory.AUTH_USERNAME, "testuser");
-        authConfigMap.put(AuthConfigFactory.AUTH_PASSWORD, "testpass");
-        authConfigMap.put(AuthConfigFactory.AUTH_EMAIL, "test@example.com");
+        authConfigMap.put("username", "testuser");
+        authConfigMap.put("password", "testpass");
+        authConfigMap.put("email", "test@example.com");
 
         // When
         AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromPluginConfiguration(AuthConfigFactory.LookupMode.DEFAULT, authConfigMap, s -> s);
@@ -173,14 +169,12 @@ public class AuthConfigFactoryTest {
     @Test
     public void testGetStandardAuthConfigFromProperties(@Mocked KitLogger logger) throws IOException {
         // Given
-        AuthConfigFactory.LookupMode lookupMode = AuthConfigFactory.LookupMode.DEFAULT;
-        System.setProperty(lookupMode.asSysProperty(AuthConfigFactory.AUTH_USERNAME), "testuser");
-        System.setProperty(lookupMode.asSysProperty(AuthConfigFactory.AUTH_PASSWORD), "testpass");
-
+        new SystemMock()
+            .put("jkube.docker.username", "testuser")
+            .put("jkube.docker.password", "testpass");
         // When
         AuthConfigFactory authConfigFactory = new AuthConfigFactory(logger);
         AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), Collections.emptyList(), "testuser", "testregistry.io", s -> s);
-
         // Then
         assertAuthConfig(authConfig, "testuser", "testpass");
     }

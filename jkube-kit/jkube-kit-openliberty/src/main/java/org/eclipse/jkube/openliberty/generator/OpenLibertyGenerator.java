@@ -51,9 +51,9 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
     @Override
     protected List<String> extractPorts() {
         List<String> ret = new ArrayList<>();
-        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.webPort, "9080"));
-        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.jolokiaPort));
-        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.prometheusPort));
+        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.WEB_PORT, "9080"));
+        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.JOLOKIA_PORT));
+        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.PROMETHEUS_PORT));
         return ret;
     }
 

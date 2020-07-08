@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -37,22 +39,18 @@ public class QuarkusGenerator extends BaseGenerator {
         super(context, "quarkus");
     }
 
-    public enum Config implements Configs.Key {
+    @AllArgsConstructor
+    public enum Config implements Configs.Config {
         // Webport to expose. Set to 0 if no port should be exposed
-        webPort {{
-            d = "8080";
-        }},
+        WEB_PORT("webPort", "8080"),
 
         // Whether to add native image or plain java image
-        nativeImage {{
-            d = "false";
-        }};
+        NATIVE_IMAGE("nativeImage", "false");
 
-        public String def() {
-            return d;
-        }
-
-        protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     @Override
@@ -76,10 +74,10 @@ public class QuarkusGenerator extends BaseGenerator {
     private BuildConfiguration createBuildConfig(boolean prePackagePhase) {
         final BuildConfiguration.BuildConfigurationBuilder buildBuilder = BuildConfiguration.builder();
         // TODO: Check application.properties for a port
-        buildBuilder.port(getConfig(Config.webPort));
+        buildBuilder.port(getConfig(Config.WEB_PORT));
         addSchemaLabels(buildBuilder, log);
 
-        boolean isNative = Boolean.parseBoolean(getConfig(Config.nativeImage, "false"));
+        boolean isNative = Boolean.parseBoolean(getConfig(Config.NATIVE_IMAGE));
 
         Optional<String> fromConfigured = Optional.ofNullable(getFromAsConfigured());
         if (isNative) {

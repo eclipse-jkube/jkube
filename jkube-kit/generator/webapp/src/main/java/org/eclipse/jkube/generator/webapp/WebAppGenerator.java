@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFile;
@@ -42,32 +44,33 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
  */
 public class WebAppGenerator extends BaseGenerator {
 
-  @SuppressWarnings("squid:S00115")
-  private enum Config implements Configs.Key {
+  @AllArgsConstructor
+  private enum Config implements Configs.Config {
     // App server to use (like 'tomcat', 'jetty', 'wildfly'
-    server,
+    SERVER("server", null),
 
     // Directory where to deploy to
-    targetDir,
+    TARGET_DIR("targetDir", "/deployments"),
 
     // Unix user under which the war should be installed. If null, the default image user is used
-    user,
+    USER("user", null),
 
     // Command to execute. If null, the base image default command is used
-    cmd,
+    CMD("cmd", null),
 
     // Context path under which the app will be available
-    path {{ d = "/"; }},
+    PATH("path", "/"),
 
     // Ports to expose as a command separated list
-    ports,
+    PORTS("ports", "8080"),
 
     // If from base image supports S2I builds in OpenShift cluster
-    supportsS2iBuild {{ d = "false"; }};
+    SUPPORTS_S2I_BUILD("supportsS2iBuild", "false");
 
-    protected String d;
-
-    public String def() { return d; }
+    @Getter
+    protected String key;
+    @Getter
+    protected String defaultValue;
   }
 
   public WebAppGenerator(GeneratorContext context) {
@@ -127,16 +130,16 @@ public class WebAppGenerator extends BaseGenerator {
       // If a base image is provided use this exclusively and dont do a custom lookup
       return createCustomAppServerHandler(from);
     } else {
-      return new AppServerDetector(context).detect(getConfig(Config.server));
+      return new AppServerDetector(context).detect(getConfig(Config.SERVER));
     }
   }
 
   private AppServerHandler createCustomAppServerHandler(String from) {
-    final String deploymentDir = getConfig(Config.targetDir, "/deployments");
-    final String command = getConfig(Config.cmd);
-    final String user = getConfig(Config.user);
-    final List<String> ports = Arrays.asList(getConfig(Config.ports, "8080").split("\\s*,\\s*"));
-    final boolean supportsS2iBuild = Configs.asBoolean(getConfig(Config.supportsS2iBuild));
+    final String deploymentDir = getConfig(Config.TARGET_DIR);
+    final String command = getConfig(Config.CMD);
+    final String user = getConfig(Config.USER);
+    final List<String> ports = Arrays.asList(getConfig(Config.PORTS).split("\\s*,\\s*"));
+    final boolean supportsS2iBuild = Configs.asBoolean(getConfig(Config.SUPPORTS_S2I_BUILD));
     return new CustomAppServerHandler(from, deploymentDir, command, user, ports, supportsS2iBuild);
   }
 
@@ -151,7 +154,7 @@ public class WebAppGenerator extends BaseGenerator {
     final File sourceFile = Objects.requireNonNull(JKubeProjectUtil.getFinalOutputArtifact(getProject()),
         "Final output artifact file was not detected");
     final String targetFilename;
-    if (getConfig(Config.path).equals("/")) {
+    if (getConfig(Config.PATH).equals("/")) {
       targetFilename = String.format("ROOT.%s",  FilenameUtils.getExtension(sourceFile.getName()));
     } else {
       targetFilename =  sourceFile.getName();
@@ -183,14 +186,14 @@ public class WebAppGenerator extends BaseGenerator {
   }
 
   private String getDockerRunCommand(AppServerHandler handler) {
-    return getConfig(Config.cmd, handler.getCommand());
+    return getConfig(Config.CMD, handler.getCommand());
   }
 
   private String getDeploymentDir(AppServerHandler handler) {
-    return getConfig(Config.targetDir, handler.getDeploymentDir());
+    return getConfig(Config.TARGET_DIR, handler.getDeploymentDir());
   }
 
   private String getUser(AppServerHandler handler) {
-    return getConfig(Config.user, handler.getUser());
+    return getConfig(Config.USER, handler.getUser());
   }
 }

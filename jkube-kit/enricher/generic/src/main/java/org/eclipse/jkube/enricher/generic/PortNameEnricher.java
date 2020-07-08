@@ -22,7 +22,6 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -36,14 +35,13 @@ import static io.fabric8.ianaservicehelper.Helper.serviceNames;
  */
 public class PortNameEnricher extends BaseEnricher {
 
-    private static final Map<Integer, String> DEFAULT_PORT_MAPPING =
-        Collections.unmodifiableMap(
-            new HashMap<Integer, String>() {{
-                put(8080, "http");
-                put(8443, "https");
-                put(8778, "jolokia");
-                put(9779, "prometheus");
-            }});
+    private static final Map<Integer, String> DEFAULT_PORT_MAPPING = new HashMap<>();
+    static {
+        DEFAULT_PORT_MAPPING.put(8080, "http");
+        DEFAULT_PORT_MAPPING.put(8443, "https");
+        DEFAULT_PORT_MAPPING.put(8778, "jolokia");
+        DEFAULT_PORT_MAPPING.put(9779, "prometheus");
+    }
 
     public PortNameEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-portname");
