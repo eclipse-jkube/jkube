@@ -33,6 +33,7 @@ Usage:
 * Fix #245: Debug goals work on webapp (Tomcat & Jetty) > See https://github.com/jkubeio/jkube-images/releases/tag/v0.0.7
 * Fix #261: DockerFileBuilder only supports \*nix paths (Dockerfile Linux only), fixed invalid default configs
 * Fix #246: Dockerfile custom interpolation is broken
+* Fix #259: Cleanup unused properties inside Mojos
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 
