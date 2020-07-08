@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.enricher.api;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
-import java.util.TreeMap;
 
+import mockit.Expectations;
+import mockit.Mocked;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -29,21 +29,21 @@ import static org.junit.Assert.assertEquals;
  */
 public class EnricherConfigTest {
 
-    private enum Config implements Configs.Key {
-        type;
+  private enum Config implements Configs.Config {
+    TYPE;
+  }
 
-        public String def() { return null; }
-    }
-
-    @Test
-    public void simple() {
-        Map<String, TreeMap> configMap = new HashMap<>();
-        TreeMap<String, String> map = new TreeMap<>();
-        map.put("type","LoadBalancer");
-        configMap.put("default.service", map);
-        EnricherConfig config = new EnricherConfig(
-            "default.service",
-            Configuration.builder().processorConfig(new ProcessorConfig(null, null, configMap)).build());
-        assertEquals("LoadBalancer",config.get(Config.type));
-    }
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  @Test
+  public void simple(@Mocked EnricherContext context) {
+    Map<String, Map<String, Object>> configMap = Collections.singletonMap("default.service",
+        Collections.singletonMap("TYPE", "LoadBalancer"));
+    // @formatter:off
+    new Expectations() {{
+      context.getConfiguration().getProcessorConfig(); result = new ProcessorConfig(null, null, configMap);
+    }};
+    // @formatter:on
+    EnricherConfig config = new EnricherConfig("default.service", context);
+    assertEquals("LoadBalancer", config.get(EnricherConfigTest.Config.TYPE));
+  }
 }

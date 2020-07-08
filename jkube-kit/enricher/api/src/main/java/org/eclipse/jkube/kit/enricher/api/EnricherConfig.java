@@ -13,12 +13,8 @@
  */
 package org.eclipse.jkube.kit.enricher.api;
 
-import java.util.Map;
-import java.util.Optional;
-
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 
 /**
  * @author roland
@@ -28,11 +24,11 @@ public class EnricherConfig {
     private static final String ENRICHER_PROP_PREFIX = "jkube.enricher";
 
     private final String name;
-    private final Configuration configuration;
+    private final EnricherContext context;
 
-    public EnricherConfig(String name, Configuration configuration) {
+    public EnricherConfig(String name, EnricherContext context) {
         this.name = name;
-        this.configuration = configuration;
+        this.context = context;
     }
 
     /**
@@ -41,16 +37,8 @@ public class EnricherConfig {
      * @param key key to lookup.
      * @return the configuration value
      */
-    public String get(Configs.Key key) {
-        return get(key, key.def());
-    }
-
-    /**
-     * Get the raw, untyped configuration or an empty map
-     * @return raw configuration.
-     */
-    public Map<String, String> getRawConfig() {
-        return Optional.ofNullable(configuration.getProcessorConfig()).orElse(ProcessorConfig.EMPTY).getConfigMap(name);
+    public String get(Configs.Config key) {
+        return get(key, null);
     }
 
     /**
@@ -61,15 +49,9 @@ public class EnricherConfig {
      * @param defaultVal the default value to use when the no config is set
      * @return the value looked up or the default value.
      */
-    public String get(Configs.Key key, String defaultVal) {
-        String val = Optional.ofNullable(configuration.getProcessorConfig())
-            .orElse(ProcessorConfig.EMPTY).getConfig(name, key.name());
-
-        if (val == null) {
-            String fullKey = ENRICHER_PROP_PREFIX + "." + name + "." + key;
-            val = configuration.getPropertyWithSystemOverride(fullKey);
-        }
-        return val != null ? val : defaultVal;
+    public String get(Configs.Config key, String defaultVal) {
+        return ProcessorConfig.getConfigValue(
+            context.getConfiguration().getProcessorConfig(), name, ENRICHER_PROP_PREFIX, context.getProperties(), key, defaultVal);
     }
 
 }

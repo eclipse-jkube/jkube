@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.build.service.docker.auth;
 import com.google.common.net.UrlEscapers;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
@@ -53,13 +54,13 @@ public class AuthConfigFactory {
 
     // Properties for specifying username, password (can be encrypted), email and authtoken (not used yet)
     // + whether to check for OpenShift authentication
-    public static final String AUTH_USERNAME = "username";
-    public static final String AUTH_PASSWORD = "password";
-    public static final String AUTH_EMAIL = "email";
-    public static final String AUTH_AUTHTOKEN = "authToken";
-    protected static final String AUTH_USE_OPENSHIFT_AUTH = "useOpenShiftAuth";
+    private static final String AUTH_USERNAME = "username";
+    private static final String AUTH_PASSWORD = "password";
+    private static final String AUTH_EMAIL = "email";
+    private static final String AUTH_AUTHTOKEN = "authToken";
+    private static final String AUTH_USE_OPENSHIFT_AUTH = "useOpenShiftAuth";
 
-    static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
+    private static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
 
     private final KitLogger log;
     private static final String[] DEFAULT_REGISTRIES = new String[]{
@@ -190,7 +191,7 @@ public class AuthConfigFactory {
 
         // Check first for specific configuration based on direction (pull or push), then for a default value
         for (LookupMode lookupMode : new LookupMode[] { getLookupMode(isPush), LookupMode.DEFAULT }) {
-            // System properties docker.username and docker.password always take precedence
+            // System properties jkube.docker.username and jkube.docker.password always take precedence
             ret = getAuthConfigFromSystemProperties(lookupMode, passwordDecryptionMethod);
             if (ret != null) {
                 log.debug("AuthConfig: credentials from system properties");
@@ -303,30 +304,28 @@ public class AuthConfigFactory {
     }
 
     protected static AuthConfig getAuthConfigFromSystemProperties(LookupMode lookupMode, UnaryOperator<String> passwordDecryptionMethod) throws IOException {
-        Properties props = System.getProperties();
-        String userKey = lookupMode.asSysProperty(AUTH_USERNAME);
-        String passwordKey = lookupMode.asSysProperty(AUTH_PASSWORD);
-        if (props.containsKey(userKey)) {
-            if (!props.containsKey(passwordKey)) {
-                throw new IOException("No " + passwordKey + " provided for username " + props.getProperty(userKey));
-            }
-            return new AuthConfig(props.getProperty(userKey),
-                                  passwordDecryptionMethod.apply(props.getProperty(passwordKey)),
-                                  props.getProperty(lookupMode.asSysProperty(AUTH_EMAIL)),
-                                  props.getProperty(lookupMode.asSysProperty(AUTH_AUTHTOKEN)));
-        } else {
-            return null;
+        final String passwordKey = lookupMode.asSysProperty(AUTH_PASSWORD);
+        final String username = System.getProperty(lookupMode.asSysProperty(AUTH_USERNAME));
+        final String password = System.getProperty(passwordKey);
+        if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
+            throw new IOException("No " + passwordKey + " provided for username " + username);
+        } else if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
+            return new AuthConfig(username,
+                passwordDecryptionMethod.apply(password),
+                System.getProperty(lookupMode.asSysProperty(AUTH_EMAIL)),
+                System.getProperty(lookupMode.asSysProperty(AUTH_AUTHTOKEN)));
         }
+        return null;
     }
 
     protected static AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) {
-        Properties props = System.getProperties();
-        String useOpenAuthModeProp = lookupMode.asSysProperty(AUTH_USE_OPENSHIFT_AUTH);
+        final String useOpenAuthModeKey = lookupMode.asSysProperty(AUTH_USE_OPENSHIFT_AUTH);
+        final String useOpenAuthMode = System.getProperty(useOpenAuthModeKey);
         // Check for system property
-        if (props.containsKey(useOpenAuthModeProp)) {
-            boolean useOpenShift = Boolean.parseBoolean(props.getProperty(useOpenAuthModeProp));
+        if (StringUtils.isNotBlank(useOpenAuthMode)) {
+            boolean useOpenShift = Boolean.parseBoolean(useOpenAuthMode);
             if (useOpenShift) {
-                return validateMandatoryOpenShiftLogin(parseOpenShiftConfig(), useOpenAuthModeProp);
+                return validateMandatoryOpenShiftLogin(parseOpenShiftConfig(), useOpenAuthModeKey);
             } else {
                 return null;
             }
@@ -336,7 +335,7 @@ public class AuthConfigFactory {
         Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfigMap);
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USE_OPENSHIFT_AUTH) &&
             Boolean.parseBoolean((String) mapToCheck.get(AUTH_USE_OPENSHIFT_AUTH))) {
-                return validateMandatoryOpenShiftLogin(parseOpenShiftConfig(), useOpenAuthModeProp);
+                return validateMandatoryOpenShiftLogin(parseOpenShiftConfig(), useOpenAuthModeKey);
         } else {
             return null;
         }
@@ -554,9 +553,9 @@ public class AuthConfigFactory {
     }
 
     protected enum LookupMode {
-        PUSH("docker.push.","push"),
-        PULL("docker.pull.","pull"),
-        DEFAULT("docker.",null);
+        PUSH("jkube.docker.push.","push"),
+        PULL("jkube.docker.pull.","pull"),
+        DEFAULT("jkube.docker.",null);
 
         private final String sysPropPrefix;
         private String configMapKey;

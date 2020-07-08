@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
@@ -40,11 +43,15 @@ public class KarafGenerator extends BaseGenerator {
     super(context, KARAF, new FromSelector.Default(context,KARAF));
   }
 
-  private enum Config implements Configs.Key {
-    baseDir        {{ d = "/deployments"; }},
-    webPort        {{ d = "8181"; }};
+  @AllArgsConstructor
+  private enum Config implements Configs.Config {
+    BASE_DIR("baseDir", "/deployments"),
+    WEB_PORT("webPort", "8181");
 
-    public String def() { return d; } protected String d;
+    @Getter
+    protected String key;
+    @Getter(AccessLevel.PUBLIC)
+    protected String defaultValue;
   }
 
   @Override
@@ -60,7 +67,7 @@ public class KarafGenerator extends BaseGenerator {
 
     buildBuilder.ports(extractPorts());
     buildBuilder
-        .putEnv("DEPLOYMENTS_DIR", getConfig(Config.baseDir))
+        .putEnv("DEPLOYMENTS_DIR", getConfig(Config.BASE_DIR))
         .putEnv("KARAF_HOME", "/deployments/karaf");
 
     addSchemaLabels(buildBuilder, log);
@@ -79,14 +86,14 @@ public class KarafGenerator extends BaseGenerator {
 
 
   protected List<String> extractPorts() {
-    return Stream.of(getConfig(Config.webPort))
+    return Stream.of(getConfig(Config.WEB_PORT))
         .filter(StringUtils::isNotBlank)
         .collect(Collectors.toList());
   }
 
   private AssemblyConfiguration createDefaultAssembly() {
     return AssemblyConfiguration.builder()
-        .targetDir(getConfig(Config.baseDir))
+        .targetDir(getConfig(Config.BASE_DIR))
         .name("deployments")
         .inline(Assembly.builder()
             .fileSet(AssemblyFileSet.builder()

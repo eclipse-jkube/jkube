@@ -132,7 +132,7 @@ public class StartContainerExecutor {
     }
 
     boolean showLogs() {
-        if (showLogs != null) {
+        if (StringUtils.isNotBlank(showLogs)) {
             if (showLogs.equalsIgnoreCase("true")) {
                 return true;
             } else if (showLogs.equalsIgnoreCase("false")) {

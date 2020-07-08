@@ -28,12 +28,14 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +50,17 @@ import static org.eclipse.jkube.kit.enricher.api.util.DebugConstants.ENV_VAR_JAV
  */
 public class DebugEnricher extends BaseEnricher {
 
-    public static final String ENABLE_DEBUG_MAVEN_PROPERTY = "jkube.debug.enabled";
+    private static final String ENABLE_DEBUG_PROPERTY = "jkube.debug.enabled";
+
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        ENABLED("enabled", "false");
+
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
+    }
 
     public DebugEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-debug");
@@ -56,7 +68,7 @@ public class DebugEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        if (debugEnabled()) {
+        if (isDebugEnabled()) {
             int count = 0;
             List<HasMetadata> items = builder.buildItems();
             if (items != null) {
@@ -72,25 +84,17 @@ public class DebugEnricher extends BaseEnricher {
             log.verbose("Enabled debugging on "
                 + count
                 + " resource(s) thanks to the "
-                + ENABLE_DEBUG_MAVEN_PROPERTY
+                + ENABLE_DEBUG_PROPERTY
                 + " property");
         } else {
             log.verbose("Debugging not enabled. To enable try setting the "
-                + ENABLE_DEBUG_MAVEN_PROPERTY
+                + ENABLE_DEBUG_PROPERTY
                 + " maven or system property to 'true'");
         }
     }
 
-    private boolean debugEnabled() {
-        String value = getContext().getConfiguration().getProperties().getProperty(ENABLE_DEBUG_MAVEN_PROPERTY);
-        if (value != null && isTrueFlag(value)) {
-            return true;
-        }
-        return isTrueFlag(System.getProperty(ENABLE_DEBUG_MAVEN_PROPERTY));
-    }
-
-    private static boolean isTrueFlag(String value) {
-        return StringUtils.isNotBlank(value) && value.equals("true");
+    private boolean isDebugEnabled() {
+        return Configs.asBoolean(getConfigWithFallback(Config.ENABLED, ENABLE_DEBUG_PROPERTY, null));
     }
 
     private boolean enableDebug(HasMetadata entity) {
@@ -150,7 +154,7 @@ public class DebugEnricher extends BaseEnricher {
                     }
                     if (enabled) {
                         log.info("Enabling debug on " + KubernetesHelper.getKind(entity) + " " + KubernetesHelper.getName(
-                            entity) + " due to the property: " + ENABLE_DEBUG_MAVEN_PROPERTY);
+                            entity) + " due to the property: " + ENABLE_DEBUG_PROPERTY);
                         return true;
                     }
                 }

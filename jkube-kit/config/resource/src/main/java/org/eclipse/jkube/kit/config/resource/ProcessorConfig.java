@@ -19,67 +19,90 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.eclipse.jkube.kit.common.Named;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.Named;
+
+import javax.annotation.Nonnull;
 
 /**
  * Configuration for enrichers and generators
  *
  * @author roland
- * @since 24/07/16
  */
+@Getter
+@Setter
+@EqualsAndHashCode
 public class ProcessorConfig {
 
     public static final ProcessorConfig EMPTY = new ProcessorConfig();
     /**
-     * Modules to includes, should hold <code>&lt;include&gt;</code> elements
+     * Modules to include, should hold <code>&lt;include&gt;</code> elements
      */
-    @JsonProperty(value = "includes")
-    List<String> includes = new ArrayList<>();
+    private List<String> includes;
 
     /**
-     * Modules to excludes, should hold <code>&lt;exclude&gt;</code> elements
+     * Modules to exclude, should hold <code>&lt;exclude&gt;</code> elements
      */
-    @JsonProperty(value = "excludes")
-    Set<String> excludes = new HashSet<>();
+    private Set<String> excludes;
 
     /**
      * Configuration for enricher / generators
      */
-    // See http://stackoverflow.com/questions/38628399/using-map-of-maps-as-maven-plugin-parameters/38642613 why
-    // a "TreeMap" is used as parameter and not "Map<String, String>"
-    @JsonProperty(value = "config")
-    Map<String, TreeMap> config = new HashMap<>();
+    private Map<String, Map<String, Object>> config;
 
-    public ProcessorConfig() { }
-
-    public ProcessorConfig(List<String> includes, Set<String> excludes, Map<String, TreeMap> config) {
-        this.includes = includes != null ? includes : Collections.<String>emptyList();
-        this.excludes = excludes != null ? excludes : Collections.<String>emptySet();
-        if (config != null) {
-            this.config = config;
-        }
+    public ProcessorConfig() {
+        this(null, null, null);
     }
 
-    public String getConfig(String name, String key) {
-        TreeMap processorMap =  config.get(name);
-        return processorMap != null ? (String) processorMap.get(key) : null;
+    public ProcessorConfig(List<String> includes, Set<String> excludes, Map<String, Map<String, Object>> config) {
+        this.includes = includes != null ? includes : new ArrayList<>();
+        this.excludes = excludes != null ? excludes : new HashSet<>();
+        this.config = config != null ? config : new HashMap<>();
     }
 
     /**
-     * Return full configuration as raw string-string values
+     * Plexus deserialization specific setter.
      *
-     * @param name name of the enricher / generator
-     * @return unmodifiable map of the original config
+     * <p> See StackOverflow#38642613 why a "TreeMap" is used as parameter and not "Map&lt;String, String&gt;".
+     *
+     * <p> Plexus won't deserialize complex (Map with nested Map) structures e.g.
+     *
+     * <p> Will be parsed fully:
+     * <pre>{@code
+     * <config>
+     *   <first-level>valid</first-level>
+     * </config>
+     * }</pre>
+     *
+     * <p> Some fields will be ignored:
+     * <pre>{@code
+     * <config>
+     *   <first-level>valid</first-level>
+     *   <second-complex-level-ignored>
+     *     <ignored>ignored-value</ignored>
+     *   </second-complex-level-ignored>
+     * </config>
+     * }</pre>
+     * @see <a href="http://stackoverflow.com/questions/38628399/using-map-of-maps-as-maven-plugin-parameters/38642613">StackOverflow#38642613</a>
      */
-    public Map<String, String> getConfigMap(String name) {
-        return config.containsKey(name) ?
-                Collections.unmodifiableMap(config.get(name)) :
-                Collections.<String, String>emptyMap();
+    @SuppressWarnings({"squid:S3740", "rawtypes", "unchecked"})
+    public void setConfig(Map<String, TreeMap> config) {
+        this.config = new HashMap<>();
+        config.forEach((key, value) -> this.config.put(key, (Map<String, Object>) value));
     }
 
     /**
@@ -135,6 +158,45 @@ public class ProcessorConfig {
     }
 
     /**
+     * Returns a value from the provided {@link ProcessorConfig}, {@link Properties}, <code>defaultValue</code>
+     * corresponding to the {@link Configs.Config#getKey()} with the following order of precedence:
+     *  <ul>
+     *    <li>Existing value in ProcessorConfig#config and corresponding configName.</li>
+     *    <li><i>Or</i> existing value in provided Properties with pattern
+     *      <code>$propertyPrefix.$configName.$Config#getKey</code>.</li>
+     *    <li><i>Or</i> provided defaultValue if not null.</li>
+     *    <li><i>Or</i> Configs.Config#getDefaultValue.</li>
+     *  </ul>
+     *
+     * @param config from which to retrieve the value in first try.
+     * @param configName Name of the config (Map) from which to retrieve te value (also used for property key).
+     * @param propertyPrefix Prefix to prepend the property key with.
+     * @param properties Properties from which to retrieve the value
+     * @param key Config from which to get the key or default fallback value.
+     * @param defaultValue Default value to return in case no value is found in config or properties
+     * @return the resulting value of null if none is found.
+     */
+    public static String getConfigValue(
+        ProcessorConfig config, String configName, String propertyPrefix, Properties properties, Configs.Config key,
+        String defaultValue) {
+
+        final Object configValue = config != null ? config.getConfig(configName, key) : null;
+        if (configValue != null) {
+            return configValue.toString();
+        }
+        final String fullKey = String.format("%s.%s.%s", propertyPrefix, configName, key.getKey());
+        final String valueInProperties = Configs.getFromSystemPropertyWithPropertiesAsFallback(properties, fullKey);
+        if (valueInProperties != null) {
+            return valueInProperties;
+        }
+        return defaultValue != null ? defaultValue : key.getDefaultValue();
+    }
+
+    private Object getConfig(String configName, Configs.Config key) {
+        return Optional.ofNullable(config).map(c-> c.get(configName)).map(entries -> entries.get(key.getKey())).orElse(null);
+    }
+
+    /**
      * Merge in another processor configuration, with a lower priority. I.e. the latter a config is
      * in the argument list, the less priority it has. This means:
      *
@@ -148,7 +210,7 @@ public class ProcessorConfig {
      */
     public static ProcessorConfig mergeProcessorConfigs(ProcessorConfig ... processorConfigs) {
         // Merge the configuration
-        Map<String, TreeMap> configs = mergeConfig(processorConfigs);
+        Map<String, Map<String, Object>> configs = mergeConfig(processorConfigs);
 
         // Get all includes
         Set<String> excludes = mergeExcludes(processorConfigs);
@@ -160,70 +222,29 @@ public class ProcessorConfig {
     }
 
     private static Set<String> mergeExcludes(ProcessorConfig ... configs) {
-        Set<String> ret = new HashSet<>();
-        for (ProcessorConfig config : configs) {
-            if (config != null) {
-                Set<String> excludes = config.excludes;
-                if (excludes != null) {
-                    ret.addAll(excludes);
-                }
-            }
-        }
-        return ret;
+        return Stream.of(configs).filter(Objects::nonNull).map(ProcessorConfig::getExcludes).flatMap(Set::stream)
+            .collect(Collectors.toSet());
     }
 
     private static List<String> mergeIncludes(ProcessorConfig ... configs) {
-        List<String> ret = new ArrayList<>();
-        for (ProcessorConfig config : configs) {
-            if (config != null) {
-                List<String> includes = config.includes;
-                if (includes != null) {
-                    ret.addAll(includes);
-                }
-            }
-        }
-        return removeDups(ret);
+        return Stream.of(configs).filter(Objects::nonNull).map(ProcessorConfig::getIncludes).flatMap(List::stream)
+            .distinct().collect(Collectors.toList());
     }
 
-    // Remove duplicates such that the earlier element remains and the latter is removed
-    // Only good for small list (that's what we expect for enrichers and generators)
-    private static List<String> removeDups(List<String> list) {
-        List<String> ret = new ArrayList<>();
-        for (String el : list) {
-            if (!ret.contains(el)) {
-                ret.add(el);
-            }
-        }
+    @Nonnull
+    private static Map<String, Map<String, Object>> mergeConfig(ProcessorConfig ... processorConfigs) {
+        final Map<String, Map<String, Object>> ret= new HashMap<>();
+        final Predicate<Map.Entry<?, ? >> nonNullEntry = e -> e.getKey() != null && e.getValue() !=null;
+        IntStream.rangeClosed(1, processorConfigs.length).mapToObj(i -> processorConfigs[processorConfigs.length - i])
+            .filter(Objects::nonNull)
+            .map(ProcessorConfig::getConfig).map(Map::entrySet).flatMap(Set::stream)
+            .filter(nonNullEntry)
+            .forEach(configEntry -> {
+                final Map<String, Object> existingConfigEntry = ret.computeIfAbsent(configEntry.getKey(), k -> new HashMap<>());
+                configEntry.getValue().entrySet().stream().filter(nonNullEntry)
+                    .forEach(e -> existingConfigEntry.put(e.getKey(), e.getValue()));
+            });
         return ret;
-    }
-
-    private static Map<String, TreeMap> mergeConfig(ProcessorConfig ... processorConfigs) {
-        Map<String, TreeMap> ret = new HashMap<>();
-        if (processorConfigs.length > 0) {
-            // Reverse iteration order so that earlier entries have a higher precedence
-            for (int i = processorConfigs.length - 1; i >= 0; i--) {
-                ProcessorConfig processorConfig = processorConfigs[i];
-                if (processorConfig != null) {
-                    Map<String, TreeMap> config = processorConfig.config;
-                    if (config != null) {
-                        for (Map.Entry<String, TreeMap> entry : config.entrySet()) {
-                            TreeMap newValues = entry.getValue();
-                            if (newValues != null) {
-                                TreeMap existing = ret.get(entry.getKey());
-                                if (existing == null) {
-                                    ret.put(entry.getKey(), new TreeMap(newValues));
-                                } else {
-                                    for (Map.Entry newValue : (Set<Map.Entry>) newValues.entrySet()) {
-                                        existing.put(newValue.getKey(), newValue.getValue());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return ret.size() > 0 ? ret : null;
     }
 
 }
