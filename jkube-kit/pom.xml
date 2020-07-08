@@ -59,6 +59,7 @@
       <module>jkube-kit-vertx</module>
       <module>jkube-kit-quarkus</module>
       <module>jkube-kit-openliberty</module>
+      <module>jkube-kit-wildfly-jar</module>
   </modules>
 
 </project>
