@@ -185,9 +185,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(property = "docker.target.dir", defaultValue="target/docker")
     protected String outputDirectory;
 
-    @Parameter( defaultValue = "${reactorProjects}", required = true, readonly = true )
-    protected List<MavenProject> reactorProjects;
-
     @Parameter(property = "docker.autoPull")
     protected String autoPull;
 
