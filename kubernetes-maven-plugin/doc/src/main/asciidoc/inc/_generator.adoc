@@ -49,6 +49,10 @@ All default generators examine the build information for certain aspects and gen
 | <<generator-openliberty,Open Liberty>>
 | `openliberty`
 | Generator for Open Liberty applications
+
+| <<generator-wildfly-jar,WildFly Bootable JAR>>
+| `wildfly-jar`
+| Generator for WildFly Bootable JAR applications
 |===
 
 include::generator/_options_common.adoc[]
@@ -62,5 +66,6 @@ include::generator/_karaf.adoc[]
 include::generator/_webapp.adoc[]
 include::generator/_quarkus.adoc[]
 include::generator/_openliberty.adoc[]
+include::generator/_wildfly_jar.adoc[]
 
 include::generator/_api.adoc[]
