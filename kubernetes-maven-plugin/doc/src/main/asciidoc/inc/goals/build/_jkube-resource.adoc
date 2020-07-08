@@ -142,7 +142,7 @@ This is best explained by an example.
 [source,xml]
 ----
 <properties>
-    <docker.registry>docker.io</docker.registry>
+    <jkube.docker.registry>docker.io</docker.registry>
 </properties>
 ----
 

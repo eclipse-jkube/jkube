@@ -85,10 +85,11 @@ public class MavenProjectEnricherTest {
 
         final Properties properties = new Properties();
         properties.setProperty("jkube.enricher.jkube-project-label.useProjectLabel", "true");
+        // @formatter:off
         new Expectations() {{
-            context.getConfiguration();
-            result = Configuration.builder().properties(properties).build();
+            context.getProperties(); result = properties;
         }};
+        // @formatter:on
 
         ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
 

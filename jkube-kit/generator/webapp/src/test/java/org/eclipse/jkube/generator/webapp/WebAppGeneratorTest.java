@@ -21,13 +21,13 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import mockit.Expectations;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -35,9 +35,9 @@ import org.junit.rules.TemporaryFolder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -68,9 +68,9 @@ public class WebAppGeneratorTest {
   @Test(expected = IllegalArgumentException.class)
   public void customizeDoesNotSupportS2iBuildShouldThrowException() {
     // Given
-    // @formatter:off
     final Properties projectProperties = new Properties();
     projectProperties.put("jkube.generator.from", "image-to-trigger-custom-app-server-handler");
+    // @formatter:off
     new Expectations() {{
       generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
       generatorContext.getStrategy(); result = JKubeBuildStrategy.s2i;
@@ -110,5 +110,54 @@ public class WebAppGeneratorTest {
     assertThat(imageConfiguration.getBuildConfiguration().getTags(), contains("latest"));
     assertThat(imageConfiguration.getBuildConfiguration().getAssembly().isExcludeFinalOutputArtifact(),
         equalTo(true));
+    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().getInline().getFiles().iterator().next().getDestName(),
+        equalTo("ROOT.war"));
+    assertThat(imageConfiguration.getBuildConfiguration().getPorts(), contains("8080"));
+    assertThat(imageConfiguration.getBuildConfiguration().getEnv(), hasEntry("DEPLOY_DIR", "/deployments"));
+  }
+
+  @Test
+  public void customizeWithOverriddenPropertiesShouldAddImageConfiguration() throws IOException {
+    // Given
+    final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
+    final File buildDirectory = temporaryFolder.newFolder("build");
+    final File artifactFile = new File(buildDirectory, "artifact.war");
+    assertTrue(artifactFile.createNewFile());
+    final Properties projectProperties = new Properties();
+    projectProperties.put("jkube.generator.webapp.targetDir", "/other-dir");
+    projectProperties.put("jkube.generator.webapp.user", "root");
+    projectProperties.put("jkube.generator.webapp.cmd", "sleep 3600");
+    projectProperties.put("jkube.generator.webapp.path", "/some-context/");
+    projectProperties.put("jkube.generator.webapp.ports", "8082,80");
+    projectProperties.put("jkube.generator.webapp.supportsS2iBuild", "true");
+    projectProperties.put("jkube.generator.from", "image-to-trigger-custom-app-server-handler");
+    // @formatter:off
+    new Expectations() {{
+      generatorContext.getProject().getBuildDirectory(); result = buildDirectory;
+      generatorContext.getProject().getBuildFinalName(); result = "artifact";
+      generatorContext.getProject().getPackaging(); result = "war";
+      generatorContext.getProject().getVersion(); result = "1.33.7-SNAPSHOT";
+      generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
+      generatorContext.getStrategy(); result = JKubeBuildStrategy.s2i;
+      generatorContext.getProject().getProperties(); result = projectProperties;
+    }};
+    // @formatter:on
+    // When
+    final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
+        .customize(originalImageConfigurations, false);
+    // Then
+    assertThat(result, hasSize(1));
+    final ImageConfiguration imageConfiguration = result.iterator().next();
+    assertThat(imageConfiguration.getName(), equalTo("%a:%l"));
+    assertThat(imageConfiguration.getAlias(), equalTo("webapp"));
+    assertThat(imageConfiguration.getBuildConfiguration().getTags(), contains("latest"));
+    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().isExcludeFinalOutputArtifact(),
+        equalTo(true));
+    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().getUser(), equalTo("root"));
+    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().getInline().getFiles().iterator().next().getDestName(),
+        equalTo("artifact.war"));
+    assertThat(imageConfiguration.getBuildConfiguration().getPorts(), contains("8082", "80"));
+    assertThat(imageConfiguration.getBuildConfiguration().getEnv(), hasEntry("DEPLOY_DIR", "/other-dir"));
+    assertThat(imageConfiguration.getBuildConfiguration().getCmd().getShell(), equalTo("sleep 3600"));
   }
 }

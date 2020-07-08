@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.enricher.specific;
 
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
@@ -33,15 +35,15 @@ public class KarafHealthCheckEnricher extends AbstractHealthCheckEnricher {
         super(buildContext, "jkube-healthcheck-karaf");
     }
 
-    private enum Config implements Configs.Key {
-        failureThreshold                    {{ d = "3"; }},
-        successThreshold                    {{ d = "1"; }};
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        FAILURE_THRESHOLD("failureThreshold", "3"),
+        SUCCESS_THRESHOLD("successThreshold", "1");
 
-        protected String d;
-
-        public String def() {
-            return d;
-        }
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     @Override
@@ -110,7 +112,7 @@ public class KarafHealthCheckEnricher extends AbstractHealthCheckEnricher {
         return null;
     }
 
-    protected int getFailureThreshold() { return Configs.asInteger(getConfig(Config.failureThreshold)); }
+    protected int getFailureThreshold() { return Configs.asInteger(getConfig(Config.FAILURE_THRESHOLD)); }
 
-    protected int getSuccessThreshold() { return Configs.asInteger(getConfig(Config.successThreshold)); }
+    protected int getSuccessThreshold() { return Configs.asInteger(getConfig(Config.SUCCESS_THRESHOLD)); }
 }

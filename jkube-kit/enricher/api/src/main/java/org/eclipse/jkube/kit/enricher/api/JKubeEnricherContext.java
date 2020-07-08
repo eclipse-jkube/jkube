@@ -62,20 +62,17 @@ public class JKubeEnricherContext implements EnricherContext {
     private Map<String, String> processingInstruction;
     private JavaProject project;
     private KitLogger log;
-    private Properties properties;
 
     @Builder
     public JKubeEnricherContext(
         @Singular  List<RegistryServerConfiguration> settings, @Singular Map<String, String> processingInstructions,
-        JavaProject project, KitLogger log, Properties properties,
+        JavaProject project, KitLogger log,
         ResourceConfig resources, @Singular List<ImageConfiguration> images, ProcessorConfig processorConfig) {
         this.settings = settings;
         this.processingInstruction = processingInstructions;
         this.project = project;
         this.log = log;
-        this.properties = properties;
         this.configuration = Configuration.builder()
-            .properties(this.project.getProperties())
             .images(images)
             .resource(resources)
             .processorConfig(processorConfig)
@@ -152,8 +149,13 @@ public class JKubeEnricherContext implements EnricherContext {
     }
 
     @Override
-    public Object getProperty(String key) {
-        return properties != null ? properties.getProperty(key) : null;
+    public Properties getProperties() {
+        return project.getProperties();
+    }
+
+    @Override
+    public String getProperty(String key) {
+        return project.getProperties() != null ? project.getProperties().getProperty(key) : null;
     }
 
     //Method used in MOJO

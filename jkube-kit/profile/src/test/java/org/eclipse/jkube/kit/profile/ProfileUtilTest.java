@@ -33,7 +33,6 @@ import static org.junit.Assert.fail;
 
 /**
  * @author roland
- * @since 24/07/16
  */
 public class ProfileUtilTest {
 
@@ -74,7 +73,7 @@ public class ProfileUtilTest {
         File dir = getProfileDir();
         Profile profile = ProfileUtil.lookup("simple", dir);
         assertEquals("simple", profile.getName());
-        assertEquals("http://jolokia.org", profile.getEnricherConfig().getConfig("base","url"));
+        assertEquals("http://jolokia.org", profile.getEnricherConfig().getConfig().get("base").get("url"));
 
         profile = ProfileUtil.lookup("one", dir);
         assertTrue(profile.getGeneratorConfig().use("foobar"));
@@ -115,7 +114,7 @@ public class ProfileUtilTest {
                                                                                 origConfig);
         assertTrue(mergeConfig.use("base"));
         assertTrue(mergeConfig.use("i1"));
-        assertEquals("http://jolokia.org", mergeConfig.getConfig("base", "url"));
+        assertEquals("http://jolokia.org", mergeConfig.getConfig().get("base").get("url"));
 
 
         mergeConfig = ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG,

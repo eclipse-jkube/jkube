@@ -19,6 +19,8 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.Template;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -49,29 +51,24 @@ import java.util.function.Function;
  * @author jimmidyson
  */
 public class DependencyEnricher extends BaseEnricher {
-    private static String DEPENDENCY_KUBERNETES_YAML = "META-INF/jkube/kubernetes.yml";
-    private static String DEPENDENCY_KUBERNETES_TEMPLATE_YAML = "META-INF/jkube/k8s-template.yml";
-    private static String DEPENDENCY_OPENSHIFT_YAML = "META-INF/jkube/openshift.yml";
+    private static final String DEPENDENCY_KUBERNETES_YAML = "META-INF/jkube/kubernetes.yml";
+    private static final String DEPENDENCY_KUBERNETES_TEMPLATE_YAML = "META-INF/jkube/k8s-template.yml";
+    private static final String DEPENDENCY_OPENSHIFT_YAML = "META-INF/jkube/openshift.yml";
 
     private Set<URL> kubernetesDependencyArtifacts = new HashSet<>();
     private Set<URL> kubernetesTemplateDependencyArtifacts = new HashSet<>();
     private Set<URL> openshiftDependencyArtifacts = new HashSet<>();
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
-        includeTransitive {{
-            d = "true";
-        }},
-        includePlugin {{
-            d = "true";
-        }};
+        INCLUDE_TRANSITIVE("includeTransitive", "true"),
+        INCLUDE_PLUGIN("includePlugin", "true");
 
-        protected String d;
-
-        public String def() {
-            return d;
-        }
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public DependencyEnricher(JKubeEnricherContext buildContext) {
@@ -122,6 +119,8 @@ public class DependencyEnricher extends BaseEnricher {
                 break;
             case openshift:
                 enrichOpenShift(builder);
+                break;
+            default:
                 break;
         }
     }
@@ -225,11 +224,11 @@ public class DependencyEnricher extends BaseEnricher {
     }
 
     protected boolean isIncludePlugin() {
-        return Configs.asBoolean(getConfig(Config.includePlugin));
+        return Configs.asBoolean(getConfig(Config.INCLUDE_PLUGIN));
     }
 
     protected boolean isIncludeTransitive() {
-        return Configs.asBoolean(getConfig(Config.includeTransitive));
+        return Configs.asBoolean(getConfig(Config.INCLUDE_TRANSITIVE));
     }
 
 

@@ -384,7 +384,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
                 .project(jkubeProject)
                 .processorConfig(extractEnricherConfig())
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
-                .properties(jkubeProject.getProperties())
                 .resources(resources)
                 .images(resolvedImages)
                 .log(log);
@@ -507,7 +506,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
         if (DockerFileUtil.isSimpleDockerFileMode(project.getBasedir())) {
             File topDockerfile = DockerFileUtil.getTopLevelDockerfile(project.getBasedir());
             if (ret.isEmpty()) {
-                ret.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("docker.name")));
+                ret.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("jkube.image.name")));
             } else if (ret.size() == 1 && ret.get(0).getBuildConfiguration() == null) {
                 ret.set(0, DockerFileUtil.addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
             }

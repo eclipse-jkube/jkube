@@ -36,6 +36,7 @@ Usage:
 * Fix #246: Dockerfile custom interpolation is broken
 * Fix #259: Cleanup unused properties inside Mojos
 * Fix #94: Properly define + document JKubeProjectAssembly behavior
+* Fix #248: Properly name and document (Maven/System) configuration properties
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 
