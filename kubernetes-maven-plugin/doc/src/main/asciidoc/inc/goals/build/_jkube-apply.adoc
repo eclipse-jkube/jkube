@@ -17,10 +17,6 @@ mvn {goal-prefix}:apply
 |===
 | Element | Description | Property(System property or maven property)
 
-| *failOnError*
-| Should we fail the build if an apply fails, by default `true`
-| `jkube.deploy.failOnError`
-
 | *recreate*
 | Should we update resources by deleting them first and then creating them again, by default `false`
 | `jkube.recreate`

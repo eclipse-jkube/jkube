@@ -46,7 +46,6 @@ import org.eclipse.jkube.kit.profile.Profile;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 import org.eclipse.jkube.maven.plugin.enricher.EnricherManager;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 import org.apache.commons.lang3.StringUtils;
@@ -126,12 +125,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.workDir", defaultValue = "${project.build.directory}/jkube")
     private File workDir;
 
-    /**
-     * The jkube working directory
-     */
-    @Parameter(property = "jkube.workDirOpenShiftOverride", defaultValue = "${project.build.directory}/jkube-openshift-override")
-    private File workDirOpenShiftOverride;
-
     // Resource specific configuration for this plugin
     @Parameter
     private ResourceConfig resources;
@@ -148,8 +141,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter
     private List<ImageConfiguration> images;
 
-    @Parameter(property = "jkube.build.switchToDeployment", defaultValue = "false")
-    private Boolean switchToDeployment;
     /**
      * Profile to use. A profile contains the enrichers and generators to
      * use as well as their configuration. Profiles are looked up
@@ -186,34 +177,11 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter
     private List<MappingConfig> mappings;
 
-    // Services
-    private HandlerHub handlerHub;
-
     /**
      * Namespace to use when accessing Kubernetes or OpenShift
      */
     @Parameter(property = "jkube.namespace")
     private String namespace;
-
-    /**
-     * Should we create external Ingress/Routes for any LoadBalancer Services which don't already have them.
-     * <p>
-     * if Ingress or Router is being used or whether we should use LoadBalancer or NodePorts for single node clusters
-     */
-    @Parameter(property = "jkube.createExternalUrls", defaultValue = "false")
-    private Boolean createExternalUrls;
-
-    /*
-     * The domain added to the service ID when creating Kubernetes Ingress
-     */
-    @Parameter(property = "jkube.domain")
-    protected String routeDomain;
-
-    @Parameter(property = "jkube.sidecar", defaultValue = "false")
-    private Boolean sidecar;
-
-    @Parameter(property = "jkube.skipHealthCheck", defaultValue = "false")
-    private Boolean skipHealthCheck;
 
     @Parameter(property = "jkube.skip.resource", defaultValue = "false")
     protected boolean skipResource;
