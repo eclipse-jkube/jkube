@@ -384,7 +384,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
                 .project(jkubeProject)
                 .processorConfig(extractEnricherConfig())
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
-                .properties(jkubeProject.getProperties())
                 .resources(resources)
                 .images(resolvedImages)
                 .log(log);

@@ -188,7 +188,7 @@ public class DefaultServiceEnricherTest {
                 .name("test-label")
                 .alias("test")
                 .build();
-        final TreeMap<String, String> config = new TreeMap<>();
+        final TreeMap<String, Object> config = new TreeMap<>();
         config.put("type", "LoadBalancer");
 
         new Expectations() {{
@@ -245,7 +245,7 @@ public class DefaultServiceEnricherTest {
 
     private void setupExpectations(final boolean withPorts, String ... configParams) {
         // Setup mock behaviour
-        final TreeMap<String, String> config = new TreeMap<>();
+        final TreeMap<String, Object> config = new TreeMap<>();
         for (int i = 0; i < configParams.length; i += 2) {
                 config.put(configParams[i],configParams[i+1]);
         }

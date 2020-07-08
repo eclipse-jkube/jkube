@@ -15,13 +15,11 @@ package org.eclipse.jkube.kit.enricher.specific;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.TreeMap;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -40,29 +38,12 @@ public class PrometheusEnricherTest {
     @Mocked
     ImageConfiguration imageConfiguration;
 
-    private enum Config implements Configs.Key {
-        prometheusPort,
-        prometheusPath;
-        public String def() { return d; } protected String d;
-    }
-
-    // *******************************
-    // Tests
-    // *******************************
-
     @Test
-    public void testCustomPrometheusPort() throws Exception {
+    public void testCustomPrometheusPort() {
         final ProcessorConfig config = new ProcessorConfig(
             null,
             null,
-            Collections.singletonMap(
-                PrometheusEnricher.ENRICHER_NAME,
-                    new TreeMap<>(Collections.singletonMap(
-                            Config.prometheusPort.name(),
-                            "1234")
-                    )
-            )
-        );
+            Collections.singletonMap("jkube-prometheus", Collections.singletonMap("prometheusPort","1234")));
 
         // Setup mock behaviour
         new Expectations() {{
@@ -80,15 +61,11 @@ public class PrometheusEnricherTest {
     }
 
     @Test
-    public void testDetectPrometheusPort() throws Exception {
+    public void testDetectPrometheusPort() {
         final ProcessorConfig config = new ProcessorConfig(
             null,
             null,
-            Collections.singletonMap(
-                PrometheusEnricher.ENRICHER_NAME,
-                new TreeMap<>()
-            )
-        );
+            Collections.singletonMap("jkube-prometheus", Collections.emptyMap()));
 
         final BuildConfiguration imageConfig = BuildConfiguration.builder()
             .ports(Collections.singletonList(PrometheusEnricher.PROMETHEUS_PORT))
@@ -117,15 +94,11 @@ public class PrometheusEnricherTest {
     }
 
     @Test
-    public void testNoDefinedPrometheusPort() throws Exception {
+    public void testNoDefinedPrometheusPort() {
         final ProcessorConfig config = new ProcessorConfig(
             null,
             null,
-            Collections.singletonMap(
-                PrometheusEnricher.ENRICHER_NAME,
-                new TreeMap<>()
-            )
-        );
+            Collections.singletonMap("jkube-prometheus", Collections.emptyMap()));
 
         final BuildConfiguration imageConfig = BuildConfiguration.builder()
             .build();
@@ -152,16 +125,9 @@ public class PrometheusEnricherTest {
     @Test
     public void testCustomPrometheusPath() {
         final ProcessorConfig config = new ProcessorConfig(
-                null,
-                null,
-                Collections.singletonMap(
-                        PrometheusEnricher.ENRICHER_NAME,
-                        new TreeMap(Collections.singletonMap(
-                                Config.prometheusPath.name(),
-                                "/prometheus")
-                        )
-                )
-        );
+            null,
+            null,
+            Collections.singletonMap("jkube-prometheus", Collections.singletonMap("prometheusPath","/prometheus")));;
 
         final BuildConfiguration imageConfig = BuildConfiguration.builder()
                 .ports(Collections.singletonList(PrometheusEnricher.PROMETHEUS_PORT))

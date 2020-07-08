@@ -22,6 +22,8 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.openshift.api.model.DeploymentConfig;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -71,21 +73,24 @@ public class DefaultControllerEnricher extends BaseEnricher {
     private final DaemonSetHandler daemonSetHandler;
     private final JobHandler jobHandler;
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
-        name,
-        pullPolicy             {{ d = "IfNotPresent"; }},
-        type                   {{ d = "deployment"; }},
-        replicaCount           {{ d = "1"; }};
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        NAME("name", null),
+        PULL_POLICY("pullPolicy", "IfNotPresent"),
+        TYPE("type", "deployment"),
+        REPLICA_COUNT("replicaCount", "1");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public DefaultControllerEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-controller");
 
         HandlerHub handlers = new HandlerHub(
-            getContext().getGav(), getContext().getConfiguration().getProperties());
+            getContext().getGav(), getContext().getProperties());
         rcHandler = handlers.getReplicationControllerHandler();
         rsHandler = handlers.getReplicaSetHandler();
         deployHandler = handlers.getDeploymentHandler();
@@ -97,14 +102,14 @@ public class DefaultControllerEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        final String name = getConfig(Config.name, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+        final String name = getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
         ResourceConfig xmlResourceConfig = Optional.ofNullable(getConfiguration().getResource())
             .orElse(ResourceConfig.builder().build());
         ResourceConfig config = ResourceConfig.toBuilder(xmlResourceConfig)
-                .controllerName(getControllerName(xmlResourceConfig, name))
-                .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, getConfig(Config.pullPolicy)))
-                .replicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.replicaCount))))
-                .build();
+            .controllerName(getControllerName(xmlResourceConfig, name))
+            .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, getConfig(Config.PULL_POLICY)))
+            .replicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+            .build();
 
         final List<ImageConfiguration> images = getImages();
 
@@ -112,7 +117,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
         if (!KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS)) {
             // At least one image must be present, otherwise the resulting config will be invalid
             if (!images.isEmpty()) {
-                String type = getConfig(Config.type);
+                String type = getConfig(Config.TYPE);
                 if ("deployment".equalsIgnoreCase(type) || "deploymentConfig".equalsIgnoreCase(type)) {
                     if (platformMode == PlatformMode.kubernetes  || (platformMode == PlatformMode.openshift && useDeploymentForOpenShift())) {
                         log.info("Adding a default Deployment");

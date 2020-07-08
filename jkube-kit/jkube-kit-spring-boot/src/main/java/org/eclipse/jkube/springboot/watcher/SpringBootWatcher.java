@@ -34,6 +34,8 @@ import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -62,13 +64,14 @@ public class SpringBootWatcher extends BaseWatcher {
 
     private final PortForwardService portForwardService;
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
         // The time to wait for the service to be exposed (by the expose controller)
-        serviceUrlWaitTimeSeconds {{ d = "5"; }};
+        serviceUrlWaitTimeSeconds("5");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String defaultValue;
     }
 
     public SpringBootWatcher(WatcherContext watcherContext) {

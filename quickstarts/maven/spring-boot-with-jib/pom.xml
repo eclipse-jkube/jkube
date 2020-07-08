@@ -133,7 +133,6 @@
                                                 </files>
                                             </inline>
                                             <targetDir>/deployments</targetDir>
-                                            <descriptorRef>artifact-with-dependencies</descriptorRef>
                                         </assembly>
                                         <cmd>java -jar /deployments/${project.artifactId}-${project.version}.jar</cmd>
                                         <ports>

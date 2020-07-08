@@ -17,6 +17,8 @@ import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -36,11 +38,15 @@ public abstract class AbstractHealthCheckEnricher extends BaseEnricher {
     public static final String ENRICH_CONTAINERS = "jkube.enricher.basic.enrichContainers";
     public static final String ENRICH_ALL_CONTAINERS = "jkube.enricher.basic.enrichAllContainers";
 
-    private enum Config implements Configs.Key {
-        enrichAllContainers {{ d = "false"; }},
-        enrichContainers    {{ d = null; }};
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        ENRICH_ALL_CONTAINERS("enrichAllContainers", "false"),
+        ENRICH_CONTAINERS("enrichContainers", null);
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public AbstractHealthCheckEnricher(EnricherContext buildContext, String name) {
@@ -114,8 +120,8 @@ public abstract class AbstractHealthCheckEnricher extends BaseEnricher {
             }
         });
 
-        boolean enrichAllContainers = "true".equalsIgnoreCase(getConfig(Config.enrichAllContainers));
-        String enrichContainers = getConfig(Config.enrichContainers);
+        boolean enrichAllContainers = "true".equalsIgnoreCase(getConfig(Config.ENRICH_ALL_CONTAINERS));
+        String enrichContainers = getConfig(Config.ENRICH_CONTAINERS);
         Set<String> containersToEnrich = new HashSet<>();
         if (enrichContainers != null) {
             containersToEnrich.addAll(Arrays.asList(enrichContainers.split(",")));

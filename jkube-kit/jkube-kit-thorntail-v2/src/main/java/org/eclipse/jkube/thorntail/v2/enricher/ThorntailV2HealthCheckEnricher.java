@@ -15,6 +15,8 @@ package org.eclipse.jkube.thorntail.v2.enricher;
 
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.ThorntailUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -33,26 +35,17 @@ public class ThorntailV2HealthCheckEnricher extends AbstractHealthCheckEnricher 
         super(buildContext, "jkube-healthcheck-thorntail-v2");
     }
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
-        scheme {{
-            d = "HTTP";
-        }},
-        port {{
-            d = "8080";
-        }},
-        failureThreshold                    {{ d = "3"; }},
-        successThreshold                    {{ d = "1"; }},
-        path {{
-            d = "/health";
-        }};
+        scheme("HTTP"),
+        port("8080"),
+        failureThreshold("3"),
+        successThreshold("1"),
+        path("/health");
 
-        protected String d;
-
-        public String def() {
-            return d;
-        }
+        @Getter
+        protected String defaultValue;
     }
 
     @Override

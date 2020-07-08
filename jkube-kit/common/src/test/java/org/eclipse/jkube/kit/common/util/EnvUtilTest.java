@@ -14,11 +14,9 @@
 package org.eclipse.jkube.kit.common.util;
 
 import mockit.Expectations;
-import mockit.Invocation;
-import mockit.Mock;
-import mockit.MockUp;
 import mockit.Mocked;
 import mockit.Verifications;
+import org.eclipse.jkube.kit.common.SystemMock;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -30,7 +28,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -389,8 +386,7 @@ public class EnvUtilTest {
     @Test
     public  void testIsWindowsFalse(){
         //Given
-        new SystemMock();
-        SystemMock.FAKE_PROPS.put("os.name", "random");
+        new SystemMock().put("os.name", "random");
         //When
         boolean result= EnvUtil.isWindows();
         //Then
@@ -400,21 +396,10 @@ public class EnvUtilTest {
     @Test
     public  void testIsWindows(){
         //Given
-        new SystemMock();
-        SystemMock.FAKE_PROPS.put("os.name", "windows");
+        new SystemMock().put("os.name", "windows");
         //When
         boolean result= EnvUtil.isWindows();
         //Then
         assertTrue(result);
-    }
-
-    private static final class SystemMock extends MockUp<System> {
-        private static Map<String, String> FAKE_PROPS = new HashMap<>();
-
-        @Mock
-        public static String getProperty(Invocation invocation, String key) {
-            return FAKE_PROPS.getOrDefault(key, invocation.proceed(key));
-        }
-
     }
 }

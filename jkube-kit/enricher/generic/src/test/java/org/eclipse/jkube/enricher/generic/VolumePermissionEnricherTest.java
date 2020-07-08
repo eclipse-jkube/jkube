@@ -99,7 +99,7 @@ public class VolumePermissionEnricherTest {
         for (final TestConfig tc : data) {
             final ProcessorConfig config = new ProcessorConfig(null, null,
                     Collections.singletonMap(VolumePermissionEnricher.ENRICHER_NAME, new TreeMap(Collections
-                            .singletonMap(VolumePermissionEnricher.Config.permission.name(), tc.permission))));
+                            .singletonMap(VolumePermissionEnricher.Config.PERMISSION.name(), tc.permission))));
 
             // Setup mock behaviour
             new Expectations() {{

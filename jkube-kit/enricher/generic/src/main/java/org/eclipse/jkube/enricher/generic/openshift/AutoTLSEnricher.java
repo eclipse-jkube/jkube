@@ -23,6 +23,8 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -48,34 +50,30 @@ public class AutoTLSEnricher extends BaseEnricher {
 
     private final InitContainerHandler initContainerHandler;
 
-    enum Config implements Configs.Key {
-        tlsSecretName,
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
-        tlsSecretVolumeMountPoint  {{ d = "/var/run/secrets/jkube.io/tls-pem"; }},
+        TLS_SECRET_NAME("tlsSecretName", null),
+        TLS_SECRET_VOLUME_MOUNT_POINT("tlsSecretVolumeMountPoint", "/var/run/secrets/jkube.io/tls-pem"),
+        TLS_SECRET_VOLUME_NAME("tlsSecretVolumeName", "tls-pem"),
+        JKS_VOLUME_MOUNT_POINT("jksVolumeMountPoint", "/var/run/secrets/jkube.io/tls-jks"),
+        JKS_VOLUME_NAME("jksVolumeName", "tls-jks"),
+        PEM_TO_JKS_INIT_CONTAINER_IMAGE("pemToJKSInitContainerImage", "jimmidyson/pemtokeystore:v0.1.0"),
+        PEM_TO_JKS_INIT_CONTAINER_NAME("pemToJKSInitContainerName", "tls-jks-converter"),
+        KEYSTORE_FILE_NAME("keystoreFileName", "keystore.jks"),
+        KEYSTORE_PASSWORD("keystorePassword", "changeit"),
+        KEYSTORE_CERT_ALIAS("keystoreCertAlias", "server");
 
-        tlsSecretVolumeName        {{ d = "tls-pem"; }},
-
-        jksVolumeMountPoint        {{ d = "/var/run/secrets/jkube.io/tls-jks"; }},
-
-        jksVolumeName              {{ d = "tls-jks"; }},
-
-        pemToJKSInitContainerImage {{ d = "jimmidyson/pemtokeystore:v0.1.0"; }},
-
-        pemToJKSInitContainerName  {{ d = "tls-jks-converter"; }},
-
-        keystoreFileName           {{ d = "keystore.jks"; }},
-
-        keystorePassword           {{ d = "changeit"; }},
-
-        keystoreCertAlias          {{ d = "server"; }};
-
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public AutoTLSEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
 
-        this.secretName = getConfig(Config.tlsSecretName, getContext().getGav().getArtifactId() + "-tls");
+        this.secretName = getConfig(Config.TLS_SECRET_NAME, getContext().getGav().getArtifactId() + "-tls");
         this.initContainerHandler = new InitContainerHandler(buildContext.getLog());
     }
 
@@ -88,12 +86,12 @@ public class AutoTLSEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<PodSpecBuilder>() {
             @Override
             public void visit(PodSpecBuilder builder) {
-                String tlsSecretVolumeName = getConfig(Config.tlsSecretVolumeName);
+                String tlsSecretVolumeName = getConfig(Config.TLS_SECRET_VOLUME_NAME);
                 if (!isVolumeAlreadyExists(builder.buildVolumes(), tlsSecretVolumeName)) {
                     builder.addNewVolume().withName(tlsSecretVolumeName).withNewSecret()
                            .withSecretName(AutoTLSEnricher.this.secretName).endSecret().endVolume();
                 }
-                String jksSecretVolumeName = getConfig(Config.jksVolumeName);
+                String jksSecretVolumeName = getConfig(Config.JKS_VOLUME_NAME);
                 if (!isVolumeAlreadyExists(builder.buildVolumes(), jksSecretVolumeName)) {
                     builder.addNewVolume().withName(jksSecretVolumeName).withNewEmptyDir().withMedium("Memory").endEmptyDir().endVolume();
                 }
@@ -112,17 +110,17 @@ public class AutoTLSEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<ContainerBuilder>() {
             @Override
             public void visit(ContainerBuilder builder) {
-                String tlsSecretVolumeName = getConfig(Config.tlsSecretVolumeName);
+                String tlsSecretVolumeName = getConfig(Config.TLS_SECRET_VOLUME_NAME);
                 if (!isVolumeMountAlreadyExists(builder.buildVolumeMounts(), tlsSecretVolumeName)) {
                     builder.addNewVolumeMount().withName(tlsSecretVolumeName)
-                            .withMountPath(getConfig(Config.tlsSecretVolumeMountPoint)).withReadOnly(true)
+                            .withMountPath(getConfig(Config.TLS_SECRET_VOLUME_MOUNT_POINT)).withReadOnly(true)
                             .endVolumeMount();
                 }
 
-                String jksVolumeName = getConfig(Config.jksVolumeName);
+                String jksVolumeName = getConfig(Config.JKS_VOLUME_NAME);
                 if (!isVolumeMountAlreadyExists(builder.buildVolumeMounts(), jksVolumeName)) {
                     builder.addNewVolumeMount().withName(jksVolumeName)
-                            .withMountPath(getConfig(Config.jksVolumeMountPoint)).withReadOnly(true).endVolumeMount();
+                            .withMountPath(getConfig(Config.JKS_VOLUME_MOUNT_POINT)).withReadOnly(true).endVolumeMount();
                 }
             }
 
@@ -166,8 +164,8 @@ public class AutoTLSEnricher extends BaseEnricher {
 
             private Container createInitContainer() {
                 return new ContainerBuilder()
-                        .withName(getConfig(Config.pemToJKSInitContainerName))
-                        .withImage(getConfig(Config.pemToJKSInitContainerImage))
+                        .withName(getConfig(Config.PEM_TO_JKS_INIT_CONTAINER_NAME))
+                        .withImage(getConfig(Config.PEM_TO_JKS_INIT_CONTAINER_IMAGE))
                         .withImagePullPolicy("IfNotPresent")
                         .withArgs(createArgsArray())
                         .withVolumeMounts(createMounts())
@@ -177,24 +175,24 @@ public class AutoTLSEnricher extends BaseEnricher {
             private List<String> createArgsArray() {
                 List<String> ret = new ArrayList<>();
                 ret.add("-cert-file");
-                ret.add(getConfig(Config.keystoreCertAlias) + "=/tls-pem/tls.crt");
+                ret.add(getConfig(Config.KEYSTORE_CERT_ALIAS) + "=/tls-pem/tls.crt");
                 ret.add("-key-file");
-                ret.add(getConfig(Config.keystoreCertAlias) + "=/tls-pem/tls.key");
+                ret.add(getConfig(Config.KEYSTORE_CERT_ALIAS) + "=/tls-pem/tls.key");
                 ret.add("-keystore");
-                ret.add("/tls-jks/" + getConfig(Config.keystoreFileName));
+                ret.add("/tls-jks/" + getConfig(Config.KEYSTORE_FILE_NAME));
                 ret.add("-keystore-password");
-                ret.add(getConfig(Config.keystorePassword));
+                ret.add(getConfig(Config.KEYSTORE_PASSWORD));
                 return ret;
             }
 
             private List<VolumeMount> createMounts() {
 
                 VolumeMount pemMountPoint = new VolumeMountBuilder()
-                        .withName(getConfig(Config.tlsSecretVolumeName))
+                        .withName(getConfig(Config.TLS_SECRET_VOLUME_NAME))
                         .withMountPath("/tls-pem")
                         .build();
                 VolumeMount jksMountPoint = new VolumeMountBuilder()
-                        .withName(getConfig(Config.jksVolumeName))
+                        .withName(getConfig(Config.JKS_VOLUME_NAME))
                         .withMountPath("/tls-jks")
                         .build();
 

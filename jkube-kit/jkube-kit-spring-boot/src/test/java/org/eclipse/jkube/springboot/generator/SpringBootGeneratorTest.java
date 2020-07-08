@@ -34,7 +34,6 @@ import static org.junit.Assert.assertNull;
 
 /**
  * @author roland
- * @since 28/11/16
  */
 public class SpringBootGeneratorTest {
 
