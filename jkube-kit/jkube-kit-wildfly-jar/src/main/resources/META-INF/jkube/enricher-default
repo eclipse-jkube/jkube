@@ -1,0 +1,2 @@
+# Healthcheck Enrichers
+org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher
