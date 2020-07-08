@@ -19,6 +19,8 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -32,16 +34,20 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ImageChangeTriggerEnricher extends BaseEnricher {
-    static final String ENRICHER_NAME = "jkube-openshift-imageChangeTrigger";
+    private static final String ENRICHER_NAME = "jkube-openshift-imageChangeTrigger";
     private Boolean enableAutomaticTrigger;
     private Boolean enableImageChangeTrigger;
     private Boolean trimImageInContainerSpecFlag;
 
 
-    private enum Config implements Configs.Key {
-        containers {{ d = ""; }};
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        CONTAINERS("containers", "");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public ImageChangeTriggerEnricher(JKubeEnricherContext context) {
@@ -106,7 +112,7 @@ public class ImageChangeTriggerEnricher extends BaseEnricher {
     }
 
     private Boolean isImageChangeTriggerNeeded(String containerName) {
-        String containersFromConfig = Configs.asString(getConfig(Config.containers));
+        String containersFromConfig = Configs.asString(getConfig(Config.CONTAINERS));
         Boolean enrichAll = getValueFromConfig(ENRICH_ALL_WITH_IMAGE_TRIGGERS, false);
 
         if(enrichAll) {

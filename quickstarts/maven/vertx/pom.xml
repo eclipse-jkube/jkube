@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>vertx</artifactId>
-  <version>1.0.0-alpha-4</version>
+  <version>1.0.0-SNAPSHOT</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Vertx Web</name>
   <packaging>jar</packaging>
 
@@ -116,6 +116,13 @@
                               <jkube-service>
                                   <type>NodePort</type>
                               </jkube-service>
+                              <jkube-healthcheck-vertx>
+                                  <type>exec</type>
+                                  <command><arg>ls</arg></command>
+                                  <readiness>
+                                    <timeout>100</timeout>
+                                  </readiness>
+                              </jkube-healthcheck-vertx>
                           </config>
                       </enricher>
                       <resources>

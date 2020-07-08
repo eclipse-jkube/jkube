@@ -156,7 +156,7 @@ public class GitEnricher extends BaseEnricher {
     }
 
     private String getGitRemoteUrl(Repository repository) {
-        String gitRemote = getContext().getConfiguration().getProperties().getProperty(GIT_REMOTE);
+        String gitRemote = getContext().getProperty(GIT_REMOTE);
         gitRemote = gitRemote == null ? "origin" : gitRemote;
         return repository.getConfig().getString("remote", gitRemote, "url");
     }

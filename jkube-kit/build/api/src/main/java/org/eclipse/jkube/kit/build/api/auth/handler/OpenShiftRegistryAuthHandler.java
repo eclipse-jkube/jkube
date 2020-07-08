@@ -33,7 +33,6 @@ import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author roland
- * @since 21.10.18
  */
 public class OpenShiftRegistryAuthHandler implements RegistryAuthHandler {
 

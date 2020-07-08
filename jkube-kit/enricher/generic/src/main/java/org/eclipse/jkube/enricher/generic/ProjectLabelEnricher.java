@@ -21,6 +21,8 @@ import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -34,31 +36,30 @@ import java.util.Map;
 /**
  * Add project labels to any object.
  * For selectors, the 'version' part is removed.
- * <p>
- * The following labels are added:
+ * <p> The following labels are added:
  * <ul>
- * <li>version</li>
- * <li>app</li>
- * <li>group</li>
- * <li>provider (is set to jkube)</li>
+ *   <li>version</li>
+ *   <li>app</li>
+ *   <li>group</li>
+ *   <li>provider (is set to jkube)</li>
  * </ul>
  *
- * The "app" label can be replaced with the (old) "project" label using the "useProjectLabel" configuraiton option.
+ * <p> The "app" label can be replaced with the (old) "project" label using the "useProjectLabel" configuration option.
  *
- * The project labels which are already specified in the input fragments are not overridden by the enricher.
+ * <p> The project labels which are already specified in the input fragments are not overridden by the enricher.
  *
  * @author roland
  */
 public class ProjectLabelEnricher extends BaseEnricher {
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        USE_PROJECT_LABEL("useProjectLabel", "false");
 
-        useProjectLabel {{ d = "false"; }};
-
-        protected String d; public String def() {
-            return d;
-        }
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public ProjectLabelEnricher(JKubeEnricherContext buildContext) {
@@ -73,7 +74,7 @@ public class ProjectLabelEnricher extends BaseEnricher {
                 Map<String, String> selectors = new HashMap<>();
                 if(serviceBuilder.buildSpec() != null && serviceBuilder.buildSpec().getSelector() != null) {
                     selectors.putAll(serviceBuilder.buildSpec().getSelector());
-                };
+                }
                 MapUtil.mergeIfAbsent(selectors, createLabels(true));
                 serviceBuilder.editOrNewSpec().addToSelector(selectors).endSpec();
             }
@@ -154,7 +155,7 @@ public class ProjectLabelEnricher extends BaseEnricher {
     private Map<String, String> createLabels(boolean withoutVersion) {
         Map<String, String> ret = new HashMap<>();
 
-        boolean enableProjectLabel = Configs.asBoolean(getConfig(Config.useProjectLabel));
+        boolean enableProjectLabel = Configs.asBoolean(getConfig(Config.USE_PROJECT_LABEL));
         final GroupArtifactVersion groupArtifactVersion = getContext().getGav();
         if (enableProjectLabel) {
             ret.put("project", groupArtifactVersion.getArtifactId());

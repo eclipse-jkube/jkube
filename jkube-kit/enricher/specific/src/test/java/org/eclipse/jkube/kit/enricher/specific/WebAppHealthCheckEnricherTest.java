@@ -27,7 +27,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class WebAppHealthCeckEnricherTest {
+public class WebAppHealthCheckEnricherTest {
 
     @Mocked
     private JKubeEnricherContext context;
