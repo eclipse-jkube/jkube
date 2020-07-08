@@ -163,6 +163,8 @@ include::enricher/_jkube_healthcheck_webapp.adoc[]
 
 include::enricher/_jkube_healthcheck_wildfly_swarm.adoc[]
 
+include::enricher/_jkube_healthcheck_wildfly_jar.adoc[]
+
 == Enricher API
 
 _How to write your own enrichers and install them._

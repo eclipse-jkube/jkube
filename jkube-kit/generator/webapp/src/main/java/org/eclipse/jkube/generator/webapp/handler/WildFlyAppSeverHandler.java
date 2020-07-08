@@ -44,7 +44,7 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
   @Override
   public boolean isApplicable() {
     try {
-      return isNotWildflySwarm() && isNotThorntail() && (isWildFlyWebApp() || hasWildFlyPlugin());
+      return isNotWildflySwarm() && isNotThorntail() && (isWildFlyWebApp() || hasWildFlyPlugin()) && isNotWildFlyJAR();
     } catch (IOException exception) {
       throw new IllegalStateException("Unable to scan output directory: ", exception);
     }
@@ -77,6 +77,10 @@ public class WildFlyAppSeverHandler extends AbstractAppServerHandler {
 
   private boolean isNotThorntail() {
     return !JKubeProjectUtil.hasPlugin(getProject(), "io.thorntail", "thorntail-maven-plugin");
+  }
+  
+  private boolean isNotWildFlyJAR() {
+    return !JKubeProjectUtil.hasPlugin(getProject(), "org.wildfly.plugins", "wildfly-jar-maven-plugin");
   }
 
   @Override
