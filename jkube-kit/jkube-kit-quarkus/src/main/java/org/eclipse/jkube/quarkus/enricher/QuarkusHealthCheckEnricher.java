@@ -15,6 +15,8 @@ package org.eclipse.jkube.quarkus.enricher;
 
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
@@ -31,38 +33,31 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         super(buildContext, "jkube-healthcheck-quarkus");
     }
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
-        scheme {{
-            d = "HTTP";
-        }},
-        port {{
-            d = "8080";
-        }},
-        failureThreshold                    {{ d = "3"; }},
-        successThreshold                    {{ d = "1"; }},
-        livenessInitialDelay,
-        readinessIntialDelay,
-        path {{
-            d = "/health";
-        }};
+        SCHEME("scheme", "HTTP"),
+        PORT("port", "8080"),
+        FAILURE_THRESHOLD("failureThreshold", "3"),
+        SUCCESS_THRESHOLD("successThreshold", "1"),
+        LIVENESS_INITIAL_DELAY("livenessInitialDelay", null),
+        READINESS_INTIAL_DELAY("readinessIntialDelay", null),
+        PATH("path", "/health");
 
-        protected String d;
-
-        public String def() {
-            return d;
-        }
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     @Override
     protected Probe getReadinessProbe() {
-        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.readinessIntialDelay, "5")));
+        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.READINESS_INTIAL_DELAY, "5")));
     }
 
     @Override
     protected Probe getLivenessProbe() {
-        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.livenessInitialDelay, "10")));
+        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.LIVENESS_INITIAL_DELAY, "10")));
     }
 
     private Probe discoverQuarkusHealthCheck(int initialDelay) {
@@ -72,12 +67,12 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
         return new ProbeBuilder()
             .withNewHttpGet()
-              .withNewPort(asInteger(getConfig(Config.port)))
-              .withPath(getConfig(Config.path))
-              .withScheme(getConfig(Config.scheme))
+              .withNewPort(asInteger(getConfig(Config.PORT)))
+              .withPath(getConfig(Config.PATH))
+              .withScheme(getConfig(Config.SCHEME))
             .endHttpGet()
-            .withFailureThreshold(asInteger(getConfig(Config.failureThreshold)))
-            .withSuccessThreshold(asInteger(getConfig(Config.successThreshold)))
+            .withFailureThreshold(asInteger(getConfig(Config.FAILURE_THRESHOLD)))
+            .withSuccessThreshold(asInteger(getConfig(Config.SUCCESS_THRESHOLD)))
             .withInitialDelaySeconds(initialDelay)
             .build();
     }

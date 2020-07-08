@@ -32,6 +32,9 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import com.google.common.base.Strings;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
@@ -48,20 +51,23 @@ import org.apache.commons.io.FileUtils;
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID;
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID;
-import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.color;
+import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.COLOR;
 
 /**
  * @author roland
- * @since 15/05/16
  */
 public class SpringBootGenerator extends JavaExecGenerator {
 
     private static final String DEFAULT_SERVER_PORT = "8080";
 
-    public enum Config implements Configs.Key {
-        color {{ d = ""; }};
+    @AllArgsConstructor
+    public enum Config implements Configs.Config {
+        COLOR("color", "");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public SpringBootGenerator(GeneratorContext context) {
@@ -79,7 +85,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
         if (getContext().getGeneratorMode() == GeneratorMode.WATCH) {
             ensureSpringDevToolSecretToken();
             if (!isPrePackagePhase ) {
-                addDevToolsFilesToFatJar(configs);
+                addDevToolsFilesToFatJar();
             }
         }
         return super.customize(configs, isPrePackagePhase);
@@ -104,8 +110,8 @@ public class SpringBootGenerator extends JavaExecGenerator {
     @Override
     protected List<String> getExtraJavaOptions() {
         List<String> opts = super.getExtraJavaOptions();
-        final String configuredColor = getConfig(color);
-        if (configuredColor != null && !configuredColor.isEmpty()) {
+        final String configuredColor = getConfig(COLOR);
+        if (StringUtils.isNotBlank(configuredColor)) {
             opts.add("-Dspring.output.ansi.enabled=" + configuredColor);
         }
         return opts;
@@ -127,9 +133,9 @@ public class SpringBootGenerator extends JavaExecGenerator {
             JKubeProjectUtil.getClassLoader(getProject()));
         SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getProject()));
         String port = properties.getProperty(propertyHelper.getServerPortPropertyKey(), DEFAULT_SERVER_PORT);
-        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.webPort, port));
-        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.jolokiaPort));
-        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.prometheusPort));
+        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.WEB_PORT, port));
+        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.JOLOKIA_PORT));
+        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.PROMETHEUS_PORT));
         return answer;
     }
 
@@ -146,7 +152,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
         }
     }
 
-    private void addDevToolsFilesToFatJar(List<ImageConfiguration> configs) {
+    private void addDevToolsFilesToFatJar() {
         if (isFatJar()) {
             File target = getFatJarFile();
             try {

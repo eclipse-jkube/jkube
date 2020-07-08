@@ -35,6 +35,7 @@
       <module>doc</module>
       <module>common</module>
       <module>common-maven</module>
+      <module>common-test</module>
       <module>config/image</module>
       <module>config/resource</module>
       <module>config/service</module>

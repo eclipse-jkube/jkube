@@ -122,28 +122,28 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(defaultValue = "${session}", readonly = true)
     protected MavenSession session;
 
-    @Parameter(property = "docker.apiVersion")
+    @Parameter(property = "jkube.docker.apiVersion")
     protected String apiVersion;
 
     // For verbose output
-    @Parameter(property = "docker.verbose", defaultValue = "false")
+    @Parameter(property = "jkube.docker.verbose", defaultValue = "false")
     protected String verbose;
 
     // The date format to use when putting out logs
-    @Parameter(property = "docker.logDate")
+    @Parameter(property = "jkube.docker.logDate")
     protected String logDate;
 
     // Log to stdout regardless if log files are configured or not
-    @Parameter(property = "docker.logStdout", defaultValue = "false")
+    @Parameter(property = "jkube.docker.logStdout", defaultValue = "false")
     protected boolean logStdout;
 
     /**
      * URL to docker daemon
      */
-    @Parameter(property = "docker.host")
+    @Parameter(property = "jkube.docker.host")
     protected String dockerHost;
 
-    @Parameter(property = "docker.certPath")
+    @Parameter(property = "jkube.docker.certPath")
     protected String certPath;
 
     // Docker-machine configuration
@@ -153,15 +153,15 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     /**
      * Whether the usage of docker machine should be skipped completely
      */
-    @Parameter(property = "docker.skip.machine", defaultValue = "false")
+    @Parameter(property = "jkube.docker.skip.machine", defaultValue = "false")
     protected boolean skipMachine;
 
     // maximum connection to use in parallel for connecting the docker host
-    @Parameter(property = "docker.maxConnections", defaultValue = "" + DEFAULT_MAX_CONNECTIONS)
+    @Parameter(property = "jkube.docker.maxConnections", defaultValue = "" + DEFAULT_MAX_CONNECTIONS)
     protected int maxConnections;
 
     // Whether to use color
-    @Parameter(property = "docker.useColor", defaultValue = "true")
+    @Parameter(property = "jkube.useColor", defaultValue = "true")
     protected boolean useColor;
 
     /**
@@ -169,7 +169,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
      * the image or an alias name. It can also be comma separated list.
      * This parameter has to be set via the command line s system property.
      */
-    @Parameter(property = "docker.filter")
+    @Parameter(property = "jkube.image.filter")
     protected String filter;
 
     // Images resolved with external image resolvers and hooks for subclass to
@@ -180,19 +180,19 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
-    @Parameter(property = "docker.source.dir", defaultValue="src/main/docker")
+    @Parameter(property = "jkube.build.source.dir", defaultValue="src/main/docker")
     protected String sourceDirectory;
 
-    @Parameter(property = "docker.target.dir", defaultValue="target/docker")
+    @Parameter(property = "jkube.build.target.dir", defaultValue="target/docker")
     protected String outputDirectory;
 
-    @Parameter(property = "docker.autoPull")
+    @Parameter(property = "jkube.docker.autoPull")
     protected String autoPull;
 
-    @Parameter(property = "docker.imagePullPolicy")
+    @Parameter(property = "jkube.docker.imagePullPolicy")
     protected String imagePullPolicy;
 
-    @Parameter(property = "docker.pull.registry")
+    @Parameter(property = "jkube.docker.pull.registry")
     protected String pullRegistry;
 
     /**
@@ -222,7 +222,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     /**
      * Skip extended authentication
      */
-    @Parameter(property = "docker.skip.extendedAuth", defaultValue = "false")
+    @Parameter(property = "jkube.docker.skip.extendedAuth", defaultValue = "false")
     protected boolean skipExtendedAuth;
 
     @Parameter
@@ -233,7 +233,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected RegistryAuthConfiguration authConfig;
 
     // Default registry to use if no registry is specified
-    @Parameter(property = "docker.registry")
+    @Parameter(property = "jkube.docker.registry")
     protected String registry;
 
     /**
@@ -271,7 +271,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter
     protected List<ImageConfiguration> images;
 
-    @Parameter(property = "docker.skip.build", defaultValue = "false")
+    @Parameter(property = "jkube.skip.build", defaultValue = "false")
     protected boolean skipBuild;
 
     // To skip over the execution of the goal
@@ -348,39 +348,44 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     /**
      * Watching mode for rebuilding images
      */
-    @Parameter(property = "docker.watchMode", defaultValue = "both")
+    @Parameter(property = "jkube.watch.mode", defaultValue = "both")
     protected WatchMode watchMode;
 
-    @Parameter(property = "docker.watchInterval", defaultValue = "5000")
+    @Parameter(property = "jkube.watch.interval", defaultValue = "5000")
     protected int watchInterval;
 
-    @Parameter(property = "docker.keepRunning", defaultValue = "false")
+    @Parameter(property = "jkube.watch.keepRunning", defaultValue = "false")
     protected boolean keepRunning;
 
-    @Parameter(property = "docker.watchPostGoal")
+    @Parameter(property = "jkube.watch.postGoal")
     protected String watchPostGoal;
 
-    @Parameter(property = "docker.watchPostExec")
+    @Parameter(property = "jkube.watch.postExec")
     protected String watchPostExec;
 
     // Whether to keep the containers afters stopping (start/watch/stop)
-    @Parameter(property = "docker.keepContainer", defaultValue = "false")
+    @Parameter(property = "jkube.watch.keepContainer", defaultValue = "false")
     protected boolean keepContainer;
 
     // Whether to remove volumes when removing the container (start/watch/stop)
-    @Parameter(property = "docker.removeVolumes", defaultValue = "false")
+    @Parameter(property = "jkube.watch.removeVolumes", defaultValue = "false")
     protected boolean removeVolumes;
 
+    @Parameter(property = "jkube.watch.follow", defaultValue = "false")
+    protected boolean watchFollow;
+
+    @Parameter(property = "jkube.watch.showLogs")
+    protected String watchShowLogs;
     /**
      * Naming pattern for how to name containers when started
      */
-    @Parameter(property = "docker.containerNamePattern")
+    @Parameter(property = "jkube.watch.containerNamePattern")
     protected String containerNamePattern = ContainerNamingUtil.DEFAULT_CONTAINER_NAME_PATTERN;
 
     /**
      * Whether to create the customs networks (user-defined bridge networks) before starting automatically
      */
-    @Parameter(property = "docker.autoCreateCustomNetworks", defaultValue = "false")
+    @Parameter(property = "jkube.watch.autoCreateCustomNetworks", defaultValue = "false")
     protected boolean autoCreateCustomNetworks;
 
     @Override
@@ -597,7 +602,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     }
 
     /**
-     * Get all images to use. Can be restricted via -Ddocker.filter to pick a one or more images.
+     * Get all images to use. Can be restricted via -Djkube.image.filter to pick a one or more images.
      * The values are taken as comma separated list.
      *
      * @return list of image configuration to be use. Can be empty but never null.
@@ -802,7 +807,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         if (DockerFileUtil.isSimpleDockerFileMode(project.getBasedir())) {
             File topDockerfile = DockerFileUtil.getTopLevelDockerfile(project.getBasedir());
             if (resolvedImages.isEmpty()) {
-                resolvedImages.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("docker.name")));
+                resolvedImages.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("jkube.image.name")));
             } else if (resolvedImages.size() == 1 && resolvedImages.get(0).getBuildConfiguration() == null) {
                 resolvedImages.set(0, DockerFileUtil.addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
             }
@@ -828,14 +833,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected GavLabel getGavLabel() {
         // Label used for this run
         return new GavLabel(project.getGroupId(), project.getArtifactId(), project.getVersion());
-    }
-
-    protected String showLogs() {
-        return System.getProperty("docker.showLogs");
-    }
-
-    protected boolean follow() {
-        return Boolean.parseBoolean(System.getProperty("docker.follow", "false"));
     }
 
     protected LogDispatcher getLogDispatcher(ServiceHub hub) {

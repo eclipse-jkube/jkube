@@ -584,8 +584,8 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
     @Test
     public void testCustomInitialDelayForLivenessAndReadinessAndTimeout() {
-        Map<String, TreeMap> globalConfig = new HashMap<>();
-        TreeMap<String, String> enricherConfig = new TreeMap<>();
+        Map<String, Map<String, Object>> globalConfig = new HashMap<>();
+        TreeMap<String, Object> enricherConfig = new TreeMap<>();
         globalConfig.put(SpringBootHealthCheckEnricher.ENRICHER_NAME, enricherConfig);
         enricherConfig.put("readinessProbeInitialDelaySeconds", "20");
         enricherConfig.put("livenessProbeInitialDelaySeconds", "360");
@@ -620,14 +620,12 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         assertEquals(360, probe.getInitialDelaySeconds().intValue());
         assertNull(probe.getPeriodSeconds());
         assertEquals(120, probe.getTimeoutSeconds().intValue());
-
-
     }
 
     @Test
     public void testCustomPropertiesForLivenessAndReadiness() {
-        Map<String, TreeMap> globalConfig = new HashMap<>();
-        TreeMap<String, String> enricherConfig = new TreeMap<>();
+        Map<String, Map<String, Object>> globalConfig = new HashMap<>();
+        TreeMap<String, Object> enricherConfig = new TreeMap<>();
         globalConfig.put(SpringBootHealthCheckEnricher.ENRICHER_NAME, enricherConfig);
         enricherConfig.put("readinessProbeInitialDelaySeconds", "30");
         enricherConfig.put("readinessProbePeriodSeconds", "40");

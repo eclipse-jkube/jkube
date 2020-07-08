@@ -46,7 +46,7 @@ public class JibBuildService implements BuildService {
     private static final List<String> DEFAULT_DOCKER_REGISTRIES = Arrays.asList(
             "docker.io", "index.docker.io", "registry.hub.docker.com"
     );
-    private static final String PUSH_REGISTRY = "docker.push.registry";
+    private static final String PUSH_REGISTRY = "jkube.docker.push.registry";
     private JKubeServiceHub jKubeServiceHub;
     private KitLogger log;
 

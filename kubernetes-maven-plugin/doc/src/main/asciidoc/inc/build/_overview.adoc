@@ -68,9 +68,9 @@ All what need to be done is to place a `Dockerfile` into the top-level module di
 You can still configure <<global-configuration, global aspects>> in the plugin configuration, but as soon as you add an `<image>` in the XML configuration, you need to configure also the build explicitly.
 
 The image name is by default set from the Maven coordinates (`%g/%a:%l`, see <<image-name,Image Name >> for an explanation of the params which are essentially the Maven GAV)
-This name can be set with the property `docker.name`.
+This name can be set with the property `jkube.image.name`.
 
-If you want to add some `<run>` configuration to this image for starting it with `docker:run` then you can add an image configuration but without a `<build>` section in which case the Dockerfile will be picked up, too. This works only for a single image, though.
+If you want to add some `<run>` configuration to this image for starting it with `{plugin}:run` then you can add an image configuration but without a `<build>` section in which case the Dockerfile will be picked up, too. This works only for a single image, though.
 
 [[build-filtering]]
 .Filtering
@@ -135,7 +135,7 @@ dmp-plugins are enabled by just declaring a dependency in the plugin declaration
 org.eclipse.jkube.runsh.RunShLoader
 ----
 
-During a build with `docker:build`, those classes are loaded and certain fixed method are called.
+During a build with `{plugin}:build`, those classes are loaded and certain fixed method are called.
 
 The following methods are supported:
 

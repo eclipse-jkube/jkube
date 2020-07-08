@@ -13,18 +13,23 @@
  */
 package org.eclipse.jkube.vertx.enricher;
 
+import java.util.AbstractMap;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
+import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.Probe;
-import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -40,57 +45,42 @@ import static org.junit.Assert.fail;
  */
 public class VertxHealthCheckEnricherTest {
 
-
     @Mocked
     private JKubeEnricherContext context;
 
-    private void setupExpectations(Map<String, Object> config) {
+    private void setupExpectations(Map<String, Object> config, TreeMap<String, String> plexusMavenConfig) {
+        final ProcessorConfig processorConfig = new ProcessorConfig();
+        processorConfig.setConfig(Collections.singletonMap("jkube-healthcheck-vertx", plexusMavenConfig));
+        // @formatter:off
         new Expectations() {{
             context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
             result = true;
-
-            Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
-            configBuilder.pluginConfigLookup(getProjectLookup(config));
-
-            context.getConfiguration();
-            result = configBuilder.build();
+            context.getConfiguration().getProcessorConfig(); result = processorConfig; minTimes = 0;
+            context.getConfiguration().getPluginConfiguration(anyString, anyString); result = Optional.of(config);
+            context.getConfiguration().getPluginConfigLookup(); result = getProjectLookup(config); minTimes = 0;
         }};
+        // @formatter:on
     }
 
     private void setupExpectations(Properties props) {
+        // @formatter:off
         new Expectations() {{
             context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
             result = true;
 
-            Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
-            configBuilder.properties(props);
-            configBuilder.pluginConfigLookup(getProjectLookup(null));
-
-            context.getConfiguration();
-            result = configBuilder.build();
+            context.getProperties(); result = props;
         }};
+        // @formatter:on
     }
 
-    private void setupExpectations(Properties props, Map<String, Object> config) {
-        new Expectations() {{
-            context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
-            result = true;
-
-            Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
-            configBuilder.properties(props);
-            configBuilder.pluginConfigLookup(getProjectLookup(config));
-
-            context.getConfiguration();
-            result = configBuilder.build();
-        }};
-
+    private void setupExpectations(Properties props, Map<String, Object> config, TreeMap<String, String> plexusMavenConfig) {
+        setupExpectations(props);
+        setupExpectations(config, plexusMavenConfig);
     }
 
     @Test
     public void testDefaultConfiguration() {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        setupExpectations(new Properties());
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -109,16 +99,16 @@ public class VertxHealthCheckEnricherTest {
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
         assertNull(probe.getHttpGet().getHost());
-        assertEquals(probe.getHttpGet().getScheme(), "HTTP");
-        assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 8080);
-        assertEquals(probe.getHttpGet().getPath(), "/ping");
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTP");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8080);
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/ping");
 
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getHttpGet().getScheme(), "HTTP");
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTP");
         assertNull(probe.getHttpGet().getHost());
-        assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 8080);
-        assertEquals(probe.getHttpGet().getPath(), "/ping");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8080);
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/ping");
     }
 
     @Test
@@ -133,19 +123,28 @@ public class VertxHealthCheckEnricherTest {
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
         assertNull(probe.getHttpGet().getHost());
-        assertEquals(probe.getHttpGet().getScheme(), "HTTP");
-        assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 8080);
-        assertEquals(probe.getHttpGet().getPath(), "/ping");
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTP");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8080);
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/ping");
 
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getHttpGet().getScheme(), "HTTP");
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTP");
         assertNull(probe.getHttpGet().getHost());
-        assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 8080);
-        assertEquals(probe.getHttpGet().getPath(), "/ready");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8080);
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/ready");
     }
 
+    @SuppressWarnings("unchecked")
+    private TreeMap<String, String> createFakeConfigLikeMaven(String config) throws Exception {
+        Map<String, Object> nestedConfig = AbstractPortsExtractor.JSON_MAPPER.readValue(config, Map.class);
+        return nestedConfig.entrySet().stream()
+            .filter(e -> e.getValue() instanceof String)
+            .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), (String)e.getValue()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (old, v) -> v, TreeMap::new));
+    }
 
+    @SuppressWarnings("unchecked")
     private Map<String, Object> createFakeConfig(String config) {
         try {
             Map<String, Object> healthCheckVertxMap = AbstractPortsExtractor.JSON_MAPPER.readValue(config, Map.class);
@@ -167,27 +166,25 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testWithCustomConfigurationComingFromConf() {
-
-        final Map<String, Object> config = createFakeConfig("{\"path\":\"health\",\"port\":\"1234\",\"scheme\":\"https\"}");
-
-        setupExpectations(config);
+    public void testWithCustomConfigurationComingFromConf() throws Exception {
+        String configString = "{\"path\":\"health\",\"port\":\"1234\",\"scheme\":\"https\"}";
+        setupExpectations(createFakeConfig(configString), createFakeConfigLikeMaven(configString));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
         assertNull(probe.getHttpGet().getHost());
-        assertEquals(probe.getHttpGet().getScheme(), "HTTPS");
-        assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 1234);
-        assertEquals(probe.getHttpGet().getPath(), "/health");
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTPS");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(1234);
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/health");
 
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getHttpGet().getScheme(), "HTTPS");
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTPS");
         assertNull(probe.getHttpGet().getHost());
-        assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 1234);
-        assertEquals(probe.getHttpGet().getPath(), "/health");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(1234);
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/health");
     }
 
     private BiFunction<String, String, Optional<Map<String, Object>>> getProjectLookup(Map<String, Object> config) {
@@ -198,27 +195,27 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testWithCustomConfigurationForLivenessAndReadinessComingFromConf() {
-        final Map<String, Object> config = createFakeConfig(
-                "{\"path\":\"health\",\"port\":\"1234\",\"scheme\":\"https\",\"readiness\":{\"path\":\"/ready\"}}");
+    public void testWithCustomConfigurationForLivenessAndReadinessComingFromConf() throws Exception {
+       final String config =
+                "{\"path\":\"health\",\"port\":\"1234\",\"scheme\":\"https\",\"readiness\":{\"path\":\"/ready\"}}";
 
-        setupExpectations(config);
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
         assertNull(probe.getHttpGet().getHost());
-        assertEquals(probe.getHttpGet().getScheme(), "HTTPS");
-        assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 1234);
-        assertEquals(probe.getHttpGet().getPath(), "/health");
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTPS");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(1234);
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/health");
 
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getHttpGet().getScheme(), "HTTPS");
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTPS");
         assertNull(probe.getHttpGet().getHost());
-        assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 1234);
-        assertEquals(probe.getHttpGet().getPath(), "/ready");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(1234);
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/ready");
     }
 
     @Test
@@ -236,35 +233,35 @@ public class VertxHealthCheckEnricherTest {
         assertNotNull(probe);
         assertNull(probe.getHttpGet().getHost());
         assertThat(probe.getHttpGet().getScheme()).isEqualToIgnoringCase("https");
-        assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 8081);
-        assertEquals(probe.getHttpGet().getPath(), "/health");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8081);
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/health");
 
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
         assertThat(probe.getHttpGet().getScheme()).isEqualToIgnoringCase("https");
         assertNull(probe.getHttpGet().getHost());
-        assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 8081);
-        assertEquals(probe.getHttpGet().getPath(), "/health");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8081);
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/health");
     }
 
     @Test
-    public void testWithHttpHeaders() {
-        final Map<String, Object> config = createFakeConfig("{\"path\":\"health\",\"headers\":{\"X-Header\":\"X\",\"Y-Header\":\"Y\"}}");
+    public void testWithHttpHeaders() throws Exception {
+        final String config = "{\"path\":\"health\",\"headers\":{\"X-Header\":\"X\",\"Y-Header\":\"Y\"}}";
 
-        setupExpectations(config);
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getHttpGet().getPath(), "/health");
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/health");
         assertThat(probe.getHttpGet().getPort().getIntVal()).isEqualTo(8080);
         assertThat(probe.getHttpGet().getHttpHeaders()).hasSize(2)
                 .contains(new HTTPHeader("X-Header", "X"), new HTTPHeader("Y-Header", "Y"));
 
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getHttpGet().getPath(), "/health");
+        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/health");
         assertThat(probe.getHttpGet().getPort().getIntVal()).isEqualTo(8080);
         assertThat(probe.getHttpGet().getHttpHeaders()).hasSize(2)
                 .contains(new HTTPHeader("X-Header", "X"), new HTTPHeader("Y-Header", "Y"));
@@ -339,11 +336,9 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testDisabledUsingNegativePortUsingConfiguration() {
-        final Map<String, Object> config = createFakeConfig(
-                "{\"path\":\"/ping\",\"port\":\"-1\"}");
-
-        setupExpectations(config);
+    public void testDisabledUsingNegativePortUsingConfiguration() throws Exception {
+        final String config = "{\"path\":\"/ping\",\"port\":\"-1\"}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
@@ -364,24 +359,21 @@ public class VertxHealthCheckEnricherTest {
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getHttpGet().getPath(), "/ping");
+        assertThat(probe.getHttpGet().getPath()).isEqualTo("/ping");
         probe = enricher.getReadinessProbe();
         assertNull(probe);
     }
 
     @Test
-    public void testReadinessDisabledUsingConfig() {
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"readiness\":{\"path\":\"\"},\"path\":\"/ping\"}");
-
-        setupExpectations(config);
+    public void testReadinessDisabledUsingConfig() throws Exception {
+        final String config = "{\"readiness\":{\"path\":\"\"},\"path\":\"/ping\"}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getHttpGet().getPath(), "/ping");
+        assertThat(probe.getHttpGet().getPath()).isEqualTo("/ping");
         probe = enricher.getReadinessProbe();
         assertNull(probe);
     }
@@ -399,15 +391,14 @@ public class VertxHealthCheckEnricherTest {
         assertNull(probe);
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getHttpGet().getPath(), "/ping");
+        assertThat(probe.getHttpGet().getPath()).isEqualTo("/ping");
 
     }
 
     @Test
-    public void testLivenessDisabledAndReadinessEnabledUsingConfig() {
-        final Map<String, Object> config = createFakeConfig(
-                "{\"readiness\":{\"path\":\"/ping\"},\"path\":\"\"}");
-        setupExpectations(config);
+    public void testLivenessDisabledAndReadinessEnabledUsingConfig() throws Exception {
+        final String config = "{\"readiness\":{\"path\":\"/ping\"},\"path\":\"\"}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
 
@@ -417,7 +408,7 @@ public class VertxHealthCheckEnricherTest {
         assertNull(probe);
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getHttpGet().getPath(), "/ping");
+        assertThat(probe.getHttpGet().getPath()).isEqualTo("/ping");
     }
 
     @Test
@@ -432,27 +423,24 @@ public class VertxHealthCheckEnricherTest {
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getTcpSocket().getPort().getIntVal().intValue(), 1234);
+        assertThat(probe.getTcpSocket().getPort().getIntVal().intValue()).isEqualTo(1234);
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getTcpSocket().getPort().getIntVal().intValue(), 1235);
+        assertThat(probe.getTcpSocket().getPort().getIntVal().intValue()).isEqualTo(1235);
     }
 
     @Test
-    public void testTCPSocketUsingConfig() {
+    public void testTCPSocketUsingConfig() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"tcp\",\"liveness\":{\"port\":\"1234\"},\"readiness\":{\"port\":\"1235\"}}");
-
-        setupExpectations(config);
+        final String config = "{\"type\":\"tcp\",\"liveness\":{\"port\":\"1234\"},\"readiness\":{\"port\":\"1235\"}}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getTcpSocket().getPort().getIntVal().intValue(), 1234);
+        assertThat(probe.getTcpSocket().getPort().getIntVal().intValue()).isEqualTo(1234);
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getTcpSocket().getPort().getIntVal().intValue(), 1235);
+        assertThat(probe.getTcpSocket().getPort().getIntVal().intValue()).isEqualTo(1235);
     }
 
     @Test
@@ -467,26 +455,24 @@ public class VertxHealthCheckEnricherTest {
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getTcpSocket().getPort().getStrVal(), "health");
+        assertThat(probe.getTcpSocket().getPort().getStrVal()).isEqualTo( "health");
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getTcpSocket().getPort().getStrVal(), "ready");
+        assertThat(probe.getTcpSocket().getPort().getStrVal()).isEqualTo( "ready");
     }
 
     @Test
-    public void testTCPSocketUsingConfigAndPortName() {
+    public void testTCPSocketUsingConfigAndPortName() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"tcp\",\"liveness\":{\"port-name\":\"health\"},\"readiness\":{\"port-name\":\"ready\"}}");
-        setupExpectations(config);
+        final String config = "{\"type\":\"tcp\",\"liveness\":{\"port-name\":\"health\"},\"readiness\":{\"port-name\":\"ready\"}}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getTcpSocket().getPort().getStrVal(), "health");
+        assertThat(probe.getTcpSocket().getPort().getStrVal()).isEqualTo( "health");
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getTcpSocket().getPort().getStrVal(), "ready");
+        assertThat(probe.getTcpSocket().getPort().getStrVal()).isEqualTo( "ready");
     }
 
     @Test
@@ -502,22 +488,20 @@ public class VertxHealthCheckEnricherTest {
         assertNull(probe);
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getTcpSocket().getPort().getIntVal().intValue(), 1235);
+        assertEquals(1235, probe.getTcpSocket().getPort().getIntVal().intValue());
     }
 
     @Test
-    public void testTCPSocketUsingConfigLivenessDisabled() {
+    public void testTCPSocketUsingConfigLivenessDisabled() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"tcp\",\"readiness\":{\"port\":\"1235\"}}");
-        setupExpectations(config);
+        final String config = "{\"type\":\"tcp\",\"readiness\":{\"port\":\"1235\"}}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
         probe = enricher.getReadinessProbe();
         assertNotNull(probe);
-        assertEquals(probe.getTcpSocket().getPort().getIntVal().intValue(), 1235);
+        assertEquals(1235, probe.getTcpSocket().getPort().getIntVal().intValue());
     }
 
     @Test
@@ -526,28 +510,25 @@ public class VertxHealthCheckEnricherTest {
 
         final Properties props = new Properties();
         props.put("vertx.health.type", "tcp");
-        props.put("vertx.health.port", "1235");
+        props.put("vertx.health.port", "1337");
         props.put("vertx.health.readiness.port", "0");
         setupExpectations(props);
 
         Probe probe = enricher.getLivenessProbe();
-        assertEquals(probe.getTcpSocket().getPort().getIntVal().intValue(), 1235);
+        assertEquals(1337, probe.getTcpSocket().getPort().getIntVal().intValue());
         assertNotNull(probe);
         probe = enricher.getReadinessProbe();
         assertNull(probe);
     }
 
     @Test
-    public void testTCPSocketUsingConfigReadinessDisabled() {
+    public void testTCPSocketUsingConfigReadinessDisabled() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"tcp\",\"liveness\":{\"port\":\"1235\"},\"readiness\":{\"port\":\"-1\"}}");
-
-        setupExpectations(config);
+        final String config = "{\"type\":\"tcp\",\"liveness\":{\"port\":\"1235\"},\"readiness\":{\"port\":\"-1\"}}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
-        assertEquals(probe.getTcpSocket().getPort().getIntVal().intValue(), 1235);
+        assertEquals(1235, probe.getTcpSocket().getPort().getIntVal().intValue());
         assertNotNull(probe);
         probe = enricher.getReadinessProbe();
         assertNull(probe);
@@ -567,14 +548,12 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testTCPSocketUsingConfigIllegal() {
+    public void testTCPSocketUsingConfigIllegal() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"tcp\"," +
+        final String config = "{\"type\":\"tcp\"," +
                         "\"liveness\":{\"port\":\"1234\",\"port-name\":\"foo\"}," +
-                        "\"readiness\":{\"port\":\"1235\",\"port-name\":\"foo\"}}");
-        setupExpectations(config);
+                        "\"readiness\":{\"port\":\"1235\",\"port-name\":\"foo\"}}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
 
         try {
@@ -608,12 +587,10 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testTCPSocketUsingConfigDisabled() {
+    public void testTCPSocketUsingConfigDisabled() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-            "{\"type\":\"tcp\"}");
-        setupExpectations(config);
+        final String config = "{\"type\":\"tcp\"}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -622,14 +599,12 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testExecUsingConfig() {
+    public void testExecUsingConfig() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"exec\"," +
+        final String config = "{\"type\":\"exec\"," +
                         "\"command\": {\"arg\":[\"/bin/sh\", \"-c\",\"touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600\"]}" +
-                        "}");
-        setupExpectations(config);
+                        "}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -640,17 +615,14 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testExecUsingConfigLivenessDisabled() {
+    public void testExecUsingConfigLivenessDisabled() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"exec\"," +
+        final String config = "{\"type\":\"exec\"," +
                         "\"readiness\":{" +
                         "\"command\": {\"arg\":[\"/bin/sh\", \"-c\",\"touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600\"]}}," +
                         "\"liveness\":{}" +
-                        "}");
-
-        setupExpectations(config);
+                        "}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -660,17 +632,14 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testExecUsingConfigReadinessDisabled() {
+    public void testExecUsingConfigReadinessDisabled() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"exec\"," +
+        final String config = "{\"type\":\"exec\"," +
                         "\"liveness\":{" +
                         "\"command\": {\"arg\":[\"/bin/sh\", \"-c\",\"touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600\"]}}," +
                         "\"readiness\":{}" +
-                        "}");
-
-        setupExpectations(config);
+                        "}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
         assertThat(probe.getExec().getCommand()).hasSize(3);
@@ -694,13 +663,10 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testExecUsingConfigDisabled() {
+    public void testExecUsingConfigDisabled() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"exec\"}");
-
-        setupExpectations(config);
+        final String config = "{\"type\":\"exec\"}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -733,13 +699,10 @@ public class VertxHealthCheckEnricherTest {
 
 
     @Test
-    public void testUnknownTypeUsingConfig() {
+    public void testUnknownTypeUsingConfig() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"not a valid type\"}");
-
-        setupExpectations(config);
+        final String config = "{\"type\":\"not a valid type\"}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         try {
             enricher.getLivenessProbe();
@@ -772,14 +735,13 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testThatWeCanUSeDifferentTypesForLivenessAndReadiness() {
+    public void testThatWeCanUSeDifferentTypesForLivenessAndReadiness() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
-        final Map<String, Object> config = createFakeConfig(
-                "{\"liveness\":{" +
+        final String config = "{\"liveness\":{" +
                         "\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}" +
-                        "},\"readiness\":{\"path\":\"/ping\"}}");
-        setupExpectations(config);
+                        "},\"readiness\":{\"path\":\"/ping\"}}";
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -790,71 +752,91 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testThatGenericUserPropertiesOverrideSpecificConfig() {
+    public void testThatSpecificConfigOverrideGenericUserProperties() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
-        final Map<String, Object> config = createFakeConfig(
-                "{\"liveness\":{" +
+        final String config = "{\"liveness\":{" +
                         "\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}" +
-                        "},\"readiness\":{\"path\":\"/ping\"}}");
+                        "},\"readiness\":{\"port\":\"1337\"}}";
 
         Properties properties = new Properties();
         properties.put("vertx.health.type", "tcp");
         properties.put("vertx.health.port", "1234");
-        setupExpectations(properties,config);
+        properties.put("vertx.health.path", "/path");
+        setupExpectations(properties, createFakeConfig(config), createFakeConfigLikeMaven(config));
 
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();
         assertThat(probe.getTcpSocket()).isNotNull();
         assertThat(probe.getHttpGet()).isNull();
-        assertThat(probe.getTcpSocket().getPort().getIntVal()).isEqualTo(1234);
+        assertThat(probe.getTcpSocket().getPort().getIntVal()).isEqualTo(1337);
 
         probe = enricher.getLivenessProbe();
         assertThat(probe).isNotNull();
-        assertThat(probe.getTcpSocket()).isNotNull();
-        assertThat(probe.getExec()).isNull();
-        assertThat(probe.getTcpSocket().getPort().getIntVal()).isEqualTo(1234);
+        assertThat(probe.getTcpSocket()).isNull();
+        assertThat(probe.getExec()).isNotNull();
+        assertThat(probe.getExec().getCommand().iterator().next()).isEqualTo("ls");
     }
 
     @Test
-    public void testThatGenericUserPropertiesOverrideGenericConfig() {
+    public void testThatGenericConfigOverrideGenericUserProperties() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
-        final Map<String, Object> config = createFakeConfig(
-                "{\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}}"
-        );
+        final String config = "{\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}}";
         Properties properties = new Properties();
         properties.put("vertx.health.type", "tcp");
         properties.put("vertx.health.port", "1234");
 
-        setupExpectations(properties,config);
+        setupExpectations(properties, createFakeConfig(config), createFakeConfigLikeMaven(config));
+
+        Probe probe = enricher.getReadinessProbe();
+        assertThat(probe).isNotNull();
+        assertThat(probe.getTcpSocket()).isNull();
+        assertThat(probe.getExec()).isNotNull();
+        assertThat(probe.getExec().getCommand().iterator().next()).isEqualTo("ls");
+
+        probe = enricher.getLivenessProbe();
+        assertThat(probe).isNotNull();
+        assertThat(probe.getTcpSocket()).isNull();
+        assertThat(probe.getExec()).isNotNull();
+        assertThat(probe.getExec().getCommand().iterator().next()).isEqualTo("ls");
+    }
+
+    @Test
+    public void testThatSpecificConfigOverrideSpecificUserProperties() throws Exception {
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+
+        final String config = "{\"liveness\":{\"type\":\"http\",\"path\":\"/ping\"},\"readiness\":{\"port\":\"1337\"}}";
+        Properties properties = new Properties();
+        properties.put("vertx.health.readiness.type", "tcp");
+        properties.put("vertx.health.readiness.port", "1234");
+        properties.put("vertx.health.path", "/pong");
+        setupExpectations(properties, createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();
         assertThat(probe.getTcpSocket()).isNotNull();
-        assertThat(probe.getExec()).isNull();
-        assertThat(probe.getTcpSocket().getPort().getIntVal()).isEqualTo(1234);
+        assertThat(probe.getHttpGet()).isNull();
+        assertThat(probe.getTcpSocket().getPort().getIntVal()).isEqualTo(1337);
 
         probe = enricher.getLivenessProbe();
         assertThat(probe).isNotNull();
-        assertThat(probe.getTcpSocket()).isNotNull();
-        assertThat(probe.getExec()).isNull();
-        assertThat(probe.getTcpSocket().getPort().getIntVal()).isEqualTo(1234);
+        assertThat(probe.getHttpGet()).isNotNull();
+        assertThat(probe.getTcpSocket()).isNull();
+        assertThat(probe.getHttpGet().getPath()).isEqualTo("/ping");
     }
 
     @Test
-    public void testThatSpecificUserPropertiesOverrideSpecificConfig() {
+    public void testThatSpecificUserPropertiesOverrideGenericConfig() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
-        final Map<String, Object> config = createFakeConfig(
-                "{\"liveness\":{\"path\":\"/ping\"},\"readiness\":{\"path\":\"/ping\"}}");
-
+        final String config = "{\"path\":\"/ping\",\"type\":\"http\"}";
         Properties properties = new Properties();
         properties.put("vertx.health.readiness.type", "tcp");
         properties.put("vertx.health.readiness.port", "1234");
         properties.put("vertx.health.port", "1235");
-        setupExpectations(properties, config);
+        setupExpectations(properties, createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();
@@ -870,40 +852,14 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testThatSpecificUserPropertiesOverrideGenericConfig() {
+    public void testThatSpecificConfigOverrideGenericConfig() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
-        final Map<String, Object> config = createFakeConfig(
-                "{\"path\":\"/ping\",\"type\":\"http\"}");
-        Properties properties = new Properties();
-        properties.put("vertx.health.readiness.type", "tcp");
-        properties.put("vertx.health.readiness.port", "1234");
-        properties.put("vertx.health.port", "1235");
-        setupExpectations(properties, config);
-
-        Probe probe = enricher.getReadinessProbe();
-        assertThat(probe).isNotNull();
-        assertThat(probe.getTcpSocket()).isNotNull();
-        assertThat(probe.getHttpGet()).isNull();
-        assertThat(probe.getTcpSocket().getPort().getIntVal()).isEqualTo(1234);
-
-        probe = enricher.getLivenessProbe();
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getTcpSocket()).isNull();
-        assertThat(probe.getHttpGet().getPort().getIntVal()).isEqualTo(1235);
-    }
-
-    @Test
-    public void testThatSpecificConfigOverrideGenericConfig() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"liveness\":{\"path\":\"/live\"}," +
+        final String config = "{\"liveness\":{\"path\":\"/live\"}," +
                         "\"readiness\":{\"path\":\"/ping\",\"port-name\":\"ready\"}," +
-                        "\"path\":\"/health\",\"port-name\":\"health\"}");
+                        "\"path\":\"/health\",\"port-name\":\"health\"}";
 
-        setupExpectations(config);
+        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();
@@ -919,18 +875,16 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
-    public void testThatSpecificUserPropertiesOverrideGenericUserProperties() {
+    public void testThatSpecificUserPropertiesOverrideGenericUserProperties() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Map<String, Object> config = createFakeConfig(
-                "{\"path\":\"/ping\",\"type\":\"http\"}");
+        final String config =  "{\"path\":\"/ping\",\"type\":\"http\"}";
         Properties properties = new Properties();
         properties.put("vertx.health.readiness.type", "tcp");
         properties.put("vertx.health.readiness.port", "1234");
         properties.put("vertx.health.port", "1235");
         properties.put("vertx.health.liveness.type", "tcp");
         properties.put("vertx.health.liveness.port", "1236");
-        setupExpectations(properties, config);
+        setupExpectations(properties, createFakeConfig(config), createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();
@@ -944,6 +898,5 @@ public class VertxHealthCheckEnricherTest {
         assertThat(probe.getTcpSocket()).isNotNull();
         assertThat(probe.getTcpSocket().getPort().getIntVal()).isEqualTo(1236);
     }
-
 
 }

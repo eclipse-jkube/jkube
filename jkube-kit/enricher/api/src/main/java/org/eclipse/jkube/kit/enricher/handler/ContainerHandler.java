@@ -118,8 +118,8 @@ public class ContainerHandler {
         Properties props = getPropertiesWithSystemOverrides(this.configurationProperties);
         String configuredRegistry = EnvUtil.firstRegistryOf(
             imageConfiguration.getRegistry(),
-            props.getProperty("docker.pull.registry"),
-            props.getProperty("docker.registry"));
+            props.getProperty("jkube.docker.pull.registry"),
+            props.getProperty("jkube.docker.registry"));
 
         return new ImageName(imageConfiguration.getName()).getFullName(configuredRegistry);
     }
