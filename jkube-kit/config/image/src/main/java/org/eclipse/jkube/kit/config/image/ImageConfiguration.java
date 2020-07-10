@@ -13,19 +13,23 @@
  */
 package org.eclipse.jkube.kit.config.image;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings("JavaDoc")
 @Builder(toBuilder = true)
@@ -54,11 +58,6 @@ public class ImageConfiguration implements Serializable {
     private Map<String,String> external;
     private String registry;
 
-
-    public String getName() {
-        return name;
-    }
-
     /**
      * Override externalConfiguration when defined via special property.
      *
@@ -66,10 +65,6 @@ public class ImageConfiguration implements Serializable {
      */
     public void setExternalConfiguration(Map<String, String> externalConfiguration) {
         this.external = externalConfiguration;
-    }
-
-    public String getAlias() {
-        return alias;
     }
 
     public RunImageConfiguration getRunConfiguration() {
@@ -89,56 +84,40 @@ public class ImageConfiguration implements Serializable {
     }
 
     public List<String> getDependencies() {
-        RunImageConfiguration runConfig = getRunConfiguration();
-        List<String> ret = new ArrayList<>();
+        final RunImageConfiguration runConfig = getRunConfiguration();
+        final List<String> ret = new ArrayList<>();
         if (runConfig != null) {
-            addVolumes(runConfig, ret);
-            addLinks(runConfig, ret);
-            addContainerNetwork(runConfig, ret);
-            addDependsOn(runConfig, ret);
+            ret.addAll(extractVolumes(runConfig));
+            ret.addAll(extractLinks(runConfig));
+            getContainerNetwork(runConfig).ifPresent(ret::add);
+            ret.addAll(extractDependsOn(runConfig));
         }
         return ret;
     }
 
-    private void addVolumes(RunImageConfiguration runConfig, List<String> ret) {
-        RunVolumeConfiguration volConfig = runConfig.getVolumeConfiguration();
-        if (volConfig != null) {
-            List<String> volumeImages = volConfig.getFrom();
-            if (volumeImages != null) {
-                ret.addAll(volumeImages);
-            }
-        }
+    private static List<String> extractVolumes(RunImageConfiguration runConfig) {
+        return Optional.ofNullable(runConfig).map(RunImageConfiguration::getVolumeConfiguration)
+            .map(RunVolumeConfiguration::getFrom).orElse(Collections.emptyList());
     }
 
-    private void addLinks(RunImageConfiguration runConfig, List<String> ret) {
+    private static List<String> extractLinks(RunImageConfiguration runConfig) {
         // Custom networks can have circular links, no need to be considered for the starting order.
         if (!runConfig.getNetworkingConfig().isCustomNetwork()) {
-            for (String[] link : EnvUtil.splitOnLastColon(runConfig.getLinks())) {
-                ret.add(link[0]);
-            }
+            return EnvUtil.splitOnLastColon(runConfig.getLinks()).stream().map(a -> a[0]).collect(Collectors.toList());
         }
+        return Collections.emptyList();
     }
 
-    private void addContainerNetwork(RunImageConfiguration runConfig, List<String> ret) {
-        NetworkConfig config = runConfig.getNetworkingConfig();
-        String containerAlias = config.getContainerAlias();
-        if (containerAlias != null) {
-            ret.add(containerAlias);
-        }
+    private static Optional<String> getContainerNetwork(RunImageConfiguration runConfig) {
+        return Optional.ofNullable(runConfig).map(RunImageConfiguration::getNetworkingConfig).map(NetworkConfig::getContainerAlias);
     }
 
-    private void addDependsOn(RunImageConfiguration runConfig, List<String> ret) {
+    private static List<String> extractDependsOn(RunImageConfiguration runConfig) {
         // Only used in custom networks.
         if (runConfig.getNetworkingConfig().isCustomNetwork()) {
-            ret.addAll(runConfig.getDependsOn());
+            return runConfig.getDependsOn();
         }
-    }
-
-    public boolean isDataImage() {
-        // If there is no explicit run configuration, its a data image
-        // TODO: Probably add an explicit property so that a user can indicated whether it
-        // is a data image or not on its own.
-        return getRunConfiguration() == null;
+        return Collections.emptyList();
     }
 
     public String getDescription() {
