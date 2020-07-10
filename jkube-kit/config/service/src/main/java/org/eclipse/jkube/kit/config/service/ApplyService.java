@@ -928,7 +928,7 @@ public class ApplyService {
 
     private <T extends HasMetadata> void doPatchEntity(T oldEntity, T newEntity, String namespace, String sourceName) {
         String kind = newEntity.getKind();
-        log.info("Updating {} from {}", kind, sourceName);
+        log.info("Updating %s from %s", kind, sourceName);
         try {
             Object answer = patchService.compareAndPatchEntity(namespace, newEntity, oldEntity);
             logGeneratedEntity("Updated " + kind + ": ", namespace, newEntity, answer);
