@@ -39,6 +39,7 @@ Usage:
 * Fix #248: Properly name and document (Maven/System) configuration properties
 * Fix warning message in log goal when no pod is found
 * Fix #267: openshift-maven-plugin does not update Routes
+* Fix #286: Refactor ImageConfiguration model
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 
