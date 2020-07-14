@@ -640,7 +640,7 @@ public class OpenshiftBuildServiceTest {
 
         mockServer.expect().post().withPath("/apis/image.openshift.io/v1/namespaces/test/imagestreams").andReturn(201, imageStream).once();
 
-        mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs/" + projectName + s2iBuildNameSuffix + "/instantiatebinary?commit=")
+        mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs/" + projectName + s2iBuildNameSuffix + "/instantiatebinary?name="+ projectName + s2iBuildNameSuffix +"&namespace=test")
                 .andReply(
                         collector.record("pushed")
                                 .andReturn(201, imageStream))

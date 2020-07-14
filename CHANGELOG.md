@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.0-SNAPSHOT
+* Fix #290: Bump Fabric8 Kubernetes Client to v4.10.3
 
 ### 1.0.0-rc-1 (2020-07-23)
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)
