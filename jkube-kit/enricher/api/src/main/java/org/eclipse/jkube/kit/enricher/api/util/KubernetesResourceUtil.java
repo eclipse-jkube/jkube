@@ -66,7 +66,7 @@ import io.fabric8.kubernetes.api.model.apps.*;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.internal.HasMetadataComparator;
+import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
