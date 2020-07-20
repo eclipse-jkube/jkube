@@ -17,6 +17,7 @@ import com.google.cloud.tools.jib.api.AbsoluteUnixPath;
 import com.google.cloud.tools.jib.api.CacheDirectoryCreationException;
 import com.google.cloud.tools.jib.api.Containerizer;
 import com.google.cloud.tools.jib.api.Credential;
+import com.google.cloud.tools.jib.api.FilePermissions;
 import com.google.cloud.tools.jib.api.ImageFormat;
 import com.google.cloud.tools.jib.api.InvalidImageReferenceException;
 import com.google.cloud.tools.jib.api.Jib;
@@ -30,6 +31,7 @@ import com.google.cloud.tools.jib.api.TarImage;
 import com.google.cloud.tools.jib.event.events.ProgressEvent;
 import com.google.cloud.tools.jib.event.progress.ProgressEventHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
@@ -55,10 +57,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.google.cloud.tools.jib.api.LayerConfiguration.DEFAULT_FILE_PERMISSIONS_PROVIDER;
 import static org.fusesource.jansi.Ansi.ansi;
 
 public class JibServiceUtil {
@@ -265,7 +269,18 @@ public class JibServiceUtil {
                 .orElse(BUSYBOX);
     }
 
-    public static void copyToContainer(JibContainerBuilder containerBuilder, File directory, String targetDir) throws IOException {
+    public static void copyToContainer(
+        JibContainerBuilder containerBuilder, File directory, String targetDir, Map<File, AssemblyFileEntry> files)
+        throws IOException {
+
+        final BiFunction<Path, AbsoluteUnixPath, FilePermissions> filePermissionsProvider = (sourcePath, destinationPath) ->
+            Optional.ofNullable(files.get(sourcePath.toFile()))
+                .map(AssemblyFileEntry::getFileMode)
+                .filter(StringUtils::isNotBlank)
+                .map(octalFileMode -> FilePermissions.fromOctalString(StringUtils.right(octalFileMode, 3)))
+                .orElse(DEFAULT_FILE_PERMISSIONS_PROVIDER.apply(sourcePath, destinationPath));
+
+
         Files.walkFileTree(directory.toPath(), new FileVisitor<Path>() {
             boolean notParentDir = false;
 
@@ -281,7 +296,7 @@ public class JibServiceUtil {
                 String relativePath = fileFullpath.substring(targetDir.length());
                 AbsoluteUnixPath absoluteUnixPath = AbsoluteUnixPath.fromPath(Paths.get(relativePath));
                 containerBuilder.addLayer(LayerConfiguration.builder()
-                        .addEntryRecursive(dir, absoluteUnixPath)
+                        .addEntryRecursive(dir, absoluteUnixPath, filePermissionsProvider)
                         .build());
                 return FileVisitResult.SKIP_SUBTREE;
             }
@@ -292,7 +307,7 @@ public class JibServiceUtil {
                 String relativePath = fileFullpath.substring(targetDir.length());
                 AbsoluteUnixPath absoluteUnixPath = AbsoluteUnixPath.fromPath(Paths.get(relativePath));
                 containerBuilder.addLayer(LayerConfiguration.builder()
-                        .addEntryRecursive(file, absoluteUnixPath)
+                        .addEntryRecursive(file, absoluteUnixPath, filePermissionsProvider)
                         .build());
                 return FileVisitResult.CONTINUE;
             }
