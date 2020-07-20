@@ -91,7 +91,7 @@ public class JibServiceUtilTest {
         boolean wasNewFileCreated = temporaryFile.createNewFile();
 
         // When
-        JibServiceUtil.copyToContainer(containerBuilder, temporaryDirectory, "/tmp");
+        JibServiceUtil.copyToContainer(containerBuilder, temporaryDirectory, "/tmp", Collections.emptyMap());
 
         // Then
         assertTrue(wasNewFileCreated);
