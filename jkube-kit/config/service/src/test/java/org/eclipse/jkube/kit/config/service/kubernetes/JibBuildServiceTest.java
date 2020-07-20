@@ -102,7 +102,7 @@ public class JibBuildServiceTest {
         setupServiceHubExpectations(projectBaseDir);
 
         // When
-        File tarArchive = JibBuildService.getAssemblyTarArchive(imageConfiguration, serviceHub, logger);
+        File tarArchive = JibBuildService.getAssemblyTarArchive(imageConfiguration, serviceHub.getConfiguration(), logger);
 
         // Then
         assertNotNull(tarArchive);
