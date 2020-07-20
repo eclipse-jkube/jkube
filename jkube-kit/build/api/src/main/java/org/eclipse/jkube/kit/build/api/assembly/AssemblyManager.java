@@ -95,17 +95,13 @@ public class AssemblyManager {
 
         final BuildDirs buildDirs = createBuildDirs(imageName, configuration);
         final List<ArchiverCustomizer> archiveCustomizers = new ArrayList<>();
-        final AssemblyConfiguration assemblyConfig;
-        final List<AssemblyFileEntry> assemblyFileEntries;
+        final AssemblyConfiguration assemblyConfig = getAssemblyConfiguration(buildConfig, configuration);
+        final List<AssemblyFileEntry> assemblyFileEntries = copyFilesToFinalTarballDirectory(configuration.getProject(), buildDirs, assemblyConfig);
 
         try {
             if (buildConfig.isDockerFileMode()) {
-                assemblyConfig = getAssemblyConfigurationForDockerfileMode(buildConfig, configuration);
-                assemblyFileEntries = copyFilesToFinalTarballDirectory(configuration.getProject(), buildDirs, assemblyConfig);
                 createDockerTarArchiveForDockerFile(buildConfig, assemblyConfig, configuration, buildDirs, log, archiveCustomizers);
             } else {
-                assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfig);
-                assemblyFileEntries = copyFilesToFinalTarballDirectory(configuration.getProject(), buildDirs, assemblyConfig);
                 createAssemblyArchive(assemblyConfig, configuration, buildDirs, buildConfig.getCompression(), assemblyFileEntries);
                 createDockerTarArchiveForGeneratorMode(buildConfig, buildDirs, archiveCustomizers, assemblyConfig);
             }
@@ -114,6 +110,25 @@ public class AssemblyManager {
             return createBuildTarBall(configuration, buildDirs, archiveCustomizers, assemblyConfig, buildConfig.getCompression());
         } catch (IOException e) {
             throw new IOException(String.format("Cannot create %s in %s", DOCKERFILE_NAME, buildDirs.getOutputDirectory()), e);
+        }
+    }
+
+    /**
+     * Returns the complete {@link AssemblyConfiguration} with required options for the provided {@link BuildConfiguration}
+     * and {@link JKubeConfiguration}.
+     *
+     * @param buildConfiguration BuildConfiguration from which to compute the AssemblyConfiguration
+     * @param configuration global JKubeConfiguration
+     * @return the computed AssemblyConfiguration
+     */
+    @Nonnull
+    public static AssemblyConfiguration getAssemblyConfiguration(
+        @Nonnull BuildConfiguration buildConfiguration, @Nonnull JKubeConfiguration configuration) {
+
+        if (buildConfiguration.isDockerFileMode()) {
+            return getAssemblyConfigurationForDockerfileMode(buildConfiguration, configuration);
+        } else {
+            return getAssemblyConfigurationOrCreateDefault(buildConfiguration);
         }
     }
 
@@ -331,7 +346,7 @@ public class AssemblyManager {
         }
     }
 
-    private List<AssemblyFileEntry> copyFilesToFinalTarballDirectory(
+    public List<AssemblyFileEntry> copyFilesToFinalTarballDirectory(
         JavaProject project, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration) throws IOException {
 
         final List<AssemblyFileEntry> files = new ArrayList<>();

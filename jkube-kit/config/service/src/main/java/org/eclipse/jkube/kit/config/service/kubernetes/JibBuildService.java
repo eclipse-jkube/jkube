@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -39,7 +40,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class JibBuildService implements BuildService {
     private static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
@@ -60,12 +64,22 @@ public class JibBuildService implements BuildService {
     public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
         try {
             log.info("[[B]]JIB[[B]] image build started");
-            appendRegistry(imageConfig, jKubeServiceHub.getConfiguration().getProperties().getProperty(PUSH_REGISTRY));
-            BuildDirs buildDirs = new BuildDirs(imageConfig.getName(), jKubeServiceHub.getConfiguration());
-            File dockerTarArchive = getAssemblyTarArchive(imageConfig, jKubeServiceHub, log);
+            final JKubeConfiguration configuration = jKubeServiceHub.getConfiguration();
+            appendRegistry(imageConfig, configuration.getProperties().getProperty(PUSH_REGISTRY));
+            BuildDirs buildDirs = new BuildDirs(imageConfig.getName(), configuration);
+            File dockerTarArchive = getAssemblyTarArchive(imageConfig, configuration, log);
 
             final JibContainerBuilder containerBuilder = JibServiceUtil.containerFromImageConfiguration(imageConfig);
-            JibServiceUtil.copyToContainer(containerBuilder, buildDirs.getOutputDirectory(), buildDirs.getOutputDirectory().getAbsolutePath());
+            // TODO: Improve Assembly Manager so that the effective assemblyFileEntries computed can be properly shared
+            final Map<File, AssemblyFileEntry> files = AssemblyManager.getInstance()
+                .copyFilesToFinalTarballDirectory(
+                    configuration.getProject(), buildDirs,
+                    AssemblyManager.getAssemblyConfiguration(imageConfig.getBuildConfiguration(), configuration)
+                ).stream()
+                .collect(Collectors.toMap(AssemblyFileEntry::getDest, Function.identity()));
+
+            JibServiceUtil.copyToContainer(
+                containerBuilder, buildDirs.getOutputDirectory(), buildDirs.getOutputDirectory().getAbsolutePath(), files);
             JibServiceUtil.buildContainer(containerBuilder,
                     TarImage.at(dockerTarArchive.toPath()).named(imageConfig.getName()), log);
             log.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
@@ -101,12 +115,11 @@ public class JibBuildService implements BuildService {
         return imageConfiguration;
     }
 
-    protected static File getAssemblyTarArchive(ImageConfiguration imageConfig, JKubeServiceHub jKubeServiceHub, KitLogger log) throws IOException {
+    protected static File getAssemblyTarArchive(ImageConfiguration imageConfig, JKubeConfiguration configuration, KitLogger log) throws IOException {
         log.info("Preparing assembly files");
         final String targetImage = imageConfig.getName();
-        JKubeConfiguration jKubeConfiguration = jKubeServiceHub.getConfiguration();
         return AssemblyManager.getInstance()
-                .createDockerTarArchive(targetImage, jKubeConfiguration, imageConfig.getBuildConfiguration(), log, null);
+                .createDockerTarArchive(targetImage, configuration, imageConfig.getBuildConfiguration(), log, null);
     }
 
     protected static Credential getRegistryCredentials(RegistryConfig registryConfig, ImageConfiguration imageConfiguration, KitLogger log) throws IOException {
