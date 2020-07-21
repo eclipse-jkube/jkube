@@ -1,0 +1,19 @@
+
+[[jkube-git]]
+==== jkube-git
+
+Enricher that adds info from .git directory as annotations.
+
+The git branch & latest commit on the branch are annotated as `jkube.io/git-branch` & `jkube.io/git-commit`.
+`jkube.io/git-url` is annotated as the URL of your configured remote.
+
+[cols="1,6,1"]
+|===
+| Option | Description | Property
+
+| *gitRemote*
+| Configures the git remote name, whose URL you want to annotate as 'git-url'.
+
+  Defaults to `origin`.
+| `jkube.enricher.jkube-git.gitRemote`
+|===
