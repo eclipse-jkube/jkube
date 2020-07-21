@@ -68,8 +68,15 @@ public class JKubeServiceHubTest {
                 .build();
     }
 
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   @Test
   public void testBasicInit() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      configuration.getProject().getProperties(); result = new Properties();
+    }};
+    // @formatter:on
     // When
     try (final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
         .platformMode(RuntimeMode.KUBERNETES)
@@ -84,26 +91,28 @@ public class JKubeServiceHubTest {
     }
   }
 
-    @Test
-    public void testObtainBuildService() {
-        new Expectations() {{
-            configuration.getProperties();
-            result = new Properties();
-        }};
-        JKubeServiceHub hub = JKubeServiceHub.builder()
-                .configuration(configuration)
-                .clusterAccess(clusterAccess)
-                .log(logger)
-                .platformMode(RuntimeMode.KUBERNETES)
-                .dockerServiceHub(dockerServiceHub)
-                .buildServiceConfig(buildServiceConfig)
-                .build();
-
-        BuildService buildService = hub.getBuildService();
-
-        assertNotNull(buildService);
-        assertTrue(buildService instanceof DockerBuildService);
-    }
+  @Test
+  public void testObtainBuildService() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+          configuration.getProperties(); result = new Properties();
+    }};
+    // @formatter:on
+    JKubeServiceHub hub = JKubeServiceHub.builder()
+        .configuration(configuration)
+        .clusterAccess(clusterAccess)
+        .log(logger)
+        .platformMode(RuntimeMode.KUBERNETES)
+        .dockerServiceHub(dockerServiceHub)
+        .buildServiceConfig(buildServiceConfig)
+        .build();
+    // When
+    BuildService buildService = hub.getBuildService();
+    // Then
+    assertNotNull(buildService);
+    assertTrue(buildService instanceof DockerBuildService);
+  }
 
     @Test
     public void testObtainOpenshiftBuildService() {
