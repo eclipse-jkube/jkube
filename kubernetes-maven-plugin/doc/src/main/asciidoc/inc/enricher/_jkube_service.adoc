@@ -12,42 +12,55 @@ The following configuration parameters can be used to influence the behaviour of
 .Default service enricher
 [cols="1,6,1"]
 |===
-| Element | Description | Default
+| Element | Description | Property
 
 | *name*
-| Service name to enrich by default. If not given here or configured elsewhere, the artifactId is used
-|
+| Service name to enrich by default. If not given here or configured elsewhere, the artifactId is used.
+| `jkube.enricher.jkube-service.name`
 
 | *headless*
-| whether a headless service without a port should be configured. A headless service has the `ClusterIP` set to `None` and will be only used if no ports are exposed by the image configuration or by the configuration `port`.
+| Whether a headless service without a port should be configured. A headless service has the `ClusterIP` set to `None`
+  and will be only used if no ports are exposed by the image configuration or by the configuration `port`.
 
-| `false`
+  Defaults to `false`.
+| `jkube.enricher.jkube-service.headless`
 
 | *expose*
 | If set to true, a label `expose` with value `true` is added which can be picked up by the jkube.
   https://github.com/jenkins-x/exposecontroller[expose-controller] to expose the service to the outside by various means.
   See the documentation of expose-controller for more details.
-| `false`
+
+  Defaults to `false`.
+| `jkube.enricher.jkube-service.expose`
 
 | *type*
 | Kubernetes / OpenShift service type to set like _LoadBalancer_, _NodePort_ or _ClusterIP_.
-|
+| `jkube.enricher.jkube-service.type`
 
 | *port*
-| The service port to use. By default the same port as the ports exposed in the image configuration is used, but can be changed with this parameter. See <<jkube-service-ports,below>> for a detailed description of the format which can be put into this variable.
-|
+| The service port to use. By default the same port as the ports exposed in the image configuration is used, but can be
+  changed with this parameter. See <<jkube-service-ports,below>> for a detailed description of the format which can be
+  put into this variable.
+| `jkube.enricher.jkube-service.port`
 
 | *multiPort*
-| Set this to `true` if you want all ports to be exposed from an image configuration. Otherwise only the first port is used as a service port.
-| `false`
+| Set this to `true` if you want all ports to be exposed from an image configuration. Otherwise only the first port is
+  used as a service port.
+
+  Defaults to `false`.
+| `jkube.enricher.jkube-service.multiPort`
 
 | *protocol*
-| Default protocol to use for the services. Must be `tcp` or `udp`
-| `tcp`
+| Default protocol to use for the services. Must be `tcp` or `udp`.
+
+  Defaults to `tcp`.
+| `jkube.enricher.jkube-service.protocol`
 
 | *normalizePort*
 | Normalize the port numbering of the service to common and conventional port numbers.
-| `false`
+
+  Defaults to `false`.
+| `jkube.enricher.jkube-service.normalizePort`
 |===
 
 
@@ -56,6 +69,7 @@ Following is the Port mapping that comes in effect, when normalizePort option is
 [cols="1,1"]
 |===
 | Original Port | Normalized Port
+
 | 8080 | 80
 | 8081 | 80
 | 8181 | 80
@@ -70,7 +84,7 @@ You specify the properties like for any enricher within the enrichers configurat
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 -----
 <configuration>
-  ..
+  <!-- ... -->
   <enricher>
     <config>
       <jkube-service>
