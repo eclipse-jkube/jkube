@@ -50,11 +50,30 @@ Helm chart can also be customized through `pom.xml` plugin configuration:
 
 ## How to test
 
+### Docker build strategy (default)
 With Minikube running, perform the following commands:
 ```shell script
-eval $(minikube docker-env)
-mvn clean package k8s:build k8s:resource k8s:helm
-helm install spring-boot-yaml target/jkube/helm/spring-boot-yaml/kubernetes/ 
-minikube service spring-boot-yaml  
+$ eval $(minikube docker-env)
+$ mvn -Pkubernetes clean package
+$ helm install spring-boot-helm target/jkube/helm/spring-boot-helm/kubernetes/
+$ minikube service spring-boot-helm
 ```
 
+### JIB build strategy
+With Minikube running, perform the following commands:
+```shell script
+$ mvn -Pkubernetes clean package -Djkube.build.strategy=jib
+$ eval $(minikube docker-env)
+$ docker load -i target/docker/maven/spring-boot-helm/latest/tmp/docker-build.tar
+$ helm install spring-boot-helm target/jkube/helm/spring-boot-helm/kubernetes/
+$ minikube service spring-boot-helm
+```
+
+### OpenShift (S2I build)
+With a valid OpenShift cluster, perform the following commands:
+```shell script
+$ mvn -Popenshift clean package
+$ helm install spring-boot-helm target/jkube/helm/spring-boot-helm/openshift/
+$ oc3 expose svc/spring-boot-helm
+$ curl ${route-url}
+```

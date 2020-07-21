@@ -40,6 +40,8 @@ Usage:
 * Fix warning message in log goal when no pod is found
 * Fix #267: openshift-maven-plugin does not update Routes
 * Fix #286: Refactor ImageConfiguration model
+* Fix #283: Add support for WildFly Bootable JAR
+* Fix #306: Template resolution and helm work in OpenShift-Maven-Plugin
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 
