@@ -23,24 +23,26 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @OpenshiftApplication(
+        name ="spring-boot-dekorate",
         labels = @Label(key = "decorated-by", value = "dekorate"),
         group = "jkube",
+        version = "latest",
         serviceType = ServiceType.NodePort
 )
 @KubernetesApplication(
+        name ="spring-boot-dekorate",
         labels = @Label(key = "decorated-by", value = "dekorate"),
         group = "jkube",
         serviceType = ServiceType.NodePort
 )
+// Make Dekorate generated manifests compatible with JKube Naming conventions for image builds
 @DockerBuild(
-        group = "jkube",
+        group = "maven",
         version = "latest",
-        name = "jkube-maven-sample-spring-boot-dekorate"
+        name = "spring-boot-dekorate"
 )
 @S2iBuild(
-        group = "jkube",
-        version = "latest",
-        name = "jkube-maven-sample-spring-boot-dekorate"
+        enabled = false
 )
 @SpringBootApplication
 public class SpringDekorateApplication {
