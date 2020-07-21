@@ -13,6 +13,20 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.FileUtil;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -23,19 +37,9 @@ import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.api.model.RoutePort;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.containsLabelInMetadata;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeLabel;
@@ -44,14 +48,29 @@ import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.rem
  * Enricher which generates a Route for each exposed Service
  */
 public class RouteEnricher extends BaseEnricher {
+
+    private static final String GENERATE_ROUTE_PROPERTY = "jkube.openshift.generateRoute";
     public static final String EXPOSE_LABEL = "expose";
-    private Boolean generateRoute;
+
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        GENERATE_ROUTE("generateRoute", "true");
+
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
+    }
+
+    private String routeDomainPostfix;
 
     public RouteEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-openshift-route");
-        this.generateRoute = getValueFromConfig(GENERATE_ROUTE, true);
     }
-    private String routeDomainPostfix;
+
+    private boolean isGenerateRoute() {
+        return Configs.asBoolean(getConfigWithFallback(Config.GENERATE_ROUTE, GENERATE_ROUTE_PROPERTY, null));
+    }
 
     @Override
     public void create(PlatformMode platformMode, final KubernetesListBuilder listBuilder) {
@@ -61,7 +80,7 @@ public class RouteEnricher extends BaseEnricher {
             routeDomainPostfix = resourceConfig.getRouteDomain();
         }
 
-        if(platformMode == PlatformMode.openshift && generateRoute.equals(Boolean.TRUE)) {
+        if(platformMode == PlatformMode.openshift && isGenerateRoute()) {
             final List<Route> routes = new ArrayList<>();
             listBuilder.accept(new TypedVisitor<ServiceBuilder>() {
 

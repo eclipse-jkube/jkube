@@ -79,7 +79,8 @@ public class JKubeServiceHub implements Closeable {
         Objects.requireNonNull(log, "log is a required parameter");
         Objects.requireNonNull(platformMode, "platformMode is a required parameter");
         if (clusterAccess == null) {
-            clusterAccess = new ClusterAccess(log, ClusterConfiguration.from(System.getProperties()).build());
+            clusterAccess = new ClusterAccess(log,
+                ClusterConfiguration.from(System.getProperties(), configuration.getProject().getProperties()).build());
         }
         this.client = clusterAccess.createDefaultClient();
 
