@@ -54,7 +54,6 @@ public class BaseEnricher implements Enricher {
     private static final String SWITCH_TO_DEPLOYMENT = "jkube.build.switchToDeployment";
     public static final String CREATE_EXTERNAL_URLS = "jkube.createExternalUrls";
     public static final String JKUBE_DOMAIN = "jkube.domain";
-    protected static final String GENERATE_ROUTE = "jkube.openshift.generateRoute";
 
     protected KitLogger log;
 
