@@ -4,7 +4,7 @@ A simple REST application demonstrating usage of Eclipse JKube with Quarkus.
 
 ## Requirements:
 
-- JDK 8 or 11+
+- JDK 11+
 - Kubernetes Cluster (Minikube, OpenShift, CRC, etc.)
 
 ## Regular mode
@@ -99,6 +99,8 @@ On invoking this, you can see it in browser:
 
 ### Warning
 
+### Docker
+
 > There is a [known issue](https://github.com/quarkusio/quarkus/issues/1610)
 > when building a quarkus native image with a remote docker daemon.
 > 
@@ -110,8 +112,18 @@ On invoking this, you can see it in browser:
 To build the application, just reproduce the steps for the regular mode appending `-Pnative ` to
 all your maven commands:
 ```
-mvn clean package -Pnative
-eval $(minikube docker-env)
-mvn k8s:build k8s:resource k8s:apply -Pnative
-minikube service quarkus
+$ mvn clean package -Pnative-docker
+$ eval $(minikube docker-env)
+$ mvn k8s:build k8s:resource k8s:apply -Pnative-docker
+$ minikube service quarkus
+```
+
+### JIB
+
+```
+$ mvn clean package k8s:build -Pnative-jib
+$ eval $(minikube docker-env)
+$ docker load -i target/docker/maven/quarkus/latest/tmp/docker-build.tar
+$ mvn k8s:resource k8s:apply -Pnative-jib
+$ minikube service quarkus
 ```
