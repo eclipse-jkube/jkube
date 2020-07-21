@@ -60,16 +60,34 @@ The following table gives an overview of the different models
 | Model | Docker Images | Resource Descriptors
 
 | *Zero-Config*
-| <<generators, Generators>> are used to create Docker image configurations. Generators can detect certain aspects of the build (e.g. whether Spring Boot is used) and then choose some default like the base image, which ports to expose and the startup command. They can be configured, but offer only a few options.
-| Default <<enrichers, Enrichers>> will create a default _Service_ and _Deployment_ (_DeploymentConfig_ for OpenShift) when no other resource objects are provided. Depending on the image they can detect which port to expose in the service. As with Generators, Enrichers support a limited set of configuration options.
+| <<generators, Generators>> are used to create Docker image configurations. Generators can detect certain aspects of
+  the build (e.g. whether Spring Boot is used) and then choose some opinionated defaults like the base image, which
+  ports to expose and the startup command. They can be configured, but offer only a few options.
+| Default <<enrichers, Enrichers>> will create a default _Service_ and _Deployment_ (_DeploymentConfig_ for OpenShift)
+  when no other resource objects are provided. Depending on the image they can detect which port to expose in the
+  service. As with Generators, Enrichers support a limited set of configuration options.
 
 | *XML configuration*
-| {plugin} inherits the XML based configuration for building images from the https://dmp.fabric8.io/#docker:build[docker-maven-plugin] and provides the same functionality. It supports an http://maven.apache.org/components/plugins/maven-assembly-plugin/assembly.html[assembly descriptor] for specifying the content of the Docker image.
-| A subset of possible resource objects can be configured with a dedicated XML syntax. With a decent IDE you get autocompletion on most object and inline documentation for the available configuration elements. The provided configuration can be still enhanced by Enhancers which is useful for adding e.g. labels and annotations containing build or other information.
+| {plugin} inherits the XML based configuration for building images from the
+  https://dmp.fabric8.io/#docker:build[docker-maven-plugin] and provides the same functionality. It supports an
+  http://maven.apache.org/components/plugins/maven-assembly-plugin/assembly.html[assembly descriptor] for specifying the
+  content of the Docker image.
+| A subset of possible resource objects can be configured with a dedicated XML syntax. With a decent IDE you get
+  autocompletion on most objects and inline documentation for the available configuration elements. The provided
+  configuration can be still enhanced by Enhancers which is useful for adding e.g. labels and annotations containing
+  build or other information.
 
 | *Resource Fragments* and *Dockerfiles*
-| Similarly to the docker-maven-plugin, {plugin} supports <<external-dockerfile,external Dockerfiles>> too, which are referenced from the plugin configuration.
-| Resource descriptors can be provided as external YAML files which specify a skeleton. This skeleton is then filled by Enrichers which add labels and more. Maven properties within these files are resolved to thier values. With this model you can use every Kubernetes / OpenShift resource object with all their flexibility, but still get the benefit of adding build information.
+| Similarly to the docker-maven-plugin, {plugin} supports <<external-dockerfile,external Dockerfiles>> too, which are
+  referenced from the plugin configuration.
+| Resource descriptors can be provided as external YAML files which will build a base skeleton for the applicable resource.
+
+  The "skeleton" is then post-processed by <<enrichers, Enrichers>> which will complete the skeleton by adding the fields
+  each enricher is responsible of (labels, annotations, port information, etc.). Maven properties within these files
+  are resolved to their values.
+
+  With this model you can use every Kubernetes / OpenShift resource objects with all their flexibility, but still get the benefit
+  of adding build information.
 |===
 
 
@@ -130,9 +148,9 @@ https://github.com/eclipse/jkube/tree/master/quickstarts/maven/zero-config[quick
 
 This setup make some opinionated decisions for you:
 
-* As base image https://github.com/fabric8io-images/java/tree/master/images/jboss/openjdk8/jdk[jkube/java-jboss-openjdk8-jdk]
+* As base image https://quay.io/repository/jkube/jkube-java-binary-s2i[jkube/jkube-java-binary-s2i]
   is chosen which enables https://www.jolokia.org[Jolokia] and https://github.com/prometheus/jmx_exporter[jmx_exporter].
-  It also comes with a sophisticated https://github.com/jkubeio-images/run-java-sh[startup script].
+  It also comes with a sophisticated https://github.com/jboss-openshift/cct_module/tree/master/jboss/container/java/run/bash[startup script].
 * It will create a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] and a
   http://kubernetes.io/docs/user-guide/services/[Service] as resource objects
 * It exports port 8080 as the application service port (and 8778 and 9779 for Jolokia and jmx_exporter access, respectively)
@@ -182,7 +200,7 @@ Of course you can bind all those jkube.goals to execution phases as well, so tha
 </plugin>
 ----
 
-If you'd also like to automatically deploy to Kubernetes each time you do a `mvn install` you can add the `deploy` goal:
+If you'd also like to automatically deploy to Kubernetes each time you do a `mvn install` you can add the `apply` goal:
 
 .Example for lifecycle bindings with automatic deploys for mvn install
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
@@ -198,7 +216,7 @@ If you'd also like to automatically deploy to Kubernetes each time you do a `mvn
       <goals>
         <goal>resource</goal>
         <goal>build</goal>
-        <goal>deploy</goal>
+        <goal>apply</goal>
       </goals>
     </execution>
   </executions>

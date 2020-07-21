@@ -7,14 +7,16 @@ running on Kubernetes.
 
 In order to use {goal-prefix}:watch for spring-boot, you need to make sure that `devtools` is included in the repacked
 archive, as shown in the following listing:
+
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
-		<plugin>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-maven-plugin</artifactId>
-			<configuration>
-				<excludeDevtools>false</excludeDevtools>
-			</configuration>
-		</plugin>
+<plugin>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-maven-plugin</artifactId>
+  <configuration>
+    <excludeDevtools>false</excludeDevtools>
+  </configuration>
+</plugin>
 ----
 
 Then you need to set a `spring.devtools.remote.secret` in application.properties, as shown in the following example:
@@ -114,12 +116,32 @@ It uses the watch feature of the https://dmp.fabric8.io/#docker:watch[docker-mav
 === Supported Properties for Watch goal
 
 .Options available with watch goal
-[cols="1.6.3"]
+[cols="1,6,1"]
 |===
-| Element | Description | Property(System property or Maven property)
+| Element | Description | Property
 
 | *kubernetesManifest*
-| The generated kubernetes YAML file. Defaults to `${basedir}/target/classes/META-INF/jkube/kubernetes.yml`
+| The generated kubernetes YAML file.
+
+  Defaults to `${basedir}/target/classes/META-INF/jkube/kubernetes.yml`.
 | `jkube.kubernetesManifest`
 
+| *watchMode*
+a|
+How to watch for image changes.
+
+* `copy`: Copy watched artifacts into container
+* `build`: Build only images
+* `run`: Run images
+* `both`: Build and run images
+
+Defaults to `both`.
+
+| `jkube.watch.mode`
+
+| *watchInterval*
+| Watch interval in milliseconds.
+
+  Defaults to `5000`.
+| `jkube.watch.interval`
 |===

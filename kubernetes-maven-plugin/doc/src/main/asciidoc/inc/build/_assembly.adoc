@@ -74,6 +74,7 @@ In the event you do not need to include any artifacts with the image, you may sa
 Inlined assembly description with a format very similar to
 https://maven.apache.org/plugins/maven-assembly-plugin/assembly.html[Maven Assembly Plugin].
 
+.Assembly - Inline (<<config-image, <image> >> : <<config-image-build, <build> >> : <<config-image-build-assembly, <assembly> >>)
 [cols="1,5"]
 |===
 | Element | Description
