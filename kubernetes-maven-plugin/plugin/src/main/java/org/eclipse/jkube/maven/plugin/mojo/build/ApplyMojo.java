@@ -206,7 +206,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
 
             boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
             if (openShift) {
-                getLog().info("OpenShift platform detected");
+                log.info("[[B]]OpenShift[[B]] platform detected");
             } else {
                 disableOpenShiftFeatures(applyService);
             }
