@@ -29,6 +29,7 @@
     <!-- User part of the docker image to create. If you want to push the image
          to a registry use a registry user here for which you have karma -->
     <image.user>jkube</image.user>
+    <image.name>${project.artifactId}</image.name>
 
     <!-- Versions -->
     <camel.version>2.16.2</camel.version>
@@ -164,7 +165,7 @@
         <configuration>
           <images>
             <image>
-              <name>${image.user}/${project.artifactId}:%l</name>
+              <name>${image.user}/${image.name}:%l</name>
               <!-- "alias" is used to correlate to the containers in the pod spec -->
               <alias>camel-service</alias>
               <build>
@@ -257,6 +258,15 @@
                 </ports>
               </service>
             </services>
+            <configMap>
+              <name>log-config</name>
+              <entries>
+                <entry>
+                  <name>log_level</name>
+                  <value>INFO</value>
+                </entry>
+              </entries>
+            </configMap>
           </resources>
         </configuration>
       </plugin>
