@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>webapp-jetty</artifactId>
-  <version>1.0.0-alpha-4</version>
+  <version>1.0.0-SNAPSHOT</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Webapp Jetty</name>
   <packaging>war</packaging>
 
