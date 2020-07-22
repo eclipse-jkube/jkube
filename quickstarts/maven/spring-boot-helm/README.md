@@ -74,6 +74,6 @@ With a valid OpenShift cluster, perform the following commands:
 ```shell script
 $ mvn -Popenshift clean package
 $ helm install spring-boot-helm target/jkube/helm/spring-boot-helm/openshift/
-$ oc3 expose svc/spring-boot-helm
+$ oc expose svc/spring-boot-helm
 $ curl ${route-url}
 ```
