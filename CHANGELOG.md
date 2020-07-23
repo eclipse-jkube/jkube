@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.0.0-SNAPSHOT
+### 1.0.0-rc-1
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)
 * Fix #187: Provided Dockerfile is always skipped in simple Dockerfile mode
 * Fix #237: Remove deprecated fields and method calls
@@ -37,7 +37,7 @@ Usage:
 * Fix #259: Cleanup unused properties inside Mojos
 * Fix #94: Properly define + document JKubeProjectAssembly behavior
 * Fix #248: Properly name and document (Maven/System) configuration properties
-* Fix warning message in log goal when no pod is found
+* Fix #284: warning message in log goal when no pod is found
 * Fix #267: openshift-maven-plugin does not update Routes
 * Fix #286: Refactor ImageConfiguration model
 * Fix #283: Add support for WildFly Bootable JAR
