@@ -52,12 +52,13 @@ To enable kubernetes maven plugin on your project just add this to the plugins s
 
 ##### Kubernetes
 
-|     KMP              | Kubernetes 1.17.0          | Kubernetes 1.12.0          | Kubernetes 1.11.0          | Kubernetes 1.10.0 | Kubernetes 1.9.0 | Kubernetes 1.8.0 | Kubernetes 1.7.0 | Kubernetes 1.6.0 | Kubernetes 1.5.1 | Kubernetes 1.4.0 |
-|----------------------|----------------------------|----------------------------|----------------------------|-------------------|------------------|------------------|------------------|------------------|------------------|------------------|
-| KMP 1.0.0-alpha-4    |        :heavy_check_mark:  |        :heavy_check_mark:  |        :heavy_check_mark:  |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 1.0.0-alpha-3    |        :heavy_check_mark:  |        :heavy_check_mark:  |        :heavy_check_mark:  |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 1.0.0-alpha-2    |        :heavy_check_mark:  |        :heavy_check_mark:  |        :heavy_check_mark:  |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 1.0.0-alpha-1    |        :heavy_check_mark:  |        :heavy_check_mark:  |        :heavy_check_mark:  |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 0.2.0            |        :heavy_check_mark:  |        :heavy_check_mark:  |        :heavy_check_mark:  |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 0.1.1            |        :x:                 |        :heavy_check_mark:  |        :heavy_check_mark:  |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 0.1.0            |        :x:                 |        :heavy_check_mark:  |        :heavy_check_mark:  |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
+| KMP               | Kubernetes 1.18.0  | Kubernetes 1.17.0  | Kubernetes 1.12.0  |
+|-------------------|--------------------|--------------------|--------------------|
+| KMP 1.0.0-rc-1    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 1.0.0-alpha-4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 1.0.0-alpha-3 |                    | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 1.0.0-alpha-2 |                    | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 1.0.0-alpha-1 |                    | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 0.2.0         |                    | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 0.1.1         |                    | :x:                | :heavy_check_mark: |
+| KMP 0.1.0         |                    | :x:                | :heavy_check_mark: |
