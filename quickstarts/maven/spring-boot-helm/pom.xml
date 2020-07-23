@@ -115,6 +115,9 @@
     </profile>
     <profile>
       <id>openshift</id>
+      <properties>
+        <jkube.openshift.enrichAllWithImageChangeTrigger>true</jkube.openshift.enrichAllWithImageChangeTrigger>
+      </properties>
       <build>
         <plugins>
           <plugin>
