@@ -43,7 +43,7 @@ import java.util.Map;
  * <li>provider (is set to jkube)</li>
  * </ul>
  *
- * The "app" label can be replaced with the (old) "project" label using the "useProjectLabel" configuraiton option.
+ * The "app" label can be replaced with the (old) "project" label using the "useProjectLabel" configuration option.
  *
  * The project labels which are already specified in the input fragments are not overridden by the enricher.
  *
@@ -54,6 +54,9 @@ public class ProjectLabelEnricher extends BaseEnricher {
     // Available configuration keys
     private enum Config implements Configs.Key {
 
+        customApp,
+        customGroup,
+        customProvider,
         useProjectLabel {{ d = "false"; }};
 
         protected String d; public String def() {
@@ -159,8 +162,13 @@ public class ProjectLabelEnricher extends BaseEnricher {
         if (enableProjectLabel) {
             ret.put("project", groupArtifactVersion.getArtifactId());
         } else {
-            // default label is app
-            ret.put("app", groupArtifactVersion.getArtifactId());
+        	String customAppName = Configs.asString(getConfig(Config.customApp));
+        	if (!customAppName.isEmpty()) {
+        		ret.put("app", customAppName);
+        	} else {
+                // default label is app
+                ret.put("app", groupArtifactVersion.getArtifactId());
+        	}
         }
 
         ret.put("group", groupArtifactVersion.getGroupId());
