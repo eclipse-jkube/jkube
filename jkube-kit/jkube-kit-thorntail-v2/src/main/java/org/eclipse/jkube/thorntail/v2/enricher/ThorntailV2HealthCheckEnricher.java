@@ -15,6 +15,8 @@ package org.eclipse.jkube.thorntail.v2.enricher;
 
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.ThorntailUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -27,32 +29,25 @@ import java.util.Properties;
  */
 public class ThorntailV2HealthCheckEnricher extends AbstractHealthCheckEnricher {
 
-    public static final String IO_THORNTAIL = "io.thorntail";
+    private static final String IO_THORNTAIL = "io.thorntail";
 
     public ThorntailV2HealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-thorntail-v2");
     }
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
-        scheme {{
-            d = "HTTP";
-        }},
-        port {{
-            d = "8080";
-        }},
-        failureThreshold                    {{ d = "3"; }},
-        successThreshold                    {{ d = "1"; }},
-        path {{
-            d = "/health";
-        }};
+        SCHEME("scheme", "HTTP"),
+        PORT("port", "8080"),
+        FAILURE_THRESHOLD("failureThreshold", "3"),
+        SUCCESS_THRESHOLD("successThreshold", "1"),
+        PATH("path", "/health");
 
-        protected String d;
-
-        public String def() {
-            return d;
-        }
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     @Override
@@ -87,12 +82,12 @@ public class ThorntailV2HealthCheckEnricher extends AbstractHealthCheckEnricher 
         return null;
     }
 
-    protected int getFailureThreshold() { return Configs.asInteger(getConfig(Config.failureThreshold)); }
+    protected int getFailureThreshold() { return Configs.asInteger(getConfig(Config.FAILURE_THRESHOLD)); }
 
-    protected int getSuccessThreshold() { return Configs.asInteger(getConfig(Config.successThreshold)); }
+    protected int getSuccessThreshold() { return Configs.asInteger(getConfig(Config.SUCCESS_THRESHOLD)); }
 
     protected String getScheme() {
-        return Configs.asString(getConfig(Config.scheme));
+        return getConfig(Config.SCHEME);
     }
 
     protected int getPort() {
@@ -102,10 +97,10 @@ public class ThorntailV2HealthCheckEnricher extends AbstractHealthCheckEnricher 
             return Integer.parseInt((String) properties.get("thorntail.http.port"));
         }
 
-        return Configs.asInt(getConfig(Config.port));
+        return Configs.asInt(getConfig(Config.PORT));
     }
 
     protected String getPath() {
-        return Configs.asString(getConfig(Config.path));
+        return getConfig(Config.PATH);
     }
 }

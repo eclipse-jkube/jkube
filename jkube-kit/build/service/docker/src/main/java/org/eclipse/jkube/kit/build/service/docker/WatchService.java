@@ -31,22 +31,22 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
-import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.ExecException;
 import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
-import org.eclipse.jkube.kit.build.service.docker.config.WatchImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.WatchMode;
+import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
+import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.build.service.docker.helper.StartContainerExecutor;
-import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * Watch service for monitoring changes and restarting containers
@@ -78,8 +78,7 @@ public class WatchService {
         try {
             executor = Executors.newSingleThreadScheduledExecutor();
 
-            for (StartOrderResolver.Resolvable resolvable : runService.getImagesConfigsInOrder(queryService, images)) {
-                final ImageConfiguration imageConfig = (ImageConfiguration) resolvable;
+            for (ImageConfiguration imageConfig : runService.getImagesConfigsInOrder(queryService, images)) {
 
                 String imageId = queryService.getImageId(imageConfig.getName());
                 String containerId = runService.lookupContainer(imageConfig.getName());

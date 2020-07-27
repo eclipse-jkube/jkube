@@ -28,20 +28,20 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 @Mojo(name = "push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class PushMojo extends AbstractDockerMojo {
 
-    @Parameter(property = "docker.skip.push", defaultValue = "false")
+    @Parameter(property = "jkube.skip.push", defaultValue = "false")
     protected boolean skipPush;
 
     // Registry to use for push operations if no registry is specified
-    @Parameter(property = "docker.push.registry")
+    @Parameter(property = "jkube.docker.push.registry")
     private String pushRegistry;
 
     /**
      * Skip building tags
      */
-    @Parameter(property = "docker.skip.tag", defaultValue = "false")
+    @Parameter(property = "jkube.skip.tag", defaultValue = "false")
     private boolean skipTag;
 
-    @Parameter(property = "docker.push.retries", defaultValue = "0")
+    @Parameter(property = "jkube.docker.push.retries", defaultValue = "0")
     private int retries;
 
     @Override
@@ -56,8 +56,7 @@ public class PushMojo extends AbstractDockerMojo {
         }
 
         try {
-            jkubeServiceHub.getDockerServiceHub().getRegistryService()
-                .pushImages(getResolvedImages(), retries, getRegistryConfig(pushRegistry), skipTag);
+            jkubeServiceHub.getBuildService().push(getResolvedImages(), retries, getRegistryConfig(pushRegistry), skipTag);
         } catch (Exception exp) {
             throw new MojoExecutionException(exp.getMessage());
         }

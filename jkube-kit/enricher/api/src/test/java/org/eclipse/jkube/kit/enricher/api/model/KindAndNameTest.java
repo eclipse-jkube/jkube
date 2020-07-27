@@ -18,8 +18,8 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class KindAndNameTest {
 
@@ -44,18 +44,18 @@ public class KindAndNameTest {
         KindAndName fifthKindAndName = new KindAndName("kindTest","nameTest1");
 
         //if checking same object
-        assertTrue(kindAndName.equals(kindAndName));
+        assertEquals(kindAndName, kindAndName);
 
         //if one null is passed
-        assertFalse(kindAndName.equals(null));
+        assertNotNull(kindAndName);
 
         //if two different are checked with same value
-        assertTrue(kindAndName.equals(secondKindAndName));
+        assertEquals(kindAndName, secondKindAndName);
 
         //if two different are passsed with different combinations of value
-        assertFalse(kindAndName.equals(thirdKindAndName));
-        assertFalse(kindAndName.equals(fourthKindAndName));
-        assertFalse(kindAndName.equals(fifthKindAndName));
+        assertNotEquals(kindAndName, thirdKindAndName);
+        assertNotEquals(kindAndName, fourthKindAndName);
+        assertNotEquals(kindAndName, fifthKindAndName);
     }
 
     @Test

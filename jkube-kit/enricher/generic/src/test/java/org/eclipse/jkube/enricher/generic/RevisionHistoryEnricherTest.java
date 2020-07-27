@@ -18,7 +18,6 @@ import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -30,7 +29,6 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.TreeMap;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -51,7 +49,7 @@ public class RevisionHistoryEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         // Then
-        assertRevisionHistory(builder.build(), Configs.asInt(RevisionHistoryEnricher.Config.limit.def()));
+        assertRevisionHistory(builder.build(), 2);
     }
 
     @Test
@@ -76,19 +74,13 @@ public class RevisionHistoryEnricherTest {
         assertRevisionHistory(builder.build(), Integer.parseInt(revisionNumber));
     }
 
-    private ProcessorConfig prepareEnricherConfig(final String revisionNumber) {
+      private ProcessorConfig prepareEnricherConfig(final String revisionNumber) {
         return new ProcessorConfig(
-                    null,
-                    null,
-                    Collections.singletonMap(
-                            RevisionHistoryEnricher.DEFAULT_NAME,
-                            new TreeMap(Collections.singletonMap(
-                                    RevisionHistoryEnricher.Config.limit.name(),
-                                    revisionNumber)
-                            )
-                    )
-                );
-    }
+            null,
+            null,
+            Collections.singletonMap("jkube-revision-history",
+                Collections.singletonMap("limit",revisionNumber)));
+      }
 
     private void assertRevisionHistory(KubernetesList list, Integer revisionNumber) throws JsonProcessingException {
         assertEquals(1, list.getItems().size());

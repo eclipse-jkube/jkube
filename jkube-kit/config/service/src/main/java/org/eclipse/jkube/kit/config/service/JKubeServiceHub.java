@@ -24,15 +24,17 @@ import lombok.Getter;
 import lombok.Setter;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.service.MigrateService;
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
+import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 
 /**
@@ -77,13 +79,18 @@ public class JKubeServiceHub implements Closeable {
         Objects.requireNonNull(log, "log is a required parameter");
         Objects.requireNonNull(platformMode, "platformMode is a required parameter");
         if (clusterAccess == null) {
-            clusterAccess = new ClusterAccess(log, ClusterConfiguration.from(System.getProperties()).build());
+            clusterAccess = new ClusterAccess(log,
+                ClusterConfiguration.from(System.getProperties(), configuration.getProject().getProperties()).build());
         }
         this.client = clusterAccess.createDefaultClient();
 
         applyService = new LazyBuilder<>(() -> new ApplyService(client, log));
         buildService = new LazyBuilder<>(() -> {
             BuildService ret;
+            String jkubeBuildStrategy = (String)configuration.getProperties().get("jkube.build.strategy");
+            if (jkubeBuildStrategy != null && jkubeBuildStrategy.equalsIgnoreCase(JKubeBuildStrategy.jib.getLabel())) {
+                return new JibBuildService(JKubeServiceHub.this, log);
+            }
             // Creating platform-dependent services
             if (platformMode == RuntimeMode.OPENSHIFT) {
                 if (!(client instanceof OpenShiftClient)) {

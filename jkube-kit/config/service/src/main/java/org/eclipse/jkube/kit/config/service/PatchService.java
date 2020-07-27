@@ -32,7 +32,9 @@ import io.fabric8.kubernetes.api.model.apiextensions.DoneableCustomResourceDefin
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.DoneableBuildConfig;
 import io.fabric8.openshift.api.model.DoneableImageStream;
+import io.fabric8.openshift.api.model.DoneableRoute;
 import io.fabric8.openshift.api.model.ImageStream;
+import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
@@ -46,7 +48,6 @@ public class PatchService {
     private final KitLogger log;
 
     private static Map<String, EntityPatcher<? extends HasMetadata>> patchers;
-
 
     // Interface for patching entities
     interface EntityPatcher<T extends HasMetadata> {
@@ -63,7 +64,6 @@ public class PatchService {
         T patch(KubernetesClient client, String namespace, T newEntity, T oldEntity);
     }
 
-
     static {
         patchers = new HashMap<>();
         patchers.put("Pod", podPatcher());
@@ -75,14 +75,13 @@ public class PatchService {
         patchers.put("PersistentVolumeClaim", pvcPatcher());
         patchers.put("CustomResourceDefinition", crdPatcher());
         patchers.put("Job", jobPatcher());
+        patchers.put("Route", routePatcher());
     }
-
 
     public PatchService(KubernetesClient client, KitLogger log) {
         this.kubernetesClient = client;
         this.log = log;
     }
-
 
     public <T extends HasMetadata> T compareAndPatchEntity(String namespace, T newDto, T oldDto) {
         EntityPatcher<T> dispatcher = (EntityPatcher<T>) patchers.get(newDto.getKind());
@@ -113,7 +112,7 @@ public class PatchService {
             }
 
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
-                    entity.withSpec(newObj.getSpec());
+                entity.withSpec(newObj.getSpec());
             }
             return entity.done();
         };
@@ -136,7 +135,7 @@ public class PatchService {
             }
 
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
-                    entity.withSpec(newObj.getSpec());
+                entity.withSpec(newObj.getSpec());
             }
             return entity.done();
         };
@@ -181,7 +180,7 @@ public class PatchService {
             }
 
             if(!UserConfigurationCompare.configEqual(newObj.getData(), oldObj.getData())) {
-                    entity.withData(newObj.getData());
+                entity.withData(newObj.getData());
             }
             if(!UserConfigurationCompare.configEqual(newObj.getStringData(), oldObj.getStringData())) {
                 entity.withStringData(newObj.getStringData());
@@ -206,7 +205,7 @@ public class PatchService {
             }
 
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
-                    entity.withSpec(newObj.getSpec());
+                entity.withSpec(newObj.getSpec());
             }
             return entity.done();
         };
@@ -282,7 +281,7 @@ public class PatchService {
             }
 
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
-                    entity.withSpec(newObj.getSpec());
+                entity.withSpec(newObj.getSpec());
             }
             return entity.done();
         };
@@ -308,8 +307,35 @@ public class PatchService {
             }
 
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
-                    entity.withSpec(newObj.getSpec());
+                entity.withSpec(newObj.getSpec());
             }
+            return entity.done();
+        };
+    }
+
+    private static EntityPatcher<Route> routePatcher() {
+        return (client, namespace, newObj, oldObj) -> {
+            if (UserConfigurationCompare.configEqual(newObj, oldObj)) {
+                return oldObj;
+            }
+            OpenShiftClient openShiftClient = OpenshiftHelper.asOpenShiftClient(client);
+            if (openShiftClient == null) {
+                throw new IllegalArgumentException("Route can only be patched when connected to an OpenShift cluster");
+            }
+
+            DoneableRoute entity = openShiftClient.routes()
+                    .inNamespace(namespace)
+                    .withName(oldObj.getMetadata().getName())
+                    .edit();
+
+            if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
+                entity.withMetadata(newObj.getMetadata());
+            }
+
+            if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
+                entity.withSpec(newObj.getSpec());
+            }
+
             return entity.done();
         };
     }

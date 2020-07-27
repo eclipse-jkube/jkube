@@ -1,0 +1,6 @@
+[[generator-wildfly-jar]]
+=== Wildfly JAR Generator
+
+The Wildfly JAR generator detects a WildFly Bootable JAR build and disables the Jolokia and Prometheus Java agent TO BE REVISITED WHEN WE HAVE A SOLUTION.
+
+Otherwise this generator is identical to the <<generator-java-exec,java-exec generator>>. It supports the  <<generator-options-common, common generator options>> and the <<generator-java-exec-options, `java-exec` options>>.

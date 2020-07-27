@@ -16,14 +16,16 @@ package org.eclipse.jkube.generator.javaexec;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
 import mockit.Expectations;
@@ -48,24 +50,23 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Mocked
     private JavaProject project;
     @Mocked
-    private ProcessorConfig processorConfig;
-    @Mocked
     private FatJarDetector fatJarDetector;
     @Mocked
     private FatJarDetector.Result fatJarDetectorResult;
     @Mocked
     private MainClassDetector mainClassDetector;
+    private ProcessorConfig processorConfig;
 
     @Before
-    public void setUp() throws Exception{
+    public void setUp() {
+        processorConfig = new ProcessorConfig();
+        // @formatter:off
         new Expectations() {{
-            project.getVersion();
-            result = "1.33.7-SNAPSHOT";
-            project.getBuildDirectory();
-            result = "/the/directory";
-            project.getOutputDirectory();
-            result = "/the/output/directory";
+            project.getVersion(); result = "1.33.7-SNAPSHOT";
+            project.getBuildDirectory(); result = "/the/directory";
+            project.getOutputDirectory(); result = "/the/output/directory";
         }};
+        // @formatter:on
     }
 
     /**
@@ -75,16 +76,14 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Test
     public void testMainClassDeterminationFromConfig() {
         // Given
-        new Expectations() {{
-            processorConfig.getConfig("java-exec", "mainClass");
-            result = "the.main.ClassName";
-            processorConfig.getConfig("java-exec", "name");
-            result = "TheImageName";
-        }};
+        final Map<String, Object> configurations = new HashMap<>();
+        configurations.put("mainClass", "the.main.ClassName");
+        configurations.put("name", "TheImageName");
+        processorConfig.getConfig().put("java-exec", configurations);
         final GeneratorContext generatorContext = GeneratorContext.builder()
                 .project(project)
                 .config(processorConfig)
-                .strategy(OpenShiftBuildStrategy.docker)
+                .strategy(JKubeBuildStrategy.docker)
                 .logger(log)
                 .build();
 
@@ -108,6 +107,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
      */
     @Test
     public void testMainClassDeterminationFromDetectionOnNonFatJar(@Injectable File baseDir) {
+        processorConfig.getConfig().put("java-exec", Collections.singletonMap("name", "TheNonFatJarImageName"));
         new Expectations() {{
             project.getBaseDirectory();
             result = baseDir;
@@ -115,14 +115,12 @@ public class JavaExecGeneratorMainClassDeterminationTest {
             result = null;
             mainClassDetector.getMainClass();
             result = "the.detected.MainClass";
-            processorConfig.getConfig("java-exec", "name");
-            result = "TheNonFatJarImageName";
         }};
 
         final GeneratorContext generatorContext = GeneratorContext.builder()
                 .project(project)
                 .config(processorConfig)
-                .strategy(OpenShiftBuildStrategy.docker)
+                .strategy(JKubeBuildStrategy.docker)
                 .logger(log)
                 .build();
 
@@ -147,6 +145,7 @@ public class JavaExecGeneratorMainClassDeterminationTest {
     @Test
     public void testMainClassDeterminationFromFatJar(
             @Mocked FileUtil fileUtil, @Injectable File baseDir, @Injectable File fatJarArchive) {
+        processorConfig.getConfig().put("java-exec", Collections.singletonMap("name", "TheFatJarImageName"));
         new Expectations() {{
             project.getBaseDirectory();
             result = baseDir;
@@ -156,13 +155,11 @@ public class JavaExecGeneratorMainClassDeterminationTest {
             result = fatJarDetectorResult;
             fatJarDetectorResult.getArchiveFile();
             result = fatJarArchive;
-            processorConfig.getConfig("java-exec", "name");
-            result = "TheFatJarImageName";
         }};
         final GeneratorContext generatorContext = GeneratorContext.builder()
                 .project(project)
                 .config(processorConfig)
-                .strategy(OpenShiftBuildStrategy.docker)
+                .strategy(JKubeBuildStrategy.docker)
                 .logger(log)
                 .build();
 

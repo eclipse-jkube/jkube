@@ -13,33 +13,18 @@
  */
 package org.eclipse.jkube.maven.sample.external.resources;
 
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 @RestController
 public class Controller {
 
-    @Value("${name}")
-    private String name;
+    @Value("${welcome}")
+    private String welcome;
 
-
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @RequestMapping("/hello")
-    @HystrixCommand(fallbackMethod = "helloFallback", commandProperties = {
-            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "5000")
-    })
+    @GetMapping("/hello")
     public String hello() {
-        return restTemplate.getForObject("http://hello-hystrix/hello", String.class);
-    }
-
-    public String helloFallback() {
-        return "Hello Fallback: " + name;
+        return welcome;
     }
 }
