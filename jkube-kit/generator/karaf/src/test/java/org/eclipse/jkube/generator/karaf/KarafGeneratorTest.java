@@ -14,19 +14,20 @@
 package org.eclipse.jkube.generator.karaf;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -53,9 +54,13 @@ public class KarafGeneratorTest {
     // Given
     // @formatter:off
     new Expectations() {{
-      plugin.getGroupId(); result = "org.apache.karaf.or.any.other.groupid"; minTimes = 0;
-      plugin.getArtifactId(); result = "karaf-maven-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
+      plugin.getGroupId();
+      result = "org.apache.karaf.or.any.other.groupid";
+      minTimes = 0;
+      plugin.getArtifactId();
+      result = "karaf-maven-plugin";
+      generatorContext.getProject().getPlugins();
+      result = Collections.singletonList(plugin);
     }};
     // @formatter:on
     // When
@@ -69,9 +74,13 @@ public class KarafGeneratorTest {
     // Given
     // @formatter:off
     new Expectations() {{
-      plugin.getGroupId(); result = "org.apache.karaf.tooling"; minTimes = 0;
-      plugin.getArtifactId(); result = "not-karaf-maven-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
+      plugin.getGroupId();
+      result = "org.apache.karaf.tooling";
+      minTimes = 0;
+      plugin.getArtifactId();
+      result = "not-karaf-maven-plugin";
+      generatorContext.getProject().getPlugins();
+      result = Collections.singletonList(plugin);
     }};
     // @formatter:on
     // When
@@ -81,7 +90,7 @@ public class KarafGeneratorTest {
   }
 
   @Test
-  public void customizeWithKarafMavenPluginShouldAddImageConfiguration(@Mocked Plugin plugin) throws IOException {
+  public void customizeWithKarafMavenPluginShouldAddImageConfiguration(@Mocked Plugin plugin) {
     // Given
     final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
     // @formatter:off
@@ -91,6 +100,7 @@ public class KarafGeneratorTest {
       generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin); minTimes = 0;
       generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
       generatorContext.getProject().getVersion(); result = "1.33.7-SNAPSHOT";
+      generatorContext.getConfig(); result = new ProcessorConfig();
     }};
     // @formatter:on
     // When
@@ -123,5 +133,29 @@ public class KarafGeneratorTest {
             hasProperty("directoryMode", equalTo("0775"))
         )
     ));
+  }
+
+  @Test
+  public void customizeWithKarafMavenPluginAndCustomConfigShouldAddImageConfiguration(@Mocked Plugin plugin) {
+    // Given
+    final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
+    Properties props = new Properties();
+    props.put("jkube.generator.karaf.baseDir", "/other-dir");
+    props.put("jkube.generator.karaf.webPort", "8080");
+    // @formatter:off
+    new Expectations() {{
+      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
+      generatorContext.getProject().getVersion(); result = "1.33.7-SNAPSHOT";
+      generatorContext.getProject().getProperties(); result = props;
+    }};
+    // @formatter:on
+    // When
+    final List<ImageConfiguration> result = new KarafGenerator(generatorContext)
+        .customize(originalImageConfigurations, false);
+    // Then
+    assertThat(result, hasSize(1));
+    final ImageConfiguration imageConfiguration = result.iterator().next();
+    assertThat(imageConfiguration.getBuildConfiguration().getPorts(), contains("8080"));
+    assertThat(imageConfiguration.getBuildConfiguration().getEnv(), hasEntry("DEPLOYMENTS_DIR", "/other-dir"));
   }
 }

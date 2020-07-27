@@ -29,14 +29,14 @@ public class AssemblyFileEntry {
   private long lastModified;
   private File source;
   private File dest;
-  private String permission;
+  private String fileMode;
 
   @Builder
-  public AssemblyFileEntry(File source, File dest, String permission) {
+  public AssemblyFileEntry(File source, File dest, String fileMode) {
     this.lastModified = source.lastModified();
     this.source = source;
     this.dest = dest;
-    this.permission = permission;
+    this.fileMode = fileMode;
   }
 
   public boolean isUpdated() {

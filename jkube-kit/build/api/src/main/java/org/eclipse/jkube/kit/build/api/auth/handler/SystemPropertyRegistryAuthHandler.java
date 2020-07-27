@@ -25,7 +25,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 /**
  * @author roland
- * @since 21.10.18
  */
 public class SystemPropertyRegistryAuthHandler implements RegistryAuthHandler {
 

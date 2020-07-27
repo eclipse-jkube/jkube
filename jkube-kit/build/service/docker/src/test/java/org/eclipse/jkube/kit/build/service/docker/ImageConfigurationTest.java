@@ -14,8 +14,9 @@
 package org.eclipse.jkube.kit.build.service.docker;
 
 import mockit.Expectations;
-import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
+import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import mockit.Mocked;
@@ -43,7 +44,7 @@ public class ImageConfigurationTest {
     }};
     // @formatter:on
     // When
-    final String result = imageConfiguration.initAndValidate(nameFormatter);
+    final String result = ConfigHelper.initAndValidate(nameFormatter, imageConfiguration);
     // Then
     assertThat(result, is("13.37"));
   }

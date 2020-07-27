@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -39,12 +39,12 @@ public class ServiceHub {
     private final WaitService waitService;
 
     ServiceHub(DockerAccess dockerAccess, ContainerTracker containerTracker,
-               DockerAssemblyManager dockerAssemblyManager,
+               AssemblyManager assemblyManager,
                KitLogger logger, LogOutputSpecFactory logSpecFactory) {
 
         this.dockerAccess = dockerAccess;
 
-        archiveService = new ArchiveService(dockerAssemblyManager, logger);
+        archiveService = new ArchiveService(assemblyManager, logger);
 
         if (dockerAccess != null) {
             queryService = new QueryService(dockerAccess);

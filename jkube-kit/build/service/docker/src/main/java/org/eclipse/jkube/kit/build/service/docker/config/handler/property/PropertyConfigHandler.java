@@ -13,15 +13,15 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.property;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.LogConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
-import org.eclipse.jkube.kit.build.service.docker.config.RestartPolicy;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.RunVolumeConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.UlimitConfig;
-import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.WatchImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.LogConfiguration;
+import org.eclipse.jkube.kit.config.image.NetworkConfig;
+import org.eclipse.jkube.kit.config.image.RestartPolicy;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
+import org.eclipse.jkube.kit.config.image.UlimitConfig;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -45,8 +45,6 @@ import java.util.function.Supplier;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ALIAS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ARGS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_BASEDIR;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_DESCRIPTOR;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_DESCRIPTOR_REF;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_EXPORT_TARGET_DIR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_MODE;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_PERMISSIONS;
@@ -325,8 +323,6 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     private AssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
         return AssemblyConfiguration.builder()
                 .targetDir(valueProvider.getString(ASSEMBLY_BASEDIR, valueOrNull(config, AssemblyConfiguration::getTargetDir)))
-                .descriptor(valueProvider.getString(ASSEMBLY_DESCRIPTOR, valueOrNull(config, AssemblyConfiguration::getDescriptor)))
-                .descriptorRef(valueProvider.getString(ASSEMBLY_DESCRIPTOR_REF, valueOrNull(config, AssemblyConfiguration::getDescriptorRef)))
                 .exportTargetDir(valueProvider.getBoolean(ASSEMBLY_EXPORT_TARGET_DIR, valueOrNull(config, AssemblyConfiguration::getExportTargetDir)))
                 .permissionsString(valueProvider.getString(ASSEMBLY_PERMISSIONS, valueOrNull(config, AssemblyConfiguration::getPermissionsRaw)))
                 .user(valueProvider.getString(ASSEMBLY_USER, valueOrNull(config, AssemblyConfiguration::getUser)))

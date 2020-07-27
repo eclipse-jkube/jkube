@@ -1,0 +1,61 @@
+
+[[jkube-healthcheck-spring-boot]]
+==== jkube-healthcheck-spring-boot
+
+This enricher adds kubernetes readiness and liveness probes with Spring Boot. This requires the following dependency
+has been enabled in Spring Boot
+
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+   <dependency>
+     <groupId>org.springframework.boot</groupId>
+     <artifactId>spring-boot-starter-actuator</artifactId>
+   </dependency>
+----
+
+The enricher will try to discover the settings from the `application.properties` / `application.yaml` Spring Boot configuration file.
+
+The port number is read from the `management.port` option, and will use the default value of `8080`
+The scheme will use HTTPS if `server.ssl.key-store` option is in use, and fallback to use `HTTP` otherwise.
+
+The enricher will use the following settings by default:
+
+* `readinessProbeInitialDelaySeconds` : `10`
+* `readinessProbePeriodSeconds` : _<kubernetes-default>_
+* `livenessProbeInitialDelaySeconds` : `180`
+* `livenessProbePeriodSeconds` : _<kubernetes-default>_
+* `timeoutSeconds` : _<kubernetes-default>_
+* `failureThreshold`: `3`
+* `successThreshold`: `1`
+
+These values can be configured by the enricher in the `{plugin}` configuration as shown below:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>{plugin}</artifactId>
+        <version>{version}</version>
+        <executions>
+          <execution>
+            <id>jkube</id>
+            <goals>
+              <goal>resource</goal>
+              <goal>helm</goal>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <enricher>
+            <config>
+              <jkube-healthcheck-spring-boot>
+                <timeoutSeconds>5</timeoutSeconds>
+                <readinessProbeInitialDelaySeconds>30</readinessProbeInitialDelaySeconds>
+                <failureThreshold>3</failureThreshold>
+                <successThreshold>1</successThreshold>
+              </jkube-healthcheck-spring-boot>
+            </config>
+          </enricher>
+        </configuration>
+      </plugin>
+----

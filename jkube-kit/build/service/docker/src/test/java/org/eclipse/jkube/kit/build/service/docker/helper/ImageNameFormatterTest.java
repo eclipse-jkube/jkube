@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import mockit.Expectations;
-import mockit.FullVerifications;
 import mockit.Injectable;
 import mockit.Tested;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -27,13 +26,13 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 /**
  * @author roland
- * @since 07/06/16
  */
-
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class ImageNameFormatterTest {
 
     @Injectable
@@ -46,23 +45,21 @@ public class ImageNameFormatterTest {
     private ImageNameFormatter formatter;
 
     @Test
-    public void simple() throws Exception {
+    public void simple() {
         assertThat(formatter.format("bla"),equalTo("bla"));
     }
 
     @Test
-    public void invalidFormatChar() throws Exception {
-        try {
+    public void invalidFormatChar() {
+        final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () -> {
             formatter.format("bla %z");
             fail();
-        } catch (IllegalArgumentException exp) {
-            System.out.println(exp);
-            assertThat("Doesnt match", exp.getMessage(), containsString("%z"));
-        }
+        });
+        assertThat("Doesnt match", result.getMessage(), containsString("%z"));
     }
 
     @Test
-    public void defaultUserName() throws Exception {
+    public void defaultUserName() {
 
         final String[] data = {
             "io.fabric8", "fabric8",
@@ -87,7 +84,7 @@ public class ImageNameFormatterTest {
     }
 
     @Test
-    public void artifact() throws Exception {
+    public void artifact() {
         new Expectations() {{
             project.getArtifactId(); result = "Docker....Maven.....Plugin";
         }};
@@ -96,19 +93,23 @@ public class ImageNameFormatterTest {
     }
 
     @Test
-    public void tagWithProperty() throws Exception {
+    public void tagWithProperty() {
+        // Given
+        final Properties props = new Properties();
+        props.put("jkube.image.tag","1.2.3");
+        // @formatter:off
         new Expectations() {{
-            Properties props = new Properties();
-            props.put("docker.image.tag","1.2.3");
             project.getProperties(); result = props;
-
         }};
-        assertThat(formatter.format("%t"),equalTo("1.2.3"));
-        new FullVerifications() {{ }};
+        // @formatter:on
+        // When
+        final String result = formatter.format("%t");
+        // Then
+        assertThat(result , equalTo("1.2.3"));
     }
 
     @Test
-    public void tag() throws Exception {
+    public void tag() {
         new Expectations() {{
             project.getArtifactId(); result = "docker-maven-plugin";
             project.getGroupId(); result = "io.fabric8";
@@ -121,7 +122,7 @@ public class ImageNameFormatterTest {
     }
 
     @Test
-    public void nonSnapshotArtifact() throws Exception {
+    public void nonSnapshotArtifact() {
         new Expectations() {{
             project.getArtifactId(); result = "docker-maven-plugin";
             project.getGroupId(); result = "io.fabric8";
@@ -135,22 +136,18 @@ public class ImageNameFormatterTest {
     }
 
     @Test
-    public void groupIdWithProperty() throws Exception {
+    public void groupIdWithProperty() {
+        // Given
+        Properties props = new Properties();
+        props.put("jkube.image.user","this.it..is");
+        // @formatter:off
         new Expectations() {{
-            Properties props = new Properties();
-            props.put("docker.image.user","this.it..is");
             project.getProperties(); result = props;
-
         }};
-
-        assertThat(formatter.format("%g/name"),equalTo("this.it..is/name"));
-
-        new FullVerifications() {{ }};
-    }
-
-    private final class GroupIdExpectations extends Expectations {
-        GroupIdExpectations(String groupId) {
-        }
-
+        // @formatter:on
+        // When
+        final String result = formatter.format("%g/name");
+        // Then
+        assertThat(result ,equalTo("this.it..is/name"));
     }
 }

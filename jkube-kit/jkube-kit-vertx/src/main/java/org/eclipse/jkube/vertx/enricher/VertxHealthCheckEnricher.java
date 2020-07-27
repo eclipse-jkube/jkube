@@ -17,8 +17,10 @@ import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ProbeFluent;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 
 import java.util.ArrayList;
@@ -47,6 +49,9 @@ import java.util.function.Function;
  */
 public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
+    private static final String ENRICHER_NAME = "jkube-healthcheck-vertx";
+    private static final String READINESS = "readiness";
+    private static final String LIVENESS = "liveness";
     static final String VERTX_MAVEN_PLUGIN_GROUP = "io.reactiverse";
     static final String VERTX_MAVEN_PLUGIN_ARTIFACT = "vertx-maven-plugin";
     static final String VERTX_GROUPID = "io.vertx";
@@ -61,7 +66,27 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
     public static final String ERROR_MESSAGE = "Location of %s should return a String but found %s with value %s";
 
     public VertxHealthCheckEnricher(JKubeEnricherContext buildContext) {
-        super(buildContext, "jkube-healthcheck-vertx");
+        super(buildContext, ENRICHER_NAME);
+    }
+
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+
+        TYPE("type"),
+        PORT("port"),
+        PORT_NAME("port-name"),
+        PATH("path"),
+        SCHEME("scheme"),
+        INITIAL_DELAY("initial-delay"),
+        PERIOD("period"),
+        TIMEOUT("timeout"),
+        SUCCESS_THRESHOLD("success-threshold"),
+        FAILURE_THRESHOLD("failure-threshold"),
+        COMMAND("command"),
+        HEADERS("headers");
+
+        @Getter
+        protected String key;
     }
 
     @Override
@@ -79,11 +104,11 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
                || getContext().hasDependency(VERTX_GROUPID, null);
     }
 
-    private String getSpecificPropertyName(boolean readiness, String attribute) {
+    private String getSpecificPropertyName(boolean readiness, Config config) {
         if (readiness) {
-            return VERTX_HEALTH + "readiness." + attribute;
+            return VERTX_HEALTH + "readiness." + config.getKey();
         } else {
-            return VERTX_HEALTH + "liveness." + attribute;
+            return VERTX_HEALTH + "liveness." + config.getKey();
         }
     }
 
@@ -93,11 +118,10 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
         }
         // We don't allow to set the HOST, because it should rather be configured in the HTTP header (Host header)
         // cf. https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
-
-        String type = getStringValue("type", readiness).orElse("http").toUpperCase();
-        Optional<Integer> port = getIntegerValue("port", readiness);
-        Optional<String> portName = getStringValue("port-name", readiness);
-        String path = getStringValue("path", readiness)
+        String type = getStringValue(Config.TYPE, readiness).orElse("http").toUpperCase();
+        Optional<Integer> port = getIntegerValue(Config.PORT, readiness);
+        Optional<String> portName = getStringValue(Config.PORT_NAME, readiness);
+        String path = getStringValue(Config.PATH, readiness)
                 .map(input -> {
                     if (input.isEmpty() || input.startsWith("/")) {
                         return input;
@@ -105,14 +129,14 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
                     return "/" + input;
                 })
                 .orElse(null);
-        String scheme = getStringValue("scheme", readiness).orElse(SCHEME_HTTP).toUpperCase();
-        Optional<Integer> initialDelay = getIntegerValue("initial-delay", readiness);
-        Optional<Integer> period = getIntegerValue("period", readiness);
-        Optional<Integer> timeout = getIntegerValue("timeout", readiness);
-        Optional<Integer> successThreshold = getIntegerValue("success-threshold", readiness);
-        Optional<Integer> failureThreshold = getIntegerValue("failure-threshold", readiness);
-        List<String> command = getListValue("command", readiness).orElse(Collections.<String>emptyList());
-        Map<String, String> headers = getMapValue("headers", readiness).orElse(Collections.<String, String>emptyMap());
+        String scheme = getStringValue(Config.SCHEME, readiness).orElse(SCHEME_HTTP).toUpperCase();
+        Optional<Integer> initialDelay = getIntegerValue(Config.INITIAL_DELAY, readiness);
+        Optional<Integer> period = getIntegerValue(Config.PERIOD, readiness);
+        Optional<Integer> timeout = getIntegerValue(Config.TIMEOUT, readiness);
+        Optional<Integer> successThreshold = getIntegerValue(Config.SUCCESS_THRESHOLD, readiness);
+        Optional<Integer> failureThreshold = getIntegerValue(Config.FAILURE_THRESHOLD, readiness);
+        List<String> command = getListValue(Config.COMMAND, readiness).orElse(Collections.<String>emptyList());
+        Map<String, String> headers = getMapValue(Config.HEADERS, readiness).orElse(Collections.<String, String>emptyMap());
 
 
         // Validate
@@ -200,47 +224,31 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
         return builder.build();
     }
 
-    private Optional<String> getStringValue(String attribute, boolean readiness) {
-
-        String specific = getSpecificPropertyName(readiness, attribute);
-        String generic = VERTX_HEALTH + attribute;
-        // Check if we have the specific user property.
-        Configuration contextConfig = getContext().getConfiguration();
-        String property = contextConfig.getProperty(specific);
-        if (property != null) {
-            return Optional.of(property).map(TRIM);
+    private Optional<String> getStringValue(Config config, boolean readiness) {
+        final Optional<String> specificValue = getSpecificValueFromConfigOrProperties(config, readiness);
+        if (specificValue.isPresent()) {
+            return specificValue.map(TRIM);
         }
-
-        property = contextConfig.getProperty(generic);
-        if (property != null) {
-            return Optional.of(property).map(TRIM);
-        }
-
-
-        String[] specificPath = new String[]{
-                readiness ? "readiness" : "liveness",
-                attribute
-        };
-
-        Optional<String> config = getValueFromConfig(specificPath).map(TRIM);
-        if (!config.isPresent()) {
-            // Generic path.
-            return getValueFromConfig(attribute).map(TRIM);
-        } else {
-            return config;
-        }
-
+        return getGenericValueFromConfigOrProperties(config).map(TRIM);
     }
 
-    private Optional<List<String>> getListValue(String attribute, boolean readiness) {
-        String[] path = new String[]{
-                readiness ? "readiness" : "liveness",
-                attribute
-        };
+    private Optional<String> getSpecificValueFromConfigOrProperties(Config config, boolean readiness) {
+        final Optional<String> configValue = getElementAsString(readiness ? READINESS : LIVENESS, config.getKey());
+        if (configValue.isPresent()) {
+            return configValue;
+        }
+        return Optional.ofNullable(Configs.getFromSystemPropertyWithPropertiesAsFallback(
+            enricherContext.getProperties(), getSpecificPropertyName(readiness, config)));
+    }
 
-        Optional<Object> element = getElement(path);
+    private Optional<String> getGenericValueFromConfigOrProperties(Config config) {
+        return Optional.ofNullable(getConfigWithFallback(config, VERTX_HEALTH + config.getKey(), null));
+    }
+
+    private Optional<List<String>> getListValue(Config config, boolean readiness) {
+        Optional<Object> element = getElement(readiness ? READINESS : LIVENESS, config.getKey());
         if (!element.isPresent()) {
-            element = getElement(attribute);
+            element = getElement(config.getKey());
         }
 
         return element.map(input -> {
@@ -260,21 +268,16 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
             } else {
                 throw new IllegalArgumentException(String.format(
                     ERROR_MESSAGE,
-                    attribute, input.getClass(), input.toString()));
+                    config.getKey(), input.getClass(), input.toString()));
             }
 
         });
     }
 
-    private Optional<Map<String, String>> getMapValue(String attribute, boolean readiness) {
-        String[] path = new String[]{
-                readiness ? "readiness" : "liveness",
-                attribute
-        };
-
-        Optional<Object> element = getElement(path);
+    private Optional<Map<String, String>> getMapValue(Config config, boolean readiness) {
+        Optional<Object> element = getElement(readiness ? READINESS : LIVENESS, config.getKey());
         if (!element.isPresent()) {
-            element = getElement(attribute);
+            element = getElement(config.getKey());
         }
 
         return element.map(input -> {
@@ -283,18 +286,18 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
             } else {
                 throw new IllegalArgumentException(String.format(
                     ERROR_MESSAGE,
-                    attribute, input.getClass(), input.toString()));
+                    config.getKey(), input.getClass(), input.toString()));
             }
         });
     }
 
 
-    private Optional<Integer> getIntegerValue(String attribute, boolean readiness) {
-        return getStringValue(attribute, readiness)
+    private Optional<Integer> getIntegerValue(Config config, boolean readiness) {
+        return getStringValue(config, readiness)
                 .map(Integer::parseInt);
     }
 
-    private Optional<String> getValueFromConfig(String... keys) {
+    private Optional<String> getElementAsString(String... keys) {
         return getElement(keys).map(input -> {
             if (input instanceof String) {
                 return (String) input;
@@ -306,6 +309,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
         });
     }
 
+    // Can't use ProcessorConfig since regular Plexus deserialization won't get fields with nested properties (e.g. readiness)
     private Optional<Object> getElement(String... path) {
         final Optional<Map<String, Object>> configuration = getMavenPluginConfiguration();
 
@@ -314,7 +318,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
         }
 
 
-        String[] roots = new String[]{"enricher", "config", "jkube-healthcheck-vertx"};
+        String[] roots = new String[]{"enricher", "config", ENRICHER_NAME};
         List<String> absolute = new ArrayList<>();
         absolute.addAll(Arrays.asList(roots));
         absolute.addAll(Arrays.asList(path));

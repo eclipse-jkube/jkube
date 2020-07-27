@@ -119,8 +119,8 @@
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
-      <role>org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager</role>
-      <implementation>org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager</implementation>
+      <role>org.eclipse.jkube.kit.build.api.assembly.AssemblyManager</role>
+      <implementation>org.eclipse.jkube.kit.build.api.assembly.AssemblyManager</implementation>
       <instantiation-strategy>per-lookup</instantiation-strategy>
       <requirements>
         <requirement>

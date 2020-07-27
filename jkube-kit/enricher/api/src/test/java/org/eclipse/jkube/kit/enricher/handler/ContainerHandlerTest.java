@@ -16,7 +16,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -159,10 +159,10 @@ public class ContainerHandlerTest {
             JavaProject testProject = JavaProject.builder().properties(new Properties()).build();
             Properties testProps = new Properties();
             if (testData[i+2] != null) {
-                testProps.put("docker.pull.registry", testData[i + 2]);
+                testProps.put("jkube.docker.pull.registry", testData[i + 2]);
             }
             if (testData[i+3] != null) {
-                testProps.put("docker.registry", testData[i + 3]);
+                testProps.put("jkube.docker.registry", testData[i + 3]);
             }
 
             Properties properties = testProject.getProperties();
@@ -355,11 +355,11 @@ public class ContainerHandlerTest {
         images.add(imageConfig);
 
         Properties properties = project1.getProperties();
-        properties.setProperty("docker.pull.registry", "push.me");
+        properties.setProperty("jkube.docker.pull.registry", "push.me");
         project1.setProperties(properties);
         containers = handler.getContainers(config1, images);
 
-        project1.getProperties().remove("docker.pull.registry");
+        project1.getProperties().remove("jkube.docker.pull.registry");
         assertEquals("push.me/test:latest", containers.get(0).getImage());
     }
 

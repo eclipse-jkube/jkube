@@ -1,8 +1,6 @@
 {
   "name": "assembly",
   "targetDir": "target",
-  "descriptor": "assDescriptor",
-  "descriptorRef": "ass reference",
   "exportTargetDir": false,
   "excludeFinalOutputArtifact": true,
   "permissions": "exec",

@@ -41,11 +41,11 @@ public abstract class BaseWatcher implements Watcher {
         return context;
     }
 
-    protected String getConfig(Configs.Key key) {
+    protected String getConfig(Configs.Config key) {
         return config.get(key);
     }
 
-    protected String getConfig(Configs.Key key, String defaultVal) {
+    protected String getConfig(Configs.Config key, String defaultVal) {
         return config.get(key, defaultVal);
     }
 

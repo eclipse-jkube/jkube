@@ -113,7 +113,7 @@ public class ImageNameTest {
     }
 
     @Test
-    public void testRegistryNaming() throws Exception {
+    public void testRegistryNaming() {
         assertEquals("docker.jolokia.org/jolokia/jolokia_demo:0.18",
                      new ImageName("jolokia/jolokia_demo:0.18").getFullName("docker.jolokia.org"));
         assertEquals("docker.jolokia.org/jolokia/jolokia_demo:latest",
@@ -127,7 +127,7 @@ public class ImageNameTest {
     }
 
     @Test
-    public void testRegistryNamingExtended() throws Exception {
+    public void testRegistryNamingExtended() {
         assertEquals("docker.jolokia.org/org/jolokia/jolokia_demo:0.18",
                 new ImageName("org/jolokia/jolokia_demo:0.18").getFullName("docker.jolokia.org"));
         assertEquals("docker.jolokia.org/org/jolokia/jolokia_demo:latest",
@@ -142,13 +142,13 @@ public class ImageNameTest {
 
 
     @Test(expected = IllegalArgumentException.class)
-    public void testIllegalFormat() throws Exception {
+    public void testIllegalFormat() {
         new ImageName("");
     }
 
     @Test
     public void namesUsedByDockerTests() {
-        StringBuffer longTag = new StringBuffer();
+        StringBuilder longTag = new StringBuilder();
         for (int i = 0; i < 130; i++) {
             longTag.append("a");
         }
@@ -164,7 +164,7 @@ public class ImageNameTest {
             try {
                 new ImageName(i);
                 fail(String.format("Name '%s' should fail", i));
-            } catch (IllegalArgumentException exp) { /* expected */};
+            } catch (IllegalArgumentException exp) { /* expected */}
         }
 
         String[] legal = {

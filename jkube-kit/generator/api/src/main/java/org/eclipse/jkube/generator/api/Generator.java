@@ -15,13 +15,12 @@ package org.eclipse.jkube.generator.api;
 
 import java.util.List;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Named;
 
 /**
  * Generator which can create {@link ImageConfiguration} on the fly by examining the build pom.xml
  * @author roland
- * @since 15/05/16
  */
 public interface Generator extends Named {
 
