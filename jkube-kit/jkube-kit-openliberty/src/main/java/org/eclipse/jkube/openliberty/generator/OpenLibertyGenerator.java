@@ -17,7 +17,7 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Assembly;
@@ -51,9 +51,9 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
     @Override
     protected List<String> extractPorts() {
         List<String> ret = new ArrayList<>();
-        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.webPort, "9080"));
-        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.jolokiaPort));
-        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.prometheusPort));
+        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.WEB_PORT, "9080"));
+        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.JOLOKIA_PORT));
+        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.PROMETHEUS_PORT));
         return ret;
     }
 
@@ -70,26 +70,22 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
 
     @Override
     protected void addAssembly(AssemblyConfiguration.AssemblyConfigurationBuilder builder) {
-        String assemblyRef = getConfig(Config.assemblyRef);
-        if (assemblyRef != null) {
-            builder.descriptorRef(assemblyRef);
-        } else {
-            final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
-            if (isFatJar()) {
-                FatJarDetector.Result fatJar = detectFatJar();
-                JavaProject project = getProject();
-                if (fatJar != null) {
-                    AssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
-                    if (LIBERTY_SELF_EXTRACTOR.equals(fatJar.getMainClass())) {
-                        this.runnableJarName = fatJar.getArchiveFile().getName();
-                    }
-                    fileSets.add(fileSet);
+        final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
+        if (isFatJar()) {
+            FatJarDetector.Result fatJar = detectFatJar();
+            JavaProject project = getProject();
+            if (fatJar != null) {
+                AssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
+                if (LIBERTY_SELF_EXTRACTOR.equals(fatJar.getMainClass())) {
+                    this.runnableJarName = fatJar.getArchiveFile().getName();
                 }
-            } else {
-                builder.descriptorRef("artifact-with-dependencies");
+                fileSets.add(fileSet);
             }
-            builder.inline(Assembly.builder().fileSets(fileSets).build());
+        } else {
+            log.warn("No fat Jar detected, make sure your image assembly configuration contains all the required" +
+                " dependencies for your application to run.");
         }
+        builder.inline(Assembly.builder().fileSets(fileSets).build());
     }
 
     @Override

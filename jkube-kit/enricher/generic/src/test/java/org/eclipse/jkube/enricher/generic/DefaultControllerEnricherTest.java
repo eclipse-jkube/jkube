@@ -17,7 +17,7 @@ import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -31,6 +31,7 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.TreeMap;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -52,21 +53,21 @@ public class DefaultControllerEnricherTest {
 
     @Test
     public void checkReplicaCount() throws Exception {
-        enrichAndAssert(1, 3);
+        enrichAndAssert(3);
     }
 
     @Test
     public void checkDefaultReplicaCount() throws Exception {
-        enrichAndAssert(1, 1);
+        enrichAndAssert(1);
     }
 
-    protected void enrichAndAssert(int sizeOfObjects, int replicaCount) throws com.fasterxml.jackson.core.JsonProcessingException {
+    protected void enrichAndAssert(int replicaCount) throws Exception {
         // Setup a sample docker build configuration
         final BuildConfiguration buildConfig = BuildConfiguration.builder()
             .port("8080")
             .build();
 
-        final TreeMap controllerConfig = new TreeMap();
+        final Map<String, Object> controllerConfig = new TreeMap<>();
         controllerConfig.put("replicaCount", String.valueOf(replicaCount));
 
         setupExpectations(buildConfig, controllerConfig);
@@ -77,14 +78,14 @@ public class DefaultControllerEnricherTest {
 
         // Validate that the generated resource contains
         KubernetesList list = builder.build();
-        assertEquals(sizeOfObjects, list.getItems().size());
+        assertEquals(1, list.getItems().size());
 
         String json = ResourceUtil.toJson(list.getItems().get(0));
         assertThat(json, JsonPathMatchers.isJson());
         assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.replicas", Matchers.equalTo(replicaCount)));
     }
 
-    protected void setupExpectations(final BuildConfiguration buildConfig, final TreeMap controllerConfig) {
+    protected void setupExpectations(final BuildConfiguration buildConfig, final Map<String, Object> controllerConfig) {
 
         new Expectations() {{
 

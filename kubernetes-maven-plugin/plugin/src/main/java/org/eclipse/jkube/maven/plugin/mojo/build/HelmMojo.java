@@ -74,13 +74,13 @@ public class HelmMojo extends AbstractJKubeMojo {
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = PROPERTY_KUBERNETES_MANIFEST, defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml")
+  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml")
   File kubernetesManifest;
 
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = PROPERTY_KUBERNETES_TEMPLATE, defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
+  @Parameter(property = "jkube.kubernetesTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
   File kubernetesTemplate;
 
   @Component
@@ -94,6 +94,14 @@ public class HelmMojo extends AbstractJKubeMojo {
     } catch (IOException exception) {
       throw new MojoExecutionException(exception.getMessage());
     }
+  }
+
+  protected File getKubernetesManifest() {
+    return kubernetesManifest;
+  }
+
+  protected File getKubernetesTemplate() {
+     return kubernetesTemplate;
   }
 
   protected HelmConfig.HelmType getDefaultHelmType() {
@@ -152,12 +160,12 @@ public class HelmMojo extends AbstractJKubeMojo {
 
   private String findIconURL() throws MojoExecutionException {
     String answer = null;
-    if (kubernetesManifest != null && kubernetesManifest.isFile()) {
+    if (getKubernetesManifest() != null && getKubernetesManifest().isFile()) {
       KubernetesResource dto;
       try {
-        dto = ResourceUtil.load(kubernetesManifest, KubernetesResource.class);
+        dto = ResourceUtil.load(getKubernetesManifest(), KubernetesResource.class);
       } catch (IOException e) {
-        throw new MojoExecutionException("Failed to load kubernetes YAML " + kubernetesManifest + ". " + e, e);
+        throw new MojoExecutionException("Failed to load kubernetes YAML " + getKubernetesManifest() + ". " + e, e);
       }
       if (dto instanceof HasMetadata) {
         answer = KubernetesHelper.getOrCreateAnnotations((HasMetadata) dto).get("jkube.io/iconUrl");
@@ -175,7 +183,7 @@ public class HelmMojo extends AbstractJKubeMojo {
         }
       }
     } else {
-      getLog().warn("No kubernetes manifest file has been generated yet by the kubernetes:resource goal at: " + kubernetesManifest);
+      getLog().warn("No kubernetes manifest file has been generated yet by the kubernetes:resource goal at: " + getKubernetesManifest());
     }
     return answer;
   }
@@ -201,10 +209,10 @@ public class HelmMojo extends AbstractJKubeMojo {
   private List<Template> findTemplates() throws IOException {
     final List<Template> ret = new ArrayList<>();
     final File[] sourceFiles;
-    if (kubernetesTemplate != null && kubernetesTemplate.isDirectory()) {
-      sourceFiles = kubernetesTemplate.listFiles((dir, filename) -> filename.endsWith("-template.yml"));
-    } else if (kubernetesTemplate != null) {
-      sourceFiles = new File[] { kubernetesTemplate };
+    if (getKubernetesTemplate() != null && getKubernetesTemplate().isDirectory()) {
+      sourceFiles = getKubernetesTemplate().listFiles((dir, filename) -> filename.endsWith("-template.yml"));
+    } else if (getKubernetesTemplate() != null) {
+      sourceFiles = new File[] { getKubernetesTemplate() };
     } else {
       sourceFiles = new File[0];
     }

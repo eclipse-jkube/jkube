@@ -13,15 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import mockit.Expectations;
-import mockit.Invocation;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
-import mockit.Verifications;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,10 +21,17 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import org.eclipse.jkube.kit.common.SystemMock;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.Verifications;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
@@ -44,6 +42,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -232,7 +231,8 @@ public class EnvUtilTest {
         //When
         List<String> result = EnvUtil.extractFromPropertiesAsList(string,properties);
         //Then
-        assertEquals(2,result.size());
+        assertNotNull(result);
+        assertEquals(2, result.size());
         assertArrayEquals(new String[]{"valu", "value"}, result.toArray());
     }
 
@@ -249,12 +249,13 @@ public class EnvUtilTest {
         //when
         Map<String, String> result = EnvUtil.extractFromPropertiesAsMap(prefix,properties);
         //Then
+        assertNotNull(result);
         assertEquals(2 ,result.size());
         assertEquals("value",result.get("name"));
     }
 
     @Test
-    public void testFormatDurationTill() throws InterruptedException {
+    public void testFormatDurationTill() {
         long startTime = System.currentTimeMillis() - 200L;
         assertTrue(EnvUtil.formatDurationTill(startTime).contains("milliseconds"));
     }
@@ -386,8 +387,7 @@ public class EnvUtilTest {
     @Test
     public  void testIsWindowsFalse(){
         //Given
-        new SystemMock();
-        SystemMock.FAKE_PROPS.put("os.name", "random");
+        new SystemMock().put("os.name", "random");
         //When
         boolean result= EnvUtil.isWindows();
         //Then
@@ -397,21 +397,10 @@ public class EnvUtilTest {
     @Test
     public  void testIsWindows(){
         //Given
-        new SystemMock();
-        SystemMock.FAKE_PROPS.put("os.name", "windows");
+        new SystemMock().put("os.name", "windows");
         //When
         boolean result= EnvUtil.isWindows();
         //Then
         assertTrue(result);
-    }
-
-    private static final class SystemMock extends MockUp<System> {
-        private static Map<String, String> FAKE_PROPS = new HashMap<>();
-
-        @Mock
-        public static String getProperty(Invocation invocation, String key) {
-            return FAKE_PROPS.getOrDefault(key, invocation.proceed(key));
-        }
-
     }
 }

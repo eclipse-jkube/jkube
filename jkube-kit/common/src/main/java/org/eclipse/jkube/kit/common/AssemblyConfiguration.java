@@ -34,7 +34,7 @@ public class AssemblyConfiguration implements Serializable {
      * Assembly name, which is maven by default. This name is used for the archives and directories created during the
      * build.
      *
-     * <p> If an external Dockerfile is used than this name is also the relative directory which contains the assembly
+     * <p> If an external Dockerfile is used then this name is also the relative directory which contains the assembly
      * files.
      */
     private String name;
@@ -43,35 +43,26 @@ public class AssemblyConfiguration implements Serializable {
      *
      * <p> The default value for this is <code>/&lt;assembly name&gt;</code>, so <code>/maven</code> if name is not set
      * to a different value.
-     *
-     * <p> This option has no meaning when an external Dockerfile is used.
      */
     private String targetDir;
     /**
-     * Path to an assembly descriptor file.
-     */
-    private String descriptor;
-    /**
-     * Alias to a predefined assembly descriptor.
-     */
-    private String descriptorRef;
-    /**
-     * Whether the target directory should be exported.
+     * Whether the target directory should be exported as a volume.
      */
     private Boolean exportTargetDir;
     /**
-     * Java Project final artifact will be excluded from the assembly if this flag is set to true.
+     * By default, the project's final artifact will be included in the assembly, set this flag to true in case the
+     * artifact should be excluded from the assembly.
      *
      * @param excludeFinalOutputArtifact set if artifact must be excluded from the assembly.
      * @return true if artifact must be excluded from the assembly false otherwise.
      */
     private boolean excludeFinalOutputArtifact;
     /**
-     * Permission of the files to add
+     * Permission of the files to add.
      */
     private PermissionMode permissions;
     /**
-     * Mode how the assembled files should be collected:
+     * Mode how the assembled files should be collected.
      */
     private AssemblyMode mode;
     /**

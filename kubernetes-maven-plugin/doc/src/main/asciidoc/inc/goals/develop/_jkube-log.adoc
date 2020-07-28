@@ -43,19 +43,25 @@ mvn {goal-prefix}:log -Djkube.log.container=foo
 === Supported Properties for Log goal
 
 .Options available with log goal
-[cols="1.6.3"]
+[cols="1,6,1"]
 |===
-| Element | Description | Property(System property or Maven property)
+| Element | Description | Property
 
 | *logFollow*
-| Get follow logs for your application inside Kubernetes. Defaults to `true`
+| Get follow logs for your application inside Kubernetes.
+
+  Defaults to `true`.
 | `jkube.log.follow`
 
 | *logContainer*
-| Get logs of some specific container inside your application Deployment. Defaults to `null`
+| Get logs of some specific container inside your application Deployment.
+
+  Defaults to `null`.
 | `jkube.log.container`
 
 | *logPod*
-| Get logs of some specific pod inside your application Deployment. Defaults to `null`
+| Get logs of some specific pod inside your application Deployment.
+
+  Defaults to `null`.
 | `jkube.log.pod`
 |===

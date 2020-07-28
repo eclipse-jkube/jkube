@@ -27,14 +27,24 @@ public class OpenshiftHelmMojo extends HelmMojo {
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = PROPERTY_KUBERNETES_MANIFEST, defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift.yml")
-  File kubernetesManifest; // NOSONAR (Override Mojo Property en HelmMojo)
+  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift.yml")
+  private File openShiftManifest;
 
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = PROPERTY_KUBERNETES_TEMPLATE, defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift")
-  File kubernetesTemplate; // NOSONAR (Override Mojo Property en HelmMojo)
+  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift")
+  private File openShiftTemplate;
+
+  @Override
+  protected File getKubernetesManifest() {
+    return openShiftManifest;
+  }
+
+  @Override
+  protected File getKubernetesTemplate() {
+    return openShiftTemplate;
+  }
 
   @Override
   protected HelmConfig.HelmType getDefaultHelmType() {

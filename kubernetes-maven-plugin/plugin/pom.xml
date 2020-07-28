@@ -123,6 +123,12 @@
             <artifactId>jkube-kit-vertx</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-wildfly-jar</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>

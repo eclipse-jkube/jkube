@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import com.google.common.base.Strings;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -72,7 +71,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
 
     // ==============================================================================================
 
-    public static abstract class AbstractLookup implements FormatParameterReplacer.Lookup {
+    public abstract static class AbstractLookup implements FormatParameterReplacer.Lookup {
         protected final JavaProject project;
 
         private AbstractLookup(JavaProject project) {
@@ -91,7 +90,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
          * Property to lookup for image user which overwrites the calculated default (group).
          * Used with format modifier %g
          */
-        private static final String DOCKER_IMAGE_USER = "docker.image.user";
+        private static final String DOCKER_IMAGE_USER = "jkube.image.user";
 
         private DefaultUserLookup(JavaProject project) {
             super(project);
@@ -130,7 +129,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
          * on the project version and depends whether it is a snapshot project or not.
          * Used with format modifier %v
          */
-        private static final String DOCKER_IMAGE_TAG = "docker.image.tag";
+        private static final String DOCKER_IMAGE_TAG = "jkube.image.tag";
 
         // how to resolve the version
         private final Mode mode;

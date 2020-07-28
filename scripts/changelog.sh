@@ -95,19 +95,23 @@ function extractWithLinks() {
 function emailTemplate() {
   checkInput "$@"
   changelog=$(extract "$@")
-  changelogWithLinks=$(addLinks "$changelog" 2)
+  changelogWithLinks=$(addLinks "$changelog" 3)
   numberedChangelog=$(echo -e "$changelogWithLinks" | sed '/^$/d' | sed '/^#/d' | sed -E '/^\[[0-9]+\]/d')
   changelogLinks=$(echo -e "$changelogWithLinks" | sed '/^$/d' | sed '/^#/d' | sed -E '/^\[[0-9]+\]/!d')
   changelogLinksCount=$(echo -e "$changelogLinks" | wc -l)
-  githubLinkId="["$((changelogLinksCount + 2))"]"
-  gitterLinkId="["$((changelogLinksCount + 3))"]"
-  lines="Release announcement for Eclipse JKube $1\n\n"
-  lines+="Hi All,\n\n"
-  lines+="We are pleased to announce Eclipse JKube $1 was just released. You can find the release at Maven Central [1].\n\n"
+  githubLinkId="["$((changelogLinksCount + 3))"]"
+  gitterLinkId="["$((changelogLinksCount + 4))"]"
+  lines="[ANNOUNCE] Eclipse JKube $1 released\n\n"
+  lines+="Hi Everyone,\n\n"
+  lines+="We are pleased to announce Eclipse JKube $1 was just released! You can find the release at Maven Central [1].\n\n"
+  lines+="Eclipse JKube is a collection of plugins and libraries that are used for building container images using Docker, JIB or S2I build strategies.\nEclipse JKube generates and deploys Kubernetes/OpenShift manifests at compile time too.\n\n"
+  lines+="JKube is the successor to the deprecated Fabric8 Maven Plugin, please check our migration guide [2] if you come from FMP.\n\n"
+  lines+="Using this release:\n\n<plugin>\n  <groupId>org.eclipse.jkube</groupId>\n  <artifactId>kubernetes-maven-plugin</artifactId>\n  <version>$1</version\n</plugin>\n\n(Check Maven Central [1] for the rest of artifacts)\n\n"
   lines+="These are the features and fixes included in $1:\n"
   lines+="$numberedChangelog\n\n"
   lines+="Your feedback is highly appreciated, you can provide it replying to the mailing list or through the usual channels. $githubLinkId $gitterLinkId\n\n"
   lines+="[1] https://repo1.maven.org/maven2/org/eclipse/jkube/kubernetes-maven-plugin/$1/\n"
+  lines+="[2] https://www.eclipse.org/jkube/docs/migration-guide/\n"
   lines+="$changelogLinks\n"
   lines+="$githubLinkId https://github.com/eclipse/jkube\n"
   lines+="$gitterLinkId https://gitter.im/eclipse/jkube\n"

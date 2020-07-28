@@ -27,14 +27,15 @@ import com.google.gson.JsonObject;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
-import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -257,7 +258,7 @@ public class BuildService {
             }
         }
         for (String fromImage : fromImages) {
-            if (fromImage != null && !DockerAssemblyManager.SCRATCH_IMAGE.equals(fromImage)) {
+            if (fromImage != null && !AssemblyManager.SCRATCH_IMAGE.equals(fromImage)) {
                 registryService.pullImageWithPolicy(fromImage, imagePullManager, configuration.getRegistryConfig(), queryService.hasImage(fromImage));
             }
         }
@@ -269,7 +270,7 @@ public class BuildService {
         if (fromImage == null) {
             AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
             if (assemblyConfig == null) {
-                fromImage = DockerAssemblyManager.DEFAULT_DATA_BASE_IMAGE;
+                fromImage = AssemblyManager.DEFAULT_DATA_BASE_IMAGE;
             }
         }
         return fromImage;
@@ -281,7 +282,7 @@ public class BuildService {
             File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(configuration.getSourceDirectory(),
                 Optional.ofNullable(configuration.getProject().getBaseDirectory()).map(File::toString) .orElse(null));
 
-            fromImage = DockerFileUtil.extractBaseImages(fullDockerFilePath, configuration.getProperties());
+            fromImage = DockerFileUtil.extractBaseImages(fullDockerFilePath, configuration.getProperties(), buildConfig.getFilter());
         } catch (IOException e) {
             // Cant extract base image, so we wont try an auto pull. An error will occur later anyway when
             // building the image, so we are passive here.

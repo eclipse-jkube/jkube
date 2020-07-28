@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +77,7 @@ public class AsciiDocParserTest {
         // Then
         final Map<String, List<String>> expectedSerlializedContent = new HashMap<>();
         expectedSerlializedContent.put("ConfigMap", Arrays.asList("cm", "configmap"));
-        expectedSerlializedContent.put("CronJob", Arrays.asList("cronjob"));
+        expectedSerlializedContent.put("CronJob", Collections.singletonList("cronjob"));
 
         assertThat(serializedContent)
             .containsAllEntriesOf(expectedSerlializedContent);

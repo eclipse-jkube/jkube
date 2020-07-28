@@ -41,7 +41,7 @@ public class JKubeTarArchiver {
   }
 
   public static File createTarBall(
-      File outputFile, File inputDirectory, List<File> fileList, Map<File, String> fileToPermissionsMap,
+      File outputFile, File inputDirectory, List<File> fileList, Map<File, String> fileModeMap,
       ArchiveCompression compression)
       throws IOException {
 
@@ -66,8 +66,8 @@ public class JKubeTarArchiver {
 
         TarArchiveEntry tarEntry = new TarArchiveEntry(currentFile, relativeFilePath);
         tarEntry.setSize(currentFile.length());
-        if (fileToPermissionsMap.containsKey(currentFile)) {
-          tarEntry.setMode(Integer.parseInt(fileToPermissionsMap.get(currentFile), 8));
+        if (fileModeMap.containsKey(currentFile)) {
+          tarEntry.setMode(Integer.parseInt(fileModeMap.get(currentFile), 8));
         } else if (currentFile.isDirectory()) {
           tarEntry.setMode(TarArchiveEntry.DEFAULT_DIR_MODE);
         }

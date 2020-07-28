@@ -79,7 +79,6 @@ import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateLabels;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateMetadata;
 
-
 /**
  * Applies DTOs to the current Kubernetes master
  */
@@ -244,9 +243,8 @@ public class ApplyService {
     protected void doCreateOAuthClient(OAuthClient entity, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
         if (openShiftClient != null) {
-            Object result = null;
             try {
-                result = openShiftClient.oAuthClients().create(entity);
+                openShiftClient.oAuthClients().create(entity);
             } catch (Exception e) {
                 onApplyError("Failed to create OAuthClient from " + sourceName + ". " + e + ". " + entity, e);
             }
@@ -402,13 +400,7 @@ public class ApplyService {
                         doCreatePersistentVolumeClaim(entity, namespace, sourceName);
                     }
                 } else {
-                    log.info("Updating a PersistentVolumeClaim from " + sourceName);
-                    try {
-                        HasMetadata answer = patchService.compareAndPatchEntity(namespace, entity, old);
-                        logGeneratedEntity("Updated PersistentVolumeClaim: ", namespace, entity, answer);
-                    } catch (Exception e) {
-                        onApplyError("Failed to update PersistentVolumeClaim from " + sourceName + ". " + e + ". " + entity, e);
-                    }
+                    doPatchEntity(old, entity, namespace, sourceName);
                 }
             }
         } else {
@@ -438,13 +430,7 @@ public class ApplyService {
                     kubernetesClient.customResourceDefinitions().withName(id).delete();
                     doCreateCustomResourceDefinition(entity, sourceName);
                 } else {
-                    log.info("Updating a Custom Resource Definition from " + sourceName + " name " + getName(entity));
-                    try {
-                        HasMetadata answer = patchService.compareAndPatchEntity(namespace, entity, old);
-                        log.info("Updated Custom Resource Definition result: " + getName(answer));
-                    } catch (Exception e) {
-                        onApplyError("Failed to update Custom Resource Definition from " + sourceName + ". " + e + ". " + entity, e);
-                    }
+                    doPatchEntity(old, entity, namespace, sourceName);
                 }
             }
         } else {
@@ -459,8 +445,8 @@ public class ApplyService {
     private void doCreateCustomResourceDefinition(CustomResourceDefinition entity, String sourceName) {
         log.info("Creating a Custom Resource Definition from " + sourceName + " name " + getName(entity));
         try {
-            Object answer = kubernetesClient.customResourceDefinitions().create(entity);
-            log.info("Created Custom Resource Definition result: " + ((CustomResourceDefinition) answer).getMetadata().getName());
+            CustomResourceDefinition answer = kubernetesClient.customResourceDefinitions().create(entity);
+            log.info("Created Custom Resource Definition result: " + answer.getMetadata().getName());
         } catch (Exception e) {
             onApplyError("Failed to create Custom Resource Definition from " + sourceName + ". " + e + ". " + entity, e);
         }
@@ -535,19 +521,12 @@ public class ApplyService {
             // if the secret already exists and is the same, then do nothing
             if (UserConfigurationCompare.configEqual(secret, old)) {
                 log.info("Secret has not changed so not doing anything");
-                return;
             } else {
                 if (isRecreateMode()) {
                     kubernetesClient.secrets().inNamespace(namespace).withName(id).delete();
                     doCreateSecret(secret, namespace, sourceName);
                 } else {
-                    log.info("Updating a Secret from " + sourceName);
-                    try {
-                        Object answer = patchService.compareAndPatchEntity(namespace, secret, old);
-                        logGeneratedEntity("Updated Secret:", namespace, secret, answer);
-                    } catch (Exception e) {
-                        onApplyError("Failed to update secret from " + sourceName + ". " + e + ". " + secret, e);
-                    }
+                    doPatchEntity(old, secret, namespace, sourceName);
                 }
             }
         } else {
@@ -558,7 +537,6 @@ public class ApplyService {
             }
         }
     }
-
 
     protected void doCreateSecret(Secret secret, String namespace, String sourceName) {
         log.info("Creating a Secret from " + sourceName + " namespace " + namespace + " name " + getName(secret));
@@ -642,7 +620,6 @@ public class ApplyService {
             }
     }
 
-
     public void applyRoute(Route entity, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
         if (openShiftClient != null) {
@@ -652,18 +629,44 @@ public class ApplyService {
             if (StringUtils.isBlank(namespace)) {
                 namespace = getNamespace();
             }
+            if (isServicesOnlyMode()) {
+                log.debug("Ignoring Route: " + namespace + ":" + id);
+                return;
+            }
             Route route = openShiftClient.routes().inNamespace(namespace).withName(id).get();
-            if (route == null) {
-                try {
-                    log.info("Creating Route " + namespace + ":" + id + " " +
-                             (entity.getSpec() != null ?
-                                 "host: " + entity.getSpec().getHost() :
-                                 "No Spec !"));
-                    openShiftClient.routes().inNamespace(namespace).create(entity);
-                } catch (Exception e) {
-                    onApplyError("Failed to create Route from " + sourceName + ". " + e + ". " + entity, e);
+            if (isRunning(route)) {
+                if (UserConfigurationCompare.configEqual(entity, route)) {
+                    log.info("Route has not changed so not doing anything");
+                } else {
+                    if (isRecreateMode()) {
+                        log.info("Deleting Route: " + id);
+                        openShiftClient.routes().inNamespace(namespace).withName(id).delete();
+                        doCreateRoute(entity, namespace, sourceName);
+                    } else {
+                        doPatchEntity(route, entity, namespace, sourceName);
+                    }
+                }
+            } else {
+                if (!isAllowCreate()) {
+                    log.warn("Creation disabled so not creating a Route from " + sourceName + " namespace " + namespace + " name " + id);
+                } else {
+                    doCreateRoute(entity, namespace, sourceName);
                 }
             }
+        }
+    }
+
+    private void doCreateRoute(Route entity, String namespace, String sourceName) {
+        OpenShiftClient openShiftClient = getOpenShiftClient();
+        String id = getName(entity);
+        try {
+            log.info("Creating Route " + namespace + ":" + id + " " +
+                    (entity.getSpec() != null ?
+                            "host: " + entity.getSpec().getHost() :
+                            "No Spec !"));
+            openShiftClient.routes().inNamespace(namespace).create(entity);
+        } catch (Exception e) {
+            onApplyError("Failed to create Route from " + sourceName + ". " + e + ". " + entity, e);
         }
     }
 
@@ -688,17 +691,7 @@ public class ApplyService {
                         openShiftClient.buildConfigs().inNamespace(namespace).withName(id).delete();
                         doCreateBuildConfig(entity, namespace, sourceName);
                     } else {
-                        log.info("Updating BuildConfig from " + sourceName);
-                        try {
-                            String resourceVersion = KubernetesHelper.getResourceVersion(old);
-                            ObjectMeta metadata = getOrCreateMetadata(entity);
-                            metadata.setNamespace(namespace);
-                            metadata.setResourceVersion(resourceVersion);
-                            Object answer = patchService.compareAndPatchEntity(namespace, entity, old);
-                            logGeneratedEntity("Updated BuildConfig: ", namespace, entity, answer);
-                        } catch (Exception e) {
-                            onApplyError("Failed to update BuildConfig from " + sourceName + ". " + e + ". " + entity, e);
-                        }
+                        doPatchEntity(old, entity, namespace, sourceName);
                     }
                 }
             } else {
@@ -868,13 +861,7 @@ public class ApplyService {
                     kubernetesClient.services().inNamespace(namespace).withName(id).delete();
                     doCreateService(service, namespace, sourceName);
                 } else {
-                    log.info("Updating a Service from " + sourceName);
-                    try {
-                        Object answer = patchService.compareAndPatchEntity(namespace, service, old);
-                        logGeneratedEntity("Updated Service: ", namespace, service, answer);
-                    } catch (Exception e) {
-                        onApplyError("Failed to update Service from " + sourceName + ". " + e + ". " + service, e);
-                    }
+                    doPatchEntity(old, service, namespace, sourceName);
                 }
             }
         } else {
@@ -936,6 +923,17 @@ public class ApplyService {
             logGeneratedEntity("Created " + kind + ": ", namespace, resource, answer);
         } catch (Exception e) {
             onApplyError("Failed to create " + kind + " from " + sourceName + ". " + e + ". " + resource, e);
+        }
+    }
+
+    private <T extends HasMetadata> void doPatchEntity(T oldEntity, T newEntity, String namespace, String sourceName) {
+        String kind = newEntity.getKind();
+        log.info("Updating %s from %s", kind, sourceName);
+        try {
+            Object answer = patchService.compareAndPatchEntity(namespace, newEntity, oldEntity);
+            logGeneratedEntity("Updated " + kind + ": ", namespace, newEntity, answer);
+        } catch (Exception e) {
+            onApplyError("Failed to update " + kind + " from " + sourceName + ". " + e + ". " + newEntity, e);
         }
     }
 
@@ -1185,13 +1183,7 @@ public class ApplyService {
                     kubernetesClient.pods().inNamespace(namespace).withName(id).delete();
                     doCreatePod(pod, namespace, sourceName);
                 } else {
-                    log.info("Updating a Pod from " + sourceName + " namespace " + namespace + " name " + getName(pod));
-                    try {
-                        Object answer = patchService.compareAndPatchEntity(namespace, pod, old);
-                        log.info("Updated Pod result: " + answer);
-                    } catch (Exception e) {
-                        onApplyError("Failed to update Pod from " + sourceName + ". " + e + ". " + pod, e);
-                    }
+                    doPatchEntity(old, pod, namespace, sourceName);
                 }
             }
         } else {

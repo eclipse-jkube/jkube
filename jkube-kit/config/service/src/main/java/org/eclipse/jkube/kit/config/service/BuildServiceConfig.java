@@ -21,7 +21,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
@@ -38,7 +38,7 @@ import java.io.File;
 public class BuildServiceConfig {
 
     private BuildRecreateMode buildRecreateMode;
-    private OpenShiftBuildStrategy openshiftBuildStrategy;
+    private JKubeBuildStrategy jKubeBuildStrategy;
     private boolean forcePull;
     private String s2iBuildNameSuffix;
     private String openshiftPullSecret;
