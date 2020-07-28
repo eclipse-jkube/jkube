@@ -57,7 +57,6 @@ public class ProjectLabelEnricher extends BaseEnricher {
         USE_PROJECT_LABEL("useProjectLabel", "false"),
     	  CUSTOM_APP_NAME("customAppName", "");
 
-
         @Getter
         protected String key;
         @Getter
