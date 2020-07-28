@@ -1,0 +1,48 @@
+
+[[jkube-revision-history-enricher]]
+==== jkube-revision-history
+
+This enricher adds `spec.revisionHistoryLimit` property to deployment spec of Kubernetes/OpenShift resources.
+A deployment’s revision history is stored in the replica sets, that specifies the number of old ReplicaSets to retain in order to allow rollback.
+For more information read https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit[Kubernetes documentation].
+
+The following configuration parameters can be used to influence the behaviour of this enricher:
+
+.Default revision history enricher
+[cols="1,2,2"]
+|===
+| Element | Description | Property
+
+| *limit*
+| Number of revision histories to retain.
+
+  Defaults to `2`.
+| `jkube.enricher.jkube-revision-history.limit`
+
+|===
+
+Just as any other enricher you can specify required properties with in the enricher's configuration as below,
+
+[source,xml]
+----
+<!-- ... -->
+<enricher>
+    <config>
+        <jkube-revision-history>
+            <limit>8</limit>
+        </jkube-revision-history>
+    </config>
+</enricher>
+<!-- ... -->
+----
+
+This information will be enriched as spec property in the generated manifest like,
+
+[source,yaml]
+----
+# ...
+kind: Deployment
+spec:
+  revisionHistoryLimit: 8
+# ...
+----

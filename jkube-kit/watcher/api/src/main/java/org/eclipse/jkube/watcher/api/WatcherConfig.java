@@ -21,7 +21,6 @@ import java.util.Properties;
 
 /**
  * @author nicola
- * @since 09/02/17
  */
 public class WatcherConfig {
 
@@ -43,8 +42,8 @@ public class WatcherConfig {
      * @param key key to lookup
      * @return the value
      */
-    public String get(Configs.Key key) {
-        return get(key, key.def());
+    public String get(Configs.Config key) {
+        return get(key, null);
     }
 
     /**
@@ -55,14 +54,8 @@ public class WatcherConfig {
      * @param defaultVal the default value to use when the no config is set
      * @return the value looked up or the default value.
      */
-    public String get(Configs.Key key, String defaultVal) {
-        String val = config != null ? config.getConfig(name, key.name()) : null;
-
-        if (val == null) {
-            String fullKey = WATCHER_PROP_PREFIX + "." + name + "." + key;
-            val = Configs.getSystemPropertyWithMavenPropertyAsFallback(projectProperties, fullKey);
-        }
-        return val != null ? val : defaultVal;
+    public String get(Configs.Config key, String defaultVal) {
+        return ProcessorConfig.getConfigValue(config, name, WATCHER_PROP_PREFIX, projectProperties, key, defaultVal);
     }
 
 }

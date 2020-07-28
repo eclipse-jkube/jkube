@@ -243,16 +243,16 @@ public class ProfileUtil {
     /**
      * Get the generator configuration
      */
-    public final static ProcessorConfigurationExtractor GENERATOR_CONFIG = profile -> profile.getGeneratorConfig();
+    public static final ProcessorConfigurationExtractor GENERATOR_CONFIG = Profile::getGeneratorConfig;
 
     /**
      * Get the enricher configuration
      */
-    public final static ProcessorConfigurationExtractor ENRICHER_CONFIG = profile -> profile.getEnricherConfig();
+    public static final ProcessorConfigurationExtractor ENRICHER_CONFIG = Profile::getEnricherConfig;
 
     /**
      * Get the watcher configuration
      */
-    public final static ProcessorConfigurationExtractor WATCHER_CONFIG = profile -> profile.getWatcherConfig();
+    public static final ProcessorConfigurationExtractor WATCHER_CONFIG = Profile::getWatcherConfig;
 
 }

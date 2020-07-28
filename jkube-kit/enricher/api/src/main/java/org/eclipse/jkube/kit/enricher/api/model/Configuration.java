@@ -14,20 +14,18 @@
 package org.eclipse.jkube.kit.enricher.api.model;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -42,11 +40,6 @@ import java.util.function.Function;
 @Getter
 @EqualsAndHashCode
 public class Configuration {
-
-    /**
-     * Project properties.
-     */
-    private Properties properties;
 
     /**
      * List of image configuration used when building.
@@ -75,11 +68,10 @@ public class Configuration {
 
     @Builder(toBuilder = true)
     public Configuration(
-        Properties properties, @Singular List<ImageConfiguration> images, ResourceConfig resource,
+        @Singular List<ImageConfiguration> images, ResourceConfig resource,
         BiFunction<String, String, Optional<Map<String, Object>>> pluginConfigLookup,
         Function<String, Optional<Map<String, Object>>> secretConfigLookup, ProcessorConfig processorConfig) {
 
-        this.properties = Optional.ofNullable(properties).orElse(new Properties());
         this.images = images;
         this.resource = resource;
         this.pluginConfigLookup = pluginConfigLookup;
@@ -110,18 +102,6 @@ public class Configuration {
      */
     public Optional<Map<String, Object>> getSecretConfiguration(String id) {
         return secretConfigLookup.apply(id);
-    }
-
-    public String getProperty(String name) {
-        return properties.getProperty(name);
-    }
-
-    public String getPropertyWithSystemOverride(String name) {
-        String ret = System.getProperty(name);
-        if (ret != null) {
-            return ret;
-        }
-        return getProperty(name);
     }
 
 }

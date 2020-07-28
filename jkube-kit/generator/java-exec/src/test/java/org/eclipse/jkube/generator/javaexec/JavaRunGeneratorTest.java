@@ -23,7 +23,7 @@ import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -46,10 +46,10 @@ public class JavaRunGeneratorTest {
     final List<TestCase> testCases = Arrays.asList(
         new TestCase("3.1.123", false, RuntimeMode.KUBERNETES, null, "java.upstream.docker"),
         new TestCase("3.1.redhat-101", true, RuntimeMode.KUBERNETES, null, "java.upstream.docker"),
-        new TestCase("3.1.123", false, RuntimeMode.OPENSHIFT, OpenShiftBuildStrategy.docker, "java.upstream.docker"),
-        new TestCase("3.1.redhat-101", true, RuntimeMode.OPENSHIFT, OpenShiftBuildStrategy.docker, "java.upstream.docker"),
-        new TestCase("3.1.123", false, RuntimeMode.OPENSHIFT, OpenShiftBuildStrategy.s2i, "java.upstream.s2i"),
-        new TestCase("3.1.redhat-101", true, RuntimeMode.OPENSHIFT, OpenShiftBuildStrategy.s2i, "java.upstream.s2i"));
+        new TestCase("3.1.123", false, RuntimeMode.OPENSHIFT, JKubeBuildStrategy.docker, "java.upstream.docker"),
+        new TestCase("3.1.redhat-101", true, RuntimeMode.OPENSHIFT, JKubeBuildStrategy.docker, "java.upstream.docker"),
+        new TestCase("3.1.123", false, RuntimeMode.OPENSHIFT, JKubeBuildStrategy.s2i, "java.upstream.s2i"),
+        new TestCase("3.1.redhat-101", true, RuntimeMode.OPENSHIFT, JKubeBuildStrategy.s2i, "java.upstream.s2i"));
 
     Properties imageProps = getDefaultImageProps();
 
@@ -90,10 +90,10 @@ public class JavaRunGeneratorTest {
     final String version;
     final boolean hasOpenShiftPlugin;
     final RuntimeMode mode;
-    final OpenShiftBuildStrategy strategy;
+    final JKubeBuildStrategy strategy;
     final String expectedFrom;
 
-    public TestCase(String version, boolean hasOpenShiftPlugin, RuntimeMode mode, OpenShiftBuildStrategy strategy,
+    public TestCase(String version, boolean hasOpenShiftPlugin, RuntimeMode mode, JKubeBuildStrategy strategy,
         String expectedFrom) {
       this.version = version;
       this.hasOpenShiftPlugin = hasOpenShiftPlugin;

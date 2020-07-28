@@ -31,6 +31,8 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.openshift.api.model.ImageChangeTrigger;
 import io.fabric8.openshift.api.model.ImageChangeTriggerBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -52,17 +54,16 @@ public class TriggersAnnotationEnricher extends BaseEnricher {
 
     private static final String TRIGGERS_ANNOTATION = "image.openshift.io/triggers";
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
         /**
          * Comma-separated list of container names that should be enriched (default all that apply)
          */
-        containers;
+        CONTAINERS("containers");
 
-        protected String d; public String def() {
-            return d;
-        }
+        @Getter
+        protected String key;
     }
 
 
@@ -159,7 +160,7 @@ public class TriggersAnnotationEnricher extends BaseEnricher {
     }
 
     protected boolean isContainerAllowed(String containerName) {
-        String namesStr = this.getConfig(Config.containers);
+        String namesStr = this.getConfig(Config.CONTAINERS);
         Set<String> allowedNames = new HashSet<>();
         if (namesStr != null) {
             for (String name : namesStr.split(",")) {

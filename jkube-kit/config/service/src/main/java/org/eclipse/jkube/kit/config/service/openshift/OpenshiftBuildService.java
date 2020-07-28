@@ -41,13 +41,13 @@ import io.fabric8.openshift.api.model.BuildStrategyBuilder;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
-import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.RegistryConfig;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RegistryConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
-import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -57,7 +57,7 @@ import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.service.BuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
@@ -69,6 +69,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -152,6 +154,12 @@ public class OpenshiftBuildService implements BuildService {
         }
     }
 
+    @Override
+    public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+        // Do nothing. Image is pushed as part of build phase
+        log.warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
+    }
+
     protected File createBuildArchive(ImageConfiguration imageConfig) throws JKubeServiceException {
         // Adding S2I artifacts such as environment variables in S2I mode
         final ArchiverCustomizer customizer = getS2ICustomizer(imageConfig);
@@ -204,7 +212,7 @@ public class OpenshiftBuildService implements BuildService {
         String imageStreamName = getImageStreamName(imageName);
         String outputImageStreamTag = imageStreamName + ":" + (imageName.getTag() != null ? imageName.getTag() : "latest");
 
-        BuildStrategy buildStrategyResource = createBuildStrategy(imageConfig, config.getOpenshiftBuildStrategy(), openshiftPullSecret);
+        BuildStrategy buildStrategyResource = createBuildStrategy(imageConfig, config.getJKubeBuildStrategy(), openshiftPullSecret);
         BuildOutput buildOutput = new BuildOutputBuilder().withNewTo()
                 .withKind("ImageStreamTag")
                 .withName(outputImageStreamTag)
@@ -316,18 +324,18 @@ public class OpenshiftBuildService implements BuildService {
         return buildName;
     }
 
-    private BuildStrategy createBuildStrategy(ImageConfiguration imageConfig, OpenShiftBuildStrategy osBuildStrategy, String openshiftPullSecret) {
+    private BuildStrategy createBuildStrategy(ImageConfiguration imageConfig, JKubeBuildStrategy osBuildStrategy, String openshiftPullSecret) {
         final BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
         final Map<String, String> fromExt = buildConfig.getFromExt();
         final String fromName;
         if(buildConfig.isDockerFileMode()) {
             fromName = extractBaseFromDockerfile(buildConfig, jKubeServiceHub.getConfiguration());
         } else {
-            fromName = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.name, buildConfig.getFrom());
+            fromName = getMapValueWithDefault(fromExt, JKubeBuildStrategy.SourceStrategy.name, buildConfig.getFrom());
         }
-        final String fromKind = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.kind, "DockerImage");
-        final String fromNamespace = getMapValueWithDefault(fromExt, OpenShiftBuildStrategy.SourceStrategy.namespace, "ImageStreamTag".equals(fromKind) ? "openshift" : null);
-        if (osBuildStrategy == OpenShiftBuildStrategy.docker) {
+        final String fromKind = getMapValueWithDefault(fromExt, JKubeBuildStrategy.SourceStrategy.kind, "DockerImage");
+        final String fromNamespace = getMapValueWithDefault(fromExt, JKubeBuildStrategy.SourceStrategy.namespace, "ImageStreamTag".equals(fromKind) ? "openshift" : null);
+        if (osBuildStrategy == JKubeBuildStrategy.docker) {
             BuildStrategy buildStrategy = new BuildStrategyBuilder()
                     .withType("Docker")
                     .withNewDockerStrategy()
@@ -346,7 +354,7 @@ public class OpenshiftBuildService implements BuildService {
                 .build());
             }
             return buildStrategy;
-        } else if (osBuildStrategy == OpenShiftBuildStrategy.s2i) {
+        } else if (osBuildStrategy == JKubeBuildStrategy.s2i) {
             BuildStrategy buildStrategy = new BuildStrategyBuilder()
                     .withType("Source")
                     .withNewSourceStrategy()
@@ -405,7 +413,7 @@ public class OpenshiftBuildService implements BuildService {
 
         if (pullRegistry != null) {
             RegistryConfig registryConfig = configuration.getRegistryConfig();
-            final AuthConfig authConfig = registryConfig.getAuthConfigFactory().createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
+            final AuthConfig authConfig = new AuthConfigFactory(log).createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
                     registryConfig.getSettings(), null, pullRegistry, registryConfig.getPasswordDecryptionMethod());
 
             final Secret secret = Optional.ofNullable(pullSecretName)
@@ -422,11 +430,11 @@ public class OpenshiftBuildService implements BuildService {
                 JsonObject item = new JsonObject();
 
                 String authString = authConfig.getUsername() + ":" + authConfig.getPassword();
-                item.add("auth", new JsonPrimitive(Base64.encodeBase64String(authString.getBytes("UTF-8"))));
+                item.add("auth", new JsonPrimitive(Base64.encodeBase64String(authString.getBytes(StandardCharsets.UTF_8))));
                 auth.add(pullRegistry, item);
                 auths.add("auths", auth);
 
-                String credentials = Base64.encodeBase64String(auths.toString().getBytes("UTF-8"));
+                String credentials = Base64.encodeBase64String(auths.toString().getBytes(StandardCharsets.UTF_8));
 
                 Map<String, String> data = new HashMap<>();
                 data.put(".dockerconfigjson", credentials);
@@ -468,7 +476,7 @@ public class OpenshiftBuildService implements BuildService {
         if (fromImage == null) {
             AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
             if (assemblyConfig == null) {
-                fromImage = DockerAssemblyManager.DEFAULT_DATA_BASE_IMAGE;
+                fromImage = AssemblyManager.DEFAULT_DATA_BASE_IMAGE;
             }
         }
         return fromImage;
@@ -480,7 +488,7 @@ public class OpenshiftBuildService implements BuildService {
             File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(configuration.getSourceDirectory(),
                 Optional.ofNullable(configuration.getProject().getBaseDirectory()).map(File::toString) .orElse(null));
             fromImage = DockerFileUtil.extractBaseImages(
-                    fullDockerFilePath, configuration.getProperties()).stream().findFirst().orElse(null);
+                    fullDockerFilePath, configuration.getProperties(), buildConfig.getFilter()).stream().findFirst().orElse(null);
         } catch (IOException e) {
             // Cant extract base image, so we wont try an auto pull. An error will occur later anyway when
             // building the image, so we are passive here.
@@ -717,7 +725,7 @@ public class OpenshiftBuildService implements BuildService {
         final StringBuilder s2IBuildName = new StringBuilder(imageName.getSimpleName());
         if (!StringUtils.isEmpty(config.getS2iBuildNameSuffix())) {
             s2IBuildName.append(config.getS2iBuildNameSuffix());
-        } else if (config.getOpenshiftBuildStrategy() == OpenShiftBuildStrategy.s2i) {
+        } else if (config.getJKubeBuildStrategy() == JKubeBuildStrategy.s2i) {
             s2IBuildName.append(DEFAULT_S2I_BUILD_SUFFIX);
         }
         return s2IBuildName.toString();
@@ -727,7 +735,7 @@ public class OpenshiftBuildService implements BuildService {
         return name.getSimpleName();
     }
 
-    private String getMapValueWithDefault(Map<String, String> map, OpenShiftBuildStrategy.SourceStrategy strategy, String defaultValue) {
+    private String getMapValueWithDefault(Map<String, String> map, JKubeBuildStrategy.SourceStrategy strategy, String defaultValue) {
         return getMapValueWithDefault(map, strategy.key(), defaultValue);
     }
 

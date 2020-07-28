@@ -13,24 +13,22 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
-import org.eclipse.jkube.kit.common.util.Base64Util;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.eclipse.jkube.kit.common.util.Base64Util;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
+import mockit.Mocked;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,19 +41,7 @@ public class FileDataSecretEnricherTest {
 
     @Test
     public void shouldMaterializeFileContentFromAnnotation() throws IOException {
-
         // Given
-
-        new Expectations() {
-            {{
-                context.getConfiguration();
-                result = Configuration.builder()
-                        .resource(new ResourceConfig())
-                        .build();
-            }}
-
-        };
-
         final FileDataSecretEnricher fileDataSecretEnricher =
                 new FileDataSecretEnricher(context);
         final KubernetesListBuilder builder = new KubernetesListBuilder();

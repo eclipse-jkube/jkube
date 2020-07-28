@@ -35,11 +35,13 @@
       <module>doc</module>
       <module>common</module>
       <module>common-maven</module>
+      <module>common-test</module>
       <module>config/image</module>
       <module>config/resource</module>
       <module>config/service</module>
       <module>build/api</module>
       <module>build/service/docker</module>
+      <module>build/service/jib</module>
       <module>generator/api</module>
       <module>generator/java-exec</module>
       <module>generator/wildfly-swarm</module>
@@ -57,6 +59,7 @@
       <module>jkube-kit-vertx</module>
       <module>jkube-kit-quarkus</module>
       <module>jkube-kit-openliberty</module>
+      <module>jkube-kit-wildfly-jar</module>
   </modules>
 
 </project>

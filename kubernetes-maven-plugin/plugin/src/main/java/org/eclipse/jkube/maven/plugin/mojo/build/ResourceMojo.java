@@ -20,10 +20,10 @@ import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -36,7 +36,7 @@ import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.ValidationUtil;
 import org.eclipse.jkube.kit.common.util.validator.ResourceValidator;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.MappingConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -46,7 +46,6 @@ import org.eclipse.jkube.kit.profile.Profile;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 import org.eclipse.jkube.maven.plugin.enricher.EnricherManager;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 import org.apache.commons.lang3.StringUtils;
@@ -126,12 +125,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.workDir", defaultValue = "${project.build.directory}/jkube")
     private File workDir;
 
-    /**
-     * The jkube working directory
-     */
-    @Parameter(property = "jkube.workDirOpenShiftOverride", defaultValue = "${project.build.directory}/jkube-openshift-override")
-    private File workDirOpenShiftOverride;
-
     // Resource specific configuration for this plugin
     @Parameter
     private ResourceConfig resources;
@@ -148,8 +141,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter
     private List<ImageConfiguration> images;
 
-    @Parameter(property = "jkube.build.switchToDeployment", defaultValue = "false")
-    private Boolean switchToDeployment;
     /**
      * Profile to use. A profile contains the enrichers and generators to
      * use as well as their configuration. Profiles are looked up
@@ -186,34 +177,11 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter
     private List<MappingConfig> mappings;
 
-    // Services
-    private HandlerHub handlerHub;
-
     /**
      * Namespace to use when accessing Kubernetes or OpenShift
      */
     @Parameter(property = "jkube.namespace")
     private String namespace;
-
-    /**
-     * Should we create external Ingress/Routes for any LoadBalancer Services which don't already have them.
-     * <p>
-     * if Ingress or Router is being used or whether we should use LoadBalancer or NodePorts for single node clusters
-     */
-    @Parameter(property = "jkube.createExternalUrls", defaultValue = "false")
-    private Boolean createExternalUrls;
-
-    /*
-     * The domain added to the service ID when creating Kubernetes Ingress
-     */
-    @Parameter(property = "jkube.domain")
-    protected String routeDomain;
-
-    @Parameter(property = "jkube.sidecar", defaultValue = "false")
-    private Boolean sidecar;
-
-    @Parameter(property = "jkube.skipHealthCheck", defaultValue = "false")
-    private Boolean skipHealthCheck;
 
     @Parameter(property = "jkube.skip.resource", defaultValue = "false")
     protected boolean skipResource;
@@ -416,7 +384,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
                 .project(jkubeProject)
                 .processorConfig(extractEnricherConfig())
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
-                .properties(jkubeProject.getProperties())
                 .resources(resources)
                 .images(resolvedImages)
                 .log(log);
@@ -524,7 +491,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
                                 .project(jkubeProject)
                                 .runtimeMode(getRuntimeMode())
                                 .logger(log)
-                                .strategy(OpenShiftBuildStrategy.docker)
+                                .strategy(JKubeBuildStrategy.docker)
                                 .useProjectClasspath(useProjectClasspath)
                                 .build();
                         return GeneratorManager.generate(configs, ctx, true);
@@ -539,7 +506,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
         if (DockerFileUtil.isSimpleDockerFileMode(project.getBasedir())) {
             File topDockerfile = DockerFileUtil.getTopLevelDockerfile(project.getBasedir());
             if (ret.isEmpty()) {
-                ret.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("docker.name")));
+                ret.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("jkube.image.name")));
             } else if (ret.size() == 1 && ret.get(0).getBuildConfiguration() == null) {
                 ret.set(0, DockerFileUtil.addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
             }
@@ -606,26 +573,20 @@ public class ResourceMojo extends AbstractJKubeMojo {
         File file =
             writeResourcesIndividualAndComposite(resources, resourceFileBase, this.resourceFileType, log);
         // Resolve template placeholders
-        if (classifier == ResourceClassifier.KUBERNETES) {
-            resolveTemplateVariablesIfAny(resources);
-        }
-
-        KubernetesHelper.resolveTemplateVariablesIfAny(resources, this.targetDir);
+        resolveTemplateVariablesIfAny(resources, resourceFileBase, file);
 
         // Attach it to the Maven reactor so that it will also get deployed
         projectHelper.attachArtifact(project, this.resourceFileType.getArtifactType(), classifier.getValue(), file);
     }
 
-    private void resolveTemplateVariablesIfAny(KubernetesList resources) throws MojoExecutionException {
+    private void resolveTemplateVariablesIfAny(KubernetesList resources, File kubernetesResourceDir, File resourceYaml) throws MojoExecutionException {
         Template template = findTemplate(resources);
         if (template != null) {
             List<io.fabric8.openshift.api.model.Parameter> parameters = template.getParameters();
             if (parameters == null || parameters.isEmpty()) {
                 return;
             }
-            File kubernetesYaml = new File(this.targetDir, "kubernetes.yml");
-            resolveTemplateVariables(parameters, kubernetesYaml);
-            File kubernetesResourceDir = new File(this.targetDir, "kubernetes");
+            resolveTemplateVariables(parameters, resourceYaml);
             File[] kubernetesResources = kubernetesResourceDir.listFiles((dir, filename) -> filename.endsWith(".yml"));
             if (kubernetesResources != null) {
                 for (File kubernetesResource : kubernetesResources) {

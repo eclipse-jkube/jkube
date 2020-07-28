@@ -52,14 +52,14 @@ When specifying the container name pattern the following placeholders can be use
 
 |===
 
-You can combine the placeholders in any combination and will be resolved during `docker:start`, `docker:stop` and `docker:watch`.
+You can combine the placeholders in any combination and will be resolved during `{plugin}:start`, `{plugin}:stop` and `{plugin}:watch`.
 
 The following example is using a container name pattern of `%n-%i` which is also the default.
-Given an image `fabric8io/dmp-sample-jolokia:latest`, then during `mvn docker:start` a container with the name `dmp-sample-jolokia-1` is first tried.
+Given an image `fabric8io/dmp-sample-jolokia:latest`, then during `mvn {plugin}:start` a container with the name `dmp-sample-jolokia-1` is first tried.
 If there is already a container with this name, then `dmp-sample-jolokia-2` is the second attempt.
 This goes on until a "free" name is found.
 
-Similar, when stopping containers with `mvn docker:stop` then only the container with the highest index is stopped.
-However, if you don't use an index via `%i` then _all_ containers started with `docker:start` are stopped.
-Use `mvn docker:stop -Ddocker.allContainers` to also stop every container named via a `%i` pattern.
+Similar, when stopping containers with `mvn {plugin}:stop` then only the container with the highest index is stopped.
+However, if you don't use an index via `%i` then _all_ containers started with `{plugin}:start` are stopped.
+Use `mvn {plugin}:stop -Ddocker.allContainers` to also stop every container named via a `%i` pattern.
 endif::[]

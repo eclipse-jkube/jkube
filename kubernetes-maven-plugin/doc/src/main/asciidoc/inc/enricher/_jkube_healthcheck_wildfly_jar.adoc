@@ -1,0 +1,57 @@
+
+[[jkube-healthcheck-wildfly-jar]]
+==== jkube-healthcheck-wildfly-jar
+
+This enricher adds kubernetes readiness and liveness probes to WildFly JAR applications. Probes depend on the WildFly _microprofile-health_ subsystem
+_/health/ready_ and _/health/live_ endpoints.
+When the WildFly Bootable JAR Maven plugin is configured with the _<cloud>_ configuration item, _microprofile_health_ subsystem
+is enforced in the bootable JAR server configuration.
+
+This enricher looks for the _<cloud>_ configuration item presence in the bootable JAR Maven plugin in order to add health check probes.
+If _<cloud>_ item has not been defined, you can still enforce the generation of readiness and liveness probes by setting _enforceProbes=true_.
+
+The enricher will use the following settings by default:
+
+- port = `9990`
+- scheme = `HTTP`
+- readinessPath = `/health/ready`
+- livenessPath = `/health/live`
+- livenessInitialDelay = `60`
+- readinessIntialDelay = `10`
+- failureThreshold = `3`
+- successThreshold = `1`
+- enforceProbes = 'false'
+
+Setting the `port` to 0 or to a negative number disables liveness and readiness probes.
+
+These values can be configured by the enricher in the `{plugin}` configuration as shown below:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>{plugin}</artifactId>
+        <version>{version}</version>
+        <executions>
+          <execution>
+            <id>jkube</id>
+            <goals>
+              <goal>resource</goal>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <enricher>
+            <config>
+              <jkube-healthcheck-wildfly-jar>
+                <port>4444</port>
+                <scheme>HTTPS</scheme>
+                <livenessPath>/myapp/live</livenessPath>
+                <failureThreshold>3</failureThreshold>
+                <successThreshold>1</successThreshold>
+              </jkube-healthcheck-wildfly-jar>
+            </config>
+          </enricher>
+        </configuration>
+      </plugin>
+----

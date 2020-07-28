@@ -21,7 +21,9 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -39,11 +41,13 @@ public class PrometheusEnricher extends BaseEnricher {
     static final String ENRICHER_NAME = "jkube-prometheus";
     static final String PROMETHEUS_PORT = "9779";
 
-    private enum Config implements Configs.Key {
-        prometheusPort,
-        prometheusPath;
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        PROMETHEUS_PORT("prometheusPort"),
+        PROMETHEUS_PATH("prometheusPath");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
     }
 
     public PrometheusEnricher(JKubeEnricherContext buildContext) {
@@ -61,7 +65,7 @@ public class PrometheusEnricher extends BaseEnricher {
                     Map<String, String> annotations = new HashMap<>();
                     MapUtil.putIfAbsent(annotations, ANNOTATION_PROMETHEUS_PORT, prometheusPort);
                     MapUtil.putIfAbsent(annotations, ANNOTATION_PROMETHEUS_SCRAPE, "true");
-                    String prometheusPath = getConfig(Config.prometheusPath);
+                    String prometheusPath = getConfig(Config.PROMETHEUS_PATH);
                     if (StringUtils.isNotBlank(prometheusPath)) {
                         MapUtil.putIfAbsent(annotations, ANNOTATION_PROMETHEUS_PATH, prometheusPath);
                     }
@@ -78,7 +82,7 @@ public class PrometheusEnricher extends BaseEnricher {
     }
 
     private String findPrometheusPort() {
-        String prometheusPort = getConfig(Config.prometheusPort);
+        String prometheusPort = getConfig(Config.PROMETHEUS_PORT);
         if (StringUtils.isBlank(prometheusPort)) {
             for (ImageConfiguration configuration : getImages()) {
                 BuildConfiguration buildImageConfiguration = configuration.getBuildConfiguration();

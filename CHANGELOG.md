@@ -21,6 +21,8 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.0-SNAPSHOT
+
+### 1.0.0-rc-1 (2020-07-23)
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)
 * Fix #187: Provided Dockerfile is always skipped in simple Dockerfile mode
 * Fix #237: Remove deprecated fields and method calls
@@ -28,10 +30,20 @@ Usage:
 * Fix #192: Removed `@Deprecated` fields from ClusterAccess
 * Fix #190: Removed `@Deprecated` fields from AssemblyConfiguration
 * Fix #189: Removed `@Deprecated` fields from BuildConfiguration
+* Fix #73: Jib Support, Port of fabric8io/fabric8-maven-plugin#1766
 * Fix #195: Added MigrateMojo for migrating projects from FMP to JKube
-* Fix #261: DockerFileBuilder only supports *nix paths (Dockerfile Linux only), fixed invalid default configs
 * Fix #238: Watch uses same logic as build to monitor changed assembly files
 * Fix #245: Debug goals work on webapp (Tomcat & Jetty) > See https://github.com/jkubeio/jkube-images/releases/tag/v0.0.7
+* Fix #261: DockerFileBuilder only supports \*nix paths (Dockerfile Linux only), fixed invalid default configs
+* Fix #246: Dockerfile custom interpolation is broken
+* Fix #259: Cleanup unused properties inside Mojos
+* Fix #94: Properly define + document JKubeProjectAssembly behavior
+* Fix #248: Properly name and document (Maven/System) configuration properties
+* Fix #284: warning message in log goal when no pod is found
+* Fix #267: openshift-maven-plugin does not update Routes
+* Fix #286: Refactor ImageConfiguration model
+* Fix #283: Add support for WildFly Bootable JAR
+* Fix #306: Template resolution and helm work in OpenShift-Maven-Plugin
 
 ### 1.0.0-alpha-4 (2020-06-08)
 * Fix #173: Use OpenShift compliant git/vcs annotations 

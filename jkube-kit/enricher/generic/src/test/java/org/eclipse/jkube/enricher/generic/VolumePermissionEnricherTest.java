@@ -89,7 +89,7 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void testAdapt() throws Exception {
+    public void testAdapt() {
         final TestConfig[] data = new TestConfig[]{
             new TestConfig(null, null),
             new TestConfig(null, VolumePermissionEnricher.ENRICHER_NAME, "volumeA"),
@@ -98,8 +98,8 @@ public class VolumePermissionEnricherTest {
 
         for (final TestConfig tc : data) {
             final ProcessorConfig config = new ProcessorConfig(null, null,
-                    Collections.singletonMap(VolumePermissionEnricher.ENRICHER_NAME, new TreeMap(Collections
-                            .singletonMap(VolumePermissionEnricher.Config.permission.name(), tc.permission))));
+                    Collections.singletonMap(VolumePermissionEnricher.ENRICHER_NAME,
+                        Collections.singletonMap("permission", tc.permission)));
 
             // Setup mock behaviour
             new Expectations() {{

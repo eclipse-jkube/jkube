@@ -86,15 +86,20 @@ WARNING: The `jkube.debug.suspend` flag will disable readiness probes in the Kub
 === Supported Properties For Debug Goal
 
 .Options available with debug goal
-[cols="1.6.3"]
+[cols="1,6,1"]
 |===
-| Element | Description | Property(System property or maven property)
+| Element | Description | Property
 
 | *debugPort*
-| Default port available for debugging your application inside Kubernetes. Defaults to `5005`
+| Default port available for debugging your application inside Kubernetes.
+
+  Defaults to `5005`.
 | `jkube.debug.port`
 
 | *debugSuspend*
-| Disables readiness probes in Kubernetes Deployment in order to start port forwarding during early phases of application startup. Defaults to `false`
+| Disables readiness probes in Kubernetes Deployment in order to start port forwarding during early phases of
+  application startup.
+
+  Defaults to `false`.
 | `jkube.debug.suspend`
 |===

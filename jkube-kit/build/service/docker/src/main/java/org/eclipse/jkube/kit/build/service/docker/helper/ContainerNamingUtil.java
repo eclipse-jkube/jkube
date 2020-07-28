@@ -15,8 +15,8 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import com.google.common.collect.ImmutableSet;
 import org.eclipse.jkube.kit.build.api.model.Container;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
 import java.util.ArrayList;

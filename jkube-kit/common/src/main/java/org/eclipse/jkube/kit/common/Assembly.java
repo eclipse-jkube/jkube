@@ -66,16 +66,5 @@ public class Assembly implements Serializable {
      * @return The Assembly base directory.
      */
     private File baseDirectory;
-    /**
-     * Similar to a UNIX permission, sets the file mode of the files included. THIS IS AN OCTAL VALUE.
-     *
-     * <p> Format: (User)(Group)(Other) where each component is a sum of Read = 4, Write = 2, and Execute = 1.
-     *
-     * <p> For example, the value 0644 translates to User read-write, Group and Other read-only.
-     *
-     * @param fileMode New file mode value for the assembly fileSet.
-     * @return The assembly fileSet file mode value.
-     */
-    private String fileMode;
 
 }

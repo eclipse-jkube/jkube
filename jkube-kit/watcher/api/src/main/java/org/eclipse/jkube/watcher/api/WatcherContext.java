@@ -13,18 +13,17 @@
  */
 package org.eclipse.jkube.watcher.api;
 
-import org.eclipse.jkube.kit.build.service.docker.WatchService;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.eclipse.jkube.kit.build.service.docker.WatchService;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 /**
  * @author nicola

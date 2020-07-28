@@ -1,0 +1,46 @@
+
+[[jkube-healthcheck-webapp]]
+==== jkube-healthcheck-webapp
+
+This enricher adds kubernetes readiness and liveness probes with WebApp. This requires that you have `maven-war-plugin` set.
+
+The enricher will use the following settings by default:
+
+- port = `8080`
+- scheme = `HTTP`
+- path = ``
+- initialReadinessDelay = 10
+- initialLivenessDelay = 180
+
+If `path` attribute is not set (default value) then this enricher is disabled.
+
+These values can be configured by the enricher in the `{plugin}` configuration as shown below:
+
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+  <version>{version}</version>
+  <executions>
+    <execution>
+      <id>jkube</id>
+      <goals>
+        <goal>resource</goal>
+        <goal>helm</goal>
+        <goal>build</goal>
+      </goals>
+    </execution>
+  </executions>
+  <configuration>
+    <enricher>
+      <config>
+        <jkube-healthcheck-webapp>
+          <path>/</path>
+        </jkube-healthcheck-webapp>
+      </config>
+    </enricher>
+  </configuration>
+    <!-- ... -->
+</plugin>
+----

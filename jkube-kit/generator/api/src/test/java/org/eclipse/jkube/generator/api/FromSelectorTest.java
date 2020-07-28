@@ -18,14 +18,14 @@ import java.util.Map;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import mockit.Mocked;
 import org.junit.Test;
 
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.s2i;
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.docker;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.s2i;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.docker;
 import static org.eclipse.jkube.kit.config.resource.RuntimeMode.OPENSHIFT;
 import static org.junit.Assert.assertEquals;
 
@@ -65,19 +65,19 @@ public class FromSelectorTest {
       assertEquals(tc.expectedFrom, selector.getFrom());
       Map<String, String> fromExt = selector.getImageStreamTagFromExt();
       assertEquals(3, fromExt.size());
-      assertEquals("ImageStreamTag", fromExt.get(OpenShiftBuildStrategy.SourceStrategy.kind.key()));
-      assertEquals("openshift", fromExt.get(OpenShiftBuildStrategy.SourceStrategy.namespace.key()));
-      assertEquals(tc.expectedName, fromExt.get(OpenShiftBuildStrategy.SourceStrategy.name.key()));
+      assertEquals("ImageStreamTag", fromExt.get(JKubeBuildStrategy.SourceStrategy.kind.key()));
+      assertEquals("openshift", fromExt.get(JKubeBuildStrategy.SourceStrategy.namespace.key()));
+      assertEquals(tc.expectedName, fromExt.get(JKubeBuildStrategy.SourceStrategy.name.key()));
     }
   }
 
   private static final class TestCase {
     private final RuntimeMode runtimeMode;
-    private final OpenShiftBuildStrategy strategy;
+    private final JKubeBuildStrategy strategy;
     private final String expectedFrom;
     private final String expectedName;
 
-    public TestCase(RuntimeMode runtimeMode, OpenShiftBuildStrategy strategy, String expectedFrom, String expectedName) {
+    public TestCase(RuntimeMode runtimeMode, JKubeBuildStrategy strategy, String expectedFrom, String expectedName) {
       this.runtimeMode = runtimeMode;
       this.strategy = strategy;
       this.expectedFrom = expectedFrom;
