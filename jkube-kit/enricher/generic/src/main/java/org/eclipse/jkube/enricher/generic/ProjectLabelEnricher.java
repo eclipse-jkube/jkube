@@ -62,15 +62,6 @@ public class ProjectLabelEnricher extends BaseEnricher {
         protected String key;
         @Getter
         protected String defaultValue;
-
-        /*customApp,
-        customGroup,
-        customProvider,
-        useProjectLabel {{ d = "false"; }};
-
-        protected String d; public String def() {
-            return d;
-        }*/
     }
 
     public ProjectLabelEnricher(JKubeEnricherContext buildContext) {
