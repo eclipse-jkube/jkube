@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.0.0-SNAPSHOT
 * Fix #290: Bump Fabric8 Kubernetes Client to v4.10.3
+* Fix #273: Added new parameter to allow for custom _app_ name
 
 ### 1.0.0-rc-1 (2020-07-23)
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)
@@ -47,7 +48,7 @@ Usage:
 * Fix #306: Template resolution and helm work in OpenShift-Maven-Plugin
 
 ### 1.0.0-alpha-4 (2020-06-08)
-* Fix #173: Use OpenShift compliant git/vcs annotations 
+* Fix #173: Use OpenShift compliant git/vcs annotations
 * Fix #182: Assembly is never null
 * Fix #184: IngressEnricher seems to be broken, Port of fabric8io/fabric8-maven-plugin#1730
 * Fix #198: Wildfly works in OpenShift with S2I binary build (Docker)
@@ -92,7 +93,7 @@ Usage:
 * Fix #97: Port of fabric8io/fabric8-maven-plugin#1794 to fix ImageChange triggers not being set in DeploymentConfig when resource fragments are used
 * Ported PR fabric8io/fabric8-maven-plugin#1802, Labels are missing for some objects
 * Ported PR fabric8io/fabric8-maven-plugin#1805, NullPointerException in ConfigMapEnricher
-* Ported PR fabric8io/fabric8-maven-plugin#1772, Support for setting BuildConfig memory/cpu request and limits 
+* Ported PR fabric8io/fabric8-maven-plugin#1772, Support for setting BuildConfig memory/cpu request and limits
 * Fix #112: Fix windows specific path error while splitting file path
 * Fix #102: HelmMojo works again
 * Fix #120: Critical bugs reported by Sonar
