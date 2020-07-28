@@ -21,25 +21,14 @@
     <parent>
         <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
         <artifactId>javaee8-webprofile-liberty</artifactId>
-        <version>1.0.0-alpha-4</version>
+        <version>1.0.0-rc-1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>javaee8-webprofile-liberty-app</artifactId>
-    <version>1.0.0-alpha-4</version>
+    <version>1.0.0-rc-1</version>
     <name>Eclipse JKube :: Quickstarts :: Maven :: JavaEE 8 WebProfile :: Application</name>
     <packaging>war</packaging>
-
-
-    <properties>
-        <maven.compile.source>1.8</maven.compile.source>
-        <maven.compile.target>1.8</maven.compile.target>
-
-        <testServerHost>*</testServerHost>
-        <testServerHttpPort>9080</testServerHttpPort>
-        <testServerHttpsPort>9443</testServerHttpsPort>
-        <applicationContext>libertyapi</applicationContext>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -50,20 +39,26 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/wlp</directory>
+                <targetPath>${project.basedir}/target/wlp</targetPath>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.eclipse.jkube</groupId>
                 <artifactId>kubernetes-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
-                    <mode>kubernetes</mode>
                     <namespace>${docker.user}</namespace>
                     <images>
                         <image>
                             <name>${docker.user}/${project.artifactId}:${project.version}</name>
                             <alias>meeting-reservation-service</alias>
                             <build>
-                                <from>websphere-liberty:beta</from>
+                                <from>websphere-liberty:20.0.0.6-full-java8-ibmjava</from>
                                 <tags>
                                     <tag>latest</tag>
                                     <tag>${project.version}</tag>
@@ -74,13 +69,12 @@
                                     <inline>
                                         <files>
                                             <file>
-                                                <source>src/main/wlp/server.xml</source>
+                                                <source>target/wlp/server.xml</source>
                                                 <outputDirectory>.</outputDirectory>
                                             </file>
                                             <file>
-                                                <source>src/main/wlp/bootstrap.properties</source>
+                                                <source>target/wlp/bootstrap.properties</source>
                                                 <outputDirectory>.</outputDirectory>
-                                                <filtered>true</filtered>
                                             </file>
                                             <file>
                                                 <source>${project.build.directory}/${project.artifactId}.war</source>
@@ -113,7 +107,6 @@
                     <execution>
                         <id>build-images</id>
                         <goals>
-                            <goal>resource</goal>
                             <goal>build</goal>
                         </goals>
                     </execution>

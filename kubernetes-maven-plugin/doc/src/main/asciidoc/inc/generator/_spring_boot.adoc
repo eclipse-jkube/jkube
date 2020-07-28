@@ -10,11 +10,11 @@ Beside the  <<generator-options-common, common generator options>> and the <<gen
 .Spring-Boot configuration options
 [cols="1,6,1"]
 |===
-| Element | Description | Default
+| Element | Description | Property
 
 | *color*
-| If seth force the use of color in the Spring Boot console output.
-|
+| If set, force the use of color in the Spring Boot console output.
+| `jkube.generator.spring-boot.color`
 |===
 
 The generator adds Kubernetes liveness and readiness probes pointing to either the management or server port as read from the `application.properties`.

@@ -41,30 +41,40 @@ the following additional configuration options are recognized:
 .Java Application configuration options
 [cols="1,6,1"]
 |===
-| Element | Description | Default
+| Element | Description | Property
 
-| *assemblyRef*
-| If a reference to an assembly is given, then this is used without trying to detect the artifacts to include.
-|
 | *targetDir*
-| Directory within the generated image where to put the detected artefacts into. Change this only if the base image is changed, too.
-| `/deployments`
+| Directory within the generated image where to put the detected artefacts into. Change this only if the base image is
+  changed, too.
+
+  Defaults to `/deployments`.
+| `jkube.generator.java-exec.targetDir`
 
 | *jolokiaPort*
 | Port of the Jolokia agent exposed by the base image. Set this to 0 if you don't want to expose the Jolokia port.
-| 8778
+
+  Defaults to `8778`.
+| `jkube.generator.java-exec.jolokiaPort`
 
 | *mainClass*
-| Main class to call. If not given first a check is performed to detect a fat-jar (see above). Next a class is looked up by scanning `target/classes` for a single class with a main method. If no such class is found or if more than one is found, then this generator does nothing.
-|
+| Main class to call. If not given first a check is performed to detect a fat-jar (see above). Next a class is looked up
+  by scanning `target/classes` for a single class with a main method. If no such class is found or if more than one is
+  found, then this generator does nothing.
+| `jkube.generator.java-exec.mainClass`
 
 | *prometheusPort*
-| Port of the Prometheus jmx_exporter exposed by the base image. Set this to 0 if you don't want to expose the Prometheus port.
-| 9779
+| Port of the Prometheus jmx_exporter exposed by the base image. Set this to 0 if you don't want to expose the Prometheus
+  port.
+
+  Defaults to `9779`.
+| `jkube.generator.java-exec.prometheusPort`
 
 | *webPort*
-| Port to expose as service, which is supposed to be the port of a web application. Set this to 0 if you don't want to expose a port.
-| 8080
+| Port to expose as service, which is supposed to be the port of a web application. Set this to 0 if you don't want to
+  expose a port.
+
+  Defaults to `8080`.
+| `jkube.generator.java-exec.webPort`
 |===
 
 The exposed ports are typically later on use by <<enrichers, Enrichers>> to create default Kubernetes or OpenShift services.

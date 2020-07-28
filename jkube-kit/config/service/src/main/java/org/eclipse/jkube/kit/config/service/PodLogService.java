@@ -155,8 +155,8 @@ public class PodLogService {
             onPod(Watcher.Action.ADDED, latestPod, kubernetes, namespace, ctrlCMessage, followLog);
         }
         if (!watchAddedPodsOnly && !runningPod) {
-            log.warn("No pod is running yet. Are you sure you deployed your app via `jkube:deploy`?");
-            log.warn("Or did you stop it via `jkube:stop`? If so try running the `jkube:start` goal");
+            log.warn("No pod is running yet. Are you sure you deployed your app using Eclipse JKube apply/deploy mechanism?");
+            log.warn("Or did you undeploy it? If so try running the Eclipse JKube apply/deploy tasks again.");
         }
         podWatcher = pods.watch(new Watcher<Pod>() {
             @Override

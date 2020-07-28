@@ -25,7 +25,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.log.DefaultLogCallback;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpec;
-import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.wait.ExitCodeChecker;
 import org.eclipse.jkube.kit.build.service.docker.wait.HealthCheckChecker;
 import org.eclipse.jkube.kit.build.service.docker.wait.HttpPingChecker;
@@ -37,6 +37,7 @@ import org.eclipse.jkube.kit.build.service.docker.wait.WaitTimeoutException;
 import org.eclipse.jkube.kit.build.service.docker.wait.WaitUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.commons.text.StrSubstitutor;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * @author roland

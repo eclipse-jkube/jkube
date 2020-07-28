@@ -56,12 +56,17 @@ public class AssemblyFile implements Serializable {
      */
     private String destName;
     /**
-     * Whether to determine if the file is filtered.
+     * Similar to a UNIX permission, sets the file mode of the file included. THIS IS AN OCTAL VALUE.
      *
-     * @param filtered New filtered value for the assembly file.
-     * @return The assembly filtered value.
+     * <p> Format: (User)(Group)(Other) where each component is a sum of Read = 4, Write = 2, and Execute = 1.
+     *
+     * <p> For example, the value 0644 translates to User read-write, Group and Other read-only.
+     *
+     * @param fileMode New file mode value for the assembly fileSet.
+     * @return The assembly fileSet file mode value.
      */
-    private boolean filtered;
+    private String fileMode;
+
 
     // Plexus deserialization specific setters
     /**

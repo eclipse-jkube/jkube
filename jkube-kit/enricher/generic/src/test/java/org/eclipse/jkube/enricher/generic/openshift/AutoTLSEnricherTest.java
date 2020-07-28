@@ -27,6 +27,8 @@ import com.google.gson.JsonParser;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -43,25 +45,9 @@ public class AutoTLSEnricherTest {
 
     @Mocked
     private JKubeEnricherContext context;
-    @Mocked
-    JavaProject project;
 
-    // *******************************
-    // Tests
-    // *******************************
-
-    private static final class SecretNameTestConfig {
-        private final PlatformMode mode;
-        private final String tlsSecretNameConfig;
-        private final String tlsSecretName;
-
-        private SecretNameTestConfig(PlatformMode mode, String tlsSecretNameConfig, String tlsSecretName) {
-            this.mode = mode;
-            this.tlsSecretNameConfig = tlsSecretNameConfig;
-            this.tlsSecretName = tlsSecretName;
-        }
-    }
-
+    @AllArgsConstructor
+    @Builder
     private static final class AdaptTestConfig {
         private final RuntimeMode mode;
         private final String initContainerNameConfig;
@@ -72,62 +58,43 @@ public class AutoTLSEnricherTest {
         private final String tlsSecretVolumeName;
         private final String jksVolumeNameConfig;
         private final String jksVolumeName;
-
-        private AdaptTestConfig(RuntimeMode mode, String initContainerNameConfig, String initContainerName,
-                                String initContainerImageConfig, String initContainerImage, String tlsSecretVolumeNameConfig,
-                                String tlsSecretVolumeName, String jksVolumeNameConfig, String jksVolumeName) {
-            this.mode = mode;
-            this.initContainerNameConfig = initContainerNameConfig;
-            this.initContainerName = initContainerName;
-            this.initContainerImageConfig = initContainerImageConfig;
-            this.initContainerImage = initContainerImage;
-            this.tlsSecretVolumeNameConfig = tlsSecretVolumeNameConfig;
-            this.tlsSecretVolumeName = tlsSecretVolumeName;
-            this.jksVolumeNameConfig = jksVolumeNameConfig;
-            this.jksVolumeName = jksVolumeName;
-        }
     }
 
     @Test
-    public void testAdapt() throws Exception {
+    public void testAdapt() {
         final AdaptTestConfig[] data = new AdaptTestConfig[] {
-                new AdaptTestConfig(RuntimeMode.KUBERNETES, null, null, null, null, null, null, null, null),
-                new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
-                        "jimmidyson/pemtokeystore:v0.1.0", null, "tls-pem", null, "tls-jks"),
-                new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
-                        "jimmidyson/pemtokeystore:v0.1.0", "tls-a", "tls-a", null, "tls-jks"),
-                new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
-                        "jimmidyson/pemtokeystore:v0.1.0", null, "tls-pem", "jks-b", "jks-b"),
-                new AdaptTestConfig(RuntimeMode.OPENSHIFT, "test-container-name", "test-container-name", "image/123",
-                        "image/123", "tls-a", "tls-a", "jks-b", "jks-b") };
+            AdaptTestConfig.builder().mode(RuntimeMode.KUBERNETES).build(),
+            new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
+                    "jimmidyson/pemtokeystore:v0.1.0", null, "tls-pem", null, "tls-jks"),
+            new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
+                    "jimmidyson/pemtokeystore:v0.1.0", "tls-a", "tls-a", null, "tls-jks"),
+            new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
+                    "jimmidyson/pemtokeystore:v0.1.0", null, "tls-pem", "jks-b", "jks-b"),
+            new AdaptTestConfig(RuntimeMode.OPENSHIFT, "test-container-name", "test-container-name", "image/123",
+                    "image/123", "tls-a", "tls-a", "jks-b", "jks-b") };
 
         for (final AdaptTestConfig tc : data) {
-            TreeMap<String, String> configMap = new TreeMap<>();
-            configMap.put(AutoTLSEnricher.Config.pemToJKSInitContainerName.name(), tc.initContainerNameConfig);
-            configMap.put(AutoTLSEnricher.Config.pemToJKSInitContainerImage.name(), tc.initContainerImageConfig);
-            configMap.put(AutoTLSEnricher.Config.tlsSecretVolumeName.name(), tc.tlsSecretVolumeNameConfig);
-            configMap.put(AutoTLSEnricher.Config.jksVolumeName.name(), tc.jksVolumeNameConfig);
+            TreeMap<String, Object> configMap = new TreeMap<>();
+            configMap.put("pemToJKSInitContainerName", tc.initContainerNameConfig);
+            configMap.put("pemToJKSInitContainerImage", tc.initContainerImageConfig);
+            configMap.put("tlsSecretVolumeName", tc.tlsSecretVolumeNameConfig);
+            configMap.put("jksVolumeName", tc.jksVolumeNameConfig);
 
             final ProcessorConfig config = new ProcessorConfig(null, null,
-                    Collections.singletonMap(AutoTLSEnricher.ENRICHER_NAME, configMap));
+                    Collections.singletonMap("jkube-openshift-autotls", configMap));
 
-            final Properties projectProps = new Properties();
-            projectProps.put(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, tc.mode.name());
+            final Properties properties = new Properties();
+            properties.put(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, tc.mode.name());
 
-            // Setup mock behaviour
-            new Expectations() {
-                {
-                    Configuration configuration = Configuration.builder()
-                        .properties(projectProps)
-                        .processorConfig(config)
-                        .build();
-                    context.getConfiguration();
-                    result = configuration;
-                    project.getArtifactId();
-                    result = "projectA";
-                    minTimes = 0;
-                }
-            };
+            // @formatter:off
+            new Expectations() {{
+                Configuration configuration = Configuration.builder()
+                    .processorConfig(config)
+                    .build();
+                context.getProperties(); result = properties;
+                context.getConfiguration(); result = configuration;
+            }};
+            // @formatter:on
 
             AutoTLSEnricher enricher = new AutoTLSEnricher(context);
             KubernetesListBuilder klb = new KubernetesListBuilder().addNewPodTemplateItem().withNewMetadata().and()

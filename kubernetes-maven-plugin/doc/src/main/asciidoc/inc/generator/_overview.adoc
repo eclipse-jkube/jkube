@@ -56,7 +56,7 @@ Beside specifying generator configuration in the plugin's configuration it can b
 .Example generator property config
 [source, sh, subs="+attributes"]
 ----
-mvn -Djkube.generator.spring-boot.alias="myapp"
+mvn -Djkube.generator.java-exec.webPort=8082
 ----
 
 The general scheme is a prefix `jkube.generator.` followed by the unique generator name and then the generator specific key.

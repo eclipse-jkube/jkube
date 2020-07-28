@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import org.apache.maven.plugins.annotations.Parameter;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 
@@ -29,48 +28,6 @@ import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
  */
 @Mojo(name = "resource", defaultPhase = LifecyclePhase.PROCESS_RESOURCES, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class OpenshiftResourceMojo extends ResourceMojo {
-
-    /**
-     * The OpenShift deploy timeout in seconds:
-     * See this issue for background of why for end users on slow wifi on their laptops
-     * DeploymentConfigs usually barf: https://github.com/openshift/origin/issues/10531
-     *
-     * Please follow also the discussion at
-     * <ul>
-     *     <li>https://github.com/fabric8io/fabric8-maven-plugin/pull/944#discussion_r116962969</li>
-     *     <li>https://github.com/fabric8io/fabric8-maven-plugin/pull/794</li>
-     * </ul>
-     * and the references within it for the reason of this ridiculous long default timeout
-     * (in short: Its because Docker image download times are added to the deployment time, making
-     * the default of 10 minutes quite unusable if multiple images are included in the deployment).
-     */
-    @Parameter(property = "jkube.openshift.deployTimeoutSeconds", defaultValue = "3600")
-    private Long openshiftDeployTimeoutSeconds;
-
-    /**
-     * If set to true it would set the container image reference to "", this is done to handle weird
-     * behavior of OpenShift 3.7 in which subsequent rollouts lead to ImagePullErr
-     *
-     * Please see discussion at
-     * <ul>
-     *     <li>https://github.com/openshift/origin/issues/18406</li>
-     *     <li>https://github.com/fabric8io/fabric8-maven-plugin/issues/1130</li>
-     * </ul>
-     */
-    @Parameter(property = "jkube.openshift.trimImageInContainerSpec", defaultValue = "false")
-    private Boolean trimImageInContainerSpec;
-
-    @Parameter(property = "jkube.openshift.generateRoute", defaultValue = "true")
-    private Boolean generateRoute;
-
-    @Parameter(property = "jkube.openshift.enableAutomaticTrigger", defaultValue = "true")
-    private Boolean enableAutomaticTrigger;
-
-    @Parameter(property = "jkube.openshift.imageChangeTrigger", defaultValue = "true")
-    private Boolean enableImageChangeTrigger;
-
-    @Parameter(property = "jkube.openshift.enrichAllWithImageChangeTrigger", defaultValue = "false")
-    private Boolean erichAllWithImageChangeTrigger;
 
     @Override
     protected String getLogPrefix() {

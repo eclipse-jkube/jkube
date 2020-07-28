@@ -61,12 +61,6 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
     public static final String DEFAULT_OPENSHIFT_MANIFEST = "${basedir}/target/classes/META-INF/jkube/openshift.yml";
 
     /**
-     * Should we fail the build if an apply fails?
-     */
-    @Parameter(property = "jkube.deploy.failOnError", defaultValue = "true")
-    protected boolean failOnError;
-
-    /**
      * Should we update resources by deleting them first and then creating them again?
      */
     @Parameter(property = "jkube.recreate", defaultValue = "false")
@@ -212,7 +206,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
 
             boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
             if (openShift) {
-                getLog().info("OpenShift platform detected");
+                log.info("[[B]]OpenShift[[B]] platform detected");
             } else {
                 disableOpenShiftFeatures(applyService);
             }

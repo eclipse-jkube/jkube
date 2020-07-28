@@ -13,59 +13,164 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import java.util.Properties;
+
+import io.fabric8.openshift.api.model.RouteBuilder;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.openshift.api.model.Route;
+import mockit.Expectations;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
 public class RouteEnricherTest {
+
     @Mocked
     private JKubeEnricherContext context;
 
-    @Test
-    public void testCreate() {
-        // Given
-        Service providedService = getTestService().build();
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(providedService);
-        RouteEnricher routeEnricher = new RouteEnricher(context);
+    private Properties properties;
+    private ProcessorConfig processorConfig;
+    private KubernetesListBuilder klb;
 
-        // When
-        routeEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
-
-        // Then
-        Route route = (Route) kubernetesListBuilder.buildLastItem();
-        assertEquals(2, kubernetesListBuilder.buildItems().size());
-        assertNotNull(route);
-        assertEquals(providedService.getMetadata().getName(), route.getMetadata().getName());
-        assertNotNull(route.getSpec());
-        assertEquals("Service", route.getSpec().getTo().getKind());
-        assertEquals("test-svc", route.getSpec().getTo().getName());
-        assertEquals(8080, route.getSpec().getPort().getTargetPort().getIntVal().intValue());
+    @Before
+    public void setUp() {
+        properties = new Properties();
+        processorConfig = new ProcessorConfig();
+        klb = new KubernetesListBuilder();
+        // @formatter:off
+        klb.addToItems(new ServiceBuilder()
+                .editOrNewMetadata()
+                    .withName("test-svc")
+                    .addToLabels("expose", "true")
+                .endMetadata()
+                .editOrNewSpec()
+                    .addNewPort()
+                        .withName("http")
+                        .withPort(8080)
+                        .withProtocol("TCP")
+                        .withTargetPort(new IntOrString(8080))
+                    .endPort()
+                    .addToSelector("group", "test")
+                    .withType("LoadBalancer")
+                .endSpec()
+            .build());
+        new Expectations() {{
+            context.getProperties(); result = properties;
+            context.getConfiguration().getProcessorConfig(); result = processorConfig;
+        }};
+        // @formatter:on
     }
 
-    private ServiceBuilder getTestService() {
-        return new ServiceBuilder()
-                .withNewMetadata()
+    @Test
+    public void testCreateWithDefaultsInOpenShiftShouldAddRoute() {
+        // When
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build().getItems())
+            .hasSize(2)
+            .extracting("kind")
+            .containsExactly("Service", "Route");
+        assertThat(klb.build().getItems().get(1))
+            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+            .contains("test-svc", "test-svc", "Service", "test-svc", 8080);
+    }
+
+    @Test
+    public void testCreateWithDefaultsInKubernetesShouldNotAddRoute() {
+        // Given
+        // @formatter:off
+        new Expectations() {{
+            context.getProperties(); minTimes = 0;
+            context.getConfiguration().getProcessorConfig(); minTimes = 0;
+        }};
+        // @formatter:on
+        // When
+        new RouteEnricher(context).create(PlatformMode.kubernetes, klb);
+        // Then
+        assertThat(klb.build().getItems())
+            .hasSize(1)
+            .extracting("kind")
+            .containsExactly("Service");
+    }
+
+    @Test
+    public void testCreateWithGenerateExtraPropertyInOpenShiftShouldNotAddRoute() {
+        // Given
+        properties.put("jkube.openshift.generateRoute", "false");
+        // When
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build().getItems())
+            .hasSize(1)
+            .extracting("kind")
+            .containsExactly("Service");
+    }
+
+    @Test
+    public void testCreateWithGenerateEnricherPropertyInOpenShiftShouldNotAddRoute() {
+        // Given
+        properties.put("jkube.enricher.jkube-openshift-route.generateRoute", "false");
+        // When
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build().getItems())
+            .hasSize(1)
+            .extracting("kind")
+            .containsExactly("Service");
+    }
+
+    @Test
+    public void testCreateWithDefaultsAndRouteDomainInOpenShiftShouldAddRouteWithDomainPostfix() {
+        // Given
+        // @formatter:off
+        new Expectations() {{
+            context.getProperties(); minTimes = 0;
+            context.getConfiguration().getResource().getRouteDomain(); result = "jkube.eclipse.org";
+        }};
+        // @formatter:on
+        // When
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build().getItems())
+            .hasSize(2)
+            .extracting("kind")
+            .containsExactly("Service", "Route");
+        assertThat(klb.build().getItems().get(1))
+            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+            .contains("test-svc", "test-svc.jkube.eclipse.org", "Service", "test-svc", 8080);
+    }
+
+    @Test
+    public void testCreateWithDefaultsAndExistingRouteWithMatchingNameInBuilderInOpenShiftShouldReuseExistingRoute() {
+        // Given
+        klb.addToItems(new RouteBuilder()
+            .editOrNewMetadata()
                 .withName("test-svc")
-                .addToLabels("expose", "true")
-                .endMetadata()
-                .withNewSpec()
-                .addNewPort()
-                .withName("http")
-                .withPort(8080)
-                .withProtocol("TCP")
-                .withTargetPort(new IntOrString(8080))
+            .endMetadata()
+            .editOrNewSpec()
+                .withHost("example.com")
+                .editOrNewPort()
+                    .withNewTargetPort(1337)
                 .endPort()
-                .addToSelector("group", "test")
-                .withType("LoadBalancer")
-                .endSpec();
+            .endSpec()
+            .build());
+        // When
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build().getItems())
+            .hasSize(2)
+            .extracting("kind")
+            .containsExactly("Service", "Route");
+        assertThat(klb.build().getItems().get(1))
+            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+            .contains("test-svc", "example.com", null, null, 1337);
     }
 }

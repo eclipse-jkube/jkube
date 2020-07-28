@@ -26,7 +26,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>spring-boot-dekorate</artifactId>
-  <version>1.0.0-alpha-4</version>
+  <version>1.0.0-rc-1</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot - Dekorate</name>
   <packaging>jar</packaging>
 
@@ -37,7 +37,6 @@
   <properties>
     <dekorate.version>0.10.5</dekorate.version>
   </properties>
-
 
   <dependencies>
     <dependency>
@@ -94,28 +93,51 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.eclipse.jkube</groupId>
-        <artifactId>kubernetes-maven-plugin</artifactId>
-        <version>${project.version}</version>
-        <executions>
-          <execution>
-            <id>resources</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>resource</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>build</id>
-            <phase>package</phase>
-            <goals>
-              <goal>build</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
+  <profiles>
+    <profile>
+      <id>kubernetes</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>${project.version}</version>
+            <executions>
+              <execution>
+                <id>resources</id>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>resource</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>openshift</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>openshift-maven-plugin</artifactId>
+            <version>${project.version}</version>
+            <executions>
+              <execution>
+                <id>resources</id>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>resource</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

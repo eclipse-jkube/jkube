@@ -1,0 +1,21 @@
+
+[[jkube-prometheus]]
+==== jkube-prometheus
+
+This enricher adds Prometheus annotation like:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: 9779
+----
+
+By default the enricher inspects the images' BuildConfiguration and add the annotations if the port 9779 is listed.
+You can force the plugin to add annotations by setting enricher's config ```prometheusPort```

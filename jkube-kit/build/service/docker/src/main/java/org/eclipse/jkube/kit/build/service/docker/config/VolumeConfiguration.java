@@ -18,10 +18,8 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
 
 import java.io.Serializable;
-import java.lang.String;
 import java.util.Map;
 
 /**
@@ -30,6 +28,7 @@ import java.util.Map;
  *  @author Tom Burton
  *  @version Dec 15, 2016
  */
+@SuppressWarnings("JavaDoc")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -41,21 +40,29 @@ public class VolumeConfiguration implements Serializable {
 
     /**
      * Volume Name
+     * @param name name of volume configuration
+     * @return name of specified volume configuration
      */
     private String name;
 
     /**
      * Volume driver for mounting the volume
+     * @param driver volume driver
+     * @return string indicating volume driver
      */
     private String driver;
 
     /**
      * Driver specific options
+     * @param opts driver specific options
+     * @return map containing driver specific options
      */
     private Map<String, String> opts;
 
     /**
      * Volume labels
+     * @param labels volume labels
+     * @return map containing volume labels
      */
     private Map<String, String> labels;
 

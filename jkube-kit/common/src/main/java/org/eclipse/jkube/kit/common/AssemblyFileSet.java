@@ -50,16 +50,16 @@ public class AssemblyFileSet implements Serializable {
    */
   private File outputDirectory;
   /**
-   * TODO: Whether to filter symbols in the files as they are copied, using properties from the build configuration
+   *  A set of files and directories to include.
    *
-   * @param filtered New filtered value for the assembly fileSet.
-   * @return The assembly fileSet filtered value.
-   */
-  private boolean filtered;
-  /**
-   *  A set of files and directory to include. <b>NO WILDCARDS SUPPORTED</b>
+   *  <p> If none is present, then everything is included.
    *
-   *  <p> If none is present, then everything is included
+   *  <p> Files can be referenced by using their complete path name.
+   *
+   *  <p> Wildcards are also supported, patterns will be matched using
+   *  {@link java.nio.file.FileSystem#getPathMatcher(String)} <code>glob</code> syntax.
+   *
+   *  <p> e.g. &#42;&#42;/&#42;.txt will match any file with a txt extension in any directory.
    *
    * @param includes New includes for the assembly fileSet.
    * @return The assembly fileSet includes
@@ -69,7 +69,7 @@ public class AssemblyFileSet implements Serializable {
   /**
    *  A set of files and directory to exclude.
    *
-   *  <p> If none is present, then there are no exclusions
+   *  <p> If none is present, then there are no exclusions.
    *
    * @param excludes New includes for the assembly fileSet.
    * @return The assembly fileSet includes
@@ -83,6 +83,8 @@ public class AssemblyFileSet implements Serializable {
    *
    * <p> For example, the value 0644 translates to User read-write, Group and Other read-only.
    *
+   * <p> The default value is 0644
+   *
    * @param fileMode New file mode value for the assembly fileSet.
    * @return The assembly fileSet file mode value.
    */
@@ -93,6 +95,8 @@ public class AssemblyFileSet implements Serializable {
    * <p> Format: (User)(Group)(Other) where each component is a sum of Read = 4, Write = 2, and Execute = 1.
    *
    * <p> For example, the value 0755 translates to User read-write, Group and Other read-only.
+   *
+   * <p> The default value is 0755
    *
    * @param directoryMode New file mode value for the assembly fileSet.
    * @return The assembly fileSet directory mode value.

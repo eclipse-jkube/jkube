@@ -18,14 +18,15 @@ spec:
     spec:
       volumes:
         - name: config
-          gitRepo:
-            repository: 'https://github.com/jstrachan/sample-springboot-config.git'
-            revision: 667ee4db6bc842b127825351e5c9bae5a4fb2147
-            directory: .
+          configMap:
+            name: ${project.artifactId}
+            items:
+              - key: application.properties
+                path: application.properties
       containers:
         - volumeMounts:
             - name: config
-              mountPath: /app/config
+              mountPath: /deployments/config
           env:
             - name: KUBERNETES_NAMESPACE
               valueFrom:

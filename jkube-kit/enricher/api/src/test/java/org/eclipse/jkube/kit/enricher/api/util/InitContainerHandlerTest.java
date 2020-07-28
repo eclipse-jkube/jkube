@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.api.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Container;
@@ -56,7 +57,7 @@ public class InitContainerHandlerTest {
         Container initContainer = createInitContainer("blub", "foo/blub");
         handler.appendInitContainer(builder, initContainer);
         assertTrue(handler.hasInitContainer(builder, "blub"));
-        verifyBuilder(builder, Arrays.asList(initContainer));
+        verifyBuilder(builder, Collections.singletonList(initContainer));
     }
 
     @Test
@@ -86,7 +87,7 @@ public class InitContainerHandlerTest {
         handler.removeInitContainer(builder, "bla");
         assertFalse(handler.hasInitContainer(builder, "bla"));
         assertTrue(handler.hasInitContainer(builder, "blub"));
-        verifyBuilder(builder, Arrays.asList(createInitContainer("blub", "foo/blub")));
+        verifyBuilder(builder, Collections.singletonList(createInitContainer("blub", "foo/blub")));
     }
 
     @Test
@@ -100,7 +101,7 @@ public class InitContainerHandlerTest {
         Container initContainer = createInitContainer("blub", "foo/blub");
         handler.appendInitContainer(builder, initContainer);
         assertTrue(handler.hasInitContainer(builder, "blub"));
-        verifyBuilder(builder, Arrays.asList(initContainer));
+        verifyBuilder(builder, Collections.singletonList(initContainer));
     }
 
     @Test
@@ -144,10 +145,9 @@ public class InitContainerHandlerTest {
     }
 
     private Container createInitContainer(String name, String image) {
-        Container initContainer = new ContainerBuilder()
+        return new ContainerBuilder()
                 .withName(name)
                 .withImage(image)
                 .build();
-        return initContainer;
     }
 }

@@ -55,6 +55,7 @@
     - jkube-healthcheck-spring-boot
     - jkube-healthcheck-wildfly-swarm
     - jkube-healthcheck-thorntail-v2
+    - jkube-healthcheck-wildfly-jar
     - jkube-healthcheck-karaf
     - jkube-healthcheck-vertx
     - jkube-healthcheck-docker
@@ -74,6 +75,7 @@
     - spring-boot
     - wildfly-swarm
     - thorntail-v2
+    - wildfly-jar
     - openliberty
     - karaf
     - vertx
@@ -103,6 +105,7 @@
     - spring-boot
     - wildfly-swarm
     - thorntail-v2
+    - wildfly-jar
     - karaf
     - vertx
     - java-exec

@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.enricher.specific;
 
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
@@ -25,30 +27,19 @@ public class WebAppHealthCheckEnricher extends AbstractHealthCheckEnricher {
         super(buildContext, "jkube-healthcheck-webapp");
     }
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
-        scheme {{
-            d = "HTTP";
-        }},
-        port {{
-            d = "8080";
-        }},
-        path {{
-            d = "";
-        }},
-        initialReadinessDelay {{
-            d = "10";
-        }},
-        initialLivenessDelay {{
-            d = "180";
-        }};
+        SCHEME("scheme", "HTTP"),
+        PORT("port", "8080"),
+        PATH("path", ""),
+        INITIAL_READINESS_DELAY("initialReadinessDelay", "10"),
+        INITIAL_LIVENESS_DELAY("initialLivenessDelay", "180");
 
-        protected String d;
-
-        public String def() {
-            return d;
-        }
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     @Override
@@ -62,9 +53,8 @@ public class WebAppHealthCheckEnricher extends AbstractHealthCheckEnricher {
     }
 
     private boolean isApplicable() {
-        return getContext()
-            .hasPlugin("org.apache.maven.plugins", "maven-war-plugin") &&
-            StringUtils.isNotEmpty(Configs.asString(getConfig(Config.path)));
+        return getContext().hasPlugin("org.apache.maven.plugins", "maven-war-plugin")
+            && StringUtils.isNotEmpty(getConfig(Config.PATH));
     }
 
     private Probe getProbe(boolean readiness) {
@@ -85,22 +75,22 @@ public class WebAppHealthCheckEnricher extends AbstractHealthCheckEnricher {
     }
 
     private int getInitialReadinessDelay() {
-        return Configs.asInt(getConfig(Config.initialReadinessDelay));
+        return Configs.asInt(getConfig(Config.INITIAL_READINESS_DELAY));
     }
 
     private int getInitialLivenessDelay() {
-        return  Configs.asInt(getConfig(Config.initialLivenessDelay));
+        return  Configs.asInt(getConfig(Config.INITIAL_LIVENESS_DELAY));
     }
 
     protected String getScheme() {
-        return Configs.asString(getConfig(Config.scheme));
+        return getConfig(Config.SCHEME);
     }
 
     protected int getPort() {
-        return Configs.asInt(getConfig(Config.port));
+        return Configs.asInt(getConfig(Config.PORT));
     }
 
     protected String getPath() {
-        return Configs.asString(getConfig(Config.path));
+        return getConfig(Config.PATH);
     }
 }

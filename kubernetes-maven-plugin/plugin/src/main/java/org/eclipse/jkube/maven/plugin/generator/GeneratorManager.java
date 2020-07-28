@@ -15,7 +15,7 @@ package org.eclipse.jkube.maven.plugin.generator;
 
 import org.eclipse.jkube.generator.api.Generator;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;

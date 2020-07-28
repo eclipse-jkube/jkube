@@ -16,12 +16,12 @@ package org.eclipse.jkube.generator.api;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.kind;
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.name;
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.namespace;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.kind;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.name;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.namespace;
 
 
 /**
@@ -39,8 +39,8 @@ public abstract class FromSelector {
 
     public String getFrom() {
         RuntimeMode mode = context.getRuntimeMode();
-        OpenShiftBuildStrategy strategy = context.getStrategy();
-        if (mode == RuntimeMode.OPENSHIFT && strategy == OpenShiftBuildStrategy.s2i) {
+        JKubeBuildStrategy strategy = context.getStrategy();
+        if (mode == RuntimeMode.OPENSHIFT && strategy == JKubeBuildStrategy.s2i) {
             return getS2iBuildFrom();
         } else {
             return getDockerBuildFrom();

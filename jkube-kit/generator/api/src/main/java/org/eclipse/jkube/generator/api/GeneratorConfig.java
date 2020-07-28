@@ -16,11 +16,9 @@ package org.eclipse.jkube.generator.api;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
+import javax.annotation.Nonnull;
 import java.util.Properties;
 
-
-/**
- */
 public class GeneratorConfig {
 
     private static final String GENERATOR_PROP_PREFIX = "jkube.generator";
@@ -41,25 +39,18 @@ public class GeneratorConfig {
      * @param key key to lookup. If it implements also DefaultValueProvider then use this for a default value
      * @return the defa
      */
-    public String get(Configs.Key key) {
-        return get(key, key.def());
+    public String get(Configs.Config key) {
+        return get(key, null);
     }
 
     /**
      * Get a config value with a default
-     * @param key key part to lookup. The whole key is build up from <code>prefix + "." + key</code>. If key is null,
-     *            then only the prefix is used for the lookup (this is suitable for enrichers having only one config option)
+     * @param key key part to lookup.
      * @param defaultVal the default value to use when the no config is set
      * @return the value looked up or the default value.
      */
-    public String get(Configs.Key key, String defaultVal) {
-        String keyVal = key != null ? key.name() : "";
-        String val = config != null ? config.getConfig(name, keyVal) : null;
-        if (val == null) {
-            String fullKey = GENERATOR_PROP_PREFIX + "." + name + "." + key;
-            val = Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, fullKey);
-        }
-        return val != null ? val : defaultVal;
+    public String get(@Nonnull Configs.Config key, String defaultVal) {
+        return ProcessorConfig.getConfigValue(config, name, GENERATOR_PROP_PREFIX, properties, key, defaultVal);
     }
 
 }

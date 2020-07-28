@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.SecurityContext;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -118,8 +118,8 @@ public class ContainerHandler {
         Properties props = getPropertiesWithSystemOverrides(this.configurationProperties);
         String configuredRegistry = EnvUtil.firstRegistryOf(
             imageConfiguration.getRegistry(),
-            props.getProperty("docker.pull.registry"),
-            props.getProperty("docker.registry"));
+            props.getProperty("jkube.docker.pull.registry"),
+            props.getProperty("jkube.docker.registry"));
 
         return new ImageName(imageConfiguration.getName()).getFullName(configuredRegistry);
     }
