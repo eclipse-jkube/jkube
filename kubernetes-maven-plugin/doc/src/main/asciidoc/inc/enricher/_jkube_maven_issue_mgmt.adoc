@@ -1,0 +1,48 @@
+
+[[jkube-maven-issue-mgmt-enricher]]
+==== jkube-maven-issue-mgmt
+
+This enricher adds additional https://maven.apache.org/pom.html#Issue_Management[Issue Management] related metadata to
+all objects supporting annotations.
+These metadata will be added only if the https://maven.apache.org/pom.html#Issue_Management[Issue Management]
+information is available in the `pom.xml` of the Maven project.
+
+The following annotations will be added to the objects that support these annotations,
+
+.Maven Issue Tracker Enrichers Annotation Mapping
+[cols="2,2,3"]
+|===
+| Maven Issue Tracker Info | Annotation | Description
+
+| issueManagement/system
+| jkube.io/issue-system
+| The Issue Management system like Bugzilla, JIRA, GitHub etc.,
+
+| issueManagement/url
+| jkube.io/issue-tracker-url
+| The Issue Management url e.g. GitHub Issues Url
+
+|===
+
+Lets say you have a maven pom.xml with the following issue management information,
+
+[source,xml]
+----
+<issueManagement>
+   <system>GitHub</system>
+   <url>https://github.com/reactiverse/vertx-maven-plugin/issues/</url>
+</issueManagement>
+----
+
+This information will be enriched as annotations in the generated manifest like,
+
+[source,yaml]
+----
+# ...
+  kind: Service
+  metadata:
+    annotations:
+      jkube.io/issue-system: "GitHub"
+      jkube.io/issue-tracker-url: "https://github.com/reactiverse/vertx-maven-plugin/issues/"
+# ...
+----

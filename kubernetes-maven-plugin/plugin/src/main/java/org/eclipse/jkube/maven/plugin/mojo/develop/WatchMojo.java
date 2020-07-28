@@ -20,7 +20,7 @@ import java.util.Set;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -166,8 +166,8 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                 .buildTimestamp(getBuildTimestamp())
                 .gavLabel(getGavLabel())
                 .buildContext(initJKubeConfiguration())
-                .follow(follow())
-                .showLogs(showLogs())
+                .follow(watchFollow)
+                .showLogs(watchShowLogs)
                 .serviceHubFactory(serviceHubFactory)
                 .hub(hub)
                 .dispatcher(getLogDispatcher(hub))

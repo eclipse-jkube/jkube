@@ -15,7 +15,7 @@ package org.eclipse.jkube.kit.build.service.docker.config.handler;
 
 import java.util.List;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 
 /**

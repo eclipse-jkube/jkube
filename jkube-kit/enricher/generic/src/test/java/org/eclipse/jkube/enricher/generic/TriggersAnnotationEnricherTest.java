@@ -28,7 +28,6 @@ import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.openshift.api.model.ImageChangeTrigger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -165,9 +164,11 @@ public class TriggersAnnotationEnricherTest {
 
         final Properties props = new Properties();
         props.put("jkube.enricher.jkube-triggers-annotation.containers", "c2, c3, anotherc");
+        // @formatter:off
         new Expectations() {{
-            context.getConfiguration(); result = Configuration.builder().properties(props).build();
+            context.getProperties(); result = props;
         }};
+        // @formatter:on
 
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new StatefulSetBuilder()
             .withNewSpec()

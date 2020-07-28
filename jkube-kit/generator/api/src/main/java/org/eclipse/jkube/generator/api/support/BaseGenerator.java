@@ -20,24 +20,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.Generator;
 import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.GitUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.image.build.util.BuildLabelAnnotations;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Repository;
 
 /**
  * @author roland
@@ -53,28 +56,32 @@ public abstract class BaseGenerator implements Generator {
     protected final PrefixedLogger log;
     private final FromSelector fromSelector;
 
-
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    enum Config implements Configs.Config {
         // The image name
-        name,
+        NAME("name", null),
 
         // The alias to use (default to the generator name)
-        alias,
+        ALIAS("alias", null),
 
         // whether the generator should always add to already existing image configurations
-        add {{d = "false"; }},
+        ADD("add", "false"),
 
         // Base image
-        from,
+        FROM("from", null),
 
         // Base image mode (only relevant for OpenShift)
-        fromMode,
+        FROM_MODE("fromMode", null),
 
         // Optional registry
-        registry;
+        REGISTRY("registry", null);
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
+
     public BaseGenerator(GeneratorContext context, String name) {
         this(context, name, null);
     }
@@ -99,17 +106,25 @@ public abstract class BaseGenerator implements Generator {
         return context;
     }
 
-    protected String getConfig(Configs.Key key) {
+    protected String getConfig(Configs.Config key) {
         return config.get(key);
     }
 
-    protected String getConfig(Configs.Key key, String defaultVal) {
+    protected String getConfig(Configs.Config key, String defaultVal) {
         return config.get(key, defaultVal);
+    }
+
+    protected String getConfigWithFallback(Config key, String fallbackPropertyKey, String defaultVal) {
+        final String value = getConfig(key, Configs.getFromSystemPropertyWithPropertiesAsFallback(getProject().getProperties(), fallbackPropertyKey));
+        if (value != null) {
+            return value;
+        }
+        return defaultVal;
     }
 
     // Get 'from' as configured without any default and image stream tag handling
     protected String getFromAsConfigured() {
-        return getConfigWithFallback(Config.from, "jkube.generator.from", null);
+        return getConfigWithFallback(Config.FROM, "jkube.generator.from", null);
     }
 
     /**
@@ -118,8 +133,8 @@ public abstract class BaseGenerator implements Generator {
      * @param builder for the build image configuration to add the from to.
      */
     protected void addFrom(BuildConfiguration.BuildConfigurationBuilder builder) {
-        String fromMode = getConfigWithFallback(Config.fromMode, "jkube.generator.fromMode", "docker");
-        String from = getConfigWithFallback(Config.from, "jkube.generator.from", null);
+        String fromMode = getConfigWithFallback(Config.FROM_MODE, "jkube.generator.fromMode", "docker");
+        String from = getFromAsConfigured();
         if ("docker".equalsIgnoreCase(fromMode)) {
             String fromImage = from;
             if (fromImage == null) {
@@ -136,22 +151,22 @@ public abstract class BaseGenerator implements Generator {
                 if (StringUtils.isBlank(tag)) {
                     tag = "latest";
                 }
-                fromExt.put(OpenShiftBuildStrategy.SourceStrategy.name.key(), iName.getSimpleName() + ":" + tag);
+                fromExt.put(JKubeBuildStrategy.SourceStrategy.name.key(), iName.getSimpleName() + ":" + tag);
                 if (iName.getUser() != null) {
-                    fromExt.put(OpenShiftBuildStrategy.SourceStrategy.namespace.key(), iName.getUser());
+                    fromExt.put(JKubeBuildStrategy.SourceStrategy.namespace.key(), iName.getUser());
                 }
-                fromExt.put(OpenShiftBuildStrategy.SourceStrategy.kind.key(), "ImageStreamTag");
+                fromExt.put(JKubeBuildStrategy.SourceStrategy.kind.key(), "ImageStreamTag");
             } else {
                 fromExt = fromSelector != null ? fromSelector.getImageStreamTagFromExt() : null;
             }
             if (fromExt != null) {
-                String namespace = fromExt.get(OpenShiftBuildStrategy.SourceStrategy.namespace.key());
+                String namespace = fromExt.get(JKubeBuildStrategy.SourceStrategy.namespace.key());
                 if (namespace != null) {
                     log.info("Using ImageStreamTag '%s' from namespace '%s' as builder image",
-                             fromExt.get(OpenShiftBuildStrategy.SourceStrategy.name.key()), namespace);
+                             fromExt.get(JKubeBuildStrategy.SourceStrategy.name.key()), namespace);
                 } else {
                     log.info("Using ImageStreamTag '%s' as builder image",
-                             fromExt.get(OpenShiftBuildStrategy.SourceStrategy.name.key()));
+                             fromExt.get(JKubeBuildStrategy.SourceStrategy.name.key()));
                 }
                 builder.fromExt(fromExt);
             }
@@ -167,9 +182,9 @@ public abstract class BaseGenerator implements Generator {
      */
     protected String getImageName() {
         if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT) {
-            return getConfigWithFallback(Config.name, "jkube.generator.name", "%a:%l");
+            return getConfigWithFallback(Config.NAME, "jkube.generator.name", "%a:%l");
         } else {
-            return getConfigWithFallback(Config.name, "jkube.generator.name", "%g/%a:%l");
+            return getConfigWithFallback(Config.NAME, "jkube.generator.name", "%g/%a:%l");
         }
     }
 
@@ -181,10 +196,10 @@ public abstract class BaseGenerator implements Generator {
      */
     protected String getRegistry() {
         if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT &&
-            getContext().getStrategy() == OpenShiftBuildStrategy.s2i) {
+            getContext().getStrategy() == JKubeBuildStrategy.s2i) {
             return null;
         }
-        return getConfigWithFallback(Config.registry, "jkube.generator.registry", null);
+        return getConfigWithFallback(Config.REGISTRY, "jkube.generator.registry", null);
     }
 
     /**
@@ -192,7 +207,7 @@ public abstract class BaseGenerator implements Generator {
      * @return an alias which is never null;
      */
     protected String getAlias() {
-        return getConfigWithFallback(Config.alias, "jkube.generator.alias", getName());
+        return getConfigWithFallback(Config.ALIAS, "jkube.generator.alias", getName());
     }
 
     protected boolean shouldAddGeneratedImageConfiguration(List<ImageConfiguration> configs) {
@@ -201,17 +216,9 @@ public abstract class BaseGenerator implements Generator {
             return false;
         }
         if (containsBuildConfiguration(configs)) {
-            return Configs.asBoolean(getConfig(Config.add));
+            return Configs.asBoolean(getConfig(Config.ADD));
         }
         return true;
-    }
-
-    protected String getConfigWithFallback(Config name, String key, String defaultVal) {
-        String value = getConfig(name);
-        if (value == null) {
-            value = Configs.getSystemPropertyWithMavenPropertyAsFallback(getProject().getProperties(), key);
-        }
-        return value != null ? value : defaultVal;
     }
 
     protected void addLatestTagIfSnapshot(BuildConfiguration.BuildConfigurationBuilder buildBuilder) {

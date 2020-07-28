@@ -17,6 +17,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -112,10 +113,16 @@ public interface EnricherContext {
     }
 
     /**
-     * Gets a system property used in project.
+     * Returns the properties applicable for this EnricherContext.
+     *
+     * @return properties for the context     */
+    Properties getProperties();
+
+    /**
+     * Gets a property used in project.
      *
      * @param key name of property
      * @return value of property if set.
      */
-    Object getProperty(String key);
+    String getProperty(String key);
 }

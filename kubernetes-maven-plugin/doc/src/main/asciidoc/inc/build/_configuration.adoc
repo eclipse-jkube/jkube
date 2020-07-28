@@ -53,7 +53,6 @@ https://docs.docker.com/engine/reference/api/docker_remote_api_v1.24/#build-imag
 | The base image which should be used for this image. If not given this default to `busybox:latest` and is suitable for a pure data image.
 ifeval::["{goal-prefix}" == "oc"]
 In case of an <<build-openshift,S2I Binary build>> this parameter specifies the S2I Builder Image to use, which by default is `fabric8/s2i-java:latest`. See also <<build-config-from-ext,from-ext>> how to add additional properties for the base image.
-
 endif::[]
 
 | [[build-config-from-ext]]**fromExt**
@@ -63,7 +62,6 @@ a| Extended definition for a base image. This field holds a map of defined in `<
 ifeval::["{goal-prefix}" == "oc"]
 * `<kind>` : Kind of the reference to the builder image when in S2I build mode. By default its `ImageStreamTag` but can be also `ImageStream`. An alternative would be `DockerImage`
 * `<namespace>` : Namespace where this builder image lives.
-
 endif::[]
 
 A provided `<from>` takes precedence over the name given here. This tag is useful for extensions of this plugin.
@@ -72,7 +70,8 @@ A provided `<from>` takes precedence over the name given here. This tag is usefu
 | Definition of a health check as described in <<build-healthcheck, Healthcheck>>
 
 | *imagePullPolicy*
-| Specific pull policy for the base image. This overwrites any global pull policy. See the global configuration option <<image-pull-policy, imagePullPolicy>> for the possible values and the default.
+| Specific pull policy for the base image. This overwrites any global pull policy.
+  See the global configuration option <<image-pull-policy, imagePullPolicy>> for the possible values and the default.
 
 | *loadNamePattern*
 a| Scan the images in the archive specified in `dockerArchive` and match the associated repository and tag information against this pattern. When a matching repository and tag is found, create a tag linking the `name` for this image to the repository and tag that matched the pattern.
@@ -114,7 +113,7 @@ When matching multiple components, `$$**/$$` is likely to be more useful than `$
 | if set to true disables building of the image. This config option is best used together with a maven property
 
 | *skipTag*
-| If set to `true` this plugin won't add any tags to images. Property: `docker.skip.tag`
+| If set to `true` this plugin won't add any tags to images.
 
 | *tags*
 | List of additional `tag` elements with which an image is to be tagged after the build. Whitespace is trimmed from each element and empty elements are ignored.
@@ -181,4 +180,5 @@ remote API.
 </build>
 ----
 
-In order to see the individual build steps you can switch on `verbose` mode either by setting the property `docker.verbose` or by using `<verbose>true</verbose>` in the <<global-configuration,Global configuration>>
+In order to see the individual build steps you can switch on `verbose` mode either by setting the property
+`jkube.docker.verbose` or by using `<verbose>true</verbose>` in the <<global-configuration,Global configuration>>

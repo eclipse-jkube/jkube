@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import org.eclipse.jkube.kit.build.service.docker.QueryService;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,10 +33,10 @@ public class StartOrderResolver {
 
     private final QueryService queryService;
 
-    private final List<Resolvable> secondPass;
+    private final List<ImageConfiguration> secondPass;
     private final Set<String> processedImages;
 
-    public static List<Resolvable> resolve(QueryService queryService, List<Resolvable> convertToResolvables) {
+    public static List<ImageConfiguration> resolve(QueryService queryService, List<ImageConfiguration> convertToResolvables) {
         return new StartOrderResolver(queryService).resolve(convertToResolvables);
     }
 
@@ -51,10 +52,10 @@ public class StartOrderResolver {
     // Only return images which should be run
     // Images references via volumes but with no run configuration are started once to create
     // an appropriate container which can be linked into the image
-    private List<Resolvable> resolve(List<Resolvable> images) {
-        List<Resolvable> resolved = new ArrayList<>();
+    private List<ImageConfiguration> resolve(List<ImageConfiguration> images) {
+        List<ImageConfiguration> resolved = new ArrayList<>();
         // First pass: Pick all data images and all without dependencies
-        for (Resolvable config : images) {
+        for (ImageConfiguration config : images) {
             List<String> volumesOrLinks = extractDependentImagesFor(config);
             if (volumesOrLinks == null) {
                 // A data image only or no dependency. Add it to the list of data image which can be always
@@ -70,7 +71,7 @@ public class StartOrderResolver {
         return secondPass.isEmpty() ? resolved : resolveRemaining(resolved);
     }
 
-    private List<Resolvable> resolveRemaining(List<Resolvable> ret) {
+    private List<ImageConfiguration> resolveRemaining(List<ImageConfiguration> ret) {
         int retries = MAX_RESOLVE_RETRIES;
         String error = null;
         try {
@@ -90,7 +91,7 @@ public class StartOrderResolver {
         return ret;
     }
 
-    private void updateProcessedImages(Resolvable config) {
+    private void updateProcessedImages(ImageConfiguration config) {
         processedImages.add(config.getName());
         if (config.getAlias() != null) {
             processedImages.add(config.getAlias());
@@ -98,9 +99,9 @@ public class StartOrderResolver {
     }
 
     private String remainingImagesDescription() {
-        StringBuffer ret = new StringBuffer();
+        StringBuilder ret = new StringBuilder();
         ret.append("Unresolved images:\n");
-        for (Resolvable config : secondPass) {
+        for (ImageConfiguration config : secondPass) {
             ret.append("* ")
                .append(config.getAlias())
                .append(" depends on ")
@@ -110,12 +111,12 @@ public class StartOrderResolver {
         return ret.toString();
     }
 
-    private void resolveImageDependencies(List<Resolvable> resolved) throws DockerAccessException, ResolveSteadyStateException {
+    private void resolveImageDependencies(List<ImageConfiguration> resolved) throws DockerAccessException, ResolveSteadyStateException {
         boolean changed = false;
-        Iterator<Resolvable> iterator = secondPass.iterator();
+        Iterator<ImageConfiguration> iterator = secondPass.iterator();
 
         while (iterator.hasNext()) {
-            Resolvable config = iterator.next();
+            ImageConfiguration config = iterator.next();
             if (hasRequiredDependencies(config)) {
                 updateProcessedImages(config);
                 resolved.add(config);
@@ -129,7 +130,7 @@ public class StartOrderResolver {
         }
     }
 
-    private boolean hasRequiredDependencies(Resolvable config) throws DockerAccessException {
+    private boolean hasRequiredDependencies(ImageConfiguration config) throws DockerAccessException {
         List<String> dependencies = extractDependentImagesFor(config);
         if (dependencies == null) {
             return false;
@@ -149,19 +150,12 @@ public class StartOrderResolver {
         return true;
     }
 
-    private List<String> extractDependentImagesFor(Resolvable config) {
+    private List<String> extractDependentImagesFor(ImageConfiguration config) {
         LinkedHashSet<String> ret = new LinkedHashSet<>(config.getDependencies());
         return ret.isEmpty() ? null : new ArrayList<>(ret);
     }
 
     // Exception indicating a steady state while resolving start order of images
     private static class ResolveSteadyStateException extends Exception { }
-
-    public interface Resolvable {
-        String getName();
-        String getAlias();
-        List<String> getDependencies();
-    }
-
 
 }

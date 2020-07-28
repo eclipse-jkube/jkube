@@ -38,7 +38,9 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecFluent;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigFluent;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecFluent;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -76,12 +78,13 @@ public class ImageEnricher extends BaseEnricher {
         super(buildContext, "jkube-image");
     }
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
         // What pull policy to use when fetching images
-        pullPolicy;
+        PULL_POLICY("pullPolicy");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
     }
 
     @Override
@@ -257,7 +260,7 @@ public class ImageEnricher extends BaseEnricher {
 
     private void mergeImagePullPolicy(ImageConfiguration imageConfiguration, Container container) {
         if (StringUtils.isBlank(container.getImagePullPolicy())) {
-            String policy = getConfig(Config.pullPolicy);
+            String policy = getConfig(Config.PULL_POLICY);
             if (policy == null) {
                 policy = "IfNotPresent";
                 String imageName = imageConfiguration.getName();

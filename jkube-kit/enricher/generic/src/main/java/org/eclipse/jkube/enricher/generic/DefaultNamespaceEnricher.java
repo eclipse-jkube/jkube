@@ -22,6 +22,8 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -35,17 +37,23 @@ import java.util.List;
 import java.util.Optional;
 
 public class DefaultNamespaceEnricher extends BaseEnricher {
+
+    private static final String NAMESPACE = "namespace";
     protected static final String[] NAMESPACE_KINDS = {"Project", "Namespace" };
     protected static final List<String> NAMESPACE_KINDS_LIST = Arrays.asList(NAMESPACE_KINDS);
 
     private final HandlerHub handlerHub;
 
     private final ResourceConfig config;
-    // Available configuration keys
-    private enum Config implements Configs.Key {
-        name,
-        type    {{ d = "namespace"; }};
-        public String def() { return d; } protected String d;
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        NAMESPACE(DefaultNamespaceEnricher.NAMESPACE, null),
+        TYPE("type", DefaultNamespaceEnricher.NAMESPACE);
+
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public DefaultNamespaceEnricher(JKubeEnricherContext buildContext) {
@@ -54,7 +62,7 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
         config = Optional.ofNullable(getConfiguration().getResource()).orElse(ResourceConfig.builder().build());
 
         handlerHub = new HandlerHub(
-                getContext().getGav(), getContext().getConfiguration().getProperties());
+                getContext().getGav(), getContext().getProperties());
     }
 
     /**
@@ -66,24 +74,22 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
 
-        final String name = config.getNamespace();
+        final String ns = getNamespace(config, getConfig(Config.NAMESPACE));
 
-        if (name == null || name.isEmpty()) {
+        if (ns == null || ns.isEmpty()) {
             return;
         }
 
         if (!KubernetesResourceUtil.checkForKind(builder, NAMESPACE_KINDS)) {
-            String type = getConfig(Config.type);
-            if ("project".equalsIgnoreCase(type) || "namespace".equalsIgnoreCase(type)) {
+            String type = getConfig(Config.TYPE);
+            if ("project".equalsIgnoreCase(type) || NAMESPACE.equalsIgnoreCase(type)) {
                 if (platformMode == PlatformMode.kubernetes) {
-
-                    log.info("Adding a default Namespace:" + config.getNamespace());
-                    Namespace namespace = handlerHub.getNamespaceHandler().getNamespace(config.getNamespace());
+                    log.info("Adding a default Namespace: %s", ns);
+                    Namespace namespace = handlerHub.getNamespaceHandler().getNamespace(ns);
                     builder.addToNamespaceItems(namespace);
                 } else {
-
-                    log.info("Adding a default Project" + config.getNamespace());
-                    Project project = handlerHub.getProjectHandler().getProject(config.getNamespace());
+                    log.info("Adding a default Project %s", ns);
+                    Project project = handlerHub.getProjectHandler().getProject(ns);
                     builder.addToItems(project);
                 }
             }
@@ -98,17 +104,14 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
      */
     @Override
     public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
-
         builder.accept(new TypedVisitor<ObjectMetaBuilder>() {
             private String getNamespaceName() {
-                if (config.getNamespace() != null && !config.getNamespace().isEmpty()) {
-                    return config.getNamespace();
-                }
-                return builder.buildItems().stream()
+                final String defaultValue = builder.buildItems().stream()
                     .filter(item -> NAMESPACE_KINDS_LIST.contains(item.getKind()))
                     .map(HasMetadata::getMetadata)
                     .map(ObjectMeta::getName)
                     .findFirst().orElse(null);
+                return getNamespace(config, getConfig(Config.NAMESPACE, defaultValue));
             }
 
             @Override

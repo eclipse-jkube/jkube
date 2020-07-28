@@ -32,7 +32,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 @Execute(phase = LifecyclePhase.INSTALL)
 public class DeployMojo extends ApplyMojo {
 
-    @Parameter(property = "docker.skip.deploy", defaultValue = "false")
+    @Parameter(property = "jkube.skip.deploy", defaultValue = "false")
     protected boolean skipDeploy;
 
     @Override

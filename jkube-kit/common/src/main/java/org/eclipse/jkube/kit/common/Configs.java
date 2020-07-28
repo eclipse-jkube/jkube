@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -21,11 +22,22 @@ import java.util.Properties;
 public class Configs {
 
     // Interfaces to use for dealing with configuration values and default values
-    public interface Key {
+    public interface Config {
         String name();
-        String def();
+        default String getKey() {
+            return name();
+        }
+        default String getDefaultValue() {
+            return null;
+        }
     }
 
+    /**
+     * Returns an int corresponding to the parsed provided value.
+     *
+     * @param value string to parse.
+     * @return parsed int or 0 if value is null.
+     */
     public static int asInt(String value) {
         return value != null ? Integer.parseInt(value) : 0;
     }
@@ -40,12 +52,8 @@ public class Configs {
 
     public static String asString(String value) { return value; }
 
-    public static String getSystemPropertyWithMavenPropertyAsFallback(Properties properties, String key) {
-        String val = System.getProperty(key);
-        if (val == null && properties != null) {
-            val = properties.getProperty(key);
-        }
-        return val;
+    public static String getFromSystemPropertyWithPropertiesAsFallback(Properties properties, String key) {
+        return System.getProperty(key, Optional.ofNullable(properties).map(p -> p.getProperty(key)).orElse(null));
     }
 
 }

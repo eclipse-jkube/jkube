@@ -29,14 +29,14 @@ import io.fabric8.openshift.api.model.NamedTagEventListBuilder;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
-import org.eclipse.jkube.kit.build.core.assembly.JKubeBuildTarArchiver;
-import org.eclipse.jkube.kit.config.JKubeConfiguration;
-import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.service.docker.RegistryConfig;
+import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
+import org.eclipse.jkube.kit.config.image.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -139,14 +139,14 @@ public class OpenshiftBuildServiceTest {
                 .buildDirectory(baseDir)
                 .buildRecreateMode(BuildRecreateMode.none)
                 .s2iBuildNameSuffix("-s2i-suffix2")
-                .openshiftBuildStrategy(OpenShiftBuildStrategy.s2i);
+                .jKubeBuildStrategy(JKubeBuildStrategy.s2i);
 
         defaultConfigSecret = BuildServiceConfig.builder()
                 .buildDirectory(baseDir)
                 .buildRecreateMode(BuildRecreateMode.none)
                 .s2iBuildNameSuffix("-s2i-suffix2")
                 .openshiftPullSecret("pullsecret-fabric8")
-                .openshiftBuildStrategy(OpenShiftBuildStrategy.s2i);
+                .jKubeBuildStrategy(JKubeBuildStrategy.s2i);
     }
 
     @Test
@@ -212,7 +212,7 @@ public class OpenshiftBuildServiceTest {
                     .buildDirectory(baseDir)
                     .buildRecreateMode(BuildRecreateMode.none)
                     .s2iBuildNameSuffix("-docker")
-                    .openshiftBuildStrategy(OpenShiftBuildStrategy.docker).build();
+                    .jKubeBuildStrategy(JKubeBuildStrategy.docker).build();
             // @formatter:on
             new Expectations() {{
                 jKubeServiceHub.getBuildServiceConfig(); result = dockerConfig;
@@ -239,7 +239,7 @@ public class OpenshiftBuildServiceTest {
             final BuildServiceConfig dockerConfig = BuildServiceConfig.builder()
                     .buildDirectory(baseDir)
                     .buildRecreateMode(BuildRecreateMode.none)
-                    .openshiftBuildStrategy(OpenShiftBuildStrategy.docker)
+                    .jKubeBuildStrategy(JKubeBuildStrategy.docker)
                     .build();
             // @formatter:on
             new Expectations() {{
@@ -268,7 +268,7 @@ public class OpenshiftBuildServiceTest {
                     .buildDirectory(baseDir)
                     .buildRecreateMode(BuildRecreateMode.none)
                     .s2iBuildNameSuffix("-docker")
-                    .openshiftBuildStrategy(OpenShiftBuildStrategy.docker)
+                    .jKubeBuildStrategy(JKubeBuildStrategy.docker)
                     .build();
             // @formatter:on
             new Expectations() {{
@@ -553,7 +553,7 @@ public class OpenshiftBuildServiceTest {
 
         final String s2iBuildNameSuffix = Optional
                 .ofNullable(config.getS2iBuildNameSuffix())
-                .orElseGet(() -> config.getOpenshiftBuildStrategy() == OpenShiftBuildStrategy.s2i ?
+                .orElseGet(() -> config.getJKubeBuildStrategy() == JKubeBuildStrategy.s2i ?
                         "-s2i" : "");
 
         BuildConfig bc = new BuildConfigBuilder()

@@ -13,29 +13,31 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Before;
+import org.junit.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNotNull;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-
-import java.util.List;
-import java.util.Properties;
-
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.junit.Before;
-import org.junit.Test;
-import mockit.Expectations;
-import mockit.Mocked;
 
 /**
  * @author jzuriaga
@@ -51,24 +53,25 @@ public class QuarkusGeneratorTest {
     @Mocked
     private JavaProject project;
 
-    @Mocked
     private ProcessorConfig config;
-
     private Properties projectProps = new Properties();
 
     @Before
     public void setUp() throws IOException {
         createFakeRunnerJar();
-
+        config = new ProcessorConfig();
+        projectProps.put("jkube.generator.name", "quarkus");
         // @formatter:off
         new Expectations() {{
             project.getVersion(); result = "0.0.1-SNAPSHOT";
             project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
-            // project.getPlugin(QUARKUS_GROUP + ":" + QUARKUS_MAVEN_PLUGIN); result = quarkusPlugin;
+            project.getProperties(); result = projectProps;
+            ctx.getProject(); result = project;
+            ctx.getConfig(); result = config;
+            ctx.getRuntimeMode(); result = RuntimeMode.OPENSHIFT; minTimes = 0;
+            ctx.getStrategy(); result = JKubeBuildStrategy.s2i; minTimes = 0;
         }};
         // @formatter:on
-        projectProps.put("jkube.generator.name", "quarkus");
-        setupContextOpenShift(projectProps, null, null);
     }
 
     @Test
@@ -86,27 +89,20 @@ public class QuarkusGeneratorTest {
         setNativeConfig();
 
         QuarkusGenerator generator = new QuarkusGenerator(ctx);
-        List<ImageConfiguration> resultImages = null;
         List<ImageConfiguration> existingImages = new ArrayList<>();
 
-        resultImages = generator.customize(existingImages, true);
+        List<ImageConfiguration> resultImages = generator.customize(existingImages, true);
 
         assertBuildFrom(resultImages, "registry.access.redhat.com/ubi8/ubi-minimal:8.1");
     }
 
     @Test
     public void testCustomizeReturnsConfiguredFrom () {
-        // @formatter:off
-        new Expectations() {{
-            config.getConfig("quarkus", "from"); result = BASE_JAVA_IMAGE;
-        }};
-        // @formatter:on
-
+        config.getConfig().put("quarkus", Collections.singletonMap("from", BASE_JAVA_IMAGE));
         QuarkusGenerator generator = new QuarkusGenerator(ctx);
-        List<ImageConfiguration> resultImages = null;
         List<ImageConfiguration> existingImages = new ArrayList<>();
 
-        resultImages = generator.customize(existingImages, true);
+        List<ImageConfiguration> resultImages = generator.customize(existingImages, true);
 
         assertBuildFrom(resultImages, BASE_JAVA_IMAGE);
     }
@@ -114,17 +110,12 @@ public class QuarkusGeneratorTest {
     @Test
     public void testCustomizeReturnsConfiguredFromWhenNative () throws IOException {
         setNativeConfig();
-        // @formatter:off
-        new Expectations() {{
-            config.getConfig("quarkus", "from"); result = BASE_NATIVE_IMAGE;
-        }};
-        // @formatter:on
+        config.getConfig().put("quarkus", Collections.singletonMap("from", BASE_NATIVE_IMAGE));
 
         QuarkusGenerator generator = new QuarkusGenerator(ctx);
-        List<ImageConfiguration> resultImages = null;
         List<ImageConfiguration> existingImages = new ArrayList<>();
 
-        resultImages = generator.customize(existingImages, true);
+        List<ImageConfiguration> resultImages = generator.customize(existingImages, true);
 
         assertBuildFrom(resultImages, BASE_NATIVE_IMAGE);
     }
@@ -162,21 +153,6 @@ public class QuarkusGeneratorTest {
         assertThat(resultImages, hasSize(1));
         assertThat(resultImages,
                 hasItem(hasProperty("buildConfiguration", hasProperty("from", equalTo(baseImage)))));
-    }
-
-    private void setupContextOpenShift (final Properties projectProps, final String configFrom,
-                                        final String configFromMode) {
-        // @formatter:off
-        new Expectations() {{
-            ctx.getProject(); result = project;
-            project.getProperties(); result = projectProps;
-            ctx.getConfig(); result = config;
-            config.getConfig("test-generator", "from"); result = configFrom; minTimes = 0;
-            config.getConfig("test-generator", "fromMode"); result = configFromMode; minTimes = 0;
-            ctx.getRuntimeMode(); result = RuntimeMode.OPENSHIFT; minTimes = 0;
-            ctx.getStrategy(); result = OpenShiftBuildStrategy.s2i; minTimes = 0;
-        }};
-        // @formatter:on
     }
 
     private void createFakeRunnerJar () throws IOException {

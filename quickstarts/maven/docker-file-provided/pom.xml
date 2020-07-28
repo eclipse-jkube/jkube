@@ -26,7 +26,7 @@
 
     <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
     <artifactId>docker-file-provided</artifactId>
-    <version>1.0.0-alpha-4</version>
+    <version>1.0.0-rc-1</version>
     <name>Eclipse JKube :: Quickstarts :: Maven :: Docker File Provided</name>
     <packaging>jar</packaging>
 
@@ -93,6 +93,9 @@
         </profile>
         <profile>
             <id>docker-file</id>
+            <properties>
+              <from.image>fabric8/s2i-java</from.image>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -104,6 +107,7 @@
                                     <name>jkube/docker-file-provided</name>
                                     <build>
                                         <dockerFile>subdir/Dockerfile</dockerFile>
+                                        <filter>@</filter>
                                     </build>
                                 </image>
                             </images>

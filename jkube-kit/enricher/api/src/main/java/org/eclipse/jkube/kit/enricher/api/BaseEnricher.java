@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.openshift.api.model.DeploymentConfig;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
@@ -37,7 +37,6 @@ import java.util.Properties;
 
 /**
  * @author roland
- * @since 01/04/16
  */
 public class BaseEnricher implements Enricher {
 
@@ -55,14 +54,13 @@ public class BaseEnricher implements Enricher {
     private static final String SWITCH_TO_DEPLOYMENT = "jkube.build.switchToDeployment";
     public static final String CREATE_EXTERNAL_URLS = "jkube.createExternalUrls";
     public static final String JKUBE_DOMAIN = "jkube.domain";
-    protected static final String GENERATE_ROUTE = "jkube.openshift.generateRoute";
 
     protected KitLogger log;
 
     public BaseEnricher(EnricherContext enricherContext, String name) {
         this.enricherContext = enricherContext;
         // Pick the configuration which is for us
-        this.config = new EnricherConfig(name, enricherContext.getConfiguration());
+        this.config = new EnricherConfig(name, enricherContext);
         this.log = new PrefixedLogger(name, enricherContext.getLog());
         this.name = name;
     }
@@ -94,20 +92,20 @@ public class BaseEnricher implements Enricher {
         return enricherContext.getConfiguration();
     }
 
-    protected String getConfig(Configs.Key key) {
+    protected String getConfig(Configs.Config key) {
         return config.get(key);
     }
 
-    protected boolean hasConfig(Configs.Key key) {
-        return config.get(key) != null;
-    }
-
-    protected String getConfig(Configs.Key key, String defaultVal) {
+    protected String getConfig(Configs.Config key, String defaultVal) {
         return config.get(key, defaultVal);
     }
 
-    protected Map<String, String> getRawConfig() {
-        return config.getRawConfig();
+    protected String getConfigWithFallback(Configs.Config key, String fallbackPropertyKey, String defaultVal) {
+        final String value = getConfig(key, Configs.getFromSystemPropertyWithPropertiesAsFallback(enricherContext.getProperties(), fallbackPropertyKey));
+        if (value != null) {
+            return value;
+        }
+        return defaultVal;
     }
 
     protected EnricherContext getContext() {
@@ -120,7 +118,7 @@ public class BaseEnricher implements Enricher {
      * @return boolean value indicating whether OpenShift or not.
      */
     protected boolean isOpenShiftMode() {
-        Properties properties = getContext().getConfiguration().getProperties();
+        Properties properties = getContext().getProperties();
         if (properties != null) {
             return RuntimeMode.isOpenShiftMode(properties);
         }
@@ -141,6 +139,17 @@ public class BaseEnricher implements Enricher {
     }
 
     /**
+     * This method overrides the controller name value by the value provided in XML config.
+     *
+     * @param resourceConfig resource config from plugin configuration
+     * @param defaultValue default value
+     * @return string as controller name
+     */
+    protected String getControllerName(ResourceConfig resourceConfig, String defaultValue) {
+        return Optional.ofNullable(resourceConfig).map(ResourceConfig::getControllerName).orElse(defaultValue);
+    }
+
+    /**
      * This method overrides the ImagePullPolicy value by the value provided in
      * XML config.
      *
@@ -148,7 +157,7 @@ public class BaseEnricher implements Enricher {
      * @param defaultValue default value
      * @return string as image pull policy
      */
-    protected String getImagePullPolicy(ResourceConfig resourceConfig, String defaultValue) {
+    protected static String getImagePullPolicy(ResourceConfig resourceConfig, String defaultValue) {
         if(resourceConfig != null) {
             return resourceConfig.getImagePullPolicy() != null ? resourceConfig.getImagePullPolicy() : defaultValue;
         }
@@ -165,7 +174,7 @@ public class BaseEnricher implements Enricher {
      * @param defaultValue default value
      * @return resolved replica count
      */
-    protected int getReplicaCount(KubernetesListBuilder builder, ResourceConfig xmlResourceConfig, int defaultValue) {
+    protected static int getReplicaCount(KubernetesListBuilder builder, ResourceConfig xmlResourceConfig, int defaultValue) {
         if (xmlResourceConfig != null) {
             List<HasMetadata> items = builder.buildItems();
             for (HasMetadata item : items) {
@@ -179,6 +188,10 @@ public class BaseEnricher implements Enricher {
             return xmlResourceConfig.getReplicas() > 0 ? xmlResourceConfig.getReplicas() : defaultValue;
         }
         return defaultValue;
+    }
+
+    public static String getNamespace(ResourceConfig resourceConfig, String defaultValue) {
+        return Optional.ofNullable(resourceConfig).map(ResourceConfig::getNamespace).orElse(defaultValue);
     }
 
     protected void setProcessingInstruction(String key, List<String> containerNames) {
@@ -214,7 +227,7 @@ public class BaseEnricher implements Enricher {
      */
     protected String getValueFromConfig(String propertyName, String defaultValue) {
         if (getContext().getProperty(propertyName) != null) {
-            return getContext().getProperty(propertyName).toString();
+            return getContext().getProperty(propertyName);
         } else {
             return defaultValue;
         }

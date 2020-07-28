@@ -74,6 +74,7 @@ public class SpringBootUtilTest {
         Optional<String> result = SpringBootUtil.getSpringBootDevToolsVersion(maven_project);
 
         //Then
+        assertTrue(result.isPresent());
         assertEquals("1.6.3",result.get());
 
     }
@@ -93,6 +94,7 @@ public class SpringBootUtilTest {
         Optional<String> result = SpringBootUtil.getSpringBootVersion(maven_project);
 
         //Then
+        assertTrue(result.isPresent());
         assertEquals("1.6.3",result.get());
 
     }
