@@ -79,6 +79,46 @@ public class MavenProjectEnricherTest {
         assertNull(selectors.get("version"));
         assertNull(selectors.get("project"));
     }
+    
+
+    @Test
+    public void testCustomAppName() {
+    	
+    	// Setup
+    	final String CUSTOM_APP_NAME =  "my-custom-app-name";
+    	final Properties properties = new Properties();
+        properties.setProperty("jkube.enricher.jkube-project-label.customAppName", CUSTOM_APP_NAME);
+        // @formatter:off
+        new Expectations() {{
+            context.getProperties(); result = properties;
+        }};
+        // @formatter:on
+    	
+    	ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
+
+        KubernetesListBuilder builder = createListWithDeploymentConfig();
+        projectEnricher.enrich(PlatformMode.kubernetes, builder);
+        KubernetesList list = builder.build();
+        
+        Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
+
+        assertNotNull(labels);
+        assertEquals("groupId", labels.get("group"));
+        assertEquals(CUSTOM_APP_NAME, labels.get("app"));
+        assertEquals("version", labels.get("version"));
+        assertNull(labels.get("project"));
+
+        builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
+        projectEnricher.create(PlatformMode.kubernetes, builder);
+
+        Deployment deployment = (Deployment)builder.buildFirstItem();
+        Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
+        assertEquals("groupId", selectors.get("group"));
+        assertEquals(CUSTOM_APP_NAME, selectors.get("app"));
+        assertNull(selectors.get("version"));
+        assertNull(selectors.get("project"));
+        
+    }
 
     @Test
     public void testOldStyleGeneratedResources() {
