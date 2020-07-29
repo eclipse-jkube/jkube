@@ -51,7 +51,7 @@ public class VertxGenerator extends JavaExecGenerator {
   public boolean isApplicable(List<ImageConfiguration> configs) {
     return shouldAddGeneratedImageConfiguration(configs)
         && (JKubeProjectUtil.hasPlugin(getProject(), Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT)
-        || JKubeProjectUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, null));
+        || JKubeProjectUtil.hasDependencyWithGroupId(getProject(), Constants.VERTX_GROUPID));
   }
 
   @Override

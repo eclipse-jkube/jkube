@@ -23,6 +23,7 @@ Usage:
 ### 1.0.0-SNAPSHOT
 * Fix #290: Bump Fabric8 Kubernetes Client to v4.10.3
 * Fix #273: Added new parameter to allow for custom _app_ name
+* Fix #329: Vert.x generator and enricher applicable when `io.vertx` dependencies present
 
 ### 1.0.0-rc-1 (2020-07-23)
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)

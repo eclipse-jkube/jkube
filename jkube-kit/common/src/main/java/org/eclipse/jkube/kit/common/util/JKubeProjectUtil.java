@@ -71,6 +71,12 @@ public class JKubeProjectUtil {
         return getDependency(jkubeProject, groupId, artifactId) != null;
     }
 
+    public static boolean hasDependencyWithGroupId(JavaProject project, String groupId) {
+      return Optional.ofNullable(project).map(JavaProject::getDependencies)
+          .map(deps -> deps.stream().anyMatch(dep -> Objects.equals(dep.getGroupId(), groupId)))
+          .orElse(false);
+    }
+
     public static Dependency getDependency(JavaProject jkubeProject, String groupId, String artifactId) {
         List<Dependency> dependencyList = jkubeProject.getDependencies();
         if (dependencyList != null) {

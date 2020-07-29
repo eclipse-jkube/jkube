@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
@@ -125,4 +126,6 @@ public interface EnricherContext {
      * @return value of property if set.
      */
     String getProperty(String key);
+
+    JavaProject getProject();
 }
