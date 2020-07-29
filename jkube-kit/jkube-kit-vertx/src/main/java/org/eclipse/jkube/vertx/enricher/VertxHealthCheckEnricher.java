@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.hasDependencyWithGroupId;
+
 
 /**
  * Configures the health checks for a Vert.x project. Unlike other enricher this enricher extract the configuration from
@@ -101,7 +103,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     private boolean isApplicable() {
         return getContext().hasPlugin(VERTX_MAVEN_PLUGIN_GROUP, VERTX_MAVEN_PLUGIN_ARTIFACT)
-               || getContext().hasDependency(VERTX_GROUPID, null);
+               || hasDependencyWithGroupId(getContext().getProject(), VERTX_GROUPID);
     }
 
     private String getSpecificPropertyName(boolean readiness, Config config) {
