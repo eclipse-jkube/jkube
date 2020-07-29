@@ -55,7 +55,7 @@ public class ProjectLabelEnricher extends BaseEnricher {
     @AllArgsConstructor
     private enum Config implements Configs.Config {
         USE_PROJECT_LABEL("useProjectLabel", "false"),
-    	CUSTOM_APP_NAME("customAppName", "");
+    	APP("app", null);
 
         @Getter
         protected String key;
@@ -161,13 +161,7 @@ public class ProjectLabelEnricher extends BaseEnricher {
         if (enableProjectLabel) {
             ret.put("project", groupArtifactVersion.getArtifactId());
         } else {
-        	String customAppName = Configs.asString(getConfig(Config.CUSTOM_APP_NAME));
-        	if (customAppName != null && !customAppName.isEmpty()) {
-        		ret.put("app", customAppName);
-        	} else {
-                // default label is app
-                ret.put("app", groupArtifactVersion.getArtifactId());
-        	}
+        	ret.put("app", getConfig(Config.APP, groupArtifactVersion.getArtifactId()));
         }
 
         ret.put("group", groupArtifactVersion.getGroupId());
