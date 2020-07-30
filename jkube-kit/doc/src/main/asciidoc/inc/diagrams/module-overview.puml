@@ -51,9 +51,8 @@ package jkube.kit {
     package kit.build {
         [build-api] --> [config-image]
         package kit.build.service {
-            [build-service-docker] --> [build-api]
-            [build-service-jib] --> [build-api]
-            note top of [build-service-jib]: To be merged
+            [docker] --> [build-api]
+            [jib] --> [build-api]
         }
     }
     package kit.enricher {
@@ -99,6 +98,9 @@ package jkube.kit {
     ' VertX
     [vertx] --> [enricher-specific]
     [vertx] --> [generator-java-exec]
+    ' Wildfly
+    [wildfly] --> [enricher-specific]
+    [wildfly] --> [generator-java-exec]
 
 }
 
@@ -119,6 +121,7 @@ package maven.plugins {
     [kubernetes-maven-plugin] --> [spring-boot]
     [kubernetes-maven-plugin] --> [thorntail]
     [kubernetes-maven-plugin] --> [vertx]
+    [kubernetes-maven-plugin] --> [wildfly]
     [kubernetes-maven-plugin] --> [profile]
     [kubernetes-maven-plugin] --> [watcher-standard]
     [openshift-maven-plugin] --> [kubernetes-maven-plugin]

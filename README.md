@@ -68,8 +68,6 @@ Some thin adapter Maven specific modules like [jkube-kit-enricher-maven](enriche
 [jkube-kit-generator-maven](generator/maven/pom.xml) are provided as glue to get to the Maven specific build information
  like the project's coordinates.
 
-<div style="text-align:center"><img src ="https://i.imgur.com/DF5bnD2.jpg" /></div>
-
 ## Getting started
 
 Want to test drive JKube? check our getting started [Katacoda course](https://katacoda.com/jkubeio/courses/getting-started)
