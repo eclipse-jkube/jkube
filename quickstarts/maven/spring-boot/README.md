@@ -9,8 +9,8 @@ This is a sample project to use Eclipse JKube plugins.
 
 ### Steps to use
 
-Make sure that Kubernetes/OpenShift cluster or Minikube/minishift is running. In case, if anything of this is not running, you can
-run minishift/minikube to test this application by using following command.
+Make sure that OpenShift/Kubernetes cluster or Minishift/Minikube is running. In case, if anything of this is not running, you can
+run Minishift/Minikube to test this application by using following command.
 
 
 
@@ -38,7 +38,7 @@ Start your cluster:
 ```
 minikube start
 ```
-Below command will create your OpenShift resource descriptors.
+Below command will create your Kubernetes resource descriptors.
 ```
 mvn clean k8s:resource -Pkubernetes
 ```
@@ -48,7 +48,7 @@ Now start docker build  by hitting the build goal.
 mvn package k8s:build -Pkubernetes
 ```
 
-Below command will deploy your application on OpenShift cluster.
+Below command will deploy your application on Kubernetes cluster.
 ```
 mvn k8s:deploy -Pkubernetes
 ```
