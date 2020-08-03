@@ -87,8 +87,7 @@ public class JKubeServiceHub implements Closeable {
         applyService = new LazyBuilder<>(() -> new ApplyService(client, log));
         buildService = new LazyBuilder<>(() -> {
             BuildService ret;
-            String jkubeBuildStrategy = (String)configuration.getProperties().get("jkube.build.strategy");
-            if (jkubeBuildStrategy != null && jkubeBuildStrategy.equalsIgnoreCase(JKubeBuildStrategy.jib.getLabel())) {
+            if (JKubeBuildStrategy.jib == buildServiceConfig.getJKubeBuildStrategy()) {
                 return new JibBuildService(JKubeServiceHub.this, log);
             }
             // Creating platform-dependent services
