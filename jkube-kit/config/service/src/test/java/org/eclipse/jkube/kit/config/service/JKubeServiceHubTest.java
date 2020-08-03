@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.config.service;
 
 import io.fabric8.openshift.client.OpenShiftClient;
 import mockit.Expectations;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -36,37 +37,37 @@ import static org.junit.Assert.assertNotNull;
 
 public class JKubeServiceHubTest {
 
-    @Mocked
-    private KitLogger logger;
+  @Mocked
+  private KitLogger logger;
 
-    @Mocked
-    private ClusterAccess clusterAccess;
+  @Mocked
+  private ClusterAccess clusterAccess;
 
-    @Mocked
-    private OpenShiftClient openShiftClient;
+  @Mocked
+  private OpenShiftClient openShiftClient;
 
-    @Mocked
-    private ServiceHub dockerServiceHub;
+  @Mocked
+  private ServiceHub dockerServiceHub;
 
-    @Mocked
-    private JKubeConfiguration configuration;
+  @Mocked
+  private JKubeConfiguration configuration;
 
-    @Mocked
-    private BuildServiceConfig buildServiceConfig;
+  @Mocked
+  private BuildServiceConfig buildServiceConfig;
 
-    @Test(expected = NullPointerException.class)
-    public void testMissingClusterAccess() {
-      JKubeServiceHub.builder()
-                .log(logger)
-                .build();
-    }
+  @Test(expected = NullPointerException.class)
+  public void testMissingClusterAccess() {
+    JKubeServiceHub.builder()
+        .log(logger)
+        .build();
+  }
 
-    @Test(expected = NullPointerException.class)
-    public void testMissingKitLogger() {
-      JKubeServiceHub.builder()
-                .clusterAccess(clusterAccess)
-                .build();
-    }
+  @Test(expected = NullPointerException.class)
+  public void testMissingKitLogger() {
+    JKubeServiceHub.builder()
+        .clusterAccess(clusterAccess)
+        .build();
+  }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   @Test
@@ -94,11 +95,6 @@ public class JKubeServiceHubTest {
   @Test
   public void testObtainBuildService() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-          configuration.getProperties(); result = new Properties();
-    }};
-    // @formatter:on
     JKubeServiceHub hub = JKubeServiceHub.builder()
         .configuration(configuration)
         .clusterAccess(clusterAccess)
@@ -114,64 +110,62 @@ public class JKubeServiceHubTest {
     assertTrue(buildService instanceof DockerBuildService);
   }
 
-    @Test
-    public void testObtainOpenshiftBuildService() {
-        new Expectations() {{
-            configuration.getProperties();
-            result = new Properties();
-        }};
+  @Test
+  public void testObtainOpenshiftBuildService() {
+    // Given
+    // @formatter:off
+      new Expectations() {{
+        buildServiceConfig.getJKubeBuildStrategy(); result = null;
+      }};
+      // @formatter:on
+    JKubeServiceHub hub = JKubeServiceHub.builder()
+        .configuration(configuration)
+        .clusterAccess(clusterAccess)
+        .log(logger)
+        .platformMode(RuntimeMode.OPENSHIFT)
+        .dockerServiceHub(dockerServiceHub)
+        .buildServiceConfig(buildServiceConfig)
+        .build();
+    // When
+    BuildService buildService = hub.getBuildService();
+    // Then
+    assertNotNull(buildService);
+    assertTrue(buildService instanceof OpenshiftBuildService);
+  }
 
-        JKubeServiceHub hub = JKubeServiceHub.builder()
-                .configuration(configuration)
-                .clusterAccess(clusterAccess)
-                .log(logger)
-                .platformMode(RuntimeMode.OPENSHIFT)
-                .dockerServiceHub(dockerServiceHub)
-                .buildServiceConfig(buildServiceConfig)
-                .build();
+  @Test
+  public void testObtainArtifactResolverService() {
+    JKubeServiceHub hub = JKubeServiceHub.builder()
+        .configuration(configuration)
+        .clusterAccess(clusterAccess)
+        .log(logger)
+        .platformMode(RuntimeMode.KUBERNETES)
+        .dockerServiceHub(dockerServiceHub)
+        .build();
 
-        BuildService buildService = hub.getBuildService();
+    assertNotNull(hub.getArtifactResolverService());
+  }
 
-        assertNotNull(buildService);
-        assertTrue(buildService instanceof OpenshiftBuildService);
-    }
-
-    @Test
-    public void testObtainArtifactResolverService() {
-        JKubeServiceHub hub = JKubeServiceHub.builder()
-                .configuration(configuration)
-                .clusterAccess(clusterAccess)
-                .log(logger)
-                .platformMode(RuntimeMode.KUBERNETES)
-                .dockerServiceHub(dockerServiceHub)
-                .build();
-
-        assertNotNull(hub.getArtifactResolverService());
-    }
-
-    @Test
-    public void testObtainJibBuildService() {
-        // Given
-        new Expectations() {{
-            Properties properties = new Properties();
-            properties.put("jkube.build.strategy", "jib");
-            configuration.getProperties();
-            result = properties;
-        }};
-        JKubeServiceHub hub = JKubeServiceHub.builder()
-                .configuration(configuration)
-                .clusterAccess(clusterAccess)
-                .log(logger)
-                .platformMode(RuntimeMode.KUBERNETES)
-                .dockerServiceHub(dockerServiceHub)
-                .buildServiceConfig(BuildServiceConfig.builder().build())
-                .build();
-
-        // When
-        BuildService buildService = hub.getBuildService();
-
-        // Then
-        assertNotNull(buildService);
-        assertTrue(buildService instanceof JibBuildService);
-    }
+  @Test
+  public void testObtainJibBuildService() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      buildServiceConfig.getJKubeBuildStrategy(); result = JKubeBuildStrategy.jib;
+    }};
+    // @formatter:on
+    JKubeServiceHub hub = JKubeServiceHub.builder()
+        .configuration(configuration)
+        .clusterAccess(clusterAccess)
+        .log(logger)
+        .platformMode(RuntimeMode.KUBERNETES)
+        .dockerServiceHub(dockerServiceHub)
+        .buildServiceConfig(buildServiceConfig)
+        .build();
+    // When
+    BuildService buildService = hub.getBuildService();
+    // Then
+    assertNotNull(buildService);
+    assertTrue(buildService instanceof JibBuildService);
+  }
 }

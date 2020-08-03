@@ -78,7 +78,6 @@ public class OpenshiftBuildMojo extends BuildMojo {
     @Override
     protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
         return super.buildServiceConfigBuilder()
-            .jKubeBuildStrategy(getJKubeBuildStrategy())
             .openshiftPullSecret(openshiftPullSecret)
             .s2iBuildNameSuffix(s2iBuildNameSuffix)
             .s2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal);

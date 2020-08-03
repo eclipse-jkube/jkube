@@ -665,6 +665,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
         return BuildServiceConfig.builder()
                 .buildRecreateMode(BuildRecreateMode.fromParameter(buildRecreate))
+                .jKubeBuildStrategy(getJKubeBuildStrategy())
                 .forcePull(forcePull)
                 .imagePullManager(getImagePullManager(imagePullPolicy, autoPull))
                 .buildDirectory(project.getBuild().getDirectory())
