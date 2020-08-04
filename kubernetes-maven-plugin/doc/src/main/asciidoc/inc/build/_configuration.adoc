@@ -73,18 +73,6 @@ A provided `<from>` takes precedence over the name given here. This tag is usefu
 | Specific pull policy for the base image. This overwrites any global pull policy.
   See the global configuration option <<image-pull-policy, imagePullPolicy>> for the possible values and the default.
 
-| *loadNamePattern*
-a| Scan the images in the archive specified in `dockerArchive` and match the associated repository and tag information against this pattern. When a matching repository and tag is found, create a tag linking the `name` for this image to the repository and tag that matched the pattern.
-
-The wildcards are:
-
-* `?` matches a single character
-* `*` matches within one component, where components are separated by slashes, or the final colon that separates the repository from the tag
-* `**` matches multiple components, stopping at the final colon
-* `**/` matches multiple components, but must stop at a slash, or the final colon
-
-When matching multiple components, `$$**/$$` is likely to be more useful than `$$**$$`. The pattern `$$**image-name:*$$` will match `my-group/my-image-name:some-tag`, whereas `$$**/image-name:*$$` will not, because the wildcard has to stop at a slash. Note that `$$**/image-name:*$$` will also match 'image-name:some-tag', since the `$$**/$$` wildcard can be empty.
-
 | <<misc-env, *labels*>>
 | Labels  as described in <<misc-env,Setting Environment Variables and Labels>>.
 
@@ -107,7 +95,7 @@ When matching multiple components, `$$**/$$` is likely to be more useful than `$
 | Shell to be used for the *runCmds*. It contains *arg* elements which are defining the executable and its params.
 
 | *runCmds*
-| Commands to be run during the build process. It contains *run* elements which are passed to the shell. Whitespace is trimmed from each element and empty elements are ignored. The run commands are inserted right after the assembly and after *workdir* into the Dockerfile. This tag is not to be confused with the `<run>` section for this image which specifies the runtime behaviour when starting containers.
+| Commands to be run during the build process. It contains *run* elements which are passed to the shell. Whitespace is trimmed from each element and empty elements are ignored. The run commands are inserted right after the assembly and after *workdir* into the Dockerfile.
 
 | *skip*
 | if set to true disables building of the image. This config option is best used together with a maven property
@@ -181,4 +169,4 @@ remote API.
 ----
 
 In order to see the individual build steps you can switch on `verbose` mode either by setting the property
-`jkube.docker.verbose` or by using `<verbose>true</verbose>` in the <<global-configuration,Global configuration>>
+`jkube.docker.verbose` or by using `<verbose>true</verbose>` in the <<build-goal-configuration,Build Goal configuration>>

@@ -7,7 +7,7 @@ This goal is for building Docker images.
 [[build-kubernetes]]
 === Kubernetes Build
 
-If the mode is set to `kubernetes` then a normal Docker build is performed by default. The connection configuration to
+A normal Docker build is performed by default. The connection configuration to
 access the Docker daemon is described in <<access-configuration, Access Configuration>>.
 
 In order to make the generated images available to the Kubernetes cluster the generated images need to be pushed to a
@@ -138,6 +138,7 @@ The default is `none`. If you provide the property without value then `all` is a
 | `jkube.build.recreate`
 
 
+ifeval::["{goal-prefix}" == "oc"]
 |*forcePull*
 |
 Applicable only for OpenShift, S2I build strategy.
@@ -148,10 +149,17 @@ build configuration is available locally on the node, that image will be used.
 Using forcePull will override the local image and refresh it from the registry the image stream points to.
 
 |`jkube.build.forcePull`
+endif::[]
 
-| *imagePullPolicy*
-| Specific pull policy for the base image. This overwrites any global pull policy.
-See the global configuration option <<image-pull-policy, imagePullPolicy>> for the possible values and the default.
+| [[image-pull-policy]] *imagePullPolicy*
+a| Specify whether images should be pull when looking for base images while building or images for starting.
+This property can take the following values (case insensitive):
+
+* `IfNotPresent`: Automatic download any missing images (default)
+* `Never` : Automatic pulling is switched off always
+* `Always` : Pull images always even when they already exist locally.
+
+By default a progress meter is printed out on the console, which is omitted when using Maven in batch mode (option `-B`). A very simplified progress meter is provided when using no color output (i.e. with `-Djkube.useColor=false`).
 | `jkube.docker.imagePullPolicy`
 
 | *certPath*
@@ -207,11 +215,6 @@ the URL is:
   The default value is `target/docker` and is only used for the goal `{goal-prefix}:build`.
 | `jkube.build.target.dir`
 
-| *portPropertyFile*
-| Global property file into which the mapped properties should be written to. The format of this file and its purpose
-  are also described in <<start-port-mapping,Port Mapping>>.
-|
-
 | *profile*
 | Profile to which contains enricher and generators configuration. See <<profiles,Profiles>> for details.
 | `jkube.profile`
@@ -228,16 +231,6 @@ endif::[]
 | *registry*
 | Specify globally a registry to use for pulling and pushing images. See <<registry,Registry handling>> for details.
 | `jkube.docker.registry`
-
-| *resourceDir*
-| Directory where jkube.resources are stored. This is also the directory where a custom profile is looked up. Default
-  is `src/main/jkube`.
-| `jkube.resourceDir`
-
-| *environment*
-| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the
-  default one, JKube will look at src/main/jkube/dev. If not set then root `resourceDir` directory is used.
-| `jkube.environment`
 
 | *skip*
 | With this parameter the execution of this plugin can be skipped completely.
@@ -379,28 +372,8 @@ include::../../image/_configuration.adoc[]
 
 The `<build>` section is mandatory and is explained in <<build-configuration, below>>.
 
-.Example for <image>
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-<configuration>
-  ....
-  <images>
-    <image> <!--1-->
-      <name>%g/docker-demo:0.1</name> <!--2-->
-      <alias>service</alias> <!--3-->
-      <build>....</build> <!--4-->
-    </image>
-    <image>
-      ....
-    </image>
-  </images>
-</configuration>
-----
-<1> One or more `<image>`` definitions
-<2> The Docker image name used when creating the image.
-<3> An alias which can be used in other parts of the plugin to reference to this image. This alias must be unique.
-<4> A `<build>` section as described in <<buid-configuration, Build Configuration>>
-
+include::../../image/_naming.adoc[]
+include::../../image/_example.adoc[]
 
 [[build-configuration]]
 === Build Configuration
@@ -430,3 +403,9 @@ INFO:: Startup arguments are not used in S2I builds
 === Build Args
 
 include::../../build/_buildargs.adoc[]
+
+[[build-healthcheck]]
+=== Healthcheck
+
+include::../../build/_healthcheck.adoc[]
+

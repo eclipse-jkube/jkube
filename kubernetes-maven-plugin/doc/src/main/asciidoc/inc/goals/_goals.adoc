@@ -34,7 +34,7 @@ This plugin supports a rich set for providing a smooth Java developer experience
 | Goal | Description
 
 | *<<jkube:deploy>>*
-| Deploy resources descriptors to a cluster after creating them and building the app. Same as <<jkube:run>> except that it runs in the background.
+| Deploy resources descriptors to a cluster after creating them and building the app. Same as <<jkube:apply>> except that it runs in the background.
 
 | *<<jkube:undeploy>>*
 | Undeploy and remove resources descriptors from a cluster.
