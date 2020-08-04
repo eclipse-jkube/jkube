@@ -2,7 +2,7 @@
 [[authentication]]
 = Authentication
 
-When pulling (via the `autoPull` mode of `{goal-prefix}:start`) or pushing image, it
+When pulling (via the `autoPull` mode of `{goal-prefix}:build`) or pushing image, it
 might be necessary to authenticate against a Docker registry.
 
 There are five different locations searched for credentials.  In order, these are:
@@ -60,7 +60,7 @@ The server id must specify the registry to push to/pull from, which by
 default is central index `docker.io` (or `index.docker.io` / `registry.hub.docker.com` as fallbacks).
 Here you should add your docker.io account for your repositories. If you have multiple accounts
 for the same registry, the second user can be specified as part of the ID. In the example above, if you
-have a second account 'jkubeio' then use an `<id>docker.org.eclipse.jkubeio</id>` for this second entry. I.e. add the
+have a second account 'jkubeio' then use an `<id>docker.io/jkubeio</id>` for this second entry. I.e. add the
 username with a slash to the id name. The default without username is only taken if no server entry with
 a username appended id is chosen.
 
@@ -145,7 +145,7 @@ available as well as the configuration option `<useOpenShiftAuth>` in
 an `<pull>` or `<push>` section within the `<authConfig>`
 configuration.
 
-If `useOpenShiftAuth` is enabled then the OpenShift Konfiguration will be looked up in `$KUBECONFIG` or, if this environment variable is not set, in `~/.kube/config`.
+If `useOpenShiftAuth` is enabled then the OpenShift configuration will be looked up in `$KUBECONFIG` or, if this environment variable is not set, in `~/.kube/config`.
 
 [[password-encryption]]
 == Password encryption
@@ -176,7 +176,7 @@ password.
 
 Some docker registries require additional steps to authenticate.
 link:https://docs.aws.amazon.com/AmazonECR/latest/userguide/ECR_GetStarted.html[Amazon ECR] requires using an IAM access key to obtain temporary docker login credentials.
-The `{plugin}:push` and `{plugin}:pull` goals automatically execute this exchange for any registry of the form
+The <<jkube:push>> and <<jkube:build>> goals automatically execute this exchange for any registry of the form
 _<awsAccountId>_ *.dkr.ecr.* _<awsRegion>_ *.amazonaws.com*, unless the `skipExtendedAuth` configuration
 (`jkube.docker.skip.extendedAuth` property) is set true.
 

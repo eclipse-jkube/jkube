@@ -29,7 +29,6 @@ Depending on the operational mode, for building the actual image either a Docker
 
 A special <<jkube:watch>> goal allows for reacting to code changes to automatically recreate images or copy new artifacts into running containers.
 
-These image related features are inherited from the https://github.com/fabric8io/docker-maven-plugin[jkubeio/docker-maven-plugin] which is part of this plugin.
 
 [[resource-descriptors]]
 == {cluster} Resources
@@ -165,8 +164,7 @@ mvn package {goal-prefix}:build
 ----
 
 This will create the Docker image against a running Docker daemon (which must be accessible either via Unix Socket or
-with the URL set in `DOCKER_HOST`). Alternatively, when connected to an OpenShift cluster (or using the `openshift`
-<<build-mode,mode>> explicitly), then a Docker build will be performed on OpenShift which at the end creates an
+with the URL set in `DOCKER_HOST`). Alternatively, when connected to an OpenShift cluster then a https://docs.openshift.com/enterprise/3.0/using_images/s2i_images/index.html[S2I] build will be performed on OpenShift which at the end creates an
 https://docs.openshift.com/enterprise/3.1/architecture/core_concepts/builds_and_image_streams.html[ImageStream].
 
 To deploy the resources to the cluster call
@@ -178,7 +176,7 @@ mvn {goal-prefix}:resource {goal-prefix}:deploy
 
 By default a _Service_ and a _Deployment_ object pointing to the created Docker image is created. When running in OpenShift mode, a _Service_ and _DeploymentConfig_ which refers the _ImageStream_ created with `{goal-prefix}:build` will be installed.
 
-Of course you can bind all those jkube.goals to execution phases as well, so that they are called along with standard lifecycle goals like `install`. For example, to bind the building of the Kubernetes resource files and the Docker images, add the following goals to the execution of the {plugin}:
+Of course you can bind all those jkube-goals to execution phases as well, so that they are called along with standard lifecycle goals like `install`. For example, to bind the building of the Kubernetes resource files and the Docker images, add the following goals to the execution of the {plugin}:
 
 .Example for lifecycle bindings
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
@@ -294,14 +292,14 @@ An extract of the plugin configuration is shown below:
   </resources>
 </configuration>
 ----
-<1> Standard docker-maven-plugin configuration for building one single Docker image
+<1> Standard XML configuration for building one single Docker image
 <2> Kubernetes / OpenShift resources to create
 <3> Labels which should be applied globally to all resource objects
 <4> Number of replicas desired
 <5> Name of controller created by plugin
 <6> One or more http://kubernetes.io/docs/user-guide/services/[Service] definitions.
 
-The XML resource configuration is based on plain Kubernetes resource objects. When targeting OpenShift, Kubernetes resource descriptors will be automatically converted to their OpenShift counterparts, e.g. a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] will be converted to an OpenShift https://docs.openshift.org/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[DeploymentConfig].
+The XML resource configuration is based on plain Kubernetes resource objects. When targeting OpenShift, Kubernetes resource descriptors will be automatically converted to their OpenShift counterparts, e.g. a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] will be converted to an OpenShift https://docs.openshift.com/container-platform/4.1/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are[DeploymentConfig].
 
 === Resource Fragments
 

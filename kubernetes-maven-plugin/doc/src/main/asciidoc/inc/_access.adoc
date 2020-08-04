@@ -4,8 +4,6 @@
 
 == Docker Access
 
-WARNING: This section is work-in-progress and not yet finished
-
 For {cluster} builds the {plugin} uses the Docker remote API so the URL of your Docker Daemon must be specified. The URL can be specified by the dockerHost or machine configuration, or by the `DOCKER_HOST` environment variable. If not given
 
 The Docker remote API supports communication via SSL and
