@@ -21,12 +21,13 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.0-SNAPSHOT
-* Doc: Fixed documentation for jkube.openshift.imageChangeTriggers
+* Fix #344: Fix documentation for `jkube.openshift.imageChangeTriggers`
 * Fix #290: Bump Fabric8 Kubernetes Client to v4.10.3
 * Fix #273: Added new parameter to allow for custom _app_ name
 * Fix #329: Vert.x generator and enricher applicable when `io.vertx` dependencies present
 * Fix #334: Build strategy picked up from XML configuration and properties
-* Fix: Maven Quickstart for Spring-Boot with complete Camel integration
+* Fix #342: Maven Quickstart for Spring-Boot with complete Camel integration
+* Fix #336: Fix pull from insecure registries and pull registry authentication for JIB
 
 ### 1.0.0-rc-1 (2020-07-23)
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)

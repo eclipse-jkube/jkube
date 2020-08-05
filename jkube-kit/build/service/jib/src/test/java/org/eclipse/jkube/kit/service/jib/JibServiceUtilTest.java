@@ -13,20 +13,6 @@
  */
 package org.eclipse.jkube.kit.service.jib;
 
-import com.google.cloud.tools.jib.api.AbsoluteUnixPath;
-import com.google.cloud.tools.jib.api.JibContainerBuilder;
-import com.google.cloud.tools.jib.api.LayerConfiguration;
-import com.google.cloud.tools.jib.api.Port;
-import mockit.Mocked;
-import mockit.Verifications;
-import org.eclipse.jkube.kit.common.Assembly;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.common.AssemblyFile;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,7 +22,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.cloud.tools.jib.api.ImageFormat;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
+import com.google.cloud.tools.jib.api.AbsoluteUnixPath;
+import com.google.cloud.tools.jib.api.JibContainerBuilder;
+import com.google.cloud.tools.jib.api.LayerConfiguration;
+import com.google.cloud.tools.jib.api.Port;
+import mockit.Mocked;
+import mockit.Verifications;
+import org.junit.Test;
+
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.BUSYBOX;
+import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -58,29 +61,24 @@ public class JibServiceUtilTest {
     }
 
     @Test
-    public void testContainerFromImageConfiguration(@Mocked JibContainerBuilder containerBuilder) {
+    public void testContainerFromImageConfiguration(@Mocked JibContainerBuilder containerBuilder)  throws Exception{
         // Given
         ImageConfiguration imageConfiguration = getSampleImageConfiguration();
-
         // When
-        JibContainerBuilder jibContainerBuilder = JibServiceUtil.populateContainerBuilderFromImageConfiguration(containerBuilder, imageConfiguration);
-
+        JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(imageConfiguration, null);
         // Then
-        assertNotNull(jibContainerBuilder);
+        // @formatter:off
         new Verifications() {{
-            jibContainerBuilder.addLabel("foo", "bar");
-            times = 1;
-            jibContainerBuilder.setEntrypoint(Arrays.asList("java", "-jar", "foo.jar"));
-            times = 1;
-            jibContainerBuilder.setExposedPorts(new HashSet<>(Collections.singletonList(Port.tcp(8080))));
-            times = 1;
-            jibContainerBuilder.setUser("root");
-            times = 1;
-            jibContainerBuilder.setWorkingDirectory(AbsoluteUnixPath.get("/home/foo"));
-            times = 1;
+            jibContainerBuilder.addLabel("foo", "bar"); times = 1;
+            jibContainerBuilder.setEntrypoint(Arrays.asList("java", "-jar", "foo.jar")); times = 1;
+            jibContainerBuilder.setExposedPorts(new HashSet<>(Collections.singletonList(Port.tcp(8080)))); times = 1;
+            jibContainerBuilder.setUser("root"); times = 1;
+            jibContainerBuilder.setWorkingDirectory(AbsoluteUnixPath.get("/home/foo")); times = 1;
             jibContainerBuilder.setVolumes(new HashSet<>(Collections.singletonList(AbsoluteUnixPath.get("/mnt/volume1"))));
             times = 1;
+            jibContainerBuilder.setFormat(ImageFormat.OCI); times = 1;
         }};
+        // @formatter:on
     }
 
     @Test
