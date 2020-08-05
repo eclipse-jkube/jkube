@@ -45,14 +45,17 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
+import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.getBaseImage;
+
 public class JibBuildService implements BuildService {
     private static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
     private static final List<String> DEFAULT_DOCKER_REGISTRIES = Arrays.asList(
             "docker.io", "index.docker.io", "registry.hub.docker.com"
     );
     private static final String PUSH_REGISTRY = "jkube.docker.push.registry";
-    private JKubeServiceHub jKubeServiceHub;
-    private KitLogger log;
+    private final JKubeServiceHub jKubeServiceHub;
+    private final KitLogger log;
 
     public JibBuildService(JKubeServiceHub jKubeServiceHub, KitLogger logger) {
         Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(), "BuildServiceConfig is required");
@@ -68,9 +71,11 @@ public class JibBuildService implements BuildService {
             if (imageConfig.getBuildConfiguration().isDockerFileMode()) {
                 throw new JKubeServiceException("Dockerfile mode is not supported with JIB build strategy");
             }
-            appendRegistry(imageConfig, configuration.getProperties().getProperty(PUSH_REGISTRY));
+            prependRegistry(imageConfig, configuration.getProperties().getProperty(PUSH_REGISTRY));
             BuildDirs buildDirs = new BuildDirs(imageConfig.getName(), configuration);
-            final JibContainerBuilder containerBuilder = JibServiceUtil.containerFromImageConfiguration(imageConfig);
+            final Credential pullRegistryCredential = getRegistryCredentials(
+                configuration.getRegistryConfig(), false, imageConfig, log);
+            final JibContainerBuilder containerBuilder = containerFromImageConfiguration(imageConfig, pullRegistryCredential);
 
             File dockerTarArchive = getAssemblyTarArchive(imageConfig, configuration, log);
             // TODO: Improve Assembly Manager so that the effective assemblyFileEntries computed can be properly shared
@@ -99,9 +104,14 @@ public class JibBuildService implements BuildService {
     public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
         try {
             for (ImageConfiguration imageConfiguration : imageConfigs) {
-                appendRegistry(imageConfiguration, registryConfig.getRegistry());
+                prependRegistry(imageConfiguration, registryConfig.getRegistry());
                 log.info("This push refers to: %s", imageConfiguration.getName());
-                JibServiceUtil.jibPush(imageConfiguration, getRegistryCredentials(registryConfig, imageConfiguration, log), getBuildTarArchive(imageConfiguration, jKubeServiceHub), log);
+                JibServiceUtil.jibPush(
+                    imageConfiguration,
+                    getRegistryCredentials(registryConfig, true, imageConfiguration, log),
+                    getBuildTarArchive(imageConfiguration, jKubeServiceHub),
+                    log
+                );
             }
         } catch (Exception ex) {
             throw new JKubeServiceException("Error when push JIB image", ex);
@@ -113,7 +123,7 @@ public class JibBuildService implements BuildService {
         // No post processing required
     }
 
-    protected static ImageConfiguration appendRegistry(ImageConfiguration imageConfiguration, String registry) {
+    static ImageConfiguration prependRegistry(ImageConfiguration imageConfiguration, String registry) {
         ImageName imageName = new ImageName(imageConfiguration.getName());
         if (!imageName.hasRegistry() && registry != null) {
             imageConfiguration.setName(registry + "/" + imageConfiguration.getName());
@@ -122,21 +132,36 @@ public class JibBuildService implements BuildService {
         return imageConfiguration;
     }
 
-    protected static File getAssemblyTarArchive(ImageConfiguration imageConfig, JKubeConfiguration configuration, KitLogger log) throws IOException {
+    static File getAssemblyTarArchive(ImageConfiguration imageConfig, JKubeConfiguration configuration, KitLogger log) throws IOException {
         log.info("Preparing assembly files");
         final String targetImage = imageConfig.getName();
         return AssemblyManager.getInstance()
                 .createDockerTarArchive(targetImage, configuration, imageConfig.getBuildConfiguration(), log, null);
     }
 
-    protected static Credential getRegistryCredentials(RegistryConfig registryConfig, ImageConfiguration imageConfiguration, KitLogger log) throws IOException {
-        String registry = EnvUtil.firstRegistryOf((new ImageName(imageConfiguration.getName())).getRegistry(), imageConfiguration.getRegistry(), registryConfig.getRegistry());
+    static Credential getRegistryCredentials(
+        RegistryConfig registryConfig, boolean isPush, ImageConfiguration imageConfiguration, KitLogger log)
+        throws IOException {
+
+        String registry;
+        if (isPush) {
+            registry = EnvUtil.firstRegistryOf(
+                new ImageName(imageConfiguration.getName()).getRegistry(),
+                imageConfiguration.getRegistry(),
+                registryConfig.getRegistry()
+            );
+        } else {
+            registry = EnvUtil.firstRegistryOf(
+                new ImageName(getBaseImage(imageConfiguration)).getRegistry(),
+                registryConfig.getRegistry()
+            );
+        }
         if (registry == null || DEFAULT_DOCKER_REGISTRIES.contains(registry)) {
             registry = DOCKER_LOGIN_DEFAULT_REGISTRY; // Let's assume docker is default registry.
         }
 
         AuthConfigFactory authConfigFactory = new AuthConfigFactory(log);
-        AuthConfig standardAuthConfig = authConfigFactory.createAuthConfig(true, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(), registryConfig.getSettings(), null, registry, registryConfig.getPasswordDecryptionMethod());
+        AuthConfig standardAuthConfig = authConfigFactory.createAuthConfig(isPush, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(), registryConfig.getSettings(), null, registry, registryConfig.getPasswordDecryptionMethod());
         Credential credentials = null;
         if (standardAuthConfig != null) {
             credentials = Credential.from(standardAuthConfig.getUsername(), standardAuthConfig.getPassword());
@@ -144,7 +169,7 @@ public class JibBuildService implements BuildService {
         return credentials;
     }
 
-    protected static File getBuildTarArchive(ImageConfiguration imageConfiguration, JKubeServiceHub jKubeServiceHub) {
+    static File getBuildTarArchive(ImageConfiguration imageConfiguration, JKubeServiceHub jKubeServiceHub) {
         BuildDirs buildDirs = new BuildDirs(imageConfiguration.getName(), jKubeServiceHub.getConfiguration());
         return new File(buildDirs.getTemporaryRootDirectory(), JKubeBuildTarArchiver.ARCHIVE_FILE_NAME + ArchiveCompression.none.getFileSuffix());
     }

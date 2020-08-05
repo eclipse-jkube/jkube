@@ -98,9 +98,10 @@ public class JibServiceUtil {
         try {
             jibContainerBuilder.setCreationTime(Instant.now());
             jibContainerBuilder.containerize(Containerizer.to(image)
-                    .setExecutorService(jibBuildExecutor)
-                    .addEventHandler(LogEvent.class, log(logger))
-                    .addEventHandler(ProgressEvent.class, new ProgressEventHandler(logUpdate())));
+                .setAllowInsecureRegistries(true)
+                .setExecutorService(jibBuildExecutor)
+                .addEventHandler(LogEvent.class, log(logger))
+                .addEventHandler(ProgressEvent.class, new ProgressEventHandler(logUpdate())));
             logUpdateFinished();
         } catch (CacheDirectoryCreationException | IOException | ExecutionException | RegistryException ex) {
             logger.error("Unable to build the image tarball: ", ex);
@@ -114,10 +115,9 @@ public class JibServiceUtil {
         }
     }
 
-    public static JibContainerBuilder containerFromImageConfiguration(ImageConfiguration imageConfiguration)
-            throws InvalidImageReferenceException {
-
-        final JibContainerBuilder containerBuilder = Jib.from(getBaseImage(imageConfiguration))
+    public static JibContainerBuilder containerFromImageConfiguration(
+        ImageConfiguration imageConfiguration, Credential pullRegistryCredential) throws InvalidImageReferenceException {
+        final JibContainerBuilder containerBuilder = Jib.from(getRegistryImage(getBaseImage(imageConfiguration), pullRegistryCredential))
                 .setFormat(ImageFormat.OCI);
         return populateContainerBuilderFromImageConfiguration(containerBuilder, imageConfiguration);
     }
@@ -158,7 +158,7 @@ public class JibServiceUtil {
         }
     }
 
-    protected static void pushImage(TarImage baseImage, String targetImageName, Credential credential, KitLogger logger)
+    private static void pushImage(TarImage baseImage, String targetImageName, Credential credential, KitLogger logger)
             throws InterruptedException {
 
         final ExecutorService jibBuildExecutor = Executors.newCachedThreadPool();
@@ -176,7 +176,7 @@ public class JibServiceUtil {
         }
     }
 
-    protected static JibContainerBuilder populateContainerBuilderFromImageConfiguration(JibContainerBuilder containerBuilder, ImageConfiguration imageConfiguration) {
+    private static JibContainerBuilder populateContainerBuilderFromImageConfiguration(JibContainerBuilder containerBuilder, ImageConfiguration imageConfiguration) {
         final Optional<BuildConfiguration> bic =
                 Optional.ofNullable(Objects.requireNonNull(imageConfiguration).getBuildConfiguration());
         bic.map(BuildConfiguration::getEntryPoint)
@@ -211,7 +211,7 @@ public class JibServiceUtil {
         return containerBuilder;
     }
 
-    protected static Set<String> getAllImageTags(List<String> tags, String imageName) {
+    static Set<String> getAllImageTags(List<String> tags, String imageName) {
         ImageName tempImage = new ImageName(imageName);
         Set<String> tagSet = tags.stream().filter(Objects::nonNull).collect(Collectors.toSet());
         if (!tempImage.getTag().isEmpty()) {
@@ -220,7 +220,7 @@ public class JibServiceUtil {
         return tagSet;
     }
 
-    protected static void submitPushToJib(TarImage baseImage, RegistryImage targetImage, ExecutorService jibBuildExecutor, KitLogger logger) throws InterruptedException, ExecutionException, RegistryException, CacheDirectoryCreationException, IOException {
+    private static void submitPushToJib(TarImage baseImage, RegistryImage targetImage, ExecutorService jibBuildExecutor, KitLogger logger) throws InterruptedException, ExecutionException, RegistryException, CacheDirectoryCreationException, IOException {
         Jib.from(baseImage).containerize(Containerizer.to(targetImage)
                 .setExecutorService(jibBuildExecutor)
                 .addEventHandler(LogEvent.class, log(logger))
@@ -228,7 +228,7 @@ public class JibServiceUtil {
         logUpdateFinished();
     }
 
-    protected static RegistryImage getRegistryImage(String targetImage, Credential credential) throws InvalidImageReferenceException {
+    private static RegistryImage getRegistryImage(String targetImage, Credential credential) throws InvalidImageReferenceException {
         RegistryImage registryImage = RegistryImage.named(targetImage);
         if (credential != null && !credential.getUsername().isEmpty() && !credential.getPassword().isEmpty()) {
             registryImage.addCredential(credential.getUsername(), credential.getPassword());
@@ -339,7 +339,7 @@ public class JibServiceUtil {
      * @param unfinishedLeafTasks the unfinished leaf tasks
      * @return the progress display as a list of lines
      */
-    public static List<String> generateProgressDisplay(double progress, List<String> unfinishedLeafTasks) {
+    private static List<String> generateProgressDisplay(double progress, List<String> unfinishedLeafTasks) {
         List<String> lines = new ArrayList<>();
 
         lines.add(HEADER);
