@@ -25,6 +25,7 @@ Usage:
 * Fix #273: Added new parameter to allow for custom _app_ name
 * Fix #329: Vert.x generator and enricher applicable when `io.vertx` dependencies present
 * Fix #334: Build strategy picked up from XML configuration and properties
+* Fix: Maven Quickstart for Spring-Boot with complete Camel integration
 
 ### 1.0.0-rc-1 (2020-07-23)
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)
