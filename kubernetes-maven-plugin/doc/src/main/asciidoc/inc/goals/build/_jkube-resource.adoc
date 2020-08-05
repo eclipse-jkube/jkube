@@ -289,11 +289,11 @@ ifeval::["{goal-prefix}" == "oc"]
   Defaults to `3600`.
 | `jkube.openshift.deployTimeoutSeconds`
 
-| *imageChangeTrigger*
+| *imageChangeTriggers*
 | Add ImageChange triggers to DeploymentConfigs when on openshift.
 
   Defaults to `true`.
-| `jkube.openshift.imageChangeTrigger`
+| `jkube.openshift.imageChangeTriggers`
 
 | *trimImageInContainerSpec*
 | If set to true it would set the container image reference to "", this is done to handle weird behavior of OpenShift
