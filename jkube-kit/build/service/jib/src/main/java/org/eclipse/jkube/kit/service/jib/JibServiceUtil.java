@@ -222,9 +222,10 @@ public class JibServiceUtil {
 
     private static void submitPushToJib(TarImage baseImage, RegistryImage targetImage, ExecutorService jibBuildExecutor, KitLogger logger) throws InterruptedException, ExecutionException, RegistryException, CacheDirectoryCreationException, IOException {
         Jib.from(baseImage).containerize(Containerizer.to(targetImage)
-                .setExecutorService(jibBuildExecutor)
-                .addEventHandler(LogEvent.class, log(logger))
-                .addEventHandler(ProgressEvent.class, new ProgressEventHandler(logUpdate())));
+            .setAllowInsecureRegistries(true)
+            .setExecutorService(jibBuildExecutor)
+            .addEventHandler(LogEvent.class, log(logger))
+            .addEventHandler(ProgressEvent.class, new ProgressEventHandler(logUpdate())));
         logUpdateFinished();
     }
 
