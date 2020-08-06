@@ -637,10 +637,16 @@ public class KubernetesResourceUtil {
                             container = new Container();
                             containers.add(container);
                         }
-                        // If default container name is not set, add first found
-                        // container as default application container.
-                        if (defaultApplicationContainerName == null) {
+                    }
+                    // If default container name is not set, add first found
+                    // container as default application container from resource
+                    // fragment, if not present set default application container
+                    // name from JKube generated PodSpec
+                    if (defaultApplicationContainerName == null) {
+                        if (container.getName() != null) { // Pick from fragment
                             defaultApplicationContainerName = container.getName();
+                        } else if (defaultContainer.getName() != null) { // Pick from default opinionated PodSpec
+                            defaultApplicationContainerName = defaultContainer.getName();
                         }
                     }
 
@@ -1002,4 +1008,3 @@ public class KubernetesResourceUtil {
         return true;
     }
 }
-
