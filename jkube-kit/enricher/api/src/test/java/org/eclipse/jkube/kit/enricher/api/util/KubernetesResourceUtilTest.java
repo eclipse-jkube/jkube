@@ -16,6 +16,9 @@ package org.eclipse.jkube.kit.enricher.api.util;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodSpecBuilder;
+import io.fabric8.kubernetes.api.model.Quantity;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -31,8 +34,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -49,7 +56,7 @@ public class KubernetesResourceUtilTest {
     @BeforeClass
     public static void initPath() throws UnsupportedEncodingException {
         ClassLoader classLoader = KubernetesResourceUtil.class.getClassLoader();
-        String filePath = URLDecoder.decode(classLoader.getResource("jkube/simple-rc.yaml").getFile(), "UTF-8");
+        String filePath = URLDecoder.decode(Objects.requireNonNull(classLoader.getResource("jkube/simple-rc.yaml")).getFile(), "UTF-8");
         jkubeDir = new File(filePath).getParentFile();
     }
 
@@ -171,6 +178,103 @@ public class KubernetesResourceUtilTest {
             assertEquals("pong",item.getMetadata().getName());
             assertEquals("v2",item.getApiVersion());
         }
+    }
+
+    @Test
+    public void testMergePodSpecWithFragmentWhenFragmentHasContainerNameWithSidecarDisabled() {
+        // Given
+        PodSpecBuilder fragment = new PodSpecBuilder()
+                .addNewContainer()
+                .withArgs("/usr/local/s2i/run")
+                .withName("demo")
+                .addNewEnv()
+                .withName("JAVA_APP_DIR")
+                .withValue("/deployments/ROOT.war ")
+                .endEnv()
+                .endContainer();
+        PodSpec defaultPodSpec = getDefaultGeneratedPodSpec();
+
+        // When
+        String defaultContainerName = KubernetesResourceUtil.mergePodSpec(fragment, defaultPodSpec, "default-name", false);
+
+        // Then
+        assertNotNull(defaultContainerName);
+        assertEquals("demo", defaultContainerName);
+    }
+
+    @Test
+    public void testMergePodSpecWithFragmentWhenFragmentNullContainerNameWithSidecarDisabled() {
+        // Given
+        Map<String, Quantity> requests = new HashMap<>();
+        requests.put("cpu", new Quantity("0.2"));
+        requests.put("memory", new Quantity("256Mi"));
+
+        Map<String, Quantity> limits = new HashMap<>();
+        limits.put("cpu", new Quantity("1.0"));
+        limits.put("memory", new Quantity("256Mi"));
+
+        PodSpecBuilder fragment = new PodSpecBuilder()
+                .addNewContainer()
+                .withNewResources()
+                .withRequests(requests)
+                .withLimits(limits)
+                .endResources()
+                .addNewEnv()
+                .withName("SPRING_APPLICATION_JSON")
+                .withValue("{\"server\":{\"undertow\":{\"io-threads\":1, \"worker-threads\":2 }}}")
+                .endEnv()
+                .endContainer();
+        PodSpec defaultPodSpec = getDefaultGeneratedPodSpec();
+
+        // When
+        String defaultContainerName = KubernetesResourceUtil.mergePodSpec(fragment, defaultPodSpec, "default-name", false);
+
+        // Then
+        assertNotNull(defaultContainerName);
+        assertEquals("spring-boot", defaultContainerName);
+    }
+
+    @Test
+    public void testMergePodSpecDefaultContainerNameWhenWhenFragmentNullSidecarEnabled() {
+        // Given
+        PodSpecBuilder fragment = new PodSpecBuilder()
+                .addNewContainer()
+                .withName("sidecar1")
+                .withImage("busybox")
+                .endContainer()
+                .addNewContainer()
+                .withName("sidecar2")
+                .withImage("busybox")
+                .endContainer();
+        PodSpec defaultPodSpec = getDefaultGeneratedPodSpec();
+
+        // When
+        String defaultContainerName = KubernetesResourceUtil.mergePodSpec(fragment, defaultPodSpec, "default-name", true);
+
+        // Then
+        assertNotNull(defaultContainerName);
+        assertEquals("spring-boot", defaultContainerName);
+    }
+
+    private PodSpec getDefaultGeneratedPodSpec() {
+        return new PodSpecBuilder()
+                .addNewContainer()
+                .withName("spring-boot")
+                .withImage("spring-boot-test:latest")
+                .addNewEnv()
+                .withName("KUBERNETES_NAMESPACE")
+                .withNewValueFrom()
+                .withNewFieldRef()
+                .withFieldPath("metadata.namespace")
+                .endFieldRef()
+                .endValueFrom()
+                .endEnv()
+                .withImagePullPolicy("IfNotPresent")
+                .addNewPort().withContainerPort(8080).withProtocol("TCP").endPort()
+                .addNewPort().withContainerPort(9779).withProtocol("TCP").endPort()
+                .addNewPort().withContainerPort(8778).withProtocol("TCP").endPort()
+                .endContainer()
+                .build();
     }
 }
 
