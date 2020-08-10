@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -82,6 +83,7 @@ import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.api.model.HasMetadataComparator;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
@@ -99,8 +101,10 @@ public class KubernetesHelper {
     protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
     private static final String FILENAME_PATTERN_REGEX = "^(?<name>.*?)(-(?<type>[^-]+))?\\.(?<ext>yaml|yml|json)$";
     private static final String PROFILES_PATTERN_REGEX = "^profiles?\\.ya?ml$";
-    private static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_PATTERN_REGEX);
-    private static final Pattern EXCLUDE_PATTERN = Pattern.compile(PROFILES_PATTERN_REGEX);
+    public static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
+    public static final Pattern PROFILES_PATTERN = Pattern.compile(PROFILES_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
+
+    private KubernetesHelper() {}
 
     /**
      * Validates that the given value is valid according to the kubernetes ID parsing rules, throwing an exception if not.
@@ -831,7 +835,7 @@ public class KubernetesHelper {
         return stringQuantityMap;
     }
 
-    protected static File[] listResourceFragments(File localResourceDir, List<String> remotes, KitLogger log) {
+    public static File[] listResourceFragments(File localResourceDir, List<String> remotes, KitLogger log) {
         File[] resourceFiles = listResourceFragments(localResourceDir);
 
         if(remotes != null) {
@@ -843,11 +847,11 @@ public class KubernetesHelper {
         return resourceFiles;
     }
 
-    private static File[] listResourceFragments(File resourceDir) {
+    public static File[] listResourceFragments(File resourceDir) {
         if (resourceDir == null) {
             return new File[0];
         }
-        return resourceDir.listFiles((File dir, String name) -> FILENAME_PATTERN.matcher(name).matches() && !EXCLUDE_PATTERN.matcher(name).matches());
+        return resourceDir.listFiles((File dir, String name) -> FILENAME_PATTERN.matcher(name).matches() && !PROFILES_PATTERN.matcher(name).matches());
     }
 
     private static File[] listRemoteResourceFragments(List<String> remotes, KitLogger log) {
@@ -860,6 +864,29 @@ public class KubernetesHelper {
             }
         }
         return new File[0];
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> unmarshalCustomResourceFile(File customResourceFile) throws IOException {
+        return Serialization.unmarshal(new FileInputStream(customResourceFile), Map.class);
+    }
+
+    public static Map<File, String> getCustomResourcesFileToNameMap(
+        File resourceDir, List<String> remotes, KitLogger log) throws IOException {
+
+        Map<File, String> fileToCrdGroupMap = new HashMap<>();
+        File[] resourceFiles = listResourceFragments(resourceDir, remotes, log);
+
+        for (File file : resourceFiles) {
+            if (file.getName().endsWith("cr.yml") || file.getName().endsWith("cr.yaml")) {
+                Map<String, Object> customResource = unmarshalCustomResourceFile(file);
+                String apiVersion = customResource.get("apiVersion").toString();
+                if (apiVersion.contains("/")) {
+                    fileToCrdGroupMap.put(file, apiVersion.split("/")[0]);
+                }
+            }
+        }
+        return fileToCrdGroupMap;
     }
 }
 

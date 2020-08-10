@@ -274,10 +274,6 @@ public class KubernetesClientUtil {
         }
     }
 
-    public static Map<String, Object> doReadCustomResourceFile(File customResourceFile) throws IOException {
-        return new ObjectMapper(new YAMLFactory()).readValue(new FileInputStream(customResourceFile), Map.class);
-    }
-
     public static String doGetCustomResourceAsString(File customResourceFile) throws IOException {
         String yamlFileAsString = FileUtils.readFileToString(customResourceFile, "UTF-8");
         Object obj = new ObjectMapper(new YAMLFactory()).readValue(yamlFileAsString, Object.class);

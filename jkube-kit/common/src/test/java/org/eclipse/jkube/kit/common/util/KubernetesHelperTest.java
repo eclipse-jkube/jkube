@@ -35,7 +35,7 @@ import static org.junit.Assert.assertTrue;
 
 public class KubernetesHelperTest {
     @Mocked
-    KitLogger logger;
+    private KitLogger logger;
 
     @Test
     public void testListResourceFragments() {
@@ -190,6 +190,15 @@ public class KubernetesHelperTest {
         assertEquals("-Dfoo=bar -Dxyz=abc", KubernetesHelper.getEnvVar(envVarList, "JAVA_OPTIONS", "defaultValue"));
         assertEquals("BAR", KubernetesHelper.getEnvVar(envVarList, "FOO", "defaultValue"));
 
+    }
+
+    @Test
+    public void getCustomResourcesFileToNameMapWithNoFragmentsShouldReturnEmptyMap() throws Exception {
+        // When
+        final Map<File, String> result = KubernetesHelper.getCustomResourcesFileToNameMap(null, null, logger);
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {

@@ -52,10 +52,12 @@ import java.util.Map;
  */
 public class ProjectLabelEnricher extends BaseEnricher {
 
+    public static final String LABEL_PROVIDER = "provider";
+
     @AllArgsConstructor
     private enum Config implements Configs.Config {
-        USE_PROJECT_LABEL("useProjectLabel", "false"),
-    	APP("app", null);
+      USE_PROJECT_LABEL("useProjectLabel", "false"),
+      APP("app", null);
 
         @Getter
         protected String key;
@@ -161,11 +163,11 @@ public class ProjectLabelEnricher extends BaseEnricher {
         if (enableProjectLabel) {
             ret.put("project", groupArtifactVersion.getArtifactId());
         } else {
-        	ret.put("app", getConfig(Config.APP, groupArtifactVersion.getArtifactId()));
+            ret.put("app", getConfig(Config.APP, groupArtifactVersion.getArtifactId()));
         }
 
         ret.put("group", groupArtifactVersion.getGroupId());
-        ret.put("provider", "jkube");
+        ret.put(LABEL_PROVIDER, "jkube");
         if (!withoutVersion) {
             ret.put("version", groupArtifactVersion.getVersion());
         }

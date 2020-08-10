@@ -78,6 +78,7 @@ import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getKind;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateLabels;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateMetadata;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.unmarshalCustomResourceFile;
 
 /**
  * Applies DTOs to the current Kubernetes master
@@ -200,41 +201,39 @@ public class ApplyService {
 
     public void applyOAuthClient(OAuthClient entity, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient != null) {
-            if (supportOAuthClients) {
-                String id = getName(entity);
-                Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-                if (isServicesOnlyMode()) {
-                    log.debug("Only processing Services right now so ignoring OAuthClient: " + id);
+        if (openShiftClient != null && supportOAuthClients) {
+            String id = getName(entity);
+            Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
+            if (isServicesOnlyMode()) {
+                log.debug("Only processing Services right now so ignoring OAuthClient: " + id);
+                return;
+            }
+            OAuthClient old = openShiftClient.oAuthClients().withName(id).get();
+            if (isRunning(old)) {
+                if (isIgnoreRunningOAuthClients()) {
+                    log.info("Not updating the OAuthClient which are shared across namespaces as its already running");
                     return;
                 }
-                OAuthClient old = openShiftClient.oAuthClients().withName(id).get();
-                if (isRunning(old)) {
-                    if (isIgnoreRunningOAuthClients()) {
-                        log.info("Not updating the OAuthClient which are shared across namespaces as its already running");
-                        return;
-                    }
-                    if (UserConfigurationCompare.configEqual(entity, old)) {
-                        log.info("OAuthClient has not changed so not doing anything");
+                if (UserConfigurationCompare.configEqual(entity, old)) {
+                    log.info("OAuthClient has not changed so not doing anything");
+                } else {
+                    if (isRecreateMode()) {
+                        openShiftClient.oAuthClients().withName(id).delete();
+                        doCreateOAuthClient(entity, sourceName);
                     } else {
-                        if (isRecreateMode()) {
-                            openShiftClient.oAuthClients().withName(id).delete();
-                            doCreateOAuthClient(entity, sourceName);
-                        } else {
-                            try {
-                                Object answer = openShiftClient.oAuthClients().withName(id).replace(entity);
-                                log.info("Updated OAuthClient result: " + answer);
-                            } catch (Exception e) {
-                                onApplyError("Failed to update OAuthClient from " + sourceName + ". " + e + ". " + entity, e);
-                            }
+                        try {
+                            Object answer = openShiftClient.oAuthClients().withName(id).replace(entity);
+                            log.info("Updated OAuthClient result: " + answer);
+                        } catch (Exception e) {
+                            onApplyError("Failed to update OAuthClient from " + sourceName + ". " + e + ". " + entity, e);
                         }
                     }
+                }
+            } else {
+                if (!isAllowCreate()) {
+                    log.warn("Creation disabled so not creating an OAuthClient from " + sourceName + " name " + getName(entity));
                 } else {
-                    if (!isAllowCreate()) {
-                        log.warn("Creation disabled so not creating an OAuthClient from " + sourceName + " name " + getName(entity));
-                    } else {
-                        doCreateOAuthClient(entity, sourceName);
-                    }
+                    doCreateOAuthClient(entity, sourceName);
                 }
             }
         }
@@ -254,7 +253,7 @@ public class ApplyService {
     /**
      * Creates/updates the template and processes it returning the processed DTOs
      */
-    public Object applyTemplate(Template entity, String sourceName) throws Exception {
+    public Object applyTemplate(Template entity, String sourceName) {
         installTemplate(entity, sourceName);
         return processTemplate(entity, sourceName);
     }
@@ -455,7 +454,7 @@ public class ApplyService {
     public void applyCustomResource(File customResourceFile, String namespace, CustomResourceDefinitionContext context)
         throws Exception {
 
-        Map<String, Object> cr = KubernetesClientUtil.doReadCustomResourceFile(customResourceFile);
+        Map<String, Object> cr = unmarshalCustomResourceFile(customResourceFile);
         Map<String, Object> objectMeta = (Map<String, Object>)cr.get("metadata");
         String name = objectMeta.get("name").toString();
 
@@ -473,16 +472,6 @@ public class ApplyService {
                 log.info("Updated Custom Resource: " + name);
             }
         }
-    }
-
-    public void deleteCustomResource(File customResourceFile, String namespace, CustomResourceDefinitionContext crdContext)
-        throws Exception {
-
-        Map<String, Object> customResource = KubernetesClientUtil.doReadCustomResourceFile(customResourceFile);
-        Map<String, Object> objectMeta = (Map<String, Object>)customResource.get("metadata");
-        String name = objectMeta.get("name").toString();
-        log.info("Deleting Custom Resource " + name);
-        KubernetesClientUtil.doDeleteCustomResource(kubernetesClient, crdContext, namespace, name);
     }
 
     protected boolean isBound(PersistentVolumeClaim claim) {

@@ -23,8 +23,10 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
+import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 import mockit.Mocked;
+import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 import org.junit.Test;
 
 import java.util.Properties;
@@ -35,6 +37,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 
+@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class JKubeServiceHubTest {
 
   @Mocked
@@ -54,6 +57,15 @@ public class JKubeServiceHubTest {
 
   @Mocked
   private BuildServiceConfig buildServiceConfig;
+
+  private JKubeServiceHub.JKubeServiceHubBuilder commonInit() {
+    return JKubeServiceHub.builder()
+        .configuration(configuration)
+        .clusterAccess(clusterAccess)
+        .log(logger)
+        .dockerServiceHub(dockerServiceHub)
+        .buildServiceConfig(buildServiceConfig);
+  }
 
   @Test(expected = NullPointerException.class)
   public void testMissingClusterAccess() {
@@ -93,15 +105,10 @@ public class JKubeServiceHubTest {
   }
 
   @Test
-  public void testObtainBuildService() {
+  public void testGetBuildServiceInKubernetes() {
     // Given
-    JKubeServiceHub hub = JKubeServiceHub.builder()
-        .configuration(configuration)
-        .clusterAccess(clusterAccess)
-        .log(logger)
+    JKubeServiceHub hub = commonInit()
         .platformMode(RuntimeMode.KUBERNETES)
-        .dockerServiceHub(dockerServiceHub)
-        .buildServiceConfig(buildServiceConfig)
         .build();
     // When
     BuildService buildService = hub.getBuildService();
@@ -111,20 +118,16 @@ public class JKubeServiceHubTest {
   }
 
   @Test
-  public void testObtainOpenshiftBuildService() {
+  public void testGetBuildServiceInOpenShift() {
     // Given
     // @formatter:off
       new Expectations() {{
         buildServiceConfig.getJKubeBuildStrategy(); result = null;
+        openShiftClient.isAdaptable(OpenShiftClient.class); result = true;
       }};
       // @formatter:on
-    JKubeServiceHub hub = JKubeServiceHub.builder()
-        .configuration(configuration)
-        .clusterAccess(clusterAccess)
-        .log(logger)
+    JKubeServiceHub hub = commonInit()
         .platformMode(RuntimeMode.OPENSHIFT)
-        .dockerServiceHub(dockerServiceHub)
-        .buildServiceConfig(buildServiceConfig)
         .build();
     // When
     BuildService buildService = hub.getBuildService();
@@ -134,38 +137,78 @@ public class JKubeServiceHubTest {
   }
 
   @Test
-  public void testObtainArtifactResolverService() {
-    JKubeServiceHub hub = JKubeServiceHub.builder()
-        .configuration(configuration)
-        .clusterAccess(clusterAccess)
-        .log(logger)
+  public void testGetArtifactResolverService() {
+    JKubeServiceHub hub = commonInit()
         .platformMode(RuntimeMode.KUBERNETES)
-        .dockerServiceHub(dockerServiceHub)
         .build();
 
     assertNotNull(hub.getArtifactResolverService());
   }
 
   @Test
-  public void testObtainJibBuildService() {
+  public void testGetJibBuildServiceInKubernetes() {
     // Given
     // @formatter:off
     new Expectations() {{
       buildServiceConfig.getJKubeBuildStrategy(); result = JKubeBuildStrategy.jib;
     }};
     // @formatter:on
-    JKubeServiceHub hub = JKubeServiceHub.builder()
-        .configuration(configuration)
-        .clusterAccess(clusterAccess)
-        .log(logger)
+    JKubeServiceHub hub = commonInit()
         .platformMode(RuntimeMode.KUBERNETES)
-        .dockerServiceHub(dockerServiceHub)
-        .buildServiceConfig(buildServiceConfig)
         .build();
     // When
     BuildService buildService = hub.getBuildService();
     // Then
     assertNotNull(buildService);
     assertTrue(buildService instanceof JibBuildService);
+  }
+
+  @Test
+  public void testGetUndeployServiceInKubernetes() {
+    // Given
+    JKubeServiceHub hub = commonInit()
+        .platformMode(RuntimeMode.KUBERNETES)
+        .build();
+    // When
+    final UndeployService result = hub.getUndeployService();
+    // Then
+    assertNotNull(result);
+    assertTrue(result instanceof KubernetesUndeployService);
+  }
+
+  @Test
+  public void testGetUndeployServiceInOpenShiftWithInvalidClient() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      openShiftClient.isAdaptable(OpenShiftClient.class); result = false;
+    }};
+    // @formatter:on
+    JKubeServiceHub hub = commonInit()
+        .platformMode(RuntimeMode.OPENSHIFT)
+        .build();
+    // When
+    final UndeployService result = hub.getUndeployService();
+    // Then
+    assertNotNull(result);
+    assertTrue(result instanceof KubernetesUndeployService);
+  }
+
+  @Test
+  public void testGetUndeployServiceInOpenShiftWithValidClient() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      openShiftClient.isAdaptable(OpenShiftClient.class); result = true;
+    }};
+    // @formatter:on
+    JKubeServiceHub hub = commonInit()
+        .platformMode(RuntimeMode.OPENSHIFT)
+        .build();
+    // When
+    final UndeployService result = hub.getUndeployService();
+    // Then
+    assertNotNull(result);
+    assertTrue(result instanceof OpenshiftUndeployService);
   }
 }
