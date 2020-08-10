@@ -34,7 +34,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -73,7 +72,6 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.Template;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MapUtil;
@@ -83,11 +81,11 @@ import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.FILENAME_PATTERN;
 
 /**
  * Utility class for handling Kubernetes resource descriptors
@@ -161,7 +159,7 @@ public class KubernetesResourceUtil {
      *
      * @param platformMode Platform whether it's Kubernetes/OpenShift
      * @param apiVersions the API versions to add if not given.
-     * @param file file to read, whose name must match {@link #FILENAME_PATTERN}.  @return map holding the fragment
+     * @param file file to read.
      * @param appName resource name specifying resources belonging to this application
      * @return HasMetadata object for resource
      * @throws IOException IOException in case file loading is failed
@@ -176,37 +174,6 @@ public class KubernetesResourceUtil {
             throw new IllegalArgumentException(String.format("Resource fragment %s has an invalid syntax (%s)", file.getPath(), exp.getMessage()));
         }
     }
-
-    public static File[] listResourceFragments(File localResourceDir, List<String> remotes, KitLogger log) {
-        File[] resourceFiles = KubernetesResourceUtil.listResourceFragments(localResourceDir);
-
-        if(remotes != null) {
-            File[] remoteResourceFiles = KubernetesResourceUtil.listRemoteResourceFragments(remotes, log);
-            if (remoteResourceFiles.length > 0) {
-                resourceFiles = ArrayUtils.addAll(resourceFiles, remoteResourceFiles);
-            }
-        }
-        return resourceFiles;
-    }
-
-    public static File[] listResourceFragments(File resourceDir) {
-        final Pattern filenamePattern = Pattern.compile(FILENAME_PATTERN);
-        final Pattern exludePattern = Pattern.compile(PROFILES_PATTERN);
-        return resourceDir.listFiles((File dir, String name) -> filenamePattern.matcher(name).matches() && !exludePattern.matcher(name).matches());
-    }
-
-    public static File[] listRemoteResourceFragments(List<String> remotes, KitLogger log) {
-        if (remotes != null && !remotes.isEmpty()) {
-            final File remoteResources = FileUtil.createTempDirectory();
-            FileUtil.downloadRemotes(remoteResources, remotes, log);
-
-            if (remoteResources.isDirectory()) {
-                return remoteResources.listFiles();
-            }
-        }
-        return new File[0];
-    }
-
 
     // ========================================================================================================
 
@@ -246,14 +213,10 @@ public class KubernetesResourceUtil {
 
     }
 
-    private static final String FILENAME_PATTERN = "^(?<name>.*?)(-(?<type>[^-]+))?\\.(?<ext>yaml|yml|json)$";
-    private static final String PROFILES_PATTERN = "^profiles?\\.ya?ml$";
-
     // Read fragment and add default values
     private static Map<String, Object> readAndEnrichFragment(PlatformMode platformMode, ResourceVersioning apiVersions,
                                                              File file, String appName) throws IOException {
-        Pattern pattern = Pattern.compile(FILENAME_PATTERN, Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(file.getName());
+        Matcher matcher = FILENAME_PATTERN.matcher(file.getName());
         if (!matcher.matches()) {
             throw new IllegalArgumentException(
                     String.format("Resource file name '%s' does not match pattern <name>-<type>.(yaml|yml|json)", file.getName()));

@@ -80,11 +80,11 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         jkubeServiceHub = JKubeServiceHub.builder()
                 .log(log)
                 .configuration(JKubeConfiguration.builder()
-                        .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
+                        .project(javaProject)
                         .reactorProjects(Collections.singletonList(javaProject))
                         .build())
                 .clusterAccess(clusterAccess)
-                .platformMode(RuntimeMode.KUBERNETES)
+                .platformMode(getRuntimeMode())
                 .build();
     }
 
@@ -117,6 +117,10 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
             value = project.getProperties().getProperty(key);
         }
         return value;
+    }
+
+    protected RuntimeMode getRuntimeMode() {
+        return RuntimeMode.KUBERNETES;
     }
 
     protected String getLogPrefix() {

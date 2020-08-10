@@ -44,12 +44,12 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCustomResourcesFileToNameMap;
 
 /**
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
@@ -305,7 +305,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
                 }
             }
         }
-        processCustomEntities(kubernetes, namespace, resources != null ? resources.getCustomResourceDefinitions() : null, false);
+        processCustomEntities(kubernetes, namespace, resources != null ? resources.getCustomResourceDefinitions() : null);
     }
 
     protected String getExternalServiceURL(Service service) {
@@ -335,41 +335,21 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         applyService.setProcessTemplatesLocally(true);
     }
 
-    protected void processCustomEntities(KubernetesClient client, String namespace, List<String> customResourceDefinitions, boolean isDelete) throws Exception {
+    protected void processCustomEntities(KubernetesClient client, String namespace, List<String> customResourceDefinitions) throws Exception {
         if(customResourceDefinitions == null)
             return;
 
         List<CustomResourceDefinitionContext> crdContexts = KubernetesClientUtil.getCustomResourceDefinitionContext(client ,customResourceDefinitions);
-        Map<File, String> fileToCrdMap = getCustomResourcesFileToNamemap();
+        File resourceDirFinal = ResourceUtil.getFinalResourceDir(resourceDir, environment);
+        Map<File, String> fileToCrdMap = getCustomResourcesFileToNameMap(resourceDirFinal, resources != null ? resources.getRemotes() : null, getKitLogger());
 
         for(CustomResourceDefinitionContext customResourceDefinitionContext : crdContexts) {
             for(Map.Entry<File, String> entry : fileToCrdMap.entrySet()) {
                 if(entry.getValue().equals(customResourceDefinitionContext.getGroup())) {
-                    if(isDelete) {
-                        applyService.deleteCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
-                    } else {
-                        applyService.applyCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
-                    }
+                    applyService.applyCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
                 }
             }
         }
-    }
-
-    protected Map<File, String> getCustomResourcesFileToNamemap() throws IOException {
-        Map<File, String> fileToCrdGroupMap = new HashMap<>();
-        File resourceDirFinal = ResourceUtil.getFinalResourceDir(resourceDir, environment);
-        File[] resourceFiles = KubernetesResourceUtil.listResourceFragments(resourceDirFinal, resources != null ? resources.getRemotes() : null, log);
-
-        for (File file : resourceFiles) {
-            if (file.getName().endsWith("cr.yml") || file.getName().endsWith("cr.yaml")) {
-                Map<String, Object> customResource = KubernetesClientUtil.doReadCustomResourceFile(file);
-                String apiVersion = customResource.get("apiVersion").toString();
-                if (apiVersion.contains("/")) {
-                    fileToCrdGroupMap.put(file, apiVersion.split("/")[0]);
-                }
-            }
-        }
-        return fileToCrdGroupMap;
     }
 
     /**

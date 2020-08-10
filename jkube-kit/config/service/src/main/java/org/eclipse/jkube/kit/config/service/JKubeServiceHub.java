@@ -35,7 +35,11 @@ import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
+import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
+import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
+
+import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
 
 /**
  * @author nicola
@@ -59,6 +63,7 @@ public class JKubeServiceHub implements Closeable {
     private LazyBuilder<ArtifactResolverService> artifactResolverService;
     private LazyBuilder<BuildService> buildService;
     private LazyBuilder<ApplyService> applyService;
+    private LazyBuilder<UndeployService> undeployService;
     private LazyBuilder<MigrateService> migrateService;
 
     @Builder
@@ -92,7 +97,7 @@ public class JKubeServiceHub implements Closeable {
             }
             // Creating platform-dependent services
             if (platformMode == RuntimeMode.OPENSHIFT) {
-                if (!(client instanceof OpenShiftClient)) {
+                if (!isOpenShift(client)) {
                     throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
                 }
                 // OpenShift services
@@ -104,6 +109,12 @@ public class JKubeServiceHub implements Closeable {
             return ret;
         });
         artifactResolverService = new LazyBuilder<>(() -> new JKubeArtifactResolverService(configuration.getProject()));
+        undeployService = new LazyBuilder<>(() -> {
+            if (platformMode == RuntimeMode.OPENSHIFT && isOpenShift(client)) {
+                return new OpenshiftUndeployService(this, log);
+            }
+            return new KubernetesUndeployService(this, log);
+        });
         migrateService = new LazyBuilder<>(() -> new MigrateService(getConfiguration().getBasedir(), log));
     }
 
@@ -127,6 +138,10 @@ public class JKubeServiceHub implements Closeable {
 
     public ApplyService getApplyService() {
         return applyService.get();
+    }
+
+    public UndeployService getUndeployService() {
+        return undeployService.get();
     }
 
     public MigrateService getMigrateService() {

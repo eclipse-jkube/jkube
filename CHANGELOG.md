@@ -29,6 +29,7 @@ Usage:
 * Fix #334: Build strategy picked up from XML configuration and properties
 * Fix #342: Maven Quickstart for Spring-Boot with complete Camel integration
 * Fix #336: Fix pull from insecure registries and pull registry authentication for JIB
+* Fix #332: OpenShift build resources are deleted (as long as build config manifest is available)
 
 ### 1.0.0-rc-1 (2020-07-23)
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)

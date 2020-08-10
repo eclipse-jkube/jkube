@@ -72,6 +72,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.listResourceFragments;
 import static org.eclipse.jkube.kit.common.util.ResourceMojoUtil.DEFAULT_RESOURCE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.ResourceMojoUtil.useDekorate;
 import static org.eclipse.jkube.maven.plugin.mojo.build.BuildMojo.CONTEXT_KEY_BUILD_TIMESTAMP;
@@ -309,6 +310,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
         return PlatformMode.kubernetes;
     }
 
+    @Override
     protected RuntimeMode getRuntimeMode() {
         return RuntimeMode.KUBERNETES;
     }
@@ -407,7 +409,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
             for (File profileDir : profileDirs) {
                 Profile foundProfile = ProfileUtil.findProfile(profileDir.getName(), resourceDir);
                 ProcessorConfig enricherConfig = foundProfile.getEnricherConfig();
-                File[] resourceFiles = KubernetesResourceUtil.listResourceFragments(profileDir);
+                File[] resourceFiles = listResourceFragments(profileDir);
                 if (resourceFiles.length > 0) {
                     KubernetesListBuilder profileBuilder = readResourceFragments(platformMode, resourceFiles);
                     enricherManager.createDefaultResources(platformMode, enricherConfig, profileBuilder);
@@ -441,7 +443,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     }
 
     private KubernetesListBuilder processResourceFragments(PlatformMode platformMode) throws IOException, MojoExecutionException {
-        File[] resourceFiles = KubernetesResourceUtil.listResourceFragments(realResourceDir, resources !=null ? resources.getRemotes() : null, log);
+        File[] resourceFiles = listResourceFragments(realResourceDir, resources !=null ? resources.getRemotes() : null, log);
         KubernetesListBuilder builder;
 
         // Add resource files found in the jkube directory
