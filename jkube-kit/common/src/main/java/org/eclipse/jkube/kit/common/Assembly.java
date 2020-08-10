@@ -26,7 +26,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @SuppressWarnings("JavaDoc")
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

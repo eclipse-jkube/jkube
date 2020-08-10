@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -447,15 +448,15 @@ public class AssemblyManager {
 
         AssemblyConfiguration assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
         final AssemblyConfiguration.AssemblyConfigurationBuilder builder = assemblyConfig.toBuilder();
+        final Assembly.AssemblyBuilder inlineBuilder = assemblyConfig.getInline() == null ? Assembly.builder() : assemblyConfig.getInline().toBuilder();
 
         File contextDir = buildConfiguration.getAbsoluteContextDirPath(params.getSourceDirectory(), params.getBasedir().getAbsolutePath());
-        builder.inline(Assembly.builder()
-                .fileSet(AssemblyFileSet.builder()
-                        .directory(contextDir)
-                        .outputDirectory(new File("."))
-                        .directoryMode("0775")
-                        .build()).build());
-
+        builder.inline(inlineBuilder
+                       .fileSet(AssemblyFileSet.builder()
+                           .directory(contextDir)
+                           .outputDirectory(new File("."))
+                           .directoryMode("0775")
+                           .build()).build());
         return builder.build();
     }
 

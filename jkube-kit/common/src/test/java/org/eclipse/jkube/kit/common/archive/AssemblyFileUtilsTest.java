@@ -33,6 +33,22 @@ public class AssemblyFileUtilsTest {
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Test
+  public void getAssemblyFileOutputDirectoryRequired() throws IOException {
+      // Given
+      final AssemblyFile af = AssemblyFile.builder().build();
+      final File outputDirectoryForRelativePaths = temporaryFolder.newFolder("output");
+      final AssemblyConfiguration ac = AssemblyConfiguration.builder().build();
+
+      // When
+      try {
+          AssemblyFileUtils.getAssemblyFileOutputDirectory(af, outputDirectoryForRelativePaths, ac);
+          fail("Should fail as output directory should not be null");
+      } catch(NullPointerException ex) {
+          assertEquals("Assembly Configuration output dir is required", ex.getMessage());
+      }
+  }
+
+  @Test
   public void getAssemblyFileOutputDirectoryWithAbsoluteDirectoryShouldReturnSame() throws IOException {
     // Given
     assumeFalse(isWindows());

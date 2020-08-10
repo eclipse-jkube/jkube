@@ -26,6 +26,9 @@ public class AssemblyFileUtils {
   public static File getAssemblyFileOutputDirectory(
       AssemblyFile assemblyFile, File outputDirectoryForRelativePaths, AssemblyConfiguration assemblyConfiguration) {
     final File outputDirectory;
+
+    Objects.requireNonNull(assemblyFile.getOutputDirectory(), "Assembly Configuration output dir is required");
+
     if (assemblyFile.getOutputDirectory().isAbsolute()) {
       outputDirectory = assemblyFile.getOutputDirectory();
     } else {
