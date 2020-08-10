@@ -22,8 +22,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -368,5 +370,78 @@ public class AssemblyManagerTest {
         writer.close();
     }
 
+    @Test
+    public void testCreateDockerTarArchiveWithDockerfileAndAssembly() throws IOException {
+        // Given
+        File baseProjectDir = temporaryFolder.newFolder("test-workspace");
+        File dockerFile = new File(baseProjectDir, "Dockerfile");
+        assertTrue(dockerFile.createNewFile());
+        writeASimpleDockerfile(dockerFile);
+
+        File assemblyFolder = new File(baseProjectDir, "additional");
+        assertTrue(assemblyFolder.mkdirs());
+        File extraFile = new File(assemblyFolder, "extraFile.txt");
+        assertTrue(extraFile.createNewFile());
+
+        File targetDirectory = new File(baseProjectDir, "target");
+        File outputDirectory = new File(targetDirectory, "classes");
+        assertTrue(outputDirectory.mkdirs());
+        File finalArtifactFile = new File(targetDirectory, "test-0.1.0.jar");
+        assertTrue(finalArtifactFile.createNewFile());
+        File dockerDirectory = new File(targetDirectory, "docker");
+        File buildOutputDir = new File(dockerDirectory, "test-image");
+        File buildDir = new File(buildOutputDir, "build");
+        File workDir = new File(buildOutputDir, "work");
+        File tmpDir = new File(buildOutputDir, "tmp");
+        File mavenDir = new File(buildDir, "maven");
+        File jarCopiedInBuildDirs = new File(mavenDir, "target/test-0.1.0.jar");
+
+        final JKubeConfiguration configuration = JKubeConfiguration.builder()
+                .project(JavaProject.builder()
+                        .groupId("org.eclipse.jkube")
+                        .artifactId("test")
+                        .packaging("jar")
+                        .version("0.1.0")
+                        .buildDirectory(targetDirectory)
+                        .baseDirectory(baseProjectDir)
+                        .outputDirectory(outputDirectory)
+                        .properties(new Properties())
+                        .artifact(finalArtifactFile)
+                        .build())
+                .outputDirectory("target/docker")
+                .sourceDirectory(baseProjectDir.getPath() + "/src/main/docker")
+                .build();
+
+        AssemblyConfiguration assemblyConfig = AssemblyConfiguration.builder()
+                .inline(Assembly.builder()
+                        .file(AssemblyFile.builder()
+                              .source(extraFile)
+                              .outputDirectory(mavenDir)
+                              .build())
+                        .build())
+                .build();
+
+        final BuildConfiguration jKubeBuildConfiguration = BuildConfiguration.builder()
+                .assembly(assemblyConfig)
+                .dockerFile(dockerFile.getPath())
+                .dockerFileFile(dockerFile)
+                .build();
+
+        // When
+        File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+
+        // Then
+        assertNotNull(dockerArchiveFile);
+        assertTrue(dockerArchiveFile.exists());
+        assertTrue(dockerDirectory.isDirectory() && dockerDirectory.exists());
+        assertTrue(buildOutputDir.isDirectory() && buildOutputDir.exists());
+        assertTrue(buildDir.isDirectory() && buildDir.exists());
+        assertTrue(workDir.isDirectory() && workDir.exists());
+        assertTrue(tmpDir.isDirectory() && tmpDir.exists());
+        assertTrue(new File(buildDir, "Dockerfile").exists());
+        assertTrue(mavenDir.isDirectory() && mavenDir.exists());
+        assertTrue(new File(mavenDir, extraFile.getName()).exists());
+        assertTrue(jarCopiedInBuildDirs.exists());
+    }
 }
 
