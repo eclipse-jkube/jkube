@@ -123,7 +123,7 @@ public class AutoTLSEnricherTest {
             ObjectMeta om = service.getMetadata();
 
             List<Container> initContainers = pt.getTemplate().getSpec().getInitContainers();
-            Assert.assertTrue((tc.mode == RuntimeMode.OPENSHIFT) == !initContainers.isEmpty());
+            assertEquals(tc.mode == RuntimeMode.OPENSHIFT,!initContainers.isEmpty());
             if (tc.mode == RuntimeMode.KUBERNETES) {
                 continue;
             }
