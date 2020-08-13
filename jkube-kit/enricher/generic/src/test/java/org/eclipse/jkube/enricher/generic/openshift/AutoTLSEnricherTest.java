@@ -68,7 +68,6 @@ public class AutoTLSEnricherTest {
 
     @Test
     public void testAdapt() {
-        String annotationvalue = context.getGav().getArtifactId() + "-tls";
         final AdaptTestConfig[] data = new AdaptTestConfig[] {
             AdaptTestConfig.builder().mode(RuntimeMode.KUBERNETES).build(),
             new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
@@ -128,7 +127,7 @@ public class AutoTLSEnricherTest {
             //Test metadata annotation
             Map<String, String> generatedAnnotation = om.getAnnotations();
             Assert.assertTrue(generatedAnnotation.containsKey(AutoTLSEnricher.AUTOTLS_ANNOTATION_KEY));
-            Assert.assertTrue(generatedAnnotation.containsValue(annotationvalue));
+            Assert.assertTrue(generatedAnnotation.containsValue(context.getGav().getArtifactId() + "-tls"));
 
             //Test Pod template
             Gson gson = new Gson();
