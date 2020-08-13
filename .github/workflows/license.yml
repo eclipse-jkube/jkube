@@ -32,4 +32,4 @@ jobs:
         with:
           java-version: '11'
       - name: Check License Headers
-        run: mvn -N license:format
+        run: mvn -N license:check
