@@ -68,10 +68,6 @@ public class AutoTLSEnricherTest {
 
     @Test
     public void testAdapt() {
-        Map annotations = new LinkedHashMap<String, String>();
-        String annotationkey = "service.alpha.openshift.io/serving-cert-secret-name";
-        String annotationvalue = context.getGav().getArtifactId() + "-tls";
-        annotations.put(annotationkey, annotationvalue);
         final AdaptTestConfig[] data = new AdaptTestConfig[] {
             AdaptTestConfig.builder().mode(RuntimeMode.KUBERNETES).build(),
             new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
@@ -130,8 +126,8 @@ public class AutoTLSEnricherTest {
 
             //Test metadata annotation
             Map<String, String> generatedAnnotation = om.getAnnotations();
-            Assert.assertTrue(generatedAnnotation.containsKey(annotationkey));
-            Assert.assertTrue(generatedAnnotation.containsValue(annotationvalue));
+            Assert.assertTrue(generatedAnnotation.containsKey(AutoTLSEnricher.AUTOTLS_ANNOTATION_KEY));
+            Assert.assertTrue(generatedAnnotation.containsValue(context.getGav().getArtifactId() + "-tls"));
 
             //Test Pod template
             Gson gson = new Gson();
