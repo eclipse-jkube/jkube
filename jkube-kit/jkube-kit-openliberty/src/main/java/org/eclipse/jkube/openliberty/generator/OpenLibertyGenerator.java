@@ -16,11 +16,8 @@ package org.eclipse.jkube.openliberty.generator;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import java.util.ArrayList;
@@ -32,8 +29,6 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
     protected static final String LIBERTY_SELF_EXTRACTOR = "wlp.lib.extract.SelfExtractRun";
     protected static final String LIBERTY_RUNNABLE_JAR = "LIBERTY_RUNNABLE_JAR";
     protected static final String JAVA_APP_JAR = "JAVA_APP_JAR";
-
-    private String runnableJarName = null;
 
     public OpenLibertyGenerator(GeneratorContext context) {
         super(context, "openliberty");
@@ -57,35 +52,15 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
         return ret;
     }
 
-
     @Override
     protected Map<String, String> getEnv(boolean prePackagePhase) {
         Map<String, String> ret = super.getEnv(prePackagePhase);
-        if (runnableJarName != null) {
-            ret.put(LIBERTY_RUNNABLE_JAR, runnableJarName);
-            ret.put(JAVA_APP_JAR, runnableJarName);
+        final FatJarDetector.Result fatJar = detectFatJar();
+        if (fatJar != null && LIBERTY_SELF_EXTRACTOR.equals(fatJar.getMainClass())) {
+            ret.put(LIBERTY_RUNNABLE_JAR, fatJar.getArchiveFile().getName());
+            ret.put(JAVA_APP_JAR, fatJar.getArchiveFile().getName());
         }
         return ret;
-    }
-
-    @Override
-    protected void addAssembly(AssemblyConfiguration.AssemblyConfigurationBuilder builder) {
-        final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
-        if (isFatJar()) {
-            FatJarDetector.Result fatJar = detectFatJar();
-            JavaProject project = getProject();
-            if (fatJar != null) {
-                AssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
-                if (LIBERTY_SELF_EXTRACTOR.equals(fatJar.getMainClass())) {
-                    this.runnableJarName = fatJar.getArchiveFile().getName();
-                }
-                fileSets.add(fileSet);
-            }
-        } else {
-            log.warn("No fat Jar detected, make sure your image assembly configuration contains all the required" +
-                " dependencies for your application to run.");
-        }
-        builder.inline(Assembly.builder().fileSets(fileSets).build());
     }
 
     @Override
