@@ -21,8 +21,8 @@
   <artifactId>jkube</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <description>JKube</description>
-  <name>JKube</name>
+  <description>Eclipse JKube</description>
+  <name>Eclipse JKube</name>
 
   <url>https://projects.eclipse.org/projects/ecd.jkube</url>
 
@@ -36,7 +36,7 @@
   <developers>
     <developer>
       <id>geeks</id>
-      <name>JKube Development Team</name>
+      <name>Eclipse JKube Development Team</name>
       <email>jkube-dev@eclipse.org</email>
       <organization>Eclipse Foundation</organization>
       <organizationUrl>https://projects.eclipse.org/projects/ecd.jkube</organizationUrl>
