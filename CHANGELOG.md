@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.0-SNAPSHOT
+* Fix #351: Fix AutoTLSEnricher - add annotation + volume config to resource
 * Fix #344: Fix documentation for `jkube.openshift.imageChangeTriggers`
 * Fix #290: Bump Fabric8 Kubernetes Client to v4.10.3
 * Fix #273: Added new parameter to allow for custom _app_ name

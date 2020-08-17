@@ -72,7 +72,7 @@ org.eclipse.jkube.enricher.generic.TriggersAnnotationEnricher
 org.eclipse.jkube.enricher.generic.ConfigMapEnricher
 
 # Provide cluster generated CERTs to a pod
-# (see https://docs.okd.io/latest/dev_guide/secrets.html#service-serving-certificate-secrets)
+# (see https://docs.openshift.com/dedicated/3/dev_guide/secrets.html#service-serving-certificate-secrets)
 org.eclipse.jkube.enricher.generic.openshift.AutoTLSEnricher
 
 # Add a service account

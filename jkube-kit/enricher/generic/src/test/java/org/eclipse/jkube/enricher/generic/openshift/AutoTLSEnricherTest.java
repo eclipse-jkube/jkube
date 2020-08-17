@@ -13,12 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-import java.util.TreeMap;
-
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -26,18 +20,30 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodTemplate;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.Volume;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -97,24 +103,46 @@ public class AutoTLSEnricherTest {
             // @formatter:on
 
             AutoTLSEnricher enricher = new AutoTLSEnricher(context);
-            KubernetesListBuilder klb = new KubernetesListBuilder().addNewPodTemplateItem().withNewMetadata().and()
-                    .withNewTemplate().withNewMetadata().and().withNewSpec().and().and().and();
+            KubernetesListBuilder klb = new KubernetesListBuilder()
+                    .addNewPodTemplateItem()
+                        .withNewMetadata().and()
+                            .withNewTemplate()
+                            .withNewMetadata()
+                            .and()
+                            .withNewSpec()
+                            .and().and().and()
+                        .addNewServiceItem()
+                    .and();
             enricher.enrich(PlatformMode.kubernetes, klb);
             PodTemplate pt = (PodTemplate) klb.buildItems().get(0);
+            Service service = (Service) klb.buildItems().get(1);
+            ObjectMeta om = service.getMetadata();
 
             List<Container> initContainers = pt.getTemplate().getSpec().getInitContainers();
-            assertEquals(tc.mode == RuntimeMode.OPENSHIFT, !initContainers.isEmpty());
-
+            assertEquals(tc.mode == RuntimeMode.OPENSHIFT,!initContainers.isEmpty());
             if (tc.mode == RuntimeMode.KUBERNETES) {
                 continue;
             }
 
+            //Test metadata annotation
+            Map<String, String> generatedAnnotation = om.getAnnotations();
+            Assert.assertTrue(generatedAnnotation.containsKey(AutoTLSEnricher.AUTOTLS_ANNOTATION_KEY));
+            Assert.assertTrue(generatedAnnotation.containsValue(context.getGav().getArtifactId() + "-tls"));
+
+            //Test Pod template
             Gson gson = new Gson();
             JsonArray ja = new JsonParser().parse(gson.toJson(initContainers, new TypeToken<Collection<Container>>() {}.getType())).getAsJsonArray();
             assertEquals(1, ja.size());
             JsonObject jo = ja.get(0).getAsJsonObject();
             assertEquals(tc.initContainerName, jo.get("name").getAsString());
             assertEquals(tc.initContainerImage, jo.get("image").getAsString());
+            //Test volumes are created
+            List<Volume> volumes = pt.getTemplate().getSpec().getVolumes();
+            assertEquals(2, volumes.size());
+            List<String> volumeNames = volumes.stream().map(Volume::getName).collect(Collectors.toList());
+            Assert.assertTrue(volumeNames.contains(tc.tlsSecretVolumeName));
+            Assert.assertTrue(volumeNames.contains(tc.jksVolumeName));
+            //Test volume mounts are created
             JsonArray mounts = jo.get("volumeMounts").getAsJsonArray();
             assertEquals(2, mounts.size());
             JsonObject mount = mounts.get(0).getAsJsonObject();
