@@ -179,6 +179,7 @@ public class JavaExecGenerator extends BaseGenerator {
     protected void addAssembly(AssemblyConfiguration.AssemblyConfigurationBuilder builder) {
         final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
         if (isFatJar()) {
+            builder.excludeFinalOutputArtifact(true);
             FatJarDetector.Result fatJar = detectFatJar();
             if (fatJar != null) {
                 fileSets.add(getOutputDirectoryFileSet(fatJar, getProject()));
