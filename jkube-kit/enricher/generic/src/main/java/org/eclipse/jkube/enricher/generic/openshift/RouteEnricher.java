@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.fabric8.openshift.api.model.TLSConfig;
-import org.eclipse.jkube.enricher.generic.DefaultServiceEnricher;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
@@ -112,8 +110,6 @@ public class RouteEnricher extends BaseEnricher {
 
     @Override
     public void enrich(PlatformMode platformMode, final KubernetesListBuilder listBuilder){
-        ResourceConfig resourceConfig = getConfiguration().getResource();
-
         if(platformMode == PlatformMode.openshift && isRouteWithTLS()) {
             listBuilder.accept(new TypedVisitor<RouteBuilder>() {
                 @Override
@@ -221,10 +217,6 @@ public class RouteEnricher extends BaseEnricher {
         }
     }
 
-    private TLSConfig getTlsConfig(){
-
-        return null;
-    }
     /**
      * Returns true if we already have a route created for the given name
      */
