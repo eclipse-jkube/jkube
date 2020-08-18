@@ -13,25 +13,19 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
-import java.util.Properties;
-import java.util.stream.Stream;
-
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.openshift.api.model.RouteBuilder;
-import org.assertj.core.api.Condition;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.openshift.api.model.RouteBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.junit.Assert;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -183,12 +177,6 @@ public class RouteEnricherTest {
     public void testEnrichNoTls(){
         // Given
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
-        final Condition<Object> doesNotExist = new Condition<Object>("Does not exist") {
-            @Override
-            public boolean matches(Object value) {
-                return value == null;
-            }
-        };
         // When
         new RouteEnricher(context).enrich(PlatformMode.openshift, klb);
         // Then
@@ -197,7 +185,7 @@ public class RouteEnricherTest {
                 .extracting("kind")
                 .containsExactly("Service", "Route");
 
-        assertThat(klb.build().getItems().stream().filter(h -> h.getKind().equals("Route")).findFirst().get())
+        assertThat(klb.build().getItems().stream().filter(h -> h.getKind().equals("Route")).findFirst().orElse(null))
                 .extracting("spec.tls")
                 .containsNull();
 
@@ -206,17 +194,8 @@ public class RouteEnricherTest {
     @Test
     public void testEnrichWithTls(){
         // Given
-        klb.addToItems(new RouteBuilder()
-                .editOrNewMetadata()
-                    .withName("test-svc")
-                .endMetadata()
-                .editOrNewSpec()
-                    .editOrNewTls()
-                        .withInsecureEdgeTerminationPolicy("passthrough")
-                        .withTermination("Edge")
-                    .endTls()
-                .endSpec()
-                .build());
+        properties.put("jkube.openshift.generateRoute.tls.termination", "edge");
+        properties.put("jkube.openshift.generateRoute.tls.insecure_edge_termination_policy", "Allow");
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // When
         new RouteEnricher(context).enrich(PlatformMode.openshift, klb);
@@ -226,8 +205,8 @@ public class RouteEnricherTest {
                 .extracting("kind")
                 .containsExactly("Service", "Route");
 
-        assertThat(klb.build().getItems().stream().filter(h -> h.getKind().equals("Route")).findFirst().get())
+        assertThat(klb.build().getItems().stream().filter(h -> h.getKind().equals("Route")).findFirst().orElse(null))
                 .extracting("spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
-                .contains("passthrough","Edge");
+                .contains("Allow","edge");
     }
 }
