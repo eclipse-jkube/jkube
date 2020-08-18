@@ -129,7 +129,7 @@ public class AutoTLSEnricherTest {
             Map<String, String> generatedAnnotation = om.getAnnotations();
             Assert.assertTrue(generatedAnnotation.containsKey(AutoTLSEnricher.AUTOTLS_ANNOTATION_KEY));
             Assert.assertTrue(generatedAnnotation.containsValue(annotationvalue));
-
+            Assert.assertTrue(generatedAnnotation.containsValue(context.getGav().getArtifactId() + "-tls"));
             //Test Pod template
             Gson gson = new Gson();
             JsonArray ja = new JsonParser().parse(gson.toJson(initContainers, new TypeToken<Collection<Container>>() {}.getType())).getAsJsonArray();
