@@ -14,8 +14,12 @@
 package org.eclipse.jkube.enricher.generic.openshift;
 
 import java.util.Properties;
+import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.openshift.api.model.RouteBuilder;
+import org.assertj.core.api.Condition;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -25,6 +29,7 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -172,5 +177,54 @@ public class RouteEnricherTest {
         assertThat(klb.build().getItems().get(1))
             .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
             .contains("test-svc", "example.com", null, null, 1337);
+    }
+
+    @Test
+    public void testEnrichNoTls(){
+        // Given
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        final Condition<Object> doesNotExist = new Condition<Object>("Does not exist") {
+            @Override
+            public boolean matches(Object value) {
+                return value == null;
+            }
+        };
+        // When
+        new RouteEnricher(context).enrich(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build().getItems())
+                .hasSize(2)
+                .extracting("kind")
+                .containsExactly("Service", "Route");
+
+        assertThat(klb.build().getItems().stream().filter(h -> h.getKind().equals("Route")).findFirst().get())
+                .extracting("spec.tls")
+                .containsNull();
+
+    }
+
+    @Test
+    public void testEnrichWithTls(){
+        // Given
+        klb.addToItems(new RouteBuilder()
+                .editOrNewSpec()
+                    .editOrNewTls()
+                        .withInsecureEdgeTerminationPolicy("passthrough")
+                        .withTermination("Edge")
+                    .endTls()
+                .endSpec()
+                .build());
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        // When
+        new RouteEnricher(context).enrich(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build().getItems())
+                .hasSize(2)
+                .extracting("kind")
+                .containsExactly("Service", "Route");
+
+        assertThat(klb.build().getItems().stream().filter(h -> h.getKind().equals("Route")).findFirst().get())
+                .extracting("spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
+                .contains("passthrough","Edge");
     }
 }

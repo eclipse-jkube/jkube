@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.fabric8.openshift.api.model.TLSConfig;
+import org.eclipse.jkube.enricher.generic.DefaultServiceEnricher;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
@@ -50,11 +52,16 @@ import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.rem
 public class RouteEnricher extends BaseEnricher {
 
     private static final String GENERATE_ROUTE_PROPERTY = "jkube.openshift.generateRoute";
+    private static final String GENERATE_TLS_TERMINATION_PROPERTY = "jkube.openshift.generateRoute.tls.termination";
+    private static final String GENERATE_TLS_INSECURE_EDGE_TERMINATION_POLICY_PROPERTY = "jkube.openshift.generateRoute.tls.insecure_edge_termination_policy";
     public static final String EXPOSE_LABEL = "expose";
 
     @AllArgsConstructor
     private enum Config implements Configs.Config {
-        GENERATE_ROUTE("generateRoute", "true");
+        GENERATE_ROUTE("generateRoute", "true"),
+        //TARGET_PORT("targetPort", "8080"),
+        TLS_TERMINATION("termination",null),
+        INSECURE_EDGE_TERMINATION_POLICY("insecureEdgeTerminationPolicy",null);
 
         @Getter
         protected String key;
@@ -70,6 +77,11 @@ public class RouteEnricher extends BaseEnricher {
 
     private boolean isGenerateRoute() {
         return Configs.asBoolean(getConfigWithFallback(Config.GENERATE_ROUTE, GENERATE_ROUTE_PROPERTY, null));
+    }
+
+    private boolean isRouteWithTLS(){
+        String propval = getConfigWithFallback(Config.TLS_TERMINATION, GENERATE_TLS_TERMINATION_PROPERTY, null);
+        return (propval != null && !propval.isEmpty());
     }
 
     @Override
@@ -95,6 +107,25 @@ public class RouteEnricher extends BaseEnricher {
                 routes.toArray(routeArray);
                 listBuilder.addToItems(routeArray);
             }
+        }
+    }
+
+    @Override
+    public void enrich(PlatformMode platformMode, final KubernetesListBuilder listBuilder){
+        ResourceConfig resourceConfig = getConfiguration().getResource();
+
+        if(platformMode == PlatformMode.openshift && isRouteWithTLS()) {
+            listBuilder.accept(new TypedVisitor<RouteBuilder>() {
+                @Override
+                public void visit(RouteBuilder route) {
+                    route.editOrNewSpec()
+                            .editOrNewTls()
+                            .withInsecureEdgeTerminationPolicy(getConfigWithFallback(Config.INSECURE_EDGE_TERMINATION_POLICY, GENERATE_TLS_INSECURE_EDGE_TERMINATION_POLICY_PROPERTY, "Allow"))
+                            .withTermination(getConfigWithFallback(Config.TLS_TERMINATION, GENERATE_TLS_TERMINATION_PROPERTY, "edge"))
+                            .endTls()
+                            .endSpec();
+                }
+            });
         }
     }
 
@@ -190,6 +221,10 @@ public class RouteEnricher extends BaseEnricher {
         }
     }
 
+    private TLSConfig getTlsConfig(){
+
+        return null;
+    }
     /**
      * Returns true if we already have a route created for the given name
      */
