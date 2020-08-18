@@ -18,36 +18,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.MapUtil;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 public class PrometheusEnricher extends BaseEnricher {
 
-    static final String ANNOTATION_PROMETHEUS_PORT = "prometheus.io/port";
-    static final String ANNOTATION_PROMETHEUS_SCRAPE = "prometheus.io/scrape";
-    static final String ANNOTATION_PROMETHEUS_PATH = "prometheus.io/path";
+    private static final String ANNOTATION_PROMETHEUS_PORT = "prometheus.io/port";
+    private static final String ANNOTATION_PROMETHEUS_SCRAPE = "prometheus.io/scrape";
+    private static final String ANNOTATION_PROMETHEUS_PATH = "prometheus.io/path";
 
-    static final String ENRICHER_NAME = "jkube-prometheus";
-    static final String PROMETHEUS_PORT = "9779";
+    private static final String ENRICHER_NAME = "jkube-prometheus";
+    private static final String PROMETHEUS_PORT = "9779";
 
     @AllArgsConstructor
     private enum Config implements Configs.Config {
-        PROMETHEUS_PORT("prometheusPort"),
-        PROMETHEUS_PATH("prometheusPath");
+        PROMETHEUS_PORT("prometheusPort", null),
+        PROMETHEUS_PATH("prometheusPath", "/metrics");
 
         @Getter
         protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public PrometheusEnricher(JKubeEnricherContext buildContext) {
@@ -61,15 +63,10 @@ public class PrometheusEnricher extends BaseEnricher {
             public void visit(ServiceBuilder serviceBuilder) {
                 String prometheusPort = findPrometheusPort();
                 if (StringUtils.isNotBlank(prometheusPort)) {
-
-                    Map<String, String> annotations = new HashMap<>();
-                    MapUtil.putIfAbsent(annotations, ANNOTATION_PROMETHEUS_PORT, prometheusPort);
-                    MapUtil.putIfAbsent(annotations, ANNOTATION_PROMETHEUS_SCRAPE, "true");
-                    String prometheusPath = getConfig(Config.PROMETHEUS_PATH);
-                    if (StringUtils.isNotBlank(prometheusPath)) {
-                        MapUtil.putIfAbsent(annotations, ANNOTATION_PROMETHEUS_PATH, prometheusPath);
-                    }
-
+                    final Map<String, String> annotations = new HashMap<>();
+                    annotations.put(ANNOTATION_PROMETHEUS_PORT, prometheusPort);
+                    annotations.put(ANNOTATION_PROMETHEUS_SCRAPE, "true");
+                    annotations.put(ANNOTATION_PROMETHEUS_PATH, getConfig(Config.PROMETHEUS_PATH));
                     log.verbose("Adding prometheus.io annotations: %s",
                             annotations.entrySet()
                                     .stream()

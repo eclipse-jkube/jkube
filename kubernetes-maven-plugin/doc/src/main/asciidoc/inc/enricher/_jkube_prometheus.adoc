@@ -15,6 +15,7 @@ items:
     annotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: 9779
+      prometheus.io/path: "/metrics"
 ----
 
 By default the enricher inspects the images' BuildConfiguration and add the annotations if the port 9779 is listed.

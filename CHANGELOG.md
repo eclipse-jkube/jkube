@@ -32,7 +32,9 @@ Usage:
 * Fix #332: OpenShift build resources are deleted (as long as build config manifest is available)
 * Fix #350: Prevents default docker configuration overwriting XML assembly configuration
 * Fix #340: Exclude the main artifact from Docker build when Fat Jar is detected (JavaExecGenerator)
-* Fix #341: JKube doesn't add ImageChange triggers in DC when merging from a deployment fragment 
+* Fix #341: JKube doesn't add ImageChange triggers in DC when merging from a deployment fragment
+* Fix #326: Add default `/metrics` path for `prometheus.io/path` annotation
+  (Sort of [redundant](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config), this makes it explicit)
 
 ### 1.0.0-rc-1 (2020-07-23)
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)
