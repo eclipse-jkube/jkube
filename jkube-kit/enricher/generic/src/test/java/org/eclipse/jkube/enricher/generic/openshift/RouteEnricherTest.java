@@ -207,6 +207,9 @@ public class RouteEnricherTest {
     public void testEnrichWithTls(){
         // Given
         klb.addToItems(new RouteBuilder()
+                .editOrNewMetadata()
+                    .withName("test-svc")
+                .endMetadata()
                 .editOrNewSpec()
                     .editOrNewTls()
                         .withInsecureEdgeTerminationPolicy("passthrough")
