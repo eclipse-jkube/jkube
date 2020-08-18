@@ -13,146 +13,128 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings("unused")
 public class PrometheusEnricherTest {
 
-    @Mocked
-    private JKubeEnricherContext context;
-    @Mocked
-    ImageConfiguration imageConfiguration;
+  @Mocked
+  private JKubeEnricherContext context;
+  private PrometheusEnricher prometheusEnricher;
 
-    @Test
-    public void testCustomPrometheusPort() {
-        final ProcessorConfig config = new ProcessorConfig(
-            null,
-            null,
-            Collections.singletonMap("jkube-prometheus", Collections.singletonMap("prometheusPort","1234")));
+  @Before
+  public void setUp() {
+    prometheusEnricher = new PrometheusEnricher(context);
+  }
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  private void initContext(ProcessorConfig config, ImageConfiguration imageConfiguration) {
+    // @formatter:off
+    new Expectations() {{
+      context.getConfiguration(); result = Configuration.builder().processorConfig(config).image(imageConfiguration).build();
+    }};
+    // @formatter:on
+  }
 
-        // Setup mock behaviour
-        new Expectations() {{
-            context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
-        }};
+  @Test
+  public void testCustomPrometheusPort() {
+    // Given
+    initContext(new ProcessorConfig(
+        null,
+        null,
+        Collections.singletonMap("jkube-prometheus", Collections.singletonMap("prometheusPort", "1234"))),
+        null);
+    final KubernetesListBuilder builder = new KubernetesListBuilder().withItems(
+        new ServiceBuilder().withNewMetadata().withName("foo").endMetadata().build()
+    );
+    // When
+    prometheusEnricher.create(PlatformMode.kubernetes, builder);
+    // Then
+    assertThat(builder.buildFirstItem().getMetadata().getAnnotations())
+        .hasSize(3)
+        .containsEntry("prometheus.io/port", "1234")
+        .containsEntry("prometheus.io/scrape", "true")
+        .containsEntry("prometheus.io/path", "/metrics");
+  }
 
-        KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new ServiceBuilder().withNewMetadata().withName("foo").endMetadata().build());
-        PrometheusEnricher enricher = new PrometheusEnricher(context);
-        enricher.create(PlatformMode.kubernetes, builder);
-        Map<String, String> annotations = builder.buildFirstItem().getMetadata().getAnnotations();
+  @Test
+  public void testDetectPrometheusPort() {
+    // Given
+    initContext(null,
+        ImageConfiguration.builder().build(
+            BuildConfiguration.builder()
+                .ports(Arrays.asList("1337", null, " ", "9779", null))
+                .build())
+            .build());
+    final KubernetesListBuilder builder = new KubernetesListBuilder().withItems(
+        new ServiceBuilder().withNewMetadata().withName("foo").endMetadata().build()
+    );
+    // When
+    prometheusEnricher.create(PlatformMode.kubernetes, builder);
+    // Then
+    assertThat(builder.buildFirstItem().getMetadata().getAnnotations())
+        .hasSize(3)
+        .containsEntry("prometheus.io/port", "9779")
+        .containsEntry("prometheus.io/scrape", "true")
+        .containsEntry("prometheus.io/path", "/metrics");
+  }
 
-        assertEquals(2, annotations.size());
-        assertEquals("1234", annotations.get(PrometheusEnricher.ANNOTATION_PROMETHEUS_PORT));
-        assertEquals("true", annotations.get(PrometheusEnricher.ANNOTATION_PROMETHEUS_SCRAPE));
-    }
+  @Test
+  public void testNoDefinedPrometheusPort() {
+    // Given
+    initContext(null,
+        ImageConfiguration.builder().build(
+            BuildConfiguration.builder()
+                .ports(Collections.emptyList())
+                .build())
+            .build());
+    final KubernetesListBuilder builder = new KubernetesListBuilder().withItems(
+        new ServiceBuilder().withNewMetadata().withName("foo").endMetadata().build()
+    );
+    // When
+    prometheusEnricher.create(PlatformMode.kubernetes, builder);
+    // Then
+    assertThat(builder.buildFirstItem().getMetadata().getAnnotations()).isNull();
+  }
 
-    @Test
-    public void testDetectPrometheusPort() {
-        final ProcessorConfig config = new ProcessorConfig(
-            null,
-            null,
-            Collections.singletonMap("jkube-prometheus", Collections.emptyMap()));
-
-        final BuildConfiguration imageConfig = BuildConfiguration.builder()
-            .ports(Collections.singletonList(PrometheusEnricher.PROMETHEUS_PORT))
-            .build();
-
-
-        // Setup mock behaviour
-        new Expectations() {{
-            context.getConfiguration();
-            result = Configuration.builder()
-                .processorConfig(config)
-                .image(imageConfiguration)
-                .build();
-
-            imageConfiguration.getBuildConfiguration(); result = imageConfig;
-        }};
-
-        KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new ServiceBuilder().withNewMetadata().withName("foo").endMetadata().build());
-        PrometheusEnricher enricher = new PrometheusEnricher(context);
-        enricher.create(PlatformMode.kubernetes, builder);
-        Map<String, String> annotations = builder.buildFirstItem().getMetadata().getAnnotations();
-
-        assertEquals(2, annotations.size());
-        assertEquals("9779", annotations.get(PrometheusEnricher.ANNOTATION_PROMETHEUS_PORT));
-        assertEquals("true", annotations.get(PrometheusEnricher.ANNOTATION_PROMETHEUS_SCRAPE));
-    }
-
-    @Test
-    public void testNoDefinedPrometheusPort() {
-        final ProcessorConfig config = new ProcessorConfig(
-            null,
-            null,
-            Collections.singletonMap("jkube-prometheus", Collections.emptyMap()));
-
-        final BuildConfiguration imageConfig = BuildConfiguration.builder()
-            .build();
-
-        // Setup mock behaviour
-        new Expectations() {{
-            context.getConfiguration();
-            result = Configuration.builder()
-                .processorConfig(config)
-                .image(imageConfiguration)
-                .build();
-
-            imageConfiguration.getBuildConfiguration(); result = imageConfig;
-        }};
-
-        KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new ServiceBuilder().withNewMetadata().withName("foo").endMetadata().build());
-        PrometheusEnricher enricher = new PrometheusEnricher(context);
-        enricher.create(PlatformMode.kubernetes, builder);
-        Map<String, String> annotations = builder.buildFirstItem().getMetadata().getAnnotations();
-
-        assertNull(annotations);
-    }
-
-    @Test
-    public void testCustomPrometheusPath() {
-        final ProcessorConfig config = new ProcessorConfig(
-            null,
-            null,
-            Collections.singletonMap("jkube-prometheus", Collections.singletonMap("prometheusPath","/prometheus")));;
-
-        final BuildConfiguration imageConfig = BuildConfiguration.builder()
-                .ports(Collections.singletonList(PrometheusEnricher.PROMETHEUS_PORT))
-                .build();
-
-
-        // Setup mock behaviour
-        new Expectations() {{
-            context.getConfiguration();
-            result = Configuration.builder()
-                    .processorConfig(config)
-                    .image(imageConfiguration)
-                    .build();
-
-            imageConfiguration.getBuildConfiguration(); result = imageConfig;
-        }};
-
-        KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new ServiceBuilder().withNewMetadata().withName("foo").endMetadata().build());
-        PrometheusEnricher enricher = new PrometheusEnricher(context);
-        enricher.create(PlatformMode.kubernetes, builder);
-        Map<String, String> annotations = builder.buildFirstItem().getMetadata().getAnnotations();
-
-        assertEquals(3, annotations.size());
-        assertEquals("9779", annotations.get(PrometheusEnricher.ANNOTATION_PROMETHEUS_PORT));
-        assertEquals("true", annotations.get(PrometheusEnricher.ANNOTATION_PROMETHEUS_SCRAPE));
-        assertEquals("/prometheus", annotations.get(PrometheusEnricher.ANNOTATION_PROMETHEUS_PATH));
-    }
+  @Test
+  public void testCustomPrometheusPath() {
+    // Given
+    initContext(new ProcessorConfig(
+        null,
+        null,
+        Collections.singletonMap("jkube-prometheus", Collections.singletonMap("prometheusPath", "/prometheus"))),
+        ImageConfiguration.builder().build(
+            BuildConfiguration.builder()
+                .ports(Arrays.asList("1337", null, " ", "9779", null))
+                .build())
+            .build());
+    final KubernetesListBuilder builder = new KubernetesListBuilder().withItems(
+        new ServiceBuilder().withNewMetadata().withName("foo").endMetadata().build()
+    );
+    // When
+    prometheusEnricher.create(PlatformMode.kubernetes, builder);
+    // Then
+    assertThat(builder.buildFirstItem().getMetadata().getAnnotations())
+        .hasSize(3)
+        .containsEntry("prometheus.io/port", "9779")
+        .containsEntry("prometheus.io/scrape", "true")
+        .containsEntry("prometheus.io/path", "/prometheus");
+  }
 }
