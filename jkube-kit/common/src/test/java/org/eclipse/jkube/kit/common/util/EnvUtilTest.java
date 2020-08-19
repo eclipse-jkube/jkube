@@ -73,6 +73,16 @@ public class EnvUtilTest {
     }
 
     @Test
+    public void testConvertTcpToHttpUrlShouldDefaultToHttps() {
+        // Given
+        String url = "tcp://127.0.0.1:32770";
+        // When
+        String result = EnvUtil.convertTcpToHttpUrl(url);
+        // Then
+        assertEquals("https://127.0.0.1:32770", result);
+    }
+
+    @Test
     public void testExtractLargerVersionWhenBothNull(){
         assertNull(EnvUtil.extractLargerVersion(null,null));
     }
