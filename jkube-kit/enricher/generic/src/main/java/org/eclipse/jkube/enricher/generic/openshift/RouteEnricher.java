@@ -49,8 +49,6 @@ import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.rem
 public class RouteEnricher extends BaseEnricher {
 
     private static final String GENERATE_ROUTE_PROPERTY = "jkube.openshift.generateRoute";
-    private static final String GENERATE_TLS_TERMINATION_PROPERTY = "jkube.openshift.generateRoute.tls.termination";
-    private static final String GENERATE_TLS_INSECURE_EDGE_TERMINATION_POLICY_PROPERTY = "jkube.openshift.generateRoute.tls.insecure_edge_termination_policy";
     public static final String EXPOSE_LABEL = "expose";
 
     @AllArgsConstructor
@@ -76,8 +74,7 @@ public class RouteEnricher extends BaseEnricher {
     }
 
     private boolean isRouteWithTLS(){
-        String propval = getConfigWithFallback(Config.TLS_TERMINATION, GENERATE_TLS_TERMINATION_PROPERTY, null);
-        return (propval != null && !propval.isEmpty());
+        return StringUtils.isNotBlank(getConfig(Config.TLS_TERMINATION, null));
     }
 
     @Override
@@ -191,8 +188,8 @@ public class RouteEnricher extends BaseEnricher {
                     if(isRouteWithTLS()){
                         routeBuilder.editSpec()
                                 .editOrNewTls()
-                                .withInsecureEdgeTerminationPolicy(getConfigWithFallback(Config.INSECURE_EDGE_TERMINATION_POLICY, GENERATE_TLS_INSECURE_EDGE_TERMINATION_POLICY_PROPERTY, "Allow"))
-                                .withTermination(getConfigWithFallback(Config.TLS_TERMINATION, GENERATE_TLS_TERMINATION_PROPERTY, "edge"))
+                                .withInsecureEdgeTerminationPolicy(getConfig(Config.INSECURE_EDGE_TERMINATION_POLICY, "Allow"))
+                                .withTermination(getConfig(Config.TLS_TERMINATION, "edge"))
                                 .endTls()
                                 .endSpec();
                     }

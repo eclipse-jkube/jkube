@@ -234,7 +234,7 @@ a| termination indicates termination type. The following values are supported:
 * reencrypt
 
 See https://docs.openshift.com/container-platform/3.11/architecture/networking/routes.html#secured-routes or https://docs.openshift.com/container-platform/latest/networking/routes/secured-routes.html
-| `jkube.openshift.generateRoute.tls.termination`
+| `jkube.enricher.jkube-openshift-route.termination`
 | *insecureEdgeTerminationPolicy*
 a| insecureEdgeTerminationPolicy indicates the desired behavior for insecure connections to a route.
 While each router may make its own decisions on which ports to expose, this is normally port 80.
@@ -244,7 +244,7 @@ While each router may make its own decisions on which ports to expose, this is n
 * Redirect - clients are redirected to the secure port.
 
 See https://docs.openshift.com/container-platform/latest/rest_api/network_apis/route-route-openshift-io-v1.html
-| `jkube.openshift.generateRoute.tls.insecure_edge_termination_policy`
+| `jkube.enricher.jkube-openshift-route.insecureEdgeTerminationPolicy`
 
 |===
 

@@ -194,8 +194,8 @@ public class RouteEnricherTest {
     @Test
     public void testEnrichWithTls(){
         // Given
-        properties.put("jkube.openshift.generateRoute.tls.termination", "edge");
-        properties.put("jkube.openshift.generateRoute.tls.insecure_edge_termination_policy", "Allow");
+        properties.put("jkube.enricher.jkube-openshift-route.termination", "edge");
+        properties.put("jkube.enricher.jkube-openshift-route.insecureEdgeTerminationPolicy", "Allow");
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
