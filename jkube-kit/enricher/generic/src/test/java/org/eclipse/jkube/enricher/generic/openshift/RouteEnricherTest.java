@@ -176,9 +176,9 @@ public class RouteEnricherTest {
     @Test
     public void testEnrichNoTls(){
         // Given
-        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        properties.put("jkube.openshift.generateRoute", "true");
         // When
-        new RouteEnricher(context).enrich(PlatformMode.openshift, klb);
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
                 .hasSize(2)
@@ -196,9 +196,8 @@ public class RouteEnricherTest {
         // Given
         properties.put("jkube.openshift.generateRoute.tls.termination", "edge");
         properties.put("jkube.openshift.generateRoute.tls.insecure_edge_termination_policy", "Allow");
-        new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // When
-        new RouteEnricher(context).enrich(PlatformMode.openshift, klb);
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
                 .hasSize(2)
