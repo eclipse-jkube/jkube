@@ -56,7 +56,6 @@ public class RouteEnricher extends BaseEnricher {
     @AllArgsConstructor
     private enum Config implements Configs.Config {
         GENERATE_ROUTE("generateRoute", "true"),
-        //TARGET_PORT("targetPort", "8080"),
         TLS_TERMINATION("termination",null),
         INSECURE_EDGE_TERMINATION_POLICY("insecureEdgeTerminationPolicy",null);
 
@@ -104,23 +103,6 @@ public class RouteEnricher extends BaseEnricher {
                 routes.toArray(routeArray);
                 listBuilder.addToItems(routeArray);
             }
-        }
-    }
-
-    @Override
-    public void enrich(PlatformMode platformMode, final KubernetesListBuilder listBuilder) {
-        if (platformMode == PlatformMode.openshift && isRouteWithTLS()) {
-            listBuilder.accept(new TypedVisitor<RouteBuilder>() {
-                @Override
-                public void visit(RouteBuilder route) {
-                    route.editOrNewSpec()
-                            .editOrNewTls()
-                            .withInsecureEdgeTerminationPolicy(getConfigWithFallback(Config.INSECURE_EDGE_TERMINATION_POLICY, GENERATE_TLS_INSECURE_EDGE_TERMINATION_POLICY_PROPERTY, "Allow"))
-                            .withTermination(getConfigWithFallback(Config.TLS_TERMINATION, GENERATE_TLS_TERMINATION_PROPERTY, "edge"))
-                            .endTls()
-                            .endSpec();
-                }
-            });
         }
     }
 
@@ -205,6 +187,15 @@ public class RouteEnricher extends BaseEnricher {
                             withNewTo().withKind("Service").withName(name).endTo().
                             withHost(routeDomainPostfix.isEmpty() ? null : routeDomainPostfix).
                             endSpec();
+
+                    if(isRouteWithTLS()){
+                        routeBuilder.editSpec()
+                                .editOrNewTls()
+                                .withInsecureEdgeTerminationPolicy(getConfigWithFallback(Config.INSECURE_EDGE_TERMINATION_POLICY, GENERATE_TLS_INSECURE_EDGE_TERMINATION_POLICY_PROPERTY, "Allow"))
+                                .withTermination(getConfigWithFallback(Config.TLS_TERMINATION, GENERATE_TLS_TERMINATION_PROPERTY, "edge"))
+                                .endTls()
+                                .endSpec();
+                    }
 
                     // removing `expose : true` label from metadata.
                     removeLabel(routeBuilder.buildMetadata(), EXPOSE_LABEL, "true");
