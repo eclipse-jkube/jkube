@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.jkube.generator.api.DefaultImageLookup;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -42,10 +43,14 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author jzuriaga
  */
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class QuarkusGeneratorTest {
 
     private static final String BASE_JAVA_IMAGE = "java:latest";
     private static final String BASE_NATIVE_IMAGE = "fedora:latest";
+
+    @Mocked
+    private DefaultImageLookup defaultImageLookup;
 
     @Mocked
     private GeneratorContext ctx;
@@ -54,12 +59,13 @@ public class QuarkusGeneratorTest {
     private JavaProject project;
 
     private ProcessorConfig config;
-    private Properties projectProps = new Properties();
+    private Properties projectProps;
 
     @Before
     public void setUp() throws IOException {
         createFakeRunnerJar();
         config = new ProcessorConfig();
+        projectProps = new Properties();
         projectProps.put("jkube.generator.name", "quarkus");
         // @formatter:off
         new Expectations() {{
@@ -68,32 +74,53 @@ public class QuarkusGeneratorTest {
             project.getProperties(); result = projectProps;
             ctx.getProject(); result = project;
             ctx.getConfig(); result = config;
-            ctx.getRuntimeMode(); result = RuntimeMode.OPENSHIFT; minTimes = 0;
             ctx.getStrategy(); result = JKubeBuildStrategy.s2i; minTimes = 0;
+            defaultImageLookup.getImageName("java.upstream.docker"); result = "quarkus/docker";
+            defaultImageLookup.getImageName("java.upstream.s2i"); result = "quarkus/s2i";
         }};
         // @formatter:on
     }
 
     @Test
-    public void testCustomizeReturnsDefaultFrom () {
-        QuarkusGenerator generator = new QuarkusGenerator(ctx);
-        List<ImageConfiguration> existingImages = new ArrayList<>();
-
-        final List<ImageConfiguration> result = generator.customize(existingImages, true);
-
-        assertBuildFrom(result, "openjdk:11");
+    public void testCustomizeReturnsDefaultFromInOpenShift() {
+        // Given
+        in(RuntimeMode.OPENSHIFT);
+        // When
+        final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
+        // Then
+        assertBuildFrom(result, "quarkus/s2i");
     }
 
     @Test
-    public void testCustomizeReturnsDefaultFromWhenNative () throws IOException {
+    public void testCustomizeReturnsDefaultFromInKubernetes() {
+        // Given
+        in(RuntimeMode.KUBERNETES);
+        // When
+        final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
+        // Then
+        assertBuildFrom(result, "quarkus/docker");
+    }
+
+    @Test
+    public void testCustomizeReturnsDefaultFromWhenNativeInOpenShift() throws IOException {
+        // Given
+        in(RuntimeMode.OPENSHIFT);
         setNativeConfig();
+        // When
+        final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
+        // Then
+        assertBuildFrom(resultImages, "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0");
+    }
 
-        QuarkusGenerator generator = new QuarkusGenerator(ctx);
-        List<ImageConfiguration> existingImages = new ArrayList<>();
-
-        List<ImageConfiguration> resultImages = generator.customize(existingImages, true);
-
-        assertBuildFrom(resultImages, "registry.access.redhat.com/ubi8/ubi-minimal:8.1");
+    @Test
+    public void testCustomizeReturnsDefaultFromWhenNativeInKubernetes() throws IOException {
+        // Given
+        in(RuntimeMode.KUBERNETES);
+        setNativeConfig();
+        // When
+        final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
+        // Then
+        assertBuildFrom(resultImages, "registry.access.redhat.com/ubi8/ubi-minimal:8.1");;
     }
 
     @Test
@@ -165,6 +192,14 @@ public class QuarkusGeneratorTest {
         File baseDir = new File("target", "tmp");
         baseDir.mkdir();
         return baseDir;
+    }
+
+    private void in(RuntimeMode runtimeMode) {
+        // @formatter:off
+        new Expectations() {{
+            ctx.getRuntimeMode(); result = runtimeMode;
+        }};
+        // @formatter:on
     }
 
     private void setNativeConfig () throws IOException {
