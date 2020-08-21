@@ -185,14 +185,7 @@ public class RouteEnricher extends BaseEnricher {
                             withHost(routeDomainPostfix.isEmpty() ? null : routeDomainPostfix).
                             endSpec();
 
-                    if(isRouteWithTLS()){
-                        routeBuilder.editSpec()
-                                .editOrNewTls()
-                                .withInsecureEdgeTerminationPolicy(getConfig(Config.INSECURE_EDGE_TERMINATION_POLICY, "Allow"))
-                                .withTermination(getConfig(Config.TLS_TERMINATION, "edge"))
-                                .endTls()
-                                .endSpec();
-                    }
+                    handleTlsTermination(routeBuilder);
 
                     // removing `expose : true` label from metadata.
                     removeLabel(routeBuilder.buildMetadata(), EXPOSE_LABEL, "true");
@@ -201,6 +194,17 @@ public class RouteEnricher extends BaseEnricher {
                     routes.add(routeBuilder.build());
                 }
             }
+        }
+    }
+
+    private void handleTlsTermination(RouteBuilder routeBuilder) {
+        if(isRouteWithTLS()){
+            routeBuilder.editSpec()
+                    .editOrNewTls()
+                    .withInsecureEdgeTerminationPolicy(getConfig(Config.INSECURE_EDGE_TERMINATION_POLICY, "Allow"))
+                    .withTermination(getConfig(Config.TLS_TERMINATION, "edge"))
+                    .endTls()
+                    .endSpec();
         }
     }
 
