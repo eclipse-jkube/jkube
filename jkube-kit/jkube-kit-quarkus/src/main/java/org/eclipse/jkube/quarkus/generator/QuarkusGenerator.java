@@ -15,6 +15,7 @@ package org.eclipse.jkube.quarkus.generator;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -26,6 +27,7 @@ import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,8 +37,10 @@ import java.util.Optional;
 
 public class QuarkusGenerator extends BaseGenerator {
 
+    private static final String DEPLOYMENTS_DIR = "/deployments";
+
     public QuarkusGenerator(GeneratorContext context) {
-        super(context, "quarkus");
+        super(context, "quarkus", new FromSelector.Default(context, "java"));
     }
 
     @AllArgsConstructor
@@ -81,7 +85,8 @@ public class QuarkusGenerator extends BaseGenerator {
 
         Optional<String> fromConfigured = Optional.ofNullable(getFromAsConfigured());
         if (isNative) {
-            buildBuilder.from(fromConfigured.orElse("registry.access.redhat.com/ubi8/ubi-minimal:8.1"))
+            buildBuilder
+                        .from(fromConfigured.orElse(getNativeFrom()))
                         .entryPoint(Arguments.builder()
                                         .execArgument("./" + findSingleFileThatEndsWith("-runner"))
                                         .execArgument("-Dquarkus.http.host=0.0.0.0")
@@ -92,28 +97,36 @@ public class QuarkusGenerator extends BaseGenerator {
                 buildBuilder.assembly(createAssemblyConfiguration("/", getNativeFileToInclude()));
             }
         } else {
-            buildBuilder.from(fromConfigured.orElse("openjdk:11"))
-                        .entryPoint(Arguments.builder()
+            addFrom(buildBuilder);
+            buildBuilder.entryPoint(Arguments.builder()
                                         .execArgument("java")
                                         .execArgument("-Dquarkus.http.host=0.0.0.0")
                                         .execArgument("-jar")
                                         .execArgument(findSingleFileThatEndsWith("-runner.jar"))
                                         .build())
-                        .workdir("/opt");
+                        .workdir(DEPLOYMENTS_DIR);
 
             if (!prePackagePhase) {
                 buildBuilder.assembly(
-                    createAssemblyConfiguration("/opt", getJvmFilesToInclude()));
+                    createAssemblyConfiguration(DEPLOYMENTS_DIR, getJvmFilesToInclude()));
             }
         }
         addLatestTagIfSnapshot(buildBuilder);
         return buildBuilder.build();
     }
 
+    private String getNativeFrom() {
+        if (getContext().getRuntimeMode() != RuntimeMode.OPENSHIFT) {
+            return "registry.access.redhat.com/ubi8/ubi-minimal:8.1";
+        }
+        return "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0";
+    }
+
     private AssemblyConfiguration createAssemblyConfiguration(String targetDir, AssemblyFileSet jKubeAssemblyFileSet) {
         jKubeAssemblyFileSet.setOutputDirectory(".");
         return AssemblyConfiguration.builder()
             .targetDir(targetDir)
+            .excludeFinalOutputArtifact(true)
             .inline(Assembly.builder().fileSet(jKubeAssemblyFileSet).build())
             .build();
     }
