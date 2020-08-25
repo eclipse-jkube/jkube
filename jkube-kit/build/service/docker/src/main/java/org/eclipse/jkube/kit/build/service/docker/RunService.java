@@ -159,7 +159,7 @@ public class RunService {
      * Stop a container immediately by id.
      * @param containerId the container to stop
      * @param imageConfig image configuration for this container
-     * @param keepContainer whether to keep container or to remove them after stoppings
+     * @param keepContainer whether to keep container or to remove them after stopping
      * @param removeVolumes whether to remove volumes after stopping
      * @throws DockerAccessException docker access exception
      * @throws ExecException exec exception
