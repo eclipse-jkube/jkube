@@ -140,8 +140,56 @@ Defaults to `both`.
 | `jkube.watch.mode`
 
 | *watchInterval*
-| Watch interval in milliseconds.
+| Interval in milliseconds (how often to check for changes).
 
   Defaults to `5000`.
 | `jkube.watch.interval`
+
+| *keepRunning*
+| If set to true all containers will be kept running after {goal-prefix}:watch has been stopped.
+
+  Defaults to `false`.
+| `jkube.watch.keepRunning`
+
+| *watchPostGoal*
+| A maven goal which should be called if a rebuild or a restart has been performed.
+
+  This goal must have the format `<pluginGroupId>:<pluginArtifactId>:<goal>` and the plugin must be
+  configured in the pom.xml.
+
+  For example a post-goal `com.example:group:delete-pods` will trigger the `delete-pods`
+  goal of this hypothetic example.
+| `jkube.watch.postGoal`
+
+| *watchPostExec*
+| A command which is executed within the container after files are copied into this container
+  when watchMode is copy. Note that this container must be running.
+
+| `jkube.watch.postExec`
+
+| *keepContainer*
+| If this is set to `false` (and `keepRunning` is disabled) then all containers will be removed after
+  they have been stopped.
+
+  Defaults to `false`.
+| `jkube.watch.keepContainer`
+
+| *removeVolumes*
+| If set to `true` remove any volumes associated with the container as well.
+
+  This option will be ignored if either `keepContainer` or `keepRunning` is `true`.
+
+  Defaults to `false`.
+| `jkube.watch.removeVolumes`
+
+| *watchShowLogs*
+| If set to `true`, logs will be shown for watched container.
+| `jkube.watch.showLogs`
+
+| *watchFollow*
+| If `watchShowLogs` is set to `false`, and there is a run image configuration, logs are followed
+  if set to `true`.
+
+  Defaults to `false`.
+| `jkube.watch.follow`
 |===
