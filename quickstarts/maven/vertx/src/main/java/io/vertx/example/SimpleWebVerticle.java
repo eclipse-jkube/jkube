@@ -39,6 +39,7 @@ public class SimpleWebVerticle extends AbstractVerticle {
     private void handleGet(RoutingContext routingContext) {
         HttpServerResponse response = routingContext.response();
         String welcome = routingContext.request().getParam("welcome");
+        if (welcome == null) { welcome = "default"; }
         response.end("Reply: " + welcome);
     }
 }
