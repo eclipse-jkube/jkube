@@ -38,6 +38,7 @@ Usage:
 * Fix #339: Https should be considered default while converting tcp urls
 * Fix #362: Quarkus supports S2I builds both for JVM and native mode
 * Fix #297: Added missing documentation for WatchMojo configuration parameters
+* Fix #371: WebAppGenerator path configuration is no longer ignored
 
 ### 1.0.0-rc-1 (2020-07-23)
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)
