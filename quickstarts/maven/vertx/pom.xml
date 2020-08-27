@@ -30,10 +30,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <vertx.version>3.6.3</vertx.version>
+    <vertx.version>3.9.2</vertx.version>
 
     <vertx.verticle>io.vertx.example.SimpleWebVerticle</vertx.verticle>
-    <vertx-maven-plugin.version>1.0.18</vertx-maven-plugin.version>
+    <vertx-maven-plugin.version>1.0.22</vertx-maven-plugin.version>
+    <jkube.version>1.0.0-rc-1</jkube.version>
   </properties>
 
   <dependencyManagement>
@@ -93,7 +94,7 @@
 	  <plugin>
 	    <groupId>org.eclipse.jkube</groupId>
 	    <artifactId>kubernetes-maven-plugin</artifactId>
-	    <version>${project.version}</version>
+	    <version>${jkube.version}</version>
 	    <executions>
 	      <execution>
 		<id>jkube</id>
@@ -131,7 +132,7 @@
 	  <plugin>
 	    <groupId>org.eclipse.jkube</groupId>
 	    <artifactId>openshift-maven-plugin</artifactId>
-	    <version>${project.version}</version>
+	    <version>${jkube.version}</version>
 	    <executions>
 	      <execution>
 		<id>jkube</id>
