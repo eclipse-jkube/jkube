@@ -127,7 +127,7 @@ public class WebAppGeneratorTest {
     projectProperties.put("jkube.generator.webapp.targetDir", "/other-dir");
     projectProperties.put("jkube.generator.webapp.user", "root");
     projectProperties.put("jkube.generator.webapp.cmd", "sleep 3600");
-    projectProperties.put("jkube.generator.webapp.path", "/some-context/");
+    projectProperties.put("jkube.generator.webapp.path", "/some-context");
     projectProperties.put("jkube.generator.webapp.ports", "8082,80");
     projectProperties.put("jkube.generator.webapp.supportsS2iBuild", "true");
     projectProperties.put("jkube.generator.from", "image-to-trigger-custom-app-server-handler");
@@ -155,7 +155,7 @@ public class WebAppGeneratorTest {
         equalTo(true));
     assertThat(imageConfiguration.getBuildConfiguration().getAssembly().getUser(), equalTo("root"));
     assertThat(imageConfiguration.getBuildConfiguration().getAssembly().getInline().getFiles().iterator().next().getDestName(),
-        equalTo("artifact.war"));
+        equalTo("some-context.war"));
     assertThat(imageConfiguration.getBuildConfiguration().getPorts(), contains("8082", "80"));
     assertThat(imageConfiguration.getBuildConfiguration().getEnv(), hasEntry("DEPLOY_DIR", "/other-dir"));
     assertThat(imageConfiguration.getBuildConfiguration().getCmd().getShell(), equalTo("sleep 3600"));

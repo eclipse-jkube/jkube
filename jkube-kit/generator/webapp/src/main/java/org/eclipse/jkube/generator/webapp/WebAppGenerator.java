@@ -37,6 +37,8 @@ import org.eclipse.jkube.generator.api.support.BaseGenerator;
 import org.eclipse.jkube.generator.webapp.handler.CustomAppServerHandler;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 /**
  * A generator for WAR apps
  *
@@ -154,10 +156,12 @@ public class WebAppGenerator extends BaseGenerator {
     final File sourceFile = Objects.requireNonNull(JKubeProjectUtil.getFinalOutputArtifact(getProject()),
         "Final output artifact file was not detected");
     final String targetFilename;
-    if (getConfig(Config.PATH).equals("/")) {
-      targetFilename = String.format("ROOT.%s",  FilenameUtils.getExtension(sourceFile.getName()));
+    final String extension = FilenameUtils.getExtension(sourceFile.getName());
+    final String path = getConfig(Config.PATH);
+    if (path.equals("/") || isBlank(path)) {
+      targetFilename = String.format("ROOT.%s", extension);
     } else {
-      targetFilename =  sourceFile.getName();
+      targetFilename = String.format("%s.%s", path.replaceAll("[\\\\/]", ""), extension);
     }
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
     builder
