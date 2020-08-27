@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>meetup</groupId>
+    <artifactId>random-generator</artifactId>
+    <version>0.0.1</version>
+    <packaging>jar</packaging>
+
+    <name>random-generator</name>
+    <description>Demo project for Spring Boot</description>
+    <!--
+    This comment contains a fabric8 keyword and also some fmp- or f8- prefixes that shouldn't be modified
+    We all love the Fabric8 organization. The name is also great, because fabric8 is shorter than fabricate.
+     -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.8.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.eclipse.jkube</groupId>
+                    <artifactId>kubernetes-maven-plugin</artifactId>
+                    <version>1.0.0-SNAPSHOT</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludeDevtools>false</excludeDevtools>
+                    <additionalProperties>
+                        <fmp-fake>I'm preserved</fmp-fake>
+                        <f8-fake>I'm preserved too</f8-fake>
+                    </additionalProperties>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.jkube</groupId>
+                <artifactId>kubernetes-maven-plugin</artifactId>
+                <configuration>
+                    <enricher>
+                        <config>
+                            <jkube-service>
+                                <type>NodePort</type>
+                            </jkube-service>
+                            <jkube-revision-history>
+                                <limit>8</limit>
+                            </jkube-revision-history>
+                            <jkube-healthcheck-spring-boot>
+                                <path>/</path>
+                            </jkube-healthcheck-spring-boot>
+                        </config>
+                    </enricher>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

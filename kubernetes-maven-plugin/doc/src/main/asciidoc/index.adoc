@@ -1,18 +1,20 @@
-= org.eclipse.jkube/kubernetes-maven-plugin
+= org.eclipse.jkube/{plugin}
 Roland Huß, James Strachan;
+:plugin: kubernetes-maven-plugin
+:goal-prefix: k8s
+:cluster: Kubernetes
 :revnumber: {version}
 :revdate: {localdate}
 :toc: macro
 :toclevels: 3
-:toc-title: kubernetes-maven-plugin
+:toc-title: {plugin}
 :doctype: book
 :icons: font
-:plugin: jkube
 :plugindir: ../../../../../plugin
 
 ifndef::ebook-format[:leveloffset: 1]
 
-(C) 2019 The original authors.
+(C) 2020 The original authors.
 
 ifdef::basebackend-html[toc::[]]
 
@@ -41,4 +43,3 @@ include::inc/_faq.adoc[]
 
 include::inc/_appendix.adoc[]
 
-// include::classpath:/META-INF/doc/dmp/inc/_docker-build.adoc[]

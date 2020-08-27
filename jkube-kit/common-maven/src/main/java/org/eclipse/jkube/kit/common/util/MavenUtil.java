@@ -18,16 +18,19 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLClassLoader;
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import java.util.stream.Collectors;
+
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
 import com.google.common.base.Objects;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +38,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.DistributionManagement;
-import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Site;
 import org.apache.maven.project.MavenProject;
@@ -45,11 +47,6 @@ import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.codehaus.plexus.archiver.tar.TarLongFileMode;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.eclipse.jkube.kit.common.util.ClassUtil.createClassLoader;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.greaterOrEqualsVersion;
@@ -59,9 +56,10 @@ import static org.eclipse.jkube.kit.common.util.EnvUtil.greaterOrEqualsVersion;
  * @since 31/03/16
  */
 public class MavenUtil {
-    private static final transient Logger LOG = LoggerFactory.getLogger(MavenUtil.class);
 
     private static final String DEFAULT_CONFIG_FILE_NAME = "kubernetes.json";
+
+    private MavenUtil() {}
 
     public static boolean isKubernetesJsonArtifact(String classifier, String type) {
         return "json".equals(type) && "kubernetes".equals(classifier);
@@ -86,19 +84,6 @@ public class MavenUtil {
             throw new IllegalArgumentException("Cannot resolve artifact from compile classpath",e);
         }
     }
-
-    public static URLClassLoader getTestClassLoader(MavenProject project) {
-        try {
-            List<String> classpathElements = project.getTestClasspathElements();
-            return createClassLoader(classpathElements, project.getBuild().getTestOutputDirectory());
-        } catch (DependencyResolutionRequiredException e) {
-            throw new IllegalArgumentException("Cannot resolve artifact from test classpath", e);
-        }
-    }
-
-
-
-    // ====================================================
 
     /**
      * Returns true if the maven project has a dependency with the given groupId and artifactId (if not null)
@@ -147,21 +132,20 @@ public class MavenUtil {
         return getPluginOfAnyGroupId(project, pluginArtifact) != null;
     }
 
-    public static Plugin getPluginOfAnyGroupId(MavenProject project, String pluginArtifact) {
+    public static org.apache.maven.model.Plugin getPluginOfAnyGroupId(MavenProject project, String pluginArtifact) {
         return getPlugin(project, null, pluginArtifact);
     }
 
     /**
-     * Returns a comma separated string with dependency list in format
-     *  groupId,artifactId,version,configuration,execution1|execution2|execution3
+     * Returns a list of {@link Plugin}
      *
      * @param project Maven project
-     * @return list of dependencies
+     * @return list of plugins
      */
-    public static List<JKubeProjectPlugin> getPluginsAsString(MavenProject project) {
-        List<JKubeProjectPlugin> projectPlugins = new ArrayList<>();
-        for (Plugin plugin : project.getBuildPlugins()) {
-            JKubeProjectPlugin.Builder jkubeProjectPluginBuilder = new JKubeProjectPlugin.Builder();
+    public static List<Plugin> getPlugins(MavenProject project) {
+        List<Plugin> projectPlugins = new ArrayList<>();
+        for (org.apache.maven.model.Plugin plugin : project.getBuildPlugins()) {
+            Plugin.PluginBuilder jkubeProjectPluginBuilder = Plugin.builder();
 
             jkubeProjectPluginBuilder.groupId(plugin.getGroupId())
                     .artifactId(plugin.getArtifactId())
@@ -177,7 +161,7 @@ public class MavenUtil {
         return projectPlugins;
     }
 
-    public static List<String> getPluginExecutionsAsList(Plugin plugin) {
+    public static List<String> getPluginExecutionsAsList(org.apache.maven.model.Plugin plugin) {
         List<String> pluginExecutions = new ArrayList<>();
         for (PluginExecution pluginExecution : plugin.getExecutions()) {
             pluginExecutions.addAll(pluginExecution.getGoals());
@@ -185,25 +169,21 @@ public class MavenUtil {
         return pluginExecutions;
     }
 
-    public static List<String> getDependenciesAsString(MavenProject project, boolean transitive) {
-        final Set<Artifact> artifacts = transitive ?
-                project.getArtifacts() : project.getDependencyArtifacts();
-        final List<String> jkubeProjectDependenciesAsStr = new ArrayList<>();
+  public static List<Dependency> getTransitiveDependencies(MavenProject project) {
+    return project.getArtifacts().stream()
+        .map(a -> Dependency.builder()
+            .groupId(a.getGroupId()).artifactId(a.getArtifactId()).version(a.getVersion()).type(a.getType())
+            .scope(a.getScope()).file(a.getFile()).build())
+        .collect(Collectors.toList());
+  }
 
-        if (artifacts != null) {
-            for (Artifact artifact : artifacts) {
-                jkubeProjectDependenciesAsStr.add(
-                        artifact.getGroupId() + "," +
-                                artifact.getArtifactId() + "," +
-                                artifact.getVersion() + "," +
-                                artifact.getType() + "," +
-                                artifact.getScope() + "," +
-                                (artifact.getFile() != null ? artifact.getFile().getAbsolutePath() : ""));
-            }
-        }
-
-        return jkubeProjectDependenciesAsStr;
-    }
+  public static List<Dependency> getDependencies(MavenProject project) {
+    return project.getDependencies().stream()
+        .map(d -> Dependency.builder()
+            .groupId(d.getGroupId()).artifactId(d.getArtifactId()).version(d.getVersion()).type(d.getType())
+            .scope(d.getScope()).build())
+        .collect(Collectors.toList());
+  }
 
     /**
      * Returns the plugin with the given groupId (if present) and artifactId.
@@ -213,14 +193,14 @@ public class MavenUtil {
      * @param artifactId artifact id
      * @return return Plugin object for the specific plugin
      */
-    public static Plugin getPlugin(MavenProject project, String groupId, String artifactId) {
+    public static org.apache.maven.model.Plugin getPlugin(MavenProject project, String groupId, String artifactId) {
         if (artifactId == null) {
             throw new IllegalArgumentException("artifactId cannot be null");
         }
 
-        List<Plugin> plugins = project.getBuildPlugins();
+        List<org.apache.maven.model.Plugin> plugins = project.getBuildPlugins();
         if (plugins != null) {
-            for (Plugin plugin : plugins) {
+            for (org.apache.maven.model.Plugin plugin : plugins) {
                 boolean matchesArtifactId = artifactId.equals(plugin.getArtifactId());
                 boolean matchesGroupId = groupId == null || groupId.equals(plugin.getGroupId());
 
@@ -246,7 +226,7 @@ public class MavenUtil {
                 if (compileClassLoader.getResource(path) != null) {
                     return true;
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 // ignore
             }
         }
@@ -285,7 +265,7 @@ public class MavenUtil {
      * @throws IOException IOException in case file is not found
      */
     public static String getVersion(String groupId, String artifactId) throws IOException {
-        String path = "META-INF/maven/" + groupId + "/" + artifactId + "/pom.properties";
+        String path = String.format("META-INF/maven/%s/%s/pom.properties" , groupId, artifactId);
         InputStream in = MavenUtil.class.getClassLoader().getResourceAsStream(path);
         if (in == null) {
             throw new IOException("Could not find " + path + " on classath!");
@@ -331,7 +311,7 @@ public class MavenUtil {
      * @param project MavenProject from which to retrieve the documentation URL
      * @return the documentation URL
      */
-    public static String getDocumentationUrl (MavenProject project) {
+    public static String getDocumentationUrl(MavenProject project) {
         while (project != null) {
             DistributionManagement distributionManagement = project.getDistributionManagement();
             if (distributionManagement != null) {
@@ -361,7 +341,7 @@ public class MavenUtil {
         List<RegistryServerConfiguration> registryServerConfigurations = new ArrayList<>();
         for (Server server : settings.getServers()) {
             if (server.getUsername() != null) {
-                registryServerConfigurations.add(new RegistryServerConfiguration.Builder()
+                registryServerConfigurations.add(RegistryServerConfiguration.builder()
                         .id(server.getId())
                         .username(server.getUsername())
                         .password(server.getPassword())
@@ -372,18 +352,18 @@ public class MavenUtil {
         return registryServerConfigurations;
     }
 
-    public static JKubeProject convertMavenProjectToJKubeProject(MavenProject mavenProject, MavenSession mavenSession) throws DependencyResolutionRequiredException {
-        JKubeProject.Builder builder = new JKubeProject.Builder();
+    public static JavaProject convertMavenProjectToJKubeProject(MavenProject mavenProject, MavenSession mavenSession) throws DependencyResolutionRequiredException {
+        JavaProject.JavaProjectBuilder builder = JavaProject.builder();
 
         Properties properties = new Properties();
-        String localRepositoryBaseDir = null;
+        File localRepositoryBaseDir = null;
 
         if (mavenProject.getProperties() != null) {
             properties.putAll(mavenProject.getProperties());
         }
         if (mavenSession != null) {
             if (mavenSession.getLocalRepository().getBasedir() != null) {
-                localRepositoryBaseDir = mavenSession.getLocalRepository().getBasedir();
+                localRepositoryBaseDir = new File(mavenSession.getLocalRepository().getBasedir());
             }
             if (mavenSession.getUserProperties() != null) {
                 properties.putAll(mavenSession.getUserProperties());
@@ -406,21 +386,21 @@ public class MavenUtil {
                 .compileClassPathElements(mavenProject.getCompileClasspathElements())
                 .properties(properties)
                 .packaging(mavenProject.getPackaging())
-                .dependencies(MavenUtil.getDependenciesAsString(mavenProject, false))
-                .dependenciesWithTransitive(MavenUtil.getDependenciesAsString(mavenProject, true))
+                .dependencies(getDependencies(mavenProject))
+                .dependenciesWithTransitive(getTransitiveDependencies(mavenProject))
                 .localRepositoryBaseDirectory(localRepositoryBaseDir)
-                .plugins(MavenUtil.getPluginsAsString(mavenProject));
+                .plugins(getPlugins(mavenProject));
 
         if (mavenProject.getOrganization() != null) {
             builder.site(mavenProject.getOrganization().getUrl())
-                    .organization(mavenProject.getOrganization().getName());
+                    .organizationName(mavenProject.getOrganization().getName());
         }
 
-        if (mavenProject.getBuild() != null) {
-            builder.outputDirectory(mavenProject.getBuild().getOutputDirectory())
-                    .buildFinalName(mavenProject.getBuild().getFinalName())
-                    .buildDirectory(mavenProject.getBuild().getDirectory());
-        }
+        Optional.ofNullable(mavenProject.getBuild())
+            .ifPresent(mavenBuild -> builder
+                .outputDirectory(new File(mavenBuild.getOutputDirectory()))
+                .buildFinalName(mavenBuild.getFinalName())
+                .buildDirectory(new File(mavenBuild.getDirectory())));
 
         if (mavenProject.getIssueManagement() != null) {
             builder.issueManagementSystem(mavenProject.getIssueManagement().getSystem());
@@ -430,6 +410,10 @@ public class MavenUtil {
         if (mavenProject.getScm() != null) {
             builder.scmTag(mavenProject.getScm().getTag());
             builder.scmUrl(mavenProject.getScm().getUrl());
+        }
+
+        if (mavenProject.getArtifact() != null) {
+            builder.artifact(mavenProject.getArtifact().getFile());
         }
 
         return builder.build();

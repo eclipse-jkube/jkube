@@ -15,117 +15,114 @@ package org.eclipse.jkube.kit.config.image;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.apache.commons.lang3.SerializationUtils;
 
-/**
- * @author roland
- * @since 02.09.14
- */
-public class ImageConfiguration<B extends BuildConfiguration<?>> implements Serializable {
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@SuppressWarnings("JavaDoc")
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
+public class ImageConfiguration implements Serializable {
+    /**
+     * Change the name which can be useful in long running runs e.g. for updating
+     * images when doing updates. Use with caution and only for those circumstances.
+     *
+     * @param name image name to set.
+     */
     private String name;
-
     private String alias;
-
+    private RunImageConfiguration run;
+    private BuildConfiguration build;
+    private WatchImageConfiguration watch;
+    /**
+     * Override externalConfiguration when defined via special property.
+     *
+     * @param external Map with alternative config
+     */
+    private Map<String,String> external;
     private String registry;
 
-    private B build;
-
-    protected ImageConfiguration() {}
-
-    public String getName() {
-        return name;
+    /**
+     * Override externalConfiguration when defined via special property.
+     *
+     * @param externalConfiguration Map with alternative config
+     */
+    public void setExternalConfiguration(Map<String, String> externalConfiguration) {
+        this.external = externalConfiguration;
     }
 
-
-    public String getAlias() {
-        return alias;
+    public RunImageConfiguration getRunConfiguration() {
+        return (run == null) ? RunImageConfiguration.DEFAULT : run;
     }
 
-    public B getBuildConfiguration() {
+    public BuildConfiguration getBuildConfiguration() {
         return build;
     }
 
+    public WatchImageConfiguration getWatchConfiguration() {
+        return watch;
+    }
+
+    public Map<String, String> getExternalConfig() {
+        return external;
+    }
+
+    public List<String> getDependencies() {
+        final RunImageConfiguration runConfig = getRunConfiguration();
+        final List<String> ret = new ArrayList<>();
+        if (runConfig != null) {
+            ret.addAll(extractVolumes(runConfig));
+            ret.addAll(extractLinks(runConfig));
+            getContainerNetwork(runConfig).ifPresent(ret::add);
+            ret.addAll(extractDependsOn(runConfig));
+        }
+        return ret;
+    }
+
+    private static List<String> extractVolumes(RunImageConfiguration runConfig) {
+        return Optional.ofNullable(runConfig).map(RunImageConfiguration::getVolumeConfiguration)
+            .map(RunVolumeConfiguration::getFrom).orElse(Collections.emptyList());
+    }
+
+    private static List<String> extractLinks(RunImageConfiguration runConfig) {
+        // Custom networks can have circular links, no need to be considered for the starting order.
+        if (!runConfig.getNetworkingConfig().isCustomNetwork()) {
+            return EnvUtil.splitOnLastColon(runConfig.getLinks()).stream().map(a -> a[0]).collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+
+    private static Optional<String> getContainerNetwork(RunImageConfiguration runConfig) {
+        return Optional.ofNullable(runConfig).map(RunImageConfiguration::getNetworkingConfig).map(NetworkConfig::getContainerAlias);
+    }
+
+    private static List<String> extractDependsOn(RunImageConfiguration runConfig) {
+        // Only used in custom networks.
+        if (runConfig.getNetworkingConfig().isCustomNetwork()) {
+            return runConfig.getDependsOn();
+        }
+        return Collections.emptyList();
+    }
 
     public String getDescription() {
         return String.format("[%s] %s", new ImageName(name).getFullName(), (alias != null ? "\"" + alias + "\"" : "")).trim();
     }
 
-    public String getRegistry() {
-        return registry;
-    }
 
-    @Override
-    public String toString() {
-        return String.format("ImageConfiguration {name='%s', alias='%s'}", name, alias);
-    }
-
-    public String[] validate(NameFormatter nameFormatter) {
-        name = nameFormatter.format(name);
-        List<String> apiVersions = new ArrayList<>();
-        if (build != null) {
-            apiVersions.add(build.validate());
-        }
-        return apiVersions.stream().filter(Objects::nonNull).toArray(String[]::new);
-    }
-
-    // =========================================================================
-    // Builder for image configurations
-    public static class TypedBuilder<B extends BuildConfiguration<?>, I extends ImageConfiguration<B>> {
-
-        protected final ImageConfiguration<B> config;
-
-        protected TypedBuilder(I config) {
-            this.config = config;
-        }
-
-        public TypedBuilder<B, I> name(String name) {
-            config.name = name;
-            return this;
-        }
-
-        public TypedBuilder<B, I> alias(String alias) {
-            config.alias = alias;
-            return this;
-        }
-
-        public TypedBuilder<B, I> buildConfig(B buildConfig) {
-            config.build = buildConfig;
-            return this;
-        }
-
-        public TypedBuilder<B, I> registry(String registry) {
-            config.registry = registry;
-            return this;
-        }
-
-        public I build() {
-            return (I)config;
-        }
-
-    }
-
-    public static class Builder extends TypedBuilder<BuildConfiguration<?>, ImageConfiguration<BuildConfiguration<?>>>{
-        public Builder() {
-            this(null);
-        }
-
-        public Builder(ImageConfiguration<BuildConfiguration<?>> that) {
-            super(that == null ? new ImageConfiguration<>() : SerializationUtils.clone(that));
-        }
-    }
-
-    // =====================================================================
-    /**
-     * Format an image name by replacing certain placeholders
-     */
-    public interface NameFormatter {
-        String format(String name);
-
-        NameFormatter IDENTITY = name -> name;
-    }
 }

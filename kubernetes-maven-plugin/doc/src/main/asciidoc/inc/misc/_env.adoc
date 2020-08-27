@@ -3,7 +3,7 @@
 When creating a container one or more environment variables can be set via configuration with the `env` parameter
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <env>
   <JAVA_HOME>/opt/jdk8</JAVA_HOME>
@@ -18,7 +18,7 @@ It is also possible to set the environment variables from the outside of the plu
 Labels can be set inline the same way as environment variables:
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <labels>
    <com.example.label-with-value>foo</com.example.label-with-value>

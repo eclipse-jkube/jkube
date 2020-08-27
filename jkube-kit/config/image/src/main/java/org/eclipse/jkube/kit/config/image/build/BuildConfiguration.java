@@ -19,649 +19,434 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.eclipse.jkube.kit.common.KitLogger;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.Singular;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.apache.commons.lang3.SerializationUtils;
+
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
+
 
 /**
  * @author roland
- * @since 02.09.14
  */
-public class BuildConfiguration<A extends AssemblyConfiguration> implements Serializable {
-    public static final String DEFAULT_FILTER = "${*}";
-    public static final String DEFAULT_CLEANUP = "try";
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode(doNotUseGetters = true)
+public class BuildConfiguration implements Serializable {
 
-    /**
-     * Directory used as the contexst directory, e.g. for a docker build.
-     */
-    private String contextDir;
+  private static final long serialVersionUID = 3904939784596208966L;
 
-    /**
-     * Path to a dockerfile to use. Its parent directory is used as build context (i.e. as <code>dockerFileDir</code>).
-     * Multiple different Dockerfiles can be specified that way. If set overwrites a possibly given
-     * <code>contextDir</code>
-     */
-    private String dockerFile;
+  public static final String DEFAULT_FILTER = "${*}";
+  public static final String DEFAULT_CLEANUP = "try";
 
-    /**
-     * Path to a docker archive to load an image instead of building from scratch.
-     * Note only either dockerFile/dockerFileDir or
-     * dockerArchive can be used.
-     */
-    private String dockerArchive;
+  /**
+   * Path to a directory used for the build's context. You can specify the Dockerfile to use with dockerFile, which by
+   * default is the Dockerfile found in the contextDir.
+   * The Dockerfile can be also located outside of the contextDir, if provided with an absolute file path.
+   */
+  private String contextDir;
+  /**
+   * Path to a Dockerfile which also triggers Dockerfile mode.
+   * The Docker build context directory is set to <code>contextDir</code> if given.
+   * If not the directory by default is the directory in which the Dockerfile is stored.
+   */
+  private String dockerFile;
+  /**
+   * Path to a docker archive to load an image instead of building from scratch.
+   * If a dockerArchive is provided, no {@link BuildConfiguration#dockerFile} must be given.
+   */
+  private String dockerArchive;
+  /**
+   * Enable and set the delimiters for property replacements.
+   *
+   * <p>By default properties in the format <code>${..}</code> are replaced with Maven properties.
+   * When using a single char like <code>@</code> then this is used as a delimiter (e.g @…​@).
+   */
+  private String filter;
+  /**
+   * The base image which should be used for this image.
+   *
+   * <p> If not given this default to <code>busybox:latest</code> and is suitable for a pure data image.
+   */
+  private String from;
+  /**
+   * Extended definition for a base image. This field holds a map of defined in key:value format.
+   * <p> The known keys are:
+   * <ul>
+   *   <li><b>name</b>: Name of the base image</li>
+   * </ul>
+   * <p> A provided {@link BuildConfiguration#from} takes precedence over the name given here.
+   * This tag is useful for extensions of this plugin.
+   */
+  private Map<String, String> fromExt;
+  /**
+   * The author (MAINTAINER) field for the generated image
+   */
+  private String maintainer;
+  /**
+   * The exposed ports which is a list of &lt;port&gt; elements, one for each port to expose.
+   * Whitespace is trimmed from each element and empty elements are ignored.
+   *
+   * <p> The format can be either pure numerical (<code>8080</code>) or with the protocol attached (<code>8080/tcp</code>).
+   */
+  @Singular
+  private List<String> ports;
+  /**
+   * Shell to be used for the {@link BuildConfiguration#runCmds}. It contains arg elements which are defining the
+   * executable and its params.
+   */
+  private Arguments shell;
+  /**
+   * Specific pull policy for the base image. This overrides any global image pull policy.
+   */
+  private String imagePullPolicy;
+  /**
+   * Commands to be run during the build process.
+   *
+   * <p> It contains &lt;run&gt; elements which are passed to the shell.
+   * Whitespace is trimmed from each element and empty elements are ignored.
+   *
+   * <p> The run commands are inserted right after the assembly and after {@link BuildConfiguration#workdir} into the
+   * Dockerfile.
+   *
+   * <p> This setting is not to be confused with the &lt;run&gt; section for this image which specifies the runtime
+   * behaviour when starting containers.
+   */
+  @Singular
+  private List<String> runCmds;
+  /**
+   * Cleanup dangling (untagged) images after each build (including any containers created from them)
+   * <ul>
+   *   <li><b>try</b>: tries to remove the old image but doesn't fail the build if this is not possible</li>
+   *   <li><b>remove</b>: removes old image or fails if it doesn't</li>
+   *   <li><b>none</b>: No cleanup is requested</li>
+   * </ul>
+   */
+  private String cleanup;
+  /**
+   * Don't use Docker’s build cache.
+   */
+  private Boolean nocache;
+  /**
+   * If set to true then it will compress all the {@link BuildConfiguration#runCmds} into a single RUN directive so that
+   * only one image layer is created.
+   */
+  private Boolean optimise;
+  /**
+   * List of &lt;volume%gt; elements to create a container volume.
+   * Whitespace is trimmed from each element and empty elements are ignored.
+   */
+  @Singular
+  private List<String> volumes;
+  /**
+   * List of additional tag elements with which an image is to be tagged after the build.
+   * Whitespace is trimmed from each element and empty elements are ignored.
+   */
+  @Singular
+  private List<String> tags;
+  /**
+   * Environment variables.
+   */
+  @Singular("putEnv")
+  private Map<String, String> env;
+  /**
+   * Labels.
+   */
+  @Singular
+  private Map<String, String> labels;
+  /**
+   * Map specifying the value of Docker build args which should be used when building the image with an external
+   * Dockerfile which uses build arguments.
+   *
+   * <p> The key-value syntax is the same as when defining Maven properties (or labels or env). This argument is
+   * ignored when no external Dockerfile is used.
+   */
+  @Singular
+  private Map<String, String> args;
+  /**
+   * An entrypoint allows you to configure a container that will run as an executable.
+   */
+  private Arguments entryPoint;
+  /**
+   * Directory to change to when starting the container.
+   */
+  private String workdir;
+  /**
+   * A command to execute by default.
+   */
+  private Arguments cmd;
+  /**
+   * User to which the Dockerfile should switch to the end (corresponds to the <code>USER</code> Dockerfile directive).
+   */
+  private String user;
+  /**
+   * Health check configuration.
+   */
+  private HealthCheckConfiguration healthCheck;
+  /**
+   * Specifies the assembly configuration.
+   */
+  private AssemblyConfiguration assembly;
+  /**
+   * If set to true disables building of the image.
+   */
+  private Boolean skip;
+  /**
+   * The compression mode how the build archive is transmitted to the docker daemon and how docker build archives are
+   * attached to this build as sources.
+   */
+  private ArchiveCompression compression;
+  /**
+   * Map specifying the build options to provide to the docker daemon when building the image.
+   *
+   * <p> These options map to the ones listed as query parameters in the Docker Remote API and are restricted to
+   * simple options (e.g.: memory, shmsize).
+   *
+   * @see <a href="https://docs.docker.com/engine/api/v1.40/#operation/ImageBuild">Docker Engine API v1.40</a>
+   */
+  private Map<String, String> buildOptions;
+  /**
+   * Path to Dockerfile to use, initialized lazily.
+   */
+  @Setter(AccessLevel.PRIVATE)
+  private File dockerFileFile;
+  @Setter(AccessLevel.PRIVATE)
+  private File dockerArchiveFile;
 
-    /**
-     * How interpolation of a dockerfile should be performed
-     */
-    private String filter;
+  public boolean isDockerFileMode() {
+    return dockerFile != null || contextDir != null;
+  }
 
-    /**
-     * Base Image
-     */
-    private String from;
+  public File getDockerFile() {
+    return dockerFileFile;
+  }
 
-    /**
-     * Extended version for ;&lt;from;&gt;
-     */
-    private Map<String, String> fromExt;
+  public String getDockerFileRaw() {
+    return dockerFile;
+  }
 
-    private String registry;
+  public File getDockerArchive() {
+    return dockerArchiveFile;
+  }
 
-    private String maintainer;
+  public String getDockerArchiveRaw() {
+    return dockerArchive;
+  }
 
-    private List<String> ports;
+  public File getContextDir() {
+    return contextDir != null ? new File(contextDir) : getDockerFile().getParentFile();
+  }
 
-    private Arguments shell;
+  public String getContextDirRaw() {
+    return contextDir;
+  }
 
-    /**
-     * Policy for pulling the base images
-     */
-    private String imagePullPolicy;
+  public String getFrom() {
+    if (from == null && getFromExt() != null) {
+      return getFromExt().get("name");
+    }
+    return from;
+  }
 
-    /**
-     * RUN Commands within Build/Image
-     */
-    private List<String> runCmds;
+  public List<String> getPorts() {
+    return removeEmptyEntries(ports);
+  }
 
-    private String cleanup;
+  public List<String> getVolumes() {
+    return removeEmptyEntries(volumes);
+  }
 
-    private Boolean nocache;
+  public List<String> getTags() {
+    return removeEmptyEntries(tags);
+  }
 
-    private Boolean optimise;
+  public Boolean getSkip() {
+    return Optional.ofNullable(skip).orElse(false);
+  }
 
-    private List<String> volumes;
+  public ArchiveCompression getCompression() {
+    return Optional.ofNullable(compression).orElse(ArchiveCompression.none);
+  }
 
-    private List<String> tags;
+  public List<String> getRunCmds() {
+    return removeEmptyEntries(runCmds);
+  }
 
-    private Map<String, String> env;
 
-    private Map<String, String> labels;
+  public boolean optimise() {
+    return Optional.ofNullable(optimise).orElse(false);
+  }
 
-    private Map<String, String> args;
+  public boolean nocache() {
+    return Optional.ofNullable(nocache).orElse(false);
+  }
 
-    private Arguments entryPoint;
+  public CleanupMode cleanupMode() {
+    return CleanupMode.parse(cleanup != null ? cleanup : DEFAULT_CLEANUP);
+  }
 
-    private String workdir;
+  public File getAbsoluteContextDirPath(String sourceDirectory, String projectBaseDir) {
+    return EnvUtil.prepareAbsoluteSourceDirPath(sourceDirectory, projectBaseDir, getContextDir().getPath());
+  }
 
-    private Arguments cmd;
+  public File getAbsoluteDockerFilePath(String sourceDirectory, String projectBaseDir) {
+    return EnvUtil.prepareAbsoluteSourceDirPath(sourceDirectory, projectBaseDir, getDockerFile().getPath());
+  }
 
-    private String user;
+  public File getAbsoluteDockerTarPath(String sourceDirectory, String projectBaseDir) {
+    return EnvUtil.prepareAbsoluteSourceDirPath(sourceDirectory, projectBaseDir, getDockerArchive().getPath());
+  }
 
-    private HealthCheckConfiguration healthCheck;
-
-    private A assembly;
-
-    private Boolean skip;
-
-    private ArchiveCompression compression = ArchiveCompression.none;
-
-    private Map<String,String> buildOptions;
-
-    /**
-     * Directory holding an external Dockerfile which is used to build the
-     * image. This Dockerfile will be enriched by the addition build configuration
-     */
-    @Deprecated
-    private String dockerFileDir;
-
-    // Path to Dockerfile to use, initialized lazily ....
-    private File dockerFileFile, dockerArchiveFile;
-
-    protected BuildConfiguration() {}
-
-    public boolean isDockerFileMode() {
-        return dockerFile != null || contextDir != null;
+  public String initAndValidate() {
+    if (entryPoint != null) {
+      entryPoint.validate();
+    }
+    if (cmd != null) {
+      cmd.validate();
+    }
+    if (healthCheck != null) {
+      healthCheck.validate();
     }
 
-    public File getDockerFile() {
-        return dockerFileFile;
+    initDockerFileFile();
+
+    if (healthCheck != null) {
+      // HEALTHCHECK support added later
+      return "1.24";
+    } else if (args != null && !args.isEmpty()) {
+      // ARG support came in later
+      return "1.21";
+    } else {
+      return null;
+    }
+  }
+
+  // Initialize the dockerfile location and the build mode
+  private void initDockerFileFile() {
+    if (dockerFile != null && dockerArchive != null) {
+      throw new IllegalArgumentException("Both <dockerFile> and <dockerArchive> are set. " +
+          "Only one of them can be specified.");
+    }
+    dockerFileFile = findDockerFileFile();
+
+    if (dockerArchive != null) {
+      dockerArchiveFile = new File(dockerArchive);
+    }
+  }
+
+  private File findDockerFileFile() {
+    if (dockerFile != null) {
+      File dFile = new File(dockerFile);
+      if (contextDir == null) {
+        return dFile;
+      } else {
+        if (dFile.isAbsolute()) {
+          return dFile;
+        }
+        return new File(contextDir, dockerFile);
+      }
     }
 
-    public File getDockerArchive() {
-        return dockerArchiveFile;
+    if (contextDir != null) {
+      return new File(contextDir, "Dockerfile");
     }
 
-    public File getContextDir() {
-        return contextDir != null ? new File(contextDir) : getDockerFile().getParentFile();
+    // No dockerfile mode
+    return null;
+  }
+
+  public String validate() {
+    if (entryPoint != null) {
+      entryPoint.validate();
+    }
+    if (cmd != null) {
+      cmd.validate();
+    }
+    if (healthCheck != null) {
+      healthCheck.validate();
     }
 
-    public String getFilter() {
-        return filter;
+    if ((dockerFile != null || contextDir != null) && dockerArchive != null) {
+      throw new IllegalArgumentException("Both <dockerFile> (<contextDir>) and <dockerArchive> are set. " +
+          "Only one of them can be specified.");
     }
 
-    public String getDockerFileRaw() {
-        return dockerFile;
+    if (healthCheck != null) {
+      // HEALTHCHECK support added later
+      return "1.24";
+    } else if (args != null) {
+      // ARG support came in later
+      return "1.21";
+    } else {
+      return null;
+    }
+  }
+
+  public File calculateDockerFilePath() {
+    if (dockerFile != null) {
+      File dFile = new File(dockerFile);
+      if (contextDir == null) {
+        return dFile;
+      }
+      if (dFile.isAbsolute()) {
+        return dFile;
+      }
+      if (isWindows() && !isValidWindowsFileName(dockerFile)) {
+        throw new IllegalArgumentException(String.format("Invalid Windows file name %s for <dockerFile>", dockerFile));
+      }
+      return new File(contextDir, dFile.getPath());
     }
 
-    public String getContextDirRaw() {
-        return contextDir;
+    if (contextDir != null) {
+      return new File(contextDir, "Dockerfile");
     }
 
-    public Arguments getShell() {
-        return shell;
+    // No dockerfile mode
+    throw new IllegalArgumentException("Can't calculate a docker file path if neither dockerFile nor contextDir is specified");
+  }
+
+  public static class BuildConfigurationBuilder {
+    public BuildConfigurationBuilder compressionString(String compressionString) {
+      compression = Optional.ofNullable(compressionString).map(ArchiveCompression::valueOf).orElse(null);
+      return this;
     }
-
-    public String getDockerArchiveRaw() {
-        return dockerArchive;
-    }
-
-    public String getDockerFileDirRaw() {
-        return dockerFileDir;
-    }
-
-    public String getFilterRaw() {
-        return filter;
-    }
-
-    public String getFrom() {
-        if (from == null && getFromExt() != null) {
-            return getFromExt().get("name");
-        }
-        return from;
-    }
-
-    public Map<String, String> getFromExt() {
-        return fromExt;
-    }
-
-    public String getRegistry() {
-        return registry;
-    }
-
-    public String getMaintainer() {
-        return maintainer;
-    }
-
-    public String getWorkdir() {
-        return workdir;
-    }
-
-    public A getAssemblyConfiguration() {
-        return assembly;
-    }
-
-    public void setAssembly(A assembly) {
-        this.assembly = assembly;
-    }
-
-    public List<String> getPorts() {
-        return removeEmptyEntries(ports);
-    }
-
-    public String getImagePullPolicy() {
-        return imagePullPolicy;
-    }
-
-    public List<String> getVolumes() {
-        return removeEmptyEntries(volumes);
-    }
-
-    public List<String> getTags() {
-        return removeEmptyEntries(tags);
-    }
-
-    public Map<String, String> getEnv() {
-        return env;
-    }
-
-    public Map<String, String> getLabels() {
-        return labels;
-    }
-
-    public Arguments getCmd() {
-        return cmd;
-    }
-
-    public String getCleanupMode() {
-        return cleanup;
-    }
-
-    public Boolean getNoCache() {
-        return nocache;
-    }
-
-    public Boolean getOptimise() {
-        return optimise;
-    }
-
-    public Boolean getSkip() {
-        return skip != null ? skip : false;
-    }
-
-    public ArchiveCompression getCompression() {
-        return compression;
-    }
-
-    public Map<String, String> getBuildOptions() {
-        return buildOptions;
-    }
-
-    public Arguments getEntryPoint() {
-        return entryPoint;
-    }
-
-    public List<String> getRunCmds() {
-        return removeEmptyEntries(runCmds);
-    }
-
-    public String getUser() {
-      return user;
-    }
-
-    public HealthCheckConfiguration getHealthCheck() {
-        return healthCheck;
-    }
-
-    public Map<String, String> getArgs() {
-        return args;
-    }
-
-    public boolean optimise() {
-        return optimise != null ? optimise : false;
-    }
-
-    public String getCleanup() {
-        return cleanup;
-    }
-
-    public boolean nocache() {
-        return nocache != null ? nocache : false;
-    }
-
-    public CleanupMode cleanupMode() {
-        return CleanupMode.parse(cleanup != null ? cleanup : DEFAULT_CLEANUP);
-    }
-
-
-    public File getAbsoluteContextDirPath(String sourceDirectory, String projectBaseDir) {
-        return EnvUtil.prepareAbsoluteSourceDirPath(sourceDirectory, projectBaseDir, getContextDir().getPath());
-    }
-
-    public File getAbsoluteDockerFilePath(String sourceDirectory, String projectBaseDir) {
-        return EnvUtil.prepareAbsoluteSourceDirPath(sourceDirectory, projectBaseDir, getDockerFile().getPath());
-    }
-
-    public File getAbsoluteDockerTarPath(String sourceDirectory, String projectBaseDir) {
-        return EnvUtil.prepareAbsoluteSourceDirPath(sourceDirectory, projectBaseDir, getDockerArchive().getPath());
-    }
-
-
-    // ===========================================================================================
-    public static class TypedBuilder<A extends AssemblyConfiguration, B extends BuildConfiguration<A>> {
-
-        protected final BuildConfiguration<A> config;
-
-        protected TypedBuilder(B config) {
-            this.config = config;
-        }
-
-        public TypedBuilder<A, B> contextDir(String dir) {
-            config.contextDir = dir;
-            return this;
-        }
-
-        public TypedBuilder<A, B> dockerFile(String file) {
-            config.dockerFile = file;
-            return this;
-        }
-
-        public TypedBuilder<A, B> dockerArchive(String archive) {
-            config.dockerArchive = archive;
-            return this;
-        }
-
-        public TypedBuilder<A, B> dockerFileDir(String dir) {
-            config.dockerFileDir = dir;
-            return this;
-        }
-
-        public TypedBuilder<A, B> filter(String filter) {
-            config.filter = filter;
-            return this;
-        }
-
-        public TypedBuilder<A, B> from(String from) {
-            config.from = from;
-            return this;
-        }
-
-        public TypedBuilder<A, B> fromExt(Map<String, String> fromExt) {
-            config.fromExt = fromExt;
-            return this;
-        }
-
-        public TypedBuilder<A, B> registry(String registry) {
-            config.registry = registry;
-            return this;
-        }
-
-        public TypedBuilder<A, B> maintainer(String maintainer) {
-            config.maintainer = maintainer;
-            return this;
-        }
-
-        public TypedBuilder<A, B> workdir(String workdir) {
-            config.workdir = workdir;
-            return this;
-        }
-
-        public TypedBuilder<A, B> assembly(A assembly) {
-            config.assembly = assembly;
-            return this;
-        }
-
-        public TypedBuilder<A, B> ports(List<String> ports) {
-            config.ports = ports;
-            return this;
-        }
-
-        public TypedBuilder<A, B> imagePullPolicy(String imagePullPolicy) {
-            config.imagePullPolicy = imagePullPolicy;
-            return this;
-        }
-
-        public TypedBuilder<A, B> runCmds(List<String> theCmds) {
-            config.runCmds = theCmds;
-            return this;
-        }
-
-        public TypedBuilder<A, B> volumes(List<String> volumes) {
-            config.volumes = volumes;
-            return this;
-        }
-
-        public TypedBuilder<A, B> tags(List<String> tags) {
-            config.tags = tags;
-            return this;
-        }
-
-        public TypedBuilder<A, B> env(Map<String, String> env) {
-            config.env = env;
-            return this;
-        }
-
-        public TypedBuilder<A, B> args(Map<String, String> args) {
-            config.args = args;
-            return this;
-        }
-
-        public TypedBuilder<A, B> labels(Map<String, String> labels) {
-            config.labels = labels;
-            return this;
-        }
-
-        public TypedBuilder<A, B> cmd(Arguments cmd) {
-            if (cmd != null) {
-                config.cmd = cmd;
-            }
-            return this;
-        }
-
-        public TypedBuilder<A, B> cleanup(String cleanup) {
-            config.cleanup = cleanup;
-            return this;
-        }
-
-        public TypedBuilder<A, B> compression(String compression) {
-            if (compression == null) {
-                config.compression = null;
-            } else {
-                config.compression = ArchiveCompression.valueOf(compression);
-            }
-            return this;
-        }
-
-        public TypedBuilder<A, B> nocache(Boolean nocache) {
-            config.nocache = nocache;
-            return this;
-        }
-
-        public TypedBuilder<A, B> optimise(Boolean optimise) {
-            config.optimise = optimise;
-            return this;
-        }
-
-        public TypedBuilder<A, B> entryPoint(Arguments entryPoint) {
-            if (entryPoint != null) {
-                config.entryPoint = entryPoint;
-            }
-            return this;
-        }
-
-        public TypedBuilder<A, B> user(String user) {
-            config.user = user;
-            return this;
-        }
-
-        public TypedBuilder<A, B> healthCheck(HealthCheckConfiguration healthCheck) {
-            config.healthCheck = healthCheck;
-            return this;
-        }
-
-        public TypedBuilder<A, B> skip(Boolean skip) {
-            config.skip = skip;
-            return this;
-        }
-
-        public TypedBuilder<A, B> buildOptions(Map<String,String> buildOptions) {
-            config.buildOptions = buildOptions;
-            return this;
-        }
-
-        public TypedBuilder<A, B> shell(Arguments shell) {
-            if(shell != null) {
-                config.shell = shell;
-            }
-
-            return this;
-        }
-
-        public B build() {
-            return (B)config;
-        }
-    }
-
-    public static class Builder extends TypedBuilder<AssemblyConfiguration, BuildConfiguration<AssemblyConfiguration>> {
-
-        public Builder() {
-            this(null);
-        }
-
-        public Builder(BuildConfiguration<AssemblyConfiguration> that) {
-            super(that == null ? new BuildConfiguration<>() : SerializationUtils.clone(that));
-        }
-    }
-
-
-    public String initAndValidate(KitLogger log) throws IllegalArgumentException {
-        if (entryPoint != null) {
-            entryPoint.validate();
-        }
-        if (cmd != null) {
-            cmd.validate();
-        }
-        if (healthCheck != null) {
-            healthCheck.validate();
-        }
-
-        initDockerFileFile(log);
-
-        if (healthCheck != null) {
-            // HEALTHCHECK support added later
-            return "1.24";
-        } else if (args != null) {
-            // ARG support came in later
-            return "1.21";
-        } else {
-            return null;
-        }
-    }
-
-    // Initialize the dockerfile location and the build mode
-    private void initDockerFileFile(KitLogger log) {
-        // can't have dockerFile/dockerFileDir and dockerArchive
-        if ((dockerFile != null || dockerFileDir != null) && dockerArchive != null) {
-            throw new IllegalArgumentException("Both <dockerFile> (<dockerFileDir>) and <dockerArchive> are set. " +
-                    "Only one of them can be specified.");
-        }
-        dockerFileFile = findDockerFileFile(log);
-
-        if (dockerArchive != null) {
-            dockerArchiveFile = new File(dockerArchive);
-        }
-    }
-
-    private File findDockerFileFile(KitLogger log) {
-        if(dockerFileDir != null && contextDir != null) {
-            log.warn("Both contextDir (%s) and deprecated dockerFileDir (%s) are configured. Using contextDir.", contextDir, dockerFileDir);
-        }
-
-        if (dockerFile != null) {
-            File dFile = new File(dockerFile);
-            if (dockerFileDir == null && contextDir == null) {
-                return dFile;
-            } else {
-                if(contextDir != null) {
-                    if (dFile.isAbsolute()) {
-                        return dFile;
-                    }
-                    return new File(contextDir, dockerFile);
-                }
-                if (dFile.isAbsolute()) {
-                    throw new IllegalArgumentException("<dockerFile> can not be absolute path if <dockerFileDir> also set.");
-                }
-                log.warn("dockerFileDir parameter is deprecated, please migrate to contextDir");
-                return new File(dockerFileDir, dockerFile);
-            }
-        }
-
-
-        if (contextDir != null) {
-            return new File(contextDir, "Dockerfile");
-        }
-
-        if (dockerFileDir != null) {
-            return new File(dockerFileDir, "Dockerfile");
-        }
-
-        // TODO: Remove the following deprecated handling section
-        if (dockerArchive == null) {
-            String deprecatedDockerFileDir =
-                    getAssemblyConfiguration() != null ?
-                            getAssemblyConfiguration().getDockerFileDir() :
-                            null;
-            if (deprecatedDockerFileDir != null) {
-                log.warn("<dockerFileDir> in the <assembly> section of a <build> configuration is deprecated");
-                log.warn("Please use <dockerFileDir> or <dockerFile> directly within the <build> configuration instead");
-                return new File(deprecatedDockerFileDir,"Dockerfile");
-            }
-        }
-
-        // No dockerfile mode
-        return null;
-    }
-
-    public String validate() throws IllegalArgumentException {
-        if (entryPoint != null) {
-            entryPoint.validate();
-        }
-        if (cmd != null) {
-            cmd.validate();
-        }
-        if (healthCheck != null) {
-            healthCheck.validate();
-        }
-
-        // can't have dockerFile/dockerFileDir and dockerArchive
-        if ((dockerFile != null || contextDir != null) && dockerArchive != null) {
-            throw new IllegalArgumentException("Both <dockerFile> (<dockerFileDir>) and <dockerArchive> are set. " +
-                                               "Only one of them can be specified.");
-        }
-
-        if (healthCheck != null) {
-            // HEALTHCHECK support added later
-            return "1.24";
-        } else if (args != null) {
-            // ARG support came in later
-            return "1.21";
-        } else {
-            return null;
-        }
-    }
-
-    public File calculateDockerFilePath() {
-        if (dockerFile != null) {
-            File dFile = new File(dockerFile);
-            if (contextDir == null) {
-                return dFile;
-            }
-            if (dFile.isAbsolute()) {
-                return dFile;
-            }
-            if (System.getProperty("os.name").toLowerCase().contains("windows") &&
-                !isValidWindowsFileName(dockerFile)) {
-                throw new IllegalArgumentException(String.format("Invalid Windows file name %s for <dockerFile>", dockerFile));
-            }
-            return new File(contextDir, dFile.getPath());
-        }
-
-        if (contextDir != null) {
-            return new File(contextDir, "Dockerfile");
-        }
-
-        // No dockerfile mode
-        throw new IllegalArgumentException("Can't calculate a docker file path if neither dockerFile nor contextDir is specified");
-    }
-
-    // ===============================================================================================================
-
-    private List<String> removeEmptyEntries(List<String> list) {
-        if (list == null) {
-            return Collections.emptyList();
-        }
-        return list.stream()
-                   .filter(Objects::nonNull)
-                   .map(String::trim)
-                   .filter(s -> !s.isEmpty())
-                   .collect(Collectors.toList());
-    }
-
-
-   /**
-     * Validate that the provided filename is a valid Windows filename.
-     *
-     * The validation of the Windows filename is copied from stackoverflow: https://stackoverflow.com/a/6804755
-     *
-     * @param filename the filename
-     * @return filename is a valid Windows filename
-     */
-    boolean isValidWindowsFileName(String filename) {
-        Pattern pattern = Pattern.compile(
-            "# Match a valid Windows filename (unspecified file system).          \n" +
+  }
+
+  private static List<String> removeEmptyEntries(List<String> list) {
+    return Optional.ofNullable(list).orElse(Collections.emptyList()).stream()
+        .filter(Objects::nonNull)
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .collect(Collectors.toList());
+  }
+
+
+  /**
+   * Validate that the provided filename is a valid Windows filename.
+   *
+   * The validation of the Windows filename is copied from stackoverflow: https://stackoverflow.com/a/6804755
+   *
+   * @param filename the filename
+   * @return filename is a valid Windows filename
+   */
+  static boolean isValidWindowsFileName(String filename) {
+    Pattern pattern = Pattern.compile(
+        "# Match a valid Windows filename (unspecified file system).          \n" +
             "^                                # Anchor to start of string.        \n" +
             "(?!                              # Assert filename is not: CON, PRN, \n" +
             "  (?:                            # AUX, NUL, COM1, COM2, COM3, COM4, \n" +
@@ -674,9 +459,9 @@ public class BuildConfiguration<A extends AssemblyConfiguration> implements Seri
             "[^<>:\"/\\\\|?*\\x00-\\x1F]*     # Zero or more valid filename chars.\n" +
             "[^<>:\"/\\\\|?*\\x00-\\x1F .]    # Last char is not a space or dot.  \n" +
             "$                                # Anchor to end of string.            ",
-            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.COMMENTS);
-        Matcher matcher = pattern.matcher(filename);
-        return matcher.matches();
-    }
+        Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.COMMENTS);
+    Matcher matcher = pattern.matcher(filename);
+    return matcher.matches();
+  }
 
 }

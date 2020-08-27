@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.config.resource.ConfigMapEntry;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -60,7 +60,7 @@ public class ConfigMapEnricherTest {
     }
 
     @Test
-    public void should_materialize_binary_file_content_from_annotation() throws Exception {
+    public void should_materialize_binary_file_content_from_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test.bin", "src/test/resources/test.bin");
         final KubernetesListBuilder builder = new KubernetesListBuilder()
                 .addToConfigMapItems(baseConfigMap);
@@ -84,12 +84,12 @@ public class ConfigMapEnricherTest {
     @Test
     public void should_materialize_file_content_from_xml() throws Exception {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap("src/test/resources/test-application.properties");
-        final ResourceConfig config = new ResourceConfig.Builder()
-                .withConfigMap(baseConfigMap)
+        final ResourceConfig config = ResourceConfig.builder()
+                .configMap(baseConfigMap)
                 .build();
         new Expectations() {{
             context.getConfiguration();
-            result = new Configuration.Builder().resource(config).build();
+            result = Configuration.builder().resource(config).build();
         }};
 
         final KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -103,14 +103,14 @@ public class ConfigMapEnricherTest {
     }
 
     @Test
-    public void should_materialize_binary_file_content_from_xml() throws Exception {
+    public void should_materialize_binary_file_content_from_xml() {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap("src/test/resources/test.bin");
-        final ResourceConfig config = new ResourceConfig.Builder()
-                .withConfigMap(baseConfigMap)
+        final ResourceConfig config = ResourceConfig.builder()
+                .configMap(baseConfigMap)
                 .build();
         new Expectations() {{
             context.getConfiguration();
-            result = new Configuration.Builder().resource(config).build();
+            result = Configuration.builder().resource(config).build();
         }};
 
         final KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -135,7 +135,8 @@ public class ConfigMapEnricherTest {
 
     private ConfigMap createAnnotationConfigMap(final String key, final String file) {
         ObjectMetaBuilder metaBuilder = new ObjectMetaBuilder()
-                .withNamespace("default");
+            .withName("some-config-map")
+            .withNamespace("default");
 
         Map<String, String> annotations = new HashMap<>();
         annotations.put(ConfigMapEnricher.PREFIX_ANNOTATION + key, file);
@@ -152,7 +153,7 @@ public class ConfigMapEnricherTest {
         return new String(readFileContentAsBytes(filePath));
     }
 
-    private byte[] readFileContentAsBytes(final String filePath) throws IOException, URISyntaxException {
+    private byte[] readFileContentAsBytes(final String filePath) throws IOException {
         return Files.readAllBytes(Paths.get(filePath));
     }
 }

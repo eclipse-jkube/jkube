@@ -30,7 +30,7 @@ public class RegistryAuthTest {
 
     @Test
     public void simpleConstructor() {
-        RegistryAuth config = new RegistryAuth.Builder()
+        RegistryAuth config = RegistryAuth.builder()
             .username("roland")
             .password("#>secrets??")
             .email("roland@jolokia.org")
@@ -40,11 +40,9 @@ public class RegistryAuthTest {
 
     @Test
     public void dockerLoginConstructor() {
-        RegistryAuth config =
-            new RegistryAuth.Builder()
-                .withCredentialsEncoded(Base64.getEncoder().encodeToString("roland:#>secrets??".getBytes()))
-                .email("roland@jolokia.org")
-                .build();
+        RegistryAuth config = RegistryAuth.fromCredentialsEncoded(
+            Base64.getEncoder().encodeToString("roland:#>secrets??".getBytes()),
+            "roland@jolokia.org");
         check(config);
     }
 

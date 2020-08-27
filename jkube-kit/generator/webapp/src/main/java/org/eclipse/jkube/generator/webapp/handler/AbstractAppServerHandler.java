@@ -13,15 +13,17 @@
  */
 package org.eclipse.jkube.generator.webapp.handler;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.DefaultImageLookup;
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.webapp.AppServerHandler;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 
 /**
  * @author kameshs
@@ -29,11 +31,11 @@ import org.eclipse.jkube.kit.common.JKubeProject;
 public abstract class AbstractAppServerHandler implements AppServerHandler {
 
     protected final DefaultImageLookup imageLookup;
-    protected final JKubeProject project;
+    protected final GeneratorContext generatorContext;
     private final String name;
 
-    protected AbstractAppServerHandler(String name, JKubeProject project) {
-        this.project = project;
+    protected AbstractAppServerHandler(String name, GeneratorContext generatorContext) {
+        this.generatorContext = generatorContext;
         this.name = name;
         this.imageLookup = new DefaultImageLookup(this.getClass());
     }
@@ -43,41 +45,45 @@ public abstract class AbstractAppServerHandler implements AppServerHandler {
         return name;
     }
 
-    /**
-     * Scan the project's output directory for certain files.
-     *
-     * @param patterns one or more patterns which fit to Maven's include syntax
-     * @return list of files found
-     */
-    protected String[] scanFiles(String... patterns) throws IOException {
-        String buildOutputDir = project.getBuildDirectory();
-        if (buildOutputDir != null && new File(buildOutputDir).exists()) {
-            List<String> fileList = new ArrayList<>();
-            Files.walk(new File(buildOutputDir).toPath())
-                    .forEach(path -> {
-                        for (String pattern : patterns) {
-                            // Trim wildcard suffix since last wildcard character
-                            pattern = pattern.substring(pattern.lastIndexOf("*") + 1);
-                            if (path.toUri().toString().contains(pattern)) {
-                                fileList.add(path.toUri().toString());
-                            }
-                        }
-                    });
-            String[] fileListArr = new String[fileList.size()];
-            fileListArr = fileList.toArray(fileListArr);
-            return fileListArr;
-        } else {
-            return new String[0];
-        }
-
+    protected JavaProject getProject() {
+        return generatorContext.getProject();
     }
 
     /**
-     * Check whether one of the given file patterns can be found
-     * in the project output directory
+     * Scan the project's build directory for certain files.
      *
-     * @param patterns patterns to check
-     * @return true if the one such file exists least
+     * Patterns will be matched using {@link java.nio.file.FileSystem#getPathMatcher(String)}.
+     *
+     * @param patterns one or more patterns to match files in the build directory.
+     * @return list of files found matching the provided pattern.
+     */
+    private String[] scanFiles(String... patterns) throws IOException {
+        if (getProject().getBuildDirectory().exists()) {
+            try (Stream<Path> fileStream = Files.walk(getProject().getBuildDirectory().toPath())) {
+                return fileStream
+                    .filter(path -> {
+                        for (String pattern : patterns) {
+                            if (FileSystems.getDefault().getPathMatcher(pattern).matches(path)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    })
+                    .map(Path::toUri).map(URI::toString)
+                    .toArray(String[]::new);
+            }
+        } else {
+            return new String[0];
+        }
+    }
+
+    /**
+     * Check whether one of the given file patterns can be found in the project build directory.
+     *
+     * Patterns will be matched using {@link java.nio.file.FileSystem#getPathMatcher(String)}.
+     *
+     * @param patterns patterns to check.
+     * @return true if at least one file matches any of the provided patterns.
      */
     protected boolean hasOneOf(String... patterns) throws IOException {
         return scanFiles(patterns).length > 0;

@@ -19,19 +19,17 @@ import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.Enricher;
-import org.eclipse.jkube.maven.enricher.api.EnricherContext;
+import org.eclipse.jkube.kit.enricher.api.Enricher;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.eclipse.jkube.maven.enricher.api.util.Misc.filterEnrichers;
+import static org.eclipse.jkube.kit.enricher.api.util.Misc.filterEnrichers;
 
 /**
  * @author roland
- * @since 08/04/16
  */
 public class EnricherManager {
 
@@ -43,14 +41,15 @@ public class EnricherManager {
 
     private KitLogger log;
 
-    public EnricherManager(ResourceConfig resourceConfig, EnricherContext enricherContext, Optional<List<String>> extraClasspathElements) {
+    public EnricherManager(EnricherContext enricherContext, Optional<List<String>> extraClasspathElements) {
         PluginServiceFactory<EnricherContext> pluginFactory = new PluginServiceFactory<>(enricherContext);
 
         extraClasspathElements.ifPresent(
                 cpElements -> pluginFactory.addAdditionalClassLoader(ClassUtil.createProjectClassLoader(cpElements, enricherContext.getLog())));
 
         this.log = enricherContext.getLog();
-        this.defaultEnricherConfig = enricherContext.getConfiguration().getProcessorConfig().orElse(ProcessorConfig.EMPTY);
+        this.defaultEnricherConfig = Optional.ofNullable(enricherContext.getConfiguration().getProcessorConfig())
+            .orElse(ProcessorConfig.EMPTY);
 
         this.enrichers = pluginFactory.createServiceObjects("META-INF/jkube-enricher-default",
                 "META-INF/jkube/enricher-default",
@@ -58,7 +57,6 @@ public class EnricherManager {
                 "META-INF/jkube/enricher");
 
         logEnrichers(filterEnrichers(defaultEnricherConfig, enrichers));
-
     }
 
     public void createDefaultResources(PlatformMode platformMode, final KubernetesListBuilder builder) {

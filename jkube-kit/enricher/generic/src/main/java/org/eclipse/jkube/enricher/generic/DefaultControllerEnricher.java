@@ -22,26 +22,28 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.openshift.api.model.DeploymentConfig;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.maven.enricher.handler.DaemonSetHandler;
-import org.eclipse.jkube.maven.enricher.handler.DeploymentConfigHandler;
-import org.eclipse.jkube.maven.enricher.handler.DeploymentHandler;
-import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
-import org.eclipse.jkube.maven.enricher.handler.JobHandler;
-import org.eclipse.jkube.maven.enricher.handler.ReplicaSetHandler;
-import org.eclipse.jkube.maven.enricher.handler.ReplicationControllerHandler;
-import org.eclipse.jkube.maven.enricher.handler.StatefulSetHandler;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.handler.DaemonSetHandler;
+import org.eclipse.jkube.kit.enricher.handler.DeploymentConfigHandler;
+import org.eclipse.jkube.kit.enricher.handler.DeploymentHandler;
+import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
+import org.eclipse.jkube.kit.enricher.handler.JobHandler;
+import org.eclipse.jkube.kit.enricher.handler.ReplicaSetHandler;
+import org.eclipse.jkube.kit.enricher.handler.ReplicationControllerHandler;
+import org.eclipse.jkube.kit.enricher.handler.StatefulSetHandler;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Enrich with controller if not already present.
@@ -58,7 +60,6 @@ import java.util.List;
  * TODO: There is a certain overlap with the ImageEnricher with adding default images etc.. This must be resolved.
  *
  * @author roland
- * @since 25/05/16
  */
 public class DefaultControllerEnricher extends BaseEnricher {
     protected static final String[] POD_CONTROLLER_KINDS =
@@ -72,21 +73,24 @@ public class DefaultControllerEnricher extends BaseEnricher {
     private final DaemonSetHandler daemonSetHandler;
     private final JobHandler jobHandler;
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
-        name,
-        pullPolicy             {{ d = "IfNotPresent"; }},
-        type                   {{ d = "deployment"; }},
-        replicaCount           {{ d = "1"; }};
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        NAME("name", null),
+        PULL_POLICY("pullPolicy", "IfNotPresent"),
+        TYPE("type", "deployment"),
+        REPLICA_COUNT("replicaCount", "1");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public DefaultControllerEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-controller");
 
         HandlerHub handlers = new HandlerHub(
-            getContext().getGav(), getContext().getConfiguration().getProperties());
+            getContext().getGav(), getContext().getProperties());
         rcHandler = handlers.getReplicationControllerHandler();
         rsHandler = handlers.getReplicaSetHandler();
         deployHandler = handlers.getDeploymentHandler();
@@ -98,47 +102,48 @@ public class DefaultControllerEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        final String name = getConfig(Config.name, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-        ResourceConfig xmlResourceConfig = getConfiguration().getResource().orElse(null);
-        ResourceConfig config = new ResourceConfig.Builder(xmlResourceConfig)
-                .controllerName(name)
-                .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, getConfig(Config.pullPolicy)))
-                .withReplicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.replicaCount))))
-                .build();
+        final String name = getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+        ResourceConfig xmlResourceConfig = Optional.ofNullable(getConfiguration().getResource())
+            .orElse(ResourceConfig.builder().build());
+        ResourceConfig config = ResourceConfig.toBuilder(xmlResourceConfig)
+            .controllerName(getControllerName(xmlResourceConfig, name))
+            .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, getConfig(Config.PULL_POLICY)))
+            .replicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+            .build();
 
-        final List<ImageConfiguration> images = getImages().orElse(Collections.emptyList());
+        final List<ImageConfiguration> images = getImages();
 
         // Check if at least a replica set is added. If not add a default one
         if (!KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS)) {
             // At least one image must be present, otherwise the resulting config will be invalid
             if (!images.isEmpty()) {
-                String type = getConfig(Config.type);
+                String type = getConfig(Config.TYPE);
                 if ("deployment".equalsIgnoreCase(type) || "deploymentConfig".equalsIgnoreCase(type)) {
-                    if (platformMode == PlatformMode.kubernetes  || (platformMode == PlatformMode.openshift && useDeploymentforOpenShift())) {
+                    if (platformMode == PlatformMode.kubernetes  || (platformMode == PlatformMode.openshift && useDeploymentForOpenShift())) {
                         log.info("Adding a default Deployment");
                         Deployment deployment = deployHandler.getDeployment(config, images);
-                        builder.addToDeploymentItems(deployment);
+                        builder.addToItems(deployment);
                         setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(deployment.getSpec().getTemplate()));
                     } else {
                         log.info("Adding a default DeploymentConfig");
                         DeploymentConfig deploymentConfig = deployConfigHandler.getDeploymentConfig(config, images, getOpenshiftDeployTimeoutInSeconds(3600L), getValueFromConfig(IMAGE_CHANGE_TRIGGERS, true), getValueFromConfig(OPENSHIFT_ENABLE_AUTOMATIC_TRIGGER, true), isOpenShiftMode(), getProcessingInstructionViaKey(FABRIC8_GENERATED_CONTAINERS));
-                        builder.addToDeploymentConfigItems(deploymentConfig);
+                        builder.addToItems(deploymentConfig);
                         setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(deploymentConfig.getSpec().getTemplate()));
                     }
                 } else if ("statefulSet".equalsIgnoreCase(type)) {
                     log.info("Adding a default StatefulSet");
                     StatefulSet statefulSet = statefulSetHandler.getStatefulSet(config, images);
-                    builder.addToStatefulSetItems(statefulSet);
+                    builder.addToItems(statefulSet);
                     setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(statefulSet.getSpec().getTemplate()));
                 } else if ("daemonSet".equalsIgnoreCase(type)) {
                     log.info("Adding a default DaemonSet");
                     DaemonSet daemonSet = daemonSetHandler.getDaemonSet(config, images);
-                    builder.addToDaemonSetItems(daemonSet);
+                    builder.addToItems(daemonSet);
                     setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(daemonSet.getSpec().getTemplate()));
                 } else if ("replicaSet".equalsIgnoreCase(type)) {
                     log.info("Adding a default ReplicaSet");
                     ReplicaSet replicaSet = rsHandler.getReplicaSet(config, images);
-                    builder.addToReplicaSetItems(replicaSet);
+                    builder.addToItems(replicaSet);
                     setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(replicaSet.getSpec().getTemplate()));
                 } else if ("replicationController".equalsIgnoreCase(type)) {
                     log.info("Adding a default ReplicationController");
@@ -148,7 +153,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
                 } else if ("job".equalsIgnoreCase(type)) {
                     log.info("Adding a default Job");
                     Job job = jobHandler.getJob(config, images);
-                    builder.addToJobItems(job);
+                    builder.addToItems(job);
                     setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(job.getSpec().getTemplate()));
                 }
             }

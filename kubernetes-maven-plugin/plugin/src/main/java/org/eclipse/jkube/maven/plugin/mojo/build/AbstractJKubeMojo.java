@@ -13,11 +13,15 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import org.eclipse.jkube.kit.common.util.AnsiLogger;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,10 +30,17 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.utils.logging.MessageUtils;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 
-public abstract class AbstractJKubeMojo extends AbstractMojo {
+import java.util.Collections;
+import java.util.Optional;
 
-    private static final String DEFAULT_LOG_PREFIX = "k8s:";
+public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLoggerProvider {
+
+    protected static final String DEFAULT_LOG_PREFIX = "k8s: ";
 
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
@@ -57,17 +68,48 @@ public abstract class AbstractJKubeMojo extends AbstractMojo {
     protected ClusterConfiguration access;
 
     protected KitLogger log;
+    protected ClusterAccess clusterAccess;
+
+    // The JKube service hub
+    protected JKubeServiceHub jkubeServiceHub;
+
+    protected void init() throws DependencyResolutionRequiredException {
+        log = createLogger(null);
+        clusterAccess = new ClusterAccess(log, initClusterConfiguration());
+        final JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        jkubeServiceHub = JKubeServiceHub.builder()
+                .log(log)
+                .configuration(JKubeConfiguration.builder()
+                        .project(javaProject)
+                        .reactorProjects(Collections.singletonList(javaProject))
+                        .build())
+                .clusterAccess(clusterAccess)
+                .platformMode(getRuntimeMode())
+                .build();
+    }
+
+    protected boolean canExecute() {
+        return !skip;
+    }
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if( skip ) {
-            return;
+        try {
+            init();
+            if (canExecute()) {
+                executeInternal();
+            }
+        } catch (DependencyResolutionRequiredException e) {
+            throw new MojoFailureException(e.getMessage());
         }
-        log = createLogger(" ");
-        executeInternal();
     }
 
     public abstract void executeInternal() throws MojoExecutionException, MojoFailureException;
+
+    @Override
+    public KitLogger getKitLogger() {
+        return log;
+    }
 
     protected String getProperty(String key) {
         String value = System.getProperty(key);
@@ -77,8 +119,8 @@ public abstract class AbstractJKubeMojo extends AbstractMojo {
         return value;
     }
 
-    protected KitLogger createExternalProcessLogger(String prefix) {
-        return createLogger(prefix + "[[s]]");
+    protected RuntimeMode getRuntimeMode() {
+        return RuntimeMode.KUBERNETES;
     }
 
     protected String getLogPrefix() {
@@ -86,7 +128,8 @@ public abstract class AbstractJKubeMojo extends AbstractMojo {
     }
 
     protected KitLogger createLogger(String prefix) {
-        return new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix() + prefix);
+        return new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(),
+            getLogPrefix() + Optional.ofNullable(prefix).map(" "::concat).orElse(""));
     }
 
     /**
@@ -98,11 +141,8 @@ public abstract class AbstractJKubeMojo extends AbstractMojo {
                 && !(EnvUtil.isWindows() && !MavenUtil.isMaven350OrLater(session));
     }
 
-    protected ClusterConfiguration getClusterConfiguration() {
-        final ClusterConfiguration.Builder clusterConfigurationBuilder = new ClusterConfiguration.Builder(access);
-
-        return clusterConfigurationBuilder.from(System.getProperties())
-                .from(project.getProperties()).build();
+    protected ClusterConfiguration initClusterConfiguration() {
+        return ClusterConfiguration.from(access, System.getProperties(), project.getProperties()).build();
     }
 
 }

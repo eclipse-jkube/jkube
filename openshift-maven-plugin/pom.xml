@@ -20,19 +20,18 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>openshift-maven-plugin-parent</artifactId>
   <packaging>pom</packaging>
-  <name>Openshift Maven Plugin:: Parent</name>
-  <description>Maven plugin for getting your Java apps on to Openshift</description>
+  <name>OpenShift Maven Plugin:: Parent</name>
+  <description>Maven plugin for getting your Java apps on to OpenShift</description>
 
   <modules>
     <module>plugin</module>
     <module>it</module>
-    <module>doc</module>
   </modules>
 
   <dependencyManagement>
@@ -86,6 +85,25 @@
         </exclusions>
       </dependency>
 
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${version.junit}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-all</artifactId>
+        <version>${version.hamcrest-library}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jmockit</groupId>
+        <artifactId>jmockit</artifactId>
+        <version>${version.jmockit}</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -107,6 +125,24 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${version.maven-failsafe-plugin}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${version.maven-surefire-plugin}</version>
+          <configuration>
+            <argLine>
+              -javaagent:"${settings.localRepository}/org/jmockit/jmockit/${version.jmockit}/jmockit-${version.jmockit}.jar"
+            </argLine>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.jmockit</groupId>
+              <artifactId>jmockit</artifactId>
+              <version>${version.jmockit}</version>
+            </dependency>
+          </dependencies>
         </plugin>
 
         <plugin>

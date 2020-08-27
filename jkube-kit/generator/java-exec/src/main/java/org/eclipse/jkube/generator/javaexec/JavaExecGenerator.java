@@ -15,18 +15,20 @@ package org.eclipse.jkube.generator.javaexec;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -38,7 +40,6 @@ import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 
 /**
  * @author roland
- * @since 21/09/16
  */
 
 public class JavaExecGenerator extends BaseGenerator {
@@ -63,39 +64,39 @@ public class JavaExecGenerator extends BaseGenerator {
     protected JavaExecGenerator(GeneratorContext context, String name) {
         super(context, name, new FromSelector.Default(context, "java"));
         fatJarDetector = new FatJarDetector(getProject().getBuildDirectory());
-        mainClassDetector = new MainClassDetector(getConfig(Config.mainClass),
-                new File(getProject().getOutputDirectory()),
-                context.getLogger());
+        mainClassDetector = new MainClassDetector(getConfig(Config.MAIN_CLASS),
+                getProject().getOutputDirectory(), context.getLogger());
     }
 
-    public enum Config implements Configs.Key {
+    @AllArgsConstructor
+    public enum Config implements Configs.Config {
         // Webport to expose. Set to 0 if no port should be exposed
-        webPort        {{ d = "8080"; }},
+        WEB_PORT("webPort", "8080"),
 
         // Jolokia from the base image to expose. Set to 0 if no such port should be exposed
-        jolokiaPort    {{ d = "8778"; }},
+        JOLOKIA_PORT("jolokiaPort", "8778"),
 
         // Prometheus port from base image. Set to 0 if no required
-        prometheusPort {{ d = "9779"; }},
+        PROMETHEUS_PORT("prometheusPort", "9779"),
 
         // Basedirectory where to put the application data into (within the Docker image
-        targetDir {{d = "/deployments"; }},
+        TARGET_DIR("targetDir", "/deployments"),
 
         // The name of the main class for non-fat jars. If not specified it is tried
         // to find a main class within target/classes.
-        mainClass,
+        MAIN_CLASS("mainClass", null);
 
-        // Reference to a predefined assembly descriptor to use. By default it is tried to be detected
-        assemblyRef;
-
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter(AccessLevel.PUBLIC)
+        protected String defaultValue;
     }
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
-        if (shouldAddImageConfiguration(configs)) {
+        if (shouldAddGeneratedImageConfiguration(configs)) {
             // If a main class is configured, we always kick in
-            if (getConfig(Config.mainClass) != null) {
+            if (getConfig(Config.MAIN_CLASS) != null) {
                 return true;
             }
             // Check for the existing of plugins indicating a plain java exec app
@@ -110,8 +111,8 @@ public class JavaExecGenerator extends BaseGenerator {
 
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
-        final ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder();
-        final JKubeBuildConfiguration.Builder buildBuilder = new JKubeBuildConfiguration.Builder();
+        final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
+        final BuildConfiguration.BuildConfigurationBuilder buildBuilder = BuildConfiguration.builder();
 
         buildBuilder.ports(extractPorts());
 
@@ -123,14 +124,14 @@ public class JavaExecGenerator extends BaseGenerator {
             buildBuilder.assembly(createAssembly());
         }
         Map<String, String> envMap = getEnv(prePackagePhase);
-        envMap.put("JAVA_APP_DIR", getConfig(Config.targetDir));
+        envMap.put("JAVA_APP_DIR", getConfig(Config.TARGET_DIR));
         buildBuilder.env(envMap);
         addLatestTagIfSnapshot(buildBuilder);
         imageBuilder
                 .name(getImageName())
                 .registry(getRegistry())
                 .alias(getAlias())
-                .buildConfig(buildBuilder.build());
+                .build(buildBuilder.build());
         configs.add(imageBuilder.build());
         return configs;
     }
@@ -138,19 +139,17 @@ public class JavaExecGenerator extends BaseGenerator {
     /**
      * Hook for adding extra environment vars
      *
-     * @return map with environment variables to use
-     * @param prePackagePhase
+     * @param prePackagePhase true if running is Maven's pre-package phase.
+     * @return map with environment variables to use.
      */
     protected Map<String, String> getEnv(boolean prePackagePhase) {
         Map<String, String> ret = new HashMap<>();
         if (!isFatJar()) {
-            String mainClass = getConfig(Config.mainClass);
+            String mainClass = getConfig(Config.MAIN_CLASS);
             if (mainClass == null) {
                 mainClass = mainClassDetector.getMainClass();
-                if (mainClass == null) {
-                    if (!prePackagePhase) {
-                        throw new IllegalStateException("Cannot extract main class to startup");
-                    }
+                if (mainClass == null && !prePackagePhase) {
+                    throw new IllegalStateException("Cannot extract main class to startup");
                 }
             }
             if (mainClass != null) {
@@ -159,7 +158,7 @@ public class JavaExecGenerator extends BaseGenerator {
             }
         }
         List<String> javaOptions = getExtraJavaOptions();
-        if (javaOptions.size() > 0) {
+        if (!javaOptions.isEmpty()) {
             ret.put(JAVA_OPTIONS, StringUtils.join(javaOptions.iterator(), " "));
         }
         return ret;
@@ -169,56 +168,50 @@ public class JavaExecGenerator extends BaseGenerator {
         return new ArrayList<>();
     }
 
-    protected JKubeAssemblyConfiguration createAssembly() {
-        final JKubeAssemblyConfiguration.Builder builder = new JKubeAssemblyConfiguration.Builder();
-        builder.targetDir(getConfig(Config.targetDir));
+    protected AssemblyConfiguration createAssembly() {
+        final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
+        builder.targetDir(getConfig(Config.TARGET_DIR));
         addAssembly(builder);
+        builder.name("deployments");
         return builder.build();
     }
 
-    protected void addAssembly(JKubeAssemblyConfiguration.Builder builder) {
-        String assemblyRef = getConfig(Config.assemblyRef);
-        if (assemblyRef != null) {
-            builder.descriptorRef(assemblyRef);
-        } else {
-            JKubeProjectAssembly.Builder assemblyBuilder = new JKubeProjectAssembly.Builder()
-                    .fileSets(addAdditionalFiles(getProject()));
-            if (isFatJar()) {
-                FatJarDetector.Result fatJar = detectFatJar();
-                JKubeProject project = getProject();
-                if (fatJar != null) {
-                    JKubeAssemblyFileSet fileSet = getOutputDirectoryFileSet(fatJar, project);
-                    assemblyBuilder.fileSet(fileSet);
-                }
-            } else {
-                builder.descriptorRef("artifact-with-dependencies");
+    protected void addAssembly(AssemblyConfiguration.AssemblyConfigurationBuilder builder) {
+        final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
+        if (isFatJar()) {
+            builder.excludeFinalOutputArtifact(true);
+            FatJarDetector.Result fatJar = detectFatJar();
+            if (fatJar != null) {
+                fileSets.add(getOutputDirectoryFileSet(fatJar, getProject()));
             }
-            builder.assemblyDef(assemblyBuilder.build());
+        } else {
+            log.warn("No fat Jar detected, make sure your image assembly configuration contains all the required" +
+                " dependencies for your application to run.");
         }
+        builder.inline(Assembly.builder().fileSets(fileSets).build());
     }
 
-    public List<JKubeAssemblyFileSet> addAdditionalFiles(JKubeProject project) {
-        List<JKubeAssemblyFileSet> fileSets = new ArrayList<>();
-        fileSets.add(createFileSet(project, "src/main/jkube-includes/bin","bin", "0755"));
-        fileSets.add(createFileSet(project, "src/main/jkube-includes",".", "0644"));
+    public List<AssemblyFileSet> addAdditionalFiles() {
+        List<AssemblyFileSet> fileSets = new ArrayList<>();
+        fileSets.add(createFileSet("src/main/jkube-includes/bin","bin", "0755"));
+        fileSets.add(createFileSet("src/main/jkube-includes",".", "0644"));
         return fileSets;
     }
 
-    public JKubeAssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JKubeProject project) {
-        File buildDir = new File(project.getBuildDirectory());
-        return new JKubeAssemblyFileSet.Builder()
-                .directory(getRelativePath(project.getBaseDirectory(), buildDir).getPath())
-                .addInclude(getRelativePath(buildDir, fatJar.getArchiveFile()).getPath())
-                .outputDirectory(".")
+    public AssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JavaProject project) {
+        final File buildDirectory = project.getBuildDirectory();
+        return AssemblyFileSet.builder()
+                .directory(getRelativePath(project.getBaseDirectory(), buildDirectory))
+                .include(getRelativePath(buildDirectory, fatJar.getArchiveFile()).getPath())
+                .outputDirectory(new File("."))
                 .fileMode("0640")
                 .build();
     }
 
-    public JKubeAssemblyFileSet createFileSet(JKubeProject project, String sourceDir, String outputDir, String fileMode) {
-        return new JKubeAssemblyFileSet.Builder()
-                .directory(project.getBaseDirectory().getAbsolutePath())
-                .includes(Collections.singletonList(sourceDir))
-                .outputDirectory(outputDir)
+    public AssemblyFileSet createFileSet(String sourceDir, String outputDir, String fileMode) {
+        return AssemblyFileSet.builder()
+                .directory(new File(sourceDir))
+                .outputDirectory(new File(outputDir))
                 .fileMode(fileMode)
                 .build();
     }
@@ -228,7 +221,7 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     protected boolean hasMainClass() {
-        return getConfig(Config.mainClass) != null;
+        return getConfig(Config.MAIN_CLASS) != null;
     }
 
     public FatJarDetector.Result detectFatJar() {
@@ -236,11 +229,10 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     protected List<String> extractPorts() {
-        // TODO would rock to look at the base image and find the exposed ports!
         List<String> answer = new ArrayList<>();
-        addPortIfValid(answer, getConfig(Config.webPort));
-        addPortIfValid(answer, getConfig(Config.jolokiaPort));
-        addPortIfValid(answer, getConfig(Config.prometheusPort));
+        addPortIfValid(answer, getConfig(Config.WEB_PORT));
+        addPortIfValid(answer, getConfig(Config.JOLOKIA_PORT));
+        addPortIfValid(answer, getConfig(Config.PROMETHEUS_PORT));
         return answer;
     }
 

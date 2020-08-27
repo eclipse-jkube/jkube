@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author roland
- * @since 16/05/16
  */
 
 @RestController

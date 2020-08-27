@@ -21,7 +21,7 @@
     <parent>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>kubernetes-maven-plugin-parent</artifactId>
-      <version>0.2.1-SNAPSHOT</version>
+      <version>1.0.0-SNAPSHOT</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -42,7 +42,7 @@
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-build-service-docker</artifactId>
+            <artifactId>jkube-kit-config-service</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
@@ -61,6 +61,12 @@
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-enricher-specific</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-resource-helm</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
@@ -117,6 +123,12 @@
             <artifactId>jkube-kit-vertx</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-wildfly-jar</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
@@ -130,6 +142,18 @@
             <version>${jkube.kit.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jmockit</groupId>
+            <artifactId>jmockit</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -144,6 +168,11 @@
                         <dependency>${project.groupId}:${project.artifactId}</dependency>
                     </mojoDependencies>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
 
             <plugin>

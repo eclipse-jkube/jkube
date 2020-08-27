@@ -16,8 +16,9 @@ package org.eclipse.jkube.kit.build.service.docker.auth;
 import com.google.common.net.UrlEscapers;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.EcrExtendedAuth;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -53,13 +54,13 @@ public class AuthConfigFactory {
 
     // Properties for specifying username, password (can be encrypted), email and authtoken (not used yet)
     // + whether to check for OpenShift authentication
-    public static final String AUTH_USERNAME = "username";
-    public static final String AUTH_PASSWORD = "password";
-    public static final String AUTH_EMAIL = "email";
-    public static final String AUTH_AUTHTOKEN = "authToken";
+    private static final String AUTH_USERNAME = "username";
+    private static final String AUTH_PASSWORD = "password";
+    private static final String AUTH_EMAIL = "email";
+    private static final String AUTH_AUTHTOKEN = "authToken";
     private static final String AUTH_USE_OPENSHIFT_AUTH = "useOpenShiftAuth";
 
-    static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
+    private static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
 
     private final KitLogger log;
     private static final String[] DEFAULT_REGISTRIES = new String[]{
@@ -102,14 +103,15 @@ public class AuthConfigFactory {
      * @param settings the global Maven settings object
      * @param user user to check for
      * @param registry registry to use, might be null in which case a default registry is checked,
+     * @param passwordDecryptionMethod a functional interface to customize how password should be decoded
      * @return the authentication configuration or <code>null</code> if none could be found
      *
-     * @throws Exception mojo failure exception
+     * @throws IOException mojo failure exception
      */
     public AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod)
-            throws Exception {
+            throws IOException {
 
-        AuthConfig ret = createStandardAuthConfig(isPush, authConfig, settings, user, registry, passwordDecryptionMethod);
+        AuthConfig ret = createStandardAuthConfig(isPush, authConfig, settings, user, registry, passwordDecryptionMethod, log);
         if (ret != null) {
             if (registry == null || skipExtendedAuth) {
                 return ret;
@@ -122,7 +124,7 @@ public class AuthConfigFactory {
         }
 
         // Finally check ~/.docker/config.json
-        ret = getAuthConfigFromDockerConfig(registry);
+        ret = getAuthConfigFromDockerConfig(registry, log);
         if (ret != null) {
             log.debug("AuthConfig: credentials from ~/.docker/config.json");
             return ret;
@@ -177,17 +179,19 @@ public class AuthConfigFactory {
      * @param settings the global Maven settings object
      * @param user user to check for
      * @param registry registry to use, might be null in which case a default registry is checked,
+     * @param passwordDecryptionMethod a function to customize how password should be decoded
+     * @param log Kit logger
      * @return the authentication configuration or <code>null</code> if none could be found
      *
-     * @throws Exception
+     * @throws IOException any exception in case of fetching authConfig
      */
-    private AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod)
-            throws Exception {
+    private static AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod, KitLogger log)
+            throws IOException {
         AuthConfig ret;
 
         // Check first for specific configuration based on direction (pull or push), then for a default value
         for (LookupMode lookupMode : new LookupMode[] { getLookupMode(isPush), LookupMode.DEFAULT }) {
-            // System properties docker.username and docker.password always take precedence
+            // System properties jkube.docker.username and jkube.docker.password always take precedence
             ret = getAuthConfigFromSystemProperties(lookupMode, passwordDecryptionMethod);
             if (ret != null) {
                 log.debug("AuthConfig: credentials from system properties");
@@ -222,7 +226,7 @@ public class AuthConfigFactory {
         // check EC2 instance role if registry is ECR
         if (EcrExtendedAuth.isAwsRegistry(registry)) {
             try {
-                ret = getAuthConfigFromEC2InstanceRole();
+                ret = getAuthConfigFromEC2InstanceRole(log);
             } catch (ConnectTimeoutException ex) {
                 log.debug("Connection timeout while retrieving instance meta-data, likely not an EC2 instance (%s)",
                         ex.getMessage());
@@ -245,7 +249,7 @@ public class AuthConfigFactory {
 
     // if the local credentials don't contain user and password, use EC2 instance
     // role credentials
-    private AuthConfig getAuthConfigFromEC2InstanceRole() throws IOException {
+    private static AuthConfig getAuthConfigFromEC2InstanceRole(KitLogger log) throws IOException {
         log.debug("No user and password set for ECR, checking EC2 instance role");
         try (CloseableHttpClient client = HttpClients.custom().useSystemProperties().build()) {
             // we can set very low timeouts because the request returns almost instantly on
@@ -299,31 +303,29 @@ public class AuthConfigFactory {
         }
     }
 
-    private AuthConfig getAuthConfigFromSystemProperties(LookupMode lookupMode, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
-        Properties props = System.getProperties();
-        String userKey = lookupMode.asSysProperty(AUTH_USERNAME);
-        String passwordKey = lookupMode.asSysProperty(AUTH_PASSWORD);
-        if (props.containsKey(userKey)) {
-            if (!props.containsKey(passwordKey)) {
-                throw new IOException("No " + passwordKey + " provided for username " + props.getProperty(userKey));
-            }
-            return new AuthConfig(props.getProperty(userKey),
-                                  passwordDecryptionMethod.apply(props.getProperty(passwordKey)),
-                                  props.getProperty(lookupMode.asSysProperty(AUTH_EMAIL)),
-                                  props.getProperty(lookupMode.asSysProperty(AUTH_AUTHTOKEN)));
-        } else {
-            return null;
+    protected static AuthConfig getAuthConfigFromSystemProperties(LookupMode lookupMode, UnaryOperator<String> passwordDecryptionMethod) throws IOException {
+        final String passwordKey = lookupMode.asSysProperty(AUTH_PASSWORD);
+        final String username = System.getProperty(lookupMode.asSysProperty(AUTH_USERNAME));
+        final String password = System.getProperty(passwordKey);
+        if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
+            throw new IOException("No " + passwordKey + " provided for username " + username);
+        } else if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
+            return new AuthConfig(username,
+                passwordDecryptionMethod.apply(password),
+                System.getProperty(lookupMode.asSysProperty(AUTH_EMAIL)),
+                System.getProperty(lookupMode.asSysProperty(AUTH_AUTHTOKEN)));
         }
+        return null;
     }
 
-    private AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) {
-        Properties props = System.getProperties();
-        String useOpenAuthModeProp = lookupMode.asSysProperty(AUTH_USE_OPENSHIFT_AUTH);
+    protected static AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) {
+        final String useOpenAuthModeKey = lookupMode.asSysProperty(AUTH_USE_OPENSHIFT_AUTH);
+        final String useOpenAuthMode = System.getProperty(useOpenAuthModeKey);
         // Check for system property
-        if (props.containsKey(useOpenAuthModeProp)) {
-            boolean useOpenShift = Boolean.valueOf(props.getProperty(useOpenAuthModeProp));
+        if (StringUtils.isNotBlank(useOpenAuthMode)) {
+            boolean useOpenShift = Boolean.parseBoolean(useOpenAuthMode);
             if (useOpenShift) {
-                return validateMandatoryOpenShiftLogin(parseOpenShiftConfig(), useOpenAuthModeProp);
+                return validateMandatoryOpenShiftLogin(parseOpenShiftConfig(), useOpenAuthModeKey);
             } else {
                 return null;
             }
@@ -332,15 +334,15 @@ public class AuthConfigFactory {
         // Check plugin config
         Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfigMap);
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USE_OPENSHIFT_AUTH) &&
-            Boolean.valueOf((String) mapToCheck.get(AUTH_USE_OPENSHIFT_AUTH))) {
-                return validateMandatoryOpenShiftLogin(parseOpenShiftConfig(), useOpenAuthModeProp);
+            Boolean.parseBoolean((String) mapToCheck.get(AUTH_USE_OPENSHIFT_AUTH))) {
+                return validateMandatoryOpenShiftLogin(parseOpenShiftConfig(), useOpenAuthModeKey);
         } else {
             return null;
         }
     }
 
-    private AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map authConfig, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
-        Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfig);
+    protected static AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map<String, ?> authConfig, UnaryOperator<String> passwordDecryptionMethod) {
+        Map<String, String> mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfig);
 
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USERNAME)) {
             if (!mapToCheck.containsKey(AUTH_PASSWORD)) {
@@ -348,13 +350,15 @@ public class AuthConfigFactory {
             }
             Map<String, String> cloneConfig = new HashMap<>(mapToCheck);
             cloneConfig.put(AUTH_PASSWORD, passwordDecryptionMethod.apply(cloneConfig.get(AUTH_PASSWORD)));
-            return new AuthConfig(cloneConfig);
+            return AuthConfig.fromMap(cloneConfig);
         } else {
             return null;
         }
     }
 
-    private AuthConfig getAuthConfigFromSettings(List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
+    protected static AuthConfig getAuthConfigFromSettings(
+        List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod) {
+
         RegistryServerConfiguration defaultServer = null;
         RegistryServerConfiguration found;
         for (RegistryServerConfiguration server : settings) {
@@ -373,7 +377,7 @@ public class AuthConfigFactory {
         return defaultServer != null ? createAuthConfigFromServer(defaultServer, passwordDecryptionMethod) : null;
     }
 
-    private AuthConfig getAuthConfigFromDockerConfig(String registry) throws IOException {
+    protected static AuthConfig getAuthConfigFromDockerConfig(String registry, KitLogger log) throws IOException {
         JsonObject dockerConfig = DockerFileUtil.readDockerConfig();
         if (dockerConfig == null) {
             return null;
@@ -384,11 +388,11 @@ public class AuthConfigFactory {
             if (dockerConfig.has("credHelpers")) {
                 final JsonObject credHelpers = dockerConfig.getAsJsonObject("credHelpers");
                 if (credHelpers.has(registryToLookup)) {
-                    return extractAuthConfigFromCredentialsHelper(registryToLookup, credHelpers.get(registryToLookup).getAsString());
+                    return extractAuthConfigFromCredentialsHelper(registryToLookup, credHelpers.get(registryToLookup).getAsString(), log);
                 }
             }
             if (dockerConfig.has("credsStore")) {
-                return extractAuthConfigFromCredentialsHelper(registryToLookup, dockerConfig.get("credsStore").getAsString());
+                return extractAuthConfigFromCredentialsHelper(registryToLookup, dockerConfig.get("credsStore").getAsString(), log);
             }
         }
 
@@ -399,17 +403,17 @@ public class AuthConfigFactory {
         return null;
     }
 
-    private AuthConfig extractAuthConfigFromAuths(String registryToLookup, JsonObject auths) {
+    private static AuthConfig extractAuthConfigFromAuths(String registryToLookup, JsonObject auths) {
         JsonObject credentials = getCredentialsNode(auths,registryToLookup);
         if (credentials == null || !credentials.has("auth")) {
             return null;
         }
         String auth = credentials.get("auth").getAsString();
         String email = credentials.has(AUTH_EMAIL) ? credentials.get(AUTH_EMAIL).getAsString() : null;
-        return new AuthConfig(auth,email);
+        return AuthConfig.fromCredentialsEncoded(auth,email);
     }
 
-    private AuthConfig extractAuthConfigFromCredentialsHelper(String registryToLookup, String credConfig) throws IOException {
+    private static AuthConfig extractAuthConfigFromCredentialsHelper(String registryToLookup, String credConfig, KitLogger log) throws IOException {
         CredentialHelperClient credentialHelper = new CredentialHelperClient(log, credConfig);
         String version = credentialHelper.getVersion();
         log.debug("AuthConfig: credentials from credential helper/store %s%s",
@@ -418,7 +422,7 @@ public class AuthConfigFactory {
         return credentialHelper.getAuthConfig(registryToLookup);
     }
 
-    private JsonObject getCredentialsNode(JsonObject auths,String registryToLookup) {
+    private static JsonObject getCredentialsNode(JsonObject auths,String registryToLookup) {
         if (auths.has(registryToLookup)) {
             return auths.getAsJsonObject(registryToLookup);
         }
@@ -431,19 +435,19 @@ public class AuthConfigFactory {
 
     // =======================================================================================================
 
-    private Map getAuthConfigMapToCheck(LookupMode lookupMode, Map authConfigMap) {
+    private static Map<String, String> getAuthConfigMapToCheck(LookupMode lookupMode, Map<?, ?> authConfigMap) {
         String configMapKey = lookupMode.getConfigMapKey();
         if (configMapKey == null) {
-            return authConfigMap;
+            return (Map<String, String>)authConfigMap;
         }
         if (authConfigMap != null) {
-            return (Map) authConfigMap.get(configMapKey);
+            return (Map<String, String>)authConfigMap.get(configMapKey);
         }
         return null;
     }
 
     // Parse OpenShift config to get credentials, but return null if not found
-    private AuthConfig parseOpenShiftConfig() {
+    private static AuthConfig parseOpenShiftConfig() {
         Map kubeConfig = DockerFileUtil.readKubeConfig();
         if (kubeConfig == null) {
             return null;
@@ -463,7 +467,7 @@ public class AuthConfigFactory {
         return null;
     }
 
-    private AuthConfig parseContext(Map kubeConfig, Map context) {
+    private static AuthConfig parseContext(Map kubeConfig, Map context) {
         if (context == null) {
             return null;
         }
@@ -485,7 +489,7 @@ public class AuthConfigFactory {
         return null;
     }
 
-    private AuthConfig parseUser(String userName, Map user) {
+    private static AuthConfig parseUser(String userName, Map user) {
         if (user == null) {
             return null;
         }
@@ -500,7 +504,7 @@ public class AuthConfigFactory {
                               token, null, null);
     }
 
-    private AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) {
+    private static AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) {
         if (openShiftAuthConfig != null) {
             return openShiftAuthConfig;
         }
@@ -514,7 +518,7 @@ public class AuthConfigFactory {
     }
 
 
-    private RegistryServerConfiguration checkForServer(RegistryServerConfiguration server, String id, String registry, String user) {
+    private static RegistryServerConfiguration checkForServer(RegistryServerConfiguration server, String id, String registry, String user) {
 
         String[] registries = registry != null ? new String[] { registry } : DEFAULT_REGISTRIES;
         for (String reg : registries) {
@@ -525,7 +529,7 @@ public class AuthConfigFactory {
         return null;
     }
 
-    private AuthConfig createAuthConfigFromServer(RegistryServerConfiguration server, UnaryOperator<String> passwordDecryptionMethod) throws Exception {
+    private static AuthConfig createAuthConfigFromServer(RegistryServerConfiguration server, UnaryOperator<String> passwordDecryptionMethod) {
         return new AuthConfig(
                 server.getUsername(),
                 passwordDecryptionMethod.apply(server.getPassword()),
@@ -534,7 +538,7 @@ public class AuthConfigFactory {
         );
     }
 
-    private String extractFromServerConfiguration(Map<String, Object> configuration, String prop) {
+    private static String extractFromServerConfiguration(Map<String, Object> configuration, String prop) {
         if (configuration != null && configuration.containsKey(prop)) {
             return configuration.get(prop).toString();
         }
@@ -544,14 +548,14 @@ public class AuthConfigFactory {
     // ========================================================================================
     // Mode which direction to lookup (pull, push or default value for both, pull and push)
 
-    private LookupMode getLookupMode(boolean isPush) {
+    private static LookupMode getLookupMode(boolean isPush) {
         return isPush ? LookupMode.PUSH : LookupMode.PULL;
     }
 
-    private enum LookupMode {
-        PUSH("docker.push.","push"),
-        PULL("docker.pull.","pull"),
-        DEFAULT("docker.",null);
+    protected enum LookupMode {
+        PUSH("jkube.docker.push.","push"),
+        PULL("jkube.docker.pull.","pull"),
+        DEFAULT("jkube.docker.",null);
 
         private final String sysPropPrefix;
         private String configMapKey;

@@ -16,13 +16,13 @@ package org.eclipse.jkube.enricher.generic;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -35,14 +35,14 @@ import java.util.TreeMap;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.isJson;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author roland
- * @since 03/06/16
  */
 public class DefaultServiceEnricherTest {
 
@@ -161,7 +161,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void headlessServiceNegative() throws Exception {
+    public void headlessServiceNegative() {
         setupExpectations(false, "headless", "false");
         DefaultServiceEnricher serviceEnricher = new DefaultServiceEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -169,7 +169,7 @@ public class DefaultServiceEnricherTest {
 
         // Validate that the generated resource contains
         KubernetesList list = builder.build();
-        assertEquals(list.getItems().size(),0);
+        assertTrue(list.getItems().isEmpty());
     }
 
     @Test
@@ -184,17 +184,17 @@ public class DefaultServiceEnricherTest {
 
     @Test
     public void serviceImageLabelEnrichment() throws Exception {
-        ImageConfiguration imageConfigurationWithLabels = new ImageConfiguration.Builder()
+        ImageConfiguration imageConfigurationWithLabels = ImageConfiguration.builder()
                 .name("test-label")
                 .alias("test")
                 .build();
-        final TreeMap config = new TreeMap();
+        final TreeMap<String, Object> config = new TreeMap<>();
         config.put("type", "LoadBalancer");
 
         new Expectations() {{
 
-            Configuration configuration = new Configuration.Builder()
-                    .images(Arrays.asList(imageConfigurationWithLabels))
+            Configuration configuration = Configuration.builder()
+                    .image(imageConfigurationWithLabels)
                     .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-service", config)))
                     .build();
 
@@ -205,7 +205,7 @@ public class DefaultServiceEnricherTest {
             result = configuration;
 
             imageConfigurationWithLabels.getBuildConfiguration();
-            result = new JKubeBuildConfiguration.Builder()
+            result = BuildConfiguration.builder()
                     .labels(Collections.singletonMap("jkube.generator.service.ports", "9090"))
                     .ports(Arrays.asList("80", "53/UDP"))
                     .build();
@@ -245,15 +245,15 @@ public class DefaultServiceEnricherTest {
 
     private void setupExpectations(final boolean withPorts, String ... configParams) {
         // Setup mock behaviour
-        final TreeMap config = new TreeMap();
+        final TreeMap<String, Object> config = new TreeMap<>();
         for (int i = 0; i < configParams.length; i += 2) {
                 config.put(configParams[i],configParams[i+1]);
         }
 
         new Expectations() {{
 
-            Configuration configuration = new Configuration.Builder()
-                .images(Arrays.asList(imageConfiguration))
+            Configuration configuration = Configuration.builder()
+                .image(imageConfiguration)
                 .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-service", config)))
                 .build();
 
@@ -261,13 +261,13 @@ public class DefaultServiceEnricherTest {
             result = configuration;
 
             imageConfiguration.getBuildConfiguration();
-            result = getBuildConfig(withPorts);
+            result = initBuildConfig(withPorts);
         }};
     }
 
-    private JKubeBuildConfiguration getBuildConfig(boolean withPorts) {
+    private BuildConfiguration initBuildConfig(boolean withPorts) {
         // Setup a sample docker build configuration
-        JKubeBuildConfiguration.Builder builder = new JKubeBuildConfiguration.Builder();
+        BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
         if (withPorts) {
             builder.ports(Arrays.asList("80", "53/UDP"));
         }

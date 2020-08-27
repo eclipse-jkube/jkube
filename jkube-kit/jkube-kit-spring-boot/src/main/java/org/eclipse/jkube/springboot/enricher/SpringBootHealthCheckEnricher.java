@@ -16,13 +16,15 @@ package org.eclipse.jkube.springboot.enricher;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import java.util.Properties;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.specific.AbstractHealthCheckEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 import org.apache.commons.lang3.StringUtils;
-
 
 /**
  * Enriches spring-boot containers with health checks if the actuator module is present.
@@ -39,17 +41,21 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
     private static final String SCHEME_HTTPS = "HTTPS";
     private static final String SCHEME_HTTP = "HTTP";
 
-    private enum Config implements Configs.Key {
-        readinessProbeInitialDelaySeconds   {{ d = "10"; }},
-        readinessProbePeriodSeconds,
-        path                                {{ d = "/health"; }},
-        livenessProbeInitialDelaySeconds    {{ d = "180"; }},
-        livenessProbePeriodSeconds,
-        failureThreshold                    {{ d = "3"; }},
-        successThreshold                    {{ d = "1"; }},
-        timeoutSeconds;
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        READINESS_PROBE_INITIAL_DELAY_SECONDS("readinessProbeInitialDelaySeconds", "10"),
+        READINESS_PROBE_PERIOD_SECONDS("readinessProbePeriodSeconds", null),
+        PATH("path", "/health"),
+        LIVENESS_PROBE_INITIAL_DELAY_SECONDS("livenessProbeInitialDelaySeconds", "180"),
+        LIVENESS_PROBE_PERIOD_SECONDS("livenessProbePeriodSeconds", null),
+        FAILURE_THRESHOLD("failureThreshold", "3"),
+        SUCCESS_THRESHOLD("successThreshold", "1"),
+        TIMEOUT_SECONDS("timeoutSeconds", null);
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public SpringBootHealthCheckEnricher(JKubeEnricherContext buildContext) {
@@ -58,21 +64,21 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     @Override
     protected Probe getReadinessProbe() {
-        Integer initialDelay = Configs.asInteger(getConfig(Config.readinessProbeInitialDelaySeconds));
-        Integer period = Configs.asInteger(getConfig(Config.readinessProbePeriodSeconds));
-        Integer timeout = Configs.asInteger(getConfig(Config.timeoutSeconds));
-        Integer failureThreshold = Configs.asInteger(getConfig(Config.failureThreshold));
-        Integer successThreshold = Configs.asInteger(getConfig(Config.successThreshold));
+        Integer initialDelay = Configs.asInteger(getConfig(Config.READINESS_PROBE_INITIAL_DELAY_SECONDS));
+        Integer period = Configs.asInteger(getConfig(Config.READINESS_PROBE_PERIOD_SECONDS));
+        Integer timeout = Configs.asInteger(getConfig(Config.TIMEOUT_SECONDS));
+        Integer failureThreshold = Configs.asInteger(getConfig(Config.FAILURE_THRESHOLD));
+        Integer successThreshold = Configs.asInteger(getConfig(Config.SUCCESS_THRESHOLD));
         return discoverSpringBootHealthCheck(initialDelay, period, timeout, failureThreshold, successThreshold);
     }
 
     @Override
     protected Probe getLivenessProbe() {
-        Integer initialDelay = Configs.asInteger(getConfig(Config.livenessProbeInitialDelaySeconds));
-        Integer period = Configs.asInteger(getConfig(Config.livenessProbePeriodSeconds));
-        Integer timeout = Configs.asInteger(getConfig(Config.timeoutSeconds));
-        Integer failureThreshold = Configs.asInteger(getConfig(Config.failureThreshold));
-        Integer successThreshold = Configs.asInteger(getConfig(Config.successThreshold));
+        Integer initialDelay = Configs.asInteger(getConfig(Config.LIVENESS_PROBE_INITIAL_DELAY_SECONDS));
+        Integer period = Configs.asInteger(getConfig(Config.LIVENESS_PROBE_PERIOD_SECONDS));
+        Integer timeout = Configs.asInteger(getConfig(Config.TIMEOUT_SECONDS));
+        Integer failureThreshold = Configs.asInteger(getConfig(Config.FAILURE_THRESHOLD));
+        Integer successThreshold = Configs.asInteger(getConfig(Config.SUCCESS_THRESHOLD));
         return discoverSpringBootHealthCheck(initialDelay, period, timeout, failureThreshold, successThreshold);
     }
 
@@ -118,7 +124,7 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
         // lets default to adding a spring boot actuator health check
         ProbeBuilder probeBuilder = new ProbeBuilder().
-                withNewHttpGet().withNewPort(port).withPath(normalizeMultipleSlashes(prefix + actuatorBasePath + Configs.asString(getConfig(Config.path)))).withScheme(scheme).endHttpGet();
+                withNewHttpGet().withNewPort(port).withPath(normalizeMultipleSlashes(prefix + actuatorBasePath + Configs.asString(getConfig(Config.PATH)))).withScheme(scheme).endHttpGet();
 
         if (initialDelay != null) {
             probeBuilder = probeBuilder.withInitialDelaySeconds(initialDelay);

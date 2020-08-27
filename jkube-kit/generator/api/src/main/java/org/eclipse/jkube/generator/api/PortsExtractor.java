@@ -15,10 +15,10 @@ package org.eclipse.jkube.generator.api;
 
 import java.util.Map;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 
 public interface PortsExtractor {
 
-    Map<String, Integer> extract(JKubeProject project);
+    Map<String, Integer> extract(JavaProject project);
 
 }

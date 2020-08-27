@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,7 +33,6 @@ import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author roland
- * @since 21.10.18
  */
 public class OpenShiftRegistryAuthHandler implements RegistryAuthHandler {
 
@@ -53,7 +52,7 @@ public class OpenShiftRegistryAuthHandler implements RegistryAuthHandler {
     }
 
     @Override
-    public AuthConfig create(RegistryAuthConfig.Kind kind, String user, String registry, Function<String, String> decryptor) {
+    public AuthConfig create(RegistryAuthConfig.Kind kind, String user, String registry, UnaryOperator<String> decryptor) {
         // Check for openshift authentication either from the plugin config or from system props
         Properties props = System.getProperties();
         String useOpenAuthMode = registryAuthConfig.extractFromProperties(props, kind, AUTH_USE_OPENSHIFT_AUTH);
@@ -166,7 +165,7 @@ public class OpenShiftRegistryAuthHandler implements RegistryAuthHandler {
 
         // Strip off stuff after username
         Matcher matcher = Pattern.compile("^([^/]+).*$").matcher(userName);
-        return new AuthConfig.Builder()
+        return AuthConfig.builder()
             .username(matcher.matches() ? matcher.group(1) : userName)
             .password(token)
             .build();

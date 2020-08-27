@@ -13,24 +13,22 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.property;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.LogConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
-import org.eclipse.jkube.kit.build.service.docker.config.RestartPolicy;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.RunVolumeConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.UlimitConfig;
-import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.WatchImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.LogConfiguration;
+import org.eclipse.jkube.kit.config.image.NetworkConfig;
+import org.eclipse.jkube.kit.config.image.RestartPolicy;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
+import org.eclipse.jkube.kit.config.image.UlimitConfig;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
 
@@ -39,17 +37,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ALIAS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ARGS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_BASEDIR;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_DESCRIPTOR;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_DESCRIPTOR_REF;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_DOCKER_FILE_DIR;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_EXPORT_BASEDIR;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_IGNORE_PERMISSIONS;
+import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_EXPORT_TARGET_DIR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_MODE;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_PERMISSIONS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ASSEMBLY_TARLONGFILEMODE;
@@ -61,6 +57,7 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CAP_DROP;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CLEANUP;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CMD;
+import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CONTAINER_NAME_PATTERN;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CONTEXT_DIR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CPUS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CPUSET;
@@ -70,7 +67,6 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.DNS_SEARCH;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.DOCKER_ARCHIVE;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.DOCKER_FILE;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.DOCKER_FILE_DIR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.DOMAINNAME;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ENTRYPOINT;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ENV;
@@ -105,7 +101,6 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.MEMORY;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.MEMORY_SWAP;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.NAME;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.NAMING_STRATEGY;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.NET;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.NETWORK_ALIAS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.NETWORK_MODE;
@@ -116,7 +111,6 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.PORT_PROPERTY_FILE;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.PRIVILEGED;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.READ_ONLY;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.REGISTRY;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.RESTART_POLICY_NAME;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.RESTART_POLICY_RETRY;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.RUN;
@@ -155,10 +149,7 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 
 /**
  * @author roland
- * @since 18/11/14
  */
-// Moved temporarily to resources/META-INF/plexus/components.xml because of https://github.com/codehaus-plexus/plexus-containers/issues/4
-// @Component(role = ExternalConfigHandler.class)
 public class PropertyConfigHandler implements ExternalConfigHandler {
 
     public static final String TYPE_NAME = "properties";
@@ -170,8 +161,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     @Override
-    public List<ImageConfiguration> resolve(ImageConfiguration fromConfig, JKubeProject project)
-        throws IllegalArgumentException {
+    public List<ImageConfiguration> resolve(ImageConfiguration fromConfig, JavaProject project) {
         Map<String, String> externalConfig = fromConfig.getExternalConfig();
         String prefix = getPrefix(externalConfig);
         Properties properties = JKubeProjectUtil.getPropertiesWithSystemOverrides(project);
@@ -179,7 +169,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         ValueProvider valueProvider = new ValueProvider(prefix, properties, propertyMode);
 
         RunImageConfiguration run = extractRunConfiguration(fromConfig, valueProvider);
-        JKubeBuildConfiguration build = extractBuildConfiguration(fromConfig, valueProvider, project);
+        BuildConfiguration build = extractBuildConfiguration(fromConfig, valueProvider, project);
         WatchImageConfiguration watch = extractWatchConfig(fromConfig, valueProvider);
         String name = valueProvider.getString(NAME, fromConfig.getName());
         String alias = valueProvider.getString(ALIAS, fromConfig.getAlias());
@@ -188,42 +178,37 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
             throw new IllegalArgumentException(String.format("Mandatory property [%s] is not defined", NAME));
         }
 
-        return Collections.singletonList(
-                new ImageConfiguration.Builder()
-                        .name(name)
-                        .alias(alias)
-                        .runConfig(run)
-                        .buildConfig(build)
-                        .watchConfig(watch)
-                        .build());
+        return Collections.singletonList(ImageConfiguration.builder()
+                .name(name)
+                .alias(alias)
+                .run(run)
+                .build(build)
+                .watch(watch)
+                .build());
     }
 
-    private boolean isStringValueNull(ValueProvider valueProvider, BuildConfiguration config, ConfigKey key, Supplier<String> supplier) {
+    private static boolean isStringValueNull(ValueProvider valueProvider, BuildConfiguration config, ConfigKey key, Supplier<String> supplier) {
         return valueProvider.getString(key, config == null ? null : supplier.get()) != null;
     }
-    // Enable build config only when a `.from.`, `.dockerFile.`, or `.dockerFileDir.` is configured
-    private boolean buildConfigured(BuildConfiguration config, ValueProvider valueProvider, JKubeProject project) {
 
+    // Enable build config only when a `.from.`, or `.dockerFile.` is configured
+    private boolean buildConfigured(BuildConfiguration config, ValueProvider valueProvider, JavaProject project) {
 
-        if (isStringValueNull(valueProvider, config, FROM, () -> config.getFrom())) {
+        if (isStringValueNull(valueProvider, config, FROM, config::getFrom)) {
             return true;
         }
 
         if (valueProvider.getMap(FROM_EXT, config == null ? null : config.getFromExt()) != null) {
             return true;
         }
-        if (isStringValueNull(valueProvider, config, DOCKER_FILE, () -> config.getDockerFileRaw() ))  {
+        if (isStringValueNull(valueProvider, config, DOCKER_FILE, config::getDockerFileRaw))  {
             return true;
         }
-        if (isStringValueNull(valueProvider, config, DOCKER_ARCHIVE, () -> config.getDockerArchiveRaw())) {
-            return true;
-        }
-
-        if (isStringValueNull(valueProvider, config, CONTEXT_DIR, () -> config.getContextDirRaw())) {
+        if (isStringValueNull(valueProvider, config, DOCKER_ARCHIVE, config::getDockerArchiveRaw)) {
             return true;
         }
 
-        if (isStringValueNull(valueProvider, config, DOCKER_FILE_DIR, () -> config.getDockerFileDirRaw())) {
+        if (isStringValueNull(valueProvider, config, CONTEXT_DIR, config::getContextDirRaw)) {
             return true;
         }
 
@@ -231,46 +216,46 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         return new File(project.getBaseDirectory(),"Dockerfile").exists();
     }
 
+    private static <T, R> R valueOrNull(T input, Function<T,R> function) {
+        return Optional.ofNullable(input).map(function).orElse(null);
+    }
 
-    private JKubeBuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, JKubeProject project) {
-        JKubeBuildConfiguration config = fromConfig.getBuildConfiguration();
+    private BuildConfiguration extractBuildConfiguration(ImageConfiguration fromConfig, ValueProvider valueProvider, JavaProject project) {
+        BuildConfiguration config = fromConfig.getBuildConfiguration();
         if (!buildConfigured(config, valueProvider, project)) {
             return null;
         }
-
-        return new JKubeBuildConfiguration.Builder()
-                .cmd(extractArguments(valueProvider, CMD, config == null ? null : config.getCmd()))
-                .cleanup(valueProvider.getString(CLEANUP, config == null ? null : config.getCleanup()))
-                .nocache(valueProvider.getBoolean(NOCACHE, config == null ? null : config.getNoCache()))
-                .optimise(valueProvider.getBoolean(OPTIMISE, config == null ? null : config.getOptimise()))
-                .entryPoint(extractArguments(valueProvider, ENTRYPOINT, config == null ? null : config.getEntryPoint()))
-                .assembly(extractAssembly(config == null ? null : config.getAssemblyConfiguration(), valueProvider))
+        return BuildConfiguration.builder()
+                .cmd(extractArguments(valueProvider, CMD, valueOrNull(config, BuildConfiguration::getCmd)))
+                .cleanup(valueProvider.getString(CLEANUP, valueOrNull(config, BuildConfiguration::getCleanup)))
+                .nocache(valueProvider.getBoolean(NOCACHE, valueOrNull(config, BuildConfiguration::getNocache)))
+                .optimise(valueProvider.getBoolean(OPTIMISE, valueOrNull(config, BuildConfiguration::getOptimise)))
+                .entryPoint(extractArguments(valueProvider, ENTRYPOINT, valueOrNull(config, BuildConfiguration::getEntryPoint)))
+                .assembly(extractAssembly(valueOrNull(config, BuildConfiguration::getAssembly), valueProvider))
                 .env(MapUtil.mergeMaps(
-                        valueProvider.getMap(ENV_BUILD, config == null ? null : config.getEnv()),
-                        valueProvider.getMap(ENV, Collections.<String, String>emptyMap())
+                        valueProvider.getMap(ENV_BUILD, valueOrNull(config, BuildConfiguration::getEnv)),
+                        valueProvider.getMap(ENV, Collections.emptyMap())
                 ))
-                .args(valueProvider.getMap(ARGS, config == null ? null : config.getArgs()))
-                .labels(valueProvider.getMap(LABELS, config == null ? null : config.getLabels()))
-                .ports(extractPortValues(config == null ? null : config.getPorts(), valueProvider))
-                .shell(extractArguments(valueProvider, SHELL, config == null ? null : config.getShell()))
-                .runCmds(valueProvider.getList(RUN, config == null ? null : config.getRunCmds()))
-                .from(valueProvider.getString(FROM, config == null ? null : config.getFrom()))
-                .fromExt(valueProvider.getMap(FROM_EXT, config == null ? null : config.getFromExt()))
-                .registry(valueProvider.getString(REGISTRY, config == null ? null : config.getRegistry()))
-                .volumes(valueProvider.getList(VOLUMES, config == null ? null : config.getVolumes()))
-                .tags(valueProvider.getList(TAGS, config == null ? null : config.getTags()))
-                .maintainer(valueProvider.getString(MAINTAINER, config == null ? null : config.getMaintainer()))
-                .workdir(valueProvider.getString(WORKDIR, config == null ? null : config.getWorkdir()))
-                .skip(valueProvider.getBoolean(SKIP_BUILD, config == null ? null : config.getSkip()))
-                .imagePullPolicy(valueProvider.getString(IMAGE_PULL_POLICY_BUILD, config == null ? null : config.getImagePullPolicy()))
-                .contextDir(valueProvider.getString(CONTEXT_DIR, config == null ? null : config.getContextDirRaw()))
-                .dockerArchive(valueProvider.getString(DOCKER_ARCHIVE, config == null ? null : config.getDockerArchiveRaw()))
-                .dockerFile(valueProvider.getString(DOCKER_FILE, config == null ? null : config.getDockerFileRaw()))
-                .dockerFileDir(valueProvider.getString(DOCKER_FILE_DIR, config == null ? null : config.getDockerFileDirRaw()))
-                .buildOptions(valueProvider.getMap(BUILD_OPTIONS, config == null ? null : config.getBuildOptions()))
-                .filter(valueProvider.getString(FILTER, config == null ? null : config.getFilterRaw()))
-                .user(valueProvider.getString(USER, config == null ? null : config.getUser()))
-                .healthCheck(extractHealthCheck(config == null ? null : config.getHealthCheck(), valueProvider))
+                .args(valueProvider.getMap(ARGS, valueOrNull(config, BuildConfiguration::getArgs)))
+                .labels(valueProvider.getMap(LABELS, valueOrNull(config, BuildConfiguration::getLabels)))
+                .ports(extractPortValues(valueOrNull(config, BuildConfiguration::getPorts), valueProvider))
+                .shell(extractArguments(valueProvider, SHELL, valueOrNull(config, BuildConfiguration::getShell)))
+                .runCmds(valueProvider.getList(RUN, valueOrNull(config, BuildConfiguration::getRunCmds)))
+                .from(valueProvider.getString(FROM, valueOrNull(config, BuildConfiguration::getFrom)))
+                .fromExt(valueProvider.getMap(FROM_EXT, valueOrNull(config, BuildConfiguration::getFromExt)))
+                .volumes(valueProvider.getList(VOLUMES, valueOrNull(config, BuildConfiguration::getVolumes)))
+                .tags(valueProvider.getList(TAGS, valueOrNull(config, BuildConfiguration::getTags)))
+                .maintainer(valueProvider.getString(MAINTAINER, valueOrNull(config, BuildConfiguration::getMaintainer)))
+                .workdir(valueProvider.getString(WORKDIR, valueOrNull(config, BuildConfiguration::getWorkdir)))
+                .skip(valueProvider.getBoolean(SKIP_BUILD, valueOrNull(config, BuildConfiguration::getSkip)))
+                .imagePullPolicy(valueProvider.getString(IMAGE_PULL_POLICY_BUILD, valueOrNull(config, BuildConfiguration::getImagePullPolicy)))
+                .contextDir(valueProvider.getString(CONTEXT_DIR, valueOrNull(config, BuildConfiguration::getContextDirRaw)))
+                .dockerArchive(valueProvider.getString(DOCKER_ARCHIVE, valueOrNull(config, BuildConfiguration::getDockerArchiveRaw)))
+                .dockerFile(valueProvider.getString(DOCKER_FILE, valueOrNull(config, BuildConfiguration::getDockerFileRaw)))
+                .buildOptions(valueProvider.getMap(BUILD_OPTIONS, valueOrNull(config, BuildConfiguration::getBuildOptions)))
+                .filter(valueProvider.getString(FILTER, valueOrNull(config, BuildConfiguration::getFilter)))
+                .user(valueProvider.getString(USER, valueOrNull(config, BuildConfiguration::getUser)))
+                .healthCheck(extractHealthCheck(valueOrNull(config, BuildConfiguration::getHealthCheck), valueProvider))
                 .build();
     }
 
@@ -280,14 +265,14 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
             config = null;
         }
 
-        return new RunImageConfiguration.Builder()
+        return RunImageConfiguration.builder()
                 .capAdd(valueProvider.getList(CAP_ADD, config == null ? null : config.getCapAdd()))
                 .capDrop(valueProvider.getList(CAP_DROP, config == null ? null : config.getCapDrop()))
                 .securityOpts(valueProvider.getList(SECURITY_OPTS, config == null ? null : config.getSecurityOpts()))
                 .cmd(extractArguments(valueProvider, CMD, config == null ? null : config.getCmd()))
                 .dns(valueProvider.getList(DNS, config == null ? null : config.getDns()))
                 .dependsOn(valueProvider.getList(DEPENDS_ON, config == null ? null : config.getDependsOn()))
-                .net(valueProvider.getString(NET, config == null ? null : config.getNetRaw()))
+                .net(valueProvider.getString(NET, config == null ? null : config.getNet()))
                 .network(extractNetworkConfig(config == null ? null : config.getNetworkingConfig(), valueProvider))
                 .dnsSearch(valueProvider.getList(DNS_SEARCH, config == null ? null : config.getDnsSearch()))
                 .domainname(valueProvider.getString(DOMAINNAME, config == null ? null : config.getDomainname()))
@@ -303,7 +288,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .links(valueProvider.getList(LINKS, config == null ? null : config.getLinks()))
                 .memory(valueProvider.getLong(MEMORY, config == null ? null : config.getMemory()))
                 .memorySwap(valueProvider.getLong(MEMORY_SWAP, config == null ? null : config.getMemorySwap()))
-                .namingStrategy(valueProvider.getString(NAMING_STRATEGY, config == null || config.getNamingStrategy() == null ? null : config.getNamingStrategy().name()))
+                .containerNamePattern(valueProvider.getString(CONTAINER_NAME_PATTERN, config == null ? null :config.getContainerNamePattern()))
                 .exposedPropertyKey(valueProvider.getString(EXPOSED_PROPERTY_KEY, config == null ? null : config.getExposedPropertyKey()))
                 .portPropertyFile(valueProvider.getString(PORT_PROPERTY_FILE, config == null ? null : config.getPortPropertyFile()))
                 .ports(valueProvider.getList(PORTS, config == null ? null : config.getPorts()))
@@ -312,8 +297,8 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .restartPolicy(extractRestartPolicy(config == null ? null : config.getRestartPolicy(), valueProvider))
                 .user(valueProvider.getString(USER, config == null ? null : config.getUser()))
                 .workingDir(valueProvider.getString(WORKING_DIR, config == null ? null : config.getWorkingDir()))
-                .log(extractLogConfig(config == null ? null : config.getLogConfiguration(), valueProvider))
-                .wait(extractWaitConfig(config == null ? null : config.getWaitConfiguration(), valueProvider))
+                .log(extractLogConfig(config == null ? null : config.getLog(), valueProvider))
+                .wait(extractWaitConfig(config == null ? null : config.getWait(), valueProvider))
                 .volumes(extractVolumeConfig(config == null ? null : config.getVolumeConfiguration(), valueProvider))
                 .skip(valueProvider.getBoolean(SKIP_RUN, config == null ? null : config.getSkip()))
                 .imagePullPolicy(valueProvider.getString(IMAGE_PULL_POLICY_RUN, config == null ? null : config.getImagePullPolicy()))
@@ -328,39 +313,34 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     private NetworkConfig extractNetworkConfig(NetworkConfig config, ValueProvider valueProvider) {
-        return new NetworkConfig.Builder()
-            .mode(valueProvider.getString(NETWORK_MODE, config == null || config.getMode() == null ? null : config.getMode().name()))
+        return NetworkConfig.builder()
+            .modeString(valueProvider.getString(NETWORK_MODE, config == null || config.getMode() == null ? null : config.getMode().name()))
             .name(valueProvider.getString(NETWORK_NAME, config == null ? null : config.getName()))
             .aliases(valueProvider.getList(NETWORK_ALIAS, config == null ? null : config.getAliases()))
             .build();
     }
 
-    @SuppressWarnings("deprecation")
-    private JKubeAssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
-        return new JKubeAssemblyConfiguration.Builder()
-                .targetDir(valueProvider.getString(ASSEMBLY_BASEDIR, config == null ? null : config.getTargetDir()))
-                .descriptor(valueProvider.getString(ASSEMBLY_DESCRIPTOR, config == null ? null : config.getDescriptor()))
-                .descriptorRef(valueProvider.getString(ASSEMBLY_DESCRIPTOR_REF, config == null ? null : config.getDescriptorRef()))
-                .dockerFileDir(valueProvider.getString(ASSEMBLY_DOCKER_FILE_DIR, config == null ? null : config.getDockerFileDir()))
-                .exportBasedir(valueProvider.getBoolean(ASSEMBLY_EXPORT_BASEDIR, config == null ? null : config.getExportTargetDir()))
-                .ignorePermissions(valueProvider.getBoolean(ASSEMBLY_IGNORE_PERMISSIONS, config == null ? null : config.getIgnorePermissions()))
-                .permissions(valueProvider.getString(ASSEMBLY_PERMISSIONS, config == null ? null : config.getPermissionsRaw()))
-                .user(valueProvider.getString(ASSEMBLY_USER, config == null ? null : config.getUser()))
-                .mode(valueProvider.getString(ASSEMBLY_MODE, config == null ? null : config.getModeRaw()))
-                .tarLongFileMode(valueProvider.getString(ASSEMBLY_TARLONGFILEMODE, config == null ? null : config.getTarLongFileMode()))
+    private AssemblyConfiguration extractAssembly(AssemblyConfiguration config, ValueProvider valueProvider) {
+        return AssemblyConfiguration.builder()
+                .targetDir(valueProvider.getString(ASSEMBLY_BASEDIR, valueOrNull(config, AssemblyConfiguration::getTargetDir)))
+                .exportTargetDir(valueProvider.getBoolean(ASSEMBLY_EXPORT_TARGET_DIR, valueOrNull(config, AssemblyConfiguration::getExportTargetDir)))
+                .permissionsString(valueProvider.getString(ASSEMBLY_PERMISSIONS, valueOrNull(config, AssemblyConfiguration::getPermissionsRaw)))
+                .user(valueProvider.getString(ASSEMBLY_USER, valueOrNull(config, AssemblyConfiguration::getUser)))
+                .modeString(valueProvider.getString(ASSEMBLY_MODE, valueOrNull(config, AssemblyConfiguration::getModeRaw)))
+                .tarLongFileMode(valueProvider.getString(ASSEMBLY_TARLONGFILEMODE, valueOrNull(config, AssemblyConfiguration::getTarLongFileMode)))
                 .build();
     }
 
     private HealthCheckConfiguration extractHealthCheck(HealthCheckConfiguration config, ValueProvider valueProvider) {
-        Map<String, String> healthCheckProperties = valueProvider.getMap(HEALTHCHECK, Collections.<String, String>emptyMap());
+        Map<String, String> healthCheckProperties = valueProvider.getMap(HEALTHCHECK, Collections.emptyMap());
         if (healthCheckProperties != null && healthCheckProperties.size() > 0) {
-            return new HealthCheckConfiguration.Builder()
-                    .interval(valueProvider.getString(HEALTHCHECK_INTERVAL, config == null ? null : config.getInterval()))
-                    .timeout(valueProvider.getString(HEALTHCHECK_TIMEOUT, config == null ? null : config.getTimeout()))
-                    .startPeriod(valueProvider.getString(HEALTHCHECK_START_PERIOD, config == null ? null : config.getStartPeriod()))
-                    .retries(valueProvider.getInteger(HEALTHCHECK_RETRIES, config == null ? null : config.getRetries()))
-                    .mode(valueProvider.getString(HEALTHCHECK_MODE, config == null || config.getMode() == null ? null : config.getMode().name()))
-                    .cmd(extractArguments(valueProvider, HEALTHCHECK_CMD, config == null ? null : config.getCmd()))
+            return HealthCheckConfiguration.builder()
+                    .interval(valueProvider.getString(HEALTHCHECK_INTERVAL, valueOrNull(config, HealthCheckConfiguration::getInterval)))
+                    .timeout(valueProvider.getString(HEALTHCHECK_TIMEOUT, valueOrNull(config, HealthCheckConfiguration::getTimeout)))
+                    .startPeriod(valueProvider.getString(HEALTHCHECK_START_PERIOD, valueOrNull(config, HealthCheckConfiguration::getStartPeriod)))
+                    .retries(valueProvider.getInteger(HEALTHCHECK_RETRIES, valueOrNull(config, HealthCheckConfiguration::getRetries)))
+                    .modeString(valueProvider.getString(HEALTHCHECK_MODE, config == null || config.getMode() == null ? null : config.getMode().name()))
+                    .cmd(extractArguments(valueProvider, HEALTHCHECK_CMD, valueOrNull(config, HealthCheckConfiguration::getCmd)))
                     .build();
         } else {
             return config;
@@ -383,29 +363,26 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     private Arguments extractArguments(ValueProvider valueProvider, ConfigKey configKey, Arguments alternative) {
-        return valueProvider.getObject(configKey, alternative, raw -> raw != null ? new Arguments(raw) : null);
+        return valueProvider.getObject(configKey, alternative, raw -> raw != null ? Arguments.builder().shell(raw).build() : null);
     }
 
     private RestartPolicy extractRestartPolicy(RestartPolicy config, ValueProvider valueProvider) {
-        return new RestartPolicy.Builder()
+        return RestartPolicy.builder()
                 .name(valueProvider.getString(RESTART_POLICY_NAME, config == null ? null : config.getName()))
                 .retry(valueProvider.getInt(RESTART_POLICY_RETRY, config == null || config.getRetry() == 0 ? null : config.getRetry()))
                 .build();
     }
 
     private LogConfiguration extractLogConfig(LogConfiguration config, ValueProvider valueProvider) {
-        LogConfiguration.Builder builder = new LogConfiguration.Builder()
+        return LogConfiguration.builder()
             .color(valueProvider.getString(LOG_COLOR, config == null ? null : config.getColor()))
             .date(valueProvider.getString(LOG_DATE, config == null ? null : config.getDate()))
             .file(valueProvider.getString(LOG_FILE, config == null ? null : config.getFileLocation()))
             .prefix(valueProvider.getString(LOG_PREFIX, config == null ? null : config.getPrefix()))
-            .logDriverName(valueProvider.getString(LOG_DRIVER_NAME, config == null || config.getDriver() == null ? null : config.getDriver().getName()))
-            .logDriverOpts(valueProvider.getMap(LOG_DRIVER_OPTS, config == null || config.getDriver() == null ? null : config.getDriver().getOpts()));
-
-        Boolean configEnabled = config != null ? config.isEnabled() : null;
-        Boolean enabled = valueProvider.getBoolean(LOG_ENABLED, configEnabled);
-        builder.enabled(enabled);
-        return builder.build();
+            .driverName(valueProvider.getString(LOG_DRIVER_NAME, config == null || config.getDriver() == null ? null : config.getDriver().getName()))
+            .logDriverOpts(valueProvider.getMap(LOG_DRIVER_OPTS, config == null || config.getDriver() == null ? null : config.getDriver().getOpts()))
+            .enabled(valueProvider.getBoolean(LOG_ENABLED, Optional.ofNullable(config).map(LogConfiguration::isEnabled).orElse(false)))
+            .build();
     }
 
     private WaitConfiguration extractWaitConfig(WaitConfiguration config, ValueProvider valueProvider) {
@@ -418,7 +395,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         WaitConfiguration.TcpConfiguration tcp = config == null ? null : config.getTcp();
         WaitConfiguration.HttpConfiguration http = config == null ? null : config.getHttp();
 
-        return new WaitConfiguration.Builder()
+        return WaitConfiguration.builder()
                 .time(valueProvider.getInt(WAIT_TIME, config == null ? null : config.getTime()))
                 .healthy(valueProvider.getBoolean(WAIT_HEALTHY, config == null ? null : config.getHealthy()))
                 .url(url)
@@ -433,18 +410,18 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .shutdown(valueProvider.getInteger(WAIT_SHUTDOWN, config == null ? null : config.getShutdown()))
                 .tcpHost(valueProvider.getString(WAIT_TCP_HOST, tcp == null ? null : tcp.getHost()))
                 .tcpPorts(valueProvider.getIntList(WAIT_TCP_PORT, tcp == null ? null : tcp.getPorts()))
-                .tcpMode(valueProvider.getString(WAIT_TCP_MODE, tcp == null || tcp.getMode() == null ? null : tcp.getMode().name()))
+                .tcpModeString(valueProvider.getString(WAIT_TCP_MODE, tcp == null || tcp.getMode() == null ? null : tcp.getMode().name()))
                 .build();
     }
 
     private WatchImageConfiguration extractWatchConfig(ImageConfiguration fromConfig, ValueProvider valueProvider) {
         WatchImageConfiguration config = fromConfig.getWatchConfiguration();
 
-        return new WatchImageConfiguration.Builder()
+        return WatchImageConfiguration.builder()
                 .interval(valueProvider.getInteger(WATCH_INTERVAL, config == null ? null : config.getIntervalRaw()))
                 .postGoal(valueProvider.getString(WATCH_POSTGOAL, config == null ? null : config.getPostGoal()))
                 .postExec(valueProvider.getString(WATCH_POSTEXEC, config == null ? null : config.getPostExec()))
-                .mode(valueProvider.getString(WATCH_POSTGOAL, config == null || config.getMode() == null ? null : config.getMode().name()))
+                .modeString(valueProvider.getString(WATCH_POSTGOAL, config == null || config.getMode() == null ? null : config.getMode().name()))
                 .build();
     }
 
@@ -470,7 +447,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
     }
 
     private RunVolumeConfiguration extractVolumeConfig(RunVolumeConfiguration config, ValueProvider valueProvider) {
-        return new RunVolumeConfiguration.Builder()
+        return RunVolumeConfiguration.builder()
                 .bind(valueProvider.getList(BIND, config == null ? null : config.getBind()))
                 .from(valueProvider.getList(VOLUMES_FROM, config == null ? null : config.getFrom()))
                 .build();

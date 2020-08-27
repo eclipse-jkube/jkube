@@ -18,13 +18,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>jkube-kit-build</artifactId>
-  <version>0.2.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>parent/pom.xml</relativePath>
   </parent>
 
@@ -32,13 +32,16 @@
 
   <modules>
       <module>parent</module>
+      <module>doc</module>
       <module>common</module>
       <module>common-maven</module>
-      <module>doc</module>
-      <module>build/api</module>
-      <module>build/service/docker</module>
+      <module>common-test</module>
       <module>config/image</module>
       <module>config/resource</module>
+      <module>config/service</module>
+      <module>build/api</module>
+      <module>build/service/docker</module>
+      <module>build/service/jib</module>
       <module>generator/api</module>
       <module>generator/java-exec</module>
       <module>generator/wildfly-swarm</module>
@@ -48,7 +51,7 @@
       <module>enricher/generic</module>
       <module>enricher/specific</module>
       <module>profile</module>
-      <module>resource/service</module>
+      <module>resource/helm</module>
       <module>watcher/api</module>
       <module>watcher/standard</module>
       <module>jkube-kit-spring-boot</module>
@@ -56,6 +59,7 @@
       <module>jkube-kit-vertx</module>
       <module>jkube-kit-quarkus</module>
       <module>jkube-kit-openliberty</module>
+      <module>jkube-kit-wildfly-jar</module>
   </modules>
 
 </project>

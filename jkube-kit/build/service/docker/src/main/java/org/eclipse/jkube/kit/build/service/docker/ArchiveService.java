@@ -13,11 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
-import org.eclipse.jkube.kit.build.core.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.core.assembly.AssemblyFiles;
-import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyFiles;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.io.File;
@@ -26,18 +28,15 @@ import java.util.List;
 
 /**
  * @author roland
- * @since 30/11/15
  */
 public class ArchiveService {
 
-
     private final KitLogger log;
-    private DockerAssemblyManager dockerAssemblyManager;
+    private AssemblyManager assemblyManager;
 
-
-    public ArchiveService(DockerAssemblyManager dockerAssemblyManager, KitLogger log) {
+    public ArchiveService(AssemblyManager assemblyManager, KitLogger log) {
         this.log = log;
-        this.dockerAssemblyManager = dockerAssemblyManager;
+        this.assemblyManager = assemblyManager;
     }
 
     /**
@@ -49,7 +48,7 @@ public class ArchiveService {
      * @return file for holding the sources
      * @throws IOException if during creation of the tar an error occurs.
      */
-    public File createDockerBuildArchive(ImageConfiguration imageConfig, JKubeBuildContext params)
+    public File createDockerBuildArchive(ImageConfiguration imageConfig, JKubeConfiguration params)
             throws IOException {
         return createDockerBuildArchive(imageConfig, params, null);
     }
@@ -64,7 +63,7 @@ public class ArchiveService {
      * @return file for holding the sources
      * @throws IOException if during creation of the tar an error occurs.
      */
-    public File createDockerBuildArchive(ImageConfiguration imageConfig, JKubeBuildContext params, ArchiverCustomizer customizer)
+    public File createDockerBuildArchive(ImageConfiguration imageConfig, JKubeConfiguration params, ArchiverCustomizer customizer)
             throws IOException {
         File ret = createArchive(imageConfig.getName(), imageConfig.getBuildConfiguration(), params, log, customizer);
         log.info("%s: Created docker source tar %s",imageConfig.getDescription(), ret);
@@ -78,18 +77,17 @@ public class ArchiveService {
      *
      * @param imageConfig image config for which to get files. The build- and assembly configuration in this image
      *                    config must not be null.
-     * @param mojoParameters needed for tracking the assembly
+     * @param jKubeConfiguration needed for tracking the assembly
      * @return mapping of assembly files
      * @throws IOException IO Exception
      */
-    public AssemblyFiles getAssemblyFiles(ImageConfiguration imageConfig, JKubeBuildContext mojoParameters)
+    public AssemblyFiles getAssemblyFiles(ImageConfiguration imageConfig, JKubeConfiguration jKubeConfiguration)
         throws IOException {
 
-        String name = imageConfig.getName();
         try {
-            return dockerAssemblyManager.getAssemblyFiles(name, imageConfig.getBuildConfiguration(), mojoParameters, log);
-        } catch (Exception e) {
-            throw new IOException("Cannot extract assembly files for image " + name + ": " + e, e);
+            return assemblyManager.getAssemblyFiles(imageConfig, jKubeConfiguration);
+        } catch (IOException e) {
+            throw new IOException("Cannot extract assembly files for image " + imageConfig.getName() + ": " + e.getMessage(), e);
         }
     }
 
@@ -99,24 +97,24 @@ public class ArchiveService {
      * @param entries changed files. List must not be empty or null
      * @param assemblyDir assembly directory
      * @param imageName image's name
-     * @param mojoParameters maven build context
+     * @param jKubeConfiguration maven build context
      * @return created archive
      * @throws IOException in case of any I/O exception
      */
-    public File createChangedFilesArchive(List<AssemblyFiles.Entry> entries, File assemblyDir,
-                                          String imageName, JKubeBuildContext mojoParameters) throws IOException {
-        return dockerAssemblyManager.createChangedFilesArchive(entries, assemblyDir, imageName, mojoParameters);
+    public File createChangedFilesArchive(
+            List<AssemblyFileEntry> entries, File assemblyDir, String imageName,
+            JKubeConfiguration jKubeConfiguration) throws IOException {
+
+        return assemblyManager.createChangedFilesArchive(entries, assemblyDir, imageName, jKubeConfiguration);
     }
 
-    // =============================================
-
-    File createArchive(String imageName, JKubeBuildConfiguration buildConfig, JKubeBuildContext params, KitLogger log)
+    File createArchive(String imageName, BuildConfiguration buildConfig, JKubeConfiguration params, KitLogger log)
             throws IOException {
         return createArchive(imageName, buildConfig, params, log, null);
     }
 
-    File createArchive(String imageName, JKubeBuildConfiguration buildConfig, JKubeBuildContext params, KitLogger log, ArchiverCustomizer customizer)
+    File createArchive(String imageName, BuildConfiguration buildConfig, JKubeConfiguration params, KitLogger log, ArchiverCustomizer customizer)
             throws IOException {
-        return dockerAssemblyManager.createDockerTarArchive(imageName, params, buildConfig, log, customizer);
+        return assemblyManager.createDockerTarArchive(imageName, params, buildConfig, log, customizer);
     }
 }

@@ -14,10 +14,10 @@
 package org.eclipse.jkube.springboot.generator;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -34,7 +34,6 @@ import static org.junit.Assert.assertNull;
 
 /**
  * @author roland
- * @since 28/11/16
  */
 public class SpringBootGeneratorTest {
 
@@ -42,7 +41,7 @@ public class SpringBootGeneratorTest {
     private GeneratorContext context;
 
     @Mocked
-    private JKubeProject project;
+    private JavaProject project;
 
     @Test
     public void notApplicable() throws IOException {

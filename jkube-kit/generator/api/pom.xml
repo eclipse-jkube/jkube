@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
@@ -28,47 +28,37 @@
 
   <name>JKube Kit :: Generator :: API</name>
 
-  <properties>
-    <!-- Default images used in Java based generators -->
-    <generator.java.docker.upstream>fabric8/java-jboss-openjdk8-jdk:${generator.java.docker.upstream.version}</generator.java.docker.upstream>
-    <generator.java.s2i.upstream>fabric8/s2i-java:${generator.java.s2i.upstream.version}</generator.java.s2i.upstream>
-    <generator.java.docker.redhat>jboss-fuse-6/fis-java-openshift:${generator.java.s2i.redhat.version}</generator.java.docker.redhat>
-    <generator.java.s2i.redhat>jboss-fuse-6/fis-java-openshift:${generator.java.s2i.redhat.version}</generator.java.s2i.redhat>
-  </properties>
-
   <dependencies>
 
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-kit-resource-service</artifactId>
+      <artifactId>jkube-kit-config-service</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.jboss.shrinkwrap</groupId>
       <artifactId>shrinkwrap-api</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.jboss.shrinkwrap</groupId>
       <artifactId>shrinkwrap-spi</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.jboss.shrinkwrap</groupId>
       <artifactId>shrinkwrap-impl-base</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.jmockit</groupId>
       <artifactId>jmockit</artifactId>
     </dependency>
-
-
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
     </dependency>
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

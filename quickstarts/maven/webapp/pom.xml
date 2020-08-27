@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>webapp</artifactId>
-  <version>0.2.1-SNAPSHOT</version>
+  <version>1.0.0-rc-1</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Webapp</name>
   <packaging>war</packaging>
 
@@ -38,12 +38,18 @@
         <artifactId>kubernetes-maven-plugin</artifactId>
         <version>${project.version}</version>
       </plugin>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>openshift-maven-plugin</artifactId>
+        <version>${project.version}</version>
+      </plugin>
     </plugins>
   </build>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
   </properties>
   <profiles>
     <profile>

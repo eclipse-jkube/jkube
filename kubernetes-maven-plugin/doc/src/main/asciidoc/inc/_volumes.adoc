@@ -2,7 +2,7 @@
 
 = Volume Configuration
 
-Kubernetes maven plugin supports volume configuration in XML format in pom.xml. These are the volume types which are supported:
+{plugin} supports volume configuration in XML format in pom.xml. These are the volume types which are supported:
 
 .Supported Volume Types
 [cols="1,22"]

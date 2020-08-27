@@ -19,10 +19,10 @@
 
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>jkube</artifactId>
-  <version>0.2.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <description>JKube</description>
-  <name>JKube</name>
+  <description>Eclipse JKube</description>
+  <name>Eclipse JKube</name>
 
   <url>https://projects.eclipse.org/projects/ecd.jkube</url>
 
@@ -36,7 +36,7 @@
   <developers>
     <developer>
       <id>geeks</id>
-      <name>JKube Development Team</name>
+      <name>Eclipse JKube Development Team</name>
       <email>jkube-dev@eclipse.org</email>
       <organization>Eclipse Foundation</organization>
       <organizationUrl>https://projects.eclipse.org/projects/ecd.jkube</organizationUrl>
@@ -59,7 +59,7 @@
         <enabled>false</enabled>
       </releases>
       <snapshots>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
       </snapshots>
     </repository>
   </repositories>
@@ -74,10 +74,14 @@
 
   <properties>
     <jdk.version>1.8</jdk.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.citrus-core>2.6.2</version.citrus-core>
+    <version.hamcrest-library>1.3</version.hamcrest-library>
     <version.jackson>2.10.0</version.jackson>
     <version.jacoco>0.8.2</version.jacoco>
-    <version.junit>4.11</version.junit>
+    <version.jmockit>1.43</version.jmockit>
+    <version.junit>4.13</version.junit>
+    <version.lombok-maven-plugin>1.18.12.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.6.2</version.maven-compiler-plugin>
     <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
     <version.maven-failsafe-plugin>2.19.1</version.maven-failsafe-plugin>
@@ -87,6 +91,7 @@
     <version.maven-plugin-plugin>3.5</version.maven-plugin-plugin>
     <version.maven-resources-plugin>3.0.0</version.maven-resources-plugin>
     <version.maven-source-plugin>2.4</version.maven-source-plugin>
+    <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>
     <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
     <version.license-maven-plugin>3.0</version.license-maven-plugin>
   </properties>
@@ -117,6 +122,7 @@
               <exclude>**/*-services</exclude>
               <exclude>**/*-default</exclude>
               <exclude>**/*.adoc</exclude>
+              <exclude>**/expected-pom.xml</exclude>
               <exclude>**/enricher</exclude>
               <exclude>.lgtm</exclude>
               <exclude>**/.gitkeep</exclude>
@@ -126,6 +132,11 @@
               <exclude>mvnw.cmd</exclude>
             </excludes>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${version.maven-javadoc-plugin}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -146,6 +157,11 @@
               </goals>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok-maven-plugin</artifactId>
+          <version>${version.lombok-maven-plugin}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -174,6 +190,48 @@
 
 
   <profiles>
+    <profile>
+      <id>javadoc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-maven-plugin</artifactId>
+            <version>${version.lombok-maven-plugin}</version>
+            <executions>
+              <execution>
+                <id>delombok</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>delombok</goal>
+                </goals>
+                <configuration>
+                  <addOutputDirectory>false</addOutputDirectory>
+                  <sourceDirectory>src/main/java</sourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <sourcepath>
+                ${project.basedir}/target/generated-sources/delombok:
+                ${project.basedir}/target/generated-sources/annotations
+              </sourcepath>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
      <!-- "release" profiles used for deploying with jkube -->
     <profile>
       <id>release</id>
@@ -223,9 +281,32 @@
             </executions>
           </plugin>
           <plugin>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-maven-plugin</artifactId>
+            <version>${version.lombok-maven-plugin}</version>
+            <executions>
+              <execution>
+                <id>prepare-javadoc-sources</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>delombok</goal>
+                </goals>
+                <configuration>
+                  <addOutputDirectory>false</addOutputDirectory>
+                  <sourceDirectory>src/main/java</sourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>${version.maven-javadoc-plugin}</version>
+            <configuration>
+              <sourcepath>
+                ${project.basedir}/target/generated-sources/delombok:
+                ${project.basedir}/target/generated-sources/annotations
+              </sourcepath>
+            </configuration>
             <executions>
               <execution>
                 <id>attach-javadocs</id>
@@ -371,7 +452,7 @@
       <id>sonar</id>
       <properties>
         <sonar.projectKey>jkubeio_jkube</sonar.projectKey>
-        <sonar.moduleKey>${artifactId}</sonar.moduleKey>
+        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
         <sonar.organization>jkubeio</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.login>${env.SONARQUBE_TOKEN}</sonar.login>

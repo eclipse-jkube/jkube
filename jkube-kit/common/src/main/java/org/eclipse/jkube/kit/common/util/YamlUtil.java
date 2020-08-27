@@ -14,47 +14,50 @@
 package org.eclipse.jkube.kit.common.util;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.SortedMap;
-import org.yaml.snakeyaml.Yaml;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.apache.commons.lang3.StringUtils;
 
 public class YamlUtil {
+
+  private static final YAMLFactory YAML_FACTORY = new YAMLFactory();
+  private static final ObjectMapper YAML_MAPPER = new ObjectMapper(YAML_FACTORY);
+  private static final String EMPTY_YAML = "---\n";
+
+  private YamlUtil() {
+  }
+
     protected static Properties getPropertiesFromYamlResource(URL resource) {
         return getPropertiesFromYamlResource(null, resource);
     }
 
-    protected static Properties getPropertiesFromYamlResource(String activeProfile, URL resource) {
-        if (resource != null) {
-            try {
-                Properties properties = new Properties();
-                // Splitting file for the possibility of different profiles, by default
-                // only first profile would be considered.
-                List<String> profiles = getYamlListFromFile(resource);
-                if (profiles.size() > 0) {
-                    try {
-                        properties.putAll(getPropertiesFromYamlString(getYamlFromYamlList(activeProfile, profiles)));
-                    } catch (IllegalArgumentException e) {
-                        throw new IllegalArgumentException(String.format("Spring Boot configuration file %s is not formatted correctly. %s",
-                                resource.toString(), e.getMessage()));
-                    }
-                }
-                return properties;
-            } catch (IOException | URISyntaxException e) {
-                throw new IllegalStateException("Error while reading Yaml resource from URL " + resource, e);
-            }
+  protected static Properties getPropertiesFromYamlResource(String activeProfile, URL resource) {
+    if (resource != null) {
+      try {
+        Properties properties = new Properties();
+        List<String> profiles = splitYamlResource(resource);
+        if (!profiles.isEmpty()) {
+          properties.putAll(getPropertiesFromYamlString(getYamlFromYamlList(activeProfile, profiles)));
         }
-        return new Properties();
+        return properties;
+      } catch (IOException e) {
+        throw new IllegalStateException("Error while reading Yaml resource from URL " + resource, e);
+      }
     }
+    return new Properties();
+  }
 
     /**
      * Build a flattened representation of the Yaml tree. The conversion is compliant with the thorntail spring-boot rules.
@@ -108,32 +111,38 @@ public class YamlUtil {
         }
     }
 
-    public static Properties getPropertiesFromYamlString(String yamlString) throws IllegalArgumentException {
-        Yaml yaml = new Yaml();
-        Properties properties = new Properties();
-
-        @SuppressWarnings("unchecked")
-        SortedMap<String, Object> source = yaml.loadAs(yamlString, SortedMap.class);
-        if (source != null) {
-            properties.putAll(getFlattenedMap(source));
-        }
-        return properties;
+  public static Properties getPropertiesFromYamlString(String yamlString) throws IOException {
+    final Properties properties = new Properties();
+    final SortedMap<String, ?> source = YAML_MAPPER.readValue(
+        Optional.ofNullable(yamlString).filter(StringUtils::isNotBlank).orElse(EMPTY_YAML),
+        new TypeReference<SortedMap<String, ?>>() {
+        });
+    if (source != null) {
+      properties.putAll(getFlattenedMap(source));
     }
+    return properties;
+  }
 
-    public static List<String> getYamlListFromFile(URL resource) throws URISyntaxException, IOException {
-        String fileAsString = new String(Files.readAllBytes(Paths.get(resource.toURI())));
-        String[] profiles = fileAsString.split("---");
-        return Arrays.asList(profiles);
+  static List<String> splitYamlResource(URL resource) throws IOException {
+    final List<String> serializedYamlList = new ArrayList<>();
+    final List<Map<String, ?>> parsedList = YAML_MAPPER.readValues(
+        YAML_FACTORY.createParser(resource), new TypeReference<Map<String, ?>>() {
+        }).readAll();
+    for (Map<String, ?> listEntry : parsedList) {
+      serializedYamlList.add(YAML_MAPPER.writeValueAsString(listEntry));
     }
+    return serializedYamlList;
+  }
 
-    public static String getYamlFromYamlList(String pattern, List<String> yamlAsStringList) {
+    static String getYamlFromYamlList(String pattern, List<String> yamlAsStringList) {
         if (pattern != null) {
             for (String yamlStr : yamlAsStringList) {
-                if (yamlStr.contains(pattern))
-                    return yamlStr;
+              if (yamlStr.contains(pattern)) {
+                return yamlStr;
+              }
             }
         }
-        return yamlAsStringList.get(0);
+        return yamlAsStringList.iterator().next();
     }
 
 }

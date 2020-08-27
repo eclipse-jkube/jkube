@@ -19,11 +19,10 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import org.eclipse.jkube.kit.common.JKubeProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
@@ -45,9 +44,6 @@ public class MavenProjectEnricherTest {
 
     @Mocked
     private JKubeEnricherContext context;
-
-    @Mocked
-    private JKubeProject mavenProject;
 
     @Before
     public void setupExpectations() {
@@ -89,10 +85,11 @@ public class MavenProjectEnricherTest {
 
         final Properties properties = new Properties();
         properties.setProperty("jkube.enricher.jkube-project-label.useProjectLabel", "true");
+        // @formatter:off
         new Expectations() {{
-            context.getConfiguration();
-            result = new Configuration.Builder().properties(properties).build();
+            context.getProperties(); result = properties;
         }};
+        // @formatter:on
 
         ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
 
@@ -120,11 +117,10 @@ public class MavenProjectEnricherTest {
     }
 
     private KubernetesListBuilder createListWithDeploymentConfig() {
-        return new KubernetesListBuilder()
-                .addNewDeploymentConfigItem()
-                .withNewMetadata().endMetadata()
-                .withNewSpec().endSpec()
-                .endDeploymentConfigItem();
+        return new KubernetesListBuilder().addToItems(new DeploymentConfigBuilder()
+            .withNewMetadata().endMetadata()
+            .withNewSpec().endSpec()
+            .build());
     }
 
 }

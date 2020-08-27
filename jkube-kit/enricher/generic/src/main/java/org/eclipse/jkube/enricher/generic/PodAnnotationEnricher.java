@@ -23,8 +23,8 @@ import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import java.util.List;
 
@@ -41,7 +41,7 @@ public class PodAnnotationEnricher extends BaseEnricher {
     public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
         super.enrich(platformMode, builder);
 
-        List<HasMetadata> items = builder.getItems();
+        List<HasMetadata> items = builder.buildItems();
         for (HasMetadata item : items) {
             if (platformMode == PlatformMode.kubernetes && item instanceof Deployment) {
                 Deployment deployment = (Deployment) item;

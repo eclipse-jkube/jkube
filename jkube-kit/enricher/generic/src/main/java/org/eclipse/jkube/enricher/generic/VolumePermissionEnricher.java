@@ -26,11 +26,13 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.util.InitContainerHandler;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.InitContainerHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -42,7 +44,6 @@ import java.util.Set;
 
 /**
  * @author roland
- * @since 14/11/16
  */
 public class VolumePermissionEnricher extends BaseEnricher {
 
@@ -51,11 +52,15 @@ public class VolumePermissionEnricher extends BaseEnricher {
 
     private final InitContainerHandler initContainerHandler;
 
-    enum Config implements Configs.Key {
-        permission {{ d = "777"; }},
-        defaultStorageClass {{ d = null; }};
+    @AllArgsConstructor
+    enum Config implements Configs.Config {
+        PERMISSION("permission", "777"),
+        DEFAULT_STORAGE_CLASS("defaultStorageClass", null);
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public VolumePermissionEnricher(JKubeEnricherContext buildContext) {
@@ -84,7 +89,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 }
 
                 log.verbose("Adding init container for changing persistent volumes access mode to %s",
-                        getConfig(Config.permission));
+                        getConfig(Config.PERMISSION));
                 if (!initContainerHandler.hasInitContainer(builder, ENRICHER_NAME)) {
                     initContainerHandler.appendInitContainer(builder, createPvInitContainer(podSpec));
                 }
@@ -117,7 +122,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
             private List<String> createChmodCommandArray(Map<String, String> mountPoints) {
                 List<String> ret = new ArrayList<>();
                 ret.add("chmod");
-                ret.add(getConfig(Config.permission));
+                ret.add(getConfig(Config.PERMISSION));
                 Set<String> uniqueNames = new LinkedHashSet<>(mountPoints.values());
                 for (String name : uniqueNames) {
                     ret.add(name);
@@ -182,7 +187,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 if (pvcBuilder.buildMetadata() == null) {
                     pvcBuilder.withNewMetadata().endMetadata();
                 }
-                String storageClass = getConfig(Config.defaultStorageClass);
+                String storageClass = getConfig(Config.DEFAULT_STORAGE_CLASS);
                 if (StringUtils.isNotBlank(storageClass)) {
                     pvcBuilder.editMetadata().addToAnnotations(VOLUME_STORAGE_CLASS_ANNOTATION, storageClass).endMetadata();
                 }

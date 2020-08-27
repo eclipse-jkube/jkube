@@ -18,13 +18,16 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.Job;
+import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.openshift.api.model.ImageChangeTrigger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -53,7 +56,7 @@ public class TriggersAnnotationEnricherTest {
     public void testStatefulSetEnrichment() throws IOException {
 
         KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewStatefulSetItem()
+                .addToItems(new StatefulSetBuilder()
                     .withNewSpec()
                         .withNewTemplate()
                             .withNewSpec()
@@ -61,7 +64,7 @@ public class TriggersAnnotationEnricherTest {
                             .endSpec()
                         .endTemplate()
                     .endSpec()
-                .endStatefulSetItem();
+                    .build());
 
 
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
@@ -85,19 +88,18 @@ public class TriggersAnnotationEnricherTest {
     @Test
     public void testReplicaSetEnrichment() throws IOException {
 
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewReplicaSetItem()
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new ReplicaSetBuilder()
+            .withNewSpec()
+                .withNewTemplate()
                     .withNewSpec()
-                        .withNewTemplate()
-                            .withNewSpec()
-                                .withContainers(createContainers(
-                                    "c1", "is",
-                                    "c2", "a-docker-user/is:latest"
-                                ))
-                            .endSpec()
-                        .endTemplate()
+                        .withContainers(createContainers(
+                            "c1", "is",
+                            "c2", "a-docker-user/is:latest"
+                        ))
                     .endSpec()
-                .endReplicaSetItem();
+                .endTemplate()
+            .endSpec()
+            .build());
 
 
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
@@ -121,21 +123,21 @@ public class TriggersAnnotationEnricherTest {
     public void testDaemonSetEnrichment() throws IOException {
 
         KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewDaemonSetItem()
-                    .withNewMetadata()
-                        .addToAnnotations("annkey", "annvalue")
-                    .endMetadata()
-                    .withNewSpec()
-                        .withNewTemplate()
-                            .withNewSpec()
-                                .withContainers(createContainers(
-                                    "c1", "iss:1.1.0",
-                                    "c2", "docker.io/a-docker-user/is:latest"
-                                ))
-                            .endSpec()
-                        .endTemplate()
-                    .endSpec()
-                .endDaemonSetItem();
+            .addToItems(new DaemonSetBuilder()
+                .withNewMetadata()
+                    .addToAnnotations("annkey", "annvalue")
+                .endMetadata()
+                .withNewSpec()
+                    .withNewTemplate()
+                        .withNewSpec()
+                            .withContainers(createContainers(
+                                "c1", "iss:1.1.0",
+                                "c2", "docker.io/a-docker-user/is:latest"
+                            ))
+                        .endSpec()
+                    .endTemplate()
+                .endSpec()
+                .build());
 
 
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
@@ -162,24 +164,25 @@ public class TriggersAnnotationEnricherTest {
 
         final Properties props = new Properties();
         props.put("jkube.enricher.jkube-triggers-annotation.containers", "c2, c3, anotherc");
+        // @formatter:off
         new Expectations() {{
-            context.getConfiguration(); result = new Configuration.Builder().properties(props).build();
+            context.getProperties(); result = props;
         }};
+        // @formatter:on
 
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewStatefulSetItem()
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new StatefulSetBuilder()
+            .withNewSpec()
+                .withNewTemplate()
                     .withNewSpec()
-                        .withNewTemplate()
-                            .withNewSpec()
-                                .withContainers(createContainers(
-                                    "c1", "is1:latest",
-                                    "c2", "is2:latest",
-                                    "c3", "is3:latest"
-                                ))
-                            .endSpec()
-                        .endTemplate()
+                        .withContainers(createContainers(
+                            "c1", "is1:latest",
+                            "c2", "is2:latest",
+                            "c3", "is3:latest"
+                        ))
                     .endSpec()
-                .endStatefulSetItem();
+                .endTemplate()
+            .endSpec()
+            .build());
 
 
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
@@ -207,22 +210,21 @@ public class TriggersAnnotationEnricherTest {
     @Test
     public void testNoEnrichment() {
 
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewJobItem()
-                    .withNewMetadata()
-                        .addToAnnotations("dummy", "annotation")
-                    .endMetadata()
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new JobBuilder()
+            .withNewMetadata()
+                .addToAnnotations("dummy", "annotation")
+            .endMetadata()
+            .withNewSpec()
+                .withNewTemplate()
                     .withNewSpec()
-                        .withNewTemplate()
-                            .withNewSpec()
-                                .withContainers(createContainers(
-                                    "c1", "is1:latest",
-                                    "c2", "is2:latest"
-                                ))
-                            .endSpec()
-                        .endTemplate()
+                        .withContainers(createContainers(
+                            "c1", "is1:latest",
+                            "c2", "is2:latest"
+                        ))
                     .endSpec()
-                .endJobItem();
+                .endTemplate()
+            .endSpec()
+            .build());
 
 
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);

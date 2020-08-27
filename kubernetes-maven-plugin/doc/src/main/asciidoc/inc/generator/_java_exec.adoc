@@ -22,52 +22,62 @@ It will use the following base image by default, but as explained <<generator-op
 | | Docker Build | S2I Build | ImageStream
 
 | *Community*
-| `jkube.java-jboss-openjdk8-jdk`
-| `jkube.s2i-java`
-| `jkube.java`
+| `quay.io/jkube/jkube-java-binary-s2i`
+| `quay.io/jkube/jkube-java-binary-s2i`
+| `jkube-java`
 
-| *Red Hat*
-| `jboss-fuse-6/fis-java-openshift`
-| `jboss-fuse-6/fis-java-openshift`
-| `fis-java-openshift`
 |===
 
-These images always refer to the latest tag. The _Red Hat_ base images are selected, when the plugin itself is a Red Hat supported version (which is detected by the plugins version number).
+These images always refer to the latest tag.
 
-When a `fromMode` of `istag` is used to specify an `ImageStreamTag` and when no `from` is given, then as default the `ImageStreamTag` `fis-java-openshift` in the namespace `openshift` is chosen. If you are using a RedHat variation of this plugin (i.e. if the version is ending with `-redhat`), then a `fromMode` of `istag` is the default, otherwise its `fromMode = "docker"` which use the a plain Docker image reference for the S2I builder image.
+When a `fromMode` of `istag` is used to specify an `ImageStreamTag` and when no `from` is given, then as default the
+`ImageStreamTag` `jkube-java` in the namespace `openshift` is chosen.
+By default, `fromMode = "docker"` which use the a plain Docker image reference for the S2I builder image.
 
-Beside the common configuration parameters described in the table <<generator-options-common, common generator options>> the following additional configuration options are recognized:
+Beside the common configuration parameters described in the table <<generator-options-common, common generator options>>
+the following additional configuration options are recognized:
 
 [[generator-java-exec-options]]
 .Java Application configuration options
 [cols="1,6,1"]
 |===
-| Element | Description | Default
+| Element | Description | Property
 
-| *assemblyRef*
-| If a reference to an assembly is given, then this is used without trying to detect the artifacts to include.
-|
 | *targetDir*
-| Directory within the generated image where to put the detected artefacts into. Change this only if the base image is changed, too.
-| `/deployments`
+| Directory within the generated image where to put the detected artefacts into. Change this only if the base image is
+  changed, too.
+
+  Defaults to `/deployments`.
+| `jkube.generator.java-exec.targetDir`
 
 | *jolokiaPort*
 | Port of the Jolokia agent exposed by the base image. Set this to 0 if you don't want to expose the Jolokia port.
-| 8778
+
+  Defaults to `8778`.
+| `jkube.generator.java-exec.jolokiaPort`
 
 | *mainClass*
-| Main class to call. If not given first a check is performed to detect a fat-jar (see above). Next a class is looked up by scanning `target/classes` for a single class with a main method. If no such class is found or if more than one is found, then this generator does nothing.
-|
+| Main class to call. If not given first a check is performed to detect a fat-jar (see above). Next a class is looked up
+  by scanning `target/classes` for a single class with a main method. If no such class is found or if more than one is
+  found, then this generator does nothing.
+| `jkube.generator.java-exec.mainClass`
 
 | *prometheusPort*
-| Port of the Prometheus jmx_exporter exposed by the base image. Set this to 0 if you don't want to expose the Prometheus port.
-| 9779
+| Port of the Prometheus jmx_exporter exposed by the base image. Set this to 0 if you don't want to expose the Prometheus
+  port.
+
+  Defaults to `9779`.
+| `jkube.generator.java-exec.prometheusPort`
 
 | *webPort*
-| Port to expose as service, which is supposed to be the port of a web application. Set this to 0 if you don't want to expose a port.
-| 8080
+| Port to expose as service, which is supposed to be the port of a web application. Set this to 0 if you don't want to
+  expose a port.
+
+  Defaults to `8080`.
+| `jkube.generator.java-exec.webPort`
 |===
 
 The exposed ports are typically later on use by <<enrichers, Enrichers>> to create default Kubernetes or OpenShift services.
 
-You can add additional files to the target image within `baseDir` by placing files into `src/main/jkube-includes`. These will be added with mode `0644`, while everything in `src/main/jkube-includes/bin` will be added with `0755`.
+You can add additional files to the target image within `baseDir` by placing files into `src/main/jkube-includes`.
+These will be added with mode `0644`, while everything in `src/main/jkube-includes/bin` will be added with `0755`.

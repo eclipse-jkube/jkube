@@ -20,7 +20,7 @@
     <parent>
         <artifactId>jkube-kit-parent</artifactId>
         <groupId>org.eclipse.jkube</groupId>
-        <version>0.2.1-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -30,22 +30,11 @@
     <dependencies>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-enricher-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-enricher-specific</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-generator-java-exec</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-common</artifactId>
         </dependency>
 
         <dependency>
@@ -53,19 +42,16 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.jmockit</groupId>
             <artifactId>jmockit</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>

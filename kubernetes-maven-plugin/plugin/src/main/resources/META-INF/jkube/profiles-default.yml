@@ -12,7 +12,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-# Default profiles delivered with f-m-p
+# Default profiles delivered with kmp
 
 # tag::default[]
 # Default profile which is always activated
@@ -48,6 +48,9 @@
     - jkube-openshift-deploymentconfig
     - jkube-openshift-project
 
+    # Ingress
+    - jkube-ingress
+
     # -----------------------------------------
     # TODO: Document and verify enrichers below
     # Health checks
@@ -55,12 +58,13 @@
     - jkube-healthcheck-spring-boot
     - jkube-healthcheck-wildfly-swarm
     - jkube-healthcheck-thorntail-v2
+    - jkube-healthcheck-wildfly-jar
     - jkube-healthcheck-karaf
     - jkube-healthcheck-vertx
     - jkube-healthcheck-docker
     - jkube-healthcheck-webapp
     - jkube-prometheus
-    # Dependencies shouldn't be enriched anymore, therefor it's last in the list
+    # Dependencies shouldn't be enriched anymore, therefore it's last in the list
     - jkube-dependency
     - jkube-revision-history
     - jkube-docker-registry-secret
@@ -74,6 +78,7 @@
     - spring-boot
     - wildfly-swarm
     - thorntail-v2
+    - wildfly-jar
     - openliberty
     - karaf
     - vertx
@@ -103,6 +108,7 @@
     - spring-boot
     - wildfly-swarm
     - thorntail-v2
+    - wildfly-jar
     - karaf
     - vertx
     - java-exec

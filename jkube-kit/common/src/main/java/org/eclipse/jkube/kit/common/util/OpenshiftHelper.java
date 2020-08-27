@@ -33,12 +33,13 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author roland
- * @since 23.05.17
  */
 public class OpenshiftHelper {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     public static final String DEFAULT_API_VERSION = "v1";
+
+    private OpenshiftHelper() {}
 
     public static OpenShiftClient asOpenShiftClient(KubernetesClient client) {
         if (client instanceof OpenShiftClient) {

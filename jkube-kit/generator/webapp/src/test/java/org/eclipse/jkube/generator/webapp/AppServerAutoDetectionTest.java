@@ -15,16 +15,17 @@ package org.eclipse.jkube.generator.webapp;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.AbstractMap;
 import java.util.Collections;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author kameshs
@@ -58,6 +59,7 @@ public class AppServerAutoDetectionTest {
             "org.wildfly.plugins:wildfly-maven-plugin", true,
             "org.wildfly.swarm:wildfly-swarm-plugin", false,
             "io.thorntail:thorntail-maven-plugin", false,
+            "org.wildfly.plugins:wildfly-jar-maven-plugin", false,
         };
 
         assertAppServerDescriptorApplicability(descriptorNames);
@@ -81,11 +83,10 @@ public class AppServerAutoDetectionTest {
     }
 
     @Test
-    public void testWithSpecifiedServer() throws Exception {
-        JKubeProject jkubeProject = new JKubeProject.Builder()
-                .build();
+    public void testWithSpecifiedServer() {
+        GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder().build()).build();
 
-        AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect("tomcat");
+        AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect("tomcat");
         assertEquals("tomcat", appServerHandler.getName());
     }
 
@@ -110,12 +111,16 @@ public class AppServerAutoDetectionTest {
     @Test
     public void testDefaultServer() throws IOException {
         File appDir = folder.newFolder("webapp");
+        GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder()
+            .buildDirectory(appDir)
+            .plugins(Collections.singletonList(Plugin.builder()
+                .groupId("org.apache.tomcat.maven")
+                .artifactId("org.apache.tomcat.maven")
+                .version("testversion")
+                .configuration(Collections.emptyMap()).build()))
+            .build()).build();
 
-        JKubeProject jkubeProject = new JKubeProject.Builder()
-                .buildDirectory(appDir.getAbsolutePath())
-                .plugins(Collections.singletonList(new JKubeProjectPlugin.Builder().groupId("org.apache.tomcat.maven").artifactId("org.apache.tomcat.maven").version("testversion").configuration(Collections.emptyMap()).build()))
-                .build();
-        AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
+        AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect(null);
         assertEquals("tomcat", appServerHandler.getName());
     }
 
@@ -125,15 +130,16 @@ public class AppServerAutoDetectionTest {
             boolean expected = (boolean) descriptors[i + 1];
 
             File appDir = folder.newFolder("webapp" + i);
-            new File(appDir, "META-INF/").mkdirs();
-            new File(appDir, "WEB-INF/").mkdirs();
-            new File(appDir, descriptor).createNewFile();
+            assertTrue(new File(appDir, "META-INF/").mkdirs());
+            assertTrue(new File(appDir, "WEB-INF/").mkdirs());
+            assertTrue(new File(appDir, descriptor).createNewFile());
 
-            JKubeProject jkubeProject = new JKubeProject.Builder()
-                    .buildDirectory(appDir.getPath())
-                    .plugins(Collections.emptyList())
-                    .build();
-            AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
+            GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder()
+                .buildDirectory(appDir)
+                .plugins(Collections.emptyList())
+                .build()).build();
+
+            AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect(null);
 
             String message = String.format("Expected descriptor %s to make isApplicable() return %s", descriptor, expected);
             assertEquals(message, expected, appServerHandler.isApplicable());
@@ -147,11 +153,15 @@ public class AppServerAutoDetectionTest {
             String artifactId = pluginCoordinate.split(":")[1];
             boolean expected = (boolean) plugins[i + 1];
 
-            JKubeProject jkubeProject = new JKubeProject.Builder()
-                    .buildDirectory(folder.getRoot().getPath())
-                    .plugins(Collections.singletonList(new JKubeProjectPlugin.Builder().groupId(groupId).artifactId(artifactId).version("testversion").configuration(Collections.emptyMap()).build()))
-                    .build();
-            AppServerHandler appServerHandler = new AppServerDetector(jkubeProject).detect(null);
+            GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder()
+                .buildDirectory(folder.getRoot())
+                .plugins(Collections.singletonList(Plugin.builder()
+                    .groupId(groupId).artifactId(artifactId)
+                    .version("testversion")
+                    .configuration(Collections.emptyMap()).build()))
+                .build()).build();
+
+            AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect(null);
 
             String message = String.format("Expected plugin %s to make isApplicable() return %s", pluginCoordinate, expected);
             assertEquals(message, expected, appServerHandler.isApplicable());

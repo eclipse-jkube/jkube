@@ -25,8 +25,8 @@ import io.fabric8.kubernetes.api.model.Probe;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import mockit.Expectations;
 import mockit.Mock;
@@ -584,8 +584,8 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
     @Test
     public void testCustomInitialDelayForLivenessAndReadinessAndTimeout() {
-        Map<String, TreeMap> globalConfig = new HashMap<>();
-        TreeMap<String, String> enricherConfig = new TreeMap<>();
+        Map<String, Map<String, Object>> globalConfig = new HashMap<>();
+        TreeMap<String, Object> enricherConfig = new TreeMap<>();
         globalConfig.put(SpringBootHealthCheckEnricher.ENRICHER_NAME, enricherConfig);
         enricherConfig.put("readinessProbeInitialDelaySeconds", "20");
         enricherConfig.put("livenessProbeInitialDelaySeconds", "360");
@@ -595,7 +595,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         new Expectations() {
             {
                 context.getConfiguration();
-                result = new Configuration.Builder().processorConfig(config).build();
+                result = Configuration.builder().processorConfig(config).build();
                 context.getProjectClassLoaders();
                 result = new ProjectClassLoaders(
                         new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())) {
@@ -620,14 +620,12 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         assertEquals(360, probe.getInitialDelaySeconds().intValue());
         assertNull(probe.getPeriodSeconds());
         assertEquals(120, probe.getTimeoutSeconds().intValue());
-
-
     }
 
     @Test
     public void testCustomPropertiesForLivenessAndReadiness() {
-        Map<String, TreeMap> globalConfig = new HashMap<>();
-        TreeMap<String, String> enricherConfig = new TreeMap<>();
+        Map<String, Map<String, Object>> globalConfig = new HashMap<>();
+        TreeMap<String, Object> enricherConfig = new TreeMap<>();
         globalConfig.put(SpringBootHealthCheckEnricher.ENRICHER_NAME, enricherConfig);
         enricherConfig.put("readinessProbeInitialDelaySeconds", "30");
         enricherConfig.put("readinessProbePeriodSeconds", "40");
@@ -636,7 +634,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
         final ProcessorConfig config = new ProcessorConfig(null,null, globalConfig);
         new Expectations() {{
-            context.getConfiguration(); result = new Configuration.Builder().processorConfig(config).build();
+            context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
             context.getProjectClassLoaders();
             result = new ProjectClassLoaders(
                     new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())) {

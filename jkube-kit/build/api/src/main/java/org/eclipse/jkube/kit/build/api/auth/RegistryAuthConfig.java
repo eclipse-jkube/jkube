@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.api.auth;
 
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Singular;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -20,19 +24,33 @@ import java.util.Properties;
 
 /**
  * @author roland
- * @since 22.10.18
  */
+@EqualsAndHashCode
 public class RegistryAuthConfig {
 
-    private Map<String, Map<String, String>> handlerConfig = new HashMap<>();
-    private Map<Kind, Map<String, String>> kindConfig = new HashMap<>();
-    private Map<String, String> defaultConfig = new HashMap<>();
+
+    private final Map<String, Map<String, String>> handlerConfig;
+    private final Map<Kind, Map<String, String>> kindConfig;
+    private final Map<String, String> defaultConfig;
 
     private boolean skipExtendedAuthentication = false;
 
     private String propertyPrefix;
 
-    private RegistryAuthConfig() { }
+    @Builder
+    public RegistryAuthConfig(
+        Map<String, Map<String, String>> handlerConfig,
+        Map<Kind, Map<String, String>> kindConfig,
+        @Singular("putDefaultConfig") Map<String, String> defaultConfig,
+        boolean skipExtendedAuthentication,
+        String propertyPrefix
+    ) {
+        this.handlerConfig = Optional.ofNullable(handlerConfig).orElse(new HashMap<>());
+        this.kindConfig = Optional.ofNullable(kindConfig).orElse(new HashMap<>());
+        this.defaultConfig = Optional.ofNullable(defaultConfig).orElse(new HashMap<>());
+        this.skipExtendedAuthentication = skipExtendedAuthentication;
+        this.propertyPrefix = propertyPrefix;
+    }
 
     public String getConfigForHandler(String handlerName, String key) {
         return Optional.ofNullable(handlerConfig.get(handlerName)).map(m -> m.get(key)).orElse(null);
@@ -71,53 +89,27 @@ public class RegistryAuthConfig {
         return properties.getProperty(propertyPrefix + "." + key);
     }
 
-
-    public static class Builder {
-
-        private final RegistryAuthConfig config;
-
-        public Builder() {
-            config = new RegistryAuthConfig();
-        }
-
-        public Builder addKindConfig(Kind kind, String key, String value) {
-            config.kindConfig.computeIfAbsent(kind, k -> new HashMap<>()).put(key, value);
-            return this;
-        }
-
-        public Builder addDefaultConfig(String key, String value) {
-            if (value != null) {
-                config.defaultConfig.put(key, value);
-            }
-            return this;
-        }
-
-        public Builder addHandlerConfig(String id, String key, String value) {
-            if (value != null) {
-                config.handlerConfig.computeIfAbsent(id, i -> new HashMap<>()).put(key, value);
-            }
-            return this;
-        }
-
-        public Builder skipExtendedAuthentication(boolean skipExtendedAuthentication) {
-            config.skipExtendedAuthentication = skipExtendedAuthentication;
-            return this;
-        }
-
-        public Builder propertyPrefix(String propertyPrefix) {
-            config.propertyPrefix = propertyPrefix;
-            return this;
-        }
-
-        public RegistryAuthConfig build() {
-            return config;
-        }
-    }
-
-    // ========================================================================================
-
     public enum Kind {
         PUSH,
         PULL;
+    }
+
+    public static class RegistryAuthConfigBuilder {
+        public RegistryAuthConfigBuilder addKindConfig(Kind kind, String key, String value) {
+            if (kindConfig == null) {
+                kindConfig = new HashMap<>();
+            }
+            kindConfig.computeIfAbsent(kind, k -> new HashMap<>()).put(key, value);
+            return this;
+        }
+        public RegistryAuthConfigBuilder addHandlerConfig(String id, String key, String value) {
+            if (handlerConfig == null) {
+                handlerConfig = new HashMap<>();
+            }
+            if (value != null) {
+                handlerConfig.computeIfAbsent(id, i -> new HashMap<>()).put(key, value);
+            }
+            return this;
+        }
     }
 }

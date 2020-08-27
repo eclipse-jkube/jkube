@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 
@@ -49,9 +49,9 @@ public class VertxGenerator extends JavaExecGenerator {
 
   @Override
   public boolean isApplicable(List<ImageConfiguration> configs) {
-    return shouldAddImageConfiguration(configs)
+    return shouldAddGeneratedImageConfiguration(configs)
         && (JKubeProjectUtil.hasPlugin(getProject(), Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT)
-        || JKubeProjectUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, null));
+        || JKubeProjectUtil.hasDependencyWithGroupId(getProject(), Constants.VERTX_GROUPID));
   }
 
   @Override
@@ -112,7 +112,7 @@ public class VertxGenerator extends JavaExecGenerator {
   }
 
   private boolean isUsingFatJarPlugin() {
-    JKubeProject project = getProject();
+    JavaProject project = getProject();
     return JKubeProjectUtil.hasPlugin(project, Constants.SHADE_PLUGIN_GROUP, Constants.SHADE_PLUGIN_ARTIFACT) ||
            JKubeProjectUtil.hasPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
   }
@@ -125,6 +125,6 @@ public class VertxGenerator extends JavaExecGenerator {
       ports.add(String.valueOf(p));
     }
     // If there are no specific vertx ports found, we reuse the ports from the JavaExecGenerator
-    return ports.size() > 0 ? ports : super.extractPorts();
+    return ports.isEmpty() ? super.extractPorts() : ports;
   }
 }

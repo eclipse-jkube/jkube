@@ -1,0 +1,26 @@
+
+[[jkube-project-label]]
+==== jkube-project-label
+
+Enricher that adds standard labels and selectors to generated resources (e.g. `app`, `group`, `provider`, `version`).
+
+The `jkube-project-label` enricher supports the following configuration options:
+
+[cols="1,6,1"]
+|===
+| Option | Description | Property
+
+| *useProjectLabel*
+| Enable this flag to turn on the generation of the old `project` label in Kubernetes resources. The `project` label has
+been replaced by the `app` label in newer versions of the plugin.
+
+  Defaults to `false`.
+| `jkube.enricher.jkube-project-label.useProjectLabel`
+| *app*
+| Makes it possible to define a custom `app` label used in the generated resource files used for deployment. 
+
+Defaults to the Maven `project.artifactId` property.
+| `jkube.enricher.jkube-project-label.app`
+|===
+
+The project labels which are already specified in the input fragments are not overridden by the enricher.

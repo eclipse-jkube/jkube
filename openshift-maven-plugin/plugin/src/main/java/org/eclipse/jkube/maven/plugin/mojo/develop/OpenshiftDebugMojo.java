@@ -13,11 +13,14 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
-import static org.eclipse.jkube.maven.plugin.mojo.Openshift.DEFAULT_LOG_PREFIX;
+import java.io.File;
 
 /**
  * Ensures that the current app has debug enabled, then opens the debug port so that you can debug the latest pod
@@ -26,8 +29,19 @@ import static org.eclipse.jkube.maven.plugin.mojo.Openshift.DEFAULT_LOG_PREFIX;
 @Mojo(name = "debug", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.PACKAGE)
 public class OpenshiftDebugMojo extends DebugMojo {
 
+  /**
+   * The generated openshift YAML file
+   */
+  @Parameter(property = "jkube.openshiftManifest", defaultValue = DEFAULT_OPENSHIFT_MANIFEST)
+  private File openshiftManifest;
+
+  @Override
+  public File getManifest(KubernetesClient kubernetesClient) {
+    return OpenShift.getOpenShiftManifest(kubernetesClient, getKubernetesManifest(), openshiftManifest);
+  }
+
   @Override
   protected String getLogPrefix() {
-    return DEFAULT_LOG_PREFIX;
+    return OpenShift.DEFAULT_LOG_PREFIX;
   }
 }

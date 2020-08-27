@@ -13,75 +13,202 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.util.Properties;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 
-import java.util.Properties;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class ConfigsTest {
 
-    public static final String KEY_1 = "key1";
-    public static final String KEY_2 = "key2";
-    public static final String KEY_3 = "key3";
+  public enum ConfigWithDefaults implements Configs.Config {
+    ONE, TWO;
+  }
 
-    String value="value";
+  @AllArgsConstructor
+  public enum ConfigWithImplementations implements Configs.Config {
+    ONE("one", "this is the default value one"),
+    TWO("two", "default for two");
 
-    //@Mocked can't mock properties anymore in recent jmocckit
-    Properties properties = new Properties();
+    @Getter
+    protected String key;
+    @Getter
+    protected String defaultValue;
+  }
 
-    @Test
-    public void getIntValueTest(){
-        int result = Configs.asInt("85");
-        assertEquals(85,result);
+  @Test
+  public void configInterfaceWithDefaults() {
+    assertThat(ConfigWithDefaults.ONE.getKey()).isEqualTo("ONE");
+    assertThat(ConfigWithDefaults.ONE.getDefaultValue()).isNull();
+    assertThat(ConfigWithDefaults.TWO.getKey()).isEqualTo("TWO");
+    assertThat(ConfigWithDefaults.TWO.getDefaultValue()).isNull();
+  }
 
-        result = Configs.asInt(null);
-        assertEquals(0,result);
+  @Test
+  public void configInterfaceWithImplementations() {
+    assertThat(ConfigWithImplementations.ONE.getKey()).isEqualTo("one");
+    assertThat(ConfigWithImplementations.ONE.getDefaultValue()).isEqualTo("this is the default value one");
+    assertThat(ConfigWithImplementations.TWO.getKey()).isEqualTo("two");
+    assertThat(ConfigWithImplementations.TWO.getDefaultValue()).isEqualTo("default for two");
+  }
 
-        try{
-            result = Configs.asInt("parse");
-        }
-        catch (Exception e){
-            assertEquals("For input string: \"parse\"",e.getMessage());
-        }
-    }
+  @Test
+  public void asIntValueWithValidStringShouldReturnParsed() {
+    // When
+    final int result = Configs.asInt("2");
+    // Then
+    assertThat(result).isEqualTo(2);
+  }
 
-    @Test
-    public void getBooleanValueTest(){
-        boolean result = Configs.asBoolean("85");
-        assertEquals(false,result);
+  @Test(expected = NumberFormatException.class)
+  public void asIntValueWithInvalidStringShouldThrowException() {
+    // When
+    Configs.asInt("2.15");
+    // Then
+    fail();
+  }
 
-        result = Configs.asBoolean(null);
-        assertEquals(false,result);
+  @Test
+  public void asIntValueWithNullShouldReturnZero() {
+    // When
+    final int result = Configs.asInt(null);
+    // Then
+    assertThat(result).isZero();
+  }
 
-        result = Configs.asBoolean("false");
-        assertEquals(false,result);
+  @Test
+  public void asIntegerValueWithValidStringShouldReturnParsed() {
+    // When
+    final Integer result = Configs.asInteger("2");
+    // Then
+    assertThat(result).isEqualTo(2);
+  }
 
-        result = Configs.asBoolean("true");
-        assertEquals(true,result);
+  @Test(expected = NumberFormatException.class)
+  public void asIntegerValueWithInvalidStringShouldThrowException() {
+    // When
+    Configs.asInteger("2.15");
+    // Then
+    fail();
+  }
 
-        result = Configs.asBoolean("0");
-        assertEquals(false,result);
+  @Test
+  public void asIntegerValueWithNullShouldReturnNull() {
+    // When
+    final Integer result = Configs.asInteger(null);
+    // Then
+    assertThat(result).isNull();
+  }
 
-        result = Configs.asBoolean("1");
-        assertEquals(false,result);
+  @Test
+  public void asBooleanValueWithUnsupportedStringShouldReturnFalse() {
+    // When
+    final boolean result = Configs.asBoolean(" 1 2 1337");
+    // Then
+    assertThat(result).isFalse();
+  }
 
-    }
+  @Test
+  public void asBooleanValueWithOneShouldReturnFalse() {
+    // When
+    final boolean result = Configs.asBoolean("1");
+    // Then
+    assertThat(result).isFalse();
+  }
 
-    @Test
-    public void getStringValueTest(){
-        String test = RandomStringUtils.randomAlphabetic(10);
-        assertEquals(test,Configs.asString(test));
-    }
+  @Test
+  public void asBooleanValueWithZeroShouldReturnFalse() {
+    // When
+    final boolean result = Configs.asBoolean("0");
+    // Then
+    assertThat(result).isFalse();
+  }
 
-    @Test
-    public void getPropertyValueTest(){
-        properties.setProperty(KEY_1, value);
-        System.setProperty(KEY_2, value);
+  @Test
+  public void asBooleanValueWithTrueShouldReturnTrue() {
+    // When
+    final boolean result = Configs.asBoolean("true");
+    // Then
+    assertThat(result).isTrue();
+  }
 
-        assertEquals("value",Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, KEY_1));
-        assertEquals("value",Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, KEY_2));
-        assertEquals(null,Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, KEY_3));
-    }
+  @Test
+  public void asBooleanValueWithTrueUpperCaseShouldReturnTrue() {
+    // When
+    final boolean result = Configs.asBoolean("TRUE");
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void asBooleanValueWithTrueMixedCaseShouldReturnTrue() {
+    // When
+    final boolean result = Configs.asBoolean("TrUE");
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void asBooleanValueWithFalseMixedCaseShouldReturnFalse() {
+    // When
+    final boolean result = Configs.asBoolean("fALsE");
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void asBooleanValueWithFalseShouldReturnFalse() {
+    // When
+    final boolean result = Configs.asBoolean("false");
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void getStringValueTest() {
+    String test = RandomStringUtils.randomAlphabetic(10);
+    assertEquals(test, Configs.asString(test));
+  }
+
+  @Test
+  public void getFromSystemPropertyWithPropertiesAsFallbackHasKeyInSystemShouldReturnSystemValue() {
+    // Given
+    new SystemMock().put("key", "systemValue");
+    final Properties fallback = new Properties();
+    fallback.put("key", "fallbackValue");
+    // When
+    final String result = Configs.getFromSystemPropertyWithPropertiesAsFallback(fallback, "key");
+    // Then
+    assertThat(result).isEqualTo("systemValue");
+  }
+
+  @Test
+  public void getFromSystemPropertyWithPropertiesAsFallbackHasNotKeyInSystemShouldReturnSystemValue() {
+    // Given
+    new SystemMock().put("not-the-key", "systemValue");
+    final Properties fallback = new Properties();
+    fallback.put("key", "fallbackValue");
+    // When
+    final String result = Configs.getFromSystemPropertyWithPropertiesAsFallback(fallback, "key");
+    // Then
+    assertThat(result).isEqualTo("fallbackValue");
+  }
+
+  @Test
+  public void getFromSystemPropertyWithPropertiesAsFallbackHasNotKeyShouldReturnNull() {
+    // Given
+    new SystemMock().put("not-the-key", "systemValue");
+    final Properties fallback = new Properties();
+    fallback.put("not-the-key-either", "fallbackValue");
+    // When
+    final String result = Configs.getFromSystemPropertyWithPropertiesAsFallback(fallback, "key");
+    // Then
+    assertThat(result).isNull();
+  }
+
 }

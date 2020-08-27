@@ -17,11 +17,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -31,12 +36,11 @@ import org.junit.Test;
 
 import java.util.Collections;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author nicola
- * @since 14/02/17
  */
 public class ImageEnricherTest {
 
@@ -52,12 +56,11 @@ public class ImageEnricherTest {
     public void prepareMock() {
         // Setup mock behaviour
         new Expectations() {{
-            Configuration configuration =
-                new Configuration.Builder()
-                    .resource(new ResourceConfig.Builder()
-                                  .env(Collections.singletonMap("MY_KEY", "MY_VALUE"))
-                                  .build())
-                .images(Collections.singletonList(imageConfiguration))
+            Configuration configuration = Configuration.builder()
+                .resource(ResourceConfig.builder()
+                    .env(Collections.singletonMap("MY_KEY", "MY_VALUE"))
+                    .build())
+                .image(imageConfiguration)
                 .build();
             context.getConfiguration(); result = configuration;
 
@@ -70,9 +73,7 @@ public class ImageEnricherTest {
 
     @Test
     public void checkEnrichDeployment() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewDeploymentItem()
-                .endDeploymentItem();
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
         assertCorrectlyGeneratedResources(builder.build(), "Deployment");
@@ -80,9 +81,7 @@ public class ImageEnricherTest {
 
     @Test
     public void checkEnrichReplicaSet() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewReplicaSetItem()
-                .endReplicaSetItem();
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new ReplicaSetBuilder().build());
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
         assertCorrectlyGeneratedResources(builder.build(), "ReplicaSet");
@@ -100,9 +99,7 @@ public class ImageEnricherTest {
 
     @Test
     public void checkEnrichDaemonSet() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewDaemonSetItem()
-                .endDaemonSetItem();
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DaemonSetBuilder().build());
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
         assertCorrectlyGeneratedResources(builder.build(), "DaemonSet");
@@ -110,9 +107,7 @@ public class ImageEnricherTest {
 
     @Test
     public void checkEnrichStatefulSet() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewStatefulSetItem()
-                .endStatefulSetItem();
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new StatefulSetBuilder().build());
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
         assertCorrectlyGeneratedResources(builder.build(), "StatefulSet");
@@ -120,16 +115,14 @@ public class ImageEnricherTest {
 
     @Test
     public void checkEnrichDeploymentConfig() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewDeploymentConfigItem()
-                .endDeploymentConfigItem();
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentConfigBuilder().build());
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
         assertCorrectlyGeneratedResources(builder.build(), "DeploymentConfig");
     }
 
     private void assertCorrectlyGeneratedResources(KubernetesList list, String kind) throws JsonProcessingException {
-        assertEquals(list.getItems().size(),1);
+        assertEquals(1, list.getItems().size());
 
         String json = ResourceUtil.toJson(list.getItems().get(0));
         assertThat(json, JsonPathMatchers.isJson());

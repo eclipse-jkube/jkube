@@ -1,9 +1,14 @@
-[[k8s:resource]]
-== *k8s:resource*
+[[jkube:resource]]
+== *{goal-prefix}:resource*
 
-This goal generates kubernetes resources based upon your project. It can either be opinionated defaults or
-based upon the configuration provided in XML config or resource fragments in `src/main/jkube`. Generated
-resources are in `target/classes/META-INF/jkube/kubernetes` directory.
+This goal generates {cluster} resources based on your project. It can either be opinionated defaults or
+based on the configuration provided in XML config or resource fragments in `src/main/jkube`.
+ifeval::["{goal-prefix}" == "k8s"]
+Generated resources are in `target/classes/META-INF/jkube/kubernetes` directory.
+endif::[]
+ifeval::["{goal-prefix}" == "oc"]
+Generated resources are in `target/classes/META-INF/jkube/openshift` directory.
+endif::[]
 
 [[resource-labels-annotations]]
 === Labels and Annotations
@@ -15,9 +20,9 @@ Labels and annotations can be easily added to any resource object. This is best 
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
-  ...
+  <!-- ... -->
   <configuration>
-    ...
+    <!-- ... -->
     <resources>
       <labels> <!--1-->
         <all> <!--1-->
@@ -37,18 +42,18 @@ Labels and annotations can be easily added to any resource object. This is best 
           </property>
         </service>
         <replicaSet> <!--4-->
-          ...
+          <!-- ... -->
         </replicaSet>
         <pod> <!--5-->
-          ...
+          <!-- ... -->
         </pod>
         <deployment> <!--6-->
-          ...
+          <!-- ... -->
         </deployment>
       </labels>
 
       <annotations> <!--7-->
-         ...
+         <!-- ... -->
       </annotations>
       <remotes> <!--8-->
         <remote>https://gist.githubusercontent.com/lordofthejars/ac2823cec7831697d09444bbaa76cd50/raw/e4b43f1b6494766dfc635b5959af7730c1a58a93/deployment.yaml</remote>
@@ -66,7 +71,7 @@ Labels and annotations can be easily added to any resource object. This is best 
 <7> The subelements are also available for specifying annotations.
 <8> `<remotes>` you can set location of fragments as `URL`.
 
-Labels and annotations can be specified in free form as a map. In this map the element name is the name of the label or annotation respectively, whereas the content is the value to set.
+Labels and annotations can be specified in free form as a map. In this map, the element name is the name of the label or annotation respectively, whereas the content is the value to set.
 
 The following subelements are possible for `<labels>` and `<annotations>` :
 
@@ -76,10 +81,16 @@ The following subelements are possible for `<labels>` and `<annotations>` :
 | Element | Description
 
 | *all*
-| All entries specified in the `<all>` sections are applied to all resource objects created. This also implies build object like image stream and build configs which are create implicitely for an <<build-openshift, OpenShift build>>.
+| All entries specified in the `<all>` sections are applied to all resource objects created.
+ifeval::["{goal-prefix}" == "oc"]
+  This also implies build object like image stream and build configs which are created implicitly for an <<build-openshift, {cluster} build>>.
+endif::[]
 
 | *deployment*
-| Labels and annotations applied to `Deployment` (for Kubernetes) and `DeploymentConfig` (for OpenShift) objects
+| Labels and annotations applied to `Deployment` (for Kubernetes).
+ifeval::["{goal-prefix}" == "oc"]
+   And `DeploymentConfig` (for OpenShift) objects.
+endif::[]
 
 
 | *pod*
@@ -131,9 +142,12 @@ This is best explained by an example.
 [source,xml]
 ----
 <properties>
-    <docker.registry>docker.io</docker.registry>
+    <jkube.docker.registry>docker.io</docker.registry>
 </properties>
-...
+----
+
+[source,xml]
+----
 <configuration>
     <resources>
         <secrets>
@@ -174,32 +188,44 @@ Resource goal also validates the generated resource descriptors using API specif
 .Validation Configuration
 [cols="1,6,1"]
 |===
-| Configuration | Description | Default
+| Element | Description | Property
 
-| *jkube.skipResourceValidation*
-| If value is set to `true` then resource validation is skipped. This may be useful if resource validation is failing for some reason but you still want to continue the deployment.
-| `false`
+| *skipResourceValidation*
+| If value is set to `true` then resource validation is skipped. This may be useful if resource validation is failing
+  for some reason but you still want to continue the deployment.
 
-| *jkube.failOnValidationError*
-| If value is set to `true` then any validation error will block the plugin execution. A warning will be printed otherwise.
-| `false`
+  Default is `false`.
+| `jkube.skipResourceValidation`
+
+| *failOnValidationError*
+| If value is set to `true` then any validation error will block the plugin execution. A warning will be printed
+  otherwise.
+
+  Default is `false`.
+| `jkube.failOnValidationError`
 
 |===
 
+ifeval::["{goal-prefix}" == "oc"]
 [[resource-route-generation]]
 === Route Generation
 
-When the `k8s:resource` goal is run, an OpenShift https://docs.openshift.org/latest/architecture/networking/routes.html[Route] descriptor (`route.yml`) will also be generated along the service if an OpenShift cluster is targeted.
+When the `{goal-prefix}:resource` goal is run, an {cluster}
+https://docs.openshift.org/latest/architecture/networking/routes.html[Route] descriptor (`route.yml`) will also be
+generated along the service if an {cluster} cluster is targeted.
 If you do not want to generate a Route descriptor, you can set the `jkube.openshift.generateRoute` property to `false`.
 
 .Route Generation Configuration
-[cols="1.6.1"]
+[cols="1,6,1"]
 |===
-| Configuration | Description | Default
+| Element | Description | Property
 
-| *jkube.openshift.generateRoute*
-| If value is set to `false` then no Route descriptor will be generated. By default it is set to `true`, which will create a `route.yml` descriptor and also add Route resource to `openshift.yml`.
-| `true`
+| *generateRoute*
+| If value is set to `false` then no Route descriptor will be generated.
+  By default it is set to `true`, which will create a `route.yml` descriptor and also add Route resource to `openshift.yml`.
+| `jkube.openshift.generateRoute`
+
+  `jkube.enricher.jkube-openshift-route.generateRoute`
 |===
 
 If you do not want to generate a Route descriptor, you can also specify so in the plugin configuration in your POM as seen below.
@@ -209,20 +235,27 @@ If you do not want to generate a Route descriptor, you can also specify so in th
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
-    <groupId>org.eclipse.jkube</groupId>
-    <artifactId>kubernetes-maven-plugin</artifactId>
-    <version>{version}</version>
-    <configuration>
-        <generateRoute>false</generateRoute>
-    </configuration>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+  <version>{version}</version>
+  <configuration>
+    <enricher>
+      <config>
+        <jkube-openshift-route>
+          <generateRoute>false</generateRoute>
+        </jkube-openshift-route>
+      </config>
+    </enricher>
+  </configuration>
 </plugin>
 ----
 
-If you are using resource fragments, then also you can configure it in your Service resource fragment (e.g. `service.yml`). You need to add an `expose` label to the `metadata` section of your service and set it to `false`.
+If you are using resource fragments, then also you can configure it in your Service resource fragment (e.g. `service.yml`).
+You need to add an `expose` label to the `metadata` section of your service and set it to `false`.
 
 .Example for not generating route resource by configuring it in resource fragments
 
-[source.yaml]
+[source, yaml]
 ----
 metadata:
   annotations:
@@ -233,48 +266,123 @@ spec:
   type: LoadBalancer
 ----
 
-In case both the label and the property have been set with conflicting values, precedence will be given to the property value, so if you set the label to `true` but set the property to `false` then no Route descriptor will be generated because precedence will be given to the property value.
+endif::[]
 
-[[Other-flags]]
-=== Other flags
+[[Supported-Properties-Resource]]
+=== Supported Properties for Resource goal
 
-.Other options available with resource goal
-[cols="1.6.3"]
+.Options available with resource goal
+[cols="1,6,1"]
 |===
-| Configuration | Description | Default
+| Element | Description | Property
 
-| *jkube.profile*
-| Profile to use. A profile contains the enrichers and generators to use as well as their configuration. Profiles are looked up in the classpath and can be provided as yaml files.
-| `default`
+ifeval::["{goal-prefix}" == "oc"]
+| *enableAutomaticTrigger*
+| If the value is set to `false` then automatic deployments would be disabled.
 
-| *jkube.sidecar*
+  Defaults to `true`.
+| `jkube.openshift.enableAutomaticTrigger`
+
+| *deployTimeoutSeconds*
+| The OpenShift deploy timeout in seconds.
+
+  Defaults to `3600`.
+| `jkube.openshift.deployTimeoutSeconds`
+
+| *imageChangeTriggers*
+| Add ImageChange triggers to DeploymentConfigs when on openshift.
+
+  Defaults to `true`.
+| `jkube.openshift.imageChangeTriggers`
+
+| *trimImageInContainerSpec*
+| If set to true it would set the container image reference to "", this is done to handle weird behavior of OpenShift
+  3.7 in which subsequent rollouts lead to ImagePullErr.
+
+  Defaults to `false`.
+| `jkube.openshift.trimImageInContainerSpec`
+
+| *enrichAllWithImageChangeTrigger*
+| Adds ImageChangeTriggers with respect to all containers specified inside DeploymentConfig.
+
+  Defaults to `false`.
+| `jkube.openshift.enrichAllWithImageChangeTrigger`
+endif::[]
+
+| *profile*
+| Profile to use. A profile contains the enrichers and generators to use as well as their configuration. Profiles are
+  looked up in the classpath and can be provided as yaml files.
+
+  Defaults to `default`.
+| `jkube.profile`
+
+| *sidecar*
 | Whether to enable sidecar behavior or not. By default pod specs are merged into main application container.
-| `false`
 
-| *jkube.skipHealthCheck*
+  Defaults to `false`.
+| `jkube.sidecar`
+
+| *skipHealthCheck*
 | Whether to skip health checks addition in generated resources or not.
-| `false`
 
-| *jkube.workDir*
-| The JKube working directory
-| `${project.build.directory}/jkube`
+  Defaults to `false`.
+| `jkube.skipHealthCheck`
 
-| *jkube.environment*
-| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, plugin will look at `src/main/jkube/dev`.
-| `NULL`
+| *workDir*
+| The JKube working directory. Defaults to `${project.build.directory}/jkube`.
+| `jkube.workDir`
 
-| *jkube.useProjectClassPath*
-| Should we use the project's compile time classpath to scan for additional enrichers/generators?
-| `false`
+| *environment*
+| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the
+  default one, plugin will look at `src/main/jkube/dev`.
 
-| *jkube.resourceDir*
-| Folder where to find project specific files
-| `${basedir}/src/main/jkube`
+  Defaults to `null`.
+| `jkube.environment`
 
-| *jkube.targetDir*
-| The generated Kubernetes manifests
-| `${project.build.outputDirectory}/META-INF/jkube`
+| *useProjectClassPath*
+| Should we use the project's compile time classpath to scan for additional enrichers/generators.
+
+  Defaults to `false`.
+| `jkube.useProjectClassPath`
+
+| *resourceDir*
+| Folder where to find project specific files.
+
+  Defaults to `${basedir}/src/main/jkube`.
+| `jkube.resourceDir`
+
+| *targetDir*
+| The generated Kubernetes manifests target direcotry.
+
+  Defaults to `${project.build.outputDirectory}/META-INF/jkube`.
+| `jkube.targetDir`
+
+| *resourceType*
+| The artifact type for attaching the generated resource file to the project. Can be either 'json' or 'yaml'.
+
+  Defaults to `yaml`.
+| `jkube.resourceType`
+
+| *mergeWithDekorate*
+| When resource generation is delegated to Dekorate, should JKube resources be merged with Dekorate generated ones.
+
+  Defaults to `false`.
+| `jkube.mergeWithDekorate`
+
+| *skipResource*
+| Skip resource generation.
+
+  Defaults to `false`.
+| `jkube.skip.resource`
+
+| *createExternalUrls*
+| Should we create external Ingress for any LoadBalancer Services which don't already have them.
+
+  Defaults to `false`.
+| `jkube.createExternalUrls`
+
+| *domain*
+| Domain added to the Service ID when creating Kubernetes Ingresses or OpenShift routes.
+| `jkube.domain`
 
 |===
-
-[[Other-flags]]

@@ -15,30 +15,23 @@ package org.eclipse.jkube.generator.api;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.kind;
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.name;
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.namespace;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.kind;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.name;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.namespace;
 
 
 /**
  * Helper class to encapsulate the selection of a base image
  *
  * @author roland
- * @since 12/08/16
  */
 public abstract class FromSelector {
 
     private final GeneratorContext context;
-
-    private final Pattern REDHAT_VERSION_PATTERN = Pattern.compile("^.*\\.(redhat|fuse)-.*$");
 
     public FromSelector(GeneratorContext context) {
         this.context = context;
@@ -46,8 +39,8 @@ public abstract class FromSelector {
 
     public String getFrom() {
         RuntimeMode mode = context.getRuntimeMode();
-        OpenShiftBuildStrategy strategy = context.getStrategy();
-        if (mode == RuntimeMode.openshift && strategy == OpenShiftBuildStrategy.s2i) {
+        JKubeBuildStrategy strategy = context.getStrategy();
+        if (mode == RuntimeMode.OPENSHIFT && strategy == JKubeBuildStrategy.s2i) {
             return getS2iBuildFrom();
         } else {
             return getDockerBuildFrom();
@@ -62,32 +55,14 @@ public abstract class FromSelector {
         return ret;
     }
 
-    abstract protected String getDockerBuildFrom();
-    abstract protected String getS2iBuildFrom();
-    abstract protected String getIstagFrom();
-
-    public boolean isRedHat() {
-        JKubeProject project = context.getProject();
-        JKubeProjectPlugin plugin = JKubeProjectUtil.getPlugin(project, "org.eclipse.jkube","openshift-maven-plugin");
-        if (plugin == null) {
-            // This plugin might be repackaged.
-            plugin = JKubeProjectUtil.getPlugin(project,"org.jboss.redhat-fuse", "openshift-maven-plugin");
-        }
-        if (plugin == null) {
-            // Can happen if not configured in a build section but only in a dependency management section
-            return false;
-        }
-        String version = plugin.getVersion();
-        return REDHAT_VERSION_PATTERN.matcher(version).matches();
-    }
+    protected abstract String getDockerBuildFrom();
+    protected abstract String getS2iBuildFrom();
+    protected abstract String getIstagFrom();
 
     public static class Default extends FromSelector {
 
         private final String upstreamDocker;
         private final String upstreamS2i;
-        private final String redhatDocker;
-        private final String redhatS2i;
-        private final String redhatIstag;
         private final String upstreamIstag;
 
         public Default(GeneratorContext context, String prefix) {
@@ -97,24 +72,20 @@ public abstract class FromSelector {
             this.upstreamDocker = lookup.getImageName(prefix + ".upstream.docker");
             this.upstreamS2i = lookup.getImageName(prefix + ".upstream.s2i");
             this.upstreamIstag = lookup.getImageName(prefix + ".upstream.istag");
-
-            this.redhatDocker = lookup.getImageName(prefix + ".redhat.docker");
-            this.redhatS2i = lookup.getImageName(prefix + ".redhat.s2i");
-            this.redhatIstag = lookup.getImageName(prefix + ".redhat.istag");
         }
 
         @Override
         protected String getDockerBuildFrom() {
-            return isRedHat() ? redhatDocker : upstreamDocker;
+            return upstreamDocker;
         }
 
         @Override
         protected String getS2iBuildFrom() {
-            return isRedHat() ? redhatS2i : upstreamS2i;
+            return upstreamS2i;
         }
 
         protected String getIstagFrom() {
-            return isRedHat() ? redhatIstag : upstreamIstag;
+            return upstreamIstag;
         }
     }
 }

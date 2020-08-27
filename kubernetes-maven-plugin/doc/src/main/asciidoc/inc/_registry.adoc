@@ -10,7 +10,7 @@ registry. This registry (or the default `docker.io` if no
 registry is given) is used during push and pull operations. This
 plugin follows the same semantics, so if an image name is specified
 with a registry part, this registry is contacted. Authentication is
-explained in the next <<_authentication,section>>.
+explained in the next <<authentication, section>>.
 
 There are some situations however where you want to have more
 flexibility for specifying a remote registry. This might be because
@@ -29,24 +29,24 @@ operations. But this can be overwritten through various means:
 this registry is used.
 ** Otherwise, a global configuration element `<registry>` is
 evaluated which can be also provided as system property via
-`-Ddocker.registry`.
+`-Djkube.docker.registry`.
 ** Finally an environment variable `DOCKER_REGISTRY` is looked up for
 detecting a registry.
 
 This registry is used for pulling (i.e. for autopull the base image
-when doing a `{plugin}:build`) and pushing with `{plugin}:push`. However,
-when these two goals a are combined on the command line like in `mvn
--Ddocker.registry=myregistry:5000 package {plugin}:build {plugin}:push`
+when doing a `{goal-prefix}:build`) and pushing with `{goal-prefix}:push`. However,
+when these two goals are combined on the command line like in `mvn
+-Djkube.docker.registry=myregistry:5000 package {goal-prefix}:build {goal-prefix}:push`
 the same registry is used for both operation. For a more fine grained
 control, separate registries for _pull_ and _push_ can be specified.
 
 * In the plugin's configuration with the parameters `<pullRegistry>` and
 `<pushRegistry>`, respectively.
-* With the system properties `docker.pull.registry` and
-`docker.push.registry`, respectively.
+* With the system properties `jkube.docker.pull.registry` and
+`jkube.docker.push.registry`, respectively.
 
 .Example
-[source,xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <configuration>
   <registry>docker.jolokia.org:443</registry>
@@ -56,16 +56,16 @@ control, separate registries for _pull_ and _push_ can be specified.
       <name>jolokia/jolokia-java</name>
       <!-- ... hence use this registry -->
       <registry>docker.ro14nd.de</registry>
-      ....
-    <image>
+      <!-- ... -->
+    </image>
     <image>
       <name>postgresql</name>
       <!-- No registry in the name, hence use the globally
            configured docker.jolokia.org:443 as registry -->
-      ....
+      <!-- ... -->
     </image>
     <image>
-      <!-- Explicitely specified always wins -->
+      <!-- Explicitly specified always wins -->
       <name>docker.example.com:5000/another/server</name>
     </image>
   </images>

@@ -26,8 +26,8 @@ import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +65,7 @@ public class VolumePermissionEnricherTest {
     @Test
     public void alreadyExistingInitContainer(@Mocked final ProcessorConfig config) throws Exception {
         new Expectations() {{
-            context.getConfiguration(); result = new Configuration.Builder().processorConfig(config).build();
+            context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
         }};
 
         PodTemplateBuilder ptb = createEmptyPodTemplate();
@@ -89,7 +89,7 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void testAdapt() throws Exception {
+    public void testAdapt() {
         final TestConfig[] data = new TestConfig[]{
             new TestConfig(null, null),
             new TestConfig(null, VolumePermissionEnricher.ENRICHER_NAME, "volumeA"),
@@ -98,12 +98,12 @@ public class VolumePermissionEnricherTest {
 
         for (final TestConfig tc : data) {
             final ProcessorConfig config = new ProcessorConfig(null, null,
-                    Collections.singletonMap(VolumePermissionEnricher.ENRICHER_NAME, new TreeMap(Collections
-                            .singletonMap(VolumePermissionEnricher.Config.permission.name(), tc.permission))));
+                    Collections.singletonMap(VolumePermissionEnricher.ENRICHER_NAME,
+                        Collections.singletonMap("permission", tc.permission)));
 
             // Setup mock behaviour
             new Expectations() {{
-                context.getConfiguration(); result = new Configuration.Builder().processorConfig(config).build();
+                context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
             }};
 
             VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);

@@ -13,10 +13,11 @@
  */
 package org.eclipse.jkube.generator.wildflyswarm;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
@@ -33,7 +34,7 @@ public class WildFlySwarmGenerator extends JavaExecGenerator {
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
-        return shouldAddImageConfiguration(configs) && JKubeProjectUtil.hasPlugin(getProject(), "org.wildfly.swarm", "wildfly-swarm-plugin");
+        return shouldAddGeneratedImageConfiguration(configs) && JKubeProjectUtil.hasPlugin(getProject(), "org.wildfly.swarm", "wildfly-swarm-plugin");
     }
 
     @Override
@@ -44,6 +45,12 @@ public class WildFlySwarmGenerator extends JavaExecGenerator {
         // - https://github.com/fabric8io/fabric8-maven-plugin/issues/1173
         // - https://issues.jboss.org/browse/SWARM-1859
         ret.put("AB_PROMETHEUS_OFF", "true");
+        ret.put("AB_OFF", "true");
         return ret;
+    }
+
+    @Override
+    protected List<String> getExtraJavaOptions() {
+        return Collections.singletonList("-Djava.net.preferIPv4Stack=true");
     }
 }

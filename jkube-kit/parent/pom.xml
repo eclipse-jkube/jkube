@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -45,25 +45,23 @@
     <version.commons-text>1.1</version.commons-text>
     <version.gson>2.8.5</version.gson>
     <version.guava>27.0-jre</version.guava>
-    <version.hamcrest-library>1.3</version.hamcrest-library>
     <version.httpclient>4.5.6</version.httpclient>
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
     <version.jansi>1.16</version.jansi>
     <version.javassist>3.20.0-GA</version.javassist>
     <version.jgit>5.3.0.201903130848-r</version.jgit>
-    <version.jmockit>1.43</version.jmockit>
     <version.jnr-unixsocket>0.12</version.jnr-unixsocket>
     <version.jruby-complete>1.7.26</version.jruby-complete>
     <version.json-path-assert>2.2.0</version.json-path-assert>
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.0.5</version.JUnitParams>
-    <version.kubernetes-client>4.7.1</version.kubernetes-client>
+    <version.kubernetes-client>4.10.3</version.kubernetes-client>
+    <version.lombok>1.18.12</version.lombok>
     <version.maven-archiver>3.2.0</version.maven-archiver>
     <version.maven-core>3.5.4</version.maven-core>
     <version.maven-filtering>3.1.1</version.maven-filtering>
     <version.maven-plugin-annotations>3.6.0</version.maven-plugin-annotations>
-    <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>
-    <version.mockwebserver>0.0.13</version.mockwebserver>
+    <version.mockwebserver>0.1.8</version.mockwebserver>
     <version.networknt.validator>0.1.7</version.networknt.validator>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
     <version.plexus-archiver>3.5</version.plexus-archiver>
@@ -77,57 +75,47 @@
     <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
 
     <!-- =======================================================  -->
+    <version.image.jkube-images>0.0.7</version.image.jkube-images>
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
-    <version.image.java.upstream.docker>1.5</version.image.java.upstream.docker>
-    <version.image.java.upstream.s2i>2.3</version.image.java.upstream.s2i>
-
-    <!-- RedHat -->
-    <version.image.java.redhat.docker>2.0</version.image.java.redhat.docker>
-    <version.image.java.redhat.s2i>${version.image.java.redhat.docker}</version.image.java.redhat.s2i>
+    <version.image.java.upstream.docker>${version.image.jkube-images}</version.image.java.upstream.docker>
+    <version.image.java.upstream.s2i>${version.image.jkube-images}</version.image.java.upstream.s2i>
 
     <!-- =======================================================  -->
     <!-- === Karaf base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
-    <version.image.karaf.upstream.docker>2.3</version.image.karaf.upstream.docker>
-    <version.image.karaf.upstream.s2i>${version.image.karaf.upstream.docker}</version.image.karaf.upstream.s2i>
-
-    <!-- RedHat  -->
-    <version.image.karaf.redhat.docker>2.0</version.image.karaf.redhat.docker>
-    <version.image.karaf.redhat.s2i>${version.image.karaf.redhat.docker}</version.image.karaf.redhat.s2i>
+    <version.image.karaf.upstream.docker>${version.image.jkube-images}</version.image.karaf.upstream.docker>
+    <version.image.karaf.upstream.s2i>${version.image.jkube-images}</version.image.karaf.upstream.s2i>
 
     <!-- =======================================================  -->
     <!-- Servlet container images -->
-    <version.image.tomcat.upstream>1.2.1</version.image.tomcat.upstream>
-    <version.image.jetty.upstream>1.5.1</version.image.jetty.upstream>
-    <version.image.wildfly.upstream>10.1.0.Final</version.image.wildfly.upstream>
+    <version.image.tomcat.upstream>${version.image.jkube-images}</version.image.tomcat.upstream>
+    <version.image.jetty.upstream>${version.image.jkube-images}</version.image.jetty.upstream>
+    <version.image.wildfly.upstream.docker>19.0.0.Final</version.image.wildfly.upstream.docker>
+    <version.image.wildfly.upstream.s2i>19.0</version.image.wildfly.upstream.s2i>
 
     <!-- ============================================= -->
     <!-- Default images used in the default generators. Please note that the generators make some assumption about
          these images (e.g. where the deployment directory is), so don't change them arbitrarily -->
 
     <!-- java (java-exec, spring-boot, wildfly-swarm) -->
-    <image.java.upstream.s2i>fabric8/s2i-java:${version.image.java.upstream.s2i}</image.java.upstream.s2i>
-    <image.java.upstream.docker>fabric8/java-centos-openjdk8-jdk:${version.image.java.upstream.docker}</image.java.upstream.docker>
-    <image.java.upstream.istag>fabric8-java:${version.image.java.upstream.s2i}</image.java.upstream.istag>
-
-    <image.java.redhat.s2i>jboss-fuse-6/fis-java-openshift:${version.image.java.redhat.s2i}</image.java.redhat.s2i>
-    <image.java.redhat.docker>jboss-fuse-6/fis-java-openshift:${version.image.java.redhat.docker}</image.java.redhat.docker>
-    <image.java.redhat.istag>fis-java-openshift:${version.image.java.redhat.s2i}</image.java.redhat.istag>
+    <image.java.upstream.s2i>quay.io/jkube/jkube-java-binary-s2i:${version.image.java.upstream.s2i}</image.java.upstream.s2i>
+    <image.java.upstream.docker>quay.io/jkube/jkube-java-binary-s2i:${version.image.java.upstream.docker}</image.java.upstream.docker>
+    <image.java.upstream.istag>jkube-java:${version.image.java.upstream.s2i}</image.java.upstream.istag>
 
     <!-- karaf -->
-    <image.karaf.upstream.docker>fabric8/s2i-karaf:${version.image.karaf.upstream.docker}</image.karaf.upstream.docker>
-    <image.karaf.upstream.s2i>fabric8/s2i-karaf:${version.image.karaf.upstream.s2i}</image.karaf.upstream.s2i>
-    <image.karaf.upstream.istag>fabric8-karaf:${version.image.karaf.upstream.s2i}</image.karaf.upstream.istag>
-
-    <image.karaf.redhat.docker>jboss-fuse-6/fis-karaf-openshift:${version.image.karaf.redhat.docker}</image.karaf.redhat.docker>
-    <image.karaf.redhat.s2i>jboss-fuse-6/fis-karaf-openshift:${version.image.karaf.redhat.s2i}</image.karaf.redhat.s2i>
-    <image.karaf.redhat.istag>fis-karaf-openshift:${version.image.karaf.redhat.s2i}</image.karaf.redhat.istag>
+    <image.karaf.upstream.docker>quay.io/jkube/jkube-karaf-binary-s2i:${version.image.karaf.upstream.docker}</image.karaf.upstream.docker>
+    <image.karaf.upstream.s2i>quay.io/jkube/jkube-karaf-binary-s2i:${version.image.karaf.upstream.s2i}</image.karaf.upstream.s2i>
+    <image.karaf.upstream.istag>jkube-karaf:${version.image.karaf.upstream.s2i}</image.karaf.upstream.istag>
 
     <!-- webapp -->
-    <image.tomcat.upstream>fabric8/tomcat-9:${version.image.tomcat.upstream}</image.tomcat.upstream>
-    <image.jetty.upstream>fabric8/jetty-9:${version.image.jetty.upstream}</image.jetty.upstream>
-    <image.wildfly.upstream>jboss/wildfly:${version.image.wildfly.upstream}</image.wildfly.upstream>
+    <image.tomcat.upstream>quay.io/jkube/jkube-tomcat9-binary-s2i:${version.image.tomcat.upstream}</image.tomcat.upstream>
+    <image.jetty.upstream>quay.io/jkube/jkube-jetty9-binary-s2i:${version.image.jetty.upstream}</image.jetty.upstream>
+    <image.wildfly.upstream.docker>jboss/wildfly:${version.image.wildfly.upstream.docker}</image.wildfly.upstream.docker>
+    <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
+    <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
+
+    <jib-core.version>0.12.0</jib-core.version>
   </properties>
 
   <dependencyManagement>
@@ -142,6 +130,13 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-common-test</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-common-maven</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -149,6 +144,12 @@
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-config-image</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-config-service</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -178,7 +179,7 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-kit-resource-service</artifactId>
+        <artifactId>jkube-kit-build-service-jib</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -218,6 +219,12 @@
         <version>${project.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-resource-helm</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
       <!-- == jkube ===================================== -->
       <dependency>
         <groupId>io.fabric8</groupId>
@@ -239,6 +246,14 @@
           <exclusion>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.sundr</groupId>
+            <artifactId>builder-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.jsonschema2pojo</groupId>
+            <artifactId>jsonschema2pojo-core</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.slf4j</groupId>
@@ -337,6 +352,35 @@
       </dependency>
 
       <dependency>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-core</artifactId>
+        <version>${jib-core.version}</version>
+          <exclusions>
+              <exclusion>
+                  <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+              </exclusion>
+            <exclusion>
+              <groupId>com.fasterxml.jackson.core</groupId>
+              <artifactId>jackson-databind</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.fasterxml.jackson.core</groupId>
+              <artifactId>jackson-core</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.httpcomponents</groupId>
+              <artifactId>httpclient</artifactId>
+            </exclusion>
+
+          </exclusions>
+      </dependency>
+
+      <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
         <version>${version.snakeyaml}</version>
@@ -408,6 +452,13 @@
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>jsr305</artifactId>
         <version>${version.jsr305}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${version.lombok}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
@@ -538,6 +589,10 @@
         <scope>test</scope>
         <exclusions>
           <exclusion>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>com.sun</groupId>
             <artifactId>tools</artifactId>
           </exclusion>
@@ -574,6 +629,10 @@
           <exclusion>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.fabric8</groupId>
+            <artifactId>mockwebserver</artifactId>
           </exclusion>
           <exclusion>
             <groupId>com.squareup.okhttp3</groupId>
@@ -692,6 +751,14 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${version.maven-failsafe-plugin}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>integration-test</goal>
+                <goal>verify</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
 
         <plugin>
@@ -743,6 +810,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
     </plugins>
 
     <extensions>
@@ -753,6 +824,5 @@
       </extension>
     </extensions>
   </build>
-
 
 </project>

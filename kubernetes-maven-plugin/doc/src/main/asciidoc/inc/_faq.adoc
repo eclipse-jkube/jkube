@@ -80,9 +80,12 @@ spec:
               mountPath: /deployments/config
 ----
 
-Here is https://github.com/jkube.quickstarts/spring-boot-webmvc/tree/master/src/main/jkube[an example quickstart doing this]
+Here is https://github.com/eclipse/jkube/tree/master/quickstarts/maven/external-resources[an example quickstart doing this]
 
-Note that the annotation `configmap.jkube.io/update-on-change` is optional; its used if your application is not capable of watching for changes in the `/deployments/config/application.properties` file. In this case if you are also running the https://github.com/jkubeio/configmapcontroller[configmapcontroller] then this will cause a rolling upgrade of your application to use the new `ConfigMap` contents as you change it.
+Note that the annotation `configmap.jkube.io/update-on-change` is optional; its used if your application is not capable
+of watching for changes in the `/deployments/config/application.properties` file. In this case if you are also running
+the https://github.com/fabric8io/configmapcontroller[configmapcontroller] then this will cause a rolling upgrade of your
+application to use the new `ConfigMap` contents as you change it.
 
 === How do I use a Persistent Volume?
 
@@ -118,3 +121,29 @@ spec:
 
 Where the above defines the `PersistentVolumeClaim` called `foo` which is then mounted into the container at `/whatnot`
 
+=== How do I generate Ingress for my generated Service?
+`Ingress` generation is supported by Eclipse JKube for `Service` objects of type `LoadBalancer`. In order to generate `Ingress` you need to enable `jkube.createExternalUrls` property to `true` and `jkube.domain` property to desired host suffix, it would be appended to your service name for host value. You can also also provide a host for it in XML config like this:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+  <plugin>
+    <groupId>org.eclipse.jkube</groupId>
+    <artifactId>{plugin}</artifactId>
+    <version>{version}</version>
+
+    <configuration>
+      <resources>
+        <routeDomain>org.eclipse.jkube</routeDomain>
+      </resources>
+
+      <enricher>
+        <config>
+          <jkube-service>
+            <type>LoadBalancer</type>
+          </jkube-service>
+        </config>
+      </enricher>
+    </configuration>
+  </plugin>
+----
+
+You can find an example in our link:https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot[spring-boot] quickstart in `kubernetes-with-ingress` profile.

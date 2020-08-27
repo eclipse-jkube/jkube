@@ -18,56 +18,72 @@ import java.util.List;
 import org.eclipse.jkube.generator.webapp.AppServerHandler;
 
 /**
- * A custom app server handler used when use explicitely configures the base image
+ * A custom app server handler used when use explicitly configures the base image
  *
  * @author roland
- * @since 05/10/16
  */
 public class CustomAppServerHandler implements AppServerHandler {
 
-    private String from, deploymentDir, command, user;
-    private List<String> ports;
+  private final String from;
+  private final String deploymentDir;
+  private final String command;
+  private final String user;
+  private final List<String> ports;
+  private final boolean supportsS2iBuild;
 
-    public CustomAppServerHandler(String from, String deploymentDir, String command, String user, List<String> ports) {
-        this.from = from;
-        this.deploymentDir = deploymentDir;
-        this.command = command;
-        this.user = user;
-        this.ports = ports;
-    }
+  public CustomAppServerHandler(
+      String from, String deploymentDir, String command, String user, List<String> ports, boolean supportsS2iBuild) {
 
-    @Override
-    public boolean isApplicable() {
-        return true;
-    }
+    this.from = from;
+    this.deploymentDir = deploymentDir;
+    this.command = command;
+    this.user = user;
+    this.ports = ports;
+    this.supportsS2iBuild = supportsS2iBuild;
+  }
 
-    @Override
-    public String getName() {
-        return "custom";
-    }
+  @Override
+  public boolean isApplicable() {
+    return true;
+  }
 
-    @Override
-    public String getFrom() {
-        return from;
-    }
+  @Override
+  public String getName() {
+    return "custom";
+  }
 
-    @Override
-    public String getDeploymentDir() {
-        return deploymentDir;
-    }
+  @Override
+  public String getFrom() {
+    return from;
+  }
 
-    @Override
-    public String getCommand() {
-        return command;
-    }
+  @Override
+  public String getAssemblyName() {
+    return null;
+  }
 
-    @Override
-    public String getUser() {
-        return user;
-    }
+  @Override
+  public String getDeploymentDir() {
+    return deploymentDir;
+  }
 
-    @Override
-    public List<String> exposedPorts() {
-        return ports;
-    }
+  @Override
+  public String getCommand() {
+    return command;
+  }
+
+  @Override
+  public String getUser() {
+    return user;
+  }
+
+  @Override
+  public List<String> exposedPorts() {
+    return ports;
+  }
+
+  @Override
+  public boolean supportsS2iBuild() {
+    return supportsS2iBuild;
+  }
 }

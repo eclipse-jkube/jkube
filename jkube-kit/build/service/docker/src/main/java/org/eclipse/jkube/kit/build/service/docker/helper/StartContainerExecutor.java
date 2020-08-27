@@ -19,24 +19,32 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.model.Container;
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.ExecException;
 import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
-import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
-import org.eclipse.jkube.kit.build.service.docker.config.LogConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.LogConfiguration;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode
 public class StartContainerExecutor {
+
     private String exposeContainerProps;
     private KitLogger log;
     private LogOutputSpecFactory logOutputSpecFactory;
@@ -51,8 +59,6 @@ public class StartContainerExecutor {
     private GavLabel gavLabel;
     private PortMapping portMapping;
     private LogDispatcher dispatcher;
-
-    private StartContainerExecutor(){}
 
     public String startContainers() throws IOException, ExecException {
         final Properties projProperties = projectProperties;
@@ -111,7 +117,7 @@ public class StartContainerExecutor {
     private void waitAndPostExec(String containerId, Properties projProperties) throws IOException, ExecException {
         // Wait if requested
         hub.getWaitService().wait(imageConfig, projProperties, containerId);
-        WaitConfiguration waitConfig = imageConfig.getRunConfiguration().getWaitConfiguration();
+        WaitConfiguration waitConfig = imageConfig.getRunConfiguration().getWait();
         if (waitConfig != null && waitConfig.getExec() != null && waitConfig.getExec().getPostStart() != null) {
             try {
                 hub.getRunService().execInContainer(containerId, waitConfig.getExec().getPostStart(), imageConfig);
@@ -126,7 +132,7 @@ public class StartContainerExecutor {
     }
 
     boolean showLogs() {
-        if (showLogs != null) {
+        if (StringUtils.isNotBlank(showLogs)) {
             if (showLogs.equalsIgnoreCase("true")) {
                 return true;
             } else if (showLogs.equalsIgnoreCase("false")) {
@@ -138,7 +144,7 @@ public class StartContainerExecutor {
 
         RunImageConfiguration runConfig = imageConfig.getRunConfiguration();
         if (runConfig != null) {
-            LogConfiguration logConfig = runConfig.getLogConfiguration();
+            LogConfiguration logConfig = runConfig.getLog();
             if (logConfig != null) {
                 return logConfig.isActivated();
             } else {
@@ -149,87 +155,4 @@ public class StartContainerExecutor {
         return false;
     }
 
-    public static class Builder {
-        private final StartContainerExecutor helper;
-
-        public Builder(){
-            helper = new StartContainerExecutor();
-        }
-
-        public Builder log(KitLogger log) {
-            helper.log = log;
-            return this;
-        }
-
-        public Builder logOutputSpecFactory(LogOutputSpecFactory factory) {
-            helper.logOutputSpecFactory = factory;
-            return this;
-        }
-
-        public Builder exposeContainerProps(String exposeContainerProps) {
-            helper.exposeContainerProps = exposeContainerProps;
-            return this;
-        }
-
-        public Builder serviceHub(ServiceHub hub) {
-            helper.hub = hub;
-            return this;
-        }
-
-        public Builder projectProperties(Properties props) {
-            helper.projectProperties = props;
-            return this;
-        }
-
-        public Builder basedir(File dir) {
-            helper.basedir = dir;
-            return this;
-        }
-
-        public Builder follow(boolean follow) {
-            helper.follow = follow;
-            return this;
-        }
-
-        public Builder showLogs(String showLogs) {
-            helper.showLogs = showLogs;
-            return this;
-        }
-
-        public Builder containerNamePattern(String pattern) {
-            helper.containerNamePattern = pattern;
-            return this;
-        }
-
-        public Builder buildTimestamp(Date date) {
-            helper.buildDate = date;
-            return this;
-        }
-
-
-
-        public Builder dispatcher(LogDispatcher dispatcher) {
-            helper.dispatcher = dispatcher;
-            return this;
-        }
-
-        public Builder portMapping(PortMapping portMapping) {
-            helper.portMapping = portMapping;
-            return this;
-        }
-
-        public Builder gavLabel(GavLabel gavLabel) {
-            helper.gavLabel = gavLabel;
-            return this;
-        }
-
-        public Builder imageConfig(ImageConfiguration imageConfig) {
-            helper.imageConfig = imageConfig;
-            return this;
-        }
-
-        public StartContainerExecutor build() {
-            return helper;
-        }
-    }
 }

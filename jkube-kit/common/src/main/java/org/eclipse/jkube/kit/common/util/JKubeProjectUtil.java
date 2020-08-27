@@ -14,14 +14,15 @@
 package org.eclipse.jkube.kit.common.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectDependency;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.Plugin;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
@@ -33,84 +34,98 @@ public class JKubeProjectUtil {
     private JKubeProjectUtil() { }
 
     public static <T> Optional<T> iterateOverListWithCondition(List<T> dependencyList, Predicate<? super T> condition) {
-        return dependencyList.stream().filter(condition).findFirst();
+        if (dependencyList == null) {
+            return Optional.empty();
+        }
+        return dependencyList.stream().filter(Objects::nonNull).filter(condition).findFirst();
     }
 
-    public static String getAnyDependencyVersionWithGroupId(JKubeProject jkubeProject, String groupId) {
-        Optional<JKubeProjectDependency> value = iterateOverListWithCondition(jkubeProject.getDependencies(),
+    public static String getAnyDependencyVersionWithGroupId(JavaProject jkubeProject, String groupId) {
+        Optional<Dependency> value = iterateOverListWithCondition(jkubeProject.getDependencies(),
                 dependency -> dependency.getGroupId().equals(groupId));
 
-        return value.map(JKubeProjectDependency::getVersion).orElse(null);
+        return value.map(Dependency::getVersion).orElse(null);
     }
 
-    public static JKubeProjectPlugin getPlugin(JKubeProject jkubeProject, String groupId, String artifactId) {
-        Optional<JKubeProjectPlugin> value = iterateOverListWithCondition(jkubeProject.getPlugins(),
+    public static Plugin getPlugin(JavaProject javaProject, String groupId, String artifactId) {
+        Optional<Plugin> value = iterateOverListWithCondition(javaProject.getPlugins(),
                 plugin -> plugin.getGroupId().equals(groupId) && plugin.getArtifactId().equals(artifactId));
         return value.orElse(null);
     }
 
-    public static JKubeProjectPlugin getPlugin(JKubeProject jkubeProject, String artifactId) {
-        Optional<JKubeProjectPlugin> value = iterateOverListWithCondition(jkubeProject.getPlugins(),
+    public static Plugin getPlugin(JavaProject jkubeProject, String artifactId) {
+        Optional<Plugin> value = iterateOverListWithCondition(jkubeProject.getPlugins(),
                 plugin -> plugin.getArtifactId().equals(artifactId));
         return value.orElse(null);
     }
 
-    public static boolean hasPlugin(JKubeProject jkubeProject, String groupId, String artifactId) {
+    public static boolean hasPlugin(JavaProject jkubeProject, String groupId, String artifactId) {
         return getPlugin(jkubeProject, groupId, artifactId) != null;
     }
 
-    public static boolean hasPluginOfAnyArtifactId(JKubeProject jkubeProject, String artifactId) {
+    public static boolean hasPluginOfAnyArtifactId(JavaProject jkubeProject, String artifactId) {
         return getPlugin(jkubeProject, artifactId) != null;
     }
 
-    public static boolean hasDependency(JKubeProject jkubeProject, String groupId, String artifactId) {
+    public static boolean hasDependency(JavaProject jkubeProject, String groupId, String artifactId) {
         return getDependency(jkubeProject, groupId, artifactId) != null;
     }
 
-    public static JKubeProjectDependency getDependency(JKubeProject jkubeProject, String groupId, String artifactId) {
-        List<JKubeProjectDependency> dependencyList = jkubeProject.getDependencies();
-        if (dependencyList != null) {
-            Optional<JKubeProjectDependency> value = iterateOverListWithCondition(dependencyList,
-                    dependency -> dependency.getGroupId().equals(groupId) && dependency.getArtifactId().equals(artifactId));
+    public static boolean hasDependencyWithGroupId(JavaProject project, String groupId) {
+      return Optional.ofNullable(project).map(JavaProject::getDependencies)
+          .map(deps -> deps.stream().anyMatch(dep -> Objects.equals(dep.getGroupId(), groupId)))
+          .orElse(false);
+    }
 
-            return value.orElse(null);
+    public static Dependency getDependency(JavaProject jkubeProject, String groupId, String artifactId) {
+        List<Dependency> dependencyList = jkubeProject.getDependencies();
+        if (dependencyList != null) {
+            return iterateOverListWithCondition(dependencyList, dependency ->
+                Objects.equals(dependency.getGroupId(), groupId) && Objects.equals(dependency.getArtifactId(), artifactId))
+                .orElse(null);
         }
         return null;
     }
 
-    public static boolean hasResource(JKubeProject project, String... paths) throws IOException {
-        try (URLClassLoader compileClassLoader = ClassUtil.createClassLoader(project.getCompileClassPathElements(), project.getOutputDirectory())) {
-            for (String path : paths) {
-                try {
-                    if (compileClassLoader.getResource(path) != null) {
-                        return true;
-                    }
-                } catch (Exception e) {
-                    throw new IOException(e);
-                }
-            }
+  /**
+   * Checks if the resources specified in the provided paths exist in the project.
+   *
+   * @param project where the resources may exist
+   * @param paths within the project where the resources exist
+   * @return true if at least one of the provided resource paths exists within the project, false otherwise.
+   * @throws IOException if there's a problem reading the resource
+   */
+  public static boolean hasResource(JavaProject project, String... paths) throws IOException {
+    try (URLClassLoader compileClassLoader = getClassLoader(project)) {
+      for (String path : paths) {
+        if (compileClassLoader.getResource(path) != null) {
+          return true;
         }
-        return false;
+      }
+    } catch (NullPointerException e) {
+      throw new IOException("Path to resource was null", e);
     }
+    return false;
+  }
 
-    public static Properties getPropertiesWithSystemOverrides(JKubeProject project) {
+    public static Properties getPropertiesWithSystemOverrides(JavaProject project) {
         Properties properties = new Properties(project.getProperties());
         properties.putAll(System.getProperties());
         return properties;
     }
 
-    public static File getFinalOutputArtifact(JKubeProject jkubeProject) {
-        String nameOfFinalArtifact;
-        if (jkubeProject.getBuildFinalName() == null) {
-            nameOfFinalArtifact = jkubeProject.getArtifactId() + "-"
-                    + jkubeProject.getVersion() + "." + jkubeProject.getPackaging();
-        } else {
-            nameOfFinalArtifact = jkubeProject.getBuildFinalName() + "." + jkubeProject.getPackaging();
-        }
-        File outputDirectory = new File(jkubeProject.getBuildDirectory());
-        File finalArtifact = new File(outputDirectory, nameOfFinalArtifact);
-        return finalArtifact.exists() ? finalArtifact : null;
+  public static File getFinalOutputArtifact(JavaProject jkubeProject) {
+    final String nameOfFinalArtifact;
+    if (jkubeProject.getBuildFinalName() == null) {
+      nameOfFinalArtifact = String.format("%s-%s.%s",
+          jkubeProject.getArtifactId(), jkubeProject.getVersion(), jkubeProject.getPackaging());
+    } else {
+      nameOfFinalArtifact = String.format("%s.%s",
+          jkubeProject.getBuildFinalName(), jkubeProject.getPackaging());
     }
+    final File finalArtifact = new File(jkubeProject.getBuildDirectory(), nameOfFinalArtifact);
+    return finalArtifact.exists() ? finalArtifact : null;
+  }
 
     public static String createDefaultResourceName(String artifactId, String ... suffixes) {
         String suffix = StringUtils.join(suffixes, "-");
@@ -120,4 +135,10 @@ public class JKubeProjectUtil {
         }
         return ret.toLowerCase();
     }
+
+  public static URLClassLoader getClassLoader(JavaProject jKubeProject) {
+    return ClassUtil.createClassLoader(
+        jKubeProject.getCompileClassPathElements(),
+        jKubeProject.getOutputDirectory().getAbsolutePath());
+  }
 }

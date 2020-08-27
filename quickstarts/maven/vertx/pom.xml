@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>vertx</artifactId>
-  <version>0.2.1-SNAPSHOT</version>
+  <version>1.0.0-rc-1</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Vertx Web</name>
   <packaging>jar</packaging>
 
@@ -90,79 +90,93 @@
     <profile>
       <id>kubernetes</id>
       <build>
-	<plugins>
-	  <plugin>
-	    <groupId>org.eclipse.jkube</groupId>
-	    <artifactId>kubernetes-maven-plugin</artifactId>
-	    <version>${jkube.version}</version>
-	    <executions>
-	      <execution>
-		<id>jkube</id>
-		<goals>
-		  <goal>resource</goal>
-		  <goal>build</goal>
-		</goals>
-	      </execution>
-	    </executions>
-	    <configuration>
-	      <generator>
-		<config>
-		  <java-exec>
-		    <mainClass>io.vertx.core.Launcher</mainClass>
-		  </java-exec>
-		</config>
-	      </generator>
-	      <resources>
-		<labels>
-		  <service>
-		    <expose>true</expose>
-		  </service>
-		</labels>
-	      </resources>
-	    </configuration>
-	  </plugin>
+          <plugins>
+              <plugin>
+                  <groupId>org.eclipse.jkube</groupId>
+                  <artifactId>kubernetes-maven-plugin</artifactId>
+                  <version>${jkube.version}</version>
+                  <executions>
+                      <execution>
+                          <id>jkube</id>
+                          <goals>
+                              <goal>resource</goal>
+                              <goal>build</goal>
+                          </goals>
+                      </execution>
+                  </executions>
+                  <configuration>
+                      <generator>
+                          <config>
+                              <java-exec>
+                                  <mainClass>io.vertx.core.Launcher</mainClass>
+                              </java-exec>
+                          </config>
+                      </generator>
+                      <enricher>
+                          <config>
+                              <jkube-service>
+                                  <type>NodePort</type>
+                              </jkube-service>
+                              <jkube-healthcheck-vertx>
+                                  <type>exec</type>
+                                  <command><arg>ls</arg></command>
+                                  <readiness>
+                                    <timeout>100</timeout>
+                                  </readiness>
+                              </jkube-healthcheck-vertx>
+                          </config>
+                      </enricher>
+                      <resources>
+                          <labels>
+                              <service>
+                                  <expose>true</expose>
+                              </service>
+                          </labels>
+                      </resources>
+                  </configuration>
+              </plugin>
 
-	</plugins>
+          </plugins>
       </build>
     </profile>
-    <profile>
-      <id>openshift</id>
-      <build>
-	<plugins>
-	  <plugin>
-	    <groupId>org.eclipse.jkube</groupId>
-	    <artifactId>openshift-maven-plugin</artifactId>
-	    <version>${jkube.version}</version>
-	    <executions>
-	      <execution>
-		<id>jkube</id>
-		<goals>
-		  <goal>resource</goal>
-		  <goal>build</goal>
-		</goals>
-	      </execution>
-	    </executions>
-	    <configuration>
-	      <generator>
-		<config>
-		  <java-exec>
-		    <mainClass>io.vertx.core.Launcher</mainClass>
-		  </java-exec>
-		</config>
-	      </generator>
-	      <resources>
-		<labels>
-		  <service>
-		    <expose>true</expose>
-		  </service>
-		</labels>
-	      </resources>
-	    </configuration>
-	  </plugin>
+      <profile>
+          <id>openshift</id>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.eclipse.jkube</groupId>
+                      <artifactId>openshift-maven-plugin</artifactId>
+                      <version>${project.version}</version>
+                      <executions>
+                          <execution>
+                              <id>jkube</id>
+                              <goals>
+                                  <goal>resource</goal>
+                                  <goal>build</goal>
+                              </goals>
+                          </execution>
+                      </executions>
+                      <configuration>
+                          <generator>
+                              <config>
+                                  <java-exec>
+                                      <mainClass>io.vertx.core.Launcher</mainClass>
+                                  </java-exec>
+                              </config>
+                          </generator>
+                          <resources>
+                              <labels>
+                                  <service>
+                                      <expose>true</expose>
+                                  </service>
+                              </labels>
+                          </resources>
+                      </configuration>
+                  </plugin>
 
-	</plugins>
-      </build>
-    </profile>
+              </plugins>
+          </build>
+      </profile>
   </profiles>
 
 

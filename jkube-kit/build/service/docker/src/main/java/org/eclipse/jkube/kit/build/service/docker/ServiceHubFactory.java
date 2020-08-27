@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -23,19 +23,28 @@ import org.eclipse.jkube.kit.common.KitLogger;
  */
 public class ServiceHubFactory {
 
-    // Track started containers
-    private final ContainerTracker containerTracker = new ContainerTracker();
+  private static final LogOutputSpecFactory DEFAULT_LOG_OUTPUT_SPEC_FACTORY = new LogOutputSpecFactory(true, true);
+  // Track started containers
+  private final ContainerTracker containerTracker = new ContainerTracker();
 
-    private LogOutputSpecFactory logOutputSpecFactory;
+  private LogOutputSpecFactory logOutputSpecFactory;
 
-    public ServiceHub createServiceHub(DockerAccess access, KitLogger log, LogOutputSpecFactory logSpecFactory) {
-        this.logOutputSpecFactory = logSpecFactory;
-        return new ServiceHub(access, containerTracker, DockerAssemblyManager.getInstance(),
-                              log, logSpecFactory);
-    }
+  public ServiceHub createServiceHub(KitLogger kitLogger) {
+    return createServiceHub(
+        new DockerAccessFactory().createDockerAccess(DockerAccessFactory.DockerAccessContext.getDefault(kitLogger)),
+        kitLogger,
+        DEFAULT_LOG_OUTPUT_SPEC_FACTORY
+    );
+  }
 
-    public LogOutputSpecFactory getLogOutputSpecFactory() {
-        return logOutputSpecFactory;
-    }
+  public ServiceHub createServiceHub(DockerAccess access, KitLogger kitLogger, LogOutputSpecFactory logSpecFactory) {
+    this.logOutputSpecFactory = logSpecFactory;
+    return new ServiceHub(access, containerTracker, AssemblyManager.getInstance(),
+        kitLogger, logSpecFactory);
+  }
+
+  public LogOutputSpecFactory getLogOutputSpecFactory() {
+    return logOutputSpecFactory;
+  }
 
 }

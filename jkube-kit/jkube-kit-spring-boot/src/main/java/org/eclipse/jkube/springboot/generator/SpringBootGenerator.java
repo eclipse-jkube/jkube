@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.zip.CRC32;
@@ -31,35 +32,42 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import com.google.common.base.Strings;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JKubeProject;
-import org.eclipse.jkube.kit.common.JKubeProjectPlugin;
-import org.eclipse.jkube.kit.common.util.ClassUtil;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.apache.commons.io.FileUtils;
 
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
-import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.color;
+import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID;
+import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID;
+import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.COLOR;
 
 /**
  * @author roland
- * @since 15/05/16
  */
 public class SpringBootGenerator extends JavaExecGenerator {
 
     private static final String DEFAULT_SERVER_PORT = "8080";
 
-    public enum Config implements Configs.Key {
-        color {{ d = ""; }};
+    @AllArgsConstructor
+    public enum Config implements Configs.Config {
+        COLOR("color", "");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     public SpringBootGenerator(GeneratorContext context) {
@@ -68,7 +76,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
-        return shouldAddImageConfiguration(configs)
+        return shouldAddGeneratedImageConfiguration(configs)
                && JKubeProjectUtil.hasPluginOfAnyArtifactId(getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
     }
 
@@ -77,7 +85,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
         if (getContext().getGeneratorMode() == GeneratorMode.WATCH) {
             ensureSpringDevToolSecretToken();
             if (!isPrePackagePhase ) {
-                addDevToolsFilesToFatJar(configs);
+                addDevToolsFilesToFatJar();
             }
         }
         return super.customize(configs, isPrePackagePhase);
@@ -88,9 +96,10 @@ public class SpringBootGenerator extends JavaExecGenerator {
         Map<String, String> res = super.getEnv(prePackagePhase);
         if (getContext().getGeneratorMode() == GeneratorMode.WATCH) {
             // adding dev tools token to env variables to prevent override during recompile
-            String secret = SpringBootUtil.getSpringBootApplicationProperties(
+            final String secret = SpringBootUtil.getSpringBootApplicationProperties(
                     SpringBootUtil.getSpringBootActiveProfile(getProject()),
-                    ClassUtil.createClassLoader(getProject().getCompileClassPathElements(), getProject().getOutputDirectory())).getProperty(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET);
+                    JKubeProjectUtil.getClassLoader(getProject()))
+                .getProperty(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET);
             if (secret != null) {
                 res.put(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET_ENV, secret);
             }
@@ -101,8 +110,8 @@ public class SpringBootGenerator extends JavaExecGenerator {
     @Override
     protected List<String> getExtraJavaOptions() {
         List<String> opts = super.getExtraJavaOptions();
-        final String configuredColor = getConfig(color);
-        if (configuredColor != null && !configuredColor.isEmpty()) {
+        final String configuredColor = getConfig(COLOR);
+        if (StringUtils.isNotBlank(configuredColor)) {
             opts.add("-Dspring.output.ansi.enabled=" + configuredColor);
         }
         return opts;
@@ -120,13 +129,13 @@ public class SpringBootGenerator extends JavaExecGenerator {
     protected List<String> extractPorts() {
         List<String> answer = new ArrayList<>();
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
-                SpringBootUtil.getSpringBootActiveProfile(getProject()),
-                ClassUtil.createClassLoader(this.getProject().getCompileClassPathElements(), this.getProject().getOutputDirectory()));
+            SpringBootUtil.getSpringBootActiveProfile(getProject()),
+            JKubeProjectUtil.getClassLoader(getProject()));
         SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getProject()));
         String port = properties.getProperty(propertyHelper.getServerPortPropertyKey(), DEFAULT_SERVER_PORT);
-        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.webPort, port));
-        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.jolokiaPort));
-        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.prometheusPort));
+        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.WEB_PORT, port));
+        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.JOLOKIA_PORT));
+        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.PROMETHEUS_PORT));
         return answer;
     }
 
@@ -134,8 +143,8 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     private void ensureSpringDevToolSecretToken() {
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
-                SpringBootUtil.getSpringBootActiveProfile(getProject()),
-                ClassUtil.createClassLoader(getProject().getCompileClassPathElements(), getProject().getOutputDirectory()));
+            SpringBootUtil.getSpringBootActiveProfile(getProject()),
+            JKubeProjectUtil.getClassLoader(getProject()));
         String remoteSecret = properties.getProperty(DEV_TOOLS_REMOTE_SECRET);
         if (Strings.isNullOrEmpty(remoteSecret)) {
             addSecretTokenToApplicationProperties();
@@ -143,7 +152,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
         }
     }
 
-    private void addDevToolsFilesToFatJar(List<ImageConfiguration> configs) {
+    private void addDevToolsFilesToFatJar() {
         if (isFatJar()) {
             File target = getFatJarFile();
             try {
@@ -255,7 +264,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
         appendSecretTokenToFile("src/main/resources/application.properties", newToken);
     }
 
-    private void appendSecretTokenToFile(String path, String token) throws IllegalStateException {
+    private void appendSecretTokenToFile(String path, String token) {
         File file = new File(getProject().getBaseDirectory(), path);
         file.getParentFile().mkdirs();
         String text = String.format("%s" +
@@ -271,23 +280,24 @@ public class SpringBootGenerator extends JavaExecGenerator {
     }
 
     private boolean isSpringBootRepackage() {
-        JKubeProject project = getProject();
-        JKubeProjectPlugin plugin = JKubeProjectUtil.getPlugin(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
-        if (plugin != null) {
-            List<String> executions = plugin.getExecutions();
-            if (executions != null) {
-                if (executions.contains("repackage")) {
-                    log.verbose("Using fat jar packaging as the spring boot plugin is using `repackage` goal execution");
-                    return true;
-                }
-            }
+        JavaProject project = getProject();
+        Plugin plugin = JKubeProjectUtil.getPlugin(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        if (Optional.ofNullable(plugin).map(Plugin::getExecutions).map(e -> e.contains("repackage")).orElse(false)) {
+            log.verbose("Using fat jar packaging as the spring boot plugin is using `repackage` goal execution");
+            return true;
         }
         return false;
     }
 
-    private File getSpringBootDevToolsJar() throws IOException {
-        String version = SpringBootUtil.getSpringBootDevToolsVersion(getProject()).orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
-        return getContext().getArtifactResolver().resolveArtifact(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
+    private File getSpringBootDevToolsJar() {
+        String version = SpringBootUtil.getSpringBootDevToolsVersion(getProject())
+            .orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
+        final File devToolsJar = getContext().getArtifactResolver()
+            .resolveArtifact(SPRING_BOOT_GROUP_ID, SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
+        if (!devToolsJar.exists()) {
+            throw new IllegalArgumentException("devtools need to be included in repacked archive, please set <excludeDevtools> to false in plugin configuration");
+        }
+        return devToolsJar;
     }
 
 }

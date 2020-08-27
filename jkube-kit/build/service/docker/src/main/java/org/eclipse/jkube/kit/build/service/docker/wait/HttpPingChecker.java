@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.wait;
 
-import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;

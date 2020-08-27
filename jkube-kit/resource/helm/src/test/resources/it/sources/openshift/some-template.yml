@@ -1,0 +1,60 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+apiVersion: v1
+kind: Template
+metadata:
+  labels:
+    app: test
+    provider: jkube
+    version: 1337
+  name: test
+objects:
+  - apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        app: test
+        provider: jkube
+        version: 1337
+        helm-variable: ${GLOBAL_TEMPLATE_ENV_VAR}
+      name: test
+    spec:
+      containers:
+        - env:
+            - name: SAMPLE_ENV_VAR
+              value: ${SAMPLE_ENV_VAR}
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          image: dockerfile/redis
+          imagePullPolicy: IfNotPresent
+          name: master
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 9779
+              name: prometheus
+              protocol: TCP
+            - containerPort: 8778
+              name: jolokia
+              protocol: TCP
+          securityContext:
+            privileged: false
+parameters:
+  - description: Parameter to replace environment variable value
+    name: SAMPLE_ENV_VAR
+    value: This is a sample

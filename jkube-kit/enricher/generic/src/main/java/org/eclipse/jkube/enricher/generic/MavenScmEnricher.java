@@ -23,11 +23,11 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -57,7 +57,7 @@ public class MavenScmEnricher extends BaseEnricher {
 
         if (getContext() instanceof JKubeEnricherContext) {
             JKubeEnricherContext jkubeEnricherContext = (JKubeEnricherContext) getContext();
-            JKubeProject rootProject = jkubeEnricherContext.getProject();
+            JavaProject rootProject = jkubeEnricherContext.getProject();
             if (hasScm(rootProject)) {
                 String url = rootProject.getScmUrl();
                 String tag = rootProject.getScmTag();
@@ -133,7 +133,7 @@ public class MavenScmEnricher extends BaseEnricher {
 
     }
 
-    private boolean hasScm(JKubeProject project) {
+    private boolean hasScm(JavaProject project) {
         return project.getScmUrl() != null;
     }
 

@@ -33,7 +33,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * @author roland
- * @since 23.10.18
  */
 public class SystemPropertyRegistryAuthHandlerTest {
 
@@ -47,9 +46,9 @@ public class SystemPropertyRegistryAuthHandlerTest {
 
     @Before
     public void setup() {
-        RegistryAuthConfig registryAuthConfig = new RegistryAuthConfig.Builder()
+        RegistryAuthConfig registryAuthConfig = RegistryAuthConfig.builder()
                 .skipExtendedAuthentication(false)
-                .propertyPrefix("docker")
+                .propertyPrefix("jkube.docker")
                 .build();
         handler = new SystemPropertyRegistryAuthHandler(registryAuthConfig, log);
     }
@@ -70,16 +69,16 @@ public class SystemPropertyRegistryAuthHandlerTest {
 
     @Test
     public void testSystemProperty() throws Exception {
-        System.setProperty("docker.push.username", "roland");
-        System.setProperty("docker.push.password", "secret");
-        System.setProperty("docker.push.email", "roland@jolokia.org");
+        System.setProperty("jkube.docker.push.username", "roland");
+        System.setProperty("jkube.docker.push.password", "secret");
+        System.setProperty("jkube.docker.push.email", "roland@jolokia.org");
         try {
             AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s);
             verifyAuthConfig(config,"roland","secret","roland@jolokia.org");
         } finally {
-            System.clearProperty("docker.push.username");
-            System.clearProperty("docker.push.password");
-            System.clearProperty("docker.push.email");
+            System.clearProperty("jkube.docker.push.username");
+            System.clearProperty("jkube.docker.push.password");
+            System.clearProperty("jkube.docker.push.email");
         }
     }
 
@@ -88,7 +87,7 @@ public class SystemPropertyRegistryAuthHandlerTest {
     public void testSystemPropertyNoPassword() throws IOException {
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage("No password provided for username secret");
-        checkException("docker.username");
+        checkException("jkube.docker.username");
     }
 
     private void checkException(String key) throws IOException {

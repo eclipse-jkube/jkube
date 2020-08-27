@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.eclipse.jkube.generator.api.PortsExtractor;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.apache.commons.lang3.StringUtils;
 
@@ -58,20 +58,20 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
     public abstract String getConfigPathPropertyName();
 
     /**
-     * Finds the name of the configuration file from the {@link JKubeProject}.
-     * @param project   The {@link JKubeProject} to use.
+     * Finds the name of the configuration file from the {@link JavaProject}.
+     * @param project   The {@link JavaProject} to use.
      * @return          The path to the configuration file or null if none has been found
      */
-    public abstract String getConfigPathFromProject(JKubeProject project);
+    public abstract String getConfigPathFromProject(JavaProject project);
 
 
-    public File getConfigLocation(JKubeProject project) {
+    public File getConfigLocation(JavaProject project) {
         String propertyName = getConfigPathPropertyName();
         if (StringUtils.isBlank(propertyName)) {
             return null;
         }
         // The system property / Maven property has priority over what is specified in the pom.
-        String configPath = Configs.getSystemPropertyWithMavenPropertyAsFallback(project.getProperties(), getConfigPathPropertyName());
+        String configPath = Configs.getFromSystemPropertyWithPropertiesAsFallback(project.getProperties(), getConfigPathPropertyName());
         if (configPath == null) {
             configPath = getConfigPathFromProject(project);
         }
@@ -82,7 +82,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
     }
 
     @Override
-    public Map<String, Integer> extract(JKubeProject project) {
+    public Map<String, Integer> extract(JavaProject project) {
         Map<String, Integer> answer = new HashMap<>();
         File configFile = getConfigLocation(project);
         if (configFile == null) {

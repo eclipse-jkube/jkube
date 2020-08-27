@@ -1,10 +1,125 @@
 
-[[k8s:apply]]
-== *k8s:apply*
+[[jkube:apply]]
+== *{goal-prefix}:apply*
 
-This goals applies the resources created with <<k8s:resource>> to a connected Kubernetes cluster. It's  similar to <<k8s:deploy>> but does not the full deployment cycle of creating the resource, creating the application image and the sending the resource descriptors to the clusters. This goal can be easily bound to `<executions>` within the plugin's configuration and binds by default to the `install` lifecycle phase.
+This goal applies the resources created with <<jkube:resource>> to a connected Kubernetes cluster. It's  similar to <<jkube:deploy>> but does not the full deployment cycle of creating the resource, creating the application image and sending the resource descriptors to the clusters. This goal can be easily bound to `<executions>` within the plugin's configuration and binds by default to the `install` lifecycle phase.
 
-[source,sh,subs="attributes"]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:apply
+mvn {goal-prefix}:apply
 ----
+
+[[Supported-Properties-Apply]]
+=== Supported Properties For Apply goal
+
+.Other options available with apply goal
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *recreate*
+| Should we update resources by deleting them first and then creating them again.
+
+  Defaults to `false`.
+| `jkube.recreate`
+
+ifeval::["{goal-prefix}" == "k8s"]
+| *kubernetesManifest*
+| The generated kubernetes YAML file.
+
+  Defaults to `${basedir}/target/classes/META-INF/jkube/kubernetes.yml`.
+| `jkube.kubernetesManifest`
+endif::[]
+
+ifeval::["{goal-prefix}" == "oc"]
+| *openshiftManifest*
+| The generated kubernetes YAML file.
+
+  Defaults to `${basedir}/target/classes/META-INF/jkube/openshift.yml`.
+| `jkube.openshiftManifest`
+endif::[]
+
+| *create*
+| Should we create new resources.
+
+  Defaults to `true`.
+| `jkube.deploy.create`
+
+| *rolling*
+| Should we use rolling updates to apply changes.
+
+  Defaults to `false`.
+| `jkube.rolling`
+
+| *failOnNoKubernetesJson*
+| Should we fail if there is no Kubernetes JSON.
+
+  Defaults to `false`.
+| `jkube.deploy.failOnNoKubernetesJson`
+
+| *servicesOnly*
+| In services only mode we only process services so that those can be recursively created/updated first before
+  creating/updating any pods and replication controllers.
+
+  Defaults to `false`.
+| `jkube.deploy.servicesOnly`
+
+| *ignoreServices*
+| Do we want to ignore services. This is particularly useful when in recreate mode to let you easily recreate all the
+  ReplicationControllers and Pods but leave any service definitions alone to avoid changing the portalIP addresses and
+  breaking existing pods using the service.
+
+  Defaults to `false`.
+| `jkube.deploy.ignoreServices`
+
+| *processTemplatesLocally*
+| Process templates locally in Java so that we can apply OpenShift templates on any Kubernetes environment.
+
+  Defaults to `false`.
+| `jkube.deploy.processTemplatesLocally`
+
+| *deletePods*
+| Should we delete all the pods if we update a Replication Controller.
+
+  Defaults to `true`.
+| `jkube.deploy.deletePods`
+
+| *ignoreRunningOAuthClients*
+| Do we want to ignore OAuthClients which are already running?. OAuthClients are shared across namespaces so we should
+  not try to update or create/delete global oauth clients.
+
+  Defaults to `true`.
+| `jkube.deploy.ignoreRunningOAuthClients`
+
+| *jsonLogDir*
+| The folder we should store any temporary json files or results.
+
+  Defaults to `${basedir}/target/jkube/applyJson`.
+| `jkube.deploy.jsonLogDir`
+
+| *waitSeconds*
+| How many seconds to wait for a URL to be generated for a service.
+
+  Defaults to `5`.
+| `jkube.serviceUrl.waitSeconds`
+
+| *resourceDir*
+| Folder where to find project specific files.
+
+  Defaults to `${basedir}/src/main/jkube`.
+| `jkube.resourceDir`
+
+| *environment*
+| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the
+  default one, jkube will look at `src/main/jkube/dev`.
+
+  Defaults to `null`.
+| `jkube.environment`
+
+| *skipApply*
+| Skip applying the resources.
+
+  Defaults to `false`.
+| `jkube.skip.apply`
+
+|===

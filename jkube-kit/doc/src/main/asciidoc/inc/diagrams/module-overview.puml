@@ -45,77 +45,86 @@ package jkube.kit {
     package kit.config {
         [config-image] --> [common]
         [config-resource] --> [common]
+        [config-service] --> [config-resource]
+        [config-service] --> [build-service-docker]
     }
     package kit.build {
         [build-api] --> [config-image]
-        [build-maven] --> [build-api]
-        [build-maven] -[mavenArrow]-> [common-maven]
-        note left of [build-maven]: To be removed
         package kit.build.service {
-            [build-service-docker] -[mavenArrow]-> [build-maven]
-            [build-service-jib] --> [build-api]
-            note top of [build-service-jib]: To be merged
-        }
-    }
-    package kit.resource {
-        [resource-api] --> [config-resource]
-        note top of [resource-api]: To be implemented
-        package "service" {
-            [resource-service] --> [config-resource]
-            [resource-service] -[mavenArrow]-> [build-service-docker]
-            note on link
-                To be removed
-            end note
+            [docker] --> [build-api]
+            [jib] --> [build-api]
         }
     }
     package kit.enricher {
-        ' [enricher-api] --> [resource-api]
-        [enricher-api] -[mavenArrow]-> [resource-service]
-        [enricher-generic] -[mavenArrow]-> [enricher-api]
-        [enricher-specific] -[mavenArrow]-> [enricher-api]
+        [enricher-api] --> [config-resource]
+        [enricher-api] --> [config-service]
+        [enricher-generic] --> [enricher-api]
+        [enricher-specific] --> [enricher-api]
     }
     package kit.generator {
-        [generator-api] -[mavenArrow]-> [resource-service]
+        [generator-api] --> [config-service]
         note on link
             Should depend on build-api
         end note
-        [generator-java-exec] -[mavenArrow]-> [generator-api]
-        [generator-karaf] -[mavenArrow]-> [generator-api]
-        [generator-webapp] -[mavenArrow]-> [generator-api]
-        [generator-wildfly-swarm] -[mavenArrow]-> [generator-java-exec]
+        [generator-java-exec] --> [generator-api]
+        [generator-karaf] --> [generator-api]
+        [generator-webapp] --> [generator-api]
+        [generator-wildfly-swarm] --> [generator-java-exec]
+    }
+    package kit.resource {
+        package kit.resource.helm {
+            [resource-helm] --> [enricher-api]
+            note top of [resource-helm]: Makes more sense as part of enricher package
+        }
     }
     package kit.watcher {
-        ' [watcher-api] --> [config-resource]
-        [watcher-api] -[mavenArrow]-> [resource-service]
-        note on link
-            Should depend on config-resource/resource-api
-        end note
-        [watcher-standard] -[mavenArrow]-> [watcher-api]
+        [watcher-api] --> [config-service]
+        [watcher-standard] --> [watcher-api]
     }
-    ' [profile] --> [generator-api]
-    ' [profile] --> [enricher-api]
     [profile] --> [config-resource]
+    ' Open Liberty
+    [openliberty] --> [enricher-specific]
+    [openliberty] --> [generator-java-exec]
+    ' Quarkus
+    [quarkus] --> [enricher-specific]
+    [quarkus] --> [generator-java-exec]
+    ' Spring Boot
+    [spring-boot] --> [enricher-specific]
+    [spring-boot] --> [generator-java-exec]
+    [spring-boot] --> [watcher-api]
+    ' Thorntail-V2
+    [thorntail] --> [enricher-specific]
+    [thorntail] --> [generator-java-exec]
+    ' VertX
+    [vertx] --> [enricher-specific]
+    [vertx] --> [generator-java-exec]
+    ' Wildfly
+    [wildfly] --> [enricher-specific]
+    [wildfly] --> [generator-java-exec]
+
 }
 
 package maven.plugins {
-    [kubernetes-maven-plugin] --> [build-service-docker]
+    [docker-maven-plugin]
+    note top of [docker-maven-plugin]: TBD
+    [kubernetes-maven-plugin] --> [config-service]
+    [kubernetes-maven-plugin] -[mavenArrow]-> [common-maven]
     [kubernetes-maven-plugin] --> [enricher-generic]
     [kubernetes-maven-plugin] --> [enricher-specific]
+    [kubernetes-maven-plugin] --> [resource-helm]
     [kubernetes-maven-plugin] --> [generator-java-exec]
     [kubernetes-maven-plugin] --> [generator-karaf]
     [kubernetes-maven-plugin] --> [generator-webapp]
     [kubernetes-maven-plugin] --> [generator-wildfly-swarm]
+    [kubernetes-maven-plugin] --> [openliberty]
+    [kubernetes-maven-plugin] --> [quarkus]
+    [kubernetes-maven-plugin] --> [spring-boot]
+    [kubernetes-maven-plugin] --> [thorntail]
+    [kubernetes-maven-plugin] --> [vertx]
+    [kubernetes-maven-plugin] --> [wildfly]
     [kubernetes-maven-plugin] --> [profile]
     [kubernetes-maven-plugin] --> [watcher-standard]
-    [openshift-maven-plugin] --> [build-service-docker]
-    [openshift-maven-plugin] --> [enricher-generic]
-    [openshift-maven-plugin] --> [enricher-specific]
-    [openshift-maven-plugin] --> [generator-java-exec]
-    [openshift-maven-plugin] --> [generator-karaf]
-    [openshift-maven-plugin] --> [generator-webapp]
-    [openshift-maven-plugin] --> [generator-wildfly-swarm]
-    [openshift-maven-plugin] --> [profile]
-    [openshift-maven-plugin] --> [watcher-standard]
+    [openshift-maven-plugin] --> [kubernetes-maven-plugin]
 }
 
 package gradle.plugins {

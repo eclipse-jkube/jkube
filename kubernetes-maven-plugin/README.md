@@ -1,8 +1,8 @@
 ## Kubernetes Maven Plugin
 
-[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/k8s-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22k8s-maven-plugin%22)
+[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/kubernetes-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22kubernetes-maven-plugin%22)
 
-![Sample Demo](k8s-maven-plugin-demo.gif)
+[![Sample Demo](kmp.png)](https://asciinema.org/a/335724)
 
 ### Introduction
 This Maven plugin is a one-stop-shop for building and deploying Java applications for Docker, Kubernetes. It brings your Java applications on to Kubernetes. It provides a tight integration into maven and benefits from the build configuration already provided. It focuses on three tasks:
@@ -23,11 +23,11 @@ To enable kubernetes maven plugin on your project just add this to the plugins s
 
 | Goal                                          | Description                           |
 | --------------------------------------------- | ------------------------------------- |
-| [`k8s:resource`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:resource) | Create Kubernetes resource descriptors |
-| [`k8s:build`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:build) | Build Docker images |
-| [`k8s:push`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:push) | Push Docker images to a registry  |
-| [`k8s:deploy`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:deploy) | Deploy Kubernetes resource objects to a cluster  |
-| [`k8s:watch`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:watch) | Watch for doing rebuilds and restarts |
+| [`k8s:resource`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:resource) | Create Kubernetes resource descriptors |
+| [`k8s:build`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:build) | Build Docker images |
+| [`k8s:push`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:push) | Push Docker images to a registry  |
+| [`k8s:deploy`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:deploy) | Deploy Kubernetes resource objects to a cluster  |
+| [`k8s:watch`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:watch) | Watch for doing rebuilds and restarts |
 
 ### Features
 
@@ -52,8 +52,13 @@ To enable kubernetes maven plugin on your project just add this to the plugins s
 
 ##### Kubernetes
 
-|     KMP      | Kubernetes 1.17.0 | Kubernetes 1.12.0 | Kubernetes 1.11.0 | Kubernetes 1.10.0 | Kubernetes 1.9.0 | Kubernetes 1.8.0 | Kubernetes 1.7.0 | Kubernetes 1.6.0 | Kubernetes 1.5.1 | Kubernetes 1.4.0 |
-|--------------|-------------------|-------------------|-------------------|-------------------|------------------|------------------|------------------|------------------|------------------|------------------|
-| KMP 0.2.0    |        :heavy_check_mark:          |        :heavy_check_mark:          |        :heavy_check_mark:          |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 0.1.1    |        :x:         |        :heavy_check_mark:          |        :heavy_check_mark:          |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 0.1.0    |        :x:         |        :heavy_check_mark:          |        :heavy_check_mark:          |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
+| KMP               | Kubernetes 1.18.0  | Kubernetes 1.17.0  | Kubernetes 1.12.0  |
+|-------------------|--------------------|--------------------|--------------------|
+| KMP 1.0.0-rc-1    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 1.0.0-alpha-4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 1.0.0-alpha-3 |                    | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 1.0.0-alpha-2 |                    | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 1.0.0-alpha-1 |                    | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 0.2.0         |                    | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 0.1.1         |                    | :x:                | :heavy_check_mark: |
+| KMP 0.1.0         |                    | :x:                | :heavy_check_mark: |

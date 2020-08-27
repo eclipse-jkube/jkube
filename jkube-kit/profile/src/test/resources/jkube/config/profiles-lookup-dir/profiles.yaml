@@ -39,3 +39,4 @@
       - jkube-image
       - jkube-project
       - jkube-debug
+      - jkube-ingress

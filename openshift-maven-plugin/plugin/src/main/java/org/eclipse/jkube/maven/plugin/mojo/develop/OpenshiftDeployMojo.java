@@ -13,12 +13,15 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
-import static org.eclipse.jkube.maven.plugin.mojo.Openshift.DEFAULT_LOG_PREFIX;
+import java.io.File;
 
 /**
  * This goal forks the install goal then applies the generated kubernetes resources to the current cluster.
@@ -33,8 +36,19 @@ import static org.eclipse.jkube.maven.plugin.mojo.Openshift.DEFAULT_LOG_PREFIX;
 @Execute(phase = LifecyclePhase.INSTALL)
 public class OpenshiftDeployMojo extends DeployMojo {
 
+    /**
+     * The generated openshift YAML file
+     */
+    @Parameter(property = "jkube.openshiftManifest", defaultValue = DEFAULT_OPENSHIFT_MANIFEST)
+    private File openshiftManifest;
+
+    @Override
+    public File getManifest(KubernetesClient kubernetesClient) {
+        return OpenShift.getOpenShiftManifest(kubernetesClient, getKubernetesManifest(), openshiftManifest);
+    }
+
     @Override
     protected String getLogPrefix() {
-        return DEFAULT_LOG_PREFIX;
+        return OpenShift.DEFAULT_LOG_PREFIX;
     }
 }

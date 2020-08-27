@@ -1,8 +1,0 @@
-[[goals-overview-develop]]
-# Development Goals
-
-include::_jkube-deploy.adoc[]
-include::_jkube-undeploy.adoc[]
-include::_jkube-log.adoc[]
-include::_jkube-debug.adoc[]
-include::_jkube-watch.adoc[]

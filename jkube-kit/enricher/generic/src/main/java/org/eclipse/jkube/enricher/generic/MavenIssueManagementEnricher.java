@@ -23,11 +23,11 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -114,7 +114,7 @@ public class MavenIssueManagementEnricher extends BaseEnricher {
 
         if (getContext() instanceof JKubeEnricherContext) {
             JKubeEnricherContext jkubeEnricherContext = (JKubeEnricherContext) getContext();
-            JKubeProject rootProject = jkubeEnricherContext.getProject();
+            JavaProject rootProject = jkubeEnricherContext.getProject();
             if (hasIssueManagement(rootProject)) {
                 String system = rootProject.getIssueManagementSystem();
                 String url = rootProject.getIssueManagementUrl();
@@ -127,7 +127,7 @@ public class MavenIssueManagementEnricher extends BaseEnricher {
         return annotations;
     }
 
-    private boolean hasIssueManagement(JKubeProject project) {
+    private boolean hasIssueManagement(JavaProject project) {
         return project.getIssueManagementSystem() != null ||
                 project.getIssueManagementUrl() != null;
     }

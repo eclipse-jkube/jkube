@@ -14,7 +14,8 @@
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
 import java.io.IOException;
-import java.text.ParseException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
@@ -56,14 +57,15 @@ public class EcrExtendedAuthTest {
     }
 
     @Test
-    public void testHeaders() throws ParseException {
+    public void testHeaders() {
         EcrExtendedAuth eea = new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com");
-        AuthConfig localCredentials =
-            new AuthConfig.Builder()
+        AuthConfig localCredentials = AuthConfig.builder()
                 .username("username")
                 .password("password")
                 .build();
-        Date signingTime = AwsSigner4Request.TIME_FORMAT.parse("20161217T211058Z");
+        Date signingTime = Date.from(
+            ZonedDateTime.of(2016, 12, 17, 21, 10, 58, 0, ZoneId.of("GMT"))
+                .toInstant());
         HttpPost request = eea.createSignedRequest(localCredentials, signingTime);
         assertEquals("ecr.eu-west-1.amazonaws.com", request.getFirstHeader("host").getValue());
         assertEquals("20161217T211058Z", request.getFirstHeader("X-Amz-Date").getValue());
@@ -91,8 +93,7 @@ public class EcrExtendedAuthTest {
             }
         };
 
-        AuthConfig localCredentials =
-            new AuthConfig.Builder()
+        AuthConfig localCredentials = AuthConfig.builder()
                 .username("username")
                 .password("password")
                 .build();

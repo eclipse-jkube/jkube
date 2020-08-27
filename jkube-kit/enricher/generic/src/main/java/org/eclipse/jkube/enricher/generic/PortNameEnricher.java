@@ -17,12 +17,11 @@ import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -36,14 +35,13 @@ import static io.fabric8.ianaservicehelper.Helper.serviceNames;
  */
 public class PortNameEnricher extends BaseEnricher {
 
-    private static final Map<Integer, String> DEFAULT_PORT_MAPPING =
-        Collections.unmodifiableMap(
-            new HashMap<Integer, String>() {{
-                put(8080, "http");
-                put(8443, "https");
-                put(8778, "jolokia");
-                put(9779, "prometheus");
-            }});
+    private static final Map<Integer, String> DEFAULT_PORT_MAPPING = new HashMap<>();
+    static {
+        DEFAULT_PORT_MAPPING.put(8080, "http");
+        DEFAULT_PORT_MAPPING.put(8443, "https");
+        DEFAULT_PORT_MAPPING.put(8778, "jolokia");
+        DEFAULT_PORT_MAPPING.put(9779, "prometheus");
+    }
 
     public PortNameEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-portname");

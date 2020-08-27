@@ -10,22 +10,22 @@ Beside the  <<generator-options-common, common generator options>> and the <<gen
 .Spring-Boot configuration options
 [cols="1,6,1"]
 |===
-| Element | Description | Default
+| Element | Description | Property
 
 | *color*
-| If seth force the use of color in the Spring Boot console output.
-|
+| If set, force the use of color in the Spring Boot console output.
+| `jkube.generator.spring-boot.color`
 |===
 
 The generator adds Kubernetes liveness and readiness probes pointing to either the management or server port as read from the `application.properties`.
 If the `management.port` (for Spring Boot 1) or `management.server.port` (for Spring Boot 2) and `management.ssl.key-store` (for Spring Boot 1) or `management.server.ssl.key-store` (for Spring Boot 2) properties are set in `application.properties` otherwise or `server.ssl.key-store` property is set in `application.properties` then the probes are automatically set to use `https`.
 
-The generator works differently when called together with `k8s:watch`.
+The generator works differently when called together with `{goal-prefix}:watch`.
 In that case it enables support for http://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-devtools.html[Spring Boot Developer Tools] which allows for hot reloading of the Spring Boot app.
 In particular, the following steps are performed:
 
 * If a secret token is not provided within the Spring Boot application configuration `application.properties` or `application.yml` with the key `spring.devtools.remote.secret` then a custom secret token is created and added to `application.properties`
 * Add `spring-boot-devtools.jar` as `BOOT-INF/lib/spring-devtools.jar` to the spring-boot fat jar.
 
-Since during `k8s:watch` the application itself within the `target/` directory is modified for allowing easy reloading you must ensure that you do a `mvn clean` before building an artefact which should be put into production.
+Since during `{goal-prefix}:watch` the application itself within the `target/` directory is modified for allowing easy reloading you must ensure that you do a `mvn clean` before building an artifact which should be put into production.
 Since the released version are typically generated with a CI system which does a clean build anyway this should be only a theoretical problem.

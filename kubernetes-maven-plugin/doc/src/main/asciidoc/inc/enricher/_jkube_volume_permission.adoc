@@ -1,0 +1,5 @@
+
+[[jkube-volume-permission]]
+==== jkube-volume-permission
+
+Enricher which fixes the permission of persistent volume mount with the help of an init container.

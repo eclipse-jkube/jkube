@@ -13,81 +13,83 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeAssemblyConfiguration;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.eclipse.jkube.generator.api.FromSelector;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.JKubeAssemblyFileSet;
-import org.eclipse.jkube.kit.common.JKubeProjectAssembly;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 
 public class QuarkusGenerator extends BaseGenerator {
 
+    private static final String DEPLOYMENTS_DIR = "/deployments";
+
     public QuarkusGenerator(GeneratorContext context) {
-        super(context, "quarkus");
+        super(context, "quarkus", new FromSelector.Default(context, "java"));
     }
 
-    public enum Config implements Configs.Key {
+    @AllArgsConstructor
+    public enum Config implements Configs.Config {
         // Webport to expose. Set to 0 if no port should be exposed
-        webPort {{
-            d = "8080";
-        }},
+        WEB_PORT("webPort", "8080"),
 
         // Whether to add native image or plain java image
-        nativeImage {{
-            d = "false";
-        }};
+        NATIVE_IMAGE("nativeImage", "false");
 
-        public String def() {
-            return d;
-        }
-
-        protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
-        return shouldAddImageConfiguration(configs)
+        return shouldAddGeneratedImageConfiguration(configs)
                && JKubeProjectUtil.hasPlugin(getProject(), "io.quarkus", "quarkus-maven-plugin");
     }
 
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) {
-        ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder()
+        ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder()
             .name(getImageName())
             .registry(getRegistry())
             .alias(getAlias())
-            .buildConfig(createBuildConfig(prePackagePhase));
+            .build(createBuildConfig(prePackagePhase));
 
         existingConfigs.add(imageBuilder.build());
         return existingConfigs;
     }
 
-    private JKubeBuildConfiguration createBuildConfig(boolean prePackagePhase) {
-        final JKubeBuildConfiguration.Builder buildBuilder = new JKubeBuildConfiguration.Builder();
+    private BuildConfiguration createBuildConfig(boolean prePackagePhase) {
+        final BuildConfiguration.BuildConfigurationBuilder buildBuilder = BuildConfiguration.builder();
         // TODO: Check application.properties for a port
-        buildBuilder.ports(Collections.singletonList(getConfig(Config.webPort)));
+        buildBuilder.port(getConfig(Config.WEB_PORT));
         addSchemaLabels(buildBuilder, log);
 
-        boolean isNative = Boolean.parseBoolean(getConfig(Config.nativeImage, "false"));
+        boolean isNative = Boolean.parseBoolean(getConfig(Config.NATIVE_IMAGE));
 
         Optional<String> fromConfigured = Optional.ofNullable(getFromAsConfigured());
         if (isNative) {
-            buildBuilder.from(fromConfigured.orElse("registry.fedoraproject.org/fedora-minimal"))
-                        .entryPoint(new Arguments.Builder()
-                                        .withParam("./" + findSingleFileThatEndsWith("-runner"))
-                                        .withParam("-Dquarkus.http.host=0.0.0.0")
+            buildBuilder
+                        .from(fromConfigured.orElse(getNativeFrom()))
+                        .entryPoint(Arguments.builder()
+                                        .execArgument("./" + findSingleFileThatEndsWith("-runner"))
+                                        .execArgument("-Dquarkus.http.host=0.0.0.0")
                                         .build())
                         .workdir("/");
 
@@ -95,83 +97,79 @@ public class QuarkusGenerator extends BaseGenerator {
                 buildBuilder.assembly(createAssemblyConfiguration("/", getNativeFileToInclude()));
             }
         } else {
-            buildBuilder.from(fromConfigured.orElse("openjdk:11"))
-                        .entryPoint(new Arguments.Builder()
-                                        .withParam("java")
-                                        .withParam("-Dquarkus.http.host=0.0.0.0")
-                                        .withParam("-jar")
-                                        .withParam(findSingleFileThatEndsWith("-runner.jar"))
+            addFrom(buildBuilder);
+            buildBuilder.entryPoint(Arguments.builder()
+                                        .execArgument("java")
+                                        .execArgument("-Dquarkus.http.host=0.0.0.0")
+                                        .execArgument("-jar")
+                                        .execArgument(findSingleFileThatEndsWith("-runner.jar"))
                                         .build())
-                        .workdir("/opt");
+                        .workdir(DEPLOYMENTS_DIR);
 
             if (!prePackagePhase) {
                 buildBuilder.assembly(
-                    createAssemblyConfiguration("/opt", getJvmFilesToInclude()));
+                    createAssemblyConfiguration(DEPLOYMENTS_DIR, getJvmFilesToInclude()));
             }
         }
         addLatestTagIfSnapshot(buildBuilder);
         return buildBuilder.build();
     }
 
-    interface FileSetCreator {
-        JKubeProjectAssembly createFileSet();
+    private String getNativeFrom() {
+        if (getContext().getRuntimeMode() != RuntimeMode.OPENSHIFT) {
+            return "registry.access.redhat.com/ubi8/ubi-minimal:8.1";
+        }
+        return "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0";
     }
 
-    private JKubeAssemblyConfiguration createAssemblyConfiguration(String targetDir, JKubeAssemblyFileSet jkubeProjectAssemblyFileSet) {
-        final JKubeAssemblyConfiguration.Builder builder = new JKubeAssemblyConfiguration.Builder();
-        builder.targetDir(targetDir);
-        jkubeProjectAssemblyFileSet.setOutputDirectory(".");
-        JKubeProjectAssembly jkubeProjectAssembly = new JKubeProjectAssembly.Builder()
-                .fileSet(jkubeProjectAssemblyFileSet)
-                .build();
-        builder.assemblyDef(jkubeProjectAssembly);
-        return builder.build();
+    private AssemblyConfiguration createAssemblyConfiguration(String targetDir, AssemblyFileSet jKubeAssemblyFileSet) {
+        jKubeAssemblyFileSet.setOutputDirectory(".");
+        return AssemblyConfiguration.builder()
+            .targetDir(targetDir)
+            .excludeFinalOutputArtifact(true)
+            .inline(Assembly.builder().fileSet(jKubeAssemblyFileSet).build())
+            .build();
     }
 
-    private JKubeAssemblyFileSet getJvmFilesToInclude() {
-        JKubeAssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
-        fileSet.addInclude("lib/**");
+    private AssemblyFileSet getJvmFilesToInclude() {
+        AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder =
+            getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
+        fileSetBuilder.include("lib");
         // We also need to exclude default jar file
         File defaultJarFile = JKubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
         if (defaultJarFile != null) {
-            fileSet.addExclude(defaultJarFile.getName());
+            fileSetBuilder.exclude(defaultJarFile.getName());
         }
-        fileSet.setFileMode("0640");
-        return fileSet;
+        fileSetBuilder.fileMode("0640");
+        return fileSetBuilder.build();
     }
 
-    private JKubeAssemblyFileSet getNativeFileToInclude() {
-        JKubeAssemblyFileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner");
-        fileSet.setFileMode("0755");
-
-        return fileSet;
+    private AssemblyFileSet getNativeFileToInclude() {
+        return getFileSetWithFileFromBuildThatEndsWith("-runner")
+            .fileMode("0755")
+            .build();
     }
 
-    private JKubeAssemblyFileSet getFileSetWithFileFromBuildThatEndsWith(String suffix) {
+    private AssemblyFileSet.AssemblyFileSetBuilder getFileSetWithFileFromBuildThatEndsWith(String suffix) {
         List<String> relativePaths = new ArrayList<>();
 
         String fileToInclude = findSingleFileThatEndsWith(suffix);
         if (fileToInclude != null && !fileToInclude.isEmpty()) {
             relativePaths.add(fileToInclude);
         }
-        return new JKubeAssemblyFileSet.Builder()
-                .directory(FileUtil.getRelativePath(getProject().getBaseDirectory(), getBuildDir()).getPath())
+        return AssemblyFileSet.builder()
+                .directory(FileUtil.getRelativePath(getProject().getBaseDirectory(), getProject().getBuildDirectory()))
                 .includes(relativePaths)
-                .fileMode("0777")
-                .build();
+                .fileMode("0777");
     }
 
     private String findSingleFileThatEndsWith(String suffix) {
-        File buildDir = getBuildDir();
+        File buildDir = getProject().getBuildDirectory();
         String[] file = buildDir.list((dir, name) -> name.endsWith(suffix));
         if (file == null || file.length != 1) {
             throw new IllegalStateException("Can't find single file with suffix '" + suffix + "' in " + buildDir + " (zero or more than one files found ending with '" + suffix + "')");
         }
         return file[0];
-    }
-
-    private File getBuildDir() {
-        return new File(getProject().getBuildDirectory());
     }
 
 }

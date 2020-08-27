@@ -16,11 +16,11 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,15 +28,18 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
 
 import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.Container;
@@ -58,6 +61,7 @@ import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
@@ -78,12 +82,13 @@ import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
-import io.fabric8.kubernetes.internal.HasMetadataComparator;
+import io.fabric8.kubernetes.api.model.HasMetadataComparator;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.Template;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
@@ -94,6 +99,12 @@ import org.eclipse.jkube.kit.common.ResourceFileType;
  */
 public class KubernetesHelper {
     protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
+    private static final String FILENAME_PATTERN_REGEX = "^(?<name>.*?)(-(?<type>[^-]+))?\\.(?<ext>yaml|yml|json)$";
+    private static final String PROFILES_PATTERN_REGEX = "^profiles?\\.ya?ml$";
+    public static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
+    public static final Pattern PROFILES_PATTERN = Pattern.compile(PROFILES_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
+
+    private KubernetesHelper() {}
 
     /**
      * Validates that the given value is valid according to the kubernetes ID parsing rules, throwing an exception if not.
@@ -719,58 +730,14 @@ public class KubernetesHelper {
         return sortedPods.get(sortedPods.size() - 1);
     }
 
-    public static void resolveTemplateVariablesIfAny(KubernetesList resources, File targetDir) throws IllegalStateException {
-        Template template = findTemplate(resources);
-        if (template != null) {
-            List<io.fabric8.openshift.api.model.Parameter> parameters = template.getParameters();
-            if (parameters == null || parameters.isEmpty()) {
-                return;
-            }
-            File kubernetesYaml = new File(targetDir, "kubernetes.yml");
-            resolveTemplateVariables(parameters, kubernetesYaml);
-        }
-    }
-
-    public static void resolveTemplateVariables(List<io.fabric8.openshift.api.model.Parameter> parameters, File kubernetesYaml) throws IllegalStateException {
-        String text;
-        try {
-            text = FileUtils.readFileToString(kubernetesYaml, Charset.defaultCharset());
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to load " + kubernetesYaml + " so we can replace template expressions " + e, e);
-        }
-        String original = text;
-        for (io.fabric8.openshift.api.model.Parameter parameter : parameters) {
-            String from = "${" + parameter.getName() + "}";
-            String to = parameter.getValue();
-            if (to == null) {
-                throw new IllegalStateException("Missing value for HELM template parameter " + from + " in " + kubernetesYaml);
-            }
-            text = text.replace(from, to);
-        }
-        if (!original.equals(text)) {
-            try {
-                FileUtils.writeStringToFile(kubernetesYaml, text, Charset.defaultCharset());
-            } catch (IOException e) {
-                throw new IllegalStateException("Failed to save " + kubernetesYaml + " after replacing template expressions " +e, e);
-            }
-        }
-    }
-
-    public static Template findTemplate(KubernetesList resources) {
-        return (Template) resources.getItems().stream()
-                .filter(template -> template instanceof Template)
-                .findFirst()
-                .orElse(null);
-    }
-
     /**
      * Convert a map of env vars to a list of K8s EnvVar objects.
-     * @param envVars the name-value map containing env vars which must not be null
+     * @param envVars the name-value map containing env vars
      * @return list of converted env vars
      */
     public static List<EnvVar> convertToEnvVarList(Map<String, String> envVars) {
         List<EnvVar> envList = new LinkedList<>();
-        for (Map.Entry<String, String> entry : envVars.entrySet()) {
+        for (Map.Entry<String, String> entry : Optional.ofNullable(envVars).orElse(Collections.emptyMap()).entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue();
 
@@ -827,6 +794,99 @@ public class KubernetesHelper {
             }
         }
         return removed;
+    }
+
+
+    /**
+     * Get a specific resource fragment ending with some suffix in a specified directory
+     *
+     * @param resourceDirFinal resource directory
+     * @param remotes list remote fragments if provided
+     * @param resourceNameSuffix resource name suffix
+     * @param log log object
+     * @return file if present or null
+     */
+    public static File getResourceFragmentFromSource(File resourceDirFinal, List<String> remotes, String resourceNameSuffix, KitLogger log) {
+        File[] resourceFiles = listResourceFragments(resourceDirFinal, remotes, log);
+
+        if (resourceFiles != null) {
+            for (File file : resourceFiles) {
+                if (file.getName().endsWith(resourceNameSuffix)) {
+                    return file;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get requests or limit objects from string hashmaps
+     *
+     * @param quantity hashmap of strings
+     * @return hashmap of string to quantity
+     */
+    public static Map<String, Quantity> getQuantityFromString(Map<String, String> quantity) {
+        Map<String, Quantity> stringQuantityMap = new HashMap<>();
+        if (quantity != null && !quantity.isEmpty()) {
+            for (Map.Entry<String, String> entry : quantity.entrySet()) {
+                stringQuantityMap.put(entry.getKey(), new Quantity(entry.getValue()));
+            }
+        }
+        return stringQuantityMap;
+    }
+
+    public static File[] listResourceFragments(File localResourceDir, List<String> remotes, KitLogger log) {
+        File[] resourceFiles = listResourceFragments(localResourceDir);
+
+        if(remotes != null) {
+            File[] remoteResourceFiles = listRemoteResourceFragments(remotes, log);
+            if (remoteResourceFiles.length > 0) {
+                resourceFiles = ArrayUtils.addAll(resourceFiles, remoteResourceFiles);
+            }
+        }
+        return resourceFiles;
+    }
+
+    public static File[] listResourceFragments(File resourceDir) {
+        if (resourceDir == null) {
+            return new File[0];
+        }
+        return resourceDir.listFiles((File dir, String name) -> FILENAME_PATTERN.matcher(name).matches() && !PROFILES_PATTERN.matcher(name).matches());
+    }
+
+    private static File[] listRemoteResourceFragments(List<String> remotes, KitLogger log) {
+        if (!remotes.isEmpty()) {
+            final File remoteResources = FileUtil.createTempDirectory();
+            FileUtil.downloadRemotes(remoteResources, remotes, log);
+
+            if (remoteResources.isDirectory()) {
+                return remoteResources.listFiles();
+            }
+        }
+        return new File[0];
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> unmarshalCustomResourceFile(File customResourceFile) throws IOException {
+        return Serialization.unmarshal(new FileInputStream(customResourceFile), Map.class);
+    }
+
+    public static Map<File, String> getCustomResourcesFileToNameMap(
+        File resourceDir, List<String> remotes, KitLogger log) throws IOException {
+
+        Map<File, String> fileToCrdGroupMap = new HashMap<>();
+        File[] resourceFiles = listResourceFragments(resourceDir, remotes, log);
+
+        for (File file : resourceFiles) {
+            if (file.getName().endsWith("cr.yml") || file.getName().endsWith("cr.yaml")) {
+                Map<String, Object> customResource = unmarshalCustomResourceFile(file);
+                String apiVersion = customResource.get("apiVersion").toString();
+                if (apiVersion.contains("/")) {
+                    fileToCrdGroupMap.put(file, apiVersion.split("/")[0]);
+                }
+            }
+        }
+        return fileToCrdGroupMap;
     }
 }
 

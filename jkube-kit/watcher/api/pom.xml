@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
@@ -34,7 +34,11 @@
       <groupId>org.eclipse.jkube</groupId>
       <!-- <artifactId>jkube-kit-config-resource</artifactId> -->
       <!-- TODO: vvv Don't use implementation, ^^^ use model instead -->
-      <artifactId>jkube-kit-resource-service</artifactId>
+      <artifactId>jkube-kit-config-service</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
     </dependency>
 
   </dependencies>

@@ -25,8 +25,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.log.DefaultLogCallback;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpec;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.wait.ExitCodeChecker;
 import org.eclipse.jkube.kit.build.service.docker.wait.HealthCheckChecker;
 import org.eclipse.jkube.kit.build.service.docker.wait.HttpPingChecker;
@@ -38,10 +37,10 @@ import org.eclipse.jkube.kit.build.service.docker.wait.WaitTimeoutException;
 import org.eclipse.jkube.kit.build.service.docker.wait.WaitUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.commons.text.StrSubstitutor;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * @author roland
- * @since 03.05.17
  */
 public class WaitService {
 
@@ -140,8 +139,7 @@ public class WaitService {
     }
 
     private WaitConfiguration getWaitConfiguration(ImageConfiguration imageConfig) {
-        RunImageConfiguration runConfig = imageConfig.getRunConfiguration();
-        return runConfig.getWaitConfiguration();
+        return imageConfig.getRunConfiguration().getWait();
     }
 
     // =================================================================================================================
@@ -252,8 +250,8 @@ public class WaitService {
                 // if not running, probably something went wrong during startup: spit out logs
                 new LogDispatcher(dockerAccess).fetchContainerLog(containerId, LogOutputSpec.DEFAULT);
                 dockerAccess.getLogSync(containerId, new DefaultLogCallback(
-                    new LogOutputSpec.Builder()
-                        .color("black", true)
+                    LogOutputSpec.builder()
+                        .colorString("black", true)
                         .prefix(containerId.substring(0, 6))
                         .useColor(true)
                         .logStdout(true)

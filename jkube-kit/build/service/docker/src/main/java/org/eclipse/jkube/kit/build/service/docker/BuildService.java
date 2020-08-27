@@ -15,11 +15,11 @@ package org.eclipse.jkube.kit.build.service.docker;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.LinkedList;
 
@@ -27,23 +27,23 @@ import com.google.gson.JsonObject;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.eclipse.jkube.kit.build.core.JKubeBuildContext;
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.DockerFileUtil;
-import org.eclipse.jkube.kit.build.core.assembly.DockerAssemblyManager;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.CleanupMode;
 
 public class BuildService {
 
-    private final String argPrefix = "docker.buildArg.";
+    private static final String ARG_PREFIX = "docker.buildArg.";
 
     private final DockerAccess docker;
     private final QueryService queryService;
@@ -64,23 +64,23 @@ public class BuildService {
      *
      * @param imageConfig the image configuration
      * @param imagePullManager the image pull manager
-     * @param buildContext the build context
-     * @throws Exception in case of any problems
+     * @param configuration the project configuration
+     * @throws IOException in case of any problems
      */
-    public void buildImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, BuildContext buildContext)
-            throws Exception {
+    public void buildImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, JKubeConfiguration configuration)
+            throws IOException {
 
         if (imagePullManager != null) {
-            autoPullBaseImage(imageConfig, imagePullManager, buildContext);
+            autoPullBaseImage(imageConfig, imagePullManager, configuration);
         }
 
-        buildImage(imageConfig, buildContext.getMavenBuildContext(), checkForNocache(imageConfig), addBuildArgs(buildContext));
+        buildImage(imageConfig, configuration, checkForNocache(imageConfig), addBuildArgs(configuration));
     }
 
     public void tagImage(String imageName, ImageConfiguration imageConfig) throws DockerAccessException {
 
         List<String> tags = imageConfig.getBuildConfiguration().getTags();
-        if (tags.size() > 0) {
+        if (!tags.isEmpty()) {
             log.info("%s: Tag with %s", imageConfig.getDescription(), EnvUtil.stringJoin(tags, ","));
 
             for (String tag : tags) {
@@ -103,13 +103,13 @@ public class BuildService {
      * @throws DockerAccessException docker access exception
      * @throws IOException in case of any I/O exception
      */
-    protected void buildImage(ImageConfiguration imageConfig, JKubeBuildContext params, boolean noCache, Map<String, String> buildArgs)
-            throws DockerAccessException, IOException {
+    protected void buildImage(ImageConfiguration imageConfig, JKubeConfiguration params, boolean noCache, Map<String, String> buildArgs)
+            throws IOException {
 
         String imageName = imageConfig.getName();
         ImageName.validate(imageName);
 
-        JKubeBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+        BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
         String oldImageId = null;
 
@@ -179,13 +179,13 @@ public class BuildService {
         return queryService.getImageId(imageName);
     }
 
-    private Map<String, String> addBuildArgs(BuildContext buildContext) {
-        Map<String, String> buildArgsFromProject = addBuildArgsFromProperties(buildContext.getMavenBuildContext().getProject().getProperties());
+    private Map<String, String> addBuildArgs(JKubeConfiguration configuration) {
+        Map<String, String> buildArgsFromProject = addBuildArgsFromProperties(configuration.getProject().getProperties());
         Map<String, String> buildArgsFromSystem = addBuildArgsFromProperties(System.getProperties());
         Map<String, String> buildArgsFromDockerConfig = addBuildArgsFromDockerConfig();
         return ImmutableMap.<String, String>builder()
                 .putAll(buildArgsFromDockerConfig)
-                .putAll(buildContext.getBuildArgs() != null ? buildContext.getBuildArgs() : Collections.emptyMap())
+                .putAll(Optional.ofNullable(configuration.getBuildArgs()).orElse(Collections.emptyMap()))
                 .putAll(buildArgsFromProject)
                 .putAll(buildArgsFromSystem)
                 .build();
@@ -195,8 +195,8 @@ public class BuildService {
         Map<String, String> buildArgs = new HashMap<>();
         for (Object keyObj : properties.keySet()) {
             String key = (String) keyObj;
-            if (key.startsWith(argPrefix)) {
-                String argKey = key.replaceFirst(argPrefix, "");
+            if (key.startsWith(ARG_PREFIX)) {
+                String argKey = key.replaceFirst(ARG_PREFIX, "");
                 String value = properties.getProperty(key);
 
                 if (!isEmpty(value)) {
@@ -229,7 +229,7 @@ public class BuildService {
 
                 for(int index = 0; index < proxyMapping.length; index += 2) {
                     if (defaultProxyObj.has(proxyMapping[index])) {
-                        buildArgs.put(argPrefix + proxyMapping[index+1], defaultProxyObj.get(proxyMapping[index]).getAsString());
+                        buildArgs.put(ARG_PREFIX + proxyMapping[index+1], defaultProxyObj.get(proxyMapping[index]).getAsString());
                     }
                 }
             }
@@ -238,8 +238,8 @@ public class BuildService {
         return buildArgs;
     }
 
-    private void autoPullBaseImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, BuildContext buildContext)
-            throws Exception {
+    private void autoPullBaseImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, JKubeConfiguration configuration)
+            throws IOException {
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
         if (buildConfig.getDockerArchive() != null) {
@@ -249,7 +249,7 @@ public class BuildService {
 
         List<String> fromImages;
         if (buildConfig.isDockerFileMode()) {
-            fromImages = extractBaseFromDockerfile(buildConfig, buildContext);
+            fromImages = extractBaseFromDockerfile(buildConfig, configuration);
         } else {
             fromImages = new LinkedList<>();
             String baseImage = extractBaseFromConfiguration(buildConfig);
@@ -258,8 +258,8 @@ public class BuildService {
             }
         }
         for (String fromImage : fromImages) {
-            if (fromImage != null && !DockerAssemblyManager.SCRATCH_IMAGE.equals(fromImage)) {
-                registryService.pullImageWithPolicy(fromImage, imagePullManager, buildContext.getRegistryConfig(), queryService.hasImage(fromImage));
+            if (fromImage != null && !AssemblyManager.SCRATCH_IMAGE.equals(fromImage)) {
+                registryService.pullImageWithPolicy(fromImage, imagePullManager, configuration.getRegistryConfig(), queryService.hasImage(fromImage));
             }
         }
     }
@@ -268,21 +268,21 @@ public class BuildService {
         String fromImage;
         fromImage = buildConfig.getFrom();
         if (fromImage == null) {
-            AssemblyConfiguration assemblyConfig = buildConfig.getAssemblyConfiguration();
+            AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
             if (assemblyConfig == null) {
-                fromImage = DockerAssemblyManager.DEFAULT_DATA_BASE_IMAGE;
+                fromImage = AssemblyManager.DEFAULT_DATA_BASE_IMAGE;
             }
         }
         return fromImage;
     }
 
-    private List<String> extractBaseFromDockerfile(BuildConfiguration buildConfig, BuildContext buildContext) {
+    private List<String> extractBaseFromDockerfile(BuildConfiguration buildConfig, JKubeConfiguration configuration) {
         List<String> fromImage;
         try {
-            File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(buildContext.getMavenBuildContext().getSourceDirectory(), buildContext.getMavenBuildContext().getProject().getBaseDirectory() != null
-                    ? buildContext.getMavenBuildContext().getProject().getBaseDirectory().toString() : null);
+            File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(configuration.getSourceDirectory(),
+                Optional.ofNullable(configuration.getProject().getBaseDirectory()).map(File::toString) .orElse(null));
 
-            fromImage = DockerFileUtil.extractBaseImages(fullDockerFilePath, buildContext.getMavenBuildContext().getProperties());
+            fromImage = DockerFileUtil.extractBaseImages(fullDockerFilePath, configuration.getProperties(), buildConfig.getFilter());
         } catch (IOException e) {
             // Cant extract base image, so we wont try an auto pull. An error will occur later anyway when
             // building the image, so we are passive here.
@@ -303,66 +303,6 @@ public class BuildService {
 
     private boolean isEmpty(String str) {
         return str == null || str.isEmpty();
-    }
-
-
-    // ===========================================
-
-
-    public static class BuildContext implements Serializable {
-
-        private JKubeBuildContext mojoParameters;
-
-        private Map<String, String> buildArgs;
-
-        private RegistryService.RegistryConfig registryConfig;
-
-        public BuildContext() {
-        }
-
-        public JKubeBuildContext getMavenBuildContext() {
-            return mojoParameters;
-        }
-
-        public Map<String, String> getBuildArgs() {
-            return buildArgs;
-        }
-
-        public RegistryService.RegistryConfig getRegistryConfig() {
-            return registryConfig;
-        }
-
-        public static class Builder {
-
-            private BuildContext context;
-
-            public Builder() {
-                this.context = new BuildContext();
-            }
-
-            public Builder(BuildContext context) {
-                this.context = context;
-            }
-
-            public Builder mojoParameters(JKubeBuildContext mojoParameters) {
-                context.mojoParameters = mojoParameters;
-                return this;
-            }
-
-            public Builder buildArgs(Map<String, String> buildArgs) {
-                context.buildArgs = buildArgs;
-                return this;
-            }
-
-            public Builder registryConfig(RegistryService.RegistryConfig registryConfig) {
-                context.registryConfig = registryConfig;
-                return this;
-            }
-
-            public BuildContext build() {
-                return context;
-            }
-        }
     }
 
 }

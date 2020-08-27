@@ -19,6 +19,8 @@ import java.util.Properties;
 
 public class ThorntailUtil {
 
+    private ThorntailUtil() {}
+
     /**
      * Returns the thorntail configuration (supports `project-defaults.yml`)
      * or an empty properties object if not found
@@ -28,8 +30,6 @@ public class ThorntailUtil {
      */
     public static Properties getThorntailProperties(URLClassLoader compileClassLoader) {
         URL ymlResource = compileClassLoader.findResource("project-defaults.yml");
-
-        Properties props = YamlUtil.getPropertiesFromYamlResource(ymlResource);
-        return props;
+        return YamlUtil.getPropertiesFromYamlResource(ymlResource);
     }
 }

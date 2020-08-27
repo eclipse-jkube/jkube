@@ -17,11 +17,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.common.Configs;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -29,10 +29,9 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.TreeMap;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 public class RevisionHistoryEnricherTest {
 
@@ -42,9 +41,7 @@ public class RevisionHistoryEnricherTest {
     @Test
     public void testDefaultRevisionHistoryLimit() throws JsonProcessingException {
         // Given
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewDeploymentItem()
-                .endDeploymentItem();
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());
 
         RevisionHistoryEnricher enricher = new RevisionHistoryEnricher(context);
 
@@ -52,7 +49,7 @@ public class RevisionHistoryEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         // Then
-        assertRevisionHistory(builder.build(), Configs.asInt(RevisionHistoryEnricher.Config.limit.def()));
+        assertRevisionHistory(builder.build(), 2);
     }
 
     @Test
@@ -61,14 +58,12 @@ public class RevisionHistoryEnricherTest {
         // Setup mock behaviour
         final String revisionNumber = "10";
         new Expectations() {{
-            Configuration config = new Configuration.Builder().processorConfig(prepareEnricherConfig(revisionNumber)).build();
+            Configuration config = Configuration.builder().processorConfig(prepareEnricherConfig(revisionNumber)).build();
             context.getConfiguration(); result = config;
         }};
 
         // Given
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewDeploymentItem()
-                .endDeploymentItem();
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());
 
         RevisionHistoryEnricher enricher = new RevisionHistoryEnricher(context);
 
@@ -79,22 +74,16 @@ public class RevisionHistoryEnricherTest {
         assertRevisionHistory(builder.build(), Integer.parseInt(revisionNumber));
     }
 
-    private ProcessorConfig prepareEnricherConfig(final String revisionNumber) {
+      private ProcessorConfig prepareEnricherConfig(final String revisionNumber) {
         return new ProcessorConfig(
-                    null,
-                    null,
-                    Collections.singletonMap(
-                            RevisionHistoryEnricher.DEFAULT_NAME,
-                            new TreeMap(Collections.singletonMap(
-                                    RevisionHistoryEnricher.Config.limit.name(),
-                                    revisionNumber)
-                            )
-                    )
-                );
-    }
+            null,
+            null,
+            Collections.singletonMap("jkube-revision-history",
+                Collections.singletonMap("limit",revisionNumber)));
+      }
 
     private void assertRevisionHistory(KubernetesList list, Integer revisionNumber) throws JsonProcessingException {
-        assertEquals(list.getItems().size(),1);
+        assertEquals(1, list.getItems().size());
 
         String kubeJson = ResourceUtil.toJson(list.getItems().get(0));
         assertThat(kubeJson, JsonPathMatchers.isJson());

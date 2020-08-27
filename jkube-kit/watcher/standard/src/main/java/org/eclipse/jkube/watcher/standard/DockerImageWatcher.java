@@ -32,11 +32,9 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.build.service.docker.BuildService;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
@@ -45,9 +43,6 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.watcher.api.BaseWatcher;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
-/**
- *
- */
 public class DockerImageWatcher extends BaseWatcher {
 
     public DockerImageWatcher(WatcherContext watcherContext) {
@@ -62,39 +57,37 @@ public class DockerImageWatcher extends BaseWatcher {
     @Override
     public void watch(List<ImageConfiguration> configs, final Set<HasMetadata> resources, PlatformMode mode) {
 
-        BuildService.BuildContext buildContext = getContext().getBuildContext();
         WatchService.WatchContext watchContext = getContext().getWatchContext();
 
         // add a image customizer
-        watchContext = new WatchService.WatchContext.Builder(watchContext)
-                .imageCustomizer(imageConfiguration -> buildImage(imageConfiguration)).containerRestarter(imageWatcher -> restartContainer(imageWatcher, resources))
+        watchContext = watchContext.toBuilder()
+                .imageCustomizer(this::buildImage).containerRestarter(imageWatcher -> restartContainer(imageWatcher, resources))
                 .build();
 
-        ServiceHub hub = getContext().getServiceHub();
+        ServiceHub hub = getContext().getJKubeServiceHub().getDockerServiceHub();
         try {
-            hub.getWatchService().watch(watchContext, buildContext, configs);
+            hub.getWatchService().watch(watchContext, getContext().getBuildContext(), configs);
         } catch (Exception ex) {
             throw new RuntimeException("Error while watching", ex);
         }
     }
 
-    protected void buildImage(ImageConfiguration imageConfig) throws DockerAccessException {
+    protected void buildImage(ImageConfiguration imageConfig) {
         String imageName = imageConfig.getName();
         // lets regenerate the label
         try {
             String imagePrefix = getImagePrefix(imageName);
             imageName = imagePrefix + "%t";
-            ImageNameFormatter formatter = new ImageNameFormatter(getContext().getProject(), new Date());
+            ImageNameFormatter formatter = new ImageNameFormatter(getContext().getBuildContext().getProject(), new Date());
             imageName = formatter.format(imageName);
             imageConfig.setName(imageName);
             log.info("New image name: " + imageConfig.getName());
         } catch (Exception e) {
             log.error("Caught: " + e, e);
         }
-
     }
 
-    private String getImagePrefix(String imageName) throws IllegalStateException {
+    private String getImagePrefix(String imageName) {
         String imagePrefix = null;
         int idx = imageName.lastIndexOf(':');
         if (idx < 0) {
@@ -105,11 +98,11 @@ public class DockerImageWatcher extends BaseWatcher {
         return imagePrefix;
     }
 
-    protected void restartContainer(WatchService.ImageWatcher watcher, Set<HasMetadata> resources) throws IllegalStateException {
+    protected void restartContainer(WatchService.ImageWatcher watcher, Set<HasMetadata> resources) {
         ImageConfiguration imageConfig = watcher.getImageConfiguration();
         String imageName = imageConfig.getName();
-        ClusterAccess clusterAccess = new ClusterAccess(getContext().getClusterConfiguration());
-        try (KubernetesClient client = clusterAccess.createDefaultClient(log)) {
+        ClusterAccess clusterAccess = getContext().getJKubeServiceHub().getClusterAccess();
+        try (KubernetesClient client = clusterAccess.createDefaultClient()) {
 
             String namespace = clusterAccess.getNamespace();
 
@@ -133,7 +126,7 @@ public class DockerImageWatcher extends BaseWatcher {
             DeploymentSpec spec = resource.getSpec();
             if (spec != null) {
                 if (updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                    kubernetes.extensions().deployments().inNamespace(namespace).withName(name).replace(resource);
+                    kubernetes.apps().deployments().inNamespace(namespace).withName(name).replace(resource);
                 }
             }
         } else if (entity instanceof ReplicaSet) {
@@ -141,7 +134,7 @@ public class DockerImageWatcher extends BaseWatcher {
             ReplicaSetSpec spec = resource.getSpec();
             if (spec != null) {
                 if (updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                    kubernetes.extensions().replicaSets().inNamespace(namespace).withName(name).replace(resource);
+                    kubernetes.apps().replicaSets().inNamespace(namespace).withName(name).replace(resource);
                 }
             }
         } else if (entity instanceof ReplicationController) {
@@ -160,8 +153,9 @@ public class DockerImageWatcher extends BaseWatcher {
                     OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(kubernetes);
                     if (openshiftClient == null) {
                         log.warn("Ignoring DeploymentConfig %s as not connected to an OpenShift cluster", name);
+                    } else {
+                        openshiftClient.deploymentConfigs().inNamespace(namespace).withName(name).replace(resource);
                     }
-                    openshiftClient.deploymentConfigs().inNamespace(namespace).withName(name).replace(resource);
                 }
             }
         }

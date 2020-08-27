@@ -5,45 +5,38 @@ This generator named `karaf` kicks in when the build uses a `karaf-maven-plugin`
 
 [[generator-karaf-from]]
 .Karaf Base Images
-[cols="1,4,4"]
+[cols="1,4,4,4"]
 |===
-| | Docker Build | S2I Build
+| | Docker Build | S2I Build | ImageStream
 
 | *Community*
-| `jkube.s2i-karaf`
-| `jkube.s2i-karaf`
+| `quay.io/jkube/jkube-karaf-binary-s2i`
+| `quay.io/jkube/jkube-karaf-binary-s2i`
+| `jkube-karaf`
 
-| *Red Hat*
-| `jboss-fuse-6/fis-karaf-openshift`
-| `jboss-fuse-6/fis-karaf-openshift`
 |===
 
-When a `fromMode` of `istag` is used to specify an `ImageStreamTag` and when no `from` is given, then as default the `ImageStreamTag` `fis-karaf-openshift:2.0` in the namespace `openshift` is chosen.
+When a `fromMode` of `istag` is used to specify an `ImageStreamTag` and when no `from` is given, then as default the
+`ImageStreamTag` `jkube-karaf` in the namespace `openshift` is chosen.
 
 In addition to the  <<generator-options-common, common generator options>> this generator can be configured with the following options:
 
 .Karaf configuration options
 [cols="1,6,1"]
 |===
-| Element | Description | Default
+| Element | Description | Property
 
 | *baseDir*
-| Directory within the generated image where to put the detected artefacts into. Change this only if the base image is changed, too.
-| `/deployments`
+| Directory within the generated image where to put the detected artifacts into. Change this only if the base image is
+  changed, too.
 
-| *jolokiaPort*
-| Port of the Jolokia agent exposed by the base image. Set this to 0 if you don't want to expose the Jolokia port.
-| 8778
-
-| *mainClass*
-| Main class to call. If not given first a check is performed to detect a fat-jar (see above). Next a class is tried to be found by scanning `target/classes` for a single class with a main method. If no if found or more than one is found, then this generator does nothing.
-|
-
-| *user*
-| User and/or group under which the files should be added. The syntax of this options is descriped in <<config-image-build-assembly-user, Assembly Configuration>>.
-| `jboss:jboss:jboss`
+  Defaults to `/deployments`.
+| `jkube.generator.karaf.baseDir`
 
 | *webPort*
-| Port to expose as service, which is supposed to be the port of a web application. Set this to 0 if you don't want to expose a port.
-| 8080
+| Port to expose as service, which is supposed to be the port of a web application. Set this to 0 if you don't want to
+expose a port.
+
+  Defaults to `8080`.
+| `jkube.generator.karaf.webPort`
 |===

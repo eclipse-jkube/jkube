@@ -20,7 +20,7 @@
 
     <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
     <artifactId>javaee8-webprofile-liberty</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>1.0.0-rc-1</version>
     <name>Eclipse JKube :: Quickstarts :: Maven :: JavaEE 8 WebProfile</name>
     <packaging>pom</packaging>
 
@@ -36,6 +36,13 @@
     </modules>
 
     <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <testServerHost>*</testServerHost>
+        <testServerHttpPort>9080</testServerHttpPort>
+        <testServerHttpsPort>9443</testServerHttpsPort>
+        <applicationContext>libertyapi</applicationContext>
+
         <docker.user>jkube</docker.user>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -116,15 +123,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
                     <version>3.2.0</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.6.1</version>
-                    <configuration>
-                        <source>${maven.compile.source}</source>
-                        <target>${maven.compile.target}</target>
-                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

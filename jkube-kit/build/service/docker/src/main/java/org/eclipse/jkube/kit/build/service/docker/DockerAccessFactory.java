@@ -21,6 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerConnectionDetector;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerMachine;
@@ -107,128 +112,34 @@ public class DockerAccessFactory {
         }
     }
 
-    // ===========================================
-
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @EqualsAndHashCode
     public static class DockerAccessContext implements Serializable {
 
+        private static final long serialVersionUID = -4768689117574797600L;
+
+        public static final int DEFAULT_MAX_CONNECTIONS = 100;
+
         private Properties projectProperties;
-
         private DockerMachineConfiguration machine;
-
         private List<DockerConnectionDetector.DockerHostProvider> dockerHostProviders;
-
         private boolean skipMachine;
-
         private String minimalApiVersion;
-
         private String dockerHost;
-
         private String certPath;
-
         private int maxConnections;
-
         private KitLogger log;
 
-        public DockerAccessContext() {
-        }
-
-        public Properties getProjectProperties() {
-            return projectProperties;
-        }
-
-        public DockerMachineConfiguration getMachine() {
-            return machine;
-        }
-
-        public List<DockerConnectionDetector.DockerHostProvider> getDockerHostProviders() {
-            return dockerHostProviders;
-        }
-
-        public boolean isSkipMachine() {
-            return skipMachine;
-        }
-
-        public String getMinimalApiVersion() {
-            return minimalApiVersion;
-        }
-
-        public String getDockerHost() {
-            return dockerHost;
-        }
-
-        public String getCertPath() {
-            return certPath;
-        }
-
-        public int getMaxConnections() {
-            return maxConnections;
-        }
-
-        public KitLogger getLog() {
-            return log;
-        }
-
-        public static class Builder {
-
-            private DockerAccessContext context = new DockerAccessContext();
-
-            public Builder() {
-                this.context = new DockerAccessContext();
-            }
-
-            public Builder(DockerAccessContext context) {
-                this.context = context;
-            }
-
-            public Builder projectProperties(Properties projectProperties) {
-                context.projectProperties = projectProperties;
-                return this;
-            }
-
-            public Builder machine(DockerMachineConfiguration machine) {
-                context.machine = machine;
-                return this;
-            }
-
-            public Builder dockerHostProviders(List<DockerConnectionDetector.DockerHostProvider> dockerHostProviders) {
-                context.dockerHostProviders = dockerHostProviders;
-                return this;
-            }
-
-            public Builder skipMachine(boolean skipMachine) {
-                context.skipMachine = skipMachine;
-                return this;
-            }
-
-            public Builder minimalApiVersion(String minimalApiVersion) {
-                context.minimalApiVersion = minimalApiVersion;
-                return this;
-            }
-
-            public Builder dockerHost(String dockerHost) {
-                context.dockerHost = dockerHost;
-                return this;
-            }
-
-            public Builder certPath(String certPath) {
-                context.certPath = certPath;
-                return this;
-            }
-
-            public Builder maxConnections(int maxConnections) {
-                context.maxConnections = maxConnections;
-                return this;
-            }
-
-            public Builder log(KitLogger log) {
-                context.log = log;
-                return this;
-            }
-
-            public DockerAccessContext build() {
-                return context;
-            }
-
+        public static DockerAccessContext getDefault(KitLogger kitLogger){
+            return DockerAccessContext.builder()
+                .projectProperties(System.getProperties())
+                .skipMachine(false)
+                .maxConnections(DEFAULT_MAX_CONNECTIONS)
+                .log(kitLogger)
+                .build();
         }
     }
 

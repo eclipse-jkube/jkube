@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.compose;
 
-import org.eclipse.jkube.kit.build.core.config.JKubeBuildConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandlerException;
 import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -49,7 +49,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JKubeProject project) {
+    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JavaProject project) {
         List<ImageConfiguration> resolved = new ArrayList<>();
 
         DockerComposeConfiguration handlerConfig = new DockerComposeConfiguration(unresolvedConfig.getExternalConfig());
@@ -100,13 +100,13 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
                                                        File composeParent,
                                                        ImageConfiguration unresolvedConfig,
                                                        DockerComposeConfiguration handlerConfig) {
-        ImageConfiguration.Builder builder = new ImageConfiguration.Builder()
+        ImageConfiguration.ImageConfigurationBuilder builder = ImageConfiguration.builder()
                 .name(getImageName(mapper, unresolvedConfig))
                 .alias(mapper.getAlias())
-                .buildConfig(createBuildImageConfiguration(mapper, composeParent, unresolvedConfig, handlerConfig))
-                .runConfig(createRunConfiguration(mapper, unresolvedConfig));
+                .build(createBuildImageConfiguration(mapper, composeParent, unresolvedConfig, handlerConfig))
+                .run(createRunConfiguration(mapper, unresolvedConfig));
         if (serviceMatchesAlias(mapper, unresolvedConfig)) {
-            builder.watchConfig(DeepCopy.copy(unresolvedConfig.getWatchConfiguration()));
+            builder.watch(DeepCopy.copy(unresolvedConfig.getWatchConfiguration()));
         }
         return builder.build();
     }
@@ -132,11 +132,11 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         }
     }
 
-    private JKubeBuildConfiguration createBuildImageConfiguration(DockerComposeServiceWrapper mapper,
-                                                                  File composeParent,
-                                                                  ImageConfiguration imageConfig,
-                                                                  DockerComposeConfiguration handlerConfig) {
-        final JKubeBuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+    private BuildConfiguration createBuildImageConfiguration(
+        DockerComposeServiceWrapper mapper, File composeParent, ImageConfiguration imageConfig,
+        DockerComposeConfiguration handlerConfig) {
+
+        final BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
         if (handlerConfig.isIgnoreBuild() || !mapper.requiresBuild()) {
             if (serviceMatchesAlias(mapper, imageConfig)) {
                 // Only when the specified image name maps to the current docker-compose service
@@ -147,7 +147,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
         }
 
         // Build from the specification as given in the docker-compose file
-        return new JKubeBuildConfiguration.Builder(buildConfig)
+        return buildConfig.toBuilder()
                 .dockerFile(extractDockerFilePath(mapper, composeParent))
                 .args(mapper.getBuildArgs())
                 .build();
@@ -158,10 +158,10 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
     }
 
     private RunImageConfiguration createRunConfiguration(DockerComposeServiceWrapper wrapper, ImageConfiguration imageConfig) {
-        RunImageConfiguration.Builder builder =
+        RunImageConfiguration.RunImageConfigurationBuilder builder =
             serviceMatchesAlias(wrapper, imageConfig) ?
-                new RunImageConfiguration.Builder(imageConfig.getRunConfiguration()) :
-                new RunImageConfiguration.Builder();
+                imageConfig.getRunConfiguration().toBuilder() :
+                RunImageConfiguration.builder();
         return builder
                 .capAdd(wrapper.getCapAdd())
                 .capDrop(wrapper.getCapDrop())

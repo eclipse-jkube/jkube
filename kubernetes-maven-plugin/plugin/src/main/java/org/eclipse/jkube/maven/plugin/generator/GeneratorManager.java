@@ -15,7 +15,7 @@ package org.eclipse.jkube.maven.plugin.generator;
 
 import org.eclipse.jkube.generator.api.Generator;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
@@ -26,9 +26,10 @@ import java.util.List;
 /**
  * Manager responsible for finding and calling generators
  * @author roland
- * @since 15/05/16
  */
 public class GeneratorManager {
+
+    private GeneratorManager() {}
 
     public static List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs,
                                                     GeneratorContext genCtx,
@@ -37,10 +38,9 @@ public class GeneratorManager {
         List<ImageConfiguration> ret = imageConfigs;
 
         PluginServiceFactory<GeneratorContext> pluginFactory =
-            null;
-        pluginFactory = genCtx.isUseProjectClasspath() ?
-                new PluginServiceFactory<GeneratorContext>(genCtx, ClassUtil.createProjectClassLoader(genCtx.getProject().getCompileClassPathElements(), genCtx.getLogger())) :
-                new PluginServiceFactory<GeneratorContext>(genCtx);
+            genCtx.isUseProjectClasspath() ?
+                new PluginServiceFactory<>(genCtx, ClassUtil.createProjectClassLoader(genCtx.getProject().getCompileClassPathElements(), genCtx.getLogger())) :
+                new PluginServiceFactory<>(genCtx);
 
         List<Generator> generators =
             pluginFactory.createServiceObjects("META-INF/jkube/generator-default",

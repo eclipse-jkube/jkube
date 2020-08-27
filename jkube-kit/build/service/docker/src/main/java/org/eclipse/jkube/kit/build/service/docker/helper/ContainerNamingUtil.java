@@ -15,8 +15,8 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import com.google.common.collect.ImmutableSet;
 import org.eclipse.jkube.kit.build.api.model.Container;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
 import java.util.ArrayList;
@@ -156,13 +156,8 @@ public class ContainerNamingUtil {
 
     private static String extractContainerNamePattern(ImageConfiguration image, String defaultContainerNamePattern) {
         RunImageConfiguration runConfig = image.getRunConfiguration();
-        if (runConfig != null) {
-            if (runConfig.getContainerNamePattern() != null) {
-                return runConfig.getContainerNamePattern();
-            }
-            if (runConfig.getNamingStrategy() == RunImageConfiguration.NamingStrategy.alias) {
-                return "%a";
-            }
+        if (runConfig != null && runConfig.getContainerNamePattern() != null) {
+            return runConfig.getContainerNamePattern();
         }
         return defaultContainerNamePattern != null ? defaultContainerNamePattern : DEFAULT_CONTAINER_NAME_PATTERN;
     }

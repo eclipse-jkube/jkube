@@ -20,16 +20,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
-import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.hamcrest.Matchers.hasEntry;
 
@@ -37,7 +38,7 @@ public class DockerFileBuilderTest {
 
     @Test
     public void testBuildDockerFile() throws Exception {
-        Arguments a = Arguments.Builder.get().withParam("c1").withParam("c2").build();
+        Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
         String dockerfileContent = new DockerFileBuilder().add("/src", "/dest")
                                                           .baseImage("image")
                                                           .cmd(a)
@@ -56,7 +57,7 @@ public class DockerFileBuilderTest {
 
     @Test
     public void testBuildDockerFileMultilineLabel() throws Exception {
-        Arguments a = Arguments.Builder.get().withParam("c1").withParam("c2").build();
+        Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
         String dockerfileContent = new DockerFileBuilder()
                 .add("/src", "/dest")
                 .baseImage("image")
@@ -73,7 +74,7 @@ public class DockerFileBuilderTest {
     }
 
     @Test
-    public void testBuildLabelWithSpace() throws Exception {
+    public void testBuildLabelWithSpace() {
         String dockerfileContent = new DockerFileBuilder()
                 .labels(Collections.singletonMap("key", "label with space"))
                 .content();
@@ -82,7 +83,7 @@ public class DockerFileBuilderTest {
 
     @Test
     public void testBuildDockerFileUDPPort() throws Exception {
-        Arguments a = Arguments.Builder.get().withParam("c1").withParam("c2").build();
+        Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
         String dockerfileContent = new DockerFileBuilder().add("/src", "/dest")
                                                           .baseImage("image")
                                                           .cmd(a)
@@ -99,7 +100,7 @@ public class DockerFileBuilderTest {
 
     @Test
     public void testBuildDockerFileExplicitTCPPort() throws Exception {
-        Arguments a = Arguments.Builder.get().withParam("c1").withParam("c2").build();
+        Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
         String dockerfileContent = new DockerFileBuilder().add("/src", "/dest")
                                                           .baseImage("image")
                                                           .cmd(a)
@@ -115,8 +116,8 @@ public class DockerFileBuilderTest {
     }
 
     @Test(expected= IllegalArgumentException.class)
-    public void testBuildDockerFileBadPort() throws Exception {
-        Arguments a = Arguments.Builder.get().withParam("c1").withParam("c2").build();
+    public void testBuildDockerFileBadPort() {
+        Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
         new DockerFileBuilder().add("/src", "/dest")
                 .baseImage("image")
                 .cmd(a)
@@ -132,8 +133,8 @@ public class DockerFileBuilderTest {
     }
 
     @Test(expected= IllegalArgumentException.class)
-    public void testBuildDockerFileBadProtocol() throws Exception {
-        Arguments a = Arguments.Builder.get().withParam("c1").withParam("c2").build();
+    public void testBuildDockerFileBadProtocol() {
+        Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
         new DockerFileBuilder().add("/src", "/dest")
                 .baseImage("image")
                 .cmd(a)
@@ -150,7 +151,7 @@ public class DockerFileBuilderTest {
 
     @Test
     public void testDockerFileOptimisation() throws Exception {
-        Arguments a = Arguments.Builder.get().withParam("c1").withParam("c2").build();
+        Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
         String dockerfileContent = new DockerFileBuilder().add("/src", "/dest")
                                                           .baseImage("image")
                                                           .cmd(a)
@@ -182,33 +183,39 @@ public class DockerFileBuilderTest {
 
     @Test
     public void testOptimiseOnEmptyRunCommandListDoesNotThrowException() {
-        new DockerFileBuilder().optimise().content();
+        final String result = new DockerFileBuilder().optimise().content();
+        assertThat(result, notNullValue());
     }
 
     @Test
     public void testEntryPointShell() {
-        Arguments a = Arguments.Builder.get().withShell("java -jar /my-app-1.1.1.jar server").build();
+        Arguments a = Arguments.builder().shell("java -jar /my-app-1.1.1.jar server").build();
         String dockerfileContent = new DockerFileBuilder().entryPoint(a).content();
         assertThat(dockerfileToMap(dockerfileContent), hasEntry("ENTRYPOINT", "java -jar /my-app-1.1.1.jar server"));
     }
 
     @Test
     public void testEntryPointParams() {
-        Arguments a = Arguments.Builder.get().withParam("java").withParam("-jar").withParam("/my-app-1.1.1.jar").withParam("server").build();
+        Arguments a = Arguments.builder().execArgument("java").execArgument("-jar").execArgument("/my-app-1.1.1.jar").execArgument("server").build();
         String dockerfileContent = new DockerFileBuilder().entryPoint(a).content();
         assertThat(dockerfileToMap(dockerfileContent), hasEntry("ENTRYPOINT", "[\"java\",\"-jar\",\"/my-app-1.1.1.jar\",\"server\"]"));
     }
 
     @Test
     public void testHealthCheckCmdParams() {
-        HealthCheckConfiguration hc = new HealthCheckConfiguration.Builder().cmd(new Arguments("echo hello")).interval("5s").timeout("3s").startPeriod("30s").retries(4).build();
+        HealthCheckConfiguration hc = HealthCheckConfiguration.builder()
+            .cmd(Arguments.builder().shell("echo hello").build())
+            .interval("5s").timeout("3s")
+            .startPeriod("30s")
+            .retries(4)
+            .build();
         String dockerfileContent = new DockerFileBuilder().healthCheck(hc).content();
         assertThat(dockerfileToMap(dockerfileContent), hasEntry("HEALTHCHECK", "--interval=5s --timeout=3s --start-period=30s --retries=4 CMD echo hello"));
     }
 
     @Test
     public void testHealthCheckNone() {
-        HealthCheckConfiguration hc = new HealthCheckConfiguration.Builder().mode(HealthCheckMode.none).build();
+        HealthCheckConfiguration hc = HealthCheckConfiguration.builder().mode(HealthCheckMode.none).build();
         String dockerfileContent = new DockerFileBuilder().healthCheck(hc).content();
         assertThat(dockerfileToMap(dockerfileContent), hasEntry("HEALTHCHECK", "NONE"));
     }
@@ -258,7 +265,7 @@ public class DockerFileBuilderTest {
         assertEquals("RUN apt-get update\n", b.toString());
 
         b = new StringBuilder();
-        DockerFileKeyword.EXPOSE.addTo(b, new String[]{"1010", "2020"});
+        DockerFileKeyword.EXPOSE.addTo(b, "1010", "2020");
         assertEquals("EXPOSE 1010 2020\n",b.toString());
 
         b = new StringBuilder();
@@ -271,7 +278,7 @@ public class DockerFileBuilderTest {
     }
 
     private String loadFile(String fileName) throws IOException {
-        return stripCR(IOUtils.toString(getClass().getClassLoader().getResource(fileName), Charset.defaultCharset()));
+        return stripCR(IOUtils.toString(Objects.requireNonNull(getClass().getClassLoader().getResource(fileName)), Charset.defaultCharset()));
     }
 
     private static Map<String, String> dockerfileToMap(String dockerFile) {

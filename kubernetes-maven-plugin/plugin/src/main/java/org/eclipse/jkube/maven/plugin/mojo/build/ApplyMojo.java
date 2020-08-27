@@ -13,90 +13,52 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.DoneableService;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Namespace;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.api.model.ServiceSpec;
-import io.fabric8.kubernetes.api.model.extensions.HTTPIngressPath;
-import io.fabric8.kubernetes.api.model.extensions.HTTPIngressPathBuilder;
-import io.fabric8.kubernetes.api.model.extensions.HTTPIngressRuleValue;
-import io.fabric8.kubernetes.api.model.extensions.Ingress;
-import io.fabric8.kubernetes.api.model.extensions.IngressBackend;
-import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
-import io.fabric8.kubernetes.api.model.extensions.IngressList;
-import io.fabric8.kubernetes.api.model.extensions.IngressRule;
-import io.fabric8.kubernetes.api.model.extensions.IngressSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.openshift.api.model.Project;
-import io.fabric8.openshift.api.model.Route;
-import io.fabric8.openshift.api.model.RouteList;
-import io.fabric8.openshift.api.model.RouteSpec;
-import io.fabric8.openshift.api.model.RouteTargetReference;
-import io.fabric8.openshift.api.model.RouteTargetReferenceBuilder;
-import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCustomResourcesFileToNameMap;
 
 /**
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
  */
 @Mojo(name = "apply", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.INSTALL)
-public class ApplyMojo extends AbstractJKubeMojo {
+public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
 
     public static final String DEFAULT_KUBERNETES_MANIFEST = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml";
     public static final String DEFAULT_OPENSHIFT_MANIFEST = "${basedir}/target/classes/META-INF/jkube/openshift.yml";
-
-    /**
-     * The domain added to the service ID when creating OpenShift routes
-     */
-    @Parameter(property = "jkube.domain")
-    protected String routeDomain;
-
-    /**
-     * Should we fail the build if an apply fails?
-     */
-    @Parameter(property = "jkube.deploy.failOnError", defaultValue = "true")
-    protected boolean failOnError;
 
     /**
      * Should we update resources by deleting them first and then creating them again?
@@ -109,12 +71,6 @@ public class ApplyMojo extends AbstractJKubeMojo {
      */
     @Parameter(property = "jkube.kubernetesManifest", defaultValue = DEFAULT_KUBERNETES_MANIFEST)
     private File kubernetesManifest;
-
-    /**
-     * The generated openshift YAML file
-     */
-    @Parameter(property = "jkube.openshiftManifest", defaultValue = DEFAULT_OPENSHIFT_MANIFEST)
-    private File openshiftManifest;
 
     /**
      * Should we create new kubernetes resources?
@@ -170,16 +126,6 @@ public class ApplyMojo extends AbstractJKubeMojo {
     private boolean ignoreRunningOAuthClients;
 
     /**
-     * Should we create external Ingress/Routes for any LoadBalancer Services which don't already have them.
-     * <p>
-     * We now do not do this by default and defer this to the
-     * <a href="https://github.com/jkubeio/exposecontroller/">exposecontroller</a> to decide
-     * if Ingress or Router is being used or whether we should use LoadBalancer or NodePorts for single node clusters
-     */
-    @Parameter(property = "jkube.deploy.createExternalUrls", defaultValue = "false")
-    private boolean createExternalUrls;
-
-    /**
      * The folder we should store any temporary json files or results
      */
     @Parameter(property = "jkube.deploy.jsonLogDir", defaultValue = "${basedir}/target/jkube/applyJson")
@@ -190,13 +136,6 @@ public class ApplyMojo extends AbstractJKubeMojo {
      */
     @Parameter(property = "jkube.serviceUrl.waitSeconds", defaultValue = "5")
     protected long serviceUrlWaitTimeSeconds;
-
-    /**
-     * The S2I binary builder BuildConfig name suffix appended to the image name to avoid
-     * clashing with the underlying BuildConfig for the Jenkins pipeline
-     */
-    @Parameter(property = "jkube.s2i.buildNameSuffix", defaultValue = "-s2i")
-    protected String s2iBuildNameSuffix;
 
     @Parameter
     protected ResourceConfig resources;
@@ -217,28 +156,27 @@ public class ApplyMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.skip.apply", defaultValue = "false")
     protected boolean skipApply;
 
-    private ClusterAccess clusterAccess;
     protected ApplyService applyService;
 
+    @Override
+    protected boolean canExecute() {
+        return super.canExecute() && !skipApply;
+    }
+
+    @Override
+    public File getKubernetesManifest() {
+        return kubernetesManifest;
+    }
+
+    @Override
     public void executeInternal() throws MojoExecutionException {
-        if (skipApply) {
-            return;
-        }
-
-        clusterAccess = new ClusterAccess(getClusterConfiguration());
-
         try {
-            KubernetesClient kubernetes = clusterAccess.createDefaultClient(log);
+            KubernetesClient kubernetes = clusterAccess.createDefaultClient();
             applyService = new ApplyService(kubernetes, log);
-            initServices(kubernetes, log);
+            initServices(kubernetes);
 
             URL masterUrl = kubernetes.getMasterUrl();
-            File manifest;
-            if (OpenshiftHelper.isOpenShift(kubernetes)) {
-                manifest = openshiftManifest;
-            } else {
-                manifest = kubernetesManifest;
-            }
+            final File manifest = getManifest(kubernetes);
             if (!manifest.exists() || !manifest.isFile()) {
                 if (failOnNoKubernetesJson) {
                     throw new MojoFailureException("No such generated manifest file: " + manifest);
@@ -268,7 +206,7 @@ public class ApplyMojo extends AbstractJKubeMojo {
 
             boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
             if (openShift) {
-                getLog().info("OpenShift platform detected");
+                log.info("[[B]]OpenShift[[B]] platform detected");
             } else {
                 disableOpenShiftFeatures(applyService);
             }
@@ -303,16 +241,8 @@ public class ApplyMojo extends AbstractJKubeMojo {
 
             applyService.setNamespace(namespace);
 
-            if (createExternalUrls) {
-                if (applyService.getOpenShiftClient() != null) {
-                    createRoutes(entities);
-                } else {
-                    createIngress(kubernetes, entities);
-                }
-            }
             applyEntities(kubernetes, namespace, manifest.getName(), entities);
-            log.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShiftImageStream(log) ? "oc" : "kubectl");
-
+            log.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShift() ? "oc" : "kubectl");
         } catch (KubernetesClientException e) {
             KubernetesResourceUtil.handleKubernetesClientException(e, this.log);
         } catch (MojoExecutionException e) {
@@ -322,160 +252,8 @@ public class ApplyMojo extends AbstractJKubeMojo {
         }
     }
 
-    protected void initServices(KubernetesClient kubernetes, KitLogger log) {
-
-    }
-
-    private Route createRouteForService(String routeDomainPostfix, String namespace, Service service) {
-        Route route = null;
-        String id = KubernetesHelper.getName(service);
-        if (StringUtils.isNotBlank(id) && hasExactlyOneService(service, id)) {
-            route = new Route();
-            ObjectMeta routeMeta = KubernetesHelper.getOrCreateMetadata(route);
-            routeMeta.setName(id);
-            routeMeta.setNamespace(namespace);
-
-            RouteSpec routeSpec = new RouteSpec();
-            RouteTargetReference objectRef = new RouteTargetReferenceBuilder().withName(id).build();
-            //objectRef.setNamespace(namespace);
-            routeSpec.setTo(objectRef);
-            if (StringUtils.isNotBlank(routeDomainPostfix)) {
-                routeSpec.setHost(prepareHostForRoute(routeDomainPostfix, id));
-            } else {
-                routeSpec.setHost("");
-            }
-            route.setSpec(routeSpec);
-            String json;
-            try {
-                json = ResourceUtil.toJson(route);
-            } catch (JsonProcessingException e) {
-                json = e.getMessage() + ". object: " + route;
-            }
-            log.debug("Created route: " + json);
-        }
-        return route;
-    }
-
-    private String prepareHostForRoute(String routeDomainPostfix, String name) {
-        String ret = FileUtil.stripPostfix(name,"-service");
-        ret = FileUtil.stripPostfix(ret,".");
-        ret += ".";
-        ret += FileUtil.stripPrefix(routeDomainPostfix, ".");
-        return ret;
-    }
-
-
-    private Ingress createIngressForService(String routeDomainPostfix, String namespace, Service service) {
-        Ingress ingress = null;
-        String serviceName = KubernetesHelper.getName(service);
-        ServiceSpec serviceSpec = service.getSpec();
-        if (serviceSpec != null && StringUtils.isNotBlank(serviceName) && shouldCreateExternalURLForService(service, serviceName)) {
-            String ingressId = serviceName;
-            String host = "";
-            if (StringUtils.isNotBlank(routeDomainPostfix)) {
-                host = serviceName + "." + namespace + "." + FileUtil.stripPrefix(routeDomainPostfix, ".");
-            }
-            List<HTTPIngressPath> paths = new ArrayList<>();
-            List<ServicePort> ports = serviceSpec.getPorts();
-            if (ports != null) {
-                for (ServicePort port : ports) {
-                    Integer portNumber = port.getPort();
-                    if (portNumber != null) {
-                        HTTPIngressPath path =
-                            new HTTPIngressPathBuilder()
-                                .withNewBackend()
-                                  .withServiceName(serviceName)
-                                  .withServicePort(KubernetesHelper.createIntOrString(portNumber))
-                                .endBackend()
-                                .build();
-                        paths.add(path);
-                    }
-                }
-            }
-            if (paths.isEmpty()) {
-                return ingress;
-            }
-            ingress = new IngressBuilder().
-                    withNewMetadata().withName(ingressId).withNamespace(namespace).endMetadata().
-                    withNewSpec().
-                    addNewRule().
-                    withHost(host).
-                    withNewHttp().
-                    withPaths(paths).
-                    endHttp().
-                    endRule().
-                    endSpec().build();
-
-            String json;
-            try {
-                json = ResourceUtil.toJson(ingress);
-            } catch (JsonProcessingException e) {
-                json = e.getMessage() + ". object: " + ingress;
-            }
-            log.debug("Created ingress: " + json);
-        }
-        return ingress;
-    }
-
-
-    /**
-     * Should we try to create an external URL for the given service?
-     * <p/>
-     * By default lets ignore the kubernetes services and any service which does not expose ports 80 and 443
-     *
-     * @return true if we should create an OpenShift Route for this service.
-     */
-    private boolean shouldCreateExternalURLForService(Service service, String id) {
-        if ("kubernetes".equals(id) || "kubernetes-ro".equals(id)) {
-            return false;
-        }
-        Set<Integer> ports = getPorts(service);
-        log.debug("Service " + id + " has ports: " + ports);
-        if (ports.size() == 1) {
-            String type = null;
-            ServiceSpec spec = service.getSpec();
-            if (spec != null) {
-                type = spec.getType();
-                if (Objects.equals(type, "LoadBalancer")) {
-                    return true;
-                }
-            }
-            log.info("Not generating route for service " + id + " type is not LoadBalancer: " + type);
-        } else {
-            log.info("Not generating route for service " + id + " as only single port services are supported. Has ports: " + ports);
-        }
-        return false;
-    }
-
-    private boolean hasExactlyOneService(Service service, String id) {
-        Set<Integer> ports = getPorts(service);
-        if (ports.size() != 1) {
-            log.info("Not generating route for service " + id + " as only single port services are supported. Has ports: " +
-                     ports);
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    private Set<Integer> getPorts(Service service) {
-        Set<Integer> answer = new HashSet<>();
-        if (service != null) {
-            ServiceSpec spec = getOrCreateSpec(service);
-            for (ServicePort port : spec.getPorts()) {
-                answer.add(port.getPort());
-            }
-        }
-        return answer;
-    }
-
-    public static ServiceSpec getOrCreateSpec(Service entity) {
-        ServiceSpec spec = entity.getSpec();
-        if (spec == null) {
-            spec = new ServiceSpec();
-            entity.setSpec(spec);
-        }
-        return spec;
+    protected void initServices(KubernetesClient kubernetes) {
+        log.debug("No services required in ApplyMojo");
     }
 
     protected void applyEntities(KubernetesClient kubernetes, String namespace, String fileName, Set<HasMetadata> entities) throws Exception {
@@ -495,7 +273,7 @@ public class ApplyMojo extends AbstractJKubeMojo {
             }
         }
 
-        KitLogger serviceLogger = createExternalProcessLogger("[[G]][SVC][[G]] ");
+        KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
         long serviceUrlWaitTimeSeconds = this.serviceUrlWaitTimeSeconds;
         for (HasMetadata entity : entities) {
             if (entity instanceof Service) {
@@ -523,11 +301,11 @@ public class ApplyMojo extends AbstractJKubeMojo {
                 // lets not wait for other services
                 serviceUrlWaitTimeSeconds = 1;
                 if (StringUtils.isNotBlank(url) && url.startsWith("http")) {
-                    serviceLogger.info("" + name + ": " + url);
+                    serviceLogger.info("%s: %s", name, url);
                 }
             }
         }
-        processCustomEntities(kubernetes, namespace, resources != null ? resources.getCrdContexts() : null, false);
+        processCustomEntities(kubernetes, namespace, resources != null ? resources.getCustomResourceDefinitions() : null);
     }
 
     protected String getExternalServiceURL(Service service) {
@@ -537,10 +315,6 @@ public class ApplyMojo extends AbstractJKubeMojo {
     protected boolean isExposeService(Service service) {
         String expose = KubernetesHelper.getLabels(service).get("expose");
         return expose != null && expose.toLowerCase().equals("true");
-    }
-
-    public boolean isRollingUpgrades() {
-        return rollingUpgrades;
     }
 
     public boolean isRollingUpgradePreserveScale() {
@@ -561,146 +335,21 @@ public class ApplyMojo extends AbstractJKubeMojo {
         applyService.setProcessTemplatesLocally(true);
     }
 
-
-    protected void createRoutes(Collection<HasMetadata> collection) {
-        String routeDomainPostfix = this.routeDomain;
-        Log log = getLog();
-        String namespace = clusterAccess.getNamespace();
-        // lets get the routes first to see if we should bother
-        try {
-            OpenShiftClient openshiftClient = applyService.getOpenShiftClient();
-            if (openshiftClient == null) {
-                return;
-            }
-            RouteList routes = openshiftClient.routes().inNamespace(namespace).list();
-            if (routes != null) {
-                routes.getItems();
-            }
-        } catch (Exception e) {
-            log.warn("Cannot load OpenShift Routes; maybe not connected to an OpenShift platform? " + e, e);
-            return;
-        }
-        List<Route> routes = new ArrayList<>();
-        for (Object object : collection) {
-            if (object instanceof Service) {
-                Service service = (Service) object;
-                Route route = createRouteForService(routeDomainPostfix, namespace, service);
-                if (route != null) {
-                    routes.add(route);
-                }
-            }
-        }
-        collection.addAll(routes);
-    }
-
-    protected void createIngress(KubernetesClient kubernetesClient, Collection<HasMetadata> collection) {
-        String routeDomainPostfix = this.routeDomain;
-        Log log = getLog();
-        String namespace = clusterAccess.getNamespace();
-        List<Ingress> ingressList = null;
-        // lets get the routes first to see if we should bother
-        try {
-            IngressList ingresses = kubernetesClient.extensions().ingresses().inNamespace(namespace).list();
-            if (ingresses != null) {
-                ingressList = ingresses.getItems();
-            }
-        } catch (Exception e) {
-            log.warn("Cannot load Ingress instances. Must be an older version of Kubernetes? Error: " + e, e);
-            return;
-        }
-        List<Ingress> ingresses = new ArrayList<>();
-        for (Object object : collection) {
-            if (object instanceof Service) {
-                Service service = (Service) object;
-                if (!serviceHasIngressRule(ingressList, service)) {
-                    Ingress ingress = createIngressForService(routeDomainPostfix, namespace, service);
-                    if (ingress != null) {
-                        ingresses.add(ingress);
-                        log.info("Created ingress for " + namespace + ":" + KubernetesHelper.getName(service));
-                    } else {
-                        log.debug("No ingress required for " + namespace + ":" + KubernetesHelper.getName(service));
-                    }
-                } else {
-                    log.info("Already has ingress for service " + namespace + ":" + KubernetesHelper.getName(service));
-                }
-            }
-        }
-        collection.addAll(ingresses);
-
-    }
-
-    protected void processCustomEntities(KubernetesClient client, String namespace, List<String> customResourceDefinitions, boolean isDelete) throws Exception {
+    protected void processCustomEntities(KubernetesClient client, String namespace, List<String> customResourceDefinitions) throws Exception {
         if(customResourceDefinitions == null)
             return;
 
         List<CustomResourceDefinitionContext> crdContexts = KubernetesClientUtil.getCustomResourceDefinitionContext(client ,customResourceDefinitions);
-        Map<File, String> fileToCrdMap = getCustomResourcesFileToNamemap();
+        File resourceDirFinal = ResourceUtil.getFinalResourceDir(resourceDir, environment);
+        Map<File, String> fileToCrdMap = getCustomResourcesFileToNameMap(resourceDirFinal, resources != null ? resources.getRemotes() : null, getKitLogger());
 
         for(CustomResourceDefinitionContext customResourceDefinitionContext : crdContexts) {
             for(Map.Entry<File, String> entry : fileToCrdMap.entrySet()) {
                 if(entry.getValue().equals(customResourceDefinitionContext.getGroup())) {
-                    if(isDelete) {
-                        applyService.deleteCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
-                    } else {
-                        applyService.applyCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
-                    }
+                    applyService.applyCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
                 }
             }
         }
-    }
-
-    protected Map<File, String> getCustomResourcesFileToNamemap() throws IOException {
-        Map<File, String> fileToCrdGroupMap = new HashMap<>();
-        File resourceDirFinal = ResourceUtil.getFinalResourceDir(resourceDir, environment);
-        File[] resourceFiles = KubernetesResourceUtil.listResourceFragments(resourceDirFinal, resources != null ? resources.getRemotes() : null, log);
-
-        for (File file : resourceFiles) {
-            if (file.getName().endsWith("cr.yml") || file.getName().endsWith("cr.yaml")) {
-                Map<String, Object> customResource = KubernetesClientUtil.doReadCustomResourceFile(file);
-                String apiVersion = customResource.get("apiVersion").toString();
-                if (apiVersion.contains("/")) {
-                    fileToCrdGroupMap.put(file, apiVersion.split("/")[0]);
-                }
-            }
-        }
-        return fileToCrdGroupMap;
-    }
-
-    /**
-     * Returns true if there is an existing ingress rule for the given service
-     */
-    private boolean serviceHasIngressRule(List<Ingress> ingresses, Service service) {
-        String serviceName = KubernetesHelper.getName(service);
-        for (Ingress ingress : ingresses) {
-            IngressSpec spec = ingress.getSpec();
-            if (spec == null) {
-                break;
-            }
-            List<IngressRule> rules = spec.getRules();
-            if (rules == null) {
-                break;
-            }
-            for (IngressRule rule : rules) {
-                HTTPIngressRuleValue http = rule.getHttp();
-                if (http == null) {
-                    break;
-                }
-                List<HTTPIngressPath> paths = http.getPaths();
-                if (paths == null) {
-                    break;
-                }
-                for (HTTPIngressPath path : paths) {
-                    IngressBackend backend = path.getBackend();
-                    if (backend == null) {
-                        break;
-                    }
-                    if (Objects.equals(serviceName, backend.getServiceName())) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -717,21 +366,6 @@ public class ApplyMojo extends AbstractJKubeMojo {
             project = project.getParent();
         }
         return answer;
-    }
-
-    /**
-     * Returns the root project folder
-     */
-    protected MavenProject getRootProject() {
-        MavenProject project = getProject();
-        while (project != null) {
-            MavenProject parent = project.getParent();
-            if (parent == null) {
-                break;
-            }
-            project = parent;
-        }
-        return project;
     }
 
 }

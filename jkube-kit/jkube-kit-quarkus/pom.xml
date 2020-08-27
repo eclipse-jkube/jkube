@@ -20,7 +20,7 @@
     <parent>
         <artifactId>jkube-kit-parent</artifactId>
         <groupId>org.eclipse.jkube</groupId>
-        <version>0.2.1-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -38,6 +38,11 @@
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-generator-java-exec</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
 
         <dependency>

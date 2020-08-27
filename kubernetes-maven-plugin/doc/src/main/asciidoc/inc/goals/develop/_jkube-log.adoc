@@ -1,40 +1,67 @@
 
-[[k8s:log]]
-== *k8s:log*
+[[jkube:log]]
+== *{goal-prefix}:log*
 
-This goal tails the log of the app that you deployed via the <<k8s:deploy>> goal
+This goal tails the log of the app that you deployed via the <<jkube:deploy>> goal
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:log
+mvn {goal-prefix}:log
 ----
 
 You can then terminate the output by hitting `Ctrl+C`
 
 If you wish to get the log of the app and then terminate immediately then try:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:log -Djkube.log.follow=false
+mvn {goal-prefix}:log -Djkube.log.follow=false
 ----
 
 This lets you pipe the output into grep or some other tool
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:log -Djkube.log.follow=false | grep Exception
+mvn {goal-prefix}:log -Djkube.log.follow=false | grep Exception
 ----
 
 If your app is running in multiple pods you can configure the pod name to log via the `jkube.log.pod` property, otherwise it defaults to the latest pod:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:log -Djkube.log.pod=foo
+mvn {goal-prefix}:log -Djkube.log.pod=foo
 ----
 
 If your pod has multiple containers you can configure the container name to log via the `jkube.log.container` property, otherwise it defaults to the first container:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:log -Djkube.log.container=foo
+mvn {goal-prefix}:log -Djkube.log.container=foo
 ----
+
+[[Supported-Properties-Log]]
+=== Supported Properties for Log goal
+
+.Options available with log goal
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *logFollow*
+| Get follow logs for your application inside Kubernetes.
+
+  Defaults to `true`.
+| `jkube.log.follow`
+
+| *logContainer*
+| Get logs of some specific container inside your application Deployment.
+
+  Defaults to `null`.
+| `jkube.log.container`
+
+| *logPod*
+| Get logs of some specific pod inside your application Deployment.
+
+  Defaults to `null`.
+| `jkube.log.pod`
+|===

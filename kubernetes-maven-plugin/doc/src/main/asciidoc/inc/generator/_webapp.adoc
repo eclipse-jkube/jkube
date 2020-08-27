@@ -16,51 +16,53 @@ The base images chosen are:
 | | Docker Build | S2I Build
 
 | *Tomcat*
-| `jkube.tomcat-8`
-| ---
+| `quay.io/jkube/jkube-tomcat9-binary-s2i`
+| `quay.io/jkube/jkube-tomcat9-binary-s2i`
 
 | *Jetty*
-| `jkube.jetty-9`
-| ---
+| `quay.io/jkube/jkube-jetty9-binary-s2i`
+| `quay.io/jkube/jkube-jetty9-binary-s2i`
 
 | *Wildfly*
 | `jboss/wildfly`
-| ---
+| https://github.com/wildfly/wildfly-s2i[`quay.io/wildfly/wildfly-centos7`]
 |===
-
-[IMPORTANT]
-====
-S2I builds are currently not yet supported for the webapp generator.
-====
 
 In addition to the  <<generator-options-common, common generator options>> this generator can be configured with the following options:
 
 .Webapp configuration options
 [cols="1,6,1"]
 |===
-| Element | Description | Default
+| Element | Description | Property
 
 | *server*
-| Fix server to use in the base image. Can be either **tomcat**, **jetty** or **wildfly**
-|
+| Fix server to use in the base image. Can be either **tomcat**, **jetty** or **wildfly**.
+| `jkube.generator.webapp.server`
 
 | *targetDir*
-| Where to put the war file into the target image. By default its selected by the base image chosen but can be overwritten with this option.
-|
+| Where to put the war file into the target image. By default its selected by the base image chosen but can be
+  overwritten with this option.
+
+  Defaults to `/deployments`.
+| `jkube.generator.webapp.targetDir`
 
 | *user*
-| User and/or group under which the files should be added. The syntax of this options is descriped in <<config-image-build-assembly-user, Assembly Configuration>>.
-|
+| User and/or group under which the files should be added. The syntax of this options is descriped in
+  <<config-image-build-assembly-user, Assembly Configuration>>.
+| `jkube.generator.webapp.user`
 
 | *path*
-| Context path with which the application can be reached by default
-| `/` (root context)
+| Context path with which the application can be reached by default.
+
+  Defaults to `/` (root context).
+| `jkube.generator.webapp.path`
 
 | *cmd*
 | Command to use to start the container. By default the base images startup command is used.
-|
+| `jkube.generator.webapp.cmd`
 
 | *ports*
-| Comma separated list of ports to expose in the image and which eventually are translated later to Kubernertes services. The ports depend on the base image and are selecte automatically. But they can be overwritten here.
-|
+| Comma separated list of ports to expose in the image and which eventually are translated later to Kubernetes services.
+  The ports depend on the base image and are selected automatically. But they can be overridden here.
+| `jkube.generator.webapp.ports`
 |===

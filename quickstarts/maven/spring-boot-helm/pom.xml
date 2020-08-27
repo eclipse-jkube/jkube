@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.2.7.RELEASE</version>
+  </parent>
+
+  <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+  <artifactId>spring-boot-helm</artifactId>
+  <version>1.0.0-rc-1</version>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot - Helm</name>
+  <packaging>jar</packaging>
+
+  <description>Minimal Example with Spring Boot and Helm YAML files</description>
+
+  <dependencies>
+
+    <!-- Boot generator  -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>kubernetes</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>${project.version}</version>
+
+            <configuration>
+              <resources>
+                <labels>
+                  <all>
+                    <testProject>spring-boot-with-yaml-label-for-all</testProject>
+                  </all>
+                </labels>
+              </resources>
+              <generator>
+                <config>
+                  <spring-boot>
+                    <color>always</color>
+                  </spring-boot>
+                </config>
+              </generator>
+<!--              <helm>-->
+<!--                <chart>This is a Test</chart>-->
+<!--                <type>kubernetes</type>-->
+<!--                <icon>This is the icon</icon>-->
+<!--                <sources>-->
+<!--                  <source>https://different.source/yaml.yml</source>-->
+<!--                </sources>-->
+<!--                <maintainers>-->
+<!--                  <maintainer>-->
+<!--                    <name>John</name>-->
+<!--                    <email>john.doe@example.com</email>-->
+<!--                  </maintainer>-->
+<!--                </maintainers>-->
+<!--              </helm>-->
+            </configuration>
+
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>resource</goal>
+                  <goal>build</goal>
+                  <goal>helm</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>openshift</id>
+      <properties>
+        <jkube.openshift.enrichAllWithImageChangeTrigger>true</jkube.openshift.enrichAllWithImageChangeTrigger>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>openshift-maven-plugin</artifactId>
+            <version>${project.version}</version>
+
+            <configuration>
+              <resources>
+                <labels>
+                  <all>
+                    <testProject>spring-boot-with-yaml-label-for-all</testProject>
+                  </all>
+                </labels>
+              </resources>
+              <generator>
+                <config>
+                  <spring-boot>
+                    <color>always</color>
+                  </spring-boot>Open Shift Maven Plugin
+                </config>
+              </generator>
+            </configuration>
+
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>resource</goal>
+                  <goal>build</goal>
+                  <goal>helm</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

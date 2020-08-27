@@ -15,9 +15,9 @@ package org.eclipse.jkube.kit.build.service.docker.config.handler;
 
 import java.util.*;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.ConfigHelper;
-import org.eclipse.jkube.kit.common.JKubeProject;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 /**
@@ -69,7 +69,7 @@ public class ImageConfigResolver {
      * @throws IllegalArgumentException if no type is given when an external reference configuration is provided
      * or when the type is not known (i.e. no handler is registered for this type).
      */
-    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JKubeProject project) {
+    public List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JavaProject project) {
         injectExternalConfigActivation(unresolvedConfig, project);
         Map<String,String> externalConfig = unresolvedConfig.getExternalConfig();
         if (externalConfig != null) {
@@ -87,7 +87,7 @@ public class ImageConfigResolver {
         }
     }
 
-    private void injectExternalConfigActivation(ImageConfiguration unresolvedConfig, JKubeProject project) {
+    private void injectExternalConfigActivation(ImageConfiguration unresolvedConfig, JavaProject project) {
         // Allow external activation of property configuration
         String mode = ConfigHelper.getExternalConfigActivationProperty(project);
 
