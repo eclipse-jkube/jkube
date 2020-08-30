@@ -13,20 +13,19 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
-import java.util.Properties;
-
-import io.fabric8.openshift.api.model.RouteBuilder;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.openshift.api.model.RouteBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,20 +47,20 @@ public class RouteEnricherTest {
         // @formatter:off
         klb.addToItems(new ServiceBuilder()
                 .editOrNewMetadata()
-                    .withName("test-svc")
-                    .addToLabels("expose", "true")
+                .withName("test-svc")
+                .addToLabels("expose", "true")
                 .endMetadata()
                 .editOrNewSpec()
-                    .addNewPort()
-                        .withName("http")
-                        .withPort(8080)
-                        .withProtocol("TCP")
-                        .withTargetPort(new IntOrString(8080))
-                    .endPort()
-                    .addToSelector("group", "test")
-                    .withType("LoadBalancer")
+                .addNewPort()
+                .withName("http")
+                .withPort(8080)
+                .withProtocol("TCP")
+                .withTargetPort(new IntOrString(8080))
+                .endPort()
+                .addToSelector("group", "test")
+                .withType("LoadBalancer")
                 .endSpec()
-            .build());
+                .build());
         new Expectations() {{
             context.getProperties(); result = properties;
             context.getConfiguration().getProcessorConfig(); result = processorConfig;
@@ -75,12 +74,12 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-            .hasSize(2)
-            .extracting("kind")
-            .containsExactly("Service", "Route");
+                .hasSize(2)
+                .extracting("kind")
+                .containsExactly("Service", "Route");
         assertThat(klb.build().getItems().get(1))
-            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-            .contains("test-svc", "test-svc", "Service", "test-svc", 8080);
+                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+                .contains("test-svc", "test-svc", "Service", "test-svc", 8080);
     }
 
     @Test
@@ -96,9 +95,9 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.kubernetes, klb);
         // Then
         assertThat(klb.build().getItems())
-            .hasSize(1)
-            .extracting("kind")
-            .containsExactly("Service");
+                .hasSize(1)
+                .extracting("kind")
+                .containsExactly("Service");
     }
 
     @Test
@@ -109,9 +108,9 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-            .hasSize(1)
-            .extracting("kind")
-            .containsExactly("Service");
+                .hasSize(1)
+                .extracting("kind")
+                .containsExactly("Service");
     }
 
     @Test
@@ -122,9 +121,9 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-            .hasSize(1)
-            .extracting("kind")
-            .containsExactly("Service");
+                .hasSize(1)
+                .extracting("kind")
+                .containsExactly("Service");
     }
 
     @Test
@@ -140,37 +139,73 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-            .hasSize(2)
-            .extracting("kind")
-            .containsExactly("Service", "Route");
+                .hasSize(2)
+                .extracting("kind")
+                .containsExactly("Service", "Route");
         assertThat(klb.build().getItems().get(1))
-            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-            .contains("test-svc", "test-svc.jkube.eclipse.org", "Service", "test-svc", 8080);
+                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+                .contains("test-svc", "test-svc.jkube.eclipse.org", "Service", "test-svc", 8080);
     }
 
     @Test
     public void testCreateWithDefaultsAndExistingRouteWithMatchingNameInBuilderInOpenShiftShouldReuseExistingRoute() {
         // Given
         klb.addToItems(new RouteBuilder()
-            .editOrNewMetadata()
+                .editOrNewMetadata()
                 .withName("test-svc")
-            .endMetadata()
-            .editOrNewSpec()
+                .endMetadata()
+                .editOrNewSpec()
                 .withHost("example.com")
                 .editOrNewPort()
-                    .withNewTargetPort(1337)
+                .withNewTargetPort(1337)
                 .endPort()
-            .endSpec()
-            .build());
+                .endSpec()
+                .build());
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-            .hasSize(2)
-            .extracting("kind")
-            .containsExactly("Service", "Route");
+                .hasSize(2)
+                .extracting("kind")
+                .containsExactly("Service", "Route");
         assertThat(klb.build().getItems().get(1))
-            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-            .contains("test-svc", "example.com", null, null, 1337);
+                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+                .contains("test-svc", "example.com", null, null, 1337);
+    }
+
+    @Test
+    public void testEnrichNoTls(){
+        // Given
+        properties.put("jkube.openshift.generateRoute", "true");
+        // When
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build().getItems())
+                .hasSize(2)
+                .extracting("kind")
+                .containsExactly("Service", "Route");
+
+        assertThat(klb.build().getItems().stream().filter(h -> h.getKind().equals("Route")).findFirst().orElse(null))
+                .extracting("spec.tls")
+                .containsNull();
+
+    }
+
+    @Test
+    public void testEnrichWithTls(){
+        // Given
+        properties.put("jkube.enricher.jkube-openshift-route.termination", "edge");
+        properties.put("jkube.enricher.jkube-openshift-route.insecureEdgeTerminationPolicy", "Allow");
+        // When
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build().getItems())
+                .hasSize(2)
+                .extracting("kind")
+                .containsExactly("Service", "Route");
+
+        assertThat(klb.build().getItems().stream().filter(h -> h.getKind().equals("Route")).findFirst().orElse(null))
+                .extracting("spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
+                .contains("Allow","edge");
     }
 }
