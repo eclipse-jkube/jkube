@@ -29,6 +29,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <jkube.version>${project.version}</jkube.version>
     <version.quarkus>1.7.0.Final</version.quarkus>
     <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
   </properties>
@@ -75,12 +76,12 @@
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>kubernetes-maven-plugin</artifactId>
-        <version>${project.version}</version>
+        <version>${jkube.version}</version>
       </plugin>
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>openshift-maven-plugin</artifactId>
-        <version>${project.version}</version>
+        <version>${jkube.version}</version>
       </plugin>
     </plugins>
   </build>

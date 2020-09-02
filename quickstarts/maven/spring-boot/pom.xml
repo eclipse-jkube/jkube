@@ -32,6 +32,10 @@
 
   <description>Minimal Example with Spring Boot</description>
 
+  <properties>
+    <jkube.version>${project.version}</jkube.version>
+  </properties>
+
   <distributionManagement>
     <snapshotRepository>
       <id>sonatype-nexus-snapshots</id>
@@ -85,7 +89,7 @@
           <plugin>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>${jkube.version}</version>
 
             <configuration>
 
@@ -139,7 +143,7 @@
           <plugin>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>openshift-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>${jkube.version}</version>
 
             <configuration>
               <resources>
@@ -195,7 +199,7 @@
           <plugin>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>${jkube.version}</version>
 
             <configuration>
               <enricher>

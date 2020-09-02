@@ -24,6 +24,10 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Hello World</name>
   <packaging>jar</packaging>
 
+  <properties>
+    <jkube.version>${project.version}</jkube.version>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -59,7 +63,7 @@
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>kubernetes-maven-plugin</artifactId>
-        <version>${project.version}</version>
+        <version>${jkube.version}</version>
         <configuration>
           <images>
             <image>

@@ -33,9 +33,9 @@
 
     <properties>
         <java.version>11</java.version>
+        <jkube.version>${project.version}</jkube.version>
         <jkube.enricher.jkube-service.port>8080</jkube.enricher.jkube-service.port>
         <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
-        <kubernetes-maven-plugin.version>${project.version}</kubernetes-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -59,7 +59,7 @@
             <plugin>
                 <groupId>org.eclipse.jkube</groupId>
                 <artifactId>kubernetes-maven-plugin</artifactId>
-                <version>${kubernetes-maven-plugin.version}</version>
+                <version>${jkube.version}</version>
             </plugin>
         </plugins>
     </build>

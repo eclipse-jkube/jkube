@@ -32,6 +32,10 @@
 
     <description>Minimal Example with Spring Boot and a provided external Dockerfile</description>
 
+    <properties>
+        <jkube.version>${project.version}</jkube.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -40,7 +44,7 @@
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>${jkube.version}</version>
         </dependency>
     </dependencies>
 
@@ -53,7 +57,7 @@
             <plugin>
                 <groupId>org.eclipse.jkube</groupId>
                 <artifactId>kubernetes-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${jkube.version}</version>
                 <configuration combine.children="append">
                     <enricher>
                         <config>

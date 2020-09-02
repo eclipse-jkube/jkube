@@ -31,6 +31,7 @@
   <packaging>jar</packaging>
 
   <properties>
+    <jkube.version>${project.version}</jkube.version>
     <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
   </properties>
 
@@ -47,7 +48,7 @@
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>kubernetes-maven-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${jkube.version}</version>
     </dependency>
   </dependencies>
 
@@ -68,7 +69,7 @@
           <plugin>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>${jkube.version}</version>
             <configuration>
               <resources>
                 <customResourceDefinitions>
@@ -87,7 +88,7 @@
           <plugin>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>openshift-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>${jkube.version}</version>
             <configuration>
               <resources>
                 <customResourceDefinitions>

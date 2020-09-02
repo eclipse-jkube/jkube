@@ -25,10 +25,11 @@
   <packaging>war</packaging>
 
   <properties>
-    <version.wildfly.jar>2.0.0.Alpha6</version.wildfly.jar>
-    <version.wildfly>20.0.0.Final</version.wildfly>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <jkube.version>${project.version}</jkube.version>
+    <version.wildfly.jar>2.0.0.Alpha6</version.wildfly.jar>
+    <version.wildfly>20.0.0.Final</version.wildfly>
     <failOnMissingWebXml>false</failOnMissingWebXml>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -78,7 +79,7 @@
 	  <plugin>
 	    <groupId>org.eclipse.jkube</groupId>
 	    <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>${jkube.version}</version>
 	    <executions>
 	      <execution>
 		<goals>
@@ -96,7 +97,7 @@
 		</config>
 	      </enricher>
 	      <resources>
-		<env>           
+		<env>
 		  <JAVA_OPTIONS>-Djava.net.preferIPv4Stack=true</JAVA_OPTIONS>
 		</env>
 	      </resources>
@@ -112,7 +113,7 @@
 	  <plugin>
 	    <groupId>org.eclipse.jkube</groupId>
 	    <artifactId>openshift-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>${jkube.version}</version>
 	    <executions>
 	      <execution>
 		<goals>

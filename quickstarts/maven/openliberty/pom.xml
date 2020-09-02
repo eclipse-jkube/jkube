@@ -28,6 +28,7 @@
         <version.openliberty>19.0.0.9</version.openliberty>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <jkube.version>${project.version}</jkube.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.arquillian-cube>1.18.2</version.arquillian-cube>
         <version.junit>4.12</version.junit>
@@ -208,7 +209,7 @@
             <plugin>
                 <groupId>org.eclipse.jkube</groupId>
                 <artifactId>kubernetes-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${jkube.version}</version>
                 <executions>
                     <execution>
                         <goals>
