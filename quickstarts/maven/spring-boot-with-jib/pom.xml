@@ -33,6 +33,13 @@
     <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot JIB</name>
     <description>Eclipse JKube Example with Spring Boot With Build Mode JIB</description>
 
+    <properties>
+        <jkube.version>${project.version}</jkube.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <jkube.build.strategy>jib</jkube.build.strategy>
+    </properties>
+
     <distributionManagement>
         <snapshotRepository>
             <id>sonatype-nexus-snapshots</id>
@@ -45,11 +52,6 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <jkube.build.strategy>jib</jkube.build.strategy>
-    </properties>
 
     <dependencies>
 
@@ -101,7 +103,7 @@
                     <plugin>
                         <groupId>org.eclipse.jkube</groupId>
                         <artifactId>kubernetes-maven-plugin</artifactId>
-                        <version>${project.version}</version>
+                        <version>${jkube.version}</version>
                     </plugin>
                 </plugins>
             </build>
@@ -113,7 +115,7 @@
                     <plugin>
                         <groupId>org.eclipse.jkube</groupId>
                         <artifactId>kubernetes-maven-plugin</artifactId>
-                        <version>${project.version}</version>
+                        <version>${jkube.version}</version>
                         <configuration>
                             <images>
                                 <image>

@@ -25,7 +25,7 @@
   <packaging>jar</packaging>
 
   <properties>
-
+    <jkube.version>${project.version}</jkube.version>
     <!-- User part of the docker image to create. If you want to push the image
          to a registry use a registry user here for which you have karma -->
     <image.user>jkube</image.user>
@@ -160,7 +160,7 @@
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>kubernetes-maven-plugin</artifactId>
-        <version>${project.version}</version>
+        <version>${jkube.version}</version>
 
         <configuration>
           <images>

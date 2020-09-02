@@ -28,7 +28,7 @@ function version() {
 }
 
 function package() {
-  echo "Packaging all quickstart projects (exluding sub-modules)"
+  echo "Packaging all quickstart projects (excluding sub-modules)"
   cd "$QUICKSTARTS" || exit 1
   find . -type f -name "pom.xml" -exec grep -q -z -v '../pom.xml</relativePath>' {} \; -print0 | \
     xargs -0 -L 1 -P 1 -I{} sh -c "mvn -f '{}' clean package || exit 255"

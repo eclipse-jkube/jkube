@@ -29,12 +29,13 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <jkube.version>${project.version}</jkube.version>
   </properties>
   <dependencies>
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-config-service</artifactId>
-      <version>${project.version}</version>
+      <version>${jkube.version}</version>
     </dependency>
   </dependencies>
   <build>

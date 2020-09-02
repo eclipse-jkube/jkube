@@ -50,7 +50,7 @@
             <plugin>
                 <groupId>org.eclipse.jkube</groupId>
                 <artifactId>kubernetes-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${jkube.version}</version>
                 <configuration>
                     <namespace>${docker.user}</namespace>
                     <images>

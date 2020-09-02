@@ -32,6 +32,10 @@
 
   <description>Minimal Example with Spring Boot and Helm YAML files</description>
 
+  <properties>
+    <jkube.version>${project.version}</jkube.version>
+  </properties>
+
   <dependencies>
 
     <!-- Boot generator  -->
@@ -66,7 +70,7 @@
           <plugin>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>${jkube.version}</version>
 
             <configuration>
               <resources>
@@ -123,7 +127,7 @@
           <plugin>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>openshift-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>${jkube.version}</version>
 
             <configuration>
               <resources>
