@@ -30,7 +30,11 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot Watch</name>
   <packaging>jar</packaging>
 
-  <description>Minimal Example with Spring Boot to test k8s:watch goal</description>
+  <description>
+    Spring Boot application with a single REST endpoint.
+    Demonstrates how to watch for source changes using Eclipse JKube's k8s:watch goal.
+    Application gets live reloaded in the cluster each time the project is recompiled (mvn package).
+  </description>
 
   <properties>
     <jkube.version>${project.version}</jkube.version>

@@ -23,14 +23,16 @@
   <version>1.0.0-rc-1</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Quarkus customized Image</name>
   <description>
-    Quarkus REST JSON project
+    Quarkus application with a single JAX-RS endpoint.
+    Demonstrates how to build a Quarkus container image based on a Red Hat container image private registry.
+    Uses a pull secret from Red Hat Registry Service Accounts to authenticate.
   </description>
 
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <version.quarkus>1.6.0.Final</version.quarkus>
+    <version.quarkus>1.7.2.Final</version.quarkus>
     <jkube.build.pullSecret>12819530-ocp42-exposed-env-pull-secret-pull-secret</jkube.build.pullSecret>
   </properties>
 

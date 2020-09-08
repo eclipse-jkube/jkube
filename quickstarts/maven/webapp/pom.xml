@@ -24,6 +24,11 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Webapp</name>
   <packaging>war</packaging>
 
+  <description>
+    Java Web Application with a static index.html resource.
+    Demonstrates how to create a container image with an embedded Apache Tomcat server using Eclipse JKube.
+  </description>
+
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>

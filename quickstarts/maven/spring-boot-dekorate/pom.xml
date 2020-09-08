@@ -31,7 +31,8 @@
   <packaging>jar</packaging>
 
   <description>
-    Spring Boot project with Dekorate integration
+    Spring Boot application with Dekorate integration.
+    Eclipse JKube uses Dekorate generated cluster configuration manifests.
   </description>
 
   <properties>

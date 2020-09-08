@@ -31,6 +31,11 @@
     <artifactId>docker-file-simple</artifactId>
     <version>1.0.0-rc-1</version>
 
+    <description>
+        This quickstart showcases how to use Eclipse JKube with external Docker files without any additional configuration.
+        Docker file mode is automatically selected when a Dockerfile is detected in the project's root directory.
+    </description>
+
     <properties>
         <java.version>11</java.version>
         <jkube.version>${project.version}</jkube.version>

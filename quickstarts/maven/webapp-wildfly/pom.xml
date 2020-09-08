@@ -23,6 +23,13 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Webapp :: Wildfly</name>
   <packaging>war</packaging>
 
+  <description>
+    Java Web Application with a static index.html resource.
+    Demonstrates how to create a container image with an embedded WildFly server using Eclipse JKube.
+    WildFly is used instead of Apache Tomcat because there is a WildFly specific plugin configuration.
+    Eclipse JKube detects this plugin and chooses a WildFly specific base container image.
+  </description>
+
   <properties>
     <jkube.version>${project.version}</jkube.version>
     <maven.compiler.source>1.8</maven.compiler.source>

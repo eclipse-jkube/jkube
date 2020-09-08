@@ -30,7 +30,10 @@
     <name>Eclipse JKube :: Quickstarts :: Maven :: Docker File Provided</name>
     <packaging>jar</packaging>
 
-    <description>Minimal Example with Spring Boot and a provided external Dockerfile</description>
+    <description>
+        This quick start showcases how to use Eclipse JKube with external Docker files.
+        There are several profiles highlighting the different configuration modes available.
+    </description>
 
     <properties>
         <jkube.version>${project.version}</jkube.version>

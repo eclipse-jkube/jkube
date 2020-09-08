@@ -30,7 +30,10 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot - Helm</name>
   <packaging>jar</packaging>
 
-  <description>Minimal Example with Spring Boot and Helm YAML files</description>
+  <description>
+    Spring Boot application with a single REST endpoint.
+    Demonstrates how to generate Helm chart (YAML) files using Eclipse JKube's k8s:helm Maven goal.
+  </description>
 
   <properties>
     <jkube.version>${project.version}</jkube.version>

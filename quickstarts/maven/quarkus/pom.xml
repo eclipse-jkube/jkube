@@ -23,7 +23,9 @@
   <version>1.0.0-SNAPSHOT</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Quarkus</name>
   <description>
-    Quarkus REST JSON project
+    Quarkus application with a single JAX-RS endpoint.
+    Demonstrates how to package the project using JVM mode or Native image mode.
+    Demonstrates how to build a Quarkus project container with Eclipse JKube's S2I, Docker and JIB build strategies.
   </description>
 
   <properties>

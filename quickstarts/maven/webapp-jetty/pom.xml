@@ -24,6 +24,13 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Webapp Jetty</name>
   <packaging>war</packaging>
 
+  <description>
+    Java Web Application with a static index.html resource.
+    Demonstrates how to create a container image with an embedded Eclipse Jetty server using Eclipse JKube.
+    Jetty is used instead of Apache Tomcat because there is a Jetty specific configuration file (jetty-logging.properties).
+    Eclipse JKube detects this file and chooses a Jetty specific base container image.
+  </description>
+
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>

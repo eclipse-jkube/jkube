@@ -21,7 +21,7 @@ eval $(minikube docker-env)
 
 Build the application and the docker image:
 ```
-~/work/repos/jkube/quickstarts/maven/quarkus : $ mvn package k8s:build
+$ mvn package k8s:build
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] -------------------< org.eclipse.jkube:quarkus >------------------------
@@ -43,13 +43,13 @@ Build the application and the docker image:
 [INFO] Total time:  5.904 s
 [INFO] Finished at: 2020-02-13T20:10:59+05:30
 [INFO] ------------------------------------------------------------------------
-~/work/repos/jkube/quickstarts/maven/quarkus : $ docker images | grep quarkus
+$ docker images | grep quarkus
 jkube/quarkus                          latest              6ccffc2be415        3 minutes ago       643MB
 ```
 
 ## Generate Kubernetes Manifests and apply then to Kubernetes Cluster
 ```
-~/work/repos/jkube/quickstarts/maven/quarkus : $ mvn k8s:resource k8s:apply
+$ mvn k8s:resource k8s:apply
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] -------------------< org.eclipse.jkube:quarkus >------------------------
@@ -80,10 +80,10 @@ jkube/quarkus                          latest              6ccffc2be415        3
 [INFO] Total time:  8.943 s
 [INFO] Finished at: 2020-02-13T20:11:18+05:30
 [INFO] ------------------------------------------------------------------------
-~/work/repos/jkube/quickstarts/maven/quarkus : $ kubectl get pods
+$ kubectl get pods
 NAME                            READY   STATUS    RESTARTS   AGE
 quarkus-5f8b6d7fdd-j2qww   1/1     Running   0          12s
-~/work/repos/jkube/quickstarts/maven/quarkus : $ minikube service quarkus
+$ minikube service quarkus
 |-----------|--------------|-------------|-----------------------------|
 | NAMESPACE |     NAME     | TARGET PORT |             URL             |
 |-----------|--------------|-------------|-----------------------------|

@@ -24,6 +24,11 @@
   <packaging>bundle</packaging>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Karaf Camel Log</name>
 
+  <description>
+    Simple Apache Camel application on top of Apache Karaf that logs a series of messages to the Server log.
+    The application also generates and processes random orders using Camel routes.
+  </description>
+
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>

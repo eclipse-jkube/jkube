@@ -30,6 +30,13 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot - Custom Resources</name>
   <packaging>jar</packaging>
 
+  <description>
+    Spring Boot application using K8s Custom Resources.
+    Declares a "Framework" Custom Resource Definition.
+    Initializes cluster with sample data.
+    Declares an endpoint to consume Custom Resource data stored in the cluster.
+  </description>
+
   <properties>
     <jkube.version>${project.version}</jkube.version>
     <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>

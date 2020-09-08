@@ -24,7 +24,9 @@
   <name>Eclipse JKube :: Quickstarts :: Kit :: Docker Image</name>
   <packaging>jar</packaging>
 
-  <description>Minimal Example with Spring Boot</description>
+  <description>
+    Eclipse JKube Kit example showing how to generate a Docker image by using Eclipse JKube in standalone mode.
+  </description>
 
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
