@@ -10,11 +10,7 @@ ifeval::["{goal-prefix}" == "k8s"]
 |===
 |     KMP             | Kubernetes 1.18   | Kubernetes 1.17   | Kubernetes 1.14   | Kubernetes 1.12
 
-| KMP 1.0.0-rc-1      |        ✓          |        ✓          |        ✓          |        ✓
-| KMP 1.0.0-alpha-4   |        ✓          |        ✓          |        ✓          |        ✓
-| KMP 1.0.0-alpha-3   |        x          |        ✓          |        ✓          |        ✓
-| KMP 1.0.0-alpha-2   |        x          |        ✓          |        ✓          |        ✓
-| KMP 1.0.0-alpha-1   |        x          |        ✓          |        ✓          |        ✓
+| KMP 1.0.0           |        ✓          |        ✓          |        ✓          |        ✓
 | KMP 0.2.0           |        x          |        ✓          |        ✓          |        ✓
 | KMP 0.1.1           |        x          |        x          |        ✓          |        ✓
 | KMP 0.1.0           |        x          |        x          |        ✓          |        ✓
