@@ -1,7 +1,7 @@
 # JKube externally provided Dockerfile example
 This quick start showcases how to use Eclipse JKube with external Docker files.
 
-External Docker file are configured using `contextDir` and `dockerFile` options.
+External Docker files are configured using `contextDir` and `dockerFile` options.
 
 If only `dockerFile` option is specified, the file is searched in a relative path
 under `src/main/docker`. If set in combination with `contextDir` the Docker file

@@ -24,6 +24,11 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: XML configuration</name>
   <packaging>jar</packaging>
 
+  <description>
+    Apache Camel application.
+    Demonstrates how to configure Eclipse JKube build and resource properties using XML elements in the project's pom.xml plugin configuration.
+  </description>
+
   <properties>
     <jkube.version>${project.version}</jkube.version>
     <!-- User part of the docker image to create. If you want to push the image

@@ -30,7 +30,11 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot - Camel</name>
   <packaging>jar</packaging>
 
-  <description>Minimal Example with Spring Boot and Camel</description>
+  <description>
+    Spring Boot application with Camel Spring Boot integration.
+    Programmatically (RouteBuilder) declares 2 routes to log messages and process orders.
+    Declares an Apache Camel servlet REST endpoint.
+  </description>
 
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>

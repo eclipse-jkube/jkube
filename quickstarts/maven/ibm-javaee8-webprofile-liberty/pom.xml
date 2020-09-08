@@ -25,7 +25,7 @@
     <packaging>pom</packaging>
 
     <description>
-        Demo project for Java EE 8 WebProfile, IBM WebSphere Liberty is used as a Java EE implementation
+        Demo project for Jakarta EE 8 WebProfile, IBM WebSphere Liberty is used as a Jakarta EE implementation.
         On Windows or Mac if VirtualBox is used, run the tests using:
         $ mvn clean verify -DtestProxyHost=192.168.99.100
     </description>

@@ -24,6 +24,12 @@
     <name>Eclipse JKube :: Quickstarts :: Maven :: Open Liberty</name>
     <packaging>war</packaging>
 
+    <description>
+        JAX-RS application deployed with OpenLiberty and Eclipse JKube.
+        The application contains a single endpoint (/hello) that prints 'Hello, World.'.
+        An Arquillian based Integration Test is also included.
+    </description>
+
     <properties>
         <version.openliberty>19.0.0.9</version.openliberty>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -152,7 +158,6 @@
                 <version>3.2.2</version>
             </plugin>
 
-
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>2.22.2</version>
@@ -165,7 +170,6 @@
                     </execution>
                 </executions>
             </plugin>
-
 
             <!-- Enable liberty-maven plugin -->
             <plugin>
@@ -205,38 +209,48 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.eclipse.jkube</groupId>
-                <artifactId>kubernetes-maven-plugin</artifactId>
-                <version>${jkube.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>resource</goal>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <generator>
-                        <includes>
-                            <include>openliberty</include>
-                        </includes>
-                        <excludes>
-                            <exclude>webapp</exclude>
-                        </excludes>
-                    </generator>
-                    <enricher>
-                        <config>
-                            <jkube-service>
-                                <type>NodePort</type>
-                            </jkube-service>
-                        </config>
-                    </enricher>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>openshift</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.jkube</groupId>
+                        <artifactId>openshift-maven-plugin</artifactId>
+                        <version>${jkube.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>resource</goal>
+                                    <goal>build</goal>
+                                    <goal>apply</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <generator>
+                                <includes>
+                                    <include>openliberty</include>
+                                </includes>
+                                <excludes>
+                                    <exclude>webapp</exclude>
+                                </excludes>
+                            </generator>
+                            <enricher>
+                                <config>
+                                    <jkube-service>
+                                        <type>NodePort</type>
+                                    </jkube-service>
+                                </config>
+                            </enricher>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

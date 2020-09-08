@@ -30,7 +30,10 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot Web</name>
   <packaging>jar</packaging>
 
-  <description>Minimal Example with Spring Boot</description>
+  <description>
+    Spring Boot Web application with a single @RestController.
+    Shows how to deploy Spring Boot applications to Kubernetes (-Pkubermetes) and OpenShift (-Popenshift) using Eclipse JKube.
+  </description>
 
   <properties>
     <jkube.version>${project.version}</jkube.version>

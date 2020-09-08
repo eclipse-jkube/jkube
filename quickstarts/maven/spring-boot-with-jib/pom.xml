@@ -31,7 +31,11 @@
     </parent>
 
     <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot JIB</name>
-    <description>Eclipse JKube Example with Spring Boot With Build Mode JIB</description>
+
+    <description>
+        Spring Boot application with a single REST endpoint.
+        Demonstrates how to build a project using Eclipse JKube JIB build strategy.
+    </description>
 
     <properties>
         <jkube.version>${project.version}</jkube.version>

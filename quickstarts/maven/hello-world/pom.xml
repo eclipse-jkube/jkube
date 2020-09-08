@@ -24,6 +24,11 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Hello World</name>
   <packaging>jar</packaging>
 
+  <description>
+    Demo project for getting started with Eclipse JKube.
+    It just prints "Hello World" on command line and exits.
+  </description>
+
   <properties>
     <jkube.version>${project.version}</jkube.version>
   </properties>

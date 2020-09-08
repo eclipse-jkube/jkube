@@ -23,20 +23,23 @@ import org.arquillian.cube.requirement.ArquillianConditionalRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 @RequiresOpenshift
 @RunWith(ArquillianConditionalRunner.class)
 public class SampleIT {
 
-	private static final String SAMPLE_APP = "jkube-maven-sample-openliberty";
+	private static final String SAMPLE_APP = "openliberty";
 
 	@RouteURL(SAMPLE_APP)
-	@AwaitRoute
+	@AwaitRoute(timeout = 30, timeoutUnit = TimeUnit.SECONDS, path = "/hello")
 	private String sampleURL;
 
 	@Test
-	public void testSample() throws Exception {
-		given().baseUri(sampleURL).when().get("/hello").then().statusCode(200).body("message", startsWith("Hello"));
-
+	public void testSample() {
+		given().baseUri(sampleURL)
+				.when().get("/hello")
+				.then().statusCode(200).contentType("text/plain").body(startsWith("Hello"));
 	}
 
 }

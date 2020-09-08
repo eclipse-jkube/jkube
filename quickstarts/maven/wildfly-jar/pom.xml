@@ -24,6 +24,10 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Wildfly JAR</name>
   <packaging>war</packaging>
 
+  <description>
+    Java web application with a single JAX-RS endpoint packaged with WildFly Jar Maven Plugin.
+  </description>
+
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>

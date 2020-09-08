@@ -24,7 +24,9 @@
   <name>Eclipse JKube :: Quickstarts :: Maven :: Vertx Web</name>
   <packaging>jar</packaging>
 
-  <description>Minimal Example with Vertx Web</description>
+  <description>
+    Eclipse Vert.x example application declaring a Simple AbstractVerticle.
+  </description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

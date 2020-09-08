@@ -1,6 +1,6 @@
 # JKube Hello World Sample
 
-This is a a demo project for getting started with Eclipse JKube. It just prints "Hello World" on command
+This is a demo project for getting started with Eclipse JKube. It just prints "Hello World" on command
 line and exits. We would be using Eclipse JKube for building a docker image and deploying to Kubernetes
 in single command.
 

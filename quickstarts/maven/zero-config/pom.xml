@@ -21,7 +21,14 @@
   <artifactId>jkube-maven-sample-zero-config</artifactId>
   <groupId>org.eclipse.jkube</groupId>
   <version>1.0.0-rc-1</version>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: Zero-Config</name>
   <packaging>jar</packaging>
+
+  <description>
+    Spring Boot application with a single REST endpoint.
+    Demonstrates Eclipse JKube Zero Configuration capabilities.
+    All configurations to create the container image and resource manifests are inferred from the project and its dependencies.
+  </description>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
