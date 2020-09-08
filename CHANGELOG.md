@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.0.0-SNAPSHOT
+### 1.0.0 (2020-09-09)
 * Fix #351: Fix AutoTLSEnricher - add annotation + volume config to resource
 * Fix #344: Fix documentation for `jkube.openshift.imageChangeTriggers`
 * Fix #290: Bump Fabric8 Kubernetes Client to v4.10.3
