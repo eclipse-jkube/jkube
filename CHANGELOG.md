@@ -28,6 +28,8 @@ Usage:
 * Fix #448: Service.spec.type added from config if existing Service fragment doesn't specify it
 * Fix #451: Docker push works with Podman REST API
 * Fix: Removed misleading watch-postGoal warning + fixed rolling update in DockerImageWatcher
+* Fix: Docker push works with Podman REST API
+* Fix #174: Build failure when trying to use Dockerfile for arguments in FROM, port of fabric8io/docker-maven-plugin#1299
 
 ### 1.0.1 (2020-10-05)
 * Fix #381: Remove root as default user in AssemblyConfigurationUtils#getAssemblyConfigurationOrCreateDefault
