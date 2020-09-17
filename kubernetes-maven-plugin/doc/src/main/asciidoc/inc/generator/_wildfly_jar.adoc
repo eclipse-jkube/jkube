@@ -1,6 +1,44 @@
 [[generator-wildfly-jar]]
 === Wildfly JAR Generator
 
-The Wildfly JAR generator detects a WildFly Bootable JAR build and disables the Jolokia and Prometheus Java agent TO BE REVISITED WHEN WE HAVE A SOLUTION.
+The Wildfly JAR generator detects a WildFly Bootable JAR build and disables the Jolokia and Prometheus Java agent.
 
 Otherwise this generator is identical to the <<generator-java-exec,java-exec generator>>. It supports the  <<generator-options-common, common generator options>> and the <<generator-java-exec-options, `java-exec` options>>.
+
+==== Support for slim Bootable JAR
+
+A slim Bootable JAR is a JAR that retrieves JBoss module artifacts from a Maven local cache. Such JAR are smaller and start faster. The WildFly JAR generator
+has a builtin support to install a maven local cache in the image.
+
+In order to build a slim Bootable JAR, configure the _wildfly-jar-maven-plugin_ for slim server and maven local cache generation:
+
+----
+  <plugin>
+    <groupId>org.wildfly.plugins</groupId>
+    <artifactId>wildfly-jar-maven-plugin</artifactId>
+    <configuration>
+      <plugin-options>
+       <!-- Build a slim Bootable JAR -->
+       <jboss-maven-dist/>
+       <!-- Path to the Maven local cache that the plugin generates during build.
+            It contains JBoss module artifacts required by the server. -->
+       <jboss-maven-repo>target/myapp-repo</jboss-maven-repo>
+      </plugin-options>
+      ...
+    </configuration>
+    <executions>
+      <execution>
+        <goals>
+          <goal>package</goal>
+        </goals>
+      </execution>
+    </executions>
+  </plugin>
+----
+
+The generator detects the path of the generated maven local repository directory 
+(value of the _<jboss-maven-repo>_ element) and copies it into the image _/deployments/<repo directory name>_ directory. 
+NB: A relative path is considered relative to the maven project base directory.
+
+In order for the Bootable JAR to retrieve the JBoss modules artifacts, the java 
+option _-Dmaven.repo.local=/deployments/<repo directory name>_ is automatically added to the launch options.

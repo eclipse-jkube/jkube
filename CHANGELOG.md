@@ -24,6 +24,7 @@ Usage:
 * Fix #381: Remove root as default user in AssemblyConfigurationUtils#getAssemblyConfigurationOrCreateDefault
 * Fix #358: Prometheus is enabled by default, opt-out via AB_PROMETHEUS_OFF required to disable (like in FMP)
 * Fix #384: Enricher defined Container environment variables get merged with vars defined in Image Build Configuration
+* Fix #385: WildFly Bootable JAR - Add native support for slim Bootable JAR
 
 ### 1.0.0 (2020-09-09)
 * Fix #351: Fix AutoTLSEnricher - add annotation + volume config to resource

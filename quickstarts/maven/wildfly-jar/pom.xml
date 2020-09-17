@@ -32,8 +32,8 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <version.wildfly.jar>2.0.0.Alpha6</version.wildfly.jar>
-    <version.wildfly>20.0.0.Final</version.wildfly>
+    <version.wildfly.jar>2.0.0.Beta7</version.wildfly.jar>
+    <version.wildfly>21.0.0.Beta1</version.wildfly>
     <failOnMissingWebXml>false</failOnMissingWebXml>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
