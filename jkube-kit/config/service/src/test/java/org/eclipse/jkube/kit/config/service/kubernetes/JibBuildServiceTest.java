@@ -190,7 +190,7 @@ public class JibBuildServiceTest {
     private static void mockAuthConfig() {
         new MockUp<AuthConfigFactory>() {
             @Mock
-            AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod, KitLogger log)
+            AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod)
                 throws IOException {
                 return AuthConfig.builder()
                     .username("testuser" + (isPush ? "push" : "pull"))
