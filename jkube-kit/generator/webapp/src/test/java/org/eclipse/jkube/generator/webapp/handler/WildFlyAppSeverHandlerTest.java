@@ -111,7 +111,7 @@ public class WildFlyAppSeverHandlerTest {
   public void kubernetes() {
     // Given
     // @formatter:off
-    new Expectations(GeneratorContext.class) {{
+    new Expectations() {{
       generatorContext.getRuntimeMode(); result = RuntimeMode.KUBERNETES;
     }};
     // @formatter:on
@@ -128,7 +128,7 @@ public class WildFlyAppSeverHandlerTest {
   public void openShiftDockerStrategy() {
     // Given
     // @formatter:off
-    new Expectations(GeneratorContext.class) {{
+    new Expectations() {{
       generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
       generatorContext.getStrategy(); result = JKubeBuildStrategy.docker;
     }};
@@ -146,7 +146,7 @@ public class WildFlyAppSeverHandlerTest {
   public void openShiftSourceStrategy() {
     // Given
     // @formatter:off
-    new Expectations(GeneratorContext.class) {{
+    new Expectations() {{
       generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
       generatorContext.getStrategy(); result = JKubeBuildStrategy.s2i;
     }};
