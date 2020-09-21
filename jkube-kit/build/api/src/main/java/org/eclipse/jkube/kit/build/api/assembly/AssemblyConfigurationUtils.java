@@ -30,7 +30,6 @@ class AssemblyConfigurationUtils {
 
   private static final String LINUX_FILE_SEPARATOR = "/";
   private static final String DEFAULT_NAME = "maven";
-  private static final String DEFAULT_USER = "root";
 
   private AssemblyConfigurationUtils() {}
 
@@ -38,7 +37,7 @@ class AssemblyConfigurationUtils {
   static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(@Nullable BuildConfiguration buildConfiguration) {
     final AssemblyConfiguration ac = Optional.ofNullable(buildConfiguration)
             .map(BuildConfiguration::getAssembly)
-            .orElse(AssemblyConfiguration.builder().user(DEFAULT_USER).build());
+            .orElse(AssemblyConfiguration.builder().build());
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = ac.toBuilder();
     final String name;
     if (StringUtils.isBlank(ac.getName())) {

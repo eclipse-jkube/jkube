@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.1-SNAPSHOT
+* Fix #381: Remove root as default user in AssemblyConfigurationUtils#getAssemblyConfigurationOrCreateDefault
 
 ### 1.0.0 (2020-09-09)
 * Fix #351: Fix AutoTLSEnricher - add annotation + volume config to resource
