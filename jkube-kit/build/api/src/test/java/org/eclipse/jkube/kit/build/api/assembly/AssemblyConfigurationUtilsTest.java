@@ -33,6 +33,7 @@ import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtil
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class AssemblyConfigurationUtilsTest {
@@ -51,7 +52,7 @@ public class AssemblyConfigurationUtilsTest {
     // Then
     assertEquals("maven", result.getName());
     assertEquals("/maven", result.getTargetDir());
-    assertEquals("root", result.getUser());
+    assertNull(result.getUser());
   }
 
   @Test
