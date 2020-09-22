@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>java-options-env-merge</artifactId>
+  <groupId>org.eclipse.jkube</groupId>
+  <version>0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
+        <version>@jkube.version@</version>
+        <executions>
+          <execution>
+            <id>jkube</id>
+            <phase>package</phase>
+            <goals>
+              <goal>resource</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <images>
+            <image>
+              <name>test:latest</name>
+              <build>
+                <env>
+                  <JAVA_OPTIONS>valueFromImage</JAVA_OPTIONS>
+                </env>
+              </build>
+            </image>
+          </images>
+          <resources>
+            <env>
+              <JAVA_OPTIONS>valueFromResources</JAVA_OPTIONS>
+            </env>
+          </resources>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

@@ -101,3 +101,6 @@ org.eclipse.jkube.enricher.generic.openshift.ImageChangeTriggerEnricher
 
 # Add an ingress on demand when on Kubernetes
 org.eclipse.jkube.enricher.generic.IngressEnricher
+
+# Merge JAVA_OPTIONS environment variables from Image Build Configurations and enriched Containers
+org.eclipse.jkube.enricher.generic.ContainerEnvJavaOptionsMergeEnricher

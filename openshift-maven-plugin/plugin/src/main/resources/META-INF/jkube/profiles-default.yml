@@ -61,7 +61,11 @@
     - jkube-healthcheck-docker
     - jkube-healthcheck-webapp
     - jkube-prometheus
-    # Dependencies shouldn't be enriched anymore, therefor it's last in the list
+
+    # Value merge enrichers
+    - jkube-container-env-java-options
+
+    # Dependencies shouldn't be enriched anymore, therefore it's last in the list
     - jkube-dependency
     - jkube-revision-history
     - jkube-docker-registry-secret

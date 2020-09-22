@@ -46,6 +46,11 @@ This plugin comes with a set of default enrichers. In addition custom enrichers 
 | <<jkube-configmap-file>>
 | Add ConfigMap elements defined as XML or as annotation.
 
+| <<jkube-container-env-java-options>>
+| Merges `JAVA_OPTIONS` environment variable defined in <<config-image-build>>
+  environment (`env`) with `Container` `JAVA_OPTIONS` environment variable added
+  by other enrichers, XML configuration or fragment.
+
 | <<jkube-controller>>
 | Create default controller (replication controller, replica set or deployment https://kubernetes.io/docs/concepts/workloads/controllers/[Kubernetes doc]) if missing.
 
@@ -103,6 +108,8 @@ Default generic enrichers are used for adding missing resources or adding metada
 The following default enhancers are available out of the box.
 
 include::enricher/_jkube_configmap_file.adoc[]
+
+include::enricher/_jkube_container_env_java_options.adoc[]
 
 include::enricher/_jkube_controller.adoc[]
 
