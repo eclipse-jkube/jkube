@@ -56,7 +56,6 @@ import java.util.Optional;
 
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.extractContainerName;
 
-
 /**
  * Merge in image configuration like the image name into ReplicaSet and ReplicationController's
  * Pod specification.
@@ -94,7 +93,7 @@ public class ImageEnricher extends BaseEnricher {
             return;
         }
 
-        // Ensure that all contoller have template specs
+        // Ensure that all controller have template specs
         ensureTemplateSpecs(builder);
 
         // Update containers in template specs
@@ -247,12 +246,10 @@ public class ImageEnricher extends BaseEnricher {
 
     private void mergeImage(ImageConfiguration imageConfiguration, Container container) {
         if (StringUtils.isBlank(container.getImage())) {
-            String prefix = "";
             if (StringUtils.isNotBlank(imageConfiguration.getRegistry())) {
                 log.verbose("Using registry %s for the image", imageConfiguration.getRegistry());
-                prefix = imageConfiguration.getRegistry() + "/";
             }
-            String imageFullName = prefix + imageConfiguration.getName();
+            final String imageFullName = containerImageName(imageConfiguration);
             log.verbose("Setting image %s", imageFullName);
             container.setImage(imageFullName);
         }
@@ -310,4 +307,11 @@ public class ImageEnricher extends BaseEnricher {
         return envVars.stream().anyMatch(e -> e.getName().equals(name));
     }
 
+    static String containerImageName(ImageConfiguration imageConfiguration) {
+        String prefix = "";
+        if (StringUtils.isNotBlank(imageConfiguration.getRegistry())) {
+            prefix = imageConfiguration.getRegistry() + "/";
+        }
+        return prefix + imageConfiguration.getName();
+    }
 }

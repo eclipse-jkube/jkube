@@ -1,5 +1,5 @@
 // =========================================================
-// Mapping file for K8s/OpenShift reource kind to filename extension.
+// Mapping file for K8s/OpenShift resource kind to filename extension.
 //
 // I.e for fragments the resource kind is inferred from the filename type"
 // myapp-deployment.yml maps to a Kubernetes Deployment

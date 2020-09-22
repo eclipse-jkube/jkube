@@ -1,0 +1,21 @@
+
+[[jkube-container-env-java-options]]
+==== jkube-container-env-java-options
+
+Merges `JAVA_OPTIONS` environment variable defined in <<config-image-build>>
+environment (`env`) with `Container` `JAVA_OPTIONS` environment variable added
+by other enrichers, XML configuration or fragment.
+
+
+[cols="1,6,1"]
+|===
+| Option | Description | Property
+
+| *disable*
+| Disabled the enricher, any `JAVA_OPTIONS` environment variable defined by an enricher,
+  XML configuration or YAML fragment will override the one defined by the generator
+  or Image Build configuration.
+
+  Defaults to `false`.
+| `jkube.enricher.jkube-container-env-java-options.disable`
+|===

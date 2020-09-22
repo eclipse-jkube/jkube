@@ -73,7 +73,7 @@
         <version>@jkube.version@</version>
         <executions>
           <execution>
-            <id>fmp</id>
+            <id>jkube</id>
             <goals>
               <goal>resource</goal>
               <goal>build</goal>
