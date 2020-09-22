@@ -62,7 +62,7 @@
     <version.maven-filtering>3.1.1</version.maven-filtering>
     <version.maven-plugin-annotations>3.6.0</version.maven-plugin-annotations>
     <version.mockwebserver>0.1.8</version.mockwebserver>
-    <version.networknt.validator>0.1.7</version.networknt.validator>
+    <version.networknt.validator>1.0.43</version.networknt.validator>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
     <version.plexus-archiver>3.5</version.plexus-archiver>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
