@@ -201,7 +201,8 @@ public class AssemblyManager {
             File archiveDir = createArchiveDir(dirs);
             for (AssemblyFileEntry entry : entries) {
                 File dest = prepareChangedFilesArchivePath(archiveDir, entry.getDest(), assemblyDirectory);
-                Files.copy(Paths.get(entry.getSource().getAbsolutePath()), Paths.get(dest.getAbsolutePath()));
+                Files.createDirectories(dest.getParentFile().toPath());
+                Files.copy(Paths.get(entry.getSource().getAbsolutePath()), Paths.get(dest.getAbsolutePath()), StandardCopyOption.REPLACE_EXISTING);
             }
             return JKubeTarArchiver.createTarBallOfDirectory(archive, archiveDir, ArchiveCompression.none);
         } catch (IOException exp) {

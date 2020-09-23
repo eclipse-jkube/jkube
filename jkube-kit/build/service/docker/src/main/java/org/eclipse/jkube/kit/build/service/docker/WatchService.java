@@ -25,6 +25,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,9 +39,6 @@ import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyFiles;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
-import org.eclipse.jkube.kit.build.service.docker.access.ExecException;
 import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
@@ -56,16 +55,14 @@ public class WatchService {
 
     private final ArchiveService archiveService;
     private final BuildService buildService;
-    private final DockerAccess dockerAccess;
     private final QueryService queryService;
     private final RunService runService;
     private final KitLogger log;
 
-    public WatchService(ArchiveService archiveService, BuildService buildService, DockerAccess dockerAccess, QueryService queryService, RunService
+    public WatchService(ArchiveService archiveService, BuildService buildService, QueryService queryService, RunService
             runService, KitLogger log) {
         this.archiveService = archiveService;
         this.buildService = buildService;
-        this.dockerAccess = dockerAccess;
         this.queryService = queryService;
         this.runService = runService;
         this.log = log;
@@ -95,8 +92,7 @@ public class WatchService {
                 if (imageConfig.getBuildConfiguration() != null &&
                         imageConfig.getBuildConfiguration().getAssembly() != null) {
                     if (watcher.isCopy()) {
-                        String containerBaseDir = imageConfig.getBuildConfiguration().getAssembly().getTargetDir();
-                        schedule(executor, createCopyWatchTask(watcher, context.getBuildContext(), containerBaseDir), interval);
+                        schedule(executor, createCopyWatchTask(watcher, context.getBuildContext()), interval);
                         tasks.add("copying artifacts");
                     }
 
@@ -135,7 +131,7 @@ public class WatchService {
     }
 
     private Runnable createCopyWatchTask(final ImageWatcher watcher,
-                                         final JKubeConfiguration jKubeConfiguration, final String containerBaseDir) throws IOException {
+                                         final JKubeConfiguration jKubeConfiguration) throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
 
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, jKubeConfiguration);
@@ -149,9 +145,9 @@ public class WatchService {
 
                         File changedFilesArchive = archiveService.createChangedFilesArchive(entries, files.getAssemblyDirectory(),
                                 imageConfig.getName(), jKubeConfiguration);
-                        dockerAccess.copyArchive(watcher.getContainerId(), changedFilesArchive, containerBaseDir);
+                        copyFilesToContainer(changedFilesArchive, watcher);
                         callPostExec(watcher);
-                    } catch (IOException | ExecException e) {
+                    } catch (Exception e) {
                         log.error("%s: Error when copying files to container %s: %s",
                                   imageConfig.getDescription(), watcher.getContainerId(), e.getMessage());
                     }
@@ -160,11 +156,31 @@ public class WatchService {
         };
     }
 
-    private void callPostExec(ImageWatcher watcher) throws DockerAccessException, ExecException {
-        if (watcher.getPostExec() != null) {
-            String containerId = watcher.getContainerId();
-            runService.execInContainer(containerId, watcher.getPostExec(), watcher.getImageConfiguration());
+    void copyFilesToContainer(File changedFilesArchive, ImageWatcher watcher) {
+        Predicate<File> copyTask = watcher.getWatchContext().getContainerCopyTask();
+        if (copyTask != null) {
+            boolean copyStatus = copyTask.test(changedFilesArchive);
+            if (!copyStatus) {
+                log.warn("Unable to copy files into container");
+                return;
+            }
+            log.info("Files successfully copied to the container..");
+        } else {
+            log.warn("No copy task found for copy mode. Ignoring..");
         }
+    }
+
+
+    String callPostExec(ImageWatcher watcher) throws Exception {
+        if (watcher.getPostExec() != null) {
+            Function<ImageWatcher, String> execTask = watcher.getWatchContext().getContainerCommandExecutor();
+            if (execTask != null) {
+                String execOutput = execTask.apply(watcher);
+                log.info("jkube.watch.postExec: " + execOutput);
+                return execOutput;
+            }
+        }
+        return null;
     }
 
     Runnable createBuildWatchTask(final ImageWatcher watcher,
@@ -423,6 +439,8 @@ public class WatchService {
         private boolean autoCreateCustomNetworks;
         private Task<ImageConfiguration> imageCustomizer;
         private Task<ImageWatcher> containerRestarter;
+        private Function<ImageWatcher, String> containerCommandExecutor;
+        private Predicate<File> containerCopyTask;
 
         private transient ServiceHub hub;
         private transient ServiceHubFactory serviceHubFactory;

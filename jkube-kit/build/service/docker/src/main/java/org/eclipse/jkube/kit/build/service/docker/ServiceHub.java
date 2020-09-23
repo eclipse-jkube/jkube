@@ -52,7 +52,7 @@ public class ServiceHub {
             runService = new RunService(dockerAccess, queryService, containerTracker, logSpecFactory, logger);
             buildService = new BuildService(dockerAccess, queryService, registryService, archiveService, logger);
             volumeService = new VolumeService(dockerAccess);
-            watchService = new WatchService(archiveService, buildService, dockerAccess, queryService, runService, logger);
+            watchService = new WatchService(archiveService, buildService, queryService, runService, logger);
             waitService = new WaitService(dockerAccess, queryService, logger);
         } else {
             queryService = null;

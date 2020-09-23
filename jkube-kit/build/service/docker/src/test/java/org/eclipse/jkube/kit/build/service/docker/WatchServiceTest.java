@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.build.service.docker;
 
 import mockit.Mocked;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
@@ -24,6 +23,9 @@ import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -34,9 +36,6 @@ public class WatchServiceTest {
 
     @Mocked
     BuildService buildService;
-
-    @Mocked
-    DockerAccess dockerAccess;
 
     @Mocked
     QueryService queryService;
@@ -54,7 +53,7 @@ public class WatchServiceTest {
         imageConfiguration = ImageConfiguration.builder()
                 .name("test-app")
                 .watch(WatchImageConfiguration.builder()
-                        .postGoal("org.apache.maven.plugins:maven-help-plugin:help")
+                        .postExec("ls -lt /deployments")
                         .build())
                 .build();
     }
@@ -70,7 +69,7 @@ public class WatchServiceTest {
                 .postGoalTask(() -> stringAtomicReference.compareAndSet( "oldVal", mavenGoalToExecute))
                 .build();
         WatchService.ImageWatcher imageWatcher =  new WatchService.ImageWatcher(imageConfiguration, watchContext, "test-img", "efe1234");
-        WatchService watchService = new WatchService(archiveService, buildService, dockerAccess, queryService, runService, logger);
+        WatchService watchService = new WatchService(archiveService, buildService, queryService, runService, logger);
 
         // When
         watchService.restartContainerAndCallPostGoal(imageWatcher, false);
@@ -88,12 +87,55 @@ public class WatchServiceTest {
                 .containerRestarter(i -> restarted.set(true)) // Override Restart task to set this value to true
                 .build();
         WatchService.ImageWatcher imageWatcher =  new WatchService.ImageWatcher(imageConfiguration, watchContext, "test-img", "efe1234");
-        WatchService watchService = new WatchService(archiveService, buildService, dockerAccess, queryService, runService, logger);
+        WatchService watchService = new WatchService(archiveService, buildService,  queryService, runService, logger);
 
         // When
         watchService.restartContainerAndCallPostGoal(imageWatcher, true);
 
         // Then
         assertTrue(restarted.get());
+    }
+
+    @Test
+    public void testCopyFilesToContainer() throws IOException {
+        // Given
+        AtomicBoolean fileCopied = new AtomicBoolean(false);
+        WatchService.WatchContext watchContext = WatchService.WatchContext.builder()
+                .watchMode(WatchMode.copy)
+                // Override Copy task to set this value to goal executed
+                .containerCopyTask(f -> fileCopied.compareAndSet(false,true))
+                .build();
+        File fileToCopy = Files.createTempFile("test-changed-files", "tar").toFile();
+        WatchService.ImageWatcher imageWatcher =  new WatchService.ImageWatcher(imageConfiguration, watchContext, "test-img", "efe1234");
+        WatchService watchService = new WatchService(archiveService, buildService, queryService, runService, logger);
+
+        // When
+        watchService.copyFilesToContainer(fileToCopy, imageWatcher);
+
+        // Then
+        assertTrue(fileCopied.get());
+    }
+
+    @Test
+    public void testCallPostExec() throws Exception {
+        // Given
+        AtomicBoolean postExecCommandExecuted = new AtomicBoolean(false);
+        WatchService.WatchContext watchContext = WatchService.WatchContext.builder()
+                .watchMode(WatchMode.copy)
+                // Override PostExec task to set this value to goal executed
+                .containerCommandExecutor(imageWatcher -> {
+                    postExecCommandExecuted.set(true);
+                    return "Some Output";
+                })
+                .build();
+        WatchService.ImageWatcher imageWatcher =  new WatchService.ImageWatcher(imageConfiguration, watchContext, "test-img", "efe1234");
+        WatchService watchService = new WatchService(archiveService, buildService, queryService, runService, logger);
+
+        // When
+        String output = watchService.callPostExec(imageWatcher);
+
+        // Then
+        assertTrue(postExecCommandExecuted.get());
+        assertEquals("Some Output", output);
     }
 }

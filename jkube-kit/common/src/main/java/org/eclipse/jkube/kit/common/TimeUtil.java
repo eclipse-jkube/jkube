@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.common;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -24,6 +25,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * @since 24.10.18
  */
 public class TimeUtil {
+    private TimeUtil() { }
 
     /**
      * Calculate the duration between now and the given time
@@ -65,5 +67,20 @@ public class TimeUtil {
         }
 
         return res.toString();
+    }
+
+    /**
+     * Waits until a condition is satisfied upto a certain amount of time.
+     *
+     * @param condition {@link BooleanSupplier} for condition to check
+     * @param timeOutInMillis Max time out in milliseconds.
+     */
+    public static void waitUntilCondition(BooleanSupplier condition, int timeOutInMillis) {
+        long start = System.currentTimeMillis();
+        while (!condition.getAsBoolean()) {
+            if (System.currentTimeMillis() - start > timeOutInMillis) {
+                break;
+            }
+        }
     }
 }
