@@ -30,6 +30,7 @@ Usage:
 * Fix #415: Fixed resource validation for new json-schema-validator version
 * Fix #356: Add further support for tls termination and insecureEdgeTerminationPolicy in pom.xml
 * Fix #327: k8s:resource replaces template variables in provided fragments, k8s:helm doesn't.
+* Fix #364: jkube.watch.postExec property/parameter/configuration is ignored
 
 ### 1.0.0 (2020-09-09)
 * Fix #351: Fix AutoTLSEnricher - add annotation + volume config to resource

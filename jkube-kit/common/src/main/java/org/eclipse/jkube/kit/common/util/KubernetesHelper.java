@@ -75,6 +75,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobSpec;
 import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
@@ -887,6 +888,16 @@ public class KubernetesHelper {
             }
         }
         return fileToCrdGroupMap;
+    }
+
+    public static String getNewestApplicationPodName(KubernetesClient client, String namespace, Set<HasMetadata> resources) {
+        LabelSelector selector = KubernetesHelper.getPodLabelSelector(resources);
+        PodList pods = client.pods().inNamespace(namespace).withLabelSelector(selector).list();
+        Pod newestPod = KubernetesHelper.getNewestPod(pods.getItems());
+        if (newestPod != null) {
+            return newestPod.getMetadata().getName();
+        }
+        return null;
     }
 }
 

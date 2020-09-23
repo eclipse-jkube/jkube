@@ -3,27 +3,10 @@
 == *{goal-prefix}:watch*
 
 This goal is used to monitor the project workspace for changes and automatically trigger a redeploy of the application
-running on Kubernetes.
+running on Kubernetes. There are two kinds of watchers present at the moment:
 
-In order to use {goal-prefix}:watch for spring-boot, you need to make sure that `devtools` is included in the repacked
-archive, as shown in the following listing:
-
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-<plugin>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-maven-plugin</artifactId>
-  <configuration>
-    <excludeDevtools>false</excludeDevtools>
-  </configuration>
-</plugin>
-----
-
-Then you need to set a `spring.devtools.remote.secret` in application.properties, as shown in the following example:
-
-----
-spring.devtools.remote.secret=mysecret
-----
+- Docker Image Watcher(watches docker images)
+- Spring Boot Watcher(based on Spring Boot Devtools)
 
 Before entering the watch mode, this goal must generate the docker image and the Kubernetes resources
 (optionally including some development libraries/configuration),
@@ -71,6 +54,25 @@ This watcher is enabled by default for all Spring Boot projects. It performs the
 * tails the log of the latest running pod for your application
 * watches the local development build of your Spring Boot based application and then triggers a reload of the application when there are changes
 
+You need to make sure that `devtools` is included in the repacked archive, as shown in the following listing:
+
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-maven-plugin</artifactId>
+  <configuration>
+    <excludeDevtools>false</excludeDevtools>
+  </configuration>
+</plugin>
+----
+
+Then you need to set a `spring.devtools.remote.secret` in application.properties, as shown in the following example:
+
+----
+spring.devtools.remote.secret=mysecret
+----
+
 WARNING: Spring devtools automatically ignores projects named `spring-boot`, `spring-boot-devtools`,
          `spring-boot-autoconfigure`, `spring-boot-actuator`, `and spring-boot-starter`
 
@@ -99,7 +101,15 @@ There is also support for LiveReload as well.
 === Docker Image
 
 This is a generic watcher that can be used in Kubernetes mode only. Once activated, it listens for changes in the project workspace
- in order to trigger a redeploy of the application.
+ in order to trigger a redeploy of the application. This enables rebuilding of images and restarting of containers in case of updates.
+
+There are five watch modes, which can be specified in multiple ways:
+
+- `build`: Automatically rebuild one or more Docker images when one of the files selected by an assembly changes. This works for all files included in assembly.
+- `run`: Automatically restart your application when their associated images change.
+- `copy`:  Copy changed files into the running container. This is the fast way to update a container, however the target container must support hot deploy, too so that it makes sense. Most application servers like Tomcat supports this.
+- `both`: Enables both `build` and `run`. **This is the default**.
+- `none`:  Image is completely ignored for watching.
 
 The watcher can be activated e.g. by running this command in another shell:
 
@@ -134,6 +144,7 @@ How to watch for image changes.
 * `build`: Build only images
 * `run`: Run images
 * `both`: Build and run images
+* `none`: Neither build nor run
 
 Defaults to `both`.
 

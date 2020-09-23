@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.watcher.standard;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -29,9 +32,12 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.TimeUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
@@ -44,6 +50,8 @@ import org.eclipse.jkube.watcher.api.BaseWatcher;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
 public class DockerImageWatcher extends BaseWatcher {
+
+    private static final int WAIT_TIMEOUT_IN_SECONDS = 5000;
 
     public DockerImageWatcher(WatcherContext watcherContext) {
         super(watcherContext, "docker-image");
@@ -61,7 +69,10 @@ public class DockerImageWatcher extends BaseWatcher {
 
         // add a image customizer
         watchContext = watchContext.toBuilder()
-                .imageCustomizer(this::buildImage).containerRestarter(imageWatcher -> restartContainer(imageWatcher, resources))
+                .imageCustomizer(this::buildImage)
+                .containerRestarter(imageWatcher -> restartContainer(imageWatcher, resources))
+                .containerCommandExecutor(imageWatcher -> executeCommandInPod(imageWatcher, resources))
+                .containerCopyTask(f -> copyFileToPod(f, resources))
                 .build();
 
         ServiceHub hub = getContext().getJKubeServiceHub().getDockerServiceHub();
@@ -88,7 +99,7 @@ public class DockerImageWatcher extends BaseWatcher {
     }
 
     private String getImagePrefix(String imageName) {
-        String imagePrefix = null;
+        String imagePrefix;
         int idx = imageName.lastIndexOf(':');
         if (idx < 0) {
             throw new IllegalStateException("No ':' in the image name:  " + imageName);
@@ -159,6 +170,63 @@ public class DockerImageWatcher extends BaseWatcher {
                 }
             }
         }
+    }
+
+    private String executeCommandInPod(WatchService.ImageWatcher imageWatcher, Set<HasMetadata> resources) {
+        ClusterAccess clusterAccess = getContext().getJKubeServiceHub().getClusterAccess();
+        return executeCommandInPod(imageWatcher, resources, clusterAccess, this.log, WAIT_TIMEOUT_IN_SECONDS);
+    }
+
+    private boolean copyFileToPod(File fileToUpload, Set<HasMetadata> resources) {
+        ClusterAccess clusterAccess = getContext().getJKubeServiceHub().getClusterAccess();
+        return copyFileToPod(fileToUpload, resources, clusterAccess, this.log, WAIT_TIMEOUT_IN_SECONDS);
+    }
+
+
+    static String executeCommandInPod(WatchService.ImageWatcher imageWatcher, Set<HasMetadata> resources, ClusterAccess clusterAccess, KitLogger logger, int execWaitTimeoutInMillis) {
+        try (KubernetesClient client = clusterAccess.createDefaultClient()) {
+            String namespace = clusterAccess.getNamespace();
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ExecWatch execWatch = client.pods().inNamespace(namespace).withName(KubernetesHelper.getNewestApplicationPodName(client, namespace, resources)).writingOutput(byteArrayOutputStream)
+                    .exec(imageWatcher.getPostExec().split("[\\s']"));
+
+            // Wait for at most 5 seconds for Exec to complete
+            TimeUtil.waitUntilCondition(() -> byteArrayOutputStream.size() > 0, execWaitTimeoutInMillis);
+            String commandOutput = byteArrayOutputStream.toString();
+            execWatch.close();
+            return commandOutput;
+        } catch (KubernetesClientException e) {
+            KubernetesHelper.handleKubernetesClientException(e, logger);
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    static boolean copyFileToPod(File fileToUpload, Set<HasMetadata> resources, ClusterAccess clusterAccess, KitLogger logger, int execWaitTimeoutInSeconds) {
+        try (KubernetesClient client = clusterAccess.createDefaultClient()) {
+            String namespace = clusterAccess.getNamespace();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ExecWatch execWatch = client.pods().inNamespace(namespace)
+                    .withName(KubernetesHelper.getNewestApplicationPodName(client, namespace, resources))
+                    .readingInput(new FileInputStream(fileToUpload))
+                    .writingOutput(out)
+                    .exec("tar", "-xf", "-", "-C", "/");
+
+            // Wait for at most 5 seconds for Exec to complete
+            TimeUtil.waitUntilCondition(() -> out.size() > 0, execWaitTimeoutInSeconds);
+            execWatch.close();
+            return true;
+        } catch (KubernetesClientException e) {
+            KubernetesHelper.handleKubernetesClientException(e, logger);
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+        return false;
     }
 
     private boolean updateImageName(HasMetadata entity, PodTemplateSpec template, String imagePrefix, String imageName) {
