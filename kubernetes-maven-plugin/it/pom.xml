@@ -98,6 +98,7 @@ for running a single test.
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-invoker-plugin</artifactId>
         <configuration>
+          <parallelThreads>5</parallelThreads>
           <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
           <cloneClean>true</cloneClean>
           <!--<localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>-->
