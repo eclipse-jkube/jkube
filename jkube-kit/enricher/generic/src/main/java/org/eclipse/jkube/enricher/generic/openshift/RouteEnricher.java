@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.openshift.api.model.RouteSpec;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
@@ -42,6 +42,9 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.containsLabelInMetadata;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeMetadata;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeSimpleFields;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeLabel;
 
 /**
@@ -74,7 +77,7 @@ public class RouteEnricher extends BaseEnricher {
         return Configs.asBoolean(getConfigWithFallback(Config.GENERATE_ROUTE, GENERATE_ROUTE_PROPERTY, null));
     }
 
-    private boolean isRouteWithTLS(){
+    private boolean isRouteWithTLS() {
         return StringUtils.isNotBlank(getConfig(Config.TLS_TERMINATION, null));
     }
 
@@ -87,25 +90,42 @@ public class RouteEnricher extends BaseEnricher {
         }
 
         if(platformMode == PlatformMode.openshift && isGenerateRoute()) {
-            final List<Route> routes = new ArrayList<>();
             listBuilder.accept(new TypedVisitor<ServiceBuilder>() {
 
                 @Override
                 public void visit(ServiceBuilder serviceBuilder) {
-                    addRoute(listBuilder, serviceBuilder, routes);
+                    addRoute(listBuilder, serviceBuilder);
                 }
             });
+        }
+    }
 
-            if (!routes.isEmpty()) {
-                Route[] routeArray = new Route[routes.size()];
-                routes.toArray(routeArray);
-                listBuilder.addToItems(routeArray);
+    private void addRoute(KubernetesListBuilder listBuilder, ServiceBuilder serviceBuilder) {
+        ObjectMeta serviceMetadata = serviceBuilder.buildMetadata();
+
+        if (serviceMetadata != null && StringUtils.isNotBlank(serviceMetadata.getName())
+                && hasExactlyOneServicePort(serviceBuilder, serviceMetadata.getName()) && isExposedService(serviceMetadata)) {
+            String name = serviceMetadata.getName();
+            updateRouteDomainPostFixBasedOnServiceName(name);
+            Route opinionatedRoute = createOpinionatedRouteFromService(serviceBuilder, routeDomainPostfix,
+                    getConfig(Config.TLS_TERMINATION, "edge"),
+                    getConfig(Config.TLS_INSECURE_EDGE_TERMINATION_POLICY, "Allow"),
+                    isRouteWithTLS());
+            if (opinionatedRoute != null) {
+                int routeFromFragmentIndex = getRouteIndexWithName(listBuilder, name);
+                if (routeFromFragmentIndex > 0) { // Merge fragment with Opinionated Route
+                    Route routeFragment = (Route) listBuilder.buildItems().get(routeFromFragmentIndex);
+                    Route mergedRoute = mergeRoute(routeFragment, opinionatedRoute);
+                    removeItemFromKubernetesBuilder(listBuilder, listBuilder.getItems().get(routeFromFragmentIndex));
+                    listBuilder.addToItems(mergedRoute);
+                } else { // No fragment provided. Use Opinionated Route.
+                    listBuilder.addToItems(opinionatedRoute);
+                }
             }
         }
     }
 
-
-    private RoutePort createRoutePort(ServiceBuilder serviceBuilder) {
+    private static RoutePort createRoutePort(ServiceBuilder serviceBuilder) {
         RoutePort routePort = null;
         ServiceSpec spec = serviceBuilder.buildSpec();
         if (spec != null) {
@@ -163,73 +183,107 @@ public class RouteEnricher extends BaseEnricher {
         }
     }
 
-    private void addRoute(KubernetesListBuilder listBuilder, ServiceBuilder serviceBuilder, List<Route> routes) {
-        ObjectMeta serviceMetadata = serviceBuilder.buildMetadata();
-
-        if (serviceMetadata != null && StringUtils.isNotBlank(serviceMetadata.getName())
-                && hasExactlyOneServicePort(serviceBuilder, serviceMetadata.getName()) && isExposedService(serviceMetadata)) {
-            String name = serviceMetadata.getName();
-            if (!hasRoute(listBuilder, name)) {
-                if (StringUtils.isNotBlank(routeDomainPostfix)) {
-                    routeDomainPostfix = prepareHostForRoute(routeDomainPostfix, name);
-                } else {
-                    routeDomainPostfix = "";
-                }
-
-                RoutePort routePort = createRoutePort(serviceBuilder);
-                if (routePort != null) {
-                    RouteBuilder routeBuilder = new RouteBuilder().
-                            withMetadata(serviceMetadata).
-                            withNewSpec().
-                            withPort(routePort).
-                            withNewTo().withKind("Service").withName(name).endTo().
-                            withHost(routeDomainPostfix.isEmpty() ? null : routeDomainPostfix).
-                            endSpec();
-
-                    handleTlsTermination(routeBuilder);
-
-                    // removing `expose : true` label from metadata.
-                    removeLabel(routeBuilder.buildMetadata(), EXPOSE_LABEL, "true");
-                    removeLabel(routeBuilder.buildMetadata(), JKubeAnnotations.SERVICE_EXPOSE_URL.value(), "true");
-                    routeBuilder.withNewMetadataLike(routeBuilder.buildMetadata());
-                    routes.add(routeBuilder.build());
-                }
-            }
+    private void updateRouteDomainPostFixBasedOnServiceName(String serviceName) {
+        if (StringUtils.isNotBlank(routeDomainPostfix)) {
+            routeDomainPostfix = prepareHostForRoute(routeDomainPostfix, serviceName);
+        } else {
+            routeDomainPostfix = "";
         }
     }
 
-    private void handleTlsTermination(RouteBuilder routeBuilder) {
-        if(isRouteWithTLS()){
+    static Route mergeRoute(Route routeFromFragment, Route opinionatedRoute) {
+        /*
+         * Update ApiVersion to route.openshift.io/v1. Plugin always generates an opinionated
+         * Route with apiVersion 'route.openshift.io/v1'. However, when resource fragments are used
+         * we get a route with apiVersion 'v1'. For more info, see:
+         *        https://github.com/eclipse/jkube/issues/383
+         */
+        if (routeFromFragment.getApiVersion().equals("v1")) {
+            routeFromFragment.setApiVersion(opinionatedRoute.getApiVersion());
+        }
+
+        mergeMetadata(routeFromFragment, opinionatedRoute);
+
+        // Merge spec
+        if (routeFromFragment.getSpec() != null) {
+            routeFromFragment.setSpec(mergeRouteSpec(routeFromFragment.getSpec(), opinionatedRoute.getSpec()));
+        } else {
+            routeFromFragment.setSpec(opinionatedRoute.getSpec());
+        }
+        return routeFromFragment;
+    }
+
+    static RouteSpec mergeRouteSpec(RouteSpec fragmentSpec, RouteSpec opinionatedSpec) {
+        mergeSimpleFields(fragmentSpec, opinionatedSpec);
+        if (fragmentSpec.getAlternateBackends() == null && opinionatedSpec.getAlternateBackends() != null) {
+            fragmentSpec.setAlternateBackends(opinionatedSpec.getAlternateBackends());
+        }
+        if (fragmentSpec.getPort() == null && opinionatedSpec.getPort() != null) {
+            fragmentSpec.setPort(opinionatedSpec.getPort());
+        }
+        if (fragmentSpec.getTls() == null && opinionatedSpec.getTls() != null) {
+            fragmentSpec.setTls(opinionatedSpec.getTls());
+        }
+        if (fragmentSpec.getTo() == null && opinionatedSpec.getTo() != null) {
+            fragmentSpec.setTo(opinionatedSpec.getTo());
+        }
+
+        return fragmentSpec;
+    }
+
+    static int getRouteIndexWithName(final KubernetesListBuilder listBuilder, final String name) {
+        int routeInListIndex = -1;
+        for (int index = 0; index < listBuilder.buildItems().size(); index++) {
+            HasMetadata item = listBuilder.getItems().get(index);
+            if (item != null &&
+                    item.getMetadata() != null &&
+                    item.getMetadata().getName().equals(name) &&
+                    item instanceof Route) {
+                routeInListIndex = index;
+            }
+        }
+        return routeInListIndex;
+    }
+
+    private static void handleTlsTermination(RouteBuilder routeBuilder, String tlsTermination, String edgeTerminationPolicy, boolean isRouteWithTLS) {
+        if(isRouteWithTLS){
             routeBuilder.editSpec()
                     .editOrNewTls()
-                    .withInsecureEdgeTerminationPolicy(getConfig(Config.TLS_INSECURE_EDGE_TERMINATION_POLICY, "Allow"))
-                    .withTermination(getConfig(Config.TLS_TERMINATION, "edge"))
+                    .withInsecureEdgeTerminationPolicy(edgeTerminationPolicy)
+                    .withTermination(tlsTermination)
                     .endTls()
                     .endSpec();
         }
     }
 
-    /**
-     * Returns true if we already have a route created for the given name
-     */
-    private boolean hasRoute(final KubernetesListBuilder listBuilder, final String name) {
-        final AtomicBoolean answer = new AtomicBoolean(false);
-        listBuilder.accept(new TypedVisitor<RouteBuilder>() {
+    static Route createOpinionatedRouteFromService(ServiceBuilder serviceBuilder, String routeDomainPostfix, String tlsTermination, String edgeTerminationPolicy, boolean isRouteWithTls) {
+        ObjectMeta serviceMetadata = serviceBuilder.buildMetadata();
+        if (serviceMetadata != null) {
+            String name = serviceMetadata.getName();
+            RoutePort routePort = createRoutePort(serviceBuilder);
+            if (routePort != null) {
+                RouteBuilder routeBuilder = new RouteBuilder().
+                        withMetadata(serviceMetadata).
+                        withNewSpec().
+                        withPort(routePort).
+                        withNewTo().withKind("Service").withName(name).endTo().
+                        withHost(routeDomainPostfix.isEmpty() ? null : routeDomainPostfix).
+                        endSpec();
 
-            @Override
-            public void visit(RouteBuilder builder) {
-                ObjectMeta metadata = builder.buildMetadata();
-                if (metadata != null && name.equals(metadata.getName())) {
-                    answer.set(true);
-                }
+                handleTlsTermination(routeBuilder, tlsTermination, edgeTerminationPolicy, isRouteWithTls);
+
+                // removing `expose : true` label from metadata.
+                removeLabel(routeBuilder.buildMetadata(), EXPOSE_LABEL, "true");
+                removeLabel(routeBuilder.buildMetadata(), JKubeAnnotations.SERVICE_EXPOSE_URL.value(), "true");
+                routeBuilder.withNewMetadataLike(routeBuilder.buildMetadata());
+                return routeBuilder.build();
             }
-        });
-        return answer.get();
+        }
+        return null;
     }
 
-    private static boolean isExposedService(ObjectMeta objectMeta) {
+    static boolean isExposedService(ObjectMeta objectMeta) {
         return containsLabelInMetadata(objectMeta, EXPOSE_LABEL, "true") ||
                 containsLabelInMetadata(objectMeta, JKubeAnnotations.SERVICE_EXPOSE_URL.value(), "true");
     }
-
 }

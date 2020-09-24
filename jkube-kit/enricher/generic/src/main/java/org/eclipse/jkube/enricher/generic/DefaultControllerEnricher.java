@@ -166,22 +166,4 @@ public class DefaultControllerEnricher extends BaseEnricher {
         return containerNames;
     }
 
-    static {
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(String.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Double.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Float.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Long.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Integer.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Short.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Character.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Byte.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(double.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(float.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(long.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(int.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(short.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(char.class);
-        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(byte.class);
-    }
-
 }
