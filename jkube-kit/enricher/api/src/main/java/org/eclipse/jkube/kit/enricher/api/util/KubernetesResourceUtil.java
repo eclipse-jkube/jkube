@@ -120,6 +120,23 @@ public class KubernetesResourceUtil {
 
     protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
 
+    static {
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(String.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Double.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Float.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Long.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Integer.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Short.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Character.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(Byte.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(double.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(float.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(long.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(int.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(short.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(char.class);
+        KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(byte.class);
+    }
 
     /**
      * Read all Kubernetes resource fragments from a directory and create a {@link KubernetesListBuilder} which
@@ -566,7 +583,7 @@ public class KubernetesResourceUtil {
             }
 
             Class<?> fieldType = targetGetMethod.getReturnType();
-            if (!SIMPLE_FIELD_TYPES.contains(fieldType)) {
+            if (!isSimpleFieldType(fieldType)) {
                 continue;
             }
 
@@ -725,6 +742,10 @@ public class KubernetesResourceUtil {
             }
         }
         ports.add(port);
+    }
+
+    private static boolean isSimpleFieldType(Class<?> type) {
+        return SIMPLE_FIELD_TYPES.contains(type);
     }
 
     public static String getSourceUrlAnnotation(HasMetadata item) {
@@ -965,7 +986,7 @@ public class KubernetesResourceUtil {
         }
     }
 
-    protected static void mergeMetadata(HasMetadata item1, HasMetadata item2) {
+    public static void mergeMetadata(HasMetadata item1, HasMetadata item2) {
         if (item1 != null && item2 != null) {
             ObjectMeta metadata1 = item1.getMetadata();
             ObjectMeta metadata2 = item2.getMetadata();
@@ -984,12 +1005,14 @@ public class KubernetesResourceUtil {
      */
     private static Map<String, String> mergeMapsAndRemoveEmptyStrings(Map<String, String> overrideMap, Map<String, String> originalMap) {
         Map<String, String> answer = MapUtil.mergeMaps(overrideMap, originalMap);
-        Set<Map.Entry<String, String>> entries = overrideMap.entrySet();
-        for (Map.Entry<String, String> entry : entries) {
-            String value = entry.getValue();
-            if (value == null || value.isEmpty()) {
-                String key = entry.getKey();
-                answer.remove(key);
+        if (overrideMap != null && originalMap != null) {
+            Set<Map.Entry<String, String>> entries = overrideMap.entrySet();
+            for (Map.Entry<String, String> entry : entries) {
+                String value = entry.getValue();
+                if (value == null || value.isEmpty()) {
+                    String key = entry.getKey();
+                    answer.remove(key);
+                }
             }
         }
         return answer;
