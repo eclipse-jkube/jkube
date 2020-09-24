@@ -28,6 +28,8 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Iterator;
@@ -74,14 +76,30 @@ public class ConfigMapEnricher extends BaseEnricher {
             final String key = entry.getKey();
 
             if (key.startsWith(PREFIX_ANNOTATION)) {
-                addConfigMapEntryFromFile(configMapBuilder, getOutput(key), entry.getValue());
+                addConfigMapEntryFromPath(configMapBuilder, getOutput(key), entry.getValue());
                 it.remove();
             }
         }
     }
 
-    private void addConfigMapEntryFromFile(final ConfigMapBuilder configMapBuilder, final String key, final String filePath) throws IOException {
-        final byte[] bytes = Files.readAllBytes(Paths.get(filePath));
+    private void addConfigMapEntryFromPath(final ConfigMapBuilder configMapBuilder, final String key, final String filePath) throws IOException {
+        final Path path = Paths.get(filePath);
+
+        if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+            Files.list(path).filter(p -> !Files.isDirectory(p, LinkOption.NOFOLLOW_LINKS)).forEach(file -> {
+                try {
+                    addConfigMapEntryFromFile(configMapBuilder, file.toFile().getName(), file);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            });
+        } else {
+            addConfigMapEntryFromFile(configMapBuilder, key, path);
+        }
+    }
+
+    private void addConfigMapEntryFromFile(final ConfigMapBuilder configMapBuilder, final String key, final Path file) throws IOException {
+        final byte[] bytes = Files.readAllBytes(file);
         try {
             StandardCharsets.UTF_8.newDecoder()
                     .onMalformedInput(CodingErrorAction.REPORT)
@@ -124,7 +142,7 @@ public class ConfigMapEnricher extends BaseEnricher {
                         if (name == null) {
                             name = Paths.get(file).getFileName().toString();
                         }
-                        addConfigMapEntryFromFile(configMapBuilder, name, file);
+                        addConfigMapEntryFromPath(configMapBuilder, name, file);
                     }
                 }
             }
