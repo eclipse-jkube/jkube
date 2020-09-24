@@ -76,14 +76,14 @@ public class ConfigMapEnricher extends BaseEnricher {
             final String key = entry.getKey();
 
             if (key.startsWith(PREFIX_ANNOTATION)) {
-                addConfigMapEntryFromPath(configMapBuilder, getOutput(key), entry.getValue());
+                addConfigMapEntryFromDirOrFile(configMapBuilder, getOutput(key), entry.getValue());
                 it.remove();
             }
         }
     }
 
-    private void addConfigMapEntryFromPath(final ConfigMapBuilder configMapBuilder, final String key, final String filePath) throws IOException {
-        final Path path = Paths.get(filePath);
+    private void addConfigMapEntryFromDirOrFile(final ConfigMapBuilder configMapBuilder, final String key, final String dirOrFilePath) throws IOException {
+        final Path path = Paths.get(dirOrFilePath);
 
         if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
             Files.list(path).filter(p -> !Files.isDirectory(p, LinkOption.NOFOLLOW_LINKS)).forEach(file -> {
@@ -142,7 +142,7 @@ public class ConfigMapEnricher extends BaseEnricher {
                         if (name == null) {
                             name = Paths.get(file).getFileName().toString();
                         }
-                        addConfigMapEntryFromPath(configMapBuilder, name, file);
+                        addConfigMapEntryFromDirOrFile(configMapBuilder, name, file);
                     }
                 }
             }
