@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Set;
 
+import org.apache.maven.plugin.BuildPluginManager;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
@@ -44,6 +45,7 @@ import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
@@ -72,6 +74,9 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
      */
     @Parameter
     private ProcessorConfig watcher;
+
+    @Component
+    private BuildPluginManager pluginManager;
 
     private KubernetesClient kubernetesClient;
 
@@ -156,7 +161,6 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
         return WatchService.WatchContext.builder()
                 .watchInterval(watchInterval)
                 .watchMode(watchMode)
-                .watchPostGoal(watchPostGoal)
                 .watchPostExec(watchPostExec)
                 .autoCreateCustomNetworks(autoCreateCustomNetworks)
                 .keepContainer(keepContainer)
@@ -171,6 +175,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                 .serviceHubFactory(serviceHubFactory)
                 .hub(hub)
                 .dispatcher(getLogDispatcher(hub))
+                .postGoalTask(() -> MavenUtil.callMavenPluginWithGoal(project, session, pluginManager, watchPostGoal))
                 .build();
     }
 

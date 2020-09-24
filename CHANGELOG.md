@@ -23,6 +23,7 @@ Usage:
 ### 1.0.1-SNAPSHOT
 * Fix #381: Remove root as default user in AssemblyConfigurationUtils#getAssemblyConfigurationOrCreateDefault
 * Fix #358: Prometheus is enabled by default, opt-out via AB_PROMETHEUS_OFF required to disable (like in FMP)
+* Fix #365: jkube.watch.postGoal property/parameter/configuration is ignored
 * Fix #384: Enricher defined Container environment variables get merged with vars defined in Image Build Configuration
 * Fix #385: WildFly Bootable JAR - Add native support for slim Bootable JAR
 
