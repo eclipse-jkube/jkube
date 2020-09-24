@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Plugin;
@@ -108,9 +109,9 @@ public class MojoExecutionService {
                 // Fallback for older Maven versions
                 RepositorySystemSession repositorySession = session.getRepositorySession();
                 Method loadPlugin = pluginManager.getClass().getMethod("loadPlugin",
-                                                                       plugin.getClass(),
-                                                                       project.getRemotePluginRepositories().getClass(),
-                                                                       repositorySession.getClass());
+                                                                       Plugin.class,
+                                                                       List.class,
+                                                                       RepositorySystemSession.class);
                 return (PluginDescriptor) loadPlugin.invoke(pluginManager, plugin, project.getRemotePluginRepositories(), repositorySession);
             } catch (NoSuchMethodException exp2) {
                 throw new MojoFailureException("Cannot load plugin descriptor for plugin " + plugin.getGroupId() + ":" + plugin.getArtifactId(),exp2);

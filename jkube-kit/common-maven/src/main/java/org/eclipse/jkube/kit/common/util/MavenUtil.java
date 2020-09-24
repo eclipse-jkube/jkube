@@ -27,6 +27,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
 
+import org.apache.maven.plugin.BuildPluginManager;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.Plugin;
@@ -417,6 +418,15 @@ public class MavenUtil {
         }
 
         return builder.build();
+    }
+
+    public static boolean callMavenPluginWithGoal(MavenProject project, MavenSession session, BuildPluginManager pluginManager, String mavenPluginGoal) {
+        if (mavenPluginGoal != null) {
+            MojoExecutionService mojoExecutionService = new MojoExecutionService(project, session, pluginManager);
+            mojoExecutionService.callPluginGoal(mavenPluginGoal);
+            return true;
+        }
+        return false;
     }
 }
 

@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -166,7 +167,7 @@ public class WatchService {
         }
     }
 
-    private Runnable createBuildWatchTask(final ImageWatcher watcher,
+    Runnable createBuildWatchTask(final ImageWatcher watcher,
                                           final JKubeConfiguration mojoParameters, final boolean doRestart, final JKubeConfiguration buildContext)
             throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
@@ -193,15 +194,23 @@ public class WatchService {
 
                         String name = imageConfig.getName();
                         watcher.setImageId(queryService.getImageId(name));
-                        if (doRestart) {
-                            restartContainer(watcher);
-                        }
+                        restartContainerAndCallPostGoal(watcher, doRestart);
                     } catch (Exception e) {
                         log.error("%s: Error when rebuilding - %s", imageConfig.getDescription(), e);
                     }
                 }
             }
         };
+    }
+
+    private void callPostGoal(ImageWatcher watcher) {
+        BooleanSupplier postGoalTask = watcher.getWatchContext().getPostGoalTask();
+        if (postGoalTask != null) {
+            boolean postGoalStatus = postGoalTask.getAsBoolean();
+            if (!postGoalStatus) {
+                log.warn("Unable to run postGoal task");
+            }
+        }
     }
 
     private Runnable createRestartWatchTask(final ImageWatcher watcher) {
@@ -216,13 +225,20 @@ public class WatchService {
                     String currentImageId = queryService.getImageId(imageName);
                     String oldValue = watcher.getAndSetImageId(currentImageId);
                     if (!currentImageId.equals(oldValue)) {
-                        restartContainer(watcher);
+                        restartContainerAndCallPostGoal(watcher, true);
                     }
                 } catch (Exception e) {
                     log.warn("%s: Error when restarting image - %s", watcher.getImageConfiguration().getDescription(), e);
                 }
             }
         };
+    }
+
+    void restartContainerAndCallPostGoal(ImageWatcher watcher, boolean isRestartRequired) throws Exception {
+        if (isRestartRequired) {
+            restartContainer(watcher);
+        }
+        callPostGoal(watcher);
     }
 
     private void restartContainer(ImageWatcher watcher) throws Exception {
@@ -282,7 +298,7 @@ public class WatchService {
     // ===============================================================================================================
 
     // Helper class for holding state and parameter when watching images
-    public class ImageWatcher {
+    public static class ImageWatcher {
 
         private final ImageConfiguration imageConfig;
         private final WatchContext watchContext;
@@ -373,7 +389,7 @@ public class WatchService {
         private String getPostGoal(ImageConfiguration imageConfig) {
             WatchImageConfiguration watchConfig = imageConfig.getWatchConfiguration();
             return watchConfig != null && watchConfig.getPostGoal() != null ?
-                    watchConfig.getPostGoal() : watchContext.getWatchPostGoal();
+                    watchConfig.getPostGoal() : null;
 
         }
 
@@ -400,7 +416,6 @@ public class WatchService {
         private WatchMode watchMode;
         private int watchInterval;
         private boolean keepRunning;
-        private String watchPostGoal;
         private String watchPostExec;
         private GavLabel gavLabel;
         private boolean keepContainer;
@@ -417,6 +432,7 @@ public class WatchService {
         private String showLogs;
         private Date buildTimestamp;
         private String containerNamePattern;
+        private BooleanSupplier postGoalTask;
 
     }
 }

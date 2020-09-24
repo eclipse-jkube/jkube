@@ -23,6 +23,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 
+import mockit.Verifications;
+import org.apache.maven.plugin.BuildPluginManager;
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.PluginConfigurationException;
+import org.apache.maven.plugin.PluginManagerException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.Plugin;
@@ -53,6 +60,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class MavenUtilTest {
   @Rule
@@ -153,6 +161,11 @@ public class MavenUtilTest {
         mavenProject.setVersion("0.1.0");
         mavenProject.setDescription("test description");
         Build build = new Build();
+        org.apache.maven.model.Plugin plugin = new org.apache.maven.model.Plugin();
+        plugin.setGroupId("org.apache.maven.plugins");
+        plugin.setArtifactId("maven-help-plugin");
+        plugin.setVersion("3.2.0");
+        build.addPlugin(plugin);
         build.setOutputDirectory("./target");
         build.setDirectory(".");
         mavenProject.setBuild(build);
@@ -190,5 +203,22 @@ public class MavenUtilTest {
         systemProperties.put("foo", "bar");
 
         return new MavenSession(null, settings, localRepository, null, null, Collections.<String>emptyList(), ".", systemProperties, userProperties, new Date(System.currentTimeMillis()));
+    }
+
+    @Test
+    public void testCallMavenPluginWithGoal(@Mocked BuildPluginManager pluginManager) throws PluginConfigurationException, MojoFailureException, MojoExecutionException, PluginManagerException {
+        // Given
+        MavenProject mavenProject = getMavenProject();
+        MavenSession mavenSession = getMavenSession();
+
+        // When
+        boolean result = MavenUtil.callMavenPluginWithGoal(mavenProject, mavenSession, pluginManager, "org.apache.maven.plugins:maven-help-plugin:help");
+
+        // Then
+        assertTrue(result);
+        new Verifications() {{
+            pluginManager.executeMojo(mavenSession, (MojoExecution)any);
+            times = 1;
+        }};
     }
 }
