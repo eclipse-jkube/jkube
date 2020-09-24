@@ -26,7 +26,7 @@ As XML you can define:
 
 This creates a ConfigMap data with key `A` and value `B`.
 
-You can also use `file` tag to refer to the content of a file.
+You can also use `file` tag to refer to the content of a file or a directory.
 
 [source, xml]
 ----
@@ -45,6 +45,7 @@ You can also use `file` tag to refer to the content of a file.
 ----
 
 This creates a ConfigMap with key `test-application.properties` and value the content of the `src/test/resources/test-application.properties` file.
+If you specify a directory this creates a ConfigMap with a key for every regular file inside the directory (not recursive). 
 If you set `name` tag then this is used as key instead of the filename.
 
 If you are defining a custom `ConfigMap` file, you can use an annotation to define a file name as key and its content as the value:
@@ -58,3 +59,4 @@ metadata:
 ----
 
 This creates a `ConfigMap` data with key `application.properties` (part defined after `cm`) and value the content of `src/test/resources/test-application.properties` file.
+Like before you can specify a directory instead of a file.
