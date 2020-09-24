@@ -84,14 +84,14 @@
     <version.lombok-maven-plugin>1.18.12.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
     <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
-    <version.maven-failsafe-plugin>2.19.1</version.maven-failsafe-plugin>
+    <version.maven-failsafe-plugin>3.0.0-M5</version.maven-failsafe-plugin>
     <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
     <version.maven-invoker-plugin>2.0.0</version.maven-invoker-plugin>
     <version.maven-javadoc-plugin>3.2.0</version.maven-javadoc-plugin>
     <version.maven-plugin-plugin>3.5</version.maven-plugin-plugin>
     <version.maven-resources-plugin>3.0.0</version.maven-resources-plugin>
     <version.maven-source-plugin>2.4</version.maven-source-plugin>
-    <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>
+    <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
     <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
     <version.license-maven-plugin>3.0</version.license-maven-plugin>
   </properties>
