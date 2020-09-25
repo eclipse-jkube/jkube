@@ -90,7 +90,11 @@ public class Verify {
     }
 
     public static String asJson(String txt) throws IOException {
-        Object obj = new ObjectMapper(new YAMLFactory()).readValue(txt, Object.class);
+        Object obj = new ObjectMapper(new YAMLFactory()).readValue(jsonCompatibleYaml(txt), Object.class);
         return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+    }
+
+    public static String jsonCompatibleYaml(String txt) {
+        return txt.replace("{{", "{").replace("}}", "}");
     }
 }

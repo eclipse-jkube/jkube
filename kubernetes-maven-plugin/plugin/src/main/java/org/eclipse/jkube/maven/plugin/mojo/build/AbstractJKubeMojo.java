@@ -77,15 +77,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         log = createLogger(null);
         clusterAccess = new ClusterAccess(log, initClusterConfiguration());
         final JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
-        jkubeServiceHub = JKubeServiceHub.builder()
-                .log(log)
-                .configuration(JKubeConfiguration.builder()
-                        .project(javaProject)
-                        .reactorProjects(Collections.singletonList(javaProject))
-                        .build())
-                .clusterAccess(clusterAccess)
-                .platformMode(getRuntimeMode())
-                .build();
+        jkubeServiceHub = initJKubeServiceHubBuilder(javaProject).build();
     }
 
     protected boolean canExecute() {
@@ -143,6 +135,17 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     protected ClusterConfiguration initClusterConfiguration() {
         return ClusterConfiguration.from(access, System.getProperties(), project.getProperties()).build();
+    }
+
+    protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder(JavaProject javaProject) {
+        return JKubeServiceHub.builder()
+            .log(log)
+            .configuration(JKubeConfiguration.builder()
+                .project(javaProject)
+                .reactorProjects(Collections.singletonList(javaProject))
+                .build())
+            .clusterAccess(clusterAccess)
+            .platformMode(getRuntimeMode());
     }
 
 }

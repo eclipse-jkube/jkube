@@ -66,6 +66,12 @@
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-resource-service</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-resource-helm</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
@@ -123,7 +129,7 @@
             <artifactId>jkube-kit-vertx</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-wildfly-jar</artifactId>

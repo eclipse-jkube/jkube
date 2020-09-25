@@ -1,0 +1,97 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.io/git-url: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: helm-and-fragments
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube
+    name: helm-and-fragments
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: helm-and-fragments
+        provider: jkube
+        group: org.eclipse.jkube
+    template:
+      metadata:
+        annotations:
+          jkube.io/git-url: "@ignore@"
+          jkube.io/git-commit: "@ignore@"
+          jkube.io/git-branch: "@ignore@"
+        labels:
+          app: helm-and-fragments
+          provider: jkube
+          version: "@ignore@"
+          group: org.eclipse.jkube
+      spec:
+        containers:
+        - env:
+          - name: PARAMETER_ENV
+            value: ${parameter_with_no_value}
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: marcnuri/yakc-kubernetes-dashboard:latest
+          imagePullPolicy: IfNotPresent
+          name: helm-and-fragments
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 256Mi
+          securityContext:
+            privileged: false
+- apiVersion: v1
+  kind: Template
+  metadata:
+    labels:
+      app: helm-and-fragments
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube
+    name: first
+  parameters:
+    - name: requests_memory
+      value: 256Mi
+- apiVersion: v1
+  kind: Template
+  metadata:
+    labels:
+      app: helm-and-fragments
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube
+    name: helm-and-fragments
+  parameters:
+    - name: limits_memory
+      value: 512Mi
