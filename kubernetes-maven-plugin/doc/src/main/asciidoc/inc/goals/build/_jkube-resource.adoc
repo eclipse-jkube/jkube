@@ -415,6 +415,20 @@ endif::[]
   Defaults to `false`.
 | `jkube.mergeWithDekorate`
 
+| *interpolateTemplateParameters*
+| Interpolate parameter values from `*template.yml` fragments in the generated resource list (`kubernetes.yml`).
+
+  This is useful when using JKube in combination with Helm.
+
+  Placeholders for variables defined in template files can be used in the different resource fragments. Helm generated
+  charts will contain these placeholders/parameters.
+
+  For `resource` goal, these placeholders are replaced in the
+  aggregated resource list YAML file (not in the individual generated resources) if this option is enabled.
+
+  Defaults to `true`.
+| `jkube.interpolateTemplateParameters`
+
 | *skipResource*
 | Skip resource generation.
 

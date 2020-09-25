@@ -19,6 +19,7 @@ import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.service.EnricherManager;
 import org.eclipse.jkube.kit.enricher.api.Enricher;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 
@@ -31,17 +32,17 @@ import static org.eclipse.jkube.kit.enricher.api.util.Misc.filterEnrichers;
 /**
  * @author roland
  */
-public class EnricherManager {
+public class DefaultEnricherManager implements EnricherManager {
 
     // List of enrichers used for customizing the generated deployment descriptors
-    private List<Enricher> enrichers;
+    private final List<Enricher> enrichers;
 
     // context used by enrichers
     private final ProcessorConfig defaultEnricherConfig;
 
-    private KitLogger log;
+    private final KitLogger log;
 
-    public EnricherManager(EnricherContext enricherContext, Optional<List<String>> extraClasspathElements) {
+    public DefaultEnricherManager(EnricherContext enricherContext, Optional<List<String>> extraClasspathElements) {
         PluginServiceFactory<EnricherContext> pluginFactory = new PluginServiceFactory<>(enricherContext);
 
         extraClasspathElements.ifPresent(
@@ -59,10 +60,12 @@ public class EnricherManager {
         logEnrichers(filterEnrichers(defaultEnricherConfig, enrichers));
     }
 
+    @Override
     public void createDefaultResources(PlatformMode platformMode, final KubernetesListBuilder builder) {
         createDefaultResources(platformMode, defaultEnricherConfig, builder);
     }
 
+    @Override
     public void createDefaultResources(PlatformMode platformMode, ProcessorConfig enricherConfig, final KubernetesListBuilder builder) {
         // Add default resources
         loop(enricherConfig, enricher -> {
@@ -71,21 +74,18 @@ public class EnricherManager {
         });
     }
 
+    @Override
     public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
         enrich(platformMode, defaultEnricherConfig, builder);
-    }
-
-    public void enrich(PlatformMode platformMode, ProcessorConfig config, KubernetesListBuilder builder) {
-        enrich(platformMode, config, builder, enrichers);
     }
 
     /**
      * Allow enricher to add Metadata to the resources.
      *
      * @param builder builder to customize
-     * @param enricherList list of enrichers
      */
-    private void enrich(PlatformMode platformMode, final ProcessorConfig enricherConfig, final KubernetesListBuilder builder, final List<Enricher> enricherList) {
+    @Override
+    public void enrich(PlatformMode platformMode, final ProcessorConfig enricherConfig, final KubernetesListBuilder builder) {
         loop(enricherConfig, enricher -> {
                 enricher.enrich(platformMode, builder);
                 return null;

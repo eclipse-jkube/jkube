@@ -70,7 +70,7 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.plugin.enricher.EnricherManager;
+import org.eclipse.jkube.maven.plugin.enricher.DefaultEnricherManager;
 import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -675,7 +675,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                     }
                 })
                 .enricherTask(builder -> {
-                    EnricherManager enricherManager = new EnricherManager(getEnricherContext(), MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath));
+                    DefaultEnricherManager enricherManager = new DefaultEnricherManager(getEnricherContext(), MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath));
                     enricherManager.enrich(PlatformMode.kubernetes, builder);
                     enricherManager.enrich(PlatformMode.openshift, builder);
                 });

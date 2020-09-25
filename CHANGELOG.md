@@ -27,6 +27,8 @@ Usage:
 * Fix #384: Enricher defined Container environment variables get merged with vars defined in Image Build Configuration
 * Fix #385: WildFly Bootable JAR - Add native support for slim Bootable JAR
 * Fix #415: Fixed resource validation for new json-schema-validator version
+* Fix #356: Add further support for tls termination and insecureEdgeTerminationPolicy in pom.xml
+* Fix #327: k8s:resource replaces template variables in provided fragments, k8s:helm doesn't.
 
 ### 1.0.0 (2020-09-09)
 * Fix #351: Fix AutoTLSEnricher - add annotation + volume config to resource
@@ -47,7 +49,6 @@ Usage:
 * Fix #362: Quarkus supports S2I builds both for JVM and native mode
 * Fix #297: Added missing documentation for WatchMojo configuration parameters
 * Fix #371: WebAppGenerator path configuration is no longer ignored
-* Fix #356: Add further support for tls termination and insecureEdgeTerminationPolicy in pom.xml
 
 ### 1.0.0-rc-1 (2020-07-23)
 * Fix #252: Replace Quarkus Native Base image with ubi-minimal (same as in `Dockerfile.native`)

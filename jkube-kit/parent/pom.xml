@@ -221,11 +221,23 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-resource-service</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-resource-helm</artifactId>
         <version>${project.version}</version>
       </dependency>
 
-      <!-- == jkube ===================================== -->
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-profiles</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- == Fabric8 Kubernetes Client ===================================== -->
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>kubernetes-client</artifactId>

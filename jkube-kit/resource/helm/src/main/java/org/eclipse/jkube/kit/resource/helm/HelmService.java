@@ -201,8 +201,9 @@ public class HelmService {
         .orElse(Collections.emptyList()).stream()
         .map(Template::getParameters).flatMap(List::stream)
         .map(HelmParameter::new).collect(Collectors.toList());
-    final Map<String, String> values = helmParameters.stream().collect(Collectors.toMap(
-        HelmParameter::getHelmName, hp -> hp.getParameter().getValue()));
+    final Map<String, String> values = helmParameters.stream()
+        .filter(hp -> hp.getParameter().getValue() != null)
+        .collect(Collectors.toMap(HelmParameter::getHelmName, hp -> hp.getParameter().getValue()));
 
     File outputChartFile = new File(outputDir, VALUES_FILENAME);
     ResourceUtil.save(outputChartFile, values, ResourceFileType.yaml);

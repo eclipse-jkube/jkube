@@ -62,6 +62,7 @@ public class JKubeServiceHub implements Closeable {
     private KubernetesClient client;
     private LazyBuilder<ArtifactResolverService> artifactResolverService;
     private LazyBuilder<BuildService> buildService;
+    private LazyBuilder<ResourceService> resourceService;
     private LazyBuilder<ApplyService> applyService;
     private LazyBuilder<UndeployService> undeployService;
     private LazyBuilder<MigrateService> migrateService;
@@ -69,13 +70,16 @@ public class JKubeServiceHub implements Closeable {
     @Builder
     public JKubeServiceHub(
             ClusterAccess clusterAccess, RuntimeMode platformMode, KitLogger log,
-            ServiceHub dockerServiceHub, JKubeConfiguration configuration, BuildServiceConfig buildServiceConfig) {
+            ServiceHub dockerServiceHub, JKubeConfiguration configuration,
+            BuildServiceConfig buildServiceConfig,
+            LazyBuilder<ResourceService> resourceService) {
         this.clusterAccess = clusterAccess;
         this.platformMode = platformMode;
         this.log = log;
         this.dockerServiceHub = dockerServiceHub;
         this.configuration = configuration;
         this.buildServiceConfig = buildServiceConfig;
+        this.resourceService = resourceService;
         init();
     }
 
@@ -134,6 +138,10 @@ public class JKubeServiceHub implements Closeable {
 
     public BuildService getBuildService() {
         return buildService.get();
+    }
+
+    public ResourceService getResourceService() {
+        return resourceService.get();
     }
 
     public ApplyService getApplyService() {
