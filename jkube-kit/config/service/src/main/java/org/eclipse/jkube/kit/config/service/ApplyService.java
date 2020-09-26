@@ -1310,6 +1310,10 @@ public class ApplyService {
         return recreateMode;
     }
 
+    public void setRecreateMode(boolean recreateMode) {
+	this.recreateMode = recreateMode;
+    }
+
     public void setServicesOnlyMode(boolean servicesOnlyMode) {
         this.servicesOnlyMode = servicesOnlyMode;
     }

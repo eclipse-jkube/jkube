@@ -70,7 +70,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
      * The generated kubernetes YAML file
      */
     @Parameter(property = "jkube.kubernetesManifest", defaultValue = DEFAULT_KUBERNETES_MANIFEST)
-    private File kubernetesManifest;
+    protected File kubernetesManifest;
 
     /**
      * Should we create new kubernetes resources?
@@ -203,6 +203,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
             applyService.setDeletePodsOnReplicationControllerUpdate(deletePodsOnReplicationControllerUpdate);
             applyService.setRollingUpgrade(rollingUpgrades);
             applyService.setRollingUpgradePreserveScale(isRollingUpgradePreserveScale());
+            applyService.setRecreateMode(recreate);
 
             boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
             if (openShift) {
