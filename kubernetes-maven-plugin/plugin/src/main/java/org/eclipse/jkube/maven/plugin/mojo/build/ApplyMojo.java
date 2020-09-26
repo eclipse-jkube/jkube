@@ -70,7 +70,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
      * The generated kubernetes YAML file
      */
     @Parameter(property = "jkube.kubernetesManifest", defaultValue = DEFAULT_KUBERNETES_MANIFEST)
-    private File kubernetesManifest;
+    protected File kubernetesManifest;
 
     /**
      * Should we create new kubernetes resources?
