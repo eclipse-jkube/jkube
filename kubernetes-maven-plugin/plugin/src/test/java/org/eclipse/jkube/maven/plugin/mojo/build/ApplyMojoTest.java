@@ -18,10 +18,13 @@ import static org.hamcrest.Matchers.is;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.config.service.ApplyService;
 
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.openshift.client.OpenShiftClient;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.maven.project.MavenProject;
@@ -44,6 +47,8 @@ public class ApplyMojoTest {
   private Settings mavenSettings;
   @Mocked
   private ApplyService applyService;
+  @Mocked
+  private DefaultKubernetesClient defaultKubernetesClient;
 
   private ApplyMojo applyMojo;
 
@@ -88,6 +93,12 @@ public class ApplyMojoTest {
         result = "A description from Maven";
         mavenProject.getParent();
         result = null;
+
+        defaultKubernetesClient.isAdaptable(OpenShiftClient.class);
+        result = false;
+        defaultKubernetesClient.getMasterUrl();
+        result = URI.create("https://www.example.com").toURL();
+
         applyService.isRecreateMode();
         result = applyMojo.recreate;
       }
@@ -120,6 +131,12 @@ public class ApplyMojoTest {
         result = "A description from Maven";
         mavenProject.getParent();
         result = null;
+
+        defaultKubernetesClient.isAdaptable(OpenShiftClient.class);
+        result = false;
+        defaultKubernetesClient.getMasterUrl();
+        result = URI.create("https://www.example.com").toURL();
+
         applyService.isRecreateMode();
         result = applyMojo.recreate;
       }
