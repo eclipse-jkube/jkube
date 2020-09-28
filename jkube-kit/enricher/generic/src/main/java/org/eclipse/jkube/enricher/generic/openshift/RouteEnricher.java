@@ -54,8 +54,8 @@ public class RouteEnricher extends BaseEnricher {
     @AllArgsConstructor
     private enum Config implements Configs.Config {
         GENERATE_ROUTE("generateRoute", "true"),
-        TLS_TERMINATION("termination",null),
-        INSECURE_EDGE_TERMINATION_POLICY("insecureEdgeTerminationPolicy",null);
+        TLS_TERMINATION("tlsTermination",null),
+        TLS_INSECURE_EDGE_TERMINATION_POLICY("tlsInsecureEdgeTerminationPolicy",null);
 
         @Getter
         protected String key;
