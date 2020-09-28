@@ -21,6 +21,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
@@ -49,7 +50,7 @@ public class ResourceValidator {
 
     public static final String SCHEMA_JSON = "/schema/kube-validation-schema.json";
     private KitLogger log;
-    private File resources[];
+    private File[] resources;
     private ResourceClassifier target = ResourceClassifier.KUBERNETES;
     private List<ValidationRule> ignoreValidationRules = new ArrayList<>();
 
@@ -95,7 +96,7 @@ public class ResourceValidator {
      * @throws ConstraintViolationException  ConstraintViolationException
      * @throws IOException IOException
      */
-    public int validate() throws ConstraintViolationException, IOException {
+    public int validate() throws IOException {
         for(File resource: resources) {
             if (resource.isFile() && resource.exists()) {
                 try {
@@ -151,11 +152,10 @@ public class ResourceValidator {
 
     private JsonSchema getJsonSchema(URI schemaUrl, String kind) throws IOException {
         checkIfKindPropertyExists(kind);
-        JsonSchemaFactory factory = new JsonSchemaFactory();
         JsonObject jsonSchema = getSchemaJson(schemaUrl);
         getResourceProperties(kind, jsonSchema);
 
-        return factory.getSchema(jsonSchema.toString());
+        return JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4).getSchema(jsonSchema.toString());
     }
 
     private void getResourceProperties(String kind, JsonObject jsonSchema) {
