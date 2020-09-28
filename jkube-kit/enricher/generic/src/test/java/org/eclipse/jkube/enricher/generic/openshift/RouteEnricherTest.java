@@ -47,20 +47,20 @@ public class RouteEnricherTest {
         // @formatter:off
         klb.addToItems(new ServiceBuilder()
                 .editOrNewMetadata()
-                .withName("test-svc")
-                .addToLabels("expose", "true")
+                    .withName("test-svc")
+                    .addToLabels("expose", "true")
                 .endMetadata()
                 .editOrNewSpec()
-                .addNewPort()
-                .withName("http")
-                .withPort(8080)
-                .withProtocol("TCP")
-                .withTargetPort(new IntOrString(8080))
-                .endPort()
-                .addToSelector("group", "test")
-                .withType("LoadBalancer")
+                    .addNewPort()
+                        .withName("http")
+                        .withPort(8080)
+                        .withProtocol("TCP")
+                        .withTargetPort(new IntOrString(8080))
+                    .endPort()
+                    .addToSelector("group", "test")
+                    .withType("LoadBalancer")
                 .endSpec()
-                .build());
+            .build());
         new Expectations() {{
             context.getProperties(); result = properties;
             context.getConfiguration().getProcessorConfig(); result = processorConfig;
@@ -74,12 +74,12 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-                .hasSize(2)
-                .extracting("kind")
-                .containsExactly("Service", "Route");
+            .hasSize(2)
+            .extracting("kind")
+            .containsExactly("Service", "Route");
         assertThat(klb.build().getItems().get(1))
-                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-                .contains("test-svc", "test-svc", "Service", "test-svc", 8080);
+            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+            .contains("test-svc", "test-svc", "Service", "test-svc", 8080);
     }
 
     @Test
@@ -95,9 +95,9 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.kubernetes, klb);
         // Then
         assertThat(klb.build().getItems())
-                .hasSize(1)
-                .extracting("kind")
-                .containsExactly("Service");
+            .hasSize(1)
+            .extracting("kind")
+            .containsExactly("Service");
     }
 
     @Test
@@ -108,9 +108,9 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-                .hasSize(1)
-                .extracting("kind")
-                .containsExactly("Service");
+            .hasSize(1)
+            .extracting("kind")
+            .containsExactly("Service");
     }
 
     @Test
@@ -121,9 +121,9 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-                .hasSize(1)
-                .extracting("kind")
-                .containsExactly("Service");
+            .hasSize(1)
+            .extracting("kind")
+            .containsExactly("Service");
     }
 
     @Test
@@ -139,38 +139,38 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-                .hasSize(2)
-                .extracting("kind")
-                .containsExactly("Service", "Route");
+            .hasSize(2)
+            .extracting("kind")
+            .containsExactly("Service", "Route");
         assertThat(klb.build().getItems().get(1))
-                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-                .contains("test-svc", "test-svc.jkube.eclipse.org", "Service", "test-svc", 8080);
+            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+            .contains("test-svc", "test-svc.jkube.eclipse.org", "Service", "test-svc", 8080);
     }
 
     @Test
     public void testCreateWithDefaultsAndExistingRouteWithMatchingNameInBuilderInOpenShiftShouldReuseExistingRoute() {
         // Given
         klb.addToItems(new RouteBuilder()
-                .editOrNewMetadata()
+            .editOrNewMetadata()
                 .withName("test-svc")
-                .endMetadata()
-                .editOrNewSpec()
+            .endMetadata()
+            .editOrNewSpec()
                 .withHost("example.com")
                 .editOrNewPort()
-                .withNewTargetPort(1337)
+                    .withNewTargetPort(1337)
                 .endPort()
-                .endSpec()
-                .build());
+            .endSpec()
+            .build());
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-                .hasSize(2)
-                .extracting("kind")
-                .containsExactly("Service", "Route");
+            .hasSize(2)
+            .extracting("kind")
+            .containsExactly("Service", "Route");
         assertThat(klb.build().getItems().get(1))
-                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-                .contains("test-svc", "example.com", null, null, 1337);
+            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+            .contains("test-svc", "example.com", null, null, 1337);
     }
 
     @Test
@@ -194,8 +194,8 @@ public class RouteEnricherTest {
     @Test
     public void testEnrichWithTls(){
         // Given
-        properties.put("jkube.enricher.jkube-openshift-route.termination", "edge");
-        properties.put("jkube.enricher.jkube-openshift-route.insecureEdgeTerminationPolicy", "Allow");
+        properties.put("jkube.enricher.jkube-openshift-route.tlsTermination", "edge");
+        properties.put("jkube.enricher.jkube-openshift-route.tlsInsecureEdgeTerminationPolicy", "Allow");
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then

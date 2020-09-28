@@ -192,14 +192,14 @@ Resource goal also validates the generated resource descriptors using API specif
 
 | *skipResourceValidation*
 | If value is set to `true` then resource validation is skipped. This may be useful if resource validation is failing
-for some reason but you still want to continue the deployment.
+  for some reason but you still want to continue the deployment.
 
   Default is `false`.
 | `jkube.skipResourceValidation`
 
 | *failOnValidationError*
 | If value is set to `true` then any validation error will block the plugin execution. A warning will be printed
-otherwise.
+  otherwise.
 
   Default is `false`.
 | `jkube.failOnValidationError`
@@ -222,21 +222,23 @@ If you do not want to generate a Route descriptor, you can set the `jkube.opensh
 
 | *generateRoute*
 | If value is set to `false` then no Route descriptor will be generated.
-By default it is set to `true`, which will create a `route.yml` descriptor and also add Route resource to `openshift.yml`.
+  By default it is set to `true`, which will create a `route.yml` descriptor and also add Route resource to `openshift.yml`.
 | `jkube.openshift.generateRoute`
 
   `jkube.enricher.jkube-openshift-route.generateRoute`
-| *termination*
-a| termination indicates termination type. The following values are supported:
+
+| *tlsTermination*
+a| tlsTermination indicates termination type. The following values are supported:
 
 * edge (default)
 * passthrough
 * reencrypt
 
 See https://docs.openshift.com/container-platform/3.11/architecture/networking/routes.html#secured-routes or https://docs.openshift.com/container-platform/latest/networking/routes/secured-routes.html
-| `jkube.enricher.jkube-openshift-route.termination`
-| *insecureEdgeTerminationPolicy*
-a| insecureEdgeTerminationPolicy indicates the desired behavior for insecure connections to a route.
+| `jkube.enricher.jkube-openshift-route.tlsTermination`
+
+| *tlsInsecureEdgeTerminationPolicy*
+a| tlsInsecureEdgeTerminationPolicy indicates the desired behavior for insecure connections to a route.
 While each router may make its own decisions on which ports to expose, this is normally port 80.
 
 * Allow - traffic is sent to the server on the insecure port (default)
@@ -244,8 +246,7 @@ While each router may make its own decisions on which ports to expose, this is n
 * Redirect - clients are redirected to the secure port.
 
 See https://docs.openshift.com/container-platform/latest/rest_api/network_apis/route-route-openshift-io-v1.html
-| `jkube.enricher.jkube-openshift-route.insecureEdgeTerminationPolicy`
-
+| `jkube.enricher.jkube-openshift-route.tlsInsecureEdgeTerminationPolicy`
 |===
 
 Below is an example of generating a Route with "edge" termination and "Allow" insecureEdgeTerminationPolicy:
@@ -262,8 +263,8 @@ Below is an example of generating a Route with "edge" termination and "Allow" in
       <config>
         <jkube-openshift-route>
           <generateRoute>true</generateRoute>
-          <insecureEdgeTerminationPolicy>Allow</insecureEdgeTerminationPolicy>
-          <termination>edge</termination>
+          <tlsInsecureEdgeTerminationPolicy>Allow</tlsInsecureEdgeTerminationPolicy>
+          <tlsTermination>edge</tlsTermination>
         </jkube-openshift-route>
       </config>
     </enricher>
@@ -342,7 +343,7 @@ ifeval::["{goal-prefix}" == "oc"]
 
 | *trimImageInContainerSpec*
 | If set to true it would set the container image reference to "", this is done to handle weird behavior of OpenShift
-3.7 in which subsequent rollouts lead to ImagePullErr.
+  3.7 in which subsequent rollouts lead to ImagePullErr.
 
   Defaults to `false`.
 | `jkube.openshift.trimImageInContainerSpec`
@@ -356,7 +357,7 @@ endif::[]
 
 | *profile*
 | Profile to use. A profile contains the enrichers and generators to use as well as their configuration. Profiles are
-looked up in the classpath and can be provided as yaml files.
+  looked up in the classpath and can be provided as yaml files.
 
   Defaults to `default`.
 | `jkube.profile`
@@ -379,7 +380,7 @@ looked up in the classpath and can be provided as yaml files.
 
 | *environment*
 | Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the
-default one, plugin will look at `src/main/jkube/dev`.
+  default one, plugin will look at `src/main/jkube/dev`.
 
   Defaults to `null`.
 | `jkube.environment`
