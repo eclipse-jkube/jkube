@@ -38,7 +38,7 @@
     <version.asciidoctorj>1.5.4</version.asciidoctorj>
     <version.assertj-core>2.4.1</version.assertj-core>
     <version.bouncycastle.bcpkix>1.61</version.bouncycastle.bcpkix>
-    <version.commons-codec>1.13</version.commons-codec>
+    <version.commons-codec>1.15</version.commons-codec>
     <version.commons-compress>1.19</version.commons-compress>
     <version.commons-io>2.6</version.commons-io>
     <version.commons-lang3>3.8.1</version.commons-lang3>
