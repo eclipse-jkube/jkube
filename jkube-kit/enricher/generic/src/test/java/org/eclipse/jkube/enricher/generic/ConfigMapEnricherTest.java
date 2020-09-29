@@ -13,18 +13,8 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import org.eclipse.jkube.kit.config.resource.ConfigMapEntry;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
+import static junit.framework.TestCase.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -33,8 +23,19 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static junit.framework.TestCase.assertNull;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.eclipse.jkube.kit.config.resource.ConfigMapEntry;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Test;
 
 public class ConfigMapEnricherTest {
 
@@ -43,54 +44,69 @@ public class ConfigMapEnricherTest {
 
     @Test
     public void should_materialize_file_content_from_annotation() throws Exception {
-        final ConfigMap baseConfigMap = createAnnotationConfigMap("test-application.properties", "src/test/resources/test-application.properties");
-        final KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addToConfigMapItems(baseConfigMap);
+        final ConfigMap baseConfigMap = createAnnotationConfigMap("test-application.properties",
+                "src/test/resources/test-application.properties");
+        final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
 
         final Map<String, String> data = configMap.getData();
-        assertThat(data)
-                .containsEntry("test-application.properties", readFileContentsAsString("src/test/resources/test-application.properties"));
+        assertThat(data).containsEntry("test-application.properties",
+                readFileContentsAsString("src/test/resources/test-application.properties"));
 
         final Map<String, String> annotations = configMap.getMetadata().getAnnotations();
-        assertThat(annotations)
-                .isEmpty();
+        assertThat(annotations).isEmpty();
+    }
+
+    @Test
+    public void should_materialize_dir_content_from_annotation() throws Exception {
+        final ConfigMap baseConfigMap = createAnnotationConfigMap("test-dir", "src/test/resources/test-dir");
+        final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
+        new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
+
+        final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
+
+        final Map<String, String> data = configMap.getData();
+        assertThat(data).containsEntry("test-application.properties",
+                readFileContentsAsString("src/test/resources/test-dir/test-application.properties"))
+                .doesNotContainKey("test-dir-empty");
+        final Map<String, String> binaryData = configMap.getBinaryData();
+        assertThat(binaryData).containsEntry("test.bin", "wA==");
+
+        final Map<String, String> annotations = configMap.getMetadata().getAnnotations();
+        assertThat(annotations).isEmpty();
     }
 
     @Test
     public void should_materialize_binary_file_content_from_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test.bin", "src/test/resources/test.bin");
-        final KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addToConfigMapItems(baseConfigMap);
+        final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
 
         final Map<String, String> data = configMap.getData();
-        assertThat(data)
-                .isEmpty();
+        assertThat(data).isEmpty();
 
         final Map<String, String> binaryData = configMap.getBinaryData();
-        assertThat(binaryData)
-                .containsEntry("test.bin", "wA==");
+        assertThat(binaryData).containsEntry("test.bin", "wA==");
 
         final Map<String, String> annotations = configMap.getMetadata().getAnnotations();
-        assertThat(annotations)
-                .isEmpty();
+        assertThat(annotations).isEmpty();
     }
 
     @Test
     public void should_materialize_file_content_from_xml() throws Exception {
-        final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap("src/test/resources/test-application.properties");
-        final ResourceConfig config = ResourceConfig.builder()
-                .configMap(baseConfigMap)
-                .build();
-        new Expectations() {{
-            context.getConfiguration();
-            result = Configuration.builder().resource(config).build();
-        }};
+        final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap(
+                "src/test/resources/test-application.properties");
+        final ResourceConfig config = ResourceConfig.builder().configMap(baseConfigMap).build();
+        new Expectations() {
+            {
+                context.getConfiguration();
+                result = Configuration.builder().resource(config).build();
+            }
+        };
 
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
@@ -98,20 +114,20 @@ public class ConfigMapEnricherTest {
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
 
         final Map<String, String> data = configMap.getData();
-        assertThat(data)
-                .containsEntry("test-application.properties", readFileContentsAsString("src/test/resources/test-application.properties"));
+        assertThat(data).containsEntry("test-application.properties",
+                readFileContentsAsString("src/test/resources/test-application.properties"));
     }
 
     @Test
     public void should_materialize_binary_file_content_from_xml() {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap("src/test/resources/test.bin");
-        final ResourceConfig config = ResourceConfig.builder()
-                .configMap(baseConfigMap)
-                .build();
-        new Expectations() {{
-            context.getConfiguration();
-            result = Configuration.builder().resource(config).build();
-        }};
+        final ResourceConfig config = ResourceConfig.builder().configMap(baseConfigMap).build();
+        new Expectations() {
+            {
+                context.getConfiguration();
+                result = Configuration.builder().resource(config).build();
+            }
+        };
 
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
@@ -121,8 +137,7 @@ public class ConfigMapEnricherTest {
         assertNull(data);
 
         final Map<String, String> binaryData = configMap.getBinaryData();
-        assertThat(binaryData)
-                .containsEntry("test.bin", "wA==");
+        assertThat(binaryData).containsEntry("test.bin", "wA==");
     }
 
     private org.eclipse.jkube.kit.config.resource.ConfigMap createXmlConfigMap(final String file) {
@@ -134,19 +149,14 @@ public class ConfigMapEnricherTest {
     }
 
     private ConfigMap createAnnotationConfigMap(final String key, final String file) {
-        ObjectMetaBuilder metaBuilder = new ObjectMetaBuilder()
-            .withName("some-config-map")
-            .withNamespace("default");
+        ObjectMetaBuilder metaBuilder = new ObjectMetaBuilder().withName("some-config-map").withNamespace("default");
 
         Map<String, String> annotations = new HashMap<>();
         annotations.put(ConfigMapEnricher.PREFIX_ANNOTATION + key, file);
         metaBuilder = metaBuilder.withAnnotations(annotations);
 
         Map<String, String> data = new HashMap<>();
-        return new ConfigMapBuilder()
-                .withData(data)
-                .withMetadata(metaBuilder.build())
-                .build();
+        return new ConfigMapBuilder().withData(data).withMetadata(metaBuilder.build()).build();
     }
 
     private String readFileContentsAsString(final String filePath) throws URISyntaxException, IOException {
