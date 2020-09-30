@@ -13,23 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.util.validator;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.ResourceClassifier;
-
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Path;
-import javax.validation.metadata.ConstraintDescriptor;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -40,6 +23,26 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Path;
+import javax.validation.metadata.ConstraintDescriptor;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.ResourceClassifier;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.networknt.schema.JsonMetaSchema;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.NonValidationKeyword;
+import com.networknt.schema.ValidationMessage;
 
 /**
  * Validates Kubernetes/OpenShift resource descriptors using JSON schema validation method.
@@ -122,7 +125,7 @@ public class ResourceValidator {
                 constraintViolations.add(new ConstraintViolationImpl(errorMsg));
         }
 
-        if(constraintViolations.size() > 0) {
+        if(!constraintViolations.isEmpty()) {
             throw new ConstraintViolationException(getErrorMessage(resource, constraintViolations), constraintViolations);
         }
     }
@@ -151,11 +154,19 @@ public class ResourceValidator {
     }
 
     private JsonSchema getJsonSchema(URI schemaUrl, String kind) throws IOException {
+        final JsonMetaSchema v201909 = JsonMetaSchema.getV201909();
+        final String defaultUri = v201909.getUri();
+        JsonObject jsonSchema = fixUrlIfUnversioned(getSchemaJson(schemaUrl), defaultUri);
         checkIfKindPropertyExists(kind);
-        JsonObject jsonSchema = getSchemaJson(schemaUrl);
         getResourceProperties(kind, jsonSchema);
-
-        return JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4).getSchema(jsonSchema.toString());
+        final JsonMetaSchema metaSchema = JsonMetaSchema.builder(v201909.getUri(), v201909)
+            .addKeyword(new NonValidationKeyword("javaType"))
+            .addKeyword(new NonValidationKeyword("javaInterfaces"))
+            .addKeyword(new NonValidationKeyword("resources"))
+            .build();
+        return new JsonSchemaFactory.Builder()
+            .defaultMetaSchemaURI(defaultUri).addMetaSchema(metaSchema).build()
+            .getSchema(jsonSchema.toString());
     }
 
     private void getResourceProperties(String kind, JsonObject jsonSchema) {
@@ -257,4 +268,15 @@ public class ResourceValidator {
             return "[message=" + getMessage().replaceFirst("[$]", "") +", violation type="+errorMsg.getType()+"]";
         }
     }
+
+    private static JsonObject fixUrlIfUnversioned(JsonObject jsonSchema, String versionedUri) {
+        final String uri = jsonSchema.get("$schema").getAsString();
+        if (uri.matches("^https?://json-schema.org/schema[^/]*$")) {
+            final JsonObject ret = jsonSchema.deepCopy();
+            ret.addProperty("$schema", versionedUri);
+            return ret;
+        }
+        return jsonSchema;
+    }
+
 }
