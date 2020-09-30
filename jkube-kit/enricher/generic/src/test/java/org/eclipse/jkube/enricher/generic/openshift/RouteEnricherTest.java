@@ -24,6 +24,7 @@ import mockit.Mocked;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Properties;
@@ -36,32 +37,28 @@ import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
 public class RouteEnricherTest {
-
     @Mocked
     private JKubeEnricherContext context;
 
+    private static final String OPENSHIFT_GENERATE_ROUTE = "jkube.openshift.generateRoute";
+    private static final String ROUTE_TLS_TERMINATION = "jkube.enricher.jkube-openshift-route.tlsTermination";
+    private static final String EDGE_TERMINATION_POLICY = "jkube.enricher.jkube-openshift-route.tlsInsecureEdgeTerminationPolicy";
     private Properties properties;
     private ProcessorConfig processorConfig;
     private KubernetesListBuilder klb;
 
+    @Before
     public void setUpExpectations() {
         properties = new Properties();
         processorConfig = new ProcessorConfig();
         klb = new KubernetesListBuilder();
-        // @formatter:off
-        klb.addToItems(getMockServiceBuilder()
-            .build());
-        new Expectations() {{
-            context.getProperties(); result = properties;
-            context.getConfiguration().getProcessorConfig(); result = processorConfig;
-        }};
-        // @formatter:on
     }
 
     @Test
     public void testCreateWithDefaultsInOpenShiftShouldAddRoute() {
         // Given
-        setUpExpectations();
+        mockJKubeEnricherContext();
+        klb.addToItems(getMockServiceBuilder().build());
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
@@ -77,13 +74,9 @@ public class RouteEnricherTest {
     @Test
     public void testCreateWithDefaultsInKubernetesShouldNotAddRoute() {
         // Given
-        setUpExpectations();
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); minTimes = 0;
-            context.getConfiguration().getProcessorConfig(); minTimes = 0;
-        }};
-        // @formatter:on
+        mockJKubeEnricherContextPropertiesNotCalled();
+        mockJKubeEnricherContextProcessorConfigNotCalled();
+        klb.addToItems(getMockServiceBuilder().build());
         // When
         new RouteEnricher(context).create(PlatformMode.kubernetes, klb);
         // Then
@@ -96,8 +89,9 @@ public class RouteEnricherTest {
     @Test
     public void testCreateWithGenerateExtraPropertyInOpenShiftShouldNotAddRoute() {
         // Given
-        setUpExpectations();
-        properties.put("jkube.openshift.generateRoute", "false");
+        mockJKubeEnricherContext();
+        klb.addToItems(getMockServiceBuilder().build());
+        properties.put(OPENSHIFT_GENERATE_ROUTE, "false");
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
@@ -110,7 +104,8 @@ public class RouteEnricherTest {
     @Test
     public void testCreateWithGenerateEnricherPropertyInOpenShiftShouldNotAddRoute() {
         // Given
-        setUpExpectations();
+        mockJKubeEnricherContext();
+        klb.addToItems(getMockServiceBuilder().build());
         properties.put("jkube.enricher.jkube-openshift-route.generateRoute", "false");
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
@@ -124,13 +119,10 @@ public class RouteEnricherTest {
     @Test
     public void testCreateWithDefaultsAndRouteDomainInOpenShiftShouldAddRouteWithDomainPostfix() {
         // Given
-        setUpExpectations();
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); minTimes = 0;
-            context.getConfiguration().getResource().getRouteDomain(); result = "jkube.eclipse.org";
-        }};
-        // @formatter:on
+        mockJKubeEnricherContext();
+        klb.addToItems(getMockServiceBuilder().build());
+        mockJKubeEnricherContextPropertiesNotCalled();
+        mockJKubeEnricherContextResourceConfigWithRouteDomain("jkube.eclipse.org");
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
@@ -146,7 +138,8 @@ public class RouteEnricherTest {
     @Test
     public void testCreateWithDefaultsAndExistingRouteWithMatchingNameInBuilderInOpenShiftShouldReuseExistingRoute() {
         // Given
-        setUpExpectations();
+        mockJKubeEnricherContext();
+        klb.addToItems(getMockServiceBuilder().build());
         klb.addToItems(new RouteBuilder()
             .editOrNewMetadata()
                 .withName("test-svc")
@@ -168,6 +161,38 @@ public class RouteEnricherTest {
         assertThat(klb.build().getItems().get(1))
             .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
             .contains("test-svc", "example.com", "Service", "test-svc", 1337);
+    }
+
+    @Test
+    public void testMergeRouteWithRouteFragmentAtZeroIndex() {
+        // Given
+        mockJKubeEnricherContext();
+        klb.addToItems(new RouteBuilder()
+                .editOrNewMetadata()
+                .withName("test-svc")
+                .endMetadata()
+                .editOrNewSpec()
+                .withNewTls()
+                .withInsecureEdgeTerminationPolicy("Redirect")
+                .withTermination("edge")
+                .endTls()
+                .withNewTo()
+                .withKind("Service")
+                .withName("jkube-app")
+                .endTo()
+                .endSpec()
+                .build());
+        klb.addToItems(getMockServiceBuilder().build());
+        // When
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build().getItems())
+                .hasSize(2)
+                .extracting("kind")
+                .containsExactly("Service", "Route");
+        assertThat(klb.build().getItems().get(1))
+                .extracting("metadata.name", "spec.to.kind", "spec.to.name", "spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
+                .contains("test-svc", "Service", "test-svc", "Redirect", "edge");
     }
 
     @Test
@@ -242,55 +267,12 @@ public class RouteEnricherTest {
                         8080, "Redirect", "edge");
     }
 
-    private Route getMockOpinionatedRoute() {
-        // @formatter:off
-        return new RouteBuilder()
-                .withNewMetadata().withName("test-svc").endMetadata()
-                .withNewSpec()
-                    .withNewPort()
-                        .withNewTargetPort().withIntVal(8080).endTargetPort()
-                    .endPort()
-                    .withHost("example.com")
-                    .withNewTo().withKind("Service").withName("test-svc").endTo()
-                    .withNewTls()
-                        .withInsecureEdgeTerminationPolicy("Redirect")
-                        .withTermination("edge")
-                    .endTls()
-                    .addNewAlternateBackend()
-                        .withKind("Service")
-                        .withName("test-svc-2")
-                        .withWeight(10)
-                    .endAlternateBackend()
-                    .endSpec()
-                .build();
-        // @formatter:on
-    }
-
-    private ServiceBuilder getMockServiceBuilder() {
-        // @formatter:off
-        return new ServiceBuilder()
-                .editOrNewMetadata()
-                    .withName("test-svc")
-                    .addToLabels("expose", "true")
-                .endMetadata()
-                .editOrNewSpec()
-                    .addNewPort()
-                    .withName("http")
-                    .withPort(8080)
-                        .withProtocol("TCP")
-                        .withTargetPort(new IntOrString(8080))
-                    .endPort()
-                    .addToSelector("group", "test")
-                    .withType("LoadBalancer")
-                .endSpec();
-        // @formatter:on
-    }
-
     @Test
     public void testEnrichNoTls(){
         // Given
-        setUpExpectations();
-        properties.put("jkube.openshift.generateRoute", "true");
+        mockJKubeEnricherContext();
+        klb.addToItems(getMockServiceBuilder().build());
+        properties.put(OPENSHIFT_GENERATE_ROUTE, "true");
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
@@ -308,9 +290,10 @@ public class RouteEnricherTest {
     @Test
     public void testEnrichWithTls(){
         // Given
-        setUpExpectations();
-        properties.put("jkube.enricher.jkube-openshift-route.tlsTermination", "edge");
-        properties.put("jkube.enricher.jkube-openshift-route.tlsInsecureEdgeTerminationPolicy", "Allow");
+        mockJKubeEnricherContext();
+        klb.addToItems(getMockServiceBuilder().build());
+        properties.put(ROUTE_TLS_TERMINATION, "edge");
+        properties.put(EDGE_TERMINATION_POLICY, "Allow");
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
@@ -323,4 +306,82 @@ public class RouteEnricherTest {
                 .extracting("spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
                 .contains("Allow","edge");
     }
+
+    private ServiceBuilder getMockServiceBuilder() {
+        // @formatter:off
+        return new ServiceBuilder()
+                .editOrNewMetadata()
+                .withName("test-svc")
+                .addToLabels("expose", "true")
+                .endMetadata()
+                .editOrNewSpec()
+                .addNewPort()
+                .withName("http")
+                .withPort(8080)
+                .withProtocol("TCP")
+                .withTargetPort(new IntOrString(8080))
+                .endPort()
+                .addToSelector("group", "test")
+                .withType("LoadBalancer")
+                .endSpec();
+        // @formatter:on
+    }
+
+    private Route getMockOpinionatedRoute() {
+        // @formatter:off
+        return new RouteBuilder()
+                .withNewMetadata().withName("test-svc").endMetadata()
+                .withNewSpec()
+                .withNewPort()
+                .withNewTargetPort().withIntVal(8080).endTargetPort()
+                .endPort()
+                .withHost("example.com")
+                .withNewTo().withKind("Service").withName("test-svc").endTo()
+                .withNewTls()
+                .withInsecureEdgeTerminationPolicy("Redirect")
+                .withTermination("edge")
+                .endTls()
+                .addNewAlternateBackend()
+                .withKind("Service")
+                .withName("test-svc-2")
+                .withWeight(10)
+                .endAlternateBackend()
+                .endSpec()
+                .build();
+        // @formatter:on
+    }
+
+    private void mockJKubeEnricherContext() {
+        // @formatter:off
+        new Expectations() {{
+            context.getProperties(); result = properties;
+            context.getConfiguration().getProcessorConfig(); result = processorConfig;
+        }};
+        // @formatter:on
+    }
+
+    private void mockJKubeEnricherContextProcessorConfigNotCalled() {
+        // @formatter:off
+        new Expectations() {{
+            context.getProperties(); minTimes = 0;
+        }};
+        // @formatter:on
+    }
+
+    private void mockJKubeEnricherContextPropertiesNotCalled() {
+        // @formatter:off
+        new Expectations() {{
+            context.getProperties(); minTimes = 0;
+        }};
+        // @formatter:on
+    }
+
+    private void mockJKubeEnricherContextResourceConfigWithRouteDomain(String routeDomain) {
+        // @formatter:off
+        new Expectations() {{
+            context.getConfiguration().getResource().getRouteDomain(); result = routeDomain;
+        }};
+        // @formatter:on
+    }
 }
+
