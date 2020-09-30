@@ -26,6 +26,7 @@ Usage:
 * Fix #365: jkube.watch.postGoal property/parameter/configuration is ignored
 * Fix #384: Enricher defined Container environment variables get merged with vars defined in Image Build Configuration
 * Fix #385: WildFly Bootable JAR - Add native support for slim Bootable JAR
+* Fix #415: Fixed resource validation for new json-schema-validator version
 
 ### 1.0.0 (2020-09-09)
 * Fix #351: Fix AutoTLSEnricher - add annotation + volume config to resource

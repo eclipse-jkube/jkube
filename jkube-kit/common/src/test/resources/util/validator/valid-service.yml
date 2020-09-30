@@ -1,0 +1,47 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    api.service.kubernetes.io/path: /hello
+    app.openshift.io/vcs-ref: master
+    jkube.io/git-url: git@github.com:manusa/jkube.git
+    app.openshift.io/vcs-uri: git@github.com:manusa/jkube.git
+    jkube.io/git-commit: 082bc465b1e51433bfc14065b440ad8cf4a0b7c2
+    jkube.io/git-branch: master
+    jkube.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/external-resources
+    jkube.io/scm-tag: HEAD
+    prometheus.io/path: /metrics
+    prometheus.io/port: "1337"
+    prometheus.io/scrape: "true"
+  labels:
+    app: external-resources
+    provider: jkube
+    version: 1.33.7-SNAPSHOT
+    group: org.eclipse.jkube.quickstarts.maven
+  name: external-resources
+spec:
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: external-resources
+    provider: jkube
+    group: org.eclipse.jkube.quickstarts.maven
+  type: LoadBalancer
