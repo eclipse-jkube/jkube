@@ -113,7 +113,7 @@ public class RouteEnricher extends BaseEnricher {
                     isRouteWithTLS());
             if (opinionatedRoute != null) {
                 int routeFromFragmentIndex = getRouteIndexWithName(listBuilder, name);
-                if (routeFromFragmentIndex > 0) { // Merge fragment with Opinionated Route
+                if (routeFromFragmentIndex >= 0) { // Merge fragment with Opinionated Route
                     Route routeFragment = (Route) listBuilder.buildItems().get(routeFromFragmentIndex);
                     Route mergedRoute = mergeRoute(routeFragment, opinionatedRoute);
                     removeItemFromKubernetesBuilder(listBuilder, listBuilder.getItems().get(routeFromFragmentIndex));
