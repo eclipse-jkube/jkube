@@ -33,6 +33,8 @@ import org.eclipse.jkube.watcher.api.WatcherContext;
  */
 public class WatcherManager {
 
+    private WatcherManager() { }
+
     public static void watch(List<ImageConfiguration> ret, Set<HasMetadata> resources, WatcherContext watcherCtx) throws Exception {
 
         PluginServiceFactory<WatcherContext> pluginFactory =

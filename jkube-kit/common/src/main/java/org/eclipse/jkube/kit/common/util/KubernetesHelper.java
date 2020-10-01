@@ -490,7 +490,7 @@ public class KubernetesHelper {
         return new File(homeDir, ".kube/config");
     }
 
-    public static void handleKubernetesClientException(KubernetesClientException e, KitLogger logger) throws IllegalStateException {
+    public static void handleKubernetesClientException(KubernetesClientException e, KitLogger logger) {
         Throwable cause = e.getCause();
         if (cause instanceof UnknownHostException) {
             logger.error( "Could not connect to kubernetes cluster!");

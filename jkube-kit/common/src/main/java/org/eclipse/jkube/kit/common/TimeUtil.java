@@ -69,18 +69,4 @@ public class TimeUtil {
         return res.toString();
     }
 
-    /**
-     * Waits until a condition is satisfied upto a certain amount of time.
-     *
-     * @param condition {@link BooleanSupplier} for condition to check
-     * @param timeOutInMillis Max time out in milliseconds.
-     */
-    public static void waitUntilCondition(BooleanSupplier condition, int timeOutInMillis) {
-        long start = System.currentTimeMillis();
-        while (!condition.getAsBoolean()) {
-            if (System.currentTimeMillis() - start > timeOutInMillis) {
-                break;
-            }
-        }
-    }
 }

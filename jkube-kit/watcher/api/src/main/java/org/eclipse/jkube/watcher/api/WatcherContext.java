@@ -19,7 +19,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.eclipse.jkube.kit.build.service.docker.WatchService;
+import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -40,7 +40,7 @@ public class WatcherContext {
   private KitLogger newPodLogger;
   private KitLogger oldPodLogger;
   private boolean useProjectClasspath;
-  private WatchService.WatchContext watchContext;
+  private WatchContext watchContext;
   private JKubeConfiguration buildContext;
   private JKubeServiceHub jKubeServiceHub;
 
