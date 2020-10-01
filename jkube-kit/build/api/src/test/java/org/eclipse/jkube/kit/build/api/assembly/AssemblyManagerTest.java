@@ -14,9 +14,11 @@
 package org.eclipse.jkube.kit.build.api.assembly;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -288,6 +290,29 @@ public class AssemblyManagerTest {
         assertTrue(assemblyNameDirInBuild.isDirectory() && assemblyNameDirInBuild.exists());
         assertTrue(new File(assemblyNameDirInBuild, "test-0.1.0.jar").exists());
         assertTrue(customized.get());
+    }
+
+    @Test
+    public void testAlreadyExistingFileInAssemblyGetsOverwritten() throws IOException {
+        final JKubeConfiguration jKubeBuildContext = createNoDockerfileConfiguration();
+        final BuildConfiguration jKubeBuildConfiguration = BuildConfiguration.builder().build();
+        File finalArtifactFile = jKubeBuildContext.getProject().getArtifact();
+        File dockerArchiveFile = null;
+
+        // When
+        dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", jKubeBuildContext, jKubeBuildConfiguration, prefixedLogger, null);
+        // Modify file contents
+        FileWriter fileWriter = new FileWriter(finalArtifactFile);
+        fileWriter.write("Modified content");
+        fileWriter.close();
+        dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", jKubeBuildContext, jKubeBuildConfiguration, prefixedLogger, null);
+
+        // Then
+        assertNotNull(dockerArchiveFile);
+        assertTrue(dockerArchiveFile.exists());
+        File copiedFile = new File(temporaryFolder.getRoot().toPath().resolve("target/docker/test-image/build/maven/").toFile(), "test-0.1.0.jar");
+        assertTrue(copiedFile.exists());
+        assertEquals("Modified content", new String(Files.readAllBytes(copiedFile.toPath())));
     }
 
     private JKubeConfiguration createNoDockerfileConfiguration() throws IOException {

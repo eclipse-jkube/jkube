@@ -26,6 +26,7 @@ Usage:
 * Fix #358: Prometheus is enabled by default, opt-out via AB_PROMETHEUS_OFF required to disable (like in FMP)
 * Fix #365: jkube.watch.postGoal property/parameter/configuration is ignored
 * Fix #384: Enricher defined Container environment variables get merged with vars defined in Image Build Configuration
+* Fix #386: final fat jar is not updated in docker build directory
 * Fix #385: WildFly Bootable JAR - Add native support for slim Bootable JAR
 * Fix #415: Fixed resource validation for new json-schema-validator version
 * Fix #356: Add further support for tls termination and insecureEdgeTerminationPolicy in pom.xml

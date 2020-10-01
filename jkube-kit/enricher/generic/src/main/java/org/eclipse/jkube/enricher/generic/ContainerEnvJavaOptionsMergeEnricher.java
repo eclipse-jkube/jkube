@@ -77,6 +77,7 @@ public class ContainerEnvJavaOptionsMergeEnricher extends BaseEnricher {
     public void visit(ContainerBuilder containerBuilder) {
       imageConfigurations.stream()
           .filter(ic -> ImageEnricher.containerImageName(ic).equals(containerBuilder.getImage()))
+          .filter(ic -> ic.getBuild().getEnv() != null)
           .filter(ic -> !ic.getBuild().getEnv().isEmpty())
           .filter(ic -> ic.getBuild().getEnv().containsKey(ENV_KEY))
           .findFirst()
