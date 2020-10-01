@@ -13,19 +13,20 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import mockit.Mocked;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
+
+import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -63,7 +64,7 @@ public class WatchServiceTest {
         // Given
         AtomicReference<String> stringAtomicReference = new AtomicReference<>("oldVal");
         String mavenGoalToExecute = "org.apache.maven.plugins:maven-help-plugin:help";
-        WatchService.WatchContext watchContext = WatchService.WatchContext.builder()
+        WatchContext watchContext = WatchContext.builder()
                 .watchMode(WatchMode.both)
                 // Override PostGoal task to set this value to goal executed
                 .postGoalTask(() -> stringAtomicReference.compareAndSet( "oldVal", mavenGoalToExecute))
@@ -82,7 +83,7 @@ public class WatchServiceTest {
     public void testRestartContainerAndCallPostGoalRestartEnabled() throws Exception {
         // Given
         AtomicBoolean restarted = new AtomicBoolean(false);
-        WatchService.WatchContext watchContext = WatchService.WatchContext.builder()
+        WatchContext watchContext = WatchContext.builder()
                 .watchMode(WatchMode.both)
                 .containerRestarter(i -> restarted.set(true)) // Override Restart task to set this value to true
                 .build();
@@ -97,10 +98,10 @@ public class WatchServiceTest {
     }
 
     @Test
-    public void testCopyFilesToContainer() throws IOException {
+    public void testCopyFilesToContainer() throws Exception {
         // Given
         AtomicBoolean fileCopied = new AtomicBoolean(false);
-        WatchService.WatchContext watchContext = WatchService.WatchContext.builder()
+        WatchContext watchContext = WatchContext.builder()
                 .watchMode(WatchMode.copy)
                 // Override Copy task to set this value to goal executed
                 .containerCopyTask(f -> fileCopied.compareAndSet(false,true))
@@ -120,7 +121,7 @@ public class WatchServiceTest {
     public void testCallPostExec() throws Exception {
         // Given
         AtomicBoolean postExecCommandExecuted = new AtomicBoolean(false);
-        WatchService.WatchContext watchContext = WatchService.WatchContext.builder()
+        WatchContext watchContext = WatchContext.builder()
                 .watchMode(WatchMode.copy)
                 // Override PostExec task to set this value to goal executed
                 .containerCommandExecutor(imageWatcher -> {
@@ -132,10 +133,9 @@ public class WatchServiceTest {
         WatchService watchService = new WatchService(archiveService, buildService, queryService, runService, logger);
 
         // When
-        String output = watchService.callPostExec(imageWatcher);
+        watchService.callPostExec(imageWatcher);
 
         // Then
         assertTrue(postExecCommandExecuted.get());
-        assertEquals("Some Output", output);
     }
 }

@@ -22,11 +22,11 @@ import org.eclipse.jkube.kit.common.PrefixedLogger;
  */
 public abstract class BaseWatcher implements Watcher {
 
-    private WatcherContext context;
+    private final WatcherContext context;
 
-    private WatcherConfig config;
+    private final WatcherConfig config;
 
-    private String name;
+    private final String name;
 
     protected final PrefixedLogger log;
 
@@ -43,10 +43,6 @@ public abstract class BaseWatcher implements Watcher {
 
     protected String getConfig(Configs.Config key) {
         return config.get(key);
-    }
-
-    protected String getConfig(Configs.Config key, String defaultVal) {
-        return config.get(key, defaultVal);
     }
 
     @Override

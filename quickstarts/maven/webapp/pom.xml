@@ -35,6 +35,9 @@
     <jkube.version>${project.version}</jkube.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
+    <!-- Apache Tomcat will automatically reload the replaced ROOT.war package, no need to restart the container -->
+    <jkube.watch.mode>copy</jkube.watch.mode>
+    <jkube.watch.postExec>ls -la /deployments &amp;&amp; echo This is fine &amp;&amp; exit 0</jkube.watch.postExec>
   </properties>
 
   <build>

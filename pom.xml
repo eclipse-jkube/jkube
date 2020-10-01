@@ -124,6 +124,7 @@
               <exclude>**/*.adoc</exclude>
               <exclude>**/expected-pom.xml</exclude>
               <exclude>**/enricher</exclude>
+              <exclude>**/test/resources/**/*</exclude>
               <exclude>.lgtm</exclude>
               <exclude>**/.gitkeep</exclude>
               <exclude>Jenkinsfile</exclude>

@@ -15,9 +15,7 @@ package org.eclipse.jkube.kit.build.service.docker;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
@@ -25,28 +23,25 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.common.AssemblyFileEntry;
-import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
-import org.eclipse.jkube.kit.config.image.WaitConfiguration;
-import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
-import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
-import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.build.service.docker.helper.StartContainerExecutor;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
+import org.eclipse.jkube.kit.build.service.docker.watch.CopyFilesTask;
+import org.eclipse.jkube.kit.build.service.docker.watch.ExecTask;
+import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
+import org.eclipse.jkube.kit.build.service.docker.watch.WatchException;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
+import org.eclipse.jkube.kit.config.image.WatchMode;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Watch service for monitoring changes and restarting containers
@@ -141,13 +136,12 @@ public class WatchService {
                 List<AssemblyFileEntry> entries = files.getUpdatedEntriesAndRefresh();
                 if (!entries.isEmpty()) {
                     try {
-                        log.info("%s: Assembly changed. Copying changed files to container ...", imageConfig.getDescription());
-
+                        log.info("%s: Assembly changed. Copying changed files to container...", imageConfig.getDescription());
                         File changedFilesArchive = archiveService.createChangedFilesArchive(entries, files.getAssemblyDirectory(),
                                 imageConfig.getName(), jKubeConfiguration);
                         copyFilesToContainer(changedFilesArchive, watcher);
                         callPostExec(watcher);
-                    } catch (Exception e) {
+                    } catch (IOException | WatchException e) {
                         log.error("%s: Error when copying files to container %s: %s",
                                   imageConfig.getDescription(), watcher.getContainerId(), e.getMessage());
                     }
@@ -156,31 +150,21 @@ public class WatchService {
         };
     }
 
-    void copyFilesToContainer(File changedFilesArchive, ImageWatcher watcher) {
-        Predicate<File> copyTask = watcher.getWatchContext().getContainerCopyTask();
-        if (copyTask != null) {
-            boolean copyStatus = copyTask.test(changedFilesArchive);
-            if (!copyStatus) {
-                log.warn("Unable to copy files into container");
-                return;
-            }
-            log.info("Files successfully copied to the container..");
+    void copyFilesToContainer(File changedFilesArchive, ImageWatcher watcher) throws IOException, WatchException {
+        final CopyFilesTask cft = watcher.getWatchContext().getContainerCopyTask();
+        if (cft != null) {
+            cft.copy(changedFilesArchive);
+            log.info("Files successfully copied to the container.");
         } else {
-            log.warn("No copy task found for copy mode. Ignoring..");
+            log.warn("No copy task found for copy mode. Ignoring...");
         }
     }
 
-
-    String callPostExec(ImageWatcher watcher) throws Exception {
-        if (watcher.getPostExec() != null) {
-            Function<ImageWatcher, String> execTask = watcher.getWatchContext().getContainerCommandExecutor();
-            if (execTask != null) {
-                String execOutput = execTask.apply(watcher);
-                log.info("jkube.watch.postExec: " + execOutput);
-                return execOutput;
-            }
+    void callPostExec(ImageWatcher watcher) throws IOException, WatchException {
+        final ExecTask execTask = watcher.getWatchContext().getContainerCommandExecutor();
+        if (StringUtils.isNotBlank(watcher.getPostExec()) && execTask != null) {
+            log.info("jkube.watch.postExec: %n%s", execTask.exec(watcher.getPostExec()));
         }
-        return null;
     }
 
     Runnable createBuildWatchTask(final ImageWatcher watcher,
@@ -282,19 +266,19 @@ public class WatchService {
 
             // Start new one
             StartContainerExecutor helper = StartContainerExecutor.builder()
-                    .dispatcher(watcher.watchContext.dispatcher)
-                    .follow(watcher.watchContext.follow)
+                    .dispatcher(watcher.watchContext.getDispatcher())
+                    .follow(watcher.watchContext.isFollow())
                     .log(log)
                     .portMapping(mappedPorts)
                     .gavLabel(watcher.watchContext.getGavLabel())
-                    .projectProperties(watcher.watchContext.buildContext.getProject().getProperties())
-                    .basedir(watcher.watchContext.buildContext.getProject().getBaseDirectory())
+                    .projectProperties(watcher.watchContext.getBuildContext().getProject().getProperties())
+                    .basedir(watcher.watchContext.getBuildContext().getProject().getBaseDirectory())
                     .imageConfig(imageConfig)
-                    .hub(watcher.watchContext.hub)
-                    .logOutputSpecFactory(watcher.watchContext.serviceHubFactory.getLogOutputSpecFactory())
-                    .showLogs(watcher.watchContext.showLogs)
-                    .containerNamePattern(watcher.watchContext.containerNamePattern)
-                    .buildDate(watcher.watchContext.buildTimestamp)
+                    .hub(watcher.watchContext.getHub())
+                    .logOutputSpecFactory(watcher.watchContext.getServiceHubFactory().getLogOutputSpecFactory())
+                    .showLogs(watcher.watchContext.getShowLogs())
+                    .containerNamePattern(watcher.watchContext.getContainerNamePattern())
+                    .buildDate(watcher.watchContext.getBuildTimestamp())
                     .build();
 
             String containerId = helper.startContainers();
@@ -319,10 +303,11 @@ public class WatchService {
         private final ImageConfiguration imageConfig;
         private final WatchContext watchContext;
         private final WatchMode mode;
-        private final AtomicReference<String> imageIdRef, containerIdRef;
+        private final AtomicReference<String> imageIdRef;
+        private final AtomicReference<String> containerIdRef;
         private final long interval;
         private final String postGoal;
-        private String postExec;
+        private final String postExec;
 
         public ImageWatcher(ImageConfiguration imageConfig, WatchContext watchContext, String imageId, String containerIdRef) {
             this.imageConfig = imageConfig;
@@ -392,8 +377,9 @@ public class WatchService {
 
         private int getWatchInterval(ImageConfiguration imageConfig) {
             WatchImageConfiguration watchConfig = imageConfig.getWatchConfiguration();
-            int interval = watchConfig != null ? watchConfig.getInterval() : watchContext.getWatchInterval();
-            return interval < 100 ? 100 : interval;
+            int applicableInterval = watchConfig != null ?
+                watchConfig.getInterval() : watchContext.getWatchInterval();
+            return Math.max(applicableInterval, 100);
         }
 
         private String getPostExec(ImageConfiguration imageConfig) {
@@ -418,39 +404,4 @@ public class WatchService {
 
     // ===========================================================
 
-    /**
-     * Context class to hold the watch configuration
-     */
-    @Builder(toBuilder = true)
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    @EqualsAndHashCode
-    public static class WatchContext implements Serializable {
-
-        private JKubeConfiguration buildContext;
-        private WatchMode watchMode;
-        private int watchInterval;
-        private boolean keepRunning;
-        private String watchPostExec;
-        private GavLabel gavLabel;
-        private boolean keepContainer;
-        private boolean removeVolumes;
-        private boolean autoCreateCustomNetworks;
-        private Task<ImageConfiguration> imageCustomizer;
-        private Task<ImageWatcher> containerRestarter;
-        private Function<ImageWatcher, String> containerCommandExecutor;
-        private Predicate<File> containerCopyTask;
-
-        private transient ServiceHub hub;
-        private transient ServiceHubFactory serviceHubFactory;
-        private transient LogDispatcher dispatcher;
-
-        private boolean follow;
-        private String showLogs;
-        private Date buildTimestamp;
-        private String containerNamePattern;
-        private BooleanSupplier postGoalTask;
-
-    }
 }

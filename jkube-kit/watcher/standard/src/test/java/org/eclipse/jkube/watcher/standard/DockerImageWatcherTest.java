@@ -13,118 +13,119 @@
  */
 package org.eclipse.jkube.watcher.standard;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
-import io.fabric8.kubernetes.api.model.PodBuilder;
-import io.fabric8.kubernetes.api.model.PodListBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import java.io.File;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
+import java.util.function.Consumer;
+
+import org.eclipse.jkube.kit.build.service.docker.WatchService;
+import org.eclipse.jkube.kit.build.service.docker.watch.CopyFilesTask;
+import org.eclipse.jkube.kit.build.service.docker.watch.ExecTask;
+import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.watcher.api.WatcherContext;
+
 import mockit.Expectations;
+import mockit.Mock;
+import mockit.MockUp;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.eclipse.jkube.kit.build.service.docker.WatchService;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import okhttp3.Response;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class DockerImageWatcherTest {
-    @Mocked
-    WatchService.ImageWatcher imageWatcher;
 
-    @Mocked
-    KitLogger logger;
+  @Mocked
+  private WatcherContext watcherContext;
+  @Mocked
+  private WatchService watchService;
 
-    @Mocked
-    ClusterAccess clusterAccess;
+  private DockerImageWatcher dockerImageWatcher;
+  private WatchContext watchContext;
 
-    @Mocked
-    KubernetesClient kubernetesClient;
+  @Before
+  public void setUp() {
+    dockerImageWatcher = new DockerImageWatcher(watcherContext);
+    // @formatter:off
+    new Expectations() {{
+      watcherContext.getWatchContext(); result = new WatchContext(); minTimes = 0;
+    }};
+    // @formatter:on
+    new MockUp<WatchService>() {
+      @Mock
+      void watch(WatchContext context, JKubeConfiguration buildContext, List<ImageConfiguration> images) {
+        watchContext = context;
+      }
+    };
+  }
 
-    @Before
-    public void init() {
-        new Expectations() {{
+  @Test
+  public void watchShouldInitWatchContext() {
+    // When
+    dockerImageWatcher.watch(null, null, null);
+    // Then
+    assertThat(watchContext)
+        .isNotNull()
+        .extracting("imageCustomizer", "containerRestarter", "containerCommandExecutor", "containerCopyTask")
+        .doesNotContainNull();
+  }
 
-            clusterAccess.getNamespace();
-            result = "default";
+  @Test
+  public void watchExecuteCommandInPodTask(@Mocked PodExecutor podExecutor) throws Exception {
+    // Given
+    dockerImageWatcher.watch(null, null, null);
+    final ExecTask execTask = watchContext.getContainerCommandExecutor();
+    // When
+    execTask.exec("the command");
+    // Then
+    // @formatter:off
+    new Verifications() {{
+      new PodExecutor(watcherContext.getJKubeServiceHub().getClusterAccess(), Duration.ofMinutes(1)); times = 1;
+      podExecutor.executeCommandInPod(null, "the command"); times = 1;
+    }};
+    // @formatter:on
+  }
 
-            clusterAccess.createDefaultClient();
-            result = kubernetesClient;
+  @SuppressWarnings("unchecked")
+  @Test
+  public void watchCopyFileToPod(@Mocked PodExecutor podExecutor) throws Exception {
+    // Given
+    dockerImageWatcher.watch(null, null, null);
+    final CopyFilesTask copyFilesTask = watchContext.getContainerCopyTask();
+    // When
+    copyFilesTask.copy(null);
+    // Then
+    // @formatter:off
+    new Verifications() {{
+      new PodExecutor(watcherContext.getJKubeServiceHub().getClusterAccess(),
+          (InputStream)any, Duration.ofMinutes(1), (Consumer<Response>)any); times = 1;
+      podExecutor.executeCommandInPod(null, "sh"); times = 1;
+    }};
+    // @formatter:on
+  }
 
-            kubernetesClient.pods().inNamespace(anyString).withLabelSelector((LabelSelector)any).list();
-            result = new PodListBuilder()
-                    .addToItems(new PodBuilder()
-                            .withNewMetadata()
-                            .withName("testpod")
-                            .endMetadata().build())
-                    .build();
-        }};
-    }
-
-    @Test
-    public void testExecuteCommandInPod() {
-        // Given
-        new Expectations() {{
-            imageWatcher.getPostExec();
-            result = "ls -lt /deployments";
-        }};
-        Set<HasMetadata> resources = getMockedResourceList();
-
-        // When
-        DockerImageWatcher.executeCommandInPod(imageWatcher, resources, clusterAccess, logger, 0);
-
-        // Then
-        new Verifications() {{
-           kubernetesClient.pods().inNamespace("default").withLabelSelector(new LabelSelectorBuilder().withMatchLabels(Collections.singletonMap("foo", "bar")).build()).list();
-           times = 1;
-
-           kubernetesClient.pods().inNamespace("default").withName("testpod").exec(new String[]{"ls", "-lt", "/deployments"});
-           times = 1;
-        }};
-    }
-
-    @Test
-    public void testCopyFileToPod() throws IOException {
-        // Given
-        Set<HasMetadata> resources = getMockedResourceList();
-        File fileToCopy = Files.createTempFile("text", "txt").toFile();
-
-        // When
-        DockerImageWatcher.copyFileToPod(fileToCopy, resources, clusterAccess, logger, 0);
-
-        // Then
-        new Verifications() {{
-            LabelSelector labelSelector = new LabelSelectorBuilder()
-                    .withMatchLabels(Collections.singletonMap("foo", "bar"))
-                    .build();
-            kubernetesClient.pods().inNamespace("default").withLabelSelector(labelSelector).list();
-            times = 1;
-
-            kubernetesClient.pods().inNamespace("default").withName("testpod").readingInput((FileInputStream)any).writingOutput((OutputStream)any).exec("tar", "-xf", "-", "-C", "/");
-            times = 1;
-        }};
-    }
-
-    private Set<HasMetadata> getMockedResourceList() {
-        Set<HasMetadata> resources = new HashSet<>();
-        resources.add(new DeploymentBuilder()
-                .withNewMetadata().withName("foo").endMetadata()
-                .withNewSpec()
-                .withNewSelector()
-                .addToMatchLabels("foo", "bar")
-                .endSelector()
-                .endSpec()
-                .build());
-        return resources;
-    }
+  @Test
+  public void uploadFilesConsumer() throws Exception {
+    // Given
+    final PipedOutputStream pipedOutputStream = new PipedOutputStream();
+    final PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
+    // When
+    DockerImageWatcher.uploadFilesConsumer(
+        new File(DockerImageWatcherTest.class.getResource("/file.txt").toURI().getPath()),
+        pipedOutputStream,
+        watcherContext.getLogger()
+    ).accept(null);
+    assertThat(IOUtils.toString(pipedInputStream, StandardCharsets.UTF_8))
+      .isEqualTo("base64 -d << EOF | tar --no-overwrite-dir -C / -xf - && exit 0 || exit 1\nQSBmaWxl\nEOF\n");
+  }
 }

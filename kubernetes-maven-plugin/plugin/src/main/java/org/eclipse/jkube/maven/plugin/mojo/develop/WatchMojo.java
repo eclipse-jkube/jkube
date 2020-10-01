@@ -21,9 +21,9 @@ import java.util.Set;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
+import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
-import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
@@ -112,7 +112,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     private WatcherContext getWatcherContext() throws MojoExecutionException {
         try {
             JKubeConfiguration buildContext = initJKubeConfiguration();
-            WatchService.WatchContext watchContext = jkubeServiceHub.getDockerServiceHub() != null ? getWatchContext() : null;
+            WatchContext watchContext = jkubeServiceHub.getDockerServiceHub() != null ? getWatchContext() : null;
 
             return WatcherContext.builder()
                     .buildContext(buildContext)
@@ -156,9 +156,9 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
         return new AnsiLogger(getLog(), useColor, verbose, !settings.getInteractiveMode(), getLogPrefix() + prefix);
     }
 
-    protected WatchService.WatchContext getWatchContext() throws IOException, DependencyResolutionRequiredException {
+    protected WatchContext getWatchContext() throws IOException, DependencyResolutionRequiredException {
         final ServiceHub hub = jkubeServiceHub.getDockerServiceHub();
-        return WatchService.WatchContext.builder()
+        return WatchContext.builder()
                 .watchInterval(watchInterval)
                 .watchMode(watchMode)
                 .watchPostExec(watchPostExec)
