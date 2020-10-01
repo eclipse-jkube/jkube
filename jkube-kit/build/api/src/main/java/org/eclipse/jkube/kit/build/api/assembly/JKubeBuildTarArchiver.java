@@ -61,17 +61,15 @@ public class JKubeBuildTarArchiver {
                     FileUtil.createDirectory(new File(inputDirectory, parentDirectory.getPath()));
                 }
                 File targetFile = new File(inputDirectory, targetFileName);
-                // Check whether file is not already created.
-                if (!targetFile.exists()) {
-                    FileUtils.copyFile(srcFile, targetFile);
+                if (!srcFile.equals(targetFile)) {
+                    FileUtil.copy(srcFile, targetFile);
                     files.add(targetFile);
                 }
             }
         }
 
         List<File> fileListToAddInTarball = new ArrayList<>();
-        for (int i = 0; i < files.size(); i++) {
-            File currentFile = files.get(i);
+        for (File currentFile : files) {
             if (filesNamesToExclude.contains(currentFile.getName())) {
                 continue;
             }
@@ -80,5 +78,4 @@ public class JKubeBuildTarArchiver {
 
         return JKubeTarArchiver.createTarBall(outputFile, inputDirectory, fileListToAddInTarball, fileModeMap, compression);
     }
-
 }
