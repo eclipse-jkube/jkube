@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://www.eclipse.org/jkube/">
-  	<img src="https://i.imgur.com/EWL66xC.png" width="350" alt="Eclipse JKube"/>
+    <img src="./media/JKube-Logo-final-horizontal-color.png" alt="Eclipse JKube" title="The Eclipse JKube Logo"/>
   </a>
 </p>
 
