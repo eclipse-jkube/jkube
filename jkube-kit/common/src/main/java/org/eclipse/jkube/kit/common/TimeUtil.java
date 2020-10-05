@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.common;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;

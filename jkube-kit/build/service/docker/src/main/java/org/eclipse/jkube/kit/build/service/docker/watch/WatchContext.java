@@ -52,19 +52,19 @@ public class WatchContext implements Serializable {
   private boolean keepContainer;
   private boolean removeVolumes;
   private boolean autoCreateCustomNetworks;
-  private Task<ImageConfiguration> imageCustomizer;
-  private Task<WatchService.ImageWatcher> containerRestarter;
-  private ExecTask containerCommandExecutor;
-  private CopyFilesTask containerCopyTask;
 
+  private transient Task<ImageConfiguration> imageCustomizer;
+  private transient Task<WatchService.ImageWatcher> containerRestarter;
+  private transient ExecTask containerCommandExecutor;
+  private transient CopyFilesTask containerCopyTask;
   private transient ServiceHub hub;
   private transient ServiceHubFactory serviceHubFactory;
   private transient LogDispatcher dispatcher;
+  private transient BooleanSupplier postGoalTask;
 
   private boolean follow;
   private String showLogs;
   private Date buildTimestamp;
   private String containerNamePattern;
-  private BooleanSupplier postGoalTask;
 
 }
