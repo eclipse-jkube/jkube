@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>xml-config</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: XML configuration</name>
   <packaging>jar</packaging>
 

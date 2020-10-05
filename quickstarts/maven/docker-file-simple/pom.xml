@@ -29,7 +29,7 @@
     <name>Eclipse JKube :: Quickstarts :: Maven :: Dockerfile :: Simple</name>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>docker-file-simple</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <description>
         This quickstart showcases how to use Eclipse JKube with external Docker files without any additional configuration.

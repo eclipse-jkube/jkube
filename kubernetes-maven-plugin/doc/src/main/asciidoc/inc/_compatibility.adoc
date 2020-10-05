@@ -8,12 +8,13 @@ ifeval::["{goal-prefix}" == "k8s"]
 
 .Kubernetes Compatibility
 |===
-|     KMP             | Kubernetes 1.18   | Kubernetes 1.17   | Kubernetes 1.14   | Kubernetes 1.12
+|     KMP             | Kubernetes 1.19   | Kubernetes 1.18   | Kubernetes 1.17   | Kubernetes 1.14   | Kubernetes 1.12
 
-| KMP 1.0.0           |        ✓          |        ✓          |        ✓          |        ✓
-| KMP 0.2.0           |        x          |        ✓          |        ✓          |        ✓
-| KMP 0.1.1           |        x          |        x          |        ✓          |        ✓
-| KMP 0.1.0           |        x          |        x          |        ✓          |        ✓
+| KMP 1.0.1           |        ✓          |        ✓          |        ✓          |        ✓          |        ✓
+| KMP 1.0.0           |        ✓          |        ✓          |        ✓          |        ✓          |        ✓
+| KMP 0.2.0           |        x          |        x          |        ✓          |        ✓          |        ✓
+| KMP 0.1.1           |        x          |        x          |        x          |        ✓          |        ✓
+| KMP 0.1.0           |        x          |        x          |        x          |        ✓          |        ✓
 
 |===
 
@@ -31,11 +32,8 @@ ifeval::["{goal-prefix}" == "oc"]
 |===
 |     OMP             | OpenShift 4.4 | OpenShift 4.2 | OpenShift 3.11
 
-| OMP 1.0.0-rc-1      |        ✓      |        ✓      |        ✓
-| OMP 1.0.0-alpha-4   |        ✓      |        ✓      |        ✓
-| OMP 1.0.0-alpha-3   |        ✓      |        ✓      |        ✓
-| OMP 1.0.0-alpha-2   |        ✓      |        ✓      |        ✓
-| OMP 1.0.0-alpha-1   |        ✓      |        ✓      |        ✓
+| OMP 1.0.1           |        ✓      |        ✓      |        ✓
+| OMP 1.0.0           |        ✓      |        ✓      |        ✓
 | OMP 0.2.0           |        ✓      |        ✓      |        ✓
 | OMP 0.1.1           |        ✓      |        ✓      |        ✓
 | OMP 0.1.0           |        ✓      |        ✓      |        ✓
