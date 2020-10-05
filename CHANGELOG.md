@@ -20,6 +20,8 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+### 1.0.2-SNAPSHOT
+
 ### 1.0.1 (2020-10-05)
 * Fix #381: Remove root as default user in AssemblyConfigurationUtils#getAssemblyConfigurationOrCreateDefault
 * Fix #382: Add support for merging fragment Route spec with default generated Route
