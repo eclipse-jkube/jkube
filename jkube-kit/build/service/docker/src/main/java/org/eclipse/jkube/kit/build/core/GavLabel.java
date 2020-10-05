@@ -13,15 +13,19 @@
  */
 package org.eclipse.jkube.kit.build.core;
 
+import java.io.Serializable;
+
 /**
  * Label used to mark a container belonging to a certain build.
  *
  * @author roland
  * @since 31/03/15
  */
-public class GavLabel {
+public class GavLabel implements Serializable {
 
-    private String mavenCoordinates;
+    private static final long serialVersionUID = -5056897124015874063L;
+
+    private final String mavenCoordinates;
     public static final String KEY = "jkube.coordinates";
 
     /**
