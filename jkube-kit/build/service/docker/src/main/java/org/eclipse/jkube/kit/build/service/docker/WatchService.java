@@ -130,21 +130,21 @@ public class WatchService {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
 
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, jKubeConfiguration);
-        return new Runnable() {
-            @Override
-            public void run() {
-                List<AssemblyFileEntry> entries = files.getUpdatedEntriesAndRefresh();
-                if (!entries.isEmpty()) {
-                    try {
-                        log.info("%s: Assembly changed. Copying changed files to container...", imageConfig.getDescription());
-                        File changedFilesArchive = archiveService.createChangedFilesArchive(entries, files.getAssemblyDirectory(),
-                                imageConfig.getName(), jKubeConfiguration);
-                        copyFilesToContainer(changedFilesArchive, watcher);
-                        callPostExec(watcher);
-                    } catch (IOException | WatchException e) {
-                        log.error("%s: Error when copying files to container %s: %s",
-                                  imageConfig.getDescription(), watcher.getContainerId(), e.getMessage());
-                    }
+
+        return () -> {
+            List<AssemblyFileEntry> entries = files.getUpdatedEntriesAndRefresh();
+                 if (!entries.isEmpty()) {
+                     try {
+                         log.info("%s: Assembly changed. Copying changed files to container...", imageConfig.getDescription());
+                         File changedFilesArchive = archiveService.createChangedFilesArchive(entries, files.getAssemblyDirectory(),
+                                 imageConfig.getName(), jKubeConfiguration);
+                         copyFilesToContainer(changedFilesArchive, watcher);
+                                    callPostExec(watcher);
+                     } catch (IOException | WatchException e) {
+                         log.error("%s: Error when copying files to container %s: %s",
+                                 imageConfig.getDescription(), watcher.getContainerId(), e.getMessage());
+
+
                 }
             }
         };
@@ -177,31 +177,28 @@ public class WatchService {
             throw new IOException("No files to watch found for " + imageConfig);
         }
 
-        return new Runnable() {
-            @Override
-            public void run() {
-                List<AssemblyFileEntry> entries = files.getUpdatedEntriesAndRefresh();
-                if (entries != null && !entries.isEmpty()) {
-                    try {
-                        log.info("%s: Assembly changed. Rebuild ...", imageConfig.getDescription());
+        return () -> {
+            List<AssemblyFileEntry> entries = files.getUpdatedEntriesAndRefresh();
+            if (entries != null && !entries.isEmpty()) {
+                try {
+                    log.info("%s: Assembly changed. Rebuild ...", imageConfig.getDescription());
 
-                        if (watcher.getWatchContext().getImageCustomizer() != null) {
-                            log.info("%s: Customizing the image ...", imageConfig.getDescription());
-                            watcher.getWatchContext().getImageCustomizer().execute(imageConfig);
-                        }
-
-                        buildService.buildImage(imageConfig, null, buildContext);
-
-                        String name = imageConfig.getName();
-                        watcher.setImageId(queryService.getImageId(name));
-                        restartContainerAndCallPostGoal(watcher, doRestart);
-                    } catch (Exception e) {
-                        log.error("%s: Error when rebuilding - %s", imageConfig.getDescription(), e);
+                    if (watcher.getWatchContext().getImageCustomizer() != null) {
+                        log.info("%s: Customizing the image ...", imageConfig.getDescription());
+                        watcher.getWatchContext().getImageCustomizer().execute(imageConfig);
                     }
+                    buildService.buildImage(imageConfig, null, buildContext);
+
+                    String name = imageConfig.getName();
+                    watcher.setImageId(queryService.getImageId(name));
+                    restartContainerAndCallPostGoal(watcher, doRestart);
+                } catch (Exception e) {
+                    log.error("%s: Error when rebuilding - %s", imageConfig.getDescription(), e);
                 }
             }
         };
     }
+
 
     private void callPostGoal(ImageWatcher watcher) {
         BooleanSupplier postGoalTask = watcher.getWatchContext().getPostGoalTask();
@@ -217,9 +214,7 @@ public class WatchService {
 
         final String imageName = watcher.getImageName();
 
-        return new Runnable() {
-            @Override
-            public void run() {
+         return () -> {
 
                 try {
                     String currentImageId = queryService.getImageId(imageName);
@@ -230,9 +225,9 @@ public class WatchService {
                 } catch (Exception e) {
                     log.warn("%s: Error when restarting image - %s", watcher.getImageConfiguration().getDescription(), e);
                 }
-            }
-        };
-    }
+            };
+        }
+
 
     void restartContainerAndCallPostGoal(ImageWatcher watcher, boolean isRestartRequired) throws Exception {
         if (isRestartRequired) {
@@ -397,11 +392,13 @@ public class WatchService {
 
         private WatchMode getWatchMode(ImageConfiguration imageConfig) {
             WatchImageConfiguration watchConfig = imageConfig.getWatchConfiguration();
-            WatchMode mode = watchConfig != null ? watchConfig.getMode() : null;
-            return mode != null ? mode : watchContext.getWatchMode();
+            WatchMode watchMode = watchConfig != null ? watchConfig.getMode() : null;
+            return watchMode != null ? watchMode : watchContext.getWatchMode();
+
         }
     }
 
     // ===========================================================
 
 }
+
