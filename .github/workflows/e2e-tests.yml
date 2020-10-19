@@ -24,7 +24,7 @@ on:
 
 env:
   JKUBE_IT_REPOSITORY: https://github.com/jkubeio/jkube-integration-tests.git
-  JKUBE_IT_REVISION: master
+  JKUBE_IT_REVISION: main
   JKUBE_IT_DIR: jkube-integration-tests
 
 jobs:
