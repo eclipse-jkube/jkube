@@ -21,8 +21,10 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.2-SNAPSHOT
-* Fix: Added quickstart for Micronaut framework
+* Fix 429: Added quickstart for Micronaut framework
 * Fix #370: Replacing anonymous Runnables with lambdas in WatchService
+* Fix 440: Added quickstart for MicroProfile running on OpenLiberty
+* Fix: Valid content type for REST docker API requests with body
 
 ### 1.0.1 (2020-10-05)
 * Fix #381: Remove root as default user in AssemblyConfigurationUtils#getAssemblyConfigurationOrCreateDefault
