@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
@@ -420,13 +421,14 @@ public class MavenUtil {
         return builder.build();
     }
 
-    public static boolean callMavenPluginWithGoal(MavenProject project, MavenSession session, BuildPluginManager pluginManager, String mavenPluginGoal) {
+    public static void callMavenPluginWithGoal(
+        MavenProject project, MavenSession session, BuildPluginManager pluginManager, String mavenPluginGoal, KitLogger log) {
+
         if (mavenPluginGoal != null) {
+            log.info("Calling %s Maven Goal", mavenPluginGoal);
             MojoExecutionService mojoExecutionService = new MojoExecutionService(project, session, pluginManager);
             mojoExecutionService.callPluginGoal(mavenPluginGoal);
-            return true;
         }
-        return false;
     }
 }
 

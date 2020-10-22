@@ -145,38 +145,33 @@ public class DockerImageWatcher extends BaseWatcher {
         if (entity instanceof Deployment) {
             Deployment resource = (Deployment) entity;
             DeploymentSpec spec = resource.getSpec();
-            if (spec != null) {
-                if (updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                    kubernetes.apps().deployments().inNamespace(namespace).withName(name).replace(resource);
-                }
+            if (spec != null && updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
+                kubernetes.apps().deployments().inNamespace(namespace).withName(name).replace(resource);
+                kubernetes.apps().deployments().inNamespace(namespace).withName(name).rolling().restart();
             }
         } else if (entity instanceof ReplicaSet) {
             ReplicaSet resource = (ReplicaSet) entity;
             ReplicaSetSpec spec = resource.getSpec();
-            if (spec != null) {
-                if (updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                    kubernetes.apps().replicaSets().inNamespace(namespace).withName(name).replace(resource);
-                }
+            if (spec != null && updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
+                kubernetes.apps().replicaSets().inNamespace(namespace).withName(name).replace(resource);
+                kubernetes.apps().replicaSets().inNamespace(namespace).withName(name).rolling().restart();
             }
         } else if (entity instanceof ReplicationController) {
             ReplicationController resource = (ReplicationController) entity;
             ReplicationControllerSpec spec = resource.getSpec();
-            if (spec != null) {
-                if (updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                    kubernetes.replicationControllers().inNamespace(namespace).withName(name).replace(resource);
-                }
+            if (spec != null && updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
+                kubernetes.replicationControllers().inNamespace(namespace).withName(name).replace(resource);
+                kubernetes.replicationControllers().inNamespace(namespace).withName(name).rolling().restart();
             }
         } else if (entity instanceof DeploymentConfig) {
             DeploymentConfig resource = (DeploymentConfig) entity;
             DeploymentConfigSpec spec = resource.getSpec();
-            if (spec != null) {
-                if (updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                    OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(kubernetes);
-                    if (openshiftClient == null) {
-                        log.warn("Ignoring DeploymentConfig %s as not connected to an OpenShift cluster", name);
-                    } else {
-                        openshiftClient.deploymentConfigs().inNamespace(namespace).withName(name).replace(resource);
-                    }
+            if (spec != null && updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
+                OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(kubernetes);
+                if (openshiftClient == null) {
+                    log.warn("Ignoring DeploymentConfig %s as not connected to an OpenShift cluster", name);
+                } else {
+                    openshiftClient.deploymentConfigs().inNamespace(namespace).withName(name).replace(resource);
                 }
             }
         }

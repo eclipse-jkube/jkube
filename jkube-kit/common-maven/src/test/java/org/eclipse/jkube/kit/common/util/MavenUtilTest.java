@@ -32,6 +32,7 @@ import org.apache.maven.plugin.PluginConfigurationException;
 import org.apache.maven.plugin.PluginManagerException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 
 import mockit.Expectations;
@@ -60,11 +61,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class MavenUtilTest {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @Mocked
+  private KitLogger log;
 
   @Test
   public void testJKubeProjectConversion() throws DependencyResolutionRequiredException {
@@ -212,10 +214,9 @@ public class MavenUtilTest {
         MavenSession mavenSession = getMavenSession();
 
         // When
-        boolean result = MavenUtil.callMavenPluginWithGoal(mavenProject, mavenSession, pluginManager, "org.apache.maven.plugins:maven-help-plugin:help");
+        MavenUtil.callMavenPluginWithGoal(mavenProject, mavenSession, pluginManager, "org.apache.maven.plugins:maven-help-plugin:help", log);
 
         // Then
-        assertTrue(result);
         new Verifications() {{
             pluginManager.executeMojo(mavenSession, (MojoExecution)any);
             times = 1;

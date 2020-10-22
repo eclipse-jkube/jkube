@@ -175,7 +175,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                 .serviceHubFactory(serviceHubFactory)
                 .hub(hub)
                 .dispatcher(getLogDispatcher(hub))
-                .postGoalTask(() -> MavenUtil.callMavenPluginWithGoal(project, session, pluginManager, watchPostGoal))
+                .postGoalTask(() -> MavenUtil.callMavenPluginWithGoal(project, session, pluginManager, watchPostGoal, log))
                 .build();
     }
 
