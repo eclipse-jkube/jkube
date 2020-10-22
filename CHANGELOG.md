@@ -21,12 +21,13 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.0.2-SNAPSHOT
-* Fix 429: Added quickstart for Micronaut framework
+* Fix #429: Added quickstart for Micronaut framework
 * Fix #370: Replacing anonymous Runnables with lambdas in WatchService
-* Fix 440: Added quickstart for MicroProfile running on OpenLiberty
-* Fix: Valid content type for REST docker API requests with body
+* Fix #440: Added quickstart for MicroProfile running on OpenLiberty
+* Fix #442: Valid content type for REST docker API requests with body
 * Fix #448: Service.spec.type added from config if existing Service fragment doesn't specify it
-* Fix: Docker push works with Podman REST API
+* Fix #451: Docker push works with Podman REST API
+* Fix: Removed misleading watch-postGoal warning + fixed rolling update in DockerImageWatcher
 
 ### 1.0.1 (2020-10-05)
 * Fix #381: Remove root as default user in AssemblyConfigurationUtils#getAssemblyConfigurationOrCreateDefault

@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.build.service.docker.watch;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.function.BooleanSupplier;
 
 import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
@@ -60,7 +59,7 @@ public class WatchContext implements Serializable {
   private transient ServiceHub hub;
   private transient ServiceHubFactory serviceHubFactory;
   private transient LogDispatcher dispatcher;
-  private transient BooleanSupplier postGoalTask;
+  private transient Runnable postGoalTask;
 
   private boolean follow;
   private String showLogs;

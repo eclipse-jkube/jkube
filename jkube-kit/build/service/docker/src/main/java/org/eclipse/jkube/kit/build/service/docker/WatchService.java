@@ -22,7 +22,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BooleanSupplier;
 
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
@@ -201,13 +200,7 @@ public class WatchService {
 
 
     private void callPostGoal(ImageWatcher watcher) {
-        BooleanSupplier postGoalTask = watcher.getWatchContext().getPostGoalTask();
-        if (postGoalTask != null) {
-            boolean postGoalStatus = postGoalTask.getAsBoolean();
-            if (!postGoalStatus) {
-                log.warn("Unable to run postGoal task");
-            }
-        }
+        Optional.ofNullable(watcher.getWatchContext().getPostGoalTask()).ifPresent(Runnable::run);
     }
 
     private Runnable createRestartWatchTask(final ImageWatcher watcher) {
