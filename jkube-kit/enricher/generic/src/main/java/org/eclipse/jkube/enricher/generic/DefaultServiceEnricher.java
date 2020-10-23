@@ -538,24 +538,26 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
     // Merge services of same name with the default service
     private void addMissingServiceParts(ServiceBuilder service, Service defaultService) {
-
+        final ServiceSpec originalSpec = service.buildSpec();
         // If service has no spec -> take over the complete spec from default service
-        if (!service.hasSpec()) {
+        if (originalSpec == null) {
             service.withNewSpecLike(defaultService.getSpec()).endSpec();
             return;
         }
-
-        // If service has no ports -> take over ports from default service
-        List<ServicePort> ports = service.buildSpec().getPorts();
+        final List<ServicePort> ports = service.buildSpec().getPorts();
         if (ports == null || ports.isEmpty()) {
             service.editSpec().withPorts(defaultService.getSpec().getPorts()).endSpec();
-            return;
+        } else {
+            service.editSpec()
+                .withPorts(addMissingDefaultPorts(ports, defaultService))
+                .endSpec();
         }
-
-        // Complete missing parts:
-        service.editSpec()
-               .withPorts(addMissingDefaultPorts(ports, defaultService))
-               .endSpec();
+        if (originalSpec.getType() == null) {
+            service.editSpec().withType(defaultService.getSpec().getType()).endSpec();
+        }
+        if (originalSpec.getClusterIP() == null) {
+            service.editSpec().withClusterIP(defaultService.getSpec().getClusterIP()).endSpec();
+        }
     }
 
     private String ensureServiceName(ObjectMeta serviceMetadata, ServiceBuilder service, String defaultServiceName) {
