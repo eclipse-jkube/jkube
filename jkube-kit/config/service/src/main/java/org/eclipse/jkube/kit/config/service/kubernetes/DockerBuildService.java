@@ -49,7 +49,7 @@ public class DockerBuildService implements BuildService {
             // Assume we always want to tag
             jKubeServiceHub.getDockerServiceHub().getBuildService().tagImage(imageConfig.getName(), imageConfig);
         } catch (IOException ex) {
-            throw new JKubeServiceException("Error while trying to build the image", ex);
+            throw new JKubeServiceException("Error while trying to build the image: " + ex.getMessage(), ex);
         }
     }
 
@@ -59,7 +59,7 @@ public class DockerBuildService implements BuildService {
             jKubeServiceHub.getDockerServiceHub().getRegistryService()
                     .pushImages(imageConfigs, retries, registryConfig, skipTag);
         } catch (IOException ex) {
-            throw new JKubeServiceException("Error while trying to push the image", ex);
+            throw new JKubeServiceException("Error while trying to push the image: " + ex.getMessage(), ex);
         }
     }
 

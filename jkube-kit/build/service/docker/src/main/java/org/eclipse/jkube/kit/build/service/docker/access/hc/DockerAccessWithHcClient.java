@@ -46,7 +46,6 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.UrlBuilder;
 import org.eclipse.jkube.kit.build.service.docker.access.chunked.BuildJsonResponseHandler;
-import org.eclipse.jkube.kit.build.service.docker.access.chunked.EntityStreamReaderUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.chunked.PullOrPushResponseJsonHandler;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.http.HttpClientBuilder;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.unix.UnixSocketClientBuilder;
@@ -174,7 +173,7 @@ public class DockerAccessWithHcClient implements DockerAccess {
         }
     }
 
-    private ResponseHandler<Object> createExecResponseHandler(LogOutputSpec outputSpec) throws FileNotFoundException {
+    private ResponseHandler<Object> createExecResponseHandler(LogOutputSpec outputSpec) {
         final LogCallback callback = new DefaultLogCallback(outputSpec);
         return new ResponseHandler<Object>() {
             @Override
@@ -705,25 +704,6 @@ public class DockerAccessWithHcClient implements DockerAccess {
 
     private static boolean isSSL(String url) {
         return url != null && url.toLowerCase().startsWith("https");
-    }
-
-    // Preparation for performing requests
-    private static class HcChunkedResponseHandlerWrapper implements ResponseHandler<Object> {
-
-        private EntityStreamReaderUtil.JsonEntityResponseHandler handler;
-
-        HcChunkedResponseHandlerWrapper(EntityStreamReaderUtil.JsonEntityResponseHandler handler) {
-            this.handler = handler;
-        }
-
-        @Override
-        public Object handleResponse(HttpResponse response) throws IOException {
-            try (InputStream stream = response.getEntity().getContent()) {
-                // Parse text as json
-                EntityStreamReaderUtil.processJsonStream(handler, stream);
-            }
-            return null;
-        }
     }
 
     public String fetchApiVersionFromServer(String baseUrl, ApacheHttpClientDelegate delegate) throws IOException {

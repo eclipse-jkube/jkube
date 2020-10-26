@@ -26,6 +26,7 @@ Usage:
 * Fix 440: Added quickstart for MicroProfile running on OpenLiberty
 * Fix: Valid content type for REST docker API requests with body
 * Fix #448: Service.spec.type added from config if existing Service fragment doesn't specify it
+* Fix: Docker push works with Podman REST API
 
 ### 1.0.1 (2020-10-05)
 * Fix #381: Remove root as default user in AssemblyConfigurationUtils#getAssemblyConfigurationOrCreateDefault
