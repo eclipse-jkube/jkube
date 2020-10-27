@@ -74,6 +74,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCustomResourcesFileToNameMap;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getKind;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateLabels;
@@ -461,15 +462,15 @@ public class ApplyService {
         if (isRecreateMode()) {
             KubernetesClientUtil.doDeleteCustomResource(kubernetesClient, context, namespace, name);
             KubernetesClientUtil.doCreateCustomResource(kubernetesClient, context, namespace, customResourceFile);
-            log.info("Created Custom Resource: " + name);
+            log.info("Created Custom Resource: " + KubernetesHelper.getFullyQualifiedApiGroupWithKind(context) + " " + name);
         } else {
             cr = KubernetesClientUtil.doGetCustomResource(kubernetesClient, context, namespace, name);
             if (cr == null) {
                 KubernetesClientUtil.doCreateCustomResource(kubernetesClient, context, namespace, customResourceFile);
-                log.info("Created Custom Resource: " + name);
+                log.info("Created Custom Resource: " + KubernetesHelper.getFullyQualifiedApiGroupWithKind(context) + " " + name);
             } else {
                 KubernetesClientUtil.doEditCustomResource(kubernetesClient, context, namespace, name, customResourceFile);
-                log.info("Updated Custom Resource: " + name);
+                log.info("Updated Custom Resource: " + KubernetesHelper.getFullyQualifiedApiGroupWithKind(context) + " " + name);
             }
         }
     }
@@ -1371,5 +1372,22 @@ public class ApplyService {
 
     public void setRollingUpgradePreserveScale(boolean rollingUpgradePreserveScale) {
         this.rollingUpgradePreserveScale = rollingUpgradePreserveScale;
+    }
+
+    public void processCustomEntities(List<String> customResourceDefinitions, File resourceDir, String environment, List<String> remotes) throws Exception {
+        if(customResourceDefinitions == null)
+            return;
+
+        List<CustomResourceDefinitionContext> crdContexts = KubernetesClientUtil.getCustomResourceDefinitionContext(kubernetesClient ,customResourceDefinitions);
+        File resourceDirFinal = ResourceUtil.getFinalResourceDir(resourceDir, environment);
+        Map<File, String> fileToCrdMap = getCustomResourcesFileToNameMap(resourceDirFinal, remotes, log);
+
+        for(CustomResourceDefinitionContext customResourceDefinitionContext : crdContexts) {
+            for(Map.Entry<File, String> entry : fileToCrdMap.entrySet()) {
+                if(entry.getValue().equals(KubernetesHelper.getFullyQualifiedApiGroupWithKind(customResourceDefinitionContext))) {
+                    applyCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
+                }
+            }
+        }
     }
 }

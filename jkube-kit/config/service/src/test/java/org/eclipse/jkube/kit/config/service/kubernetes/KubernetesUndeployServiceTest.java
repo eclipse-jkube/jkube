@@ -115,11 +115,15 @@ public class KubernetesUndeployServiceTest {
     // Given
     final File manifest = temporaryFolder.newFile("temp.yml");
     final File crManifest = temporaryFolder.newFile("temp-cr.yml");
-    final String crdId = "crd";
+    final String crdId = "org.eclipse.jkube/v1alpha1#Crd";
     final Service service = new Service();
     final CustomResourceDefinition crd = new CustomResourceDefinitionBuilder()
         .withNewMetadata().withName(crdId).endMetadata()
-        .withNewSpec().withGroup(crdId).withNewNames().endNames().endSpec()
+        .withNewSpec().withGroup("org.eclipse.jkube").withVersion("v1alpha1").withScope("Cluster")
+            .withNewNames()
+            .withKind("Crd")
+            .withPlural("crds")
+            .endNames().endSpec()
         .withKind(crdId).build();
     // @formatter:off
     new Expectations() {{
@@ -130,6 +134,8 @@ public class KubernetesUndeployServiceTest {
       result = Collections.singletonMap(crManifest, crdId);
       kubernetesHelper.unmarshalCustomResourceFile(crManifest);
       result = Collections.singletonMap("metadata", Collections.singletonMap("name", "my-cr"));
+      kubernetesHelper.getFullyQualifiedApiGroupWithKind((CustomResourceDefinitionContext)any);
+      result = crdId;
     }};
     // @formatter:on
     // When

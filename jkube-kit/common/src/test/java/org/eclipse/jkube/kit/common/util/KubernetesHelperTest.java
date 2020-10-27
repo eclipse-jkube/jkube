@@ -16,11 +16,13 @@ package org.eclipse.jkube.kit.common.util;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -104,6 +106,7 @@ public class KubernetesHelperTest {
         File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(localResourceDir, remotes, "sa.yml", logger);
 
         // Then
+        assertNotNull(fragmentFile);
         assertTrue(fragmentFile.exists());
         assertEquals("sa.yml", fragmentFile.getName());
     }
@@ -199,6 +202,44 @@ public class KubernetesHelperTest {
         // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void getCustomResourceFileToNameMapWithFragment() throws IOException {
+        // Given
+        File fragmentFile = new File(getClass().getResource("/crontab-cr.yml").getFile());
+        File fragmentDir = fragmentFile.getParentFile();
+
+        // When
+        final Map<File, String> result = KubernetesHelper.getCustomResourcesFileToNameMap(fragmentDir, null, logger);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("stable.example.com/v1#CronTab", result.get(fragmentFile));
+    }
+
+    @Test
+    public void testGetFullyQualifiedApiGroupWithKind() {
+        // Given
+        CustomResourceDefinitionContext crd1 = new CustomResourceDefinitionContext.Builder()
+                .withGroup("networking.istio.io")
+                .withVersion("v1alpha3")
+                .withKind("VirtualService")
+                .build();
+        CustomResourceDefinitionContext crd2 = new CustomResourceDefinitionContext.Builder()
+                .withGroup("networking.istio.io")
+                .withVersion("v1alpha3")
+                .withKind("Gateway")
+                .build();
+
+        // When
+        String result1 = KubernetesHelper.getFullyQualifiedApiGroupWithKind(crd1);
+        String result2 = KubernetesHelper.getFullyQualifiedApiGroupWithKind(crd2);
+
+        // Then
+        assertEquals("networking.istio.io/v1alpha3#VirtualService", result1);
+        assertEquals("networking.istio.io/v1alpha3#Gateway", result2);
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {

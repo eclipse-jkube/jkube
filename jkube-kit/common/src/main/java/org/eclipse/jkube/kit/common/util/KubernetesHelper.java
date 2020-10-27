@@ -84,6 +84,7 @@ import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.api.model.HasMetadataComparator;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
@@ -882,12 +883,15 @@ public class KubernetesHelper {
             if (file.getName().endsWith("cr.yml") || file.getName().endsWith("cr.yaml")) {
                 Map<String, Object> customResource = unmarshalCustomResourceFile(file);
                 String apiVersion = customResource.get("apiVersion").toString();
-                if (apiVersion.contains("/")) {
-                    fileToCrdGroupMap.put(file, apiVersion.split("/")[0]);
-                }
+                String kind = customResource.get("kind").toString();
+                fileToCrdGroupMap.put(file, apiVersion + "#" + kind);
             }
         }
         return fileToCrdGroupMap;
+    }
+
+    public static String getFullyQualifiedApiGroupWithKind(CustomResourceDefinitionContext crdContext) {
+        return crdContext.getGroup() + "/" + crdContext.getVersion() + "#" + crdContext.getKind();
     }
 
     public static String getNewestApplicationPodName(KubernetesClient client, String namespace, Set<HasMetadata> resources) {
