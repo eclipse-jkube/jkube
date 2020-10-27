@@ -98,7 +98,7 @@ public class KubernetesUndeployService implements UndeployService {
 
     for(CustomResourceDefinitionContext customResourceDefinitionContext : crdContexts) {
       for(Map.Entry<File, String> entry : fileToCrdMap.entrySet()) {
-        if(entry.getValue().equals(customResourceDefinitionContext.getGroup())) {
+        if(entry.getValue().equals(KubernetesHelper.getFullyQualifiedApiGroupWithKind(customResourceDefinitionContext))) {
             deleteCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
         }
       }
@@ -121,7 +121,7 @@ public class KubernetesUndeployService implements UndeployService {
     Map<String, Object> customResource = unmarshalCustomResourceFile(customResourceFile);
     Map<String, Object> objectMeta = (Map<String, Object>)customResource.get("metadata");
     String name = objectMeta.get("name").toString();
-    logger.info("Deleting Custom Resource %s", name);
+    logger.info("Deleting Custom Resource %s %s", KubernetesHelper.getFullyQualifiedApiGroupWithKind(crdContext), name);
     KubernetesClientUtil.doDeleteCustomResource(jKubeServiceHub.getClient(), crdContext, namespace, name);
   }
 

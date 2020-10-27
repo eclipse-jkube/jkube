@@ -22,16 +22,13 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.openshift.api.model.Project;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
-import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -45,11 +42,7 @@ import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCustomResourcesFileToNameMap;
 
 /**
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
@@ -306,7 +299,8 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
                 }
             }
         }
-        processCustomEntities(kubernetes, namespace, resources != null ? resources.getCustomResourceDefinitions() : null);
+        applyService.processCustomEntities(resources != null ? resources.getCustomResourceDefinitions() : null,
+                resourceDir, environment, resources != null ? resources.getRemotes() : null);
     }
 
     protected String getExternalServiceURL(Service service) {
@@ -315,7 +309,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
 
     protected boolean isExposeService(Service service) {
         String expose = KubernetesHelper.getLabels(service).get("expose");
-        return expose != null && expose.toLowerCase().equals("true");
+        return expose != null && expose.equalsIgnoreCase("true");
     }
 
     public boolean isRollingUpgradePreserveScale() {
@@ -334,23 +328,6 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         this.processTemplatesLocally = true;
         applyService.setSupportOAuthClients(false);
         applyService.setProcessTemplatesLocally(true);
-    }
-
-    protected void processCustomEntities(KubernetesClient client, String namespace, List<String> customResourceDefinitions) throws Exception {
-        if(customResourceDefinitions == null)
-            return;
-
-        List<CustomResourceDefinitionContext> crdContexts = KubernetesClientUtil.getCustomResourceDefinitionContext(client ,customResourceDefinitions);
-        File resourceDirFinal = ResourceUtil.getFinalResourceDir(resourceDir, environment);
-        Map<File, String> fileToCrdMap = getCustomResourcesFileToNameMap(resourceDirFinal, resources != null ? resources.getRemotes() : null, getKitLogger());
-
-        for(CustomResourceDefinitionContext customResourceDefinitionContext : crdContexts) {
-            for(Map.Entry<File, String> entry : fileToCrdMap.entrySet()) {
-                if(entry.getValue().equals(customResourceDefinitionContext.getGroup())) {
-                    applyService.applyCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
-                }
-            }
-        }
     }
 
     /**

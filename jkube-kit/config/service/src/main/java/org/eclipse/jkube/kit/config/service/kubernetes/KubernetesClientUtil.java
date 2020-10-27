@@ -293,6 +293,7 @@ public class KubernetesClientUtil {
                         .withPlural(customResourceDefinition.getSpec().getNames().getPlural())
                         .withVersion(customResourceDefinition.getSpec().getVersion())
                         .withScope(customResourceDefinition.getSpec().getScope())
+                        .withKind(customResourceDefinition.getSpec().getNames().getKind())
                         .build());
             }
         }
