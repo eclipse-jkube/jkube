@@ -45,7 +45,7 @@
     <version.commons-text>1.9</version.commons-text>
     <version.gson>2.8.5</version.gson>
     <version.guava>27.0-jre</version.guava>
-    <version.httpclient>4.5.6</version.httpclient>
+    <version.httpclient>4.5.10</version.httpclient>
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
     <version.jansi>1.16</version.jansi>
     <version.javassist>3.20.0-GA</version.javassist>
@@ -115,7 +115,7 @@
     <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
     <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
 
-    <jib-core.version>0.12.0</jib-core.version>
+    <jib-core.version>0.16.0</jib-core.version>
   </properties>
 
   <dependencyManagement>
@@ -388,7 +388,18 @@
               <groupId>org.apache.httpcomponents</groupId>
               <artifactId>httpclient</artifactId>
             </exclusion>
-
+            <exclusion>
+              <groupId>com.google.auth</groupId>
+              <artifactId>google-auth-library-oauth2-http</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.commons</groupId>
+              <artifactId>commons-compress</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.google.j2objc</groupId>
+              <artifactId>j2objc-annotations</artifactId>
+            </exclusion>
           </exclusions>
       </dependency>
 
