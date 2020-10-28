@@ -22,7 +22,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.cloud.tools.jib.api.ImageFormat;
+import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
+import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
+import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
+import com.google.cloud.tools.jib.api.buildplan.Port;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
@@ -30,10 +33,8 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
-import com.google.cloud.tools.jib.api.AbsoluteUnixPath;
 import com.google.cloud.tools.jib.api.JibContainerBuilder;
 import com.google.cloud.tools.jib.api.LayerConfiguration;
-import com.google.cloud.tools.jib.api.Port;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Test;
@@ -76,7 +77,7 @@ public class JibServiceUtilTest {
             jibContainerBuilder.setWorkingDirectory(AbsoluteUnixPath.get("/home/foo")); times = 1;
             jibContainerBuilder.setVolumes(new HashSet<>(Collections.singletonList(AbsoluteUnixPath.get("/mnt/volume1"))));
             times = 1;
-            jibContainerBuilder.setFormat(ImageFormat.OCI); times = 1;
+            jibContainerBuilder.setFormat(ImageFormat.Docker); times = 1;
         }};
         // @formatter:on
     }
@@ -94,13 +95,13 @@ public class JibServiceUtilTest {
         // Then
         assertTrue(wasNewFileCreated);
         new Verifications() {{
-            LayerConfiguration layerConfiguration;
-            containerBuilder.addLayer(layerConfiguration = withCapture());
+            FileEntriesLayer fileEntriesLayer;
+            containerBuilder.addFileEntriesLayer(fileEntriesLayer = withCapture());
 
-            assertNotNull(layerConfiguration);
-            assertEquals(1, layerConfiguration.getLayerEntries().size());
-            assertEquals(temporaryFile.toPath(), layerConfiguration.getLayerEntries().get(0).getSourceFile());
-            assertEquals(AbsoluteUnixPath.get(temporaryFile.getAbsolutePath().substring(4)), layerConfiguration.getLayerEntries().get(0).getExtractionPath());
+            assertNotNull(fileEntriesLayer);
+            assertEquals(1, fileEntriesLayer.getEntries().size());
+            assertEquals(temporaryFile.toPath(), fileEntriesLayer.getEntries().get(0).getSourceFile());
+            assertEquals(AbsoluteUnixPath.get(temporaryFile.getAbsolutePath().substring(4)), fileEntriesLayer.getEntries().get(0).getExtractionPath());
         }};
     }
 

@@ -13,21 +13,18 @@
  */
 package org.eclipse.jkube.kit.service.jib;
 
-import com.google.cloud.tools.jib.api.AbsoluteUnixPath;
 import com.google.cloud.tools.jib.api.CacheDirectoryCreationException;
 import com.google.cloud.tools.jib.api.Containerizer;
 import com.google.cloud.tools.jib.api.Credential;
-import com.google.cloud.tools.jib.api.FilePermissions;
-import com.google.cloud.tools.jib.api.ImageFormat;
 import com.google.cloud.tools.jib.api.InvalidImageReferenceException;
 import com.google.cloud.tools.jib.api.Jib;
 import com.google.cloud.tools.jib.api.JibContainerBuilder;
-import com.google.cloud.tools.jib.api.LayerConfiguration;
 import com.google.cloud.tools.jib.api.LogEvent;
-import com.google.cloud.tools.jib.api.Port;
 import com.google.cloud.tools.jib.api.RegistryException;
 import com.google.cloud.tools.jib.api.RegistryImage;
 import com.google.cloud.tools.jib.api.TarImage;
+import com.google.cloud.tools.jib.api.buildplan.FilePermissions;
+import com.google.cloud.tools.jib.api.buildplan.FilePermissionsProvider;
 import com.google.cloud.tools.jib.event.events.ProgressEvent;
 import com.google.cloud.tools.jib.event.progress.ProgressEventHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +34,10 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
+import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
+import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
+import com.google.cloud.tools.jib.api.buildplan.Port;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +58,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -118,7 +118,7 @@ public class JibServiceUtil {
     public static JibContainerBuilder containerFromImageConfiguration(
         ImageConfiguration imageConfiguration, Credential pullRegistryCredential) throws InvalidImageReferenceException {
         final JibContainerBuilder containerBuilder = Jib.from(getRegistryImage(getBaseImage(imageConfiguration), pullRegistryCredential))
-                .setFormat(ImageFormat.OCI);
+                .setFormat(ImageFormat.Docker);
         return populateContainerBuilderFromImageConfiguration(containerBuilder, imageConfiguration);
     }
 
@@ -274,12 +274,12 @@ public class JibServiceUtil {
         JibContainerBuilder containerBuilder, File directory, String targetDir, Map<File, AssemblyFileEntry> files)
         throws IOException {
 
-        final BiFunction<Path, AbsoluteUnixPath, FilePermissions> filePermissionsProvider = (sourcePath, destinationPath) ->
+        FilePermissionsProvider filePermissionsProvider = (sourcePath, destinationPath) ->
             Optional.ofNullable(files.get(sourcePath.toFile()))
                 .map(AssemblyFileEntry::getFileMode)
                 .filter(StringUtils::isNotBlank)
                 .map(octalFileMode -> FilePermissions.fromOctalString(StringUtils.right(octalFileMode, 3)))
-                .orElse(DEFAULT_FILE_PERMISSIONS_PROVIDER.apply(sourcePath, destinationPath));
+                .orElse(DEFAULT_FILE_PERMISSIONS_PROVIDER.get(sourcePath, destinationPath));
 
 
         Files.walkFileTree(directory.toPath(), new FileVisitor<Path>() {
@@ -296,7 +296,7 @@ public class JibServiceUtil {
                 String fileFullpath = dir.toAbsolutePath().toString();
                 String relativePath = fileFullpath.substring(targetDir.length());
                 AbsoluteUnixPath absoluteUnixPath = AbsoluteUnixPath.fromPath(Paths.get(relativePath));
-                containerBuilder.addLayer(LayerConfiguration.builder()
+                containerBuilder.addFileEntriesLayer(FileEntriesLayer.builder()
                         .addEntryRecursive(dir, absoluteUnixPath, filePermissionsProvider)
                         .build());
                 return FileVisitResult.SKIP_SUBTREE;
@@ -307,7 +307,7 @@ public class JibServiceUtil {
                 String fileFullpath = file.toAbsolutePath().toString();
                 String relativePath = fileFullpath.substring(targetDir.length());
                 AbsoluteUnixPath absoluteUnixPath = AbsoluteUnixPath.fromPath(Paths.get(relativePath));
-                containerBuilder.addLayer(LayerConfiguration.builder()
+                containerBuilder.addFileEntriesLayer(FileEntriesLayer.builder()
                         .addEntryRecursive(file, absoluteUnixPath, filePermissionsProvider)
                         .build());
                 return FileVisitResult.CONTINUE;
