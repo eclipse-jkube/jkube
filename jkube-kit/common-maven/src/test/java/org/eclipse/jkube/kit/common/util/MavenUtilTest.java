@@ -61,6 +61,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class MavenUtilTest {
   @Rule
@@ -157,6 +158,8 @@ public class MavenUtilTest {
 
     private MavenProject getMavenProject() {
         MavenProject mavenProject = new MavenProject();
+        File baseDir = new File("test-project-base-dir");
+        mavenProject.setFile(baseDir);
         mavenProject.setName("testProject");
         mavenProject.setGroupId("org.eclipse.jkube");
         mavenProject.setArtifactId("test-project");
@@ -221,5 +224,25 @@ public class MavenUtilTest {
             pluginManager.executeMojo(mavenSession, (MojoExecution)any);
             times = 1;
         }};
+    }
+
+    @Test
+    public void testgetRootProjectFolder(@Mocked MavenProject project) {
+        // Given
+        File projectBaseDir = new File("projectBaseDir");
+        new Expectations() {{
+            project.getBasedir();
+            result = projectBaseDir;
+
+            project.getParent();
+            result = null;
+        }};
+
+        // When
+        File rootFolder = MavenUtil.getRootProjectFolder(project);
+
+        // Then
+        assertNotNull(rootFolder);
+        assertEquals("projectBaseDir", rootFolder.getName());
     }
 }

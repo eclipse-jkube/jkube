@@ -54,6 +54,7 @@ import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
 import io.fabric8.kubernetes.api.model.NamedContext;
+import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodCondition;
@@ -63,6 +64,7 @@ import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -82,10 +84,12 @@ import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
+import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -895,6 +899,61 @@ public class KubernetesHelper {
         Pod newestPod = KubernetesHelper.getNewestPod(pods.getItems());
         if (newestPod != null) {
             return newestPod.getMetadata().getName();
+        }
+        return null;
+    }
+
+    public static boolean isExposeService(Service service) {
+        String expose = KubernetesHelper.getLabels(service).get("expose");
+        return expose != null && expose.equalsIgnoreCase("true");
+    }
+
+    public static String getServiceExposeUrl(KubernetesClient kubernetes, Collection<HasMetadata> resources, long serviceUrlWaitTimeSeconds, String exposeServiceAnnotationKey) throws InterruptedException {
+        for (HasMetadata entity : resources) {
+            if (entity instanceof Service) {
+                Service service = (Service) entity;
+                String name = KubernetesHelper.getName(service);
+                String namespace = kubernetes.getNamespace();
+                Resource<Service> serviceResource = kubernetes.services().inNamespace(namespace).withName(name);
+                String url = pollServiceForExposeUrl(serviceUrlWaitTimeSeconds, service, serviceResource, exposeServiceAnnotationKey);
+
+                // lets not wait for other services
+                serviceUrlWaitTimeSeconds = 1;
+                if (StringUtils.isNotBlank(url) && url.startsWith("http")) {
+                    return url;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String pollServiceForExposeUrl(long serviceUrlWaitTimeSeconds, Service service, Resource<Service> serviceResource, String exposeSvcAnnotationKey) throws InterruptedException {
+        String url = null;
+        // lets wait a little while until there is a service URL in case the exposecontroller is running slow
+        for (int i = 0; i < serviceUrlWaitTimeSeconds; i++) {
+            if (i > 0) {
+                Thread.sleep(1000);
+            }
+            url = KubernetesHelper.getAnnotationValue(serviceResource.get(), exposeSvcAnnotationKey);
+            if (StringUtils.isNotBlank(url) || !KubernetesHelper.isExposeService(service)) {
+                break;
+            }
+        }
+        return url;
+    }
+
+    public static String getAnnotationValue(HasMetadata item, String annotationKey) {
+        if (item != null) {
+            return getOrCreateAnnotations(item).get(annotationKey);
+        }
+        return null;
+    }
+
+    public static String getNamespaceFromKubernetesList(Collection<HasMetadata> entities) {
+        for (HasMetadata h : entities) {
+            if (h instanceof Namespace || h instanceof Project) {
+                return h.getMetadata().getName();
+            }
         }
         return null;
     }

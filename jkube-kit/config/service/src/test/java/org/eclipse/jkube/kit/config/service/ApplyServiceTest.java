@@ -16,6 +16,22 @@ package org.eclipse.jkube.kit.config.service;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Namespace;
+import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationController;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.openshift.api.model.Project;
+import io.fabric8.openshift.api.model.ProjectBuilder;
+import io.fabric8.openshift.api.model.ProjectListBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
@@ -34,6 +50,10 @@ import java.util.List;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.Assert.assertEquals;
 
 public class ApplyServiceTest {
@@ -50,6 +70,79 @@ public class ApplyServiceTest {
     public void setUp() {
         applyService = new ApplyService(mockServer.getOpenshiftClient(), log);
         applyService.setNamespace("default");
+    }
+
+    @Test
+    public void testApplyNamespaceOrProjectIfPresent() {
+        // Given
+        Set<HasMetadata> entities = new HashSet<>();
+        Namespace namespace = new NamespaceBuilder().withNewMetadata().withName("ns1").endMetadata().build();
+        Project project = new ProjectBuilder().withNewMetadata().withName("p1").endMetadata().build();
+        entities.add(namespace);
+        entities.add(project);
+        WebServerEventCollector collector = new WebServerEventCollector();
+        mockServer.expect().post()
+                .withPath("/api/v1/namespaces")
+                .andReply(collector.record("new-namespace").andReturn(HTTP_CREATED, namespace))
+                .once();
+        mockServer.expect().get()
+                .withPath("/apis/project.openshift.io/v1/projects")
+                .andReply(collector.record("get-project").andReturn(HTTP_OK, new ProjectListBuilder().build()))
+                .once();
+        mockServer.expect().post()
+                .withPath("/apis/project.openshift.io/v1/projectrequests")
+                .andReply(collector.record("new-projectrequest").andReturn(HTTP_CREATED, project))
+                .once();
+
+        // When
+        applyService.applyNamespaceOrProjectIfPresent(entities);
+
+        // Then
+        collector.assertEventsRecordedInOrder( "get-project", "new-projectrequest", "new-namespace");
+    }
+
+    @Test
+    public void testApplyEntities() throws Exception {
+        // Given
+        Set<HasMetadata> entities = new HashSet<>();
+        String fileName = "foo.yml";
+        Deployment deployment = new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata().build();
+        Service service = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
+        ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("c1").endMetadata().build();
+        Pod pod = new PodBuilder().withNewMetadata().withName("p1").endMetadata().build();
+        ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata().withName("rc1").endMetadata().build();
+        entities.add(deployment);
+        entities.add(service);
+        entities.add(configMap);
+        entities.add(pod);
+        entities.add(rc);
+        WebServerEventCollector collector = new WebServerEventCollector();
+        mockServer.expect().post()
+                .withPath("/api/v1/namespaces/default/services")
+                .andReply(collector.record("new-service").andReturn(HTTP_CREATED, service))
+                .once();
+        mockServer.expect().post()
+                .withPath("/api/v1/namespaces/default/configmaps")
+                .andReply(collector.record("new-configmap").andReturn(HTTP_CREATED, configMap))
+                .once();
+        mockServer.expect().post()
+                .withPath("/apis/apps/v1/namespaces/default/deployments")
+                .andReply(collector.record("new-deploy").andReturn(HTTP_CREATED, deployment))
+                .once();
+        mockServer.expect().post()
+                .withPath("/api/v1/namespaces/default/pods")
+                .andReply(collector.record("new-pod").andReturn(HTTP_CREATED, pod))
+                .once();
+        mockServer.expect().post()
+                .withPath("/api/v1/namespaces/default/replicationcontrollers")
+                .andReply(collector.record("new-rc").andReturn(HTTP_CREATED, rc))
+                .once();
+
+        // When
+        applyService.applyEntities(fileName, entities, log, 5, null, null, null);
+
+        // Then
+        collector.assertEventsRecordedInOrder("new-rc", "new-configmap", "new-service", "new-deploy", "new-pod");
     }
 
     @Test

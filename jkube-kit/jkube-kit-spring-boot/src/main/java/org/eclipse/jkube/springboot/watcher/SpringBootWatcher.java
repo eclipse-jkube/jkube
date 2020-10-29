@@ -30,9 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.google.common.io.Closeables;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -139,46 +137,13 @@ public class SpringBootWatcher extends BaseWatcher {
 
     private String getServiceExposeUrl(KubernetesClient kubernetes, Set<HasMetadata> resources) throws InterruptedException {
         long serviceUrlWaitTimeSeconds = Configs.asInt(getConfig(Config.SERVICE_URL_WAIT_TIME_SECONDS));
-        for (HasMetadata entity : resources) {
-            if (entity instanceof Service) {
-                Service service = (Service) entity;
-                String name = KubernetesHelper.getName(service);
-                Resource<Service> serviceResource = kubernetes.services()
-                    .inNamespace(getContext().getJKubeServiceHub().getClusterAccess().getNamespace())
-                    .withName(name);
-                String url = null;
-                // lets wait a little while until there is a service URL in case the exposecontroller is running slow
-                for (int i = 0; i < serviceUrlWaitTimeSeconds; i++) {
-                    if (i > 0) {
-                        Thread.sleep(1000);
-                    }
-                    Service s = serviceResource.get();
-                    if (s != null) {
-                        url = KubernetesHelper.getOrCreateAnnotations(s).get(JKubeAnnotations.SERVICE_EXPOSE_URL.value());
-                        if (StringUtils.isNotBlank(url)) {
-                            break;
-                        }
-                    }
-                    if (!isExposeService(service)) {
-                        break;
-                    }
-                }
-
-                // lets not wait for other services
-                serviceUrlWaitTimeSeconds = 1;
-                if (StringUtils.isNotBlank(url) && url.startsWith("http")) {
-                    return url;
-                }
-            }
+        String url = KubernetesHelper.getServiceExposeUrl(kubernetes, resources, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
+        if (StringUtils.isNotBlank(url)) {
+            return url;
         }
 
         log.info("No exposed service found for connecting the dev tools");
         return null;
-    }
-
-    private boolean isExposeService(Service service) {
-        String expose = KubernetesHelper.getLabels(service).get("expose");
-        return expose != null && expose.equalsIgnoreCase("true");
     }
 
     private void runRemoteSpringApplication(String url) {

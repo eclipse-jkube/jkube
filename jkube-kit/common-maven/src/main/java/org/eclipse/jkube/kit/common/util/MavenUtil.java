@@ -430,5 +430,20 @@ public class MavenUtil {
             mojoExecutionService.callPluginGoal(mavenPluginGoal);
         }
     }
+
+    /**
+     * Returns the root project folder
+     */
+    public static File getRootProjectFolder(MavenProject project) {
+        File answer = null;
+        while (project != null) {
+            File basedir = project.getBasedir();
+            if (basedir != null) {
+                answer = basedir;
+            }
+            project = project.getParent();
+        }
+        return answer;
+    }
 }
 
