@@ -58,6 +58,9 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -67,6 +70,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -268,10 +272,10 @@ public class ApplyService {
             return;
         }
         if (!isProcessTemplatesLocally()) {
-            String namespace = getNamespace();
+            String currentNamespace = getNamespace();
             String id = getName(entity);
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-            Template old = openShiftClient.templates().inNamespace(namespace).withName(id).get();
+            Template old = openShiftClient.templates().inNamespace(currentNamespace).withName(id).get();
             if (isRunning(old)) {
                 if (UserConfigurationCompare.configEqual(entity, old)) {
                     log.info("Template has not changed so not doing anything");
@@ -280,12 +284,12 @@ public class ApplyService {
                     // TODO seems you can't update templates right now
                     recreateMode = true;
                     if (recreateMode) {
-                        openShiftClient.templates().inNamespace(namespace).withName(id).delete();
-                        doCreateTemplate(entity, namespace, sourceName);
+                        openShiftClient.templates().inNamespace(currentNamespace).withName(id).delete();
+                        doCreateTemplate(entity, currentNamespace, sourceName);
                     } else {
                         log.info("Updating a Template from %s", sourceName);
                         try {
-                            Object answer = openShiftClient.templates().inNamespace(namespace).withName(id).replace(entity);
+                            Object answer = openShiftClient.templates().inNamespace(currentNamespace).withName(id).replace(entity);
                             log.info("Updated Template: " + answer);
                         } catch (Exception e) {
                             onApplyError("Failed to update Template from " + sourceName + ". " + e + ". " + entity, e);
@@ -294,9 +298,9 @@ public class ApplyService {
                 }
             } else {
                 if (!isAllowCreate()) {
-                    log.warn("Creation disabled so not creating a Template from %s namespace %s name %s", sourceName, namespace, getName(entity));
+                    log.warn("Creation disabled so not creating a Template from %s namespace %s name %s", sourceName, currentNamespace, getName(entity));
                 } else {
-                    doCreateTemplate(entity, namespace, sourceName);
+                    doCreateTemplate(entity, currentNamespace, sourceName);
                 }
             }
         }
@@ -323,26 +327,26 @@ public class ApplyService {
      * Creates/updates a service account and processes it returning the processed DTOs
      */
     public void applyServiceAccount(ServiceAccount serviceAccount, String sourceName) {
-        String namespace = getNamespace();
+        String currentNamespace = getNamespace();
         String id = getName(serviceAccount);
         Objects.requireNonNull(id, "No name for " + serviceAccount + " " + sourceName);
         if (isServicesOnlyMode()) {
             log.debug("Only processing Services right now so ignoring ServiceAccount: " + id);
             return;
         }
-        ServiceAccount old = kubernetesClient.serviceAccounts().inNamespace(namespace).withName(id).get();
+        ServiceAccount old = kubernetesClient.serviceAccounts().inNamespace(currentNamespace).withName(id).get();
         if (isRunning(old)) {
             if (UserConfigurationCompare.configEqual(serviceAccount, old)) {
                 log.info("ServiceAccount has not changed so not doing anything");
             } else {
                 if (isRecreateMode()) {
-                    kubernetesClient.serviceAccounts().inNamespace(namespace).withName(id).delete();
-                    doCreateServiceAccount(serviceAccount, namespace, sourceName);
+                    kubernetesClient.serviceAccounts().inNamespace(currentNamespace).withName(id).delete();
+                    doCreateServiceAccount(serviceAccount, currentNamespace, sourceName);
                 } else {
                     log.info("Updating a ServiceAccount from " + sourceName);
                     try {
-                        Object answer = kubernetesClient.serviceAccounts().inNamespace(namespace).withName(id).replace(serviceAccount);
-                        logGeneratedEntity("Updated ServiceAccount: ", namespace, serviceAccount, answer);
+                        Object answer = kubernetesClient.serviceAccounts().inNamespace(currentNamespace).withName(id).replace(serviceAccount);
+                        logGeneratedEntity("Updated ServiceAccount: ", currentNamespace, serviceAccount, answer);
                     } catch (Exception e) {
                         onApplyError("Failed to update ServiceAccount from " + sourceName + ". " + e + ". " + serviceAccount, e);
                     }
@@ -350,9 +354,9 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a ServiceAccount from " + sourceName + " namespace " + namespace + " name " + getName(serviceAccount));
+                log.warn("Creation disabled so not creating a ServiceAccount from " + sourceName + " namespace " + currentNamespace + " name " + getName(serviceAccount));
             } else {
-                doCreateServiceAccount(serviceAccount, namespace, sourceName);
+                doCreateServiceAccount(serviceAccount, currentNamespace, sourceName);
             }
         }
     }
@@ -376,47 +380,47 @@ public class ApplyService {
     public void applyPersistentVolumeClaim(PersistentVolumeClaim entity, String sourceName) {
         // we cannot update PVCs
         boolean alwaysRecreate = true;
-        String namespace = getNamespace();
+        String currentNamespace = getNamespace();
         String id = getName(entity);
         Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
         if (isServicesOnlyMode()) {
             log.debug("Only processing Services right now so ignoring PersistentVolumeClaim: " + id);
             return;
         }
-        PersistentVolumeClaim old = kubernetesClient.persistentVolumeClaims().inNamespace(namespace).withName(id).get();
+        PersistentVolumeClaim old = kubernetesClient.persistentVolumeClaims().inNamespace(currentNamespace).withName(id).get();
         if (isRunning(old)) {
             if (UserConfigurationCompare.configEqual(entity, old)) {
                 log.info("PersistentVolumeClaim has not changed so not doing anything");
             } else {
                 if (alwaysRecreate || isRecreateMode()) {
                     if (!isRecreateMode() && isIgnoreBoundPersistentVolumeClaims() && isBound(old)) {
-                        log.warn("PersistentVolumeClaim " + id + " in namespace " + namespace + " is already bound and will not be replaced with the new one from " + sourceName);
+                        log.warn("PersistentVolumeClaim " + id + " in namespace " + currentNamespace + " is already bound and will not be replaced with the new one from " + sourceName);
                     } else {
-                        log.info("Deleting PersistentVolumeClaim from namespace " + namespace + " with name " + id);
-                        kubernetesClient.persistentVolumeClaims().inNamespace(namespace).withName(id).delete();
-                        log.info("Deleted PersistentVolumeClaim from namespace " + namespace + " with name " + id);
+                        log.info("Deleting PersistentVolumeClaim from namespace " + currentNamespace + " with name " + id);
+                        kubernetesClient.persistentVolumeClaims().inNamespace(currentNamespace).withName(id).delete();
+                        log.info("Deleted PersistentVolumeClaim from namespace " + currentNamespace + " with name " + id);
 
-                        doCreatePersistentVolumeClaim(entity, namespace, sourceName);
+                        doCreatePersistentVolumeClaim(entity, currentNamespace, sourceName);
                     }
                 } else {
-                    doPatchEntity(old, entity, namespace, sourceName);
+                    doPatchEntity(old, entity, currentNamespace, sourceName);
                 }
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a PersistentVolumeClaim from " + sourceName + " namespace " + namespace + " name " + getName(entity));
+                log.warn("Creation disabled so not creating a PersistentVolumeClaim from " + sourceName + " namespace " + currentNamespace + " name " + getName(entity));
             } else {
-                doCreatePersistentVolumeClaim(entity, namespace, sourceName);
+                doCreatePersistentVolumeClaim(entity, currentNamespace, sourceName);
             }
         }
     }
 
     public void applyCustomResourceDefinition(CustomResourceDefinition entity, String sourceName) {
-        String namespace = getNamespace();
+        String currentNamespace = getNamespace();
         String id = getName(entity);
         Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
         if (isServicesOnlyMode()) {
-            log.debug("Only processing Services right now so ignoring Custom Resource Definition: " + namespace + ":" + id);
+            log.debug("Only processing Services right now so ignoring Custom Resource Definition: " + currentNamespace + ":" + id);
             return;
         }
         CustomResourceDefinition old = kubernetesClient.apiextensions().v1beta1().customResourceDefinitions().withName(id).get();
@@ -429,7 +433,7 @@ public class ApplyService {
                     kubernetesClient.customResourceDefinitions().withName(id).delete();
                     doCreateCustomResourceDefinition(entity, sourceName);
                 } else {
-                    doPatchEntity(old, entity, namespace, sourceName);
+                    doPatchEntity(old, entity, currentNamespace, sourceName);
                 }
             }
         } else {
@@ -452,7 +456,7 @@ public class ApplyService {
     }
 
     public void applyCustomResource(File customResourceFile, String namespace, CustomResourceDefinitionContext context)
-        throws Exception {
+        throws IOException {
 
         Map<String, Object> cr = unmarshalCustomResourceFile(customResourceFile);
         Map<String, Object> objectMeta = (Map<String, Object>)cr.get("metadata");
@@ -496,7 +500,7 @@ public class ApplyService {
     }
 
     public void applySecret(Secret secret, String sourceName) {
-        String namespace = getNamespace(secret);
+        String currentNamespace = getNamespace(secret);
         String id = getName(secret);
         Objects.requireNonNull(id, "No name for " + secret + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -504,7 +508,7 @@ public class ApplyService {
             return;
         }
 
-        Secret old = kubernetesClient.secrets().inNamespace(namespace).withName(id).get();
+        Secret old = kubernetesClient.secrets().inNamespace(currentNamespace).withName(id).get();
         // check if the secret already exists or not
         if (isRunning(old)) {
             // if the secret already exists and is the same, then do nothing
@@ -512,17 +516,17 @@ public class ApplyService {
                 log.info("Secret has not changed so not doing anything");
             } else {
                 if (isRecreateMode()) {
-                    kubernetesClient.secrets().inNamespace(namespace).withName(id).delete();
-                    doCreateSecret(secret, namespace, sourceName);
+                    kubernetesClient.secrets().inNamespace(currentNamespace).withName(id).delete();
+                    doCreateSecret(secret, currentNamespace, sourceName);
                 } else {
-                    doPatchEntity(old, secret, namespace, sourceName);
+                    doPatchEntity(old, secret, currentNamespace, sourceName);
                 }
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a Secret from " + sourceName + " namespace " + namespace + " name " + getName(secret));
+                log.warn("Creation disabled so not creating a Secret from " + sourceName + " namespace " + currentNamespace + " name " + getName(secret));
             } else {
-                doCreateSecret(secret, namespace, sourceName);
+                doCreateSecret(secret, currentNamespace, sourceName);
             }
         }
     }
@@ -614,32 +618,32 @@ public class ApplyService {
         if (openShiftClient != null) {
             String id = getName(entity);
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-            String namespace = KubernetesHelper.getNamespace(entity);
-            if (StringUtils.isBlank(namespace)) {
-                namespace = getNamespace();
+            String currentNamespace = KubernetesHelper.getNamespace(entity);
+            if (StringUtils.isBlank(currentNamespace)) {
+                currentNamespace = getNamespace();
             }
             if (isServicesOnlyMode()) {
-                log.debug("Ignoring Route: " + namespace + ":" + id);
+                log.debug("Ignoring Route: " + currentNamespace + ":" + id);
                 return;
             }
-            Route route = openShiftClient.routes().inNamespace(namespace).withName(id).get();
+            Route route = openShiftClient.routes().inNamespace(currentNamespace).withName(id).get();
             if (isRunning(route)) {
                 if (UserConfigurationCompare.configEqual(entity, route)) {
                     log.info("Route has not changed so not doing anything");
                 } else {
                     if (isRecreateMode()) {
                         log.info("Deleting Route: " + id);
-                        openShiftClient.routes().inNamespace(namespace).withName(id).delete();
-                        doCreateRoute(entity, namespace, sourceName);
+                        openShiftClient.routes().inNamespace(currentNamespace).withName(id).delete();
+                        doCreateRoute(entity, currentNamespace, sourceName);
                     } else {
-                        doPatchEntity(route, entity, namespace, sourceName);
+                        doPatchEntity(route, entity, currentNamespace, sourceName);
                     }
                 }
             } else {
                 if (!isAllowCreate()) {
-                    log.warn("Creation disabled so not creating a Route from " + sourceName + " namespace " + namespace + " name " + id);
+                    log.warn("Creation disabled so not creating a Route from " + sourceName + " namespace " + currentNamespace + " name " + id);
                 } else {
-                    doCreateRoute(entity, namespace, sourceName);
+                    doCreateRoute(entity, currentNamespace, sourceName);
                 }
             }
         }
@@ -665,29 +669,29 @@ public class ApplyService {
             String id = getName(entity);
 
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-            String namespace = KubernetesHelper.getNamespace(entity);
-            if (StringUtils.isBlank(namespace)) {
-                namespace = getNamespace();
+            String currentNamespace = KubernetesHelper.getNamespace(entity);
+            if (StringUtils.isBlank(currentNamespace)) {
+                currentNamespace = getNamespace();
             }
-            applyNamespace(namespace);
-            BuildConfig old = openShiftClient.buildConfigs().inNamespace(namespace).withName(id).get();
+            applyNamespace(currentNamespace);
+            BuildConfig old = openShiftClient.buildConfigs().inNamespace(currentNamespace).withName(id).get();
             if (isRunning(old)) {
                 if (UserConfigurationCompare.configEqual(entity, old)) {
                     log.info("BuildConfig has not changed so not doing anything");
                 } else {
                     if (isRecreateMode()) {
                         log.info("Deleting BuildConfig: " + id);
-                        openShiftClient.buildConfigs().inNamespace(namespace).withName(id).delete();
-                        doCreateBuildConfig(entity, namespace, sourceName);
+                        openShiftClient.buildConfigs().inNamespace(currentNamespace).withName(id).delete();
+                        doCreateBuildConfig(entity, currentNamespace, sourceName);
                     } else {
-                        doPatchEntity(old, entity, namespace, sourceName);
+                        doPatchEntity(old, entity, currentNamespace, sourceName);
                     }
                 }
             } else {
                 if (!isAllowCreate()) {
-                    log.warn("Creation disabled so not creating BuildConfig from " + sourceName + " namespace " + namespace + " name " + getName(entity));
+                    log.warn("Creation disabled so not creating BuildConfig from " + sourceName + " namespace " + currentNamespace + " name " + getName(entity));
                 } else {
-                    doCreateBuildConfig(entity, namespace, sourceName);
+                    doCreateBuildConfig(entity, currentNamespace, sourceName);
                 }
             }
         }
@@ -708,29 +712,29 @@ public class ApplyService {
         String id = getName(entity);
 
         Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-        String namespace = KubernetesHelper.getNamespace(entity);
-        if (StringUtils.isBlank(namespace)) {
-            namespace = getNamespace();
+        String currentNamespace = KubernetesHelper.getNamespace(entity);
+        if (StringUtils.isBlank(currentNamespace)) {
+            currentNamespace = getNamespace();
         }
-        applyNamespace(namespace);
-        RoleBinding old = kubernetesClient.rbac().roleBindings().inNamespace(namespace).withName(id).get();
+        applyNamespace(currentNamespace);
+        RoleBinding old = kubernetesClient.rbac().roleBindings().inNamespace(currentNamespace).withName(id).get();
         if (isRunning(old)) {
             if (UserConfigurationCompare.configEqual(entity, old)) {
                 log.info("RoleBinding has not changed so not doing anything");
             } else {
                 if (isRecreateMode()) {
                     log.info("Deleting RoleBinding: " + id);
-                    kubernetesClient.rbac().roleBindings().inNamespace(namespace).withName(id).delete();
-                    doCreateRoleBinding(entity, namespace, sourceName);
+                    kubernetesClient.rbac().roleBindings().inNamespace(currentNamespace).withName(id).delete();
+                    doCreateRoleBinding(entity, currentNamespace, sourceName);
                 } else {
                     log.info("Updating RoleBinding from " + sourceName);
                     try {
                         String resourceVersion = KubernetesHelper.getResourceVersion(old);
                         ObjectMeta metadata = getOrCreateMetadata(entity);
-                        metadata.setNamespace(namespace);
+                        metadata.setNamespace(currentNamespace);
                         metadata.setResourceVersion(resourceVersion);
-                        Object answer = kubernetesClient.rbac().roleBindings().inNamespace(namespace).withName(id).replace(entity);
-                        logGeneratedEntity("Updated RoleBinding: ", namespace, entity, answer);
+                        Object answer = kubernetesClient.rbac().roleBindings().inNamespace(currentNamespace).withName(id).replace(entity);
+                        logGeneratedEntity("Updated RoleBinding: ", currentNamespace, entity, answer);
                     } catch (Exception e) {
                         onApplyError("Failed to update RoleBinding from " + sourceName + ". " + e + ". " + entity, e);
                     }
@@ -738,9 +742,9 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating RoleBinding from " + sourceName + " namespace " + namespace + " name " + getName(entity));
+                log.warn("Creation disabled so not creating RoleBinding from " + sourceName + " namespace " + currentNamespace + " name " + getName(entity));
             } else {
-                doCreateRoleBinding(entity, namespace, sourceName);
+                doCreateRoleBinding(entity, currentNamespace, sourceName);
             }
         }
     }
@@ -759,9 +763,9 @@ public class ApplyService {
         if (openShiftClient != null) {
             String kind = getKind(entity);
             String name = getName(entity);
-            String namespace = getNamespace();
+            String currentNamespace = getNamespace();
             try {
-                Resource<ImageStream> resource = openShiftClient.imageStreams().inNamespace(namespace).withName(name);
+                Resource<ImageStream> resource = openShiftClient.imageStreams().inNamespace(currentNamespace).withName(name);
                 ImageStream old = resource.get();
                 if (old == null) {
                     log.info("Creating " + kind + " " + name + " from " + sourceName);
@@ -769,8 +773,8 @@ public class ApplyService {
                 } else {
                     log.info("Updating " + kind + " " + name + " from " + sourceName);
                     copyAllImageStreamTags(entity, old);
-                    entity = patchService.compareAndPatchEntity(namespace, entity, old);
-                    openShiftClient.resource(entity).inNamespace(namespace).createOrReplace();
+                    entity = patchService.compareAndPatchEntity(currentNamespace, entity, old);
+                    openShiftClient.resource(entity).inNamespace(currentNamespace).createOrReplace();
                 }
             } catch (Exception e) {
                 onApplyError("Failed to create " + kind + " from " + sourceName + ". " + e, e);
@@ -833,58 +837,58 @@ public class ApplyService {
     }
 
     public void applyService(Service service, String sourceName) {
-        String namespace = getNamespace();
+        String currentNamespace = getNamespace();
         String id = getName(service);
         Objects.requireNonNull(id, "No name for " + service + " " + sourceName);
         if (isIgnoreServiceMode()) {
-            log.debug("Ignoring Service: " + namespace + ":" + id);
+            log.debug("Ignoring Service: " + currentNamespace + ":" + id);
             return;
         }
-        Service old = kubernetesClient.services().inNamespace(namespace).withName(id).get();
+        Service old = kubernetesClient.services().inNamespace(currentNamespace).withName(id).get();
         if (isRunning(old)) {
             if (UserConfigurationCompare.configEqual(service, old)) {
                 log.info("Service has not changed so not doing anything");
             } else {
                 if (isRecreateMode()) {
                     log.info("Deleting Service: " + id);
-                    kubernetesClient.services().inNamespace(namespace).withName(id).delete();
-                    doCreateService(service, namespace, sourceName);
+                    kubernetesClient.services().inNamespace(currentNamespace).withName(id).delete();
+                    doCreateService(service, currentNamespace, sourceName);
                 } else {
-                    doPatchEntity(old, service, namespace, sourceName);
+                    doPatchEntity(old, service, currentNamespace, sourceName);
                 }
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a Service from " + sourceName + " namespace " + namespace + " name " + getName(service));
+                log.warn("Creation disabled so not creating a Service from " + sourceName + " namespace " + currentNamespace + " name " + getName(service));
             } else {
-                doCreateService(service, namespace, sourceName);
+                doCreateService(service, currentNamespace, sourceName);
             }
         }
     }
 
     public <T extends HasMetadata,L> void applyResource(T resource, String sourceName, MixedOperation<T, L, ? extends Resource<T>> resources) {
-        String namespace = getNamespace();
+        String currentNamespace = getNamespace();
         String id = getName(resource);
         String kind = getKind(resource);
         Objects.requireNonNull(id, "No name for " + resource + " " + sourceName);
         if (isServicesOnlyMode()) {
-            log.debug("Ignoring " + kind + ": " + namespace + ":" + id);
+            log.debug("Ignoring " + kind + ": " + currentNamespace + ":" + id);
             return;
         }
-        T old = resources.inNamespace(namespace).withName(id).get();
+        T old = resources.inNamespace(currentNamespace).withName(id).get();
         if (isRunning(old)) {
             if (UserConfigurationCompare.configEqual(resource, old)) {
                 log.info(kind + " has not changed so not doing anything");
             } else {
                 if (isRecreateMode()) {
                     log.info("Deleting " + kind + ": " + id);
-                    resources.inNamespace(namespace).withName(id).delete();
-                    doCreateResource(resource, namespace, sourceName, resources);
+                    resources.inNamespace(currentNamespace).withName(id).delete();
+                    doCreateResource(resource, currentNamespace, sourceName, resources);
                 } else {
                     log.info("Updating " + kind + " from " + sourceName);
                     try {
-                        Object answer = resources.inNamespace(namespace).withName(id).replace(resource);
-                        logGeneratedEntity("Updated " + kind + ": ", namespace, resource, answer);
+                        Object answer = resources.inNamespace(currentNamespace).withName(id).replace(resource);
+                        logGeneratedEntity("Updated " + kind + ": ", currentNamespace, resource, answer);
                     } catch (Exception e) {
                         onApplyError("Failed to update " + kind + " from " + sourceName + ". " + e + ". " + resource, e);
                     }
@@ -892,9 +896,9 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a " + kind + " from " + sourceName + " namespace " + namespace + " name " + getName(resource));
+                log.warn("Creation disabled so not creating a " + kind + " from " + sourceName + " namespace " + currentNamespace + " name " + getName(resource));
             } else {
-                doCreateResource(resource, namespace, sourceName, resources);
+                doCreateResource(resource, currentNamespace, sourceName, resources);
             }
         }
     }
@@ -988,14 +992,14 @@ public class ApplyService {
             ProjectRequest entity = new ProjectRequest();
             ObjectMeta metadata = getOrCreateMetadata(entity);
             metadata.setName(namespaceName);
-            String namespace = kubernetesClient.getNamespace();
-            if (StringUtils.isNotBlank(namespace)) {
+            String kubernetesClientNamespace = kubernetesClient.getNamespace();
+            if (StringUtils.isNotBlank(kubernetesClientNamespace)) {
                 Map<String, String> entityLabels = getOrCreateLabels(entity);
                 if (labels != null) {
                     entityLabels.putAll(labels);
                 } else {
                     // lets associate this new namespace with the project that it was created from
-                    entityLabels.put("project", namespace);
+                    entityLabels.put("project", kubernetesClientNamespace);
                 }
             }
             applyProjectRequest(entity);
@@ -1004,14 +1008,14 @@ public class ApplyService {
             Namespace entity = new Namespace();
             ObjectMeta metadata = getOrCreateMetadata(entity);
             metadata.setName(namespaceName);
-            String namespace = kubernetesClient.getNamespace();
-            if (StringUtils.isNotBlank(namespace)) {
+            String kubernetesClientNamespace = kubernetesClient.getNamespace();
+            if (StringUtils.isNotBlank(kubernetesClientNamespace)) {
                 Map<String, String> entityLabels = getOrCreateLabels(entity);
                 if (labels != null) {
                     entityLabels.putAll(labels);
                 } else {
                     // lets associate this new namespace with the project that it was created from
-                    entityLabels.put("project", namespace);
+                    entityLabels.put("project", kubernetesClientNamespace);
                 }
             }
             applyNamespace(entity);
@@ -1022,18 +1026,18 @@ public class ApplyService {
      * Returns true if the namespace is created
      */
     public boolean applyNamespace(Namespace entity) {
-        String namespace = getOrCreateMetadata(entity).getName();
-        log.info("Using namespace: " + namespace);
+        String currentNamespace = getOrCreateMetadata(entity).getName();
+        log.info("Using currentNamespace: " + currentNamespace);
         String name = getName(entity);
         Objects.requireNonNull(name, "No name for " + entity );
         Namespace old = kubernetesClient.namespaces().withName(name).get();
         if (!isRunning(old)) {
             try {
                 Object answer = kubernetesClient.namespaces().create(entity);
-                logGeneratedEntity("Created namespace: ", namespace, entity, answer);
+                logGeneratedEntity("Created currentNamespace: ", currentNamespace, entity, answer);
                 return true;
             } catch (Exception e) {
-                onApplyError("Failed to create namespace: " + name + " due " + e.getMessage(), e);
+                onApplyError("Failed to create currentNamespace: " + name + " due " + e.getMessage(), e);
             }
         }
         return false;
@@ -1058,13 +1062,13 @@ public class ApplyService {
         if (projectsCreated.contains(getName(entity))) {
             return false;
         }
-        String namespace = getOrCreateMetadata(entity).getName();
-        log.info("Using project: " + namespace);
+        String currentNamespace = getOrCreateMetadata(entity).getName();
+        log.info("Using project: " + currentNamespace);
         String name = getName(entity);
         Objects.requireNonNull(name, "No name for " + entity);
         OpenShiftClient openshiftClient = getOpenShiftClient();
         if (openshiftClient == null) {
-            log.warn("Cannot check for Project " + namespace + " as not running against OpenShift!");
+            log.warn("Cannot check for Project " + currentNamespace + " as not running against OpenShift!");
             return false;
         }
         boolean exists = checkNamespace(name);
@@ -1074,7 +1078,7 @@ public class ApplyService {
                 Object answer = openshiftClient.projectrequests().create(entity);
                 // Add project to created projects
                 projectsCreated.add(name);
-                logGeneratedEntity("Created ProjectRequest: ", namespace, entity, answer);
+                logGeneratedEntity("Created ProjectRequest: ", currentNamespace, entity, answer);
                 return true;
             } catch (Exception e) {
                 onApplyError("Failed to create ProjectRequest: " + name + " due " + e.getMessage(), e);
@@ -1084,14 +1088,14 @@ public class ApplyService {
     }
 
     public void applyReplicationController(ReplicationController replicationController, String sourceName) {
-        String namespace = getNamespace();
+        String currentNamespace = getNamespace();
         String id = getName(replicationController);
         Objects.requireNonNull(id, "No name for " + replicationController + " " + sourceName);
         if (isServicesOnlyMode()) {
-            log.debug("Only processing Services right now so ignoring ReplicationController: " + namespace + ":" + id);
+            log.debug("Only processing Services right now so ignoring ReplicationController: " + currentNamespace + ":" + id);
             return;
         }
-        ReplicationController old = kubernetesClient.replicationControllers().inNamespace(namespace).withName(id).get();
+        ReplicationController old = kubernetesClient.replicationControllers().inNamespace(currentNamespace).withName(id).get();
         if (isRunning(old)) {
             if (UserConfigurationCompare.configEqual(replicationController, old)) {
                 log.info("ReplicationController has not changed so not doing anything");
@@ -1099,7 +1103,7 @@ public class ApplyService {
                 ReplicationControllerSpec newSpec = replicationController.getSpec();
                 ReplicationControllerSpec oldSpec = old.getSpec();
                 if (rollingUpgrade) {
-                    log.info("Rolling upgrade of the ReplicationController: " + namespace + "/" + id);
+                    log.info("Rolling upgrade of the ReplicationController: " + currentNamespace + "/" + id);
                     // lets preserve the number of replicas currently running in the environment we are about to upgrade
                     if (rollingUpgradePreserveScale && newSpec != null && oldSpec != null) {
                         Integer replicas = oldSpec.getReplicas();
@@ -1108,19 +1112,19 @@ public class ApplyService {
                         }
                     }
                     log.info("rollingUpgradePreserveScale " + rollingUpgradePreserveScale + " new replicas is " + (newSpec != null ? newSpec.getReplicas() : "<null>"));
-                    kubernetesClient.replicationControllers().inNamespace(namespace).withName(id).rolling().replace(replicationController);
+                    kubernetesClient.replicationControllers().inNamespace(currentNamespace).withName(id).rolling().replace(replicationController);
                 } else if (isRecreateMode()) {
                     log.info("Deleting ReplicationController: " + id);
-                    kubernetesClient.replicationControllers().inNamespace(namespace).withName(id).delete();
-                    doCreateReplicationController(replicationController, namespace, sourceName);
+                    kubernetesClient.replicationControllers().inNamespace(currentNamespace).withName(id).delete();
+                    doCreateReplicationController(replicationController, currentNamespace, sourceName);
                 } else {
-                    log.info("Updating ReplicationController from " + sourceName + " namespace " + namespace + " name " + getName(replicationController));
+                    log.info("Updating ReplicationController from " + sourceName + " namespace " + currentNamespace + " name " + getName(replicationController));
                     try {
-                        Object answer = patchService.compareAndPatchEntity(namespace, replicationController, old);
-                        logGeneratedEntity("Updated replicationController: ", namespace, replicationController, answer);
+                        Object answer = patchService.compareAndPatchEntity(currentNamespace, replicationController, old);
+                        logGeneratedEntity("Updated replicationController: ", currentNamespace, replicationController, answer);
 
                         if (deletePodsOnReplicationControllerUpdate) {
-                            kubernetesClient.pods().inNamespace(namespace).withLabels(newSpec.getSelector()).delete();
+                            kubernetesClient.pods().inNamespace(currentNamespace).withLabels(newSpec.getSelector()).delete();
                             log.info("Deleting any pods for the replication controller to ensure they use the new configuration");
                         } else {
                             log.info("Warning not deleted any pods so they could well be running with the old configuration!");
@@ -1132,9 +1136,9 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a ReplicationController from " + sourceName + " namespace " + namespace + " name " + getName(replicationController));
+                log.warn("Creation disabled so not creating a ReplicationController from " + sourceName + " namespace " + currentNamespace + " name " + getName(replicationController));
             } else {
-                doCreateReplicationController(replicationController, namespace, sourceName);
+                doCreateReplicationController(replicationController, currentNamespace, sourceName);
             }
         }
     }
@@ -1155,31 +1159,31 @@ public class ApplyService {
     }
 
     public void applyPod(Pod pod, String sourceName) {
-        String namespace = getNamespace();
+        String currentNamespace = getNamespace();
         String id = getName(pod);
         Objects.requireNonNull(id, "No name for " + pod + " " + sourceName);
         if (isServicesOnlyMode()) {
-            log.debug("Only processing Services right now so ignoring Pod: " + namespace + ":" + id);
+            log.debug("Only processing Services right now so ignoring Pod: " + currentNamespace + ":" + id);
             return;
         }
-        Pod old = kubernetesClient.pods().inNamespace(namespace).withName(id).get();
+        Pod old = kubernetesClient.pods().inNamespace(currentNamespace).withName(id).get();
         if (isRunning(old)) {
             if (UserConfigurationCompare.configEqual(pod, old)) {
                 log.info("Pod has not changed so not doing anything");
             } else {
                 if (isRecreateMode()) {
                     log.info("Deleting Pod: " + id);
-                    kubernetesClient.pods().inNamespace(namespace).withName(id).delete();
-                    doCreatePod(pod, namespace, sourceName);
+                    kubernetesClient.pods().inNamespace(currentNamespace).withName(id).delete();
+                    doCreatePod(pod, currentNamespace, sourceName);
                 } else {
-                    doPatchEntity(old, pod, namespace, sourceName);
+                    doPatchEntity(old, pod, currentNamespace, sourceName);
                 }
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a pod from " + sourceName + " namespace " + namespace + " name " + getName(pod));
+                log.warn("Creation disabled so not creating a pod from " + sourceName + " namespace " + currentNamespace + " name " + getName(pod));
             } else {
-                doCreatePod(pod, namespace, sourceName);
+                doCreatePod(pod, currentNamespace, sourceName);
             }
         }
     }
@@ -1200,21 +1204,21 @@ public class ApplyService {
     }
 
     protected void applyJob(Job job, String sourceName) {
-        String namespace = getNamespace();
+        String currentNamespace = getNamespace();
         String id = getName(job);
         Objects.requireNonNull(id, "No name for " + job + " " + sourceName);
         if (isServicesOnlyMode()) {
-            log.debug("Only processing Services right now so ignoring Job: " + namespace + ":" + id);
+            log.debug("Only processing Services right now so ignoring Job: " + currentNamespace + ":" + id);
             return;
         }
         // Not using createOrReplace() here (https://github.com/fabric8io/kubernetes-client/issues/1586)
         try {
-            doCreateJob(job, namespace, sourceName);
+            doCreateJob(job, currentNamespace, sourceName);
         } catch (KubernetesClientException exception) {
             if(exception.getStatus().getCode().equals(HttpURLConnection.HTTP_CONFLICT)) {
-                Job old = kubernetesClient.batch().jobs().inNamespace(namespace).withName(id).get();
-                Job updatedJob = patchService.compareAndPatchEntity(namespace, job, old);
-                log.info("Updated Job: " + old.getMetadata().getName());
+                Job old = kubernetesClient.batch().jobs().inNamespace(currentNamespace).withName(id).get();
+                Job updatedJob = patchService.compareAndPatchEntity(currentNamespace, job, old);
+                log.info("Updated Job: " + updatedJob.getMetadata().getName());
                 return;
             }
             onApplyError("Failed to apply Job from " + job.getMetadata().getName(), exception);
@@ -1388,5 +1392,83 @@ public class ApplyService {
                 }
             }
         }
+    }
+
+
+    /**
+     * Apply Namespace or Project in Kubernetes resource list if present. We need to process
+     * Namespace before processing other resources since namespace might be required while
+     * applying other resources.
+     *
+     * @param entities Collection of Kubernetes resource entities provided
+     */
+    public void applyNamespaceOrProjectIfPresent(Collection<HasMetadata> entities) {
+        entities.stream()
+                .filter(e -> e instanceof Namespace || e instanceof Project)
+                .forEach(this::applyProjectOrNamespace);
+
+        entities.removeIf(e -> e instanceof Project || e instanceof Namespace);
+    }
+
+    public void applyEntities(String fileName, Set<HasMetadata> entities, KitLogger serviceLogger,
+                                 long serviceUrlWaitTimeSeconds, ResourceConfig resources, File resourceDir,
+                                 String environment) throws Exception {
+        // Apply all items
+        applyStandardEntities(fileName, entities);
+        logExposeServiceUrl(entities, serviceLogger, serviceUrlWaitTimeSeconds);
+        processCustomEntities(resources != null ? resources.getCustomResourceDefinitions() : null,
+                resourceDir, environment, resources != null ? resources.getRemotes() : null);
+    }
+
+    private void logExposeServiceUrl(Set<HasMetadata> entities, KitLogger serviceLogger, long serviceUrlWaitTimeSeconds) throws InterruptedException {
+        String url = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
+        if (url != null) {
+            serviceLogger.info("ExposeController Service URL: %s", url);
+        }
+    }
+
+
+    private void applyStandardEntities(String fileName, Set<HasMetadata> entities) {
+        for (HasMetadata entity : entities) {
+            if (entity instanceof Pod) {
+                Pod pod = (Pod) entity;
+                applyPod(pod, fileName);
+            } else if (entity instanceof Service) {
+                Service service = (Service) entity;
+                applyService(service, fileName);
+            } else if (entity instanceof ReplicationController) {
+                ReplicationController replicationController = (ReplicationController) entity;
+                applyReplicationController(replicationController, fileName);
+            } else if (entity != null) {
+                apply(entity, fileName);
+            }
+        }
+    }
+
+    private void applyProjectOrNamespace(HasMetadata projectOrNs) {
+        if (projectOrNs instanceof Namespace) {
+            Namespace ns = (Namespace) projectOrNs;
+            applyNamespace(ns);
+        } else if (projectOrNs instanceof Project) {
+            Project project = (Project) projectOrNs;
+            applyProject(project);
+        }
+    }
+
+    /**
+     * Picks namespace for ApplyService, by default namespace specified in ClusterAccess is given
+     * preference. If there is namespace specified in provided Kubernetes resources, it would be
+     * given preference over ClusterAccess's namespace
+     *
+     * @param entities a list of Kubernetes resources to process
+     * @param clusterAccess {@link ClusterAccess} Kubernetes Cluster Access
+     * @return namespace for ApplyService
+     */
+    public static String getNamespaceForApplyService(Set<HasMetadata> entities, ClusterAccess clusterAccess) {
+        String namespaceInProvidedKubernetesList = KubernetesHelper.getNamespaceFromKubernetesList(entities);
+        if (namespaceInProvidedKubernetesList == null) {
+            return clusterAccess.getNamespace();
+        }
+        return namespaceInProvidedKubernetesList;
     }
 }

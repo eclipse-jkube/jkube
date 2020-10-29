@@ -15,9 +15,18 @@ package org.eclipse.jkube.kit.common.util;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.Resource;
+import mockit.Expectations;
 import mockit.Mocked;
+import mockit.Verifications;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.Test;
 
@@ -27,10 +36,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -176,6 +188,59 @@ public class KubernetesHelperTest {
     }
 
     @Test
+    public void testIsExposedServiceReturnsTrue() {
+        // Given
+        Service service = new ServiceBuilder()
+                .withNewMetadata()
+                .addToLabels("expose", "true")
+                .withName("svc1")
+                .endMetadata()
+                .build();
+
+        // When
+        boolean result = KubernetesHelper.isExposeService(service);
+
+        // Then
+        assertTrue(result);
+    }
+
+    @Test
+    public void testIsExposedServiceReturnsFalse() {
+        // Given
+        Service service = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
+
+        // When
+        boolean result = KubernetesHelper.isExposeService(service);
+
+        // Then
+        assertFalse(result);
+    }
+
+    @Test
+    public void testGetAnnotationValue() {
+        // Given
+        Service svc = new ServiceBuilder()
+                .withNewMetadata()
+                .withName("svc1")
+                .addToAnnotations("expose", "true")
+                .addToAnnotations("exposeUrl", "http://12.4.1.4:8223/test")
+                .endMetadata().build();
+        Service svc2 = null;
+
+        // When
+        String result1 = KubernetesHelper.getAnnotationValue(svc, "expose");
+        String result2 = KubernetesHelper.getAnnotationValue(svc, "exposeUrl");
+        String result3 = KubernetesHelper.getAnnotationValue(svc, "iDontExist");
+        String result4 = KubernetesHelper.getAnnotationValue(svc2, "expose");
+
+        // Then
+        assertEquals("true", result1);
+        assertEquals("http://12.4.1.4:8223/test", result2);
+        assertNull(result3);
+        assertNull(result4);
+    }
+
+    @Test
     public void testConvertToEnvVarList() {
         // Given
         Map<String, String> envVarAsStringMap = new HashMap<>();
@@ -193,6 +258,67 @@ public class KubernetesHelperTest {
         assertEquals("-Dfoo=bar -Dxyz=abc", KubernetesHelper.getEnvVar(envVarList, "JAVA_OPTIONS", "defaultValue"));
         assertEquals("BAR", KubernetesHelper.getEnvVar(envVarList, "FOO", "defaultValue"));
 
+    }
+
+    @Test
+    public void testGetServiceExposeUrlReturnsUrlFromAnnotation(@Mocked KubernetesClient kubernetesClient, @Mocked Resource<Service> svcResource) throws InterruptedException {
+        // Given
+        Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
+        Set<HasMetadata> entities = new HashSet<>();
+        entities.add(svc);
+        new Expectations() {{
+            kubernetesClient.services().inNamespace(anyString).withName("svc1");
+            result = svcResource;
+            svcResource.get();
+            result = new ServiceBuilder()
+                    .withNewMetadata()
+                    .withName("svc1")
+                    .addToAnnotations("exposeUrl", "http://example.com")
+                    .endMetadata()
+                    .build();
+        }};
+
+        // When
+        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, 3, "exposeUrl");
+
+        // Then
+        assertEquals("http://example.com", result);
+        new Verifications() {{
+            kubernetesClient.services().inNamespace(anyString).withName("svc1");
+            times = 1;
+            svcResource.get();
+            times = 1;
+        }};
+    }
+
+    @Test
+    public void testGetServiceExposeUrlReturnsNull(@Mocked KubernetesClient kubernetesClient, @Mocked Resource<Service> svcResource) throws InterruptedException {
+        // Given
+        Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
+        Set<HasMetadata> entities = new HashSet<>();
+        entities.add(svc);
+        new Expectations() {{
+            kubernetesClient.services().inNamespace(anyString).withName("svc1");
+            result = svcResource;
+            svcResource.get();
+            result = new ServiceBuilder()
+                    .withNewMetadata()
+                    .withName("svc1")
+                    .endMetadata()
+                    .build();
+        }};
+
+        // When
+        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, 1, "exposeUrl");
+
+        // Then
+        assertNull(result);
+        new Verifications() {{
+            kubernetesClient.services().inNamespace(anyString).withName("svc1");
+            times = 1;
+            svcResource.get();
+            times = 1;
+        }};
     }
 
     @Test
@@ -240,6 +366,21 @@ public class KubernetesHelperTest {
         // Then
         assertEquals("networking.istio.io/v1alpha3#VirtualService", result1);
         assertEquals("networking.istio.io/v1alpha3#Gateway", result2);
+    }
+
+    @Test
+    public void testGetNamespaceFromKubernetesList() {
+        // Given
+        List<HasMetadata> entities = new ArrayList<>();
+        entities.add(new NamespaceBuilder().withNewMetadata().withName("ns1").endMetadata().build());
+        entities.add(new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata().build());
+
+        // When
+        String namespace = KubernetesHelper.getNamespaceFromKubernetesList(entities);
+
+        // Then
+        assertNotNull(namespace);
+        assertEquals("ns1", namespace);
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {

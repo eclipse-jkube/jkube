@@ -14,22 +14,14 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Namespace;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.ReplicationController;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.openshift.api.model.Project;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -42,6 +34,8 @@ import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 import java.io.File;
 import java.net.URL;
 import java.util.Set;
+
+import static org.eclipse.jkube.kit.config.service.ApplyService.getNamespaceForApplyService;
 
 /**
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
@@ -162,9 +156,8 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
 
     @Override
     public void executeInternal() throws MojoExecutionException {
-        try {
-            KubernetesClient kubernetes = clusterAccess.createDefaultClient();
-            applyService = new ApplyService(kubernetes, log);
+        try (KubernetesClient kubernetes = jkubeServiceHub.getClient()) {
+            applyService = jkubeServiceHub.getApplyService();
             initServices(kubernetes);
 
             URL masterUrl = kubernetes.getMasterUrl();
@@ -183,58 +176,15 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
                 clusterKind = "OpenShift";
             }
             KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
+            Set<HasMetadata> entities = KubernetesResourceUtil.loadResources(manifest);
             log.info("Using %s at %s in namespace %s with manifest %s ", clusterKind, masterUrl, clusterAccess.getNamespace(), manifest);
 
-            applyService.setAllowCreate(createNewResources);
-            applyService.setServicesOnlyMode(servicesOnly);
-            applyService.setIgnoreServiceMode(ignoreServices);
-            applyService.setLogJsonDir(jsonLogDir);
-            applyService.setBasedir(getRootProjectFolder());
-            applyService.setIgnoreRunningOAuthClients(ignoreRunningOAuthClients);
-            applyService.setProcessTemplatesLocally(processTemplatesLocally);
-            applyService.setDeletePodsOnReplicationControllerUpdate(deletePodsOnReplicationControllerUpdate);
-            applyService.setRollingUpgrade(rollingUpgrades);
-            applyService.setRollingUpgradePreserveScale(isRollingUpgradePreserveScale());
-            applyService.setRecreateMode(recreate);
+            configureApplyService(kubernetes, entities);
 
-            boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
-            if (openShift) {
-                log.info("[[B]]OpenShift[[B]] platform detected");
-            } else {
-                disableOpenShiftFeatures(applyService);
-            }
+            applyService.applyNamespaceOrProjectIfPresent(entities);
 
-            Set<HasMetadata> entities = KubernetesResourceUtil.loadResources(manifest);
-
-            String namespace = clusterAccess.getNamespace();
-            boolean namespaceEntityExist = false;
-
-            for (HasMetadata entity: entities) {
-                if (entity instanceof Namespace) {
-                    Namespace ns = (Namespace)entity;
-                    namespace = ns.getMetadata().getName();
-                    applyService.applyNamespace((ns));
-                    namespaceEntityExist = true;
-                    entities.remove(entity);
-                    break;
-                }
-                if (entity instanceof Project) {
-                    Project project = (Project)entity;
-                    namespace = project.getMetadata().getName();
-                    applyService.applyProject(project);
-                    namespaceEntityExist = true;
-                    entities.remove(entity);
-                    break;
-                }
-            }
-
-            if (!namespaceEntityExist) {
-                applyService.applyNamespace(namespace);
-            }
-
-            applyService.setNamespace(namespace);
-
-            applyEntities(kubernetes, namespace, manifest.getName(), entities);
+            // Apply rest of the entities present in manifest
+            applyEntities(kubernetes, getNamespaceForApplyService(entities, clusterAccess), manifest.getName(), entities);
             log.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShift() ? "oc" : "kubectl");
         } catch (KubernetesClientException e) {
             KubernetesResourceUtil.handleKubernetesClientException(e, this.log);
@@ -245,70 +195,14 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         }
     }
 
+    protected void applyEntities(final KubernetesClient kubernetes, final String namespace, String fileName, final Set<HasMetadata> entities) throws Exception {
+        KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
+        applyService.applyEntities(fileName, entities,
+                serviceLogger, serviceUrlWaitTimeSeconds, resources, resourceDir, environment);
+    }
+
     protected void initServices(KubernetesClient kubernetes) {
         log.debug("No services required in ApplyMojo");
-    }
-
-    protected void applyEntities(KubernetesClient kubernetes, String namespace, String fileName, Set<HasMetadata> entities) throws Exception {
-        // Apply all items
-        for (HasMetadata entity : entities) {
-            if (entity instanceof Pod) {
-                Pod pod = (Pod) entity;
-                applyService.applyPod(pod, fileName);
-            } else if (entity instanceof Service) {
-                Service service = (Service) entity;
-                applyService.applyService(service, fileName);
-            } else if (entity instanceof ReplicationController) {
-                ReplicationController replicationController = (ReplicationController) entity;
-                applyService.applyReplicationController(replicationController, fileName);
-            } else if (entity != null) {
-                applyService.apply(entity, fileName);
-            }
-        }
-
-        KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
-        long serviceUrlWaitTimeSeconds = this.serviceUrlWaitTimeSeconds;
-        for (HasMetadata entity : entities) {
-            if (entity instanceof Service) {
-                Service service = (Service) entity;
-                String name = KubernetesHelper.getName(service);
-                Resource<Service> serviceResource = kubernetes.services().inNamespace(namespace).withName(name);
-                String url = null;
-                // lets wait a little while until there is a service URL in case the exposecontroller is running slow
-                for (int i = 0; i < serviceUrlWaitTimeSeconds; i++) {
-                    if (i > 0) {
-                        Thread.sleep(1000);
-                    }
-                    Service s = serviceResource.get();
-                    if (s != null) {
-                        url = getExternalServiceURL(s);
-                        if (StringUtils.isNotBlank(url)) {
-                            break;
-                        }
-                    }
-                    if (!isExposeService(service)) {
-                        break;
-                    }
-                }
-
-                // lets not wait for other services
-                serviceUrlWaitTimeSeconds = 1;
-                if (StringUtils.isNotBlank(url) && url.startsWith("http")) {
-                    serviceLogger.info("%s: %s", name, url);
-                }
-            }
-        }
-        applyService.processCustomEntities(resources != null ? resources.getCustomResourceDefinitions() : null,
-                resourceDir, environment, resources != null ? resources.getRemotes() : null);
-    }
-
-    protected String getExternalServiceURL(Service service) {
-        return KubernetesHelper.getOrCreateAnnotations(service).get(JKubeAnnotations.SERVICE_EXPOSE_URL.value());
-    }
-
-    protected boolean isExposeService(Service service) {
-        String expose = KubernetesHelper.getLabels(service).get("expose");
-        return expose != null && expose.equalsIgnoreCase("true");
     }
 
     public boolean isRollingUpgradePreserveScale() {
@@ -329,20 +223,25 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         applyService.setProcessTemplatesLocally(true);
     }
 
-    /**
-     * Returns the root project folder
-     */
-    protected File getRootProjectFolder() {
-        File answer = null;
-        MavenProject project = getProject();
-        while (project != null) {
-            File basedir = project.getBasedir();
-            if (basedir != null) {
-                answer = basedir;
-            }
-            project = project.getParent();
-        }
-        return answer;
-    }
+    private void configureApplyService(KubernetesClient kubernetes, Set<HasMetadata> entities) {
+        applyService.setAllowCreate(createNewResources);
+        applyService.setServicesOnlyMode(servicesOnly);
+        applyService.setIgnoreServiceMode(ignoreServices);
+        applyService.setLogJsonDir(jsonLogDir);
+        applyService.setBasedir(MavenUtil.getRootProjectFolder(getProject()));
+        applyService.setIgnoreRunningOAuthClients(ignoreRunningOAuthClients);
+        applyService.setProcessTemplatesLocally(processTemplatesLocally);
+        applyService.setDeletePodsOnReplicationControllerUpdate(deletePodsOnReplicationControllerUpdate);
+        applyService.setRollingUpgrade(rollingUpgrades);
+        applyService.setRollingUpgradePreserveScale(isRollingUpgradePreserveScale());
+        applyService.setRecreateMode(recreate);
+        applyService.setNamespace(getNamespaceForApplyService(entities, clusterAccess));
 
+        boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
+        if (openShift) {
+            log.info("[[B]]OpenShift[[B]] platform detected");
+        } else {
+            disableOpenShiftFeatures(applyService);
+        }
+    }
 }
