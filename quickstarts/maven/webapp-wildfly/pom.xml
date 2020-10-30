@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>jkube-maven-sample-webapp-wildfly</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Webapp :: Wildfly</name>
   <packaging>war</packaging>
 

@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>quarkus</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Quarkus</name>
   <description>
     Quarkus application with a single JAX-RS endpoint.
