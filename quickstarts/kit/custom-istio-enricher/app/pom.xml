@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>eclipse-jkube-sample-custom-enricher-app</artifactId>
+  <packaging>jar</packaging>
+  <version>1.1.0-SNAPSHOT</version>
+
+  <parent>
+    <groupId>org.eclipse.jkube.quickstarts.kit</groupId>
+    <artifactId>eclipse-jkube-sample-custom-enricher-parent</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <name>Eclipse JKube :: Quickstarts :: Kit :: Custom Enricher App</name>
+  <description>Spring Boot example with a custom enricher</description>
+
+  <dependencies>
+
+    <!-- Boot generator  -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
+        <version>${jkube.version}</version>
+        <configuration>
+          <enricher>
+            <includes>
+              <!-- Include to standard profile -->
+              <include>istio-enricher</include>
+            </includes>
+            <config>
+              <istio-enricher>
+                <name>${project.artifactId}</name>
+              </istio-enricher>
+            </config>
+          </enricher>
+        </configuration>
+
+        <executions>
+          <execution>
+            <goals>
+              <goal>resource</goal>
+            </goals>
+          </execution>
+        </executions>
+
+        <dependencies>
+          <!-- Custom enricher as plugin dependency -->
+          <dependency>
+            <groupId>org.eclipse.jkube.quickstarts.kit</groupId>
+            <artifactId>eclipse-jkube-sample-custom-enricher-istio</artifactId>
+            <version>${project.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+    </plugins>
+  </build>
+</project>
