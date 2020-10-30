@@ -47,6 +47,7 @@ public class ApplyServiceTest {
     @Before
     public void setUp() {
         applyService = new ApplyService(mockServer.createOpenShiftClient(), log);
+        applyService.setNamespace("default");
     }
 
     @Test
