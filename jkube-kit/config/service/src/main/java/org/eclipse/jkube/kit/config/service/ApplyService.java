@@ -105,7 +105,7 @@ public class ApplyService {
     private boolean recreateMode;
     private PatchService patchService;
     // This map is to track projects created.
-    private static Set<String> projectsCreated = new HashSet<>();
+    private static final Set<String> projectsCreated = new HashSet<>();
 
     public ApplyService(KubernetesClient kubernetesClient, KitLogger log) {
         this.kubernetesClient = kubernetesClient;
@@ -118,10 +118,10 @@ public class ApplyService {
      */
     public void apply(Object dto, String sourceName) throws Exception {
         if (dto instanceof List) {
-            List list = (List) dto;
+            List<Object> list = (List<Object>) dto;
             for (Object element : list) {
                 if (dto == element) {
-                    log.warn("Found recursive nested object for " + dto + " of class: " + dto.getClass().getName());
+                    log.warn("Found recursive nested object for %s of class: %s", dto, dto.getClass().getName());
                     continue;
                 }
                 apply(element, sourceName);
@@ -153,7 +153,7 @@ public class ApplyService {
             if (openShiftClient != null) {
                 applyResource(resource, sourceName, openShiftClient.deploymentConfigs());
             } else {
-                log.warn("Not connected to OpenShift cluster so cannot apply entity " + dto);
+                log.warn("Not connected to OpenShift cluster so cannot apply entity %s", dto);
             }
         } else if (dto instanceof RoleBinding) {
             applyRoleBinding((RoleBinding) dto, sourceName);
@@ -190,7 +190,7 @@ public class ApplyService {
         } else if (dto instanceof HasMetadata) {
             HasMetadata entity = (HasMetadata) dto;
             try {
-                log.info("Applying " + getKind(entity) + " " + getName(entity) + " from " + sourceName);
+                log.info("Applying %s %s from %s", getKind(entity), getName(entity), sourceName);
                 kubernetesClient.resource(entity).inNamespace(getNamespace()).createOrReplace();
             } catch (Exception e) {
                 onApplyError("Failed to create " + getKind(entity) + " from " + sourceName + ". " + e, e);
@@ -206,7 +206,7 @@ public class ApplyService {
             String id = getName(entity);
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
             if (isServicesOnlyMode()) {
-                log.debug("Only processing Services right now so ignoring OAuthClient: " + id);
+                log.debug("Only processing Services right now so ignoring OAuthClient: %s", id);
                 return;
             }
             OAuthClient old = openShiftClient.oAuthClients().withName(id).get();
@@ -224,7 +224,7 @@ public class ApplyService {
                     } else {
                         try {
                             Object answer = openShiftClient.oAuthClients().withName(id).replace(entity);
-                            log.info("Updated OAuthClient result: " + answer);
+                            log.info("Updated OAuthClient result: %s", answer);
                         } catch (Exception e) {
                             onApplyError("Failed to update OAuthClient from " + sourceName + ". " + e + ". " + entity, e);
                         }
@@ -232,7 +232,7 @@ public class ApplyService {
                 }
             } else {
                 if (!isAllowCreate()) {
-                    log.warn("Creation disabled so not creating an OAuthClient from " + sourceName + " name " + getName(entity));
+                    log.warn("Creation disabled so not creating an OAuthClient from %s name %s", sourceName, getName(entity));
                 } else {
                     doCreateOAuthClient(entity, sourceName);
                 }
@@ -284,7 +284,7 @@ public class ApplyService {
                         openShiftClient.templates().inNamespace(namespace).withName(id).delete();
                         doCreateTemplate(entity, namespace, sourceName);
                     } else {
-                        log.info("Updating a Template from " + sourceName);
+                        log.info("Updating a Template from %s", sourceName);
                         try {
                             Object answer = openShiftClient.templates().inNamespace(namespace).withName(id).replace(entity);
                             log.info("Updated Template: " + answer);
@@ -295,7 +295,7 @@ public class ApplyService {
                 }
             } else {
                 if (!isAllowCreate()) {
-                    log.warn("Creation disabled so not creating a Template from " + sourceName + " namespace " + namespace + " name " + getName(entity));
+                    log.warn("Creation disabled so not creating a Template from %s namespace %s name %s", sourceName, namespace, getName(entity));
                 } else {
                     doCreateTemplate(entity, namespace, sourceName);
                 }
@@ -446,7 +446,7 @@ public class ApplyService {
         log.info("Creating a Custom Resource Definition from " + sourceName + " name " + getName(entity));
         try {
             CustomResourceDefinition answer = kubernetesClient.customResourceDefinitions().create(entity);
-            log.info("Created Custom Resource Definition result: " + answer.getMetadata().getName());
+            log.info("Created Custom Resource Definition result: %s", answer.getMetadata().getName());
         } catch (Exception e) {
             onApplyError("Failed to create Custom Resource Definition from " + sourceName + ". " + e + ". " + entity, e);
         }
@@ -462,15 +462,15 @@ public class ApplyService {
         if (isRecreateMode()) {
             KubernetesClientUtil.doDeleteCustomResource(kubernetesClient, context, namespace, name);
             KubernetesClientUtil.doCreateCustomResource(kubernetesClient, context, namespace, customResourceFile);
-            log.info("Created Custom Resource: " + KubernetesHelper.getFullyQualifiedApiGroupWithKind(context) + " " + name);
+            log.info("Created Custom Resource: %s %s", KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), name);
         } else {
             cr = KubernetesClientUtil.doGetCustomResource(kubernetesClient, context, namespace, name);
             if (cr == null) {
                 KubernetesClientUtil.doCreateCustomResource(kubernetesClient, context, namespace, customResourceFile);
-                log.info("Created Custom Resource: " + KubernetesHelper.getFullyQualifiedApiGroupWithKind(context) + " " + name);
+                log.info("Created Custom Resource: %s", KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), name);
             } else {
                 KubernetesClientUtil.doEditCustomResource(kubernetesClient, context, namespace, name, customResourceFile);
-                log.info("Updated Custom Resource: " + KubernetesHelper.getFullyQualifiedApiGroupWithKind(context) + " " + name);
+                log.info("Updated Custom Resource: %s", KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), name);
             }
         }
     }

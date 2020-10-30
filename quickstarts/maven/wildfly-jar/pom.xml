@@ -40,10 +40,10 @@
 
   <dependencies>
     <dependency>
-        <groupId>org.jboss.spec.javax.ws.rs</groupId>
-        <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
-        <version>1.0.1.Final</version>
-        <scope>provided</scope>
+      <groupId>org.jboss.spec.javax.ws.rs</groupId>
+      <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
+      <version>1.0.1.Final</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -51,27 +51,28 @@
     <finalName>wildfly-jar-sample</finalName>
     <plugins>
       <plugin>
-            <groupId>org.wildfly.plugins</groupId>
-            <artifactId>wildfly-jar-maven-plugin</artifactId>
-            <version>${version.wildfly.jar}</version>
-            <configuration>
-                <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
-                <layers>
-                    <layer>cloud-server</layer>
-                </layers>
-                <excluded-layers>
-                    <layer>deployment-scanner</layer>
-                </excluded-layers>
-                <cloud/>
-            </configuration>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>package</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-jar-maven-plugin</artifactId>
+        <version>${version.wildfly.jar}</version>
+        <configuration>
+          <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}
+          </feature-pack-location>
+          <layers>
+            <layer>cloud-server</layer>
+          </layers>
+          <excluded-layers>
+            <layer>deployment-scanner</layer>
+          </excluded-layers>
+          <cloud/>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>package</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -79,59 +80,59 @@
     <profile>
       <id>kubernetes</id>
       <build>
-	<plugins>
-	  <plugin>
-	    <groupId>org.eclipse.jkube</groupId>
-	    <artifactId>kubernetes-maven-plugin</artifactId>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
             <version>${jkube.version}</version>
-	    <executions>
-	      <execution>
-		<goals>
-		  <goal>resource</goal>
-		  <goal>build</goal>
-		</goals>
-	      </execution>
-	    </executions>
-	    <configuration>
-	      <enricher>
-		<config>
-		  <jkube-service>
-		    <type>NodePort</type>
-		  </jkube-service>
-		</config>
-	      </enricher>
-	    </configuration>
-	  </plugin>
-	</plugins>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>resource</goal>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <enricher>
+                <config>
+                  <jkube-service>
+                    <type>NodePort</type>
+                  </jkube-service>
+                </config>
+              </enricher>
+            </configuration>
+          </plugin>
+        </plugins>
       </build>
     </profile>
     <profile>
       <id>openshift</id>
       <build>
-	<plugins>
-	  <plugin>
-	    <groupId>org.eclipse.jkube</groupId>
-	    <artifactId>openshift-maven-plugin</artifactId>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>openshift-maven-plugin</artifactId>
             <version>${jkube.version}</version>
-	    <executions>
-	      <execution>
-		<goals>
-		  <goal>resource</goal>
-		  <goal>build</goal>
-		</goals>
-	      </execution>
-	    </executions>
-	    <configuration>
-	      <enricher>
-		<config>
-		  <jkube-service>
-		    <type>NodePort</type>
-		  </jkube-service>
-		</config>
-	      </enricher>
-	    </configuration>
-	  </plugin>
-	</plugins>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>resource</goal>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <enricher>
+                <config>
+                  <jkube-service>
+                    <type>NodePort</type>
+                  </jkube-service>
+                </config>
+              </enricher>
+            </configuration>
+          </plugin>
+        </plugins>
       </build>
     </profile>
   </profiles>
