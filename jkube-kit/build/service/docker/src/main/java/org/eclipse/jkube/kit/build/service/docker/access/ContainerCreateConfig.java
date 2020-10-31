@@ -109,7 +109,7 @@ public class ContainerCreateConfig {
     }
 
     public ContainerCreateConfig exposedPorts(Set<String> portSpecs) {
-        if (portSpecs != null && portSpecs.size() > 0) {
+        if (portSpecs != null && !portSpecs.isEmpty()) {
             JsonObject exposedPorts = new JsonObject();
             for (String portSpec : portSpecs) {
                 exposedPorts.add(portSpec, new JsonObject());

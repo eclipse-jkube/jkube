@@ -44,7 +44,7 @@ class MainClassDetector {
         // Try to detect a single main class from target/classes
         try {
             List<String> foundMainClasses = ClassUtil.findMainClasses(classesDir);
-            if (foundMainClasses.size() == 0) {
+            if (foundMainClasses.isEmpty()) {
                 return mainClass = null;
             } else if (foundMainClasses.size() == 1) {
                 return mainClass = foundMainClasses.get(0);
