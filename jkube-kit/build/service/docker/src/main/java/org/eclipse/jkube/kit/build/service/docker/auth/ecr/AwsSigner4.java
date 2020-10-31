@@ -19,7 +19,6 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -138,12 +137,7 @@ class AwsSigner4 {
             return "";
         }
         List<NameValuePair> params = URLEncodedUtils.parse(query, StandardCharsets.UTF_8);
-        Collections.sort(params, new Comparator<NameValuePair>() {
-            @Override
-            public int compare(NameValuePair l, NameValuePair r) {
-                return l.getName().compareToIgnoreCase(r.getName());
-            }
-        });
+        Collections.sort(params, (l, r) -> l.getName().compareToIgnoreCase(r.getName()));
         return URLEncodedUtils.format(params, StandardCharsets.UTF_8);
     }
 

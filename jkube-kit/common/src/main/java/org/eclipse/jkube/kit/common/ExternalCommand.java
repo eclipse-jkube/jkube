@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -145,23 +144,20 @@ public abstract class ExternalCommand {
     }
 
     private Future<IOException> startStreamPump(final InputStream errorStream) {
-        return executor.submit(new Callable<IOException>() {
-            @Override
-            public IOException call() {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream))) {
-                    for (; ; ) {
-                        String line = reader.readLine();
-                        if (line == null) {
-                            break;
-                        }
-                        synchronized (log) {
-                            log.warn(line);
-                        }
+        return executor.submit(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream))) {
+                for (; ; ) {
+                    String line = reader.readLine();
+                    if (line == null) {
+                        break;
                     }
-                    return null;
-                } catch (IOException e) {
-                    return e;
+                    synchronized (log) {
+                        log.warn(line);
+                    }
                 }
+                return null;
+            } catch (IOException e) {
+                return e;
             }
         });
     }
