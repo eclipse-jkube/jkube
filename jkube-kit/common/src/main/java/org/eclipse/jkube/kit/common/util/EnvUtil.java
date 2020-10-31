@@ -281,7 +281,7 @@ public class EnvUtil {
         }
         List<String> ret = new ArrayList<>(orderedMap.values());
         ret.addAll(rest);
-        return ret.size() > 0 ? ret : null;
+        return !ret.isEmpty() ? ret : null;
     }
 
     /**

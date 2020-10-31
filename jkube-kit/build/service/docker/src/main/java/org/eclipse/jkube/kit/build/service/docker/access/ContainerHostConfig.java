@@ -117,7 +117,7 @@ public class ContainerHostConfig {
     }
 
     public ContainerHostConfig ulimits(List<UlimitConfig> ulimitsConfig) {
-        if (ulimitsConfig != null && ulimitsConfig.size() > 0) {
+        if (ulimitsConfig != null && !ulimitsConfig.isEmpty()) {
             JsonArray ulimits = new JsonArray();
             for (UlimitConfig ulimit : ulimitsConfig) {
                 JsonObject ulimitConfigJson = new JsonObject();
@@ -155,7 +155,7 @@ public class ContainerHostConfig {
     }
 
     public ContainerHostConfig tmpfs(List<String> mounts) {
-        if (mounts != null && mounts.size() > 0) {
+        if (mounts != null && !mounts.isEmpty()) {
             JsonObject tmpfs = new JsonObject();
             for (String mount : mounts) {
                 int idx = mount.indexOf(':');

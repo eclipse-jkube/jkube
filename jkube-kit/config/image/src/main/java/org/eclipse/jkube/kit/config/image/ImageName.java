@@ -257,7 +257,7 @@ public class ImageName {
                         checks[i], value, checkPattern.pattern()));
             }
         }
-        if (errors.size() > 0) {
+        if (!errors.isEmpty()) {
             StringBuilder buf = new StringBuilder();
             buf.append(String.format("Given Docker name '%s' is invalid:\n", getFullName()));
             for (String error : errors) {

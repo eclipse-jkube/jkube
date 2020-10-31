@@ -130,7 +130,7 @@ public class ContainerTracker {
                     it.remove();
                 }
             }
-            if (descs.size() == 0) {
+            if (descs.isEmpty()) {
                 mapIt.remove();
             }
         }

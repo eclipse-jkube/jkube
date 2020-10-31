@@ -146,7 +146,7 @@ public class OpenshiftHelper {
     // =============================================================================================
 
     private static void combineParameters(List<Parameter> parameters, List<Parameter> otherParameters) {
-        if (otherParameters != null && otherParameters.size() > 0) {
+        if (otherParameters != null && !otherParameters.isEmpty()) {
             Map<String, Parameter> map = new HashMap<>();
             for (Parameter parameter : parameters) {
                 map.put(parameter.getName(), parameter);
