@@ -107,15 +107,12 @@ public class EnvUtil {
         return largerVersion != null && largerVersion.equals(versionA);
     }
 
-    private static final Function<String, String[]> SPLIT_ON_LAST_COLON = new Function<String, String[]>() {
-        @Override
-        public String[] apply(String element) {
-            int colon = element.lastIndexOf(':');
-            if (colon < 0) {
-                return new String[]{element, element};
-            } else {
-                return new String[]{element.substring(0, colon), element.substring(colon + 1)};
-            }
+    private static final Function<String, String[]> SPLIT_ON_LAST_COLON = element -> {
+        int colon = element.lastIndexOf(':');
+        if (colon < 0) {
+            return new String[]{element, element};
+        } else {
+            return new String[]{element.substring(0, colon), element.substring(colon + 1)};
         }
     };
 
