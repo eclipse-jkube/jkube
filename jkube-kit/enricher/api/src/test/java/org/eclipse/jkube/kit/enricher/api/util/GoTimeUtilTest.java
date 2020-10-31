@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class GoTimeUtilTest {
@@ -43,9 +44,9 @@ public class GoTimeUtilTest {
 
     @Test
     public void testEmpty() {
-        Assertions.assertThat(GoTimeUtil.durationSeconds(null)).isEqualTo(Optional.empty());
-        Assertions.assertThat(GoTimeUtil.durationSeconds("")).isEqualTo(Optional.empty());
-        Assertions.assertThat(GoTimeUtil.durationSeconds(" ")).isEqualTo(Optional.empty());
+        assertEquals(Optional.empty(), GoTimeUtil.durationSeconds(null));
+        assertEquals(Optional.empty(), GoTimeUtil.durationSeconds(""));
+        assertEquals(Optional.empty(), GoTimeUtil.durationSeconds(" "));
     }
 
     @Test(expected = IllegalArgumentException.class)
