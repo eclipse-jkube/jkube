@@ -43,9 +43,17 @@ public class GoTimeUtilTest {
     }
 
     @Test
-    public void testEmpty() {
+    public void testNull() {
         assertEquals(Optional.empty(), GoTimeUtil.durationSeconds(null));
+    }
+
+    @Test
+    public void testEmpty() {
         assertEquals(Optional.empty(), GoTimeUtil.durationSeconds(""));
+    }
+
+    @Test
+    public void testBlankSpace() {
         assertEquals(Optional.empty(), GoTimeUtil.durationSeconds(" "));
     }
 
