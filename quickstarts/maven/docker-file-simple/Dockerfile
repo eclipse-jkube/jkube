@@ -17,4 +17,5 @@ FROM openjdk:$VERSION
 COPY maven/target/docker-file-simple.jar /deployments/docker-file-simple.jar
 # Copying a file inside project root directory
 COPY maven/static-dir-in-project-root/my-file.txt /deployments/my-file.txt
+EXPOSE 8080
 CMD ["java", "-jar", "/deployments/docker-file-simple.jar"]

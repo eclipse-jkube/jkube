@@ -39,7 +39,6 @@
     <properties>
         <java.version>11</java.version>
         <jkube.version>${project.version}</jkube.version>
-        <jkube.enricher.jkube-service.port>8080</jkube.enricher.jkube-service.port>
         <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
     </properties>
 

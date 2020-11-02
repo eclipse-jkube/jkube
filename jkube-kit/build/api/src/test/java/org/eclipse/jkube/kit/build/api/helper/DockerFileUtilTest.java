@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -215,6 +216,48 @@ public class DockerFileUtilTest {
     public void testResolveArgValueFromStrContainingArgKey() {
         assertEquals("latest", DockerFileUtil.resolveArgValueFromStrContainingArgKey("$VERSION", Collections.singletonMap("VERSION", "latest")));
         assertEquals("test", DockerFileUtil.resolveArgValueFromStrContainingArgKey("${project.scope}", Collections.singletonMap("project.scope", "test")));
+    }
+
+    @Test
+    public void testCreateSimpleDockerfileConfigWithPorts() {
+        // Given
+        File dockerFile = new File(getClass().getResource("/docker/Dockerfile_expose_ports").getFile());
+        // When
+        ImageConfiguration imageConfiguration1 = DockerFileUtil.createSimpleDockerfileConfig(dockerFile, null);
+        // Then
+        assertNotNull(imageConfiguration1);
+        assertEquals("%g/%a:%l", imageConfiguration1.getName());
+        assertEquals(dockerFile.getPath(), imageConfiguration1.getBuild().getDockerFileRaw());
+        assertNotNull(imageConfiguration1.getBuild().getPorts());
+        assertEquals(5, imageConfiguration1.getBuild().getPorts().size());
+        assertEquals("80/tcp", imageConfiguration1.getBuild().getPorts().get(0));
+        assertEquals("8080/udp", imageConfiguration1.getBuild().getPorts().get(1));
+        assertEquals("80", imageConfiguration1.getBuild().getPorts().get(2));
+        assertEquals("8080", imageConfiguration1.getBuild().getPorts().get(3));
+        assertEquals("99/udp", imageConfiguration1.getBuild().getPorts().get(4));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetPortsFromDockerFileShouldThrowExceptionOnInvalidFile() {
+        DockerFileUtil.extractPorts(new File("iDoNotExist"));
+    }
+
+    @Test
+    public void testGetPortsFromDockerFileLines() {
+        // Given
+        List<String[]> input1 = Arrays.asList(new String[]{"EXPOSE", "8080", "9090", "9999"} , new String[]{"EXPOSE", "9010"});
+        List<String[]> input2 = Arrays.asList(new String[]{"EXPOSE", "9001"}, new String[]{"EXPOSE", null});
+        List<String[]> input3 = Arrays.asList(new String[]{"EXPOSE", ""}, new String[]{"EXPOSE", "8001"});
+
+        // When
+        List<String> result1 = DockerFileUtil.extractPorts(input1);
+        List<String> result2 = DockerFileUtil.extractPorts(input2);
+        List<String> result3 = DockerFileUtil.extractPorts(input3);
+
+        // Then
+        assertEquals(Arrays.asList("9090", "8080", "9999", "9010"), result1);
+        assertEquals(Collections.singletonList("9001"), result2);
+        assertEquals(Collections.singletonList("8001"), result3);
     }
 
     private File getDockerfilePath(String dir) {
