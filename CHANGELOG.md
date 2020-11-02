@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.1.0-SNAPSHOT
+* Fix #467: Upgrade assertj-core to 3.18.0
 
 ### 1.0.2 (2020-10-30)
 * Fix #429: Added quickstart for Micronaut framework

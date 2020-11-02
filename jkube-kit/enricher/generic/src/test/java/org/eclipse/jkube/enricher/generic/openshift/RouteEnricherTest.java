@@ -283,7 +283,7 @@ public class RouteEnricherTest {
 
         assertThat(klb.build().getItems().stream().filter(h -> h.getKind().equals("Route")).findFirst().orElse(null))
                 .extracting("spec.tls")
-                .containsNull();
+                .isNull();
 
     }
 

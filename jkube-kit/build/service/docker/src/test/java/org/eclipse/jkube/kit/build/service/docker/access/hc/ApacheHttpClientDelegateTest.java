@@ -97,8 +97,7 @@ public class ApacheHttpClientDelegateTest {
           .containsOnly(new Tuple("Accept", "*/*"));
       assertThat(responseHandler)
           .extracting("delegate")
-          .hasSize(1)
-          .hasOnlyElementsOfType(ApacheHttpClientDelegate.BodyResponseHandler.class);
+          .isInstanceOf(ApacheHttpClientDelegate.BodyResponseHandler.class);
     });
   }
 
