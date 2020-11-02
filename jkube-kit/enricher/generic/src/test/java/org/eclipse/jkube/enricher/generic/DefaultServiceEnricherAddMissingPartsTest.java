@@ -73,8 +73,8 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     assertThat(klb.buildItem(0))
         .isInstanceOf(Service.class)
         .hasFieldOrPropertyWithValue("spec.type", null)
-        .extracting("spec")
-        .flatExtracting("ports")
+        .extracting("spec.ports")
+        .asList()
         .extracting("name", "port", "protocol")
         .containsOnly(new Tuple("http", 80, "TCP"));
   }
@@ -92,8 +92,8 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     assertThat(klb.buildItem(0))
         .isInstanceOf(Service.class)
         .hasFieldOrPropertyWithValue("spec.type", null)
-        .extracting("spec")
-        .flatExtracting("ports")
+        .extracting("spec.ports")
+        .asList()
         .extracting("name", "port", "protocol")
         .containsOnly(new Tuple("menandmice-dns", 1337, "TCP"));
   }
