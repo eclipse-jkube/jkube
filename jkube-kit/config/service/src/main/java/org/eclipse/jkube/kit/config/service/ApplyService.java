@@ -863,7 +863,7 @@ public class ApplyService {
         }
     }
 
-    public <T extends HasMetadata,L,D> void applyResource(T resource, String sourceName, MixedOperation<T, L, D, ? extends Resource<T, D>> resources) throws Exception {
+    public <T extends HasMetadata,L,D> void applyResource(T resource, String sourceName, MixedOperation<T, L, D, ? extends Resource<T, D>> resources) {
         String namespace = getNamespace();
         String id = getName(resource);
         String kind = getKind(resource);

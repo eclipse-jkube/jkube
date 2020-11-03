@@ -114,7 +114,7 @@ public class SpringBootWatcher extends BaseWatcher {
         }
     }
 
-    private String getPortForwardUrl(final Set<HasMetadata> resources) throws JKubeServiceException {
+    private String getPortForwardUrl(final Set<HasMetadata> resources) {
         LabelSelector selector = KubernetesResourceUtil.getPodLabelSelector(resources);
         if (selector == null) {
             log.warn("Unable to determine a selector for application pods");
