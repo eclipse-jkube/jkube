@@ -92,7 +92,7 @@ public class ContainerHostConfig {
         return add("CpusetCpus", cpuSet);
     }
 
-    public ContainerHostConfig extraHosts(List<String> extraHosts) throws IllegalArgumentException {
+    public ContainerHostConfig extraHosts(List<String> extraHosts) {
         if (extraHosts != null) {
             List<String> mapped = new ArrayList<>();
             for (int i = 0; i < extraHosts.size(); i++) {

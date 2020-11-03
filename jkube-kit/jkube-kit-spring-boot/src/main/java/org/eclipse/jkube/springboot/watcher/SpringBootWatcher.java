@@ -262,7 +262,7 @@ public class SpringBootWatcher extends BaseWatcher {
         }
     }
 
-    protected Thread startOutputProcessor(final KitLogger logger, final InputStream inputStream, final boolean error, final AtomicBoolean outputEnabled) throws IOException {
+    protected Thread startOutputProcessor(final KitLogger logger, final InputStream inputStream, final boolean error, final AtomicBoolean outputEnabled) {
         Thread printer = new Thread() {
             @Override
             public void run() {

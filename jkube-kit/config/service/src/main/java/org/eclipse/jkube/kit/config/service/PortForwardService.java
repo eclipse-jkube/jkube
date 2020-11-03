@@ -63,7 +63,7 @@ public class PortForwardService {
      * Forwards a port to the newest pod matching the given selector.
      * If another pod is created, it forwards connections to the new pod once it's ready.
      */
-    public Closeable forwardPortAsync(final KitLogger externalProcessKitLogger, final LabelSelector podSelector, final int remotePort, final int localPort) throws JKubeServiceException {
+    public Closeable forwardPortAsync(final KitLogger externalProcessKitLogger, final LabelSelector podSelector, final int remotePort, final int localPort) {
 
         final Lock monitor = new ReentrantLock(true);
         final Condition podChanged = monitor.newCondition();

@@ -42,8 +42,6 @@ public interface ExternalConfigHandler {
      * @param unresolvedConfig the original, unresolved config
      * @param project project
      * @return list of image configuration. Must not be null but can be empty.
-     * @throws ExternalConfigHandlerException if there is a problem resolving the image configuration
      */
-    List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JavaProject project)
-        throws ExternalConfigHandlerException;
+    List<ImageConfiguration> resolve(ImageConfiguration unresolvedConfig, JavaProject project);
 }
