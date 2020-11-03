@@ -116,7 +116,7 @@ public class ApplyService {
     /**
      * Applies the given DTOs onto the Kubernetes master
      */
-    public void apply(Object dto, String sourceName) throws Exception {
+    public void apply(Object dto, String sourceName) {
         if (dto instanceof List) {
             List<Object> list = (List<Object>) dto;
             for (Object element : list) {
@@ -136,7 +136,7 @@ public class ApplyService {
     /**
      * Applies the given DTOs onto the Kubernetes master
      */
-    private void applyEntity(Object dto, String sourceName) throws Exception {
+    private void applyEntity(Object dto, String sourceName) {
         if (dto instanceof Pod) {
             applyPod((Pod) dto, sourceName);
         } else if (dto instanceof ReplicationController) {
@@ -824,7 +824,7 @@ public class ApplyService {
     }
 
 
-    public void applyList(KubernetesList list, String sourceName) throws Exception {
+    public void applyList(KubernetesList list, String sourceName) {
         List<HasMetadata> entities = list.getItems();
         if (entities != null) {
             for (Object entity : entities) {

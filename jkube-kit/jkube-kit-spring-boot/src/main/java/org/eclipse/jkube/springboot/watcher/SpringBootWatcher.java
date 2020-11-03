@@ -49,7 +49,6 @@ import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
