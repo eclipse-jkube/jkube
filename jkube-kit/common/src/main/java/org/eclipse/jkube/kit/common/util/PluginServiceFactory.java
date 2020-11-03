@@ -73,11 +73,11 @@ public final class PluginServiceFactory<C> {
     public <T> List<T> createServiceObjects(String... descriptorPaths) {
         try {
             ServiceEntry.initDefaultOrder();
-            TreeMap<ServiceEntry,T> serviceMap = new TreeMap<ServiceEntry,T>();
+            TreeMap<ServiceEntry,T> serviceMap = new TreeMap<>();
             for (String descriptor : descriptorPaths) {
                 readServiceDefinitions(serviceMap, descriptor);
             }
-            ArrayList<T> ret = new ArrayList<T>();
+            ArrayList<T> ret = new ArrayList<>();
             for (T service : serviceMap.values()) {
                 ret.add(service);
             }
@@ -122,7 +122,7 @@ public final class PluginServiceFactory<C> {
                 // Removing is a bit complex since we need to find out
                 // the proper key since the order is part of equals/hash
                 // so we cant fetch/remove it directly
-                Set<ServiceEntry> toRemove = new HashSet<ServiceEntry>();
+                Set<ServiceEntry> toRemove = new HashSet<>();
                 for (ServiceEntry key : serviceMap.keySet()) {
                     if (key.getClassName().equals(entry.getClassName())) {
                         toRemove.add(key);

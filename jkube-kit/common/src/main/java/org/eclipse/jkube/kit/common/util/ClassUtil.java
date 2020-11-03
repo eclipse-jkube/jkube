@@ -79,7 +79,7 @@ public class ClassUtil {
     }
 
     private static Set<String> extractUrlAsStringsFromEnumeration(Enumeration<URL> urlEnum) {
-        Set<String> ret = new HashSet<String>();
+        Set<String> ret = new HashSet<>();
         while (urlEnum.hasMoreElements()) {
             ret.add(urlEnum.nextElement().toExternalForm());
         }

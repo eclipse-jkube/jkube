@@ -102,7 +102,7 @@ public class ImageStreamService {
         // Override with given image stream
         imageStreams.put(is.getMetadata().getName(),is);
         KubernetesList isList =
-            new KubernetesListBuilder().withItems(new ArrayList<HasMetadata>(imageStreams.values())).build();
+            new KubernetesListBuilder().withItems(new ArrayList<>(imageStreams.values())).build();
         ResourceUtil.save(target, isList);
     }
 

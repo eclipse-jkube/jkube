@@ -131,7 +131,7 @@ public class AnsiLogger implements KitLogger {
         if (!batchMode && log.isInfoEnabled()) {
             imageLines.remove();
             updateCount.remove();
-            imageLines.set(new HashMap<String, Integer>());
+            imageLines.set(new HashMap<>());
             updateCount.set(new AtomicInteger());
         }
     }
