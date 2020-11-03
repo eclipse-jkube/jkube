@@ -258,7 +258,7 @@ public class PortMapping {
         }
     }
 
-    private String createPortSpec(String port, String protocol) throws NumberFormatException {
+    private String createPortSpec(String port, String protocol) {
         return Integer.parseInt(port) + "/" + protocol;
     }
 
@@ -338,7 +338,7 @@ public class PortMapping {
         containerPortToHostPort.put(portSpec, hostPort);
     }
 
-    private void parsePortMapping(String input) throws IllegalArgumentException {
+    private void parsePortMapping(String input) {
         try {
             Matcher matcher = PROTOCOL_SPLIT_PATTERN.matcher(input);
             // Matches always

@@ -114,9 +114,8 @@ public class KubernetesHelper {
      * @param currentValue current value
      * @param description description
      * @return valid value according to kubernetes ID parsing rules
-     * @throws IllegalArgumentException exception if arguement is invalid
      */
-    public static String validateKubernetesId(String currentValue, String description) throws IllegalArgumentException {
+    public static String validateKubernetesId(String currentValue, String description) {
         if (StringUtils.isBlank(currentValue)) {
             throw new IllegalArgumentException("No " + description + " is specified!");
         }
@@ -136,10 +135,9 @@ public class KubernetesHelper {
      *
      * @param entity Kubernetes generic resource object
      * @return list of objects of type HasMetadata
-     * @throws IOException IOException if anything wrong happens
      */
     @SuppressWarnings("unchecked")
-    public static List<HasMetadata> toItemList(Object entity) throws IOException {
+    public static List<HasMetadata> toItemList(Object entity) {
         if (entity instanceof List) {
             return (List<HasMetadata>) entity;
         } else if (entity instanceof HasMetadata[]) {

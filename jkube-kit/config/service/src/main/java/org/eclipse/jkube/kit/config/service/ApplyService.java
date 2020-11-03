@@ -323,7 +323,7 @@ public class ApplyService {
     /**
      * Creates/updates a service account and processes it returning the processed DTOs
      */
-    public void applyServiceAccount(ServiceAccount serviceAccount, String sourceName) throws Exception {
+    public void applyServiceAccount(ServiceAccount serviceAccount, String sourceName) {
         String namespace = getNamespace();
         String id = getName(serviceAccount);
         Objects.requireNonNull(id, "No name for " + serviceAccount + " " + sourceName);
@@ -374,7 +374,7 @@ public class ApplyService {
         }
     }
 
-    public void applyPersistentVolumeClaim(PersistentVolumeClaim entity, String sourceName) throws Exception {
+    public void applyPersistentVolumeClaim(PersistentVolumeClaim entity, String sourceName) {
         // we cannot update PVCs
         boolean alwaysRecreate = true;
         String namespace = getNamespace();
@@ -496,7 +496,7 @@ public class ApplyService {
         }
     }
 
-    public void applySecret(Secret secret, String sourceName) throws Exception {
+    public void applySecret(Secret secret, String sourceName) {
         String namespace = getNamespace(secret);
         String id = getName(secret);
         Objects.requireNonNull(id, "No name for " + secret + " " + sourceName);
@@ -833,7 +833,7 @@ public class ApplyService {
         }
     }
 
-    public void applyService(Service service, String sourceName) throws Exception {
+    public void applyService(Service service, String sourceName) {
         String namespace = getNamespace();
         String id = getName(service);
         Objects.requireNonNull(id, "No name for " + service + " " + sourceName);
@@ -900,7 +900,7 @@ public class ApplyService {
         }
     }
 
-    protected <T extends HasMetadata,L,D> void doCreateResource(T resource, String namespace , String sourceName, MixedOperation<T, L, D, ? extends Resource<T, D>> resources) throws Exception {
+    protected <T extends HasMetadata,L,D> void doCreateResource(T resource, String namespace , String sourceName, MixedOperation<T, L, D, ? extends Resource<T, D>> resources) {
         String kind = getKind(resource);
         log.info("Creating a " + kind + " from " + sourceName + " namespace " + namespace + " name " + getName(resource));
         try {
@@ -1084,7 +1084,7 @@ public class ApplyService {
         return false;
     }
 
-    public void applyReplicationController(ReplicationController replicationController, String sourceName) throws Exception {
+    public void applyReplicationController(ReplicationController replicationController, String sourceName) {
         String namespace = getNamespace();
         String id = getName(replicationController);
         Objects.requireNonNull(id, "No name for " + replicationController + " " + sourceName);
@@ -1155,7 +1155,7 @@ public class ApplyService {
         }
     }
 
-    public void applyPod(Pod pod, String sourceName) throws Exception {
+    public void applyPod(Pod pod, String sourceName) {
         String namespace = getNamespace();
         String id = getName(pod);
         Objects.requireNonNull(id, "No name for " + pod + " " + sourceName);
@@ -1222,7 +1222,7 @@ public class ApplyService {
         }
     }
 
-    public void doCreateJob(Job job, String namespace, String sourceName) throws KubernetesClientException {
+    public void doCreateJob(Job job, String namespace, String sourceName) {
         if (StringUtils.isNotBlank(namespace)) {
             kubernetesClient.batch().jobs().inNamespace(namespace).create(job);
         } else {

@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.build.service.docker.access.hc;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -466,7 +465,7 @@ public class DockerAccessWithHcClient implements DockerAccess {
 
     }
 
-    private ResponseHandler<Object> getImageResponseHandler(final String filename, final ArchiveCompression compression) throws FileNotFoundException {
+    private ResponseHandler<Object> getImageResponseHandler(final String filename, final ArchiveCompression compression) {
         return new ResponseHandler<Object>() {
             @Override
             public Object handleResponse(HttpResponse response) throws IOException {

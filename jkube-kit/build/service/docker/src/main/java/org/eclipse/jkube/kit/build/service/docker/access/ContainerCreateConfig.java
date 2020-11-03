@@ -72,7 +72,7 @@ public class ContainerCreateConfig {
         return this;
     }
 
-    public ContainerCreateConfig environment(String envPropsFile, Map<String, String> env, Map mavenProps) throws IllegalArgumentException {
+    public ContainerCreateConfig environment(String envPropsFile, Map<String, String> env, Map mavenProps) {
 
         Properties envProps = new Properties();
         if (env != null && env.size() > 0) {
