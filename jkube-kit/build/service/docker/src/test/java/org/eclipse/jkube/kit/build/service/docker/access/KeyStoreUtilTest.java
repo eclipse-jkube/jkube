@@ -52,7 +52,7 @@ public class KeyStoreUtilTest {
 
     @Test
     public void loadPrivateKeyPKCS8() {
-        loadAndTestPrivateKey("keys/pkcs1.pem");
+        loadAndTestPrivateKey("keys/pkcs8.pem");
     }
 
     @Test
