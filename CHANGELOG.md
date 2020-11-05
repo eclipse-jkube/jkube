@@ -22,8 +22,9 @@ Usage:
 ```
 ### 1.1.0-SNAPSHOT
 * Fix #467: Upgrade assertj-core to 3.18.0
-* Added a Quickstart for implementing and using a Custom Enricher based on Eclipse JKube Kit Enricher API
-* Fix #240: No Ports exposed inside Deployment in case of Zero Config Dockerfile Mode 
+* Fix #460: Added a Quickstart for implementing and using a Custom Enricher based on Eclipse JKube Kit Enricher API
+* Fix #240: No Ports exposed inside Deployment in case of Zero Config Dockerfile Mode
+* Fix #480: wildfly-jar doesn't depend on common-maven module
 
 ### 1.0.2 (2020-10-30)
 * Fix #429: Added quickstart for Micronaut framework

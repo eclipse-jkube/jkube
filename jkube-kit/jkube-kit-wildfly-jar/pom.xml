@@ -32,11 +32,6 @@
     <dependencies>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-common-maven</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-generator-java-exec</artifactId>
         </dependency>
 
@@ -44,7 +39,7 @@
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-enricher-specific</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
