@@ -32,7 +32,7 @@
 
   <description>
     Spring Boot Web application with a single @RestController.
-    Shows how to deploy Spring Boot applications to Kubernetes (-Pkubermetes) and OpenShift (-Popenshift) using Eclipse JKube.
+    Shows how to deploy Spring Boot applications to Kubernetes (-Pkubernetes) and OpenShift (-Popenshift) using Eclipse JKube.
   </description>
 
   <properties>
