@@ -88,12 +88,13 @@
     <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
     <version.maven-invoker-plugin>2.0.0</version.maven-invoker-plugin>
     <version.maven-javadoc-plugin>3.2.0</version.maven-javadoc-plugin>
-    <version.maven-plugin-plugin>3.5</version.maven-plugin-plugin>
+    <version.maven-plugin-plugin>3.5.1</version.maven-plugin-plugin>
     <version.maven-resources-plugin>3.0.0</version.maven-resources-plugin>
-    <version.maven-source-plugin>2.4</version.maven-source-plugin>
+    <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
     <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
     <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
     <version.license-maven-plugin>3.0</version.license-maven-plugin>
+    <project.build.outputTimestamp>2020-11-08T11:04:00Z</project.build.outputTimestamp>
   </properties>
 
   <modules>
@@ -136,8 +137,18 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.2.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>${version.maven-javadoc-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>3.0.0-M1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -482,4 +493,3 @@
   </profiles>
 
 </project>
-
