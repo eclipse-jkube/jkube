@@ -87,8 +87,10 @@
     <version.maven-failsafe-plugin>3.0.0-M5</version.maven-failsafe-plugin>
     <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
     <version.maven-invoker-plugin>2.0.0</version.maven-invoker-plugin>
+    <version.maven-jar-plugin>3.2.0</version.maven-jar-plugin>
     <version.maven-javadoc-plugin>3.2.0</version.maven-javadoc-plugin>
     <version.maven-plugin-plugin>3.5.1</version.maven-plugin-plugin>
+    <version.maven-release-plugin>3.0.0-M1</version.maven-release-plugin>
     <version.maven-resources-plugin>3.0.0</version.maven-resources-plugin>
     <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
     <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
@@ -138,7 +140,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>${version.maven-jar-plugin}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -148,7 +150,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <version>3.0.0-M1</version>
+          <version>${version.maven-release-plugin}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
