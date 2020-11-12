@@ -68,7 +68,7 @@
 |`pv`, `persistentvolume`
 
 |PersistentVolumeClaim
-|`pvc`, `persistemtvolumeclaim`
+|`pvc`, `persistentvolumeclaim`
 
 |Project
 |`project`
