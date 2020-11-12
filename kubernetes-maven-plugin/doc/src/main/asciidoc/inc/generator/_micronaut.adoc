@@ -1,0 +1,8 @@
+[[generator-micronaut]]
+=== Micronaut Generator
+
+The Micronaut generator (named `micronaut`) detects a Micronaut project by analyzing the plugin
+dependencies searching for `io.micronaut.build:micronaut-maven-plugin`.
+
+This generator is based on the <<generator-java-exec, Java Application>> Generator and inherits all
+of its configuration values.

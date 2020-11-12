@@ -1,0 +1,10 @@
+{
+  "micronaut": {
+    "application": {
+      "name": "port-config-test-JSON"
+    },
+    "server": {
+      "port": 1337
+    }
+  }
+}

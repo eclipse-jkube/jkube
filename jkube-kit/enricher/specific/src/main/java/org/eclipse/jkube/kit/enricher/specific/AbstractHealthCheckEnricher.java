@@ -55,7 +55,7 @@ public abstract class AbstractHealthCheckEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        if (checkIfHealthChecksDisabled(false)) {
+        if (skipHealthCheck(false)) {
             return;
         }
 
@@ -103,7 +103,7 @@ public abstract class AbstractHealthCheckEnricher extends BaseEnricher {
         return desc.toString();
     }
 
-    protected Boolean checkIfHealthChecksDisabled(Boolean defaultValue) {
+    private boolean skipHealthCheck(boolean defaultValue) {
         if (getContext().getProperty("jkube.skipHealthCheck") != null) {
             return Boolean.parseBoolean(getContext().getProperty("jkube.skipHealthCheck"));
         } else {

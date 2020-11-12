@@ -1,0 +1,79 @@
+
+[[jkube-healthcheck-micronaut]]
+==== jkube-healthcheck-micronaut
+
+This enricher adds kubernetes readiness and liveness probes for Micronaut based projects.
+
+The application should be configured as follows to enable the enricher:
+
+[source,yaml,indent=0,subs="verbatim,quotes,attributes"]
+----
+endpoints:
+  health:
+    enabled: true
+----
+
+The enricher will try to discover the settings from the `application.properties` / `application.yaml` Micronaut configuration file.
+
+===== Probe configuration
+
+You can configure the different aspects of the probes.
+
+.Micronaut HealthCheck Enricher probe configuration
+[cols="1,5,2"]
+|===
+| Element | Description | Property
+
+|*readinessProbeInitialDelaySeconds*
+| Number of seconds after the container has started before the readiness probe is initialized.
+| `jkube.enricher.jkube-healthcheck-micronaut.readinessProbeInitialDelaySeconds`
+
+|*readinessProbePeriodSeconds*
+| How often (in seconds) to perform the readiness probe.
+| `jkube.enricher.jkube-healthcheck-micronaut.readinessProbePeriodSeconds`
+
+
+|*livenessProbeInitialDelaySeconds*
+| Number of seconds after the container has started before the liveness probe is initialized.
+| `jkube.enricher.jkube-healthcheck-micronaut.livenessProbeInitialDelaySeconds`
+
+|*livenessProbePeriodSeconds*
+| How often (in seconds) to perform the liveness probe.
+| `jkube.enricher.jkube-healthcheck-micronaut.livenessProbePeriodSeconds`
+
+|*failureThreshold*
+| Minimum consecutive failures for the probes to be considered failed after having succeeded.
+
+  Defaults to `3`.
+| `jkube.enricher.jkube-healthcheck-micronaut.failureThreshold`
+
+|*successThreshold*
+| Minimum consecutive successes for the probes to be considered successful after having failed.
+
+  Defaults to `1`.
+| `jkube.enricher.jkube-healthcheck-micronaut.successThreshold`
+
+|*timeoutSeconds*
+| Number of seconds after which the probes timeout.
+| `jkube.enricher.jkube-healthcheck-micronaut.timeoutSeconds`
+
+|*scheme*
+| Scheme to use for connecting to the host.
+
+  Defaults to `HTTP`.
+| `jkube.enricher.jkube-healthcheck-micronaut.scheme`
+
+|*port*
+| Port number to access the container.
+
+  Defaults to the one provided in the Image configuration.
+| `jkube.enricher.jkube-healthcheck-micronaut.port`
+
+|*path*
+| Path to access on the HTTP server.
+
+  Defaults to `/health`.
+| `jkube.enricher.jkube-healthcheck-micronaut.path`
+
+|===
+
