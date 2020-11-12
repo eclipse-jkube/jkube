@@ -1,7 +1,7 @@
 [[generator-quarkus]]
 === Quarkus
 
-The `Quarkus` generator tried to detect quarkus based projects looking at project `pom.xml`:
+The `Quarkus` generator tries to detect quarkus based projects looking at project `pom.xml`:
 
 The base images chosen are:
 [[generator-quarkus-from]]
@@ -12,14 +12,9 @@ The base images chosen are:
 
 | *Native*
 | `registry.access.redhat.com/ubi8/ubi-minimal:8.1`
-| ---
+| `quay.io/quarkus/ubi-quarkus-native-binary-s2i`
 
 | *Normal Build*
-| `openjdk:11`
-| ---
+| `quay.io/jkube/jkube-java-binary-s2i`
+| `quay.io/jkube/jkube-java-binary-s2i`
 |===
-
-[IMPORTANT]
-====
-S2I builds are currently not yet supported for the Quarkus generator.
-====

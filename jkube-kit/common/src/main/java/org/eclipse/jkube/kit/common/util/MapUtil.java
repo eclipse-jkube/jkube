@@ -14,7 +14,12 @@
 package org.eclipse.jkube.kit.common.util;
 
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MapUtil {
@@ -79,5 +84,47 @@ public class MapUtil {
         }
     }
 
+    /**
+     * Build a flattened representation of provided Map.
+     *
+     * <p> <i>The conversion is compliant with the thorntail spring-boot rules.</i>
+     */
+    public static Map<String, Object> getFlattenedMap(Map<?, ?> source) {
+        return buildFlattenedMap(source, null);
+    }
+
+    private static Map<String, Object> buildFlattenedMap(Map<?, ?> source, String keyPrefix) {
+        final Map<String, Object> result = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : source.entrySet()) {
+            String key = applicableKey(String.valueOf(entry.getKey()), keyPrefix);
+            Object value = entry.getValue();
+            if (value instanceof Map) {
+                result.putAll(buildFlattenedMap((Map<?, ?>) value, key));
+            }
+            else if (value instanceof Collection) {
+                Collection<?> collection = (Collection<?>) value;
+                int count = 0;
+                for (Object object : collection) {
+                    result.putAll(buildFlattenedMap(Collections.singletonMap("[" + (count++) + "]", object), key));
+                }
+            }
+            else {
+                result.put(key, (value != null ? value.toString() : ""));
+            }
+        }
+        return result;
+    }
+
+    private static String applicableKey(String key, String keyPrefix) {
+        if (StringUtils.isNotBlank(keyPrefix)) {
+            if (key.startsWith("[")) {
+                key = keyPrefix + key;
+            }
+            else {
+                key = keyPrefix + "." + key;
+            }
+        }
+        return key;
+    }
 }
 

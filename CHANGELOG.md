@@ -25,6 +25,7 @@ Usage:
 * Fix #460: Added a Quickstart for implementing and using a Custom Enricher based on Eclipse JKube Kit Enricher API
 * Fix #240: No Ports exposed inside Deployment in case of Zero Config Dockerfile Mode
 * Fix #480: wildfly-jar doesn't depend on common-maven module
+* Fix #268: Generator and HealthCheck enrichers for Micronaut framework (JVM)
 
 ### 1.0.2 (2020-10-30)
 * Fix #429: Added quickstart for Micronaut framework

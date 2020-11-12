@@ -63,6 +63,7 @@
     - jkube-healthcheck-vertx
     - jkube-healthcheck-docker
     - jkube-healthcheck-webapp
+    - jkube-healthcheck-micronaut
     - jkube-prometheus
 
     # Value merge enrichers
@@ -86,6 +87,7 @@
     - openliberty
     - karaf
     - vertx
+    - micronaut
     - java-exec
     - webapp
   watcher:

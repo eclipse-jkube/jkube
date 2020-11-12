@@ -60,28 +60,6 @@ public class SpringBootUtilTest {
     }
 
     @Test
-    public void testPropertiesParsing() {
-
-        Properties props = SpringBootUtil.getPropertiesResource(SpringBootUtilTest.class.getResource("/util/test-application.properties"));
-        assertNotEquals(0, props.size());
-
-        assertEquals("8081", props.getProperty("management.port"));
-        assertEquals("jdbc:mysql://127.0.0.1:3306", props.getProperty("spring.datasource.url"));
-        assertEquals("value0", props.getProperty("example.nested.items[0].value"));
-        assertEquals("value1", props.getProperty("example.nested.items[1].value"));
-
-    }
-
-    @Test
-    public void testNonExistentPropertiesParsing() {
-
-        Properties props = SpringBootUtil.getPropertiesResource(SpringBootUtilTest.class.getResource("/this-file-does-not-exist"));
-        assertNotNull(props);
-        assertEquals(0, props.size());
-
-    }
-
-    @Test
     public void testMultipleProfilesParsing() {
         Properties props = SpringBootUtil.getPropertiesFromApplicationYamlResource(null, getClass().getResource("/util/test-application-with-multiple-profiles.yml"));
         assertTrue(props.size() > 0);

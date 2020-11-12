@@ -160,6 +160,8 @@ Specific enrichers provide resource manifest enhancement for a certain tech stac
 
 include::enricher/_jkube_healthcheck_karaf.adoc[]
 
+include::enricher/_jkube_healthcheck_micronaut.adoc[]
+
 include::enricher/_jkube_healthcheck_spring_boot.adoc[]
 
 include::enricher/_jkube_healthcheck_thorntail_v2.adoc[]
