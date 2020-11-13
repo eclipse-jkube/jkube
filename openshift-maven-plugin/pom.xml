@@ -37,14 +37,6 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${version.junit}</version>
-        <scope>test</scope>
-      </dependency>
-
-
-      <dependency>
         <groupId>com.consol.citrus</groupId>
         <artifactId>citrus-core</artifactId>
         <version>${version.citrus-core}</version>
