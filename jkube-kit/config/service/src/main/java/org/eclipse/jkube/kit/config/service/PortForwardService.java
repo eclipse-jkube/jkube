@@ -195,7 +195,7 @@ public class PortForwardService {
     }
 
     private Pod getNewestPod(LabelSelector selector) {
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch, Watcher<Pod>> pods =
+        FilterWatchListDeletable<Pod, PodList, Boolean, Watch> pods =
                 KubernetesHelper.withSelector(kubernetes.pods(), selector, log);
 
         PodList list = pods.list();

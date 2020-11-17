@@ -158,7 +158,7 @@ public class DebugMojo extends ApplyMojo {
 
     private String waitForRunningPodWithEnvVar(final KubernetesClient kubernetes, final String namespace, LabelSelector selector, final Map<String, String> envVars) throws MojoExecutionException {
         //  wait for the newest pod to be ready with the given env var
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch, Watcher<Pod>> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
+        FilterWatchListDeletable<Pod, PodList, Boolean, Watch> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
         log.info("Waiting for debug pod with selector " + selector + " and environment variables " + envVars);
         podWaitLog = createLogger("[[Y]][W][[Y]] [[s]]");
         PodList list = pods.list();

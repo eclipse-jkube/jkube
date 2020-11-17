@@ -20,11 +20,9 @@ import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
-import mockit.Mocked;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -49,9 +47,6 @@ import static org.junit.Assert.fail;
 public class KubernetesResourceUtilTest {
 
     private static File jkubeDir;
-
-    @Mocked
-    JavaProject project;
 
     @BeforeClass
     public static void initPath() throws UnsupportedEncodingException {
@@ -254,6 +249,21 @@ public class KubernetesResourceUtilTest {
         // Then
         assertNotNull(defaultContainerName);
         assertEquals("spring-boot", defaultContainerName);
+    }
+
+    @Test
+    public void testGetResourceShouldLoadNetworkV1Ingress() throws IOException {
+        // Given
+        File resourceFragment = new File(jkubeDir, "network-v1-ingress.yml");
+
+        // When
+        HasMetadata result = KubernetesResourceUtil.getResource(PlatformMode.kubernetes, KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING, resourceFragment, "app");
+
+        // Then
+        assertNotNull(result);
+        assertEquals("networking.k8s.io/v1", result.getApiVersion());
+        assertEquals("Ingress", result.getKind());
+        assertEquals("my-ingress", result.getMetadata().getName());
     }
 
     private PodSpec getDefaultGeneratedPodSpec() {
