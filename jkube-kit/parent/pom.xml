@@ -65,6 +65,7 @@
     <version.networknt.validator>1.0.43</version.networknt.validator>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
     <version.plexus-archiver>3.5</version.plexus-archiver>
+    <version.plexus-classworlds>2.6.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
     <version.plexus-utils>3.0.24</version.plexus-utils>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
@@ -520,7 +521,15 @@
           </exclusion>
           <exclusion>
             <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-classworlds</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -571,6 +580,12 @@
             <artifactId>*</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-classworlds</artifactId>
+        <version>${version.plexus-classworlds}</version>
       </dependency>
 
       <dependency>
