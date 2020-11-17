@@ -32,8 +32,8 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinitionBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
@@ -90,7 +90,7 @@ public class KubernetesUndeployServiceTest {
       file.exists(); result = true;
       file.isFile(); result = true;
       kubernetesHelper.loadResources(file);
-      result = new HashSet<>(Arrays.asList(new Project(), namespace, pod, service));
+      result = new HashSet<>(Arrays.asList(namespace, pod, service));
     }};
     // @formatter:on
     // When
@@ -129,7 +129,7 @@ public class KubernetesUndeployServiceTest {
     new Expectations() {{
       kubernetesHelper.loadResources(manifest); result = new HashSet<>(Collections.singletonList(service));
       resourceConfig.getCustomResourceDefinitions(); result = Collections.singletonList(crdId);
-      jKubeServiceHub.getClient().customResourceDefinitions().withName(crdId).get(); result = crd;
+      jKubeServiceHub.getClient().apiextensions().v1beta1().customResourceDefinitions().withName(crdId).get(); result = crd;
       kubernetesHelper.getCustomResourcesFileToNameMap((File)any, (List<String>)any, logger);
       result = Collections.singletonMap(crManifest, crdId);
       kubernetesHelper.unmarshalCustomResourceFile(crManifest);

@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
@@ -420,7 +420,7 @@ public class ApplyService {
             log.debug("Only processing Services right now so ignoring Custom Resource Definition: " + namespace + ":" + id);
             return;
         }
-        CustomResourceDefinition old = kubernetesClient.customResourceDefinitions().withName(id).get();
+        CustomResourceDefinition old = kubernetesClient.apiextensions().v1beta1().customResourceDefinitions().withName(id).get();
         if (isRunning(old)) {
             if (UserConfigurationCompare.configEqual(entity, old)) {
                 log.info("Custom Resource Definition has not changed so not doing anything");
@@ -445,7 +445,7 @@ public class ApplyService {
     private void doCreateCustomResourceDefinition(CustomResourceDefinition entity, String sourceName) {
         log.info("Creating a Custom Resource Definition from " + sourceName + " name " + getName(entity));
         try {
-            CustomResourceDefinition answer = kubernetesClient.customResourceDefinitions().create(entity);
+            CustomResourceDefinition answer = kubernetesClient.apiextensions().v1beta1().customResourceDefinitions().create(entity);
             log.info("Created Custom Resource Definition result: %s", answer.getMetadata().getName());
         } catch (Exception e) {
             onApplyError("Failed to create Custom Resource Definition from " + sourceName + ". " + e + ". " + entity, e);

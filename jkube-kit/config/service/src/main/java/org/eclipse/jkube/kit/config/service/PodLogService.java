@@ -120,7 +120,7 @@ public class PodLogService {
 
     private void waitAndLogPods(final KubernetesClient kubernetes, final String namespace, LabelSelector selector, final boolean watchAddedPodsOnly, final String ctrlCMessage, final boolean
             followLog, Date ignorePodsOlderThan, boolean waitInCurrentThread) {
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch, Watcher<Pod>> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
+        FilterWatchListDeletable<Pod, PodList, Boolean, Watch> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
         if (context.getPodName() != null) {
             log.info("Watching pod with selector %s, and name %s waiting for a running pod...", selector, context.getPodName());
             pods = pods.withField("metadata.name", context.getPodName());

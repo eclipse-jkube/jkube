@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.ReplicationController;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -127,8 +127,8 @@ public class KubernetesClientUtil {
     }
 
 
-    public static FilterWatchListDeletable<Pod, PodList, Boolean, Watch, Watcher<Pod>> withSelector(NonNamespaceOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> pods, LabelSelector selector, KitLogger log) {
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch, Watcher<Pod>> answer = pods;
+    public static FilterWatchListDeletable<Pod, PodList, Boolean, Watch> withSelector(NonNamespaceOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> pods, LabelSelector selector, KitLogger log) {
+        FilterWatchListDeletable<Pod, PodList, Boolean, Watch> answer = pods;
         Map<String, String> matchLabels = selector.getMatchLabels();
         if (matchLabels != null && !matchLabels.isEmpty()) {
             answer = answer.withLabels(matchLabels);
@@ -284,7 +284,7 @@ public class KubernetesClientUtil {
     public static List<CustomResourceDefinitionContext> getCustomResourceDefinitionContext(KubernetesClient client, List<String> customResources) {
         List<CustomResourceDefinitionContext> crdContexts = new ArrayList<>();
         for(String customResource : customResources) {
-            CustomResourceDefinition customResourceDefinition = client.customResourceDefinitions()
+            CustomResourceDefinition customResourceDefinition = client.apiextensions().v1beta1().customResourceDefinitions()
                     .withName(customResource).get();
             if(customResourceDefinition != null) {
                 crdContexts.add(new CustomResourceDefinitionContext.Builder()
