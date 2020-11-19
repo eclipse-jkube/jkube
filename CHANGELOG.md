@@ -26,6 +26,7 @@ Usage:
 * Fix #240: No Ports exposed inside Deployment in case of Zero Config Dockerfile Mode
 * Fix #480: wildfly-jar doesn't depend on common-maven module
 * Fix #268: Generator and HealthCheck enrichers for Micronaut framework (JVM)
+* Fix #488: Controller enricher replica count can be set to `0` when ResourceConfig is provided
 
 ### 1.0.2 (2020-10-30)
 * Fix #429: Added quickstart for Micronaut framework

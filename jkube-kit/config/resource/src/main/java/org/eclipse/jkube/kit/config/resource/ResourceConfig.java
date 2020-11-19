@@ -71,7 +71,7 @@ public class ResourceConfig {
   /**
    * Number of replicas to create.
    */
-  private int replicas = 1;
+  private Integer replicas;
   private String namespace;
   private String serviceAccount;
   @Singular

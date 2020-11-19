@@ -176,7 +176,8 @@ public class BaseEnricher implements Enricher {
      */
     protected static int getReplicaCount(KubernetesListBuilder builder, ResourceConfig xmlResourceConfig, int defaultValue) {
         if (xmlResourceConfig != null) {
-            List<HasMetadata> items = builder.buildItems();
+            final List<HasMetadata> items = Optional.ofNullable(builder)
+                .map(KubernetesListBuilder::buildItems).orElse(Collections.emptyList());
             for (HasMetadata item : items) {
                 if (item instanceof Deployment && ((Deployment)item).getSpec().getReplicas() != null) {
                     return ((Deployment)item).getSpec().getReplicas();
@@ -185,7 +186,7 @@ public class BaseEnricher implements Enricher {
                     return ((DeploymentConfig)item).getSpec().getReplicas();
                 }
             }
-            return xmlResourceConfig.getReplicas() > 0 ? xmlResourceConfig.getReplicas() : defaultValue;
+            return xmlResourceConfig.getReplicas() != null ? xmlResourceConfig.getReplicas() : defaultValue;
         }
         return defaultValue;
     }
