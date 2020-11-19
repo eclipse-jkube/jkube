@@ -63,7 +63,7 @@ public class DockerFileUtil {
      * @throws IOException if there's a problem while performin IO operations.
      */
     public static List<String> extractBaseImages(File dockerFile, Properties properties, String filter, Map<String, String> argsFromBuildConfig) throws IOException {
-        List<String[]> fromLines = extractLines(dockerFile, "FROM", properties, filter);
+        List<String[]> fromLines = extractLines(dockerFile, "FROM", properties, resolveDockerfileFilter(filter));
         Map<String, String> args = extractArgs(dockerFile, properties, filter, argsFromBuildConfig);
         Set<String> result = new LinkedHashSet<>();
         Set<String> fromAlias = new HashSet<>();
@@ -131,7 +131,7 @@ public class DockerFileUtil {
         try (BufferedReader reader = new BufferedReader(new FileReader(dockerFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                ret.append(JKubeDockerfileInterpolator.interpolate(line, properties, filter)).append(System.lineSeparator());
+                ret.append(JKubeDockerfileInterpolator.interpolate(line, properties, resolveDockerfileFilter(filter))).append(System.lineSeparator());
             }
         }
         return ret.toString();
@@ -335,5 +335,9 @@ public class DockerFileUtil {
                 .filter(StringUtils::isNotBlank)
                 .forEach(ports::add));
         return new ArrayList<>(ports);
+    }
+
+    static String resolveDockerfileFilter(String filter) {
+        return filter != null ? filter : BuildConfiguration.DEFAULT_FILTER;
     }
 }

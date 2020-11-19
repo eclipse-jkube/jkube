@@ -104,6 +104,24 @@ public class DockerFileUtilTest {
     }
 
     @Test
+    public void interpolateWithNullFilterShouldPickDefaultFilter() throws IOException {
+        // Given
+        Properties properties = new Properties();
+        properties.put("project.base-image.uri", "openjdk:latest");
+        File givenDockerfile = new File(getClass().getResource("/interpolate/Dockerfile_with_params").getFile());
+
+        // When
+        String result = DockerFileUtil.interpolate(givenDockerfile, properties, null);
+
+        // Then
+        String[] lines = result.split("\n");
+        assertNotNull(result);
+        assertEquals(2, lines.length);
+        assertEquals("FROM openjdk:latest", lines[0]);
+        assertEquals("ENTRYPOINT [\"java\", \"-jar\", \"target/docker-file-simple.jar\"]", lines[1]);
+    }
+
+    @Test
     public void testCreateSimpleDockerfileConfig() throws IOException {
         // Given
         File dockerFile = File.createTempFile("Dockerfile", "-test");
@@ -258,6 +276,12 @@ public class DockerFileUtilTest {
         assertEquals(Arrays.asList("9090", "8080", "9999", "9010"), result1);
         assertEquals(Collections.singletonList("9001"), result2);
         assertEquals(Collections.singletonList("8001"), result3);
+    }
+
+    @Test
+    public void testResolveDockerfileFilter() {
+        assertEquals(BuildConfiguration.DEFAULT_FILTER, DockerFileUtil.resolveDockerfileFilter(null));
+        assertEquals("@*@", DockerFileUtil.resolveDockerfileFilter("@*@"));
     }
 
     private File getDockerfilePath(String dir) {
