@@ -23,6 +23,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
@@ -46,7 +47,7 @@ public class JavaExecGenerator extends BaseGenerator {
 
     // Environment variable used for specifying a main class
     static final String JAVA_MAIN_CLASS_ENV_VAR = "JAVA_MAIN_CLASS";
-    private static final String JAVA_OPTIONS = "JAVA_OPTIONS";
+    protected static final String JAVA_OPTIONS = "JAVA_OPTIONS";
 
     // Plugins indicating a plain java build
     private static final String[][] JAVA_EXEC_MAVEN_PLUGINS = new String[][] {
@@ -127,6 +128,8 @@ public class JavaExecGenerator extends BaseGenerator {
         envMap.put("JAVA_APP_DIR", getConfig(Config.TARGET_DIR));
         buildBuilder.env(envMap);
         addLatestTagIfSnapshot(buildBuilder);
+        buildBuilder.workdir(getBuildWorkdir());
+        buildBuilder.entryPoint(getBuildEntryPoint());
         imageBuilder
                 .name(getImageName())
                 .registry(getRegistry())
@@ -240,5 +243,13 @@ public class JavaExecGenerator extends BaseGenerator {
         if (StringUtils.isNotBlank(port) && Integer.parseInt(port) > 0) {
             list.add(port);
         }
+    }
+
+    protected String getBuildWorkdir() {
+        return null;
+    }
+
+    protected Arguments getBuildEntryPoint() {
+        return null;
     }
 }
