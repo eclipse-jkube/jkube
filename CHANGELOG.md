@@ -29,6 +29,7 @@ Usage:
 * Fix #488: Controller enricher replica count can be set to `0` when ResourceConfig is provided
 * Fix #485: Filter with placeholders in Dockerfile is broken 
 * Fix #387: Update Fabric8 Kubernetes Client to v4.13.0 to support `networking.k8s.io/v1` `Ingress`
+* Fix #473: Debug goals work with QuarkusGenerator generated container images
 
 ### 1.0.2 (2020-10-30)
 * Fix #429: Added quickstart for Micronaut framework
