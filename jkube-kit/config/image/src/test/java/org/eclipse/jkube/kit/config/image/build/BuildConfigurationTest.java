@@ -150,6 +150,14 @@ public class BuildConfigurationTest {
   }
 
   @Test
+  public void cacheFrom() {
+    final BuildConfiguration buildConfiguration = BuildConfiguration.builder()
+            .cacheFrom(Collections.singletonList("foo/bar:latest"))
+            .build();
+    assertEquals(Collections.singletonList("foo/bar:latest"), buildConfiguration.getCacheFrom());
+  }
+
+  @Test
   public void testBuilder(@Mocked AssemblyConfiguration mockAssemblyConfiguration) {
     // Given
     // @formatter:off

@@ -34,6 +34,7 @@ import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ALIAS;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.ARGS;
@@ -53,6 +56,7 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.AUTO_REMOVE;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.BIND;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.BUILD_OPTIONS;
+import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CACHEFROM;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CAP_ADD;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CAP_DROP;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.CLEANUP;
@@ -146,7 +150,6 @@ import static org.eclipse.jkube.kit.build.service.docker.config.handler.property
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.WORKDIR;
 import static org.eclipse.jkube.kit.build.service.docker.config.handler.property.ConfigKey.WORKING_DIR;
 
-
 /**
  * @author roland
  */
@@ -229,6 +232,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .cmd(extractArguments(valueProvider, CMD, valueOrNull(config, BuildConfiguration::getCmd)))
                 .cleanup(valueProvider.getString(CLEANUP, valueOrNull(config, BuildConfiguration::getCleanup)))
                 .nocache(valueProvider.getBoolean(NOCACHE, valueOrNull(config, BuildConfiguration::getNocache)))
+                .cacheFrom(extractCacheFrom(valueProvider.getString(CACHEFROM, config == null ? null : (config.getCacheFrom() == null ? null : config.getCacheFrom().toString()))))
                 .optimise(valueProvider.getBoolean(OPTIMISE, valueOrNull(config, BuildConfiguration::getOptimise)))
                 .entryPoint(extractArguments(valueProvider, ENTRYPOINT, valueOrNull(config, BuildConfiguration::getEntryPoint)))
                 .assembly(extractAssembly(valueOrNull(config, BuildConfiguration::getAssembly), valueProvider))
@@ -310,6 +314,14 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .readOnly(valueProvider.getBoolean(READ_ONLY, config == null ? null : config.getReadOnly()))
                 .autoRemove(valueProvider.getBoolean(AUTO_REMOVE, config == null ? null : config.getAutoRemove()))
                 .build();
+    }
+
+    List<String> extractCacheFrom(String cacheFrom, String ...more) {
+        if (more == null || more.length == 0) {
+            return Collections.singletonList(cacheFrom);
+        }
+
+        return Stream.concat(Stream.of(cacheFrom), Arrays.stream(more)).collect(Collectors.toList());
     }
 
     private NetworkConfig extractNetworkConfig(NetworkConfig config, ValueProvider valueProvider) {

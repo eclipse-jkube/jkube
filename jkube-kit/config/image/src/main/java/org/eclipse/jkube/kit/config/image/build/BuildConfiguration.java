@@ -228,6 +228,8 @@ public class BuildConfiguration implements Serializable {
   @Setter(AccessLevel.PRIVATE)
   private File dockerArchiveFile;
 
+  private List<String> cacheFrom;
+
   public boolean isDockerFileMode() {
     return dockerFile != null || contextDir != null;
   }

@@ -40,6 +40,7 @@ public enum ConfigKey {
     CPUS,
     CPUSET,
     NOCACHE,
+    CACHEFROM,
     OPTIMISE,
     CMD,
     CONTEXT_DIR,
