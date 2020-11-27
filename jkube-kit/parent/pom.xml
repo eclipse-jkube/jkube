@@ -44,7 +44,7 @@
     <version.commons-lang3>3.11</version.commons-lang3>
     <version.commons-text>1.9</version.commons-text>
     <version.gson>2.8.5</version.gson>
-    <version.guava>27.0-jre</version.guava>
+    <version.guava>30.0-jre</version.guava>
     <version.httpclient>4.5.10</version.httpclient>
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
     <version.jansi>1.16</version.jansi>
