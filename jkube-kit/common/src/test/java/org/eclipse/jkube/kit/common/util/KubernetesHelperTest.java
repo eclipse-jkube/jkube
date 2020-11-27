@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -240,6 +243,47 @@ public class KubernetesHelperTest {
         // Then
         assertEquals("networking.istio.io/v1alpha3#VirtualService", result1);
         assertEquals("networking.istio.io/v1alpha3#Gateway", result2);
+    }
+
+    @Test
+    public void testAddPort() {
+        // Given
+        List<ContainerPort> ports = new ArrayList<>();
+        ports.add(new ContainerPortBuilder().withName("p1").withContainerPort(8001).build());
+        ports.add(new ContainerPortBuilder().withName("p2").withContainerPort(8002).build());
+
+        // When
+        boolean result = KubernetesHelper.addPort(ports, "8080", "http", logger);
+
+        // Then
+        assertTrue(result);
+        assertEquals(3, ports.size());
+        assertEquals("http", ports.get(2).getName());
+        assertEquals(8080, ports.get(2).getContainerPort().intValue());
+    }
+
+    @Test
+    public void testAddPortAlreadyExist() {
+        // Given
+        List<ContainerPort> ports = new ArrayList<>();
+        ports.add(new ContainerPortBuilder().withName("p1").withContainerPort(8001).build());
+        ports.add(new ContainerPortBuilder().withName("p2").withContainerPort(8002).build());
+
+        // When
+        boolean result = KubernetesHelper.addPort(ports, "8001", "p1", logger);
+
+        // Then
+        assertFalse(result);
+    }
+
+    @Test
+    public void testAddPortNullPortNumber() {
+        assertFalse(KubernetesHelper.addPort(Collections.emptyList(), "", "", logger));
+    }
+
+    @Test
+    public void testAddPortWithInvalidPortNumber() {
+        assertFalse(KubernetesHelper.addPort(Collections.emptyList(), "90invalid", "", logger));
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {

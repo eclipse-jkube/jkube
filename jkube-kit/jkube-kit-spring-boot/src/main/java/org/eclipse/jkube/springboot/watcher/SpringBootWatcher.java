@@ -126,7 +126,7 @@ public class SpringBootWatcher extends BaseWatcher {
 
         int port = IoUtil.getFreeRandomPort();
         int containerPort = propertyHelper.getServerPort(properties);
-        portForwardService.forwardPortAsync(getContext().getLogger(), selector, containerPort, port);
+        portForwardService.forwardPortAsync(selector, containerPort, port);
 
         return createForwardUrl(propertyHelper, properties, port);
     }

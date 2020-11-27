@@ -11,12 +11,14 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.enricher.api.util;
+package org.eclipse.jkube.kit.common;
 
 /**
  * Some constants for Java Debugging on Kubernetes
  */
 public class DebugConstants {
+    private DebugConstants() { }
+
     public static final String ENV_VAR_JAVA_DEBUG = "JAVA_ENABLE_DEBUG";
     public static final String ENV_VAR_JAVA_DEBUG_SUSPEND = "JAVA_DEBUG_SUSPEND";
     public static final String ENV_VAR_JAVA_DEBUG_SESSION = "JAVA_DEBUG_SESSION";

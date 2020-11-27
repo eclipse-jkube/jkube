@@ -63,9 +63,11 @@ public class JKubeServiceHub implements Closeable {
     private LazyBuilder<ArtifactResolverService> artifactResolverService;
     private LazyBuilder<BuildService> buildService;
     private LazyBuilder<ResourceService> resourceService;
+    private LazyBuilder<PortForwardService> portForwardService;
     private LazyBuilder<ApplyService> applyService;
     private LazyBuilder<UndeployService> undeployService;
     private LazyBuilder<MigrateService> migrateService;
+    private LazyBuilder<DebugService> debugService;
 
     @Builder
     public JKubeServiceHub(
@@ -120,6 +122,8 @@ public class JKubeServiceHub implements Closeable {
             return new KubernetesUndeployService(this, log);
         });
         migrateService = new LazyBuilder<>(() -> new MigrateService(getConfiguration().getBasedir(), log));
+        portForwardService = new LazyBuilder<>(() -> new PortForwardService(client, log));
+        debugService = new LazyBuilder<>(() -> new DebugService(log, portForwardService.get(), applyService.get()));
     }
 
     @Override
@@ -154,6 +158,14 @@ public class JKubeServiceHub implements Closeable {
 
     public MigrateService getMigrateService() {
         return migrateService.get();
+    }
+
+    public PortForwardService getPortForwardService() {
+        return portForwardService.get();
+    }
+
+    public DebugService getDebugService() {
+        return debugService.get();
     }
 
 }

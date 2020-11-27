@@ -17,20 +17,16 @@ import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.LocalPortForward;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.common.util.ProcessUtil;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,14 +43,11 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class PortForwardService {
 
-    private ClientToolsService clientToolsService;
-
     private KitLogger log;
 
     private KubernetesClient kubernetes;
 
     public PortForwardService(KubernetesClient kubernetes, KitLogger log) {
-        this.clientToolsService = new ClientToolsService(log);
         this.log = Objects.requireNonNull(log, "log");
         this.kubernetes = Objects.requireNonNull(kubernetes, "kubernetes");
     }
@@ -63,7 +56,7 @@ public class PortForwardService {
      * Forwards a port to the newest pod matching the given selector.
      * If another pod is created, it forwards connections to the new pod once it's ready.
      */
-    public Closeable forwardPortAsync(final KitLogger externalProcessKitLogger, final LabelSelector podSelector, final int remotePort, final int localPort) {
+    public Closeable forwardPortAsync(final LabelSelector podSelector, final int remotePort, final int localPort) {
 
         final Lock monitor = new ReentrantLock(true);
         final Condition podChanged = monitor.newCondition();
@@ -96,7 +89,7 @@ public class PortForwardService {
 
                                 if (nextPod != null) {
                                     log.info("Starting port-forward to pod %s", KubernetesHelper.getName(nextPod));
-                                    currentPortForward = forwardPortAsync(externalProcessKitLogger, KubernetesHelper.getName(nextPod), null, remotePort, localPort);
+                                    currentPortForward = forwardPortAsync(KubernetesHelper.getName(nextPod), KubernetesHelper.getNamespace(nextPod), remotePort, localPort);
                                 } else {
                                     log.info("Waiting for a pod to become ready before starting port-forward");
                                 }
@@ -221,28 +214,16 @@ public class PortForwardService {
         return targetPod;
     }
 
-    public void forwardPort(KitLogger externalProcessKitLogger, String pod, String namespace, int remotePort, int localPort) throws JKubeServiceException {
-        forwardPortAsync(externalProcessKitLogger, pod, namespace, remotePort, localPort).await();
+    public void forwardPort(String pod, String namespace, int remotePort, int localPort) throws InterruptedException {
+        LocalPortForward localPortForward = forwardPortAsync(pod, namespace, remotePort, localPort);
+        synchronized (localPortForward) {
+            localPortForward.wait();
+        }
     }
 
-    public ProcessUtil.ProcessExecutionContext forwardPortAsync(KitLogger externalProcessKitLogger, String pod, String namespace, int remotePort, int localPort) throws JKubeServiceException {
-        File command = clientToolsService.getKubeCtlExecutable(OpenshiftHelper.isOpenShiftClient(kubernetes));
-        log.info("Port forwarding to port " + remotePort + " on pod " + pod + " using command " + command);
+    public LocalPortForward forwardPortAsync(String pod, String namespace, int remotePort, int localPort) {
+        log.info("Port forwarding to port " + remotePort + " on pod " + pod );
 
-        List<String> args = new ArrayList<>();
-        args.add("port-forward");
-        args.add(pod);
-        args.add(localPort + ":" + remotePort);
-        if (namespace != null) {
-            args.add("-n" + namespace);
-        }
-
-        String commandLine = command + " " + StringUtils.join(args, " ");
-        log.verbose("Executing command " + commandLine);
-        try {
-            return ProcessUtil.runAsyncCommand(externalProcessKitLogger, command, args, true, false);
-        } catch (IOException e) {
-            throw new JKubeServiceException("Error while executing the port-forward command", e);
-        }
+        return kubernetes.pods().inNamespace(namespace).withName(pod).portForward(localPort, remotePort);
     }
 }
