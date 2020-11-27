@@ -45,7 +45,6 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
-import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -404,27 +403,6 @@ public class KubernetesResourceUtil {
         return false;
     }
 
-    public static boolean addPort(List<ContainerPort> ports, String portNumberText, String portName, KitLogger log) {
-        if (StringUtils.isBlank(portNumberText)) {
-            return false;
-        }
-        int portValue;
-        try {
-            portValue = Integer.parseInt(portNumberText);
-        } catch (NumberFormatException e) {
-            log.warn("Could not parse remote debugging port %s as an integer: %s", portNumberText, e);
-            return false;
-        }
-        for (ContainerPort port : ports) {
-            String name = port.getName();
-            Integer containerPort = port.getContainerPort();
-            if (containerPort != null && containerPort.intValue() == portValue) {
-                return false;
-            }
-        }
-        ports.add(new ContainerPortBuilder().withName(portName).withContainerPort(portValue).build());
-        return true;
-    }
 
     public static void validateKubernetesMasterUrl(URL masterUrl) {
         if (masterUrl == null || StringUtils.isBlank(masterUrl.toString())) {

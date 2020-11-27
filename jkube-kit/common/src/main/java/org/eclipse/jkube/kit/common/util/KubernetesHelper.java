@@ -43,6 +43,8 @@ import java.util.regex.Pattern;
 
 import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.Context;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -956,6 +958,27 @@ public class KubernetesHelper {
             }
         }
         return null;
+    }
+
+    public static boolean addPort(List<ContainerPort> ports, String portNumberText, String portName, KitLogger log) {
+        if (StringUtils.isBlank(portNumberText)) {
+            return false;
+        }
+        int portValue;
+        try {
+            portValue = Integer.parseInt(portNumberText);
+        } catch (NumberFormatException e) {
+            log.warn("Could not parse remote debugging port %s as an integer: %s", portNumberText, e);
+            return false;
+        }
+        for (ContainerPort port : ports) {
+            Integer containerPort = port.getContainerPort();
+            if (containerPort != null && containerPort.intValue() == portValue) {
+                return false;
+            }
+        }
+        ports.add(new ContainerPortBuilder().withName(portName).withContainerPort(portValue).build());
+        return true;
     }
 }
 

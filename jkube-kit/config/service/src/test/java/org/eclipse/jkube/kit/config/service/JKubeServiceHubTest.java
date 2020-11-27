@@ -211,4 +211,32 @@ public class JKubeServiceHubTest {
     assertNotNull(result);
     assertTrue(result instanceof OpenshiftUndeployService);
   }
+
+  @Test
+  public void testGetPortForwardService() {
+    // Given
+    JKubeServiceHub hub = commonInit()
+            .platformMode(RuntimeMode.KUBERNETES)
+            .build();
+
+    // When
+    final PortForwardService portForwardService = hub.getPortForwardService();
+
+    // Then
+    assertNotNull(portForwardService);
+  }
+
+  @Test
+  public void testGetDebugService() {
+    // Given
+    JKubeServiceHub hub = commonInit()
+            .platformMode(RuntimeMode.KUBERNETES)
+            .build();
+
+    // When
+    final DebugService debugService = hub.getDebugService();
+
+    // Then
+    assertNotNull(debugService);
+  }
 }
