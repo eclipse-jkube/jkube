@@ -35,14 +35,13 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.eclipse.jkube.kit.enricher.api.util.DebugConstants.ENV_VAR_JAVA_DEBUG;
-import static org.eclipse.jkube.kit.enricher.api.util.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT;
-import static org.eclipse.jkube.kit.enricher.api.util.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT;
+import static org.eclipse.jkube.kit.common.DebugConstants.ENV_VAR_JAVA_DEBUG;
+import static org.eclipse.jkube.kit.common.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT;
+import static org.eclipse.jkube.kit.common.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT;
 
 
 /**
@@ -148,7 +147,7 @@ public class DebugEnricher extends BaseEnricher {
                     if (ports == null) {
                         ports = new ArrayList<>();
                     }
-                    if (KubernetesResourceUtil.addPort(ports, remoteDebugPort, "debug", log)) {
+                    if (KubernetesHelper.addPort(ports, remoteDebugPort, "debug", log)) {
                         container.setPorts(ports);
                         enabled = true;
                     }
