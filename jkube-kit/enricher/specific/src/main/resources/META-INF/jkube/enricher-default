@@ -15,5 +15,5 @@ org.eclipse.jkube.kit.enricher.specific.DockerHealthCheckEnricher,510
 
 # Other enrichers
 org.eclipse.jkube.kit.enricher.specific.PrometheusEnricher
-
+org.eclipse.jkube.kit.enricher.specific.ServiceDiscoveryEnricher
 

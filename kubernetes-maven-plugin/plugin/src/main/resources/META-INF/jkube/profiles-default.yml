@@ -65,6 +65,7 @@
     - jkube-healthcheck-webapp
     - jkube-healthcheck-micronaut
     - jkube-prometheus
+    - jkube-service-discovery
 
     # Value merge enrichers
     - jkube-container-env-java-options
