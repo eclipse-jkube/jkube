@@ -1413,6 +1413,8 @@ public class ApplyService {
     public void applyEntities(String fileName, Set<HasMetadata> entities, KitLogger serviceLogger,
                                  long serviceUrlWaitTimeSeconds, ResourceConfig resources, File resourceDir,
                                  String environment) throws Exception {
+        // Apply Namespace/Project first
+        applyNamespaceOrProjectIfPresent(entities);
         // Apply all items
         applyStandardEntities(fileName, entities);
         logExposeServiceUrl(entities, serviceLogger, serviceUrlWaitTimeSeconds);
