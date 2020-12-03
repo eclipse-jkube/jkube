@@ -41,7 +41,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.containsLabelInMetadata;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isExposedService;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeMetadata;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeSimpleFields;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
@@ -280,10 +280,5 @@ public class RouteEnricher extends BaseEnricher {
             }
         }
         return null;
-    }
-
-    static boolean isExposedService(ObjectMeta objectMeta) {
-        return containsLabelInMetadata(objectMeta, EXPOSE_LABEL, "true") ||
-                containsLabelInMetadata(objectMeta, JKubeAnnotations.SERVICE_EXPOSE_URL.value(), "true");
     }
 }

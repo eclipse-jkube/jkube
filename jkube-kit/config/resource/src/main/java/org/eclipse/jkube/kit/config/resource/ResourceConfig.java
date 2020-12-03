@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
-import io.fabric8.kubernetes.api.model.extensions.IngressRule;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -79,7 +78,10 @@ public class ResourceConfig {
   @Singular
   private List<ServiceAccountConfig> serviceAccounts;
   @Singular
-  private List<IngressRule> ingressRules;
+  private List<IngressRuleConfig> ingressRules;
+
+  @Singular
+  private List<IngressTlsConfig> ingressTlsConfigs;
   private OpenshiftBuildConfig openshiftBuildConfig;
   private String routeDomain;
 

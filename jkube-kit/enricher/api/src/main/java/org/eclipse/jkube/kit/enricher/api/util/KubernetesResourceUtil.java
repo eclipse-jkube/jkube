@@ -75,6 +75,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.Template;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,6 +99,7 @@ public class KubernetesResourceUtil {
     public static final String OPENSHIFT_V1_VERSION = "apps.openshift.io/v1";
     public static final String CRONJOB_VERSION = "batch/v1beta1";
     public static final String RBAC_VERSION = "rbac.authorization.k8s.io/v1";
+    public static final String EXPOSE_LABEL = "expose";
 
     public static final ResourceVersioning DEFAULT_RESOURCE_VERSIONING = new ResourceVersioning()
             .withCoreVersion(API_VERSION)
@@ -933,5 +935,10 @@ public class KubernetesResourceUtil {
             }
         }
         return true;
+    }
+
+    public static boolean isExposedService(ObjectMeta objectMeta) {
+        return containsLabelInMetadata(objectMeta, EXPOSE_LABEL, "true") ||
+                containsLabelInMetadata(objectMeta, JKubeAnnotations.SERVICE_EXPOSE_URL.value(), "true");
     }
 }
