@@ -181,8 +181,6 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
 
             configureApplyService(kubernetes, entities);
 
-            applyService.applyNamespaceOrProjectIfPresent(entities);
-
             // Apply rest of the entities present in manifest
             applyEntities(kubernetes, getNamespaceForApplyService(entities, clusterAccess), manifest.getName(), entities);
             log.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShift() ? "oc" : "kubectl");
