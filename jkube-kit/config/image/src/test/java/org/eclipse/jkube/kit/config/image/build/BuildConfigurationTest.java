@@ -152,7 +152,7 @@ public class BuildConfigurationTest {
   @Test
   public void cacheFrom() {
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder()
-            .cacheFrom(Collections.singletonList("foo/bar:latest"))
+            .addCacheFrom("foo/bar:latest")
             .build();
     assertEquals(Collections.singletonList("foo/bar:latest"), buildConfiguration.getCacheFrom());
   }

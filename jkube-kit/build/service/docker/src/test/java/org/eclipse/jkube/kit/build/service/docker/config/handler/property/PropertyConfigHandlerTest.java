@@ -83,21 +83,21 @@ public class PropertyConfigHandlerTest {
     }
 
     @Test
-    public void testType() throws Exception {
+    public void testType() {
         assertNotNull(configHandler.getType());
     }
 
     @Test
     public void testPortsFromConfigAndProperties() {
         imageConfiguration = ImageConfiguration.builder()
-                .external(new HashMap<String, String>())
+                .external(new HashMap<>())
                 .build(BuildConfiguration.builder()
-                        .ports(Arrays.asList("1234"))
-                        .cacheFrom((Arrays.asList("foo/bar:latest")))
+                        .ports(Collections.singletonList("1234"))
+                        .addCacheFrom("foo/bar:latest")
                         .build()
                 )
                 .run(RunImageConfiguration.builder()
-                        .ports(Arrays.asList("jolokia.port:1234"))
+                        .ports(Collections.singletonList("jolokia.port:1234"))
                         .build()
                 )
                 .build();
@@ -170,10 +170,10 @@ public class PropertyConfigHandlerTest {
     @Test
     public void testRunCommandsFromPropertiesAndConfig() {
         imageConfiguration = ImageConfiguration.builder()
-                .external(new HashMap<String, String>())
+                .external(new HashMap<>())
                 .build(BuildConfiguration.builder()
                         .runCmds(Arrays.asList("some","ignored","value"))
-                        .cacheFrom((Arrays.asList("foo/bar:latest")))
+                        .addCacheFrom("foo/bar:latest")
                         .build()
                 )
                 .build();
@@ -202,7 +202,7 @@ public class PropertyConfigHandlerTest {
                 .external(externalMode(PropertyMode.Fallback))
                 .build(BuildConfiguration.builder()
                         .runCmds(Arrays.asList("some","configured","value"))
-                        .cacheFrom((Arrays.asList("foo/bar:latest")))
+                        .addCacheFrom("foo/bar:latest")
                         .build()
                 )
                 .build();
@@ -238,11 +238,6 @@ public class PropertyConfigHandlerTest {
         assertArrayEquals(new String[]{"/entrypoint.sh", "--from-property"}, buildConfig.getEntryPoint().asStrings().toArray());
     }
 
-    private RunImageConfiguration getRunImageConfiguration(List<ImageConfiguration> configs) {
-        assertEquals(1, configs.size());
-        return configs.get(0).getRunConfiguration();
-    }
-
     @Test
     public void testBuildFromDockerFileMerged() {
         imageConfiguration = ImageConfiguration.builder()
@@ -250,7 +245,7 @@ public class PropertyConfigHandlerTest {
                 .external(externalMode(PropertyMode.Override))
                 .build(BuildConfiguration.builder()
                         .dockerFile("/some/path")
-                        .cacheFrom((Collections.singletonList("foo/bar:latest")))
+                        .addCacheFrom("foo/bar:latest")
                         .build()
                 )
                 .build();
@@ -271,7 +266,7 @@ public class PropertyConfigHandlerTest {
     }
 
     @Test
-    public void testEnvAndLabels() throws Exception {
+    public void testEnvAndLabels() {
         List<ImageConfiguration> configs = resolveImage(
                 imageConfiguration,props(mergeArrays(getBaseTestData(), new String[]{
                         "docker.from", "baase",
@@ -300,7 +295,7 @@ public class PropertyConfigHandlerTest {
 
 
     @Test
-    public void testSpecificEnv() throws Exception {
+    public void testSpecificEnv() {
         List<ImageConfiguration> configs = resolveImage(
                 imageConfiguration,props(mergeArrays(getBaseTestData(), new String[] {
                         "docker.from", "baase",
@@ -324,7 +319,7 @@ public class PropertyConfigHandlerTest {
     }
 
     @Test
-    public void testNoCleanup() throws Exception {
+    public void testNoCleanup() {
         String[] testData = new String[] {k(ConfigKey.NAME), "image", k(ConfigKey.CLEANUP), "none", k(ConfigKey.FROM), "base" };
 
         ImageConfiguration config = resolveExternalImageConfig(mergeArrays(getBaseTestData(), testData));
@@ -332,7 +327,7 @@ public class PropertyConfigHandlerTest {
     }
 
     @Test
-    public void testNoBuildConfig() throws Exception {
+    public void testNoBuildConfig() {
         String[] testData = new String[] {k(ConfigKey.NAME), "image" };
 
         ImageConfiguration config = resolveExternalImageConfig(testData);
@@ -348,7 +343,7 @@ public class PropertyConfigHandlerTest {
     }
 
     @Test
-    public void testNoCacheEnabled() throws Exception {
+    public void testNoCacheEnabled() {
         String[] testData = new String[] {k(ConfigKey.NAME), "image", k(ConfigKey.NOCACHE), "true", k(ConfigKey.FROM), "base" };
 
         ImageConfiguration config = resolveExternalImageConfig(mergeArrays(getBaseTestData(), testData));
@@ -381,7 +376,7 @@ public class PropertyConfigHandlerTest {
     }
 
     @Test
-    public void testNoOptimise() throws Exception {
+    public void testNoOptimise() {
         String[] testData = new String[] {k(ConfigKey.NAME), "image", k(ConfigKey.OPTIMISE), "false", k(ConfigKey.FROM), "base" };
 
         ImageConfiguration config = resolveExternalImageConfig(mergeArrays(getBaseTestData(), testData));
@@ -611,15 +606,6 @@ public class PropertyConfigHandlerTest {
             ret.setProperty(args[i], args[i + 1]);
         }
         return ret;
-    }
-
-    private String[] getTestAssemblyData() {
-        return new String[] {
-                k(ConfigKey.FROM), "busybox",
-                k(ConfigKey.ASSEMBLY_BASEDIR), "/basedir",
-                k(ConfigKey.ASSEMBLY_USER), "user",
-                k(ConfigKey.NAME), "image",
-        };
     }
 
     private String[] getTestData() {
