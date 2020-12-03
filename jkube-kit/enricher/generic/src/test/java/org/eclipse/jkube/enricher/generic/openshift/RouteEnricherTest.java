@@ -223,12 +223,6 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testIsExposedService() {
-       assertTrue(RouteEnricher.isExposedService(new ObjectMetaBuilder().addToLabels("expose", "true").build()));
-       assertTrue(RouteEnricher.isExposedService(new ObjectMetaBuilder().addToLabels("jkube.io/exposeUrl", "true").build()));
-    }
-
-    @Test
     public void testMergeRouteWithEmptyFragment() {
         // Given
         Route opinionatedRoute = getMockOpinionatedRoute();

@@ -212,6 +212,29 @@
                   </jkube-service>
                 </config>
               </enricher>
+              <resources>
+                <ingressTlsConfigs>
+                  <ingressTlsConfig>
+                    <hosts>
+                      https-example.foo.com
+                    </hosts>
+                    <secretName>testsecret-tls</secretName>
+                  </ingressTlsConfig>
+                </ingressTlsConfigs>
+                <ingressRules>
+                  <ingressRule>
+                    <host>hello.example.systems</host>
+                    <paths>
+                      <path>
+                        <pathType>ImplementationSpecific</pathType>
+                        <path>/</path>
+                        <serviceName>${project.artifactId}</serviceName>
+                        <servicePort>8080</servicePort>
+                      </path>
+                    </paths>
+                  </ingressRule>
+                </ingressRules>
+              </resources>
             </configuration>
           </plugin>
         </plugins>

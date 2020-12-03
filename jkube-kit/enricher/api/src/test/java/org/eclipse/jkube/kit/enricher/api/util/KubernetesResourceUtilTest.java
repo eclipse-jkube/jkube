@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.enricher.api.util;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
@@ -264,6 +265,12 @@ public class KubernetesResourceUtilTest {
         assertEquals("networking.k8s.io/v1", result.getApiVersion());
         assertEquals("Ingress", result.getKind());
         assertEquals("my-ingress", result.getMetadata().getName());
+    }
+
+    @Test
+    public void testIsExposedService() {
+        assertTrue(KubernetesResourceUtil.isExposedService(new ObjectMetaBuilder().addToLabels("expose", "true").build()));
+        assertTrue(KubernetesResourceUtil.isExposedService(new ObjectMetaBuilder().addToLabels("jkube.io/exposeUrl", "true").build()));
     }
 
     private PodSpec getDefaultGeneratedPodSpec() {
