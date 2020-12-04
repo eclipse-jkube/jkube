@@ -136,6 +136,10 @@ public class ApplyService {
         }
     }
 
+    public boolean isAlreadyApplied(HasMetadata resource) {
+        return kubernetesClient.resource(resource).inNamespace(namespace).fromServer().get() != null;
+    }
+
     /**
      * Applies the given DTOs onto the Kubernetes master
      */

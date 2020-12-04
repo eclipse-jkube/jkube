@@ -23,10 +23,13 @@ import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,9 +46,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class PortForwardService {
 
-    private KitLogger log;
+    private final KitLogger log;
 
-    private KubernetesClient kubernetes;
+    private final KubernetesClient kubernetes;
 
     public PortForwardService(KubernetesClient kubernetes, KitLogger log) {
         this.log = Objects.requireNonNull(log, "log");
@@ -89,7 +92,7 @@ public class PortForwardService {
 
                                 if (nextPod != null) {
                                     log.info("Starting port-forward to pod %s", KubernetesHelper.getName(nextPod));
-                                    currentPortForward = forwardPortAsync(KubernetesHelper.getName(nextPod), KubernetesHelper.getNamespace(nextPod), remotePort, localPort);
+                                    currentPortForward = forwardPortAsync( KubernetesHelper.getName(nextPod), KubernetesHelper.getNamespace(nextPod), remotePort, localPort);
                                 } else {
                                     log.info("Waiting for a pod to become ready before starting port-forward");
                                 }
@@ -213,16 +216,90 @@ public class PortForwardService {
         return targetPod;
     }
 
-    public void forwardPort(String pod, String namespace, int remotePort, int localPort) throws InterruptedException {
+    PortForwardThread forwardPort(String pod, String namespace, int remotePort, int localPort) {
+        log.info("Port forwarding to port " + remotePort + " on pod " + pod );
         LocalPortForward localPortForward = forwardPortAsync(pod, namespace, remotePort, localPort);
-        synchronized (localPortForward) {
-            localPortForward.wait();
+        log.info("");
+        log.info("Now you can start a Remote debug execution in your IDE by using localhost and the debug port " + localPort);
+        log.info("");
+
+        return new PortForwardThread(kubernetes, pod, namespace, localPortForward, log);
+    }
+
+    LocalPortForward forwardPortAsync(String podName, String namespace, int remotePort, int localPort) {
+        return kubernetes.pods().inNamespace(namespace).withName(podName).portForward(localPort, remotePort);
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class PortForwardPodMonitorThread extends Thread {
+        private final KubernetesClient kubernetesClient;
+        private final String podName;
+        private final String namespace;
+        private final KitLogger logger;
+
+        @Override
+        public void run() {
+            while (!isInterrupted()) {
+                try {
+                    Pod pod = kubernetesClient.pods().inNamespace(namespace).withName(podName).fromServer().get();
+                    if (pod == null) {
+                        logger.error("Pod %s no longer available", podName);
+                        throw new IllegalStateException("Not able to port forward: Pod used in Port Forward no longer available..");
+                    }
+                    if (!KubernetesHelper.isPodRunning(pod)) {
+                        logger.error("Pod %s no longer in Running state", podName);
+                        throw new IllegalStateException("Not able to port forward: Pod no longer in running state");
+                    }
+                } catch (KubernetesClientException exception) {
+                    throw new IllegalStateException("Error in getting Debug Pod details from Kuberntes API");
+                }
+            }
         }
     }
 
-    public LocalPortForward forwardPortAsync(String pod, String namespace, int remotePort, int localPort) {
-        log.info("Port forwarding to port " + remotePort + " on pod " + pod );
+    @AllArgsConstructor
+    @Getter
+    public static class PortForwardThread extends Thread {
+        private final KubernetesClient kubernetesClient;
+        private final String podName;
+        private final String namespace;
+        private final LocalPortForward localPortForward;
+        private final KitLogger logger;
+        private final Lock lock = new ReentrantLock();
+        private final Condition notInterrupted  = lock.newCondition();
 
-        return kubernetes.pods().inNamespace(namespace).withName(pod).portForward(localPort, remotePort);
+        @Override
+        public void run() {
+            PortForwardPodMonitorThread monitorThread = new PortForwardPodMonitorThread(kubernetesClient, podName, namespace, logger);
+            lock.lock();
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    monitorThread.run();
+                    notInterrupted.await();
+                } catch (InterruptedException interruptedException) {
+                    logger.warn("Interrupted : %s", interruptedException.getMessage());
+                    monitorThread.interrupt();
+                    Thread.currentThread().interrupt();
+                    notInterrupted.signal();
+                } catch (Exception exception) {
+                    logger.warn("Not able to port forward : %s", exception.getMessage());
+                    Thread.currentThread().interrupt();
+                    notInterrupted.signal();
+                } finally {
+                    close();
+                    lock.unlock();
+                }
+            }
+        }
+
+        private void close() {
+            try {
+                logger.info("Closing port forward for Debug Session ...");
+                localPortForward.close();
+            } catch (IOException exception) {
+                logger.warn("Not able to close Port forward gracefully : %s", exception.getMessage());
+            }
+        }
     }
 }

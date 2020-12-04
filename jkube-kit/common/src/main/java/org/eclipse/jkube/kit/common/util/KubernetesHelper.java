@@ -108,6 +108,9 @@ public class KubernetesHelper {
     private static final String PROFILES_PATTERN_REGEX = "^profiles?\\.ya?ml$";
     public static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
     public static final Pattern PROFILES_PATTERN = Pattern.compile(PROFILES_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
+    protected static final String[] POD_CONTROLLER_KINDS =
+            { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job" };
+
 
     private KubernetesHelper() {}
 
@@ -960,25 +963,32 @@ public class KubernetesHelper {
         return null;
     }
 
-    public static boolean addPort(List<ContainerPort> ports, String portNumberText, String portName, KitLogger log) {
+    public static boolean containsPort(List<ContainerPort> ports, String portValue) {
+        for (ContainerPort port : ports) {
+            Integer containerPort = port.getContainerPort();
+            if (containerPort != null && containerPort == Integer.parseInt(portValue)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static ContainerPort addPort(String portNumberText, String portName, KitLogger log) {
         if (StringUtils.isBlank(portNumberText)) {
-            return false;
+            return null;
         }
         int portValue;
         try {
             portValue = Integer.parseInt(portNumberText);
         } catch (NumberFormatException e) {
             log.warn("Could not parse remote debugging port %s as an integer: %s", portNumberText, e);
-            return false;
+            return null;
         }
-        for (ContainerPort port : ports) {
-            Integer containerPort = port.getContainerPort();
-            if (containerPort != null && containerPort.intValue() == portValue) {
-                return false;
-            }
-        }
-        ports.add(new ContainerPortBuilder().withName(portName).withContainerPort(portValue).build());
-        return true;
+        return new ContainerPortBuilder().withName(portName).withContainerPort(portValue).build();
+    }
+
+    public static boolean isControllerResource(HasMetadata h) {
+        return Arrays.stream(POD_CONTROLLER_KINDS).anyMatch(c -> c.equals(h.getKind()));
     }
 }
 
