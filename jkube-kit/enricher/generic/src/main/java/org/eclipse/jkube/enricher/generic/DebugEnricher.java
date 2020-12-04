@@ -147,9 +147,13 @@ public class DebugEnricher extends BaseEnricher {
                     if (ports == null) {
                         ports = new ArrayList<>();
                     }
-                    if (KubernetesHelper.addPort(ports, remoteDebugPort, "debug", log)) {
-                        container.setPorts(ports);
-                        enabled = true;
+                    if (!KubernetesHelper.containsPort(ports, remoteDebugPort)) {
+                        ContainerPort port = KubernetesHelper.addPort(remoteDebugPort, "debug", log);
+                        if (port != null) {
+                            ports.add(port);
+                            container.setPorts(ports);
+                            enabled = true;
+                        }
                     }
                     if (enabled) {
                         log.info("Enabling debug on " + KubernetesHelper.getKind(entity) + " " + KubernetesHelper.getName(

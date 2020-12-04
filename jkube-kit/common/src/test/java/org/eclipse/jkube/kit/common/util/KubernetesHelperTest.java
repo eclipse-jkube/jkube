@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -20,8 +21,14 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -371,44 +378,51 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void testAddPort() {
+    public void testContainsPort() {
         // Given
         List<ContainerPort> ports = new ArrayList<>();
         ports.add(new ContainerPortBuilder().withName("p1").withContainerPort(8001).build());
         ports.add(new ContainerPortBuilder().withName("p2").withContainerPort(8002).build());
 
         // When
-        boolean result = KubernetesHelper.addPort(ports, "8080", "http", logger);
+        boolean result1 = KubernetesHelper.containsPort(ports, "8001");
+        boolean result2 = KubernetesHelper.containsPort(ports, "8002");
 
         // Then
-        assertTrue(result);
-        assertEquals(3, ports.size());
-        assertEquals("http", ports.get(2).getName());
-        assertEquals(8080, ports.get(2).getContainerPort().intValue());
+        assertTrue(result1);
+        assertTrue(result2);
     }
 
     @Test
-    public void testAddPortAlreadyExist() {
-        // Given
-        List<ContainerPort> ports = new ArrayList<>();
-        ports.add(new ContainerPortBuilder().withName("p1").withContainerPort(8001).build());
-        ports.add(new ContainerPortBuilder().withName("p2").withContainerPort(8002).build());
-
+    public void testAddPort() {
         // When
-        boolean result = KubernetesHelper.addPort(ports, "8001", "p1", logger);
+        ContainerPort result = KubernetesHelper.addPort("8001", "p1", logger);
 
         // Then
-        assertFalse(result);
+        assertNotNull(result);
+        assertEquals("p1", result.getName());
+        assertEquals(8001, result.getContainerPort().intValue());
     }
 
     @Test
     public void testAddPortNullPortNumber() {
-        assertFalse(KubernetesHelper.addPort(Collections.emptyList(), "", "", logger));
+        assertNull(KubernetesHelper.addPort("", "", logger));
     }
 
     @Test
     public void testAddPortWithInvalidPortNumber() {
-        assertFalse(KubernetesHelper.addPort(Collections.emptyList(), "90invalid", "", logger));
+        assertNull(KubernetesHelper.addPort("90invalid", "", logger));
+    }
+
+    @Test
+    public void testIsControllerResource() {
+        assertTrue(KubernetesHelper.isControllerResource(new DeploymentBuilder().build()));
+        assertTrue(KubernetesHelper.isControllerResource(new StatefulSetBuilder().build()));
+        assertTrue(KubernetesHelper.isControllerResource(new ReplicationControllerBuilder().build()));
+        assertTrue(KubernetesHelper.isControllerResource(new ReplicaSetBuilder().build()));
+        assertTrue(KubernetesHelper.isControllerResource(new DeploymentConfigBuilder().build()));
+        assertTrue(KubernetesHelper.isControllerResource(new DaemonSetBuilder().build()));
+        assertFalse(KubernetesHelper.isControllerResource(new ConfigMapBuilder().build()));
     }
 
     @Test
