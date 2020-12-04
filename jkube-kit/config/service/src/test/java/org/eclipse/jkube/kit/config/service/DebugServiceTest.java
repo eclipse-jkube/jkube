@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -57,37 +58,39 @@ public class DebugServiceTest {
     private KubernetesClient kubernetesClient;
 
     @Mocked
-    private PortForwardService portForwardService;
-
-    @Mocked
     private ApplyService applyService;
 
     @Mocked
     private KitLogger logger;
 
     @Test
-    public void testApplyEntities() throws InterruptedException {
+    public void testApplyEntities() {
         // Given
         PortForwardService portForwardService = new PortForwardService(kubernetesClient, logger);
+        Deployment deployment = getDeployment(getTestLabels());
         ApplyService applyService = new ApplyService(kubernetesClient, logger);
         DebugService debugService = new DebugService(logger, portForwardService, applyService);
         List<EnvVar> debugEnvVars = getDebugEnvVars();
         PodList podList = new PodListBuilder().withItems(getPod(debugEnvVars)).build();
         new Expectations() {{
+            applyService.isAlreadyApplied((HasMetadata)any);
+            result = true;
+
             kubernetesClient.pods().inNamespace(anyString).withLabels((Map<String, String>) any).list();
             result = podList;
         }};
         Set<HasMetadata> entities = new HashSet<>();
-        entities.add(getDeployment(getTestLabels()));
+        entities.add(deployment);
 
         // When
-        debugService.debug(kubernetesClient, "test-ns", "test-file", entities, "5005", false, logger);
+        PortForwardService.PortForwardThread portForwardTask = debugService.debug(kubernetesClient, "test-ns", "test-file", entities, "5005", false, logger);
 
         // Then
+        assertNotNull(portForwardTask);
+        assertEquals("test-app", portForwardTask.getPodName());
+        assertEquals("test-ns", portForwardTask.getNamespace());
         new Verifications() {{
             kubernetesClient.pods().inNamespace(anyString).withLabels((Map<String, String>) any).list();
-            times = 1;
-            portForwardService.forwardPort("test-app", "test-ns", 5005, 5005);
             times = 1;
         }};
     }
@@ -196,18 +199,43 @@ public class DebugServiceTest {
     }
 
     @Test
-    public void testPortForward() throws InterruptedException {
+    public void testPortForward() {
         // Given
         DebugService debugService = createDebugService();
 
         // When
-        debugService.portForward("test-pod", "test-ns", "5005");
+        PortForwardService.PortForwardThread portForwardTask = debugService.portForward("test-pod", "test-ns", "5005");
 
         // Then
-        new Verifications() {{
-            portForwardService.forwardPort("test-pod", "test-ns", 5005, 5005);
-            times = 1;
-        }};
+        assertNotNull(portForwardTask);
+        assertEquals("test-pod", portForwardTask.getPodName());
+        assertEquals("test-ns", portForwardTask.getNamespace());
+    }
+
+    @Test
+    public void testPortForwardTermination() throws InterruptedException {
+        // Given
+        DebugService debugService = createDebugService();
+        CountDownLatch isAliveLatch = new CountDownLatch(1);
+
+        // When
+        PortForwardService.PortForwardThread portForwardTask = debugService.portForward("test-pod", "test-ns", "5005");
+        portForwardTask.start();
+        new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                if (!portForwardTask.isAlive()) {
+                    isAliveLatch.countDown();
+                }
+            }
+        }).start();
+        portForwardTask.interrupt();
+
+        // Then
+        assertNotNull(portForwardTask);
+        assertEquals("test-pod", portForwardTask.getPodName());
+        assertEquals("test-ns", portForwardTask.getNamespace());
+        assertTrue(isAliveLatch.await(500, TimeUnit.MILLISECONDS));
+        assertEquals(Thread.State.TERMINATED, portForwardTask.getState());
     }
 
     @Test
@@ -228,6 +256,7 @@ public class DebugServiceTest {
     }
 
     private DebugService createDebugService() {
+        PortForwardService portForwardService = new PortForwardService(kubernetesClient, logger);
         return new DebugService(logger, portForwardService, applyService);
     }
 

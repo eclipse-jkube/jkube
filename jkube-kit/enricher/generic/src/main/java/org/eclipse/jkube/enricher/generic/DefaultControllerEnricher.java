@@ -45,6 +45,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.eclipse.jkube.enricher.generic.ControllerViaPluginConfigurationEnricher.POD_CONTROLLER_KINDS;
+
 /**
  * Enrich with controller if not already present.
  *
@@ -62,9 +64,6 @@ import java.util.Optional;
  * @author roland
  */
 public class DefaultControllerEnricher extends BaseEnricher {
-    protected static final String[] POD_CONTROLLER_KINDS =
-        { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job" };
-
     private final DeploymentHandler deployHandler;
     private final DeploymentConfigHandler deployConfigHandler;
     private final ReplicationControllerHandler rcHandler;

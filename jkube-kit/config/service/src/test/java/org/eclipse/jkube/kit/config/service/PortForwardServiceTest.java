@@ -21,11 +21,9 @@ import io.fabric8.kubernetes.api.model.PodListBuilder;
 import io.fabric8.kubernetes.api.model.WatchEvent;
 import io.fabric8.kubernetes.client.LocalPortForward;
 import io.fabric8.openshift.client.OpenShiftClient;
-import io.fabric8.openshift.client.server.mock.OpenShiftServer;
+import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
 import org.eclipse.jkube.kit.common.KitLogger;
 import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.Closeable;
@@ -36,25 +34,10 @@ public class PortForwardServiceTest {
     @Mocked
     private KitLogger logger;
 
-    @Mocked
-    private Process process;
-
-    @Mocked
-    private ClientToolsService clientToolsService;
-
-    @Rule
-    public final OpenShiftServer mockServer = new OpenShiftServer(false);
-
-    @Before
-    public void init() throws Exception {
-        new Expectations() {{
-            process.destroy();
-        }};
-    }
-
     @Test
     public void testSimpleScenario() throws Exception {
         // Cannot test more complex scenarios due to errors in mockwebserver
+        OpenShiftMockServer mockServer = new OpenShiftMockServer(false);
 
         Pod pod1 = new PodBuilder()
                 .withNewMetadata()
@@ -88,11 +71,11 @@ public class PortForwardServiceTest {
                 .andEmit(new WatchEvent(pod1, "MODIFIED"))
                 .done().always();
 
-        OpenShiftClient client = mockServer.getOpenshiftClient();
+        OpenShiftClient client = mockServer.createOpenShiftClient();
         PortForwardService service = new PortForwardService(client, logger) {
             @Override
-            public LocalPortForward forwardPortAsync(String pod, String namespace, int remotePort, int localPort) {
-                return client.pods().inNamespace(namespace).withName(pod).portForward(localPort, remotePort);
+            public LocalPortForward forwardPortAsync(String podName, String namespace, int remotePort, int localPort) {
+                return client.pods().inNamespace(namespace).withName(podName).portForward(localPort, remotePort);
             }
         };
 
