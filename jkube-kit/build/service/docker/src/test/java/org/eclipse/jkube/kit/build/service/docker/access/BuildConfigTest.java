@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ import org.eclipse.jkube.kit.common.JsonFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author roland
@@ -76,5 +78,20 @@ public class BuildConfigTest {
         assertEquals("0", opts.getOptions().get("nocache"));
         opts.addOption("nocache","1");
         assertEquals("1", opts.getOptions().get("nocache"));
+    }
+
+    @Test
+    public void cachefrom() {
+        BuildOptions opts = new BuildOptions().cacheFrom(Collections.singletonList("foo/bar:latest"));
+        assertEquals("[\"foo/bar:latest\"]", opts.getOptions().get("cachefrom"));
+
+        opts.cacheFrom(Arrays.asList("foo/bar:latest", "foo/baz:1.0"));
+        assertEquals("[\"foo/bar:latest\",\"foo/baz:1.0\"]", opts.getOptions().get("cachefrom"));
+
+        opts.cacheFrom(Collections.emptyList());
+        assertNull(opts.getOptions().get("cachefrom"));
+
+        opts.cacheFrom(null);
+        assertNull(opts.getOptions().get("cachefrom"));
     }
 }
