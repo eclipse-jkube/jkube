@@ -18,11 +18,12 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefin
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
-import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
+import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -40,13 +41,14 @@ public class ApplyServiceTest {
     @Mocked
     private KitLogger log;
 
-    private final OpenShiftMockServer mockServer = new OpenShiftMockServer(false);
+    @Rule
+    public final OpenShiftServer mockServer = new OpenShiftServer(false);
 
     private ApplyService applyService;
 
     @Before
     public void setUp() {
-        applyService = new ApplyService(mockServer.createOpenShiftClient(), log);
+        applyService = new ApplyService(mockServer.getOpenshiftClient(), log);
         applyService.setNamespace("default");
     }
 
@@ -54,7 +56,7 @@ public class ApplyServiceTest {
     public void testCreateRoute() throws Exception {
         Route route = buildRoute();
 
-        WebServerEventCollector<OpenShiftMockServer> collector = new WebServerEventCollector<>(mockServer);
+        WebServerEventCollector<OpenShiftServer> collector = new WebServerEventCollector<>(mockServer);
         mockServer.expect().get()
                 .withPath("/apis/route.openshift.io/v1/namespaces/default/routes/route")
                 .andReply(collector.record("get-route").andReturn(HTTP_NOT_FOUND, ""))
@@ -79,7 +81,7 @@ public class ApplyServiceTest {
                 .withSpec(oldRoute.getSpec())
                 .build();
 
-        WebServerEventCollector<OpenShiftMockServer> collector = new WebServerEventCollector<>(mockServer);
+        WebServerEventCollector<OpenShiftServer> collector = new WebServerEventCollector<>(mockServer);
         mockServer.expect().get()
                 .withPath("/apis/route.openshift.io/v1/namespaces/default/routes/route")
                 .andReply(collector.record("get-route").andReturn(HTTP_OK, oldRoute))
@@ -102,7 +104,7 @@ public class ApplyServiceTest {
     public void testCreateRouteInServiceOnlyMode() throws Exception {
         Route route = buildRoute();
 
-        WebServerEventCollector<OpenShiftMockServer> collector = new WebServerEventCollector<>(mockServer);
+        WebServerEventCollector<OpenShiftServer> collector = new WebServerEventCollector<>(mockServer);
         mockServer.expect().get()
                 .withPath("/apis/route.openshift.io/v1/namespaces/default/routes/route")
                 .andReply(collector.record("get-route").andReturn(HTTP_NOT_FOUND, ""))
@@ -112,14 +114,14 @@ public class ApplyServiceTest {
         applyService.apply(route, "route.yml");
 
         collector.assertEventsNotRecorded("get-route");
-        assertEquals(1, mockServer.getRequestCount());
+        assertEquals(1, mockServer.getMockServer().getRequestCount());
     }
 
     @Test
     public void testCreateRouteNotAllowed() throws Exception {
         Route route = buildRoute();
 
-        WebServerEventCollector<OpenShiftMockServer> collector = new WebServerEventCollector<>(mockServer);
+        WebServerEventCollector<OpenShiftServer> collector = new WebServerEventCollector<>(mockServer);
         mockServer.expect().get()
                 .withPath("/apis/route.openshift.io/v1/namespaces/default/routes/route")
                 .andReply(collector.record("get-route").andReturn(HTTP_NOT_FOUND, ""))
@@ -129,7 +131,7 @@ public class ApplyServiceTest {
         applyService.apply(route, "route.yml");
 
         collector.assertEventsRecordedInOrder("get-route");
-        assertEquals(2, mockServer.getRequestCount());
+        assertEquals(2, mockServer.getMockServer().getRequestCount());
     }
 
     @Test
@@ -139,7 +141,7 @@ public class ApplyServiceTest {
         crdNames.add("virtualservices.networking.istio.io");
         crdNames.add("gateways.networking.istio.io");
         File crFragmentDir = new File(getClass().getResource("/gateway-cr.yml").getFile()).getParentFile();
-        WebServerEventCollector<OpenShiftMockServer> collector = new WebServerEventCollector<>(mockServer);
+        WebServerEventCollector<OpenShiftServer> collector = new WebServerEventCollector<>(mockServer);
         mockServer.expect().get()
                 .withPath("/apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions/virtualservices.networking.istio.io")
                 .andReply(collector.record("get-crd-virtualservice").andReturn(HTTP_OK, getVirtualServiceIstioCRD()))
@@ -162,7 +164,7 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("get-crd-virtualservice", "get-crd-gateway", "post-cr-virtualservice", "post-cr-gateway");
-        assertEquals(7, mockServer.getRequestCount());
+        assertEquals(7, mockServer.getMockServer().getRequestCount());
     }
 
     @Test
@@ -172,7 +174,7 @@ public class ApplyServiceTest {
         crdNames.add("virtualservices.networking.istio.io");
         crdNames.add("gateways.networking.istio.io");
         File crFragmentDir = new File(getClass().getResource("/gateway-cr.yml").getFile()).getParentFile();
-        WebServerEventCollector<OpenShiftMockServer> collector = new WebServerEventCollector<>(mockServer);
+        WebServerEventCollector<OpenShiftServer> collector = new WebServerEventCollector<>(mockServer);
         mockServer.expect().get()
                 .withPath("/apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions/virtualservices.networking.istio.io")
                 .andReply(collector.record("get-crd-virtualservice").andReturn(HTTP_OK, getVirtualServiceIstioCRD()))
@@ -203,7 +205,7 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("get-crd-virtualservice", "get-crd-gateway", "get-cr-virtualservice", "put-cr-virtualservice", "get-cr-gateway", "put-cr-gateway");
-        assertEquals(7, mockServer.getRequestCount());
+        assertEquals(7, mockServer.getMockServer().getRequestCount());
     }
 
     @Test
@@ -213,7 +215,7 @@ public class ApplyServiceTest {
         crdNames.add("virtualservices.networking.istio.io");
         crdNames.add("gateways.networking.istio.io");
         File crFragmentDir = new File(getClass().getResource("/gateway-cr.yml").getFile()).getParentFile();
-        WebServerEventCollector<OpenShiftMockServer> collector = new WebServerEventCollector<>(mockServer);
+        WebServerEventCollector<OpenShiftServer> collector = new WebServerEventCollector<>(mockServer);
         mockServer.expect().get()
                 .withPath("/apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions/virtualservices.networking.istio.io")
                 .andReply(collector.record("get-crd-virtualservice").andReturn(HTTP_OK, getVirtualServiceIstioCRD()))
@@ -247,7 +249,7 @@ public class ApplyServiceTest {
         // Then
         collector.assertEventsRecordedInOrder("get-crd-virtualservice", "get-crd-gateway",
                 "delete-cr-virtualservice", "post-cr-virtualservice", "delete-cr-gateway", "post-cr-gateway");
-        assertEquals(7, mockServer.getRequestCount());
+        assertEquals(7, mockServer.getMockServer().getRequestCount());
     }
 
     @Test
@@ -259,7 +261,7 @@ public class ApplyServiceTest {
         applyService.processCustomEntities(null, crFragmentDir, null, Collections.emptyList());
 
         // Then
-        assertEquals(1, mockServer.getRequestCount()); // This one is just /apis check
+        assertEquals(1, mockServer.getMockServer().getRequestCount()); // This one is just /apis check
     }
 
     private Route buildRoute() {

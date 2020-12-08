@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.1.0-SNAPSHOT
+* Fix #455: Use OpenShiftServer with JUnit rule instead of directly instantiating the OpenShiftMockServer
 * Fix #467: Upgrade assertj-core to 3.18.0
 * Fix #460: Added a Quickstart for implementing and using a Custom Enricher based on Eclipse JKube Kit Enricher API
 * Fix #240: No Ports exposed inside Deployment in case of Zero Config Dockerfile Mode

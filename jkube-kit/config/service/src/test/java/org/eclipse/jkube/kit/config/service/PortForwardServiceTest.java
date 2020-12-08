@@ -20,12 +20,13 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodListBuilder;
 import io.fabric8.kubernetes.api.model.WatchEvent;
 import io.fabric8.openshift.client.OpenShiftClient;
-import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
+import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ProcessUtil;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.Closeable;
@@ -42,6 +43,9 @@ public class PortForwardServiceTest {
     @Mocked
     private ClientToolsService clientToolsService;
 
+    @Rule
+    public final OpenShiftServer mockServer = new OpenShiftServer(false);
+
     @Before
     public void init() throws Exception {
         new Expectations() {{
@@ -52,7 +56,6 @@ public class PortForwardServiceTest {
     @Test
     public void testSimpleScenario() throws Exception {
         // Cannot test more complex scenarios due to errors in mockwebserver
-        OpenShiftMockServer mockServer = new OpenShiftMockServer(false);
 
         Pod pod1 = new PodBuilder()
                 .withNewMetadata()
@@ -86,7 +89,7 @@ public class PortForwardServiceTest {
                 .andEmit(new WatchEvent(pod1, "MODIFIED"))
                 .done().always();
 
-        OpenShiftClient client = mockServer.createOpenShiftClient();
+        OpenShiftClient client = mockServer.getOpenshiftClient();
         PortForwardService service = new PortForwardService(client, logger) {
             @Override
             public ProcessUtil.ProcessExecutionContext forwardPortAsync(KitLogger externalProcessLogger, String pod, String namespace, int remotePort, int localPort) throws JKubeServiceException {
