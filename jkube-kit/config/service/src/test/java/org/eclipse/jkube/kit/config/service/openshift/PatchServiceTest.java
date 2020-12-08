@@ -22,12 +22,13 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
-import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
+import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.PatchService;
 import mockit.Mocked;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -39,13 +40,14 @@ public class PatchServiceTest {
     @Mocked
     private KitLogger log;
 
-    private OpenShiftMockServer mockServer = new OpenShiftMockServer(false);
+    @Rule
+    public final OpenShiftServer mockServer = new OpenShiftServer(false);
 
     private PatchService patchService;
 
     @Before
     public void setUp() {
-        patchService = new PatchService(mockServer.createOpenShiftClient(), log);
+        patchService = new PatchService(mockServer.getOpenshiftClient(), log);
     }
 
     @Test
@@ -85,7 +87,7 @@ public class PatchServiceTest {
                 .withNewMetadata().withName("secret").endMetadata()
                 .addToStringData("test", "test")
                 .build();
-        WebServerEventCollector<OpenShiftMockServer> collector = new WebServerEventCollector<>(mockServer);
+        WebServerEventCollector<OpenShiftServer> collector = new WebServerEventCollector<>(mockServer);
         mockServer.expect().get().withPath("/api/v1/namespaces/test/secrets/secret")
                 .andReply(collector.record("get-secret").andReturn(200, oldSecret)).always();
         mockServer.expect().patch().withPath("/api/v1/namespaces/test/secrets/secret")

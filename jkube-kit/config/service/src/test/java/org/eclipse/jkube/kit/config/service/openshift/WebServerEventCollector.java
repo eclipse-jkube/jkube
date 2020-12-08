@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
-import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.mockwebserver.utils.ResponseProvider;
 import okhttp3.Headers;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -29,7 +28,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * A utility class to record http request events.
  */
-public class WebServerEventCollector<C extends KubernetesMockServer> {
+public class WebServerEventCollector<C> {
 
     private C mockServer;
 
