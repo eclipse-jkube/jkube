@@ -68,6 +68,7 @@ public class KubernetesUndeployService implements UndeployService {
     final String currentNamespace = currentNamespace(entities);
     undeployResources(currentNamespace, entities);
     undeployCustomResources(currentNamespace, resourceDir, resourceConfig);
+    undeployNamespace(entities);
   }
 
   private void undeployResources(String namespace, List<HasMetadata> entities) {
@@ -78,6 +79,13 @@ public class KubernetesUndeployService implements UndeployService {
         .forEach(resourceDeleter);
   }
 
+  private void undeployNamespace(List<HasMetadata> entities) {
+    final Consumer<HasMetadata> resourceDeleter = clusterScopedResourceDeleter();
+    entities.stream()
+            .filter(e -> (e instanceof Namespace || e instanceof Project))
+            .forEach(resourceDeleter);
+  }
+
   protected Consumer<HasMetadata> resourceDeleter(String namespace) {
     return resource -> {
       logger.info("Deleting resource %s %s/%s", KubernetesHelper.getKind(resource), namespace, KubernetesHelper.getName(resource));
@@ -85,6 +93,15 @@ public class KubernetesUndeployService implements UndeployService {
           .inNamespace(namespace)
           .withPropagationPolicy(DeletionPropagation.BACKGROUND)
           .delete();
+    };
+  }
+
+  protected Consumer<HasMetadata> clusterScopedResourceDeleter() {
+    return resource -> {
+      logger.info("Deleting resource %s %s", KubernetesHelper.getKind(resource), KubernetesHelper.getName(resource));
+      jKubeServiceHub.getClient().resource(resource)
+              .withPropagationPolicy(DeletionPropagation.BACKGROUND)
+              .delete();
     };
   }
 

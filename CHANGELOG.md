@@ -35,6 +35,7 @@ Usage:
 * Fix #181: Refactor PortForwardService to use Kubernetes Client Port Forwarding instead of kubectl binary
 * Fix #535: Bump JKube base images to 0.0.9
 * Fix #509: Port of ServiceDiscoveryEnricher from FMP
+* Fix #511: Namespace as resource fragment results in NullPointerException
 
 ### 1.0.2 (2020-10-30)
 * Fix #429: Added quickstart for Micronaut framework

@@ -98,12 +98,15 @@ public class KubernetesUndeployServiceTest {
     // Then
     // @formatter:off
     new Verifications() {{
-      kubernetesHelper.getKind((HasMetadata)any); times = 2;
+      kubernetesHelper.getKind((HasMetadata)any); times = 3;
       jKubeServiceHub.getClient().resource(pod).inNamespace("default")
           .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
       times = 1;
       jKubeServiceHub.getClient().resource(service).inNamespace("default")
           .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+      times = 1;
+      jKubeServiceHub.getClient().resource(namespace)
+              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
       times = 1;
     }};
     // @formatter:on

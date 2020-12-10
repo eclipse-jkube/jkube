@@ -18,10 +18,12 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.NamespaceStatus;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
+import io.fabric8.openshift.api.model.ProjectStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
@@ -134,18 +136,26 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<NamespaceBuilder>() {
             @Override
             public void visit(NamespaceBuilder builder) {
-                if (builder.buildStatus().getPhase().equals("active")) {
+                // Set status as empty
+                NamespaceStatus status = builder.buildStatus();
+                if (status != null && status.getPhase().equals("active")) {
                     builder.editOrNewStatus().endStatus().build();
                 }
+                // Set metadata.namespace as null
+                builder.editOrNewMetadata().withNamespace(null).endMetadata();
             }
         });
 
         builder.accept(new TypedVisitor<ProjectBuilder>() {
             @Override
             public void visit(ProjectBuilder builder) {
-                if (builder.buildStatus().getPhase().equals("active")) {
+                // Set status as empty
+                ProjectStatus status = builder.buildStatus();
+                if (status != null && status.getPhase().equals("active")) {
                     builder.editOrNewStatus().endStatus().build();
                 }
+                // Set metadata.namespace as null
+                builder.editOrNewMetadata().withNamespace(null).endMetadata();
             }
         });
     }
