@@ -85,7 +85,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
         new ServiceBuilder().editOrNewSpec().addNewPort()
-            .withName("iana-replaced").withProtocol("TCP").withPort(1337).endPort().endSpec().build());
+            .withProtocol("TCP").withPort(1337).endPort().endSpec().build());
     // When
     enricher.create(null, klb);
     // Then
