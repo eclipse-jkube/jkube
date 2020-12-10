@@ -602,7 +602,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
     }
 
     private void ensurePortName(ServicePort port, String protocol) {
-        if (port.getName() != null && !port.getName().isEmpty()) {
+        if (port.getName() == null || port.getName().isEmpty()) {
             port.setName(getDefaultPortName(port.getPort(), getProtocol(protocol)));
         }
     }
