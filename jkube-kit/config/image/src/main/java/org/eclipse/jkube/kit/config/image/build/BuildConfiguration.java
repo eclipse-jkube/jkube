@@ -252,7 +252,8 @@ public class BuildConfiguration implements Serializable {
   }
 
   public File getContextDir() {
-    return contextDir != null ? new File(contextDir) : getDockerFile().getParentFile();
+    return contextDir != null ? new File(contextDir)
+        : Optional.ofNullable(getDockerFile().getParentFile()).orElse(new File("."));
   }
 
   public String getContextDirRaw() {
@@ -289,7 +290,6 @@ public class BuildConfiguration implements Serializable {
   public List<String> getRunCmds() {
     return removeEmptyEntries(runCmds);
   }
-
 
   public boolean optimise() {
     return Optional.ofNullable(optimise).orElse(false);
