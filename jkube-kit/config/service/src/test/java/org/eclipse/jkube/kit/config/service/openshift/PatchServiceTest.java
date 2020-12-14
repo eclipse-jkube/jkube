@@ -95,7 +95,7 @@ public class PatchServiceTest {
 
         patchService.compareAndPatchEntity("test", newSecret, oldSecret);
         collector.assertEventsRecordedInOrder("get-secret", "get-secret", "patch-secret");
-        assertEquals("[{\"op\":\"remove\",\"path\":\"/data\"},{\"op\":\"add\",\"path\":\"/stringData\",\"value\":{\"test\":\"test\"}}]", collector.getBodies().get(2));
+        assertEquals("[{\"op\":\"remove\",\"path\":\"/data\"},{\"op\":\"add\",\"path\":\"/stringData\",\"value\":{\"test\":\"test\"}}]", collector.getBodies().get(3));
 
     }
 

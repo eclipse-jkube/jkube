@@ -42,7 +42,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.DeploymentConfig;
-import io.fabric8.openshift.api.model.DoneableImageStream;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.ImageStreamSpec;
 import io.fabric8.openshift.api.model.OAuthClient;
@@ -762,7 +761,7 @@ public class ApplyService {
             String name = getName(entity);
             String namespace = getNamespace();
             try {
-                Resource<ImageStream, DoneableImageStream> resource = openShiftClient.imageStreams().inNamespace(namespace).withName(name);
+                Resource<ImageStream> resource = openShiftClient.imageStreams().inNamespace(namespace).withName(name);
                 ImageStream old = resource.get();
                 if (old == null) {
                     log.info("Creating " + kind + " " + name + " from " + sourceName);
@@ -863,7 +862,7 @@ public class ApplyService {
         }
     }
 
-    public <T extends HasMetadata,L,D> void applyResource(T resource, String sourceName, MixedOperation<T, L, D, ? extends Resource<T, D>> resources) {
+    public <T extends HasMetadata,L> void applyResource(T resource, String sourceName, MixedOperation<T, L, ? extends Resource<T>> resources) {
         String namespace = getNamespace();
         String id = getName(resource);
         String kind = getKind(resource);
@@ -900,7 +899,7 @@ public class ApplyService {
         }
     }
 
-    protected <T extends HasMetadata,L,D> void doCreateResource(T resource, String namespace , String sourceName, MixedOperation<T, L, D, ? extends Resource<T, D>> resources) {
+    protected <T extends HasMetadata, L> void doCreateResource(T resource, String namespace , String sourceName, MixedOperation<T, L, ? extends Resource<T>> resources) {
         String kind = getKind(resource);
         log.info("Creating a " + kind + " from " + sourceName + " namespace " + namespace + " name " + getName(resource));
         try {

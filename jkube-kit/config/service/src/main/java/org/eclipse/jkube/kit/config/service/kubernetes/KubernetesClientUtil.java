@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.config.service.kubernetes;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
-import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
@@ -127,8 +126,8 @@ public class KubernetesClientUtil {
     }
 
 
-    public static FilterWatchListDeletable<Pod, PodList, Boolean, Watch> withSelector(NonNamespaceOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> pods, LabelSelector selector, KitLogger log) {
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch> answer = pods;
+    public static FilterWatchListDeletable<Pod, PodList> withSelector(NonNamespaceOperation<Pod, PodList, PodResource<Pod>> pods, LabelSelector selector, KitLogger log) {
+        FilterWatchListDeletable<Pod, PodList> answer = pods;
         Map<String, String> matchLabels = selector.getMatchLabels();
         if (matchLabels != null && !matchLabels.isEmpty()) {
             answer = answer.withLabels(matchLabels);

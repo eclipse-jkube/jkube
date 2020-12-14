@@ -13,17 +13,26 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 import org.junit.Test;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -55,6 +64,57 @@ public class ClassUtilTest {
         File root = getRelativePackagePath("mainclass/zero");
         List<String> ret = ClassUtil.findMainClasses(root);
         assertEquals(0,ret.size());
+    }
+
+    @Test
+    public void testGetJavaClassPath() {
+        // Given + When
+        String[] paths = ClassUtil.getJavaClassPath();
+
+        // Then
+        assertNotNull(paths);
+        assertTrue(paths.length > 0);
+    }
+
+    @Test
+    public void testGetFileFromJar() throws IOException {
+        // Given
+        File testJar = File.createTempFile("test-get-file", ".jar");
+        File testJarEntry = File.createTempFile("test-jar-entry", ".txt");
+        writeSimpleJarWithEntry(testJar.getAbsolutePath(), testJarEntry);
+
+        // When
+        URL url1 = ClassUtil.getFileFromJar(testJar.getAbsolutePath(), "test-jar-entry");
+        URL url2 = ClassUtil.getFileFromJar(testJar.getAbsolutePath(), "i-dont-exist");
+
+        // Then
+        assertNotNull(url1);
+        assertEquals("file:" + testJar.getAbsolutePath() + "!" + testJarEntry.getAbsolutePath(), url1.getPath());
+        assertNull(url2);
+        assertTrue(testJarEntry.delete());
+        assertTrue(testJar.delete());
+    }
+
+    private void writeSimpleJarWithEntry(String outPath, File entry) throws IOException {
+        BufferedOutputStream bo = new BufferedOutputStream(new FileOutputStream(outPath));
+        JarOutputStream jo = new JarOutputStream(bo);
+
+        String act = entry.getPath();
+        BufferedInputStream bi = new BufferedInputStream(new FileInputStream(act));
+
+        JarEntry je = new JarEntry(act);
+        jo.putNextEntry(je);
+
+        byte[] buf = new byte[1024];
+        int anz;
+
+        while ((anz = bi.read(buf)) != -1) {
+            jo.write(buf, 0, anz);
+        }
+
+        bi.close();
+        jo.close();
+        bo.close();
     }
 
     private File getRelativePackagePath(String subpath) {

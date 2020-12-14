@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import io.fabric8.kubernetes.api.model.DoneableService;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -273,7 +272,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
             if (entity instanceof Service) {
                 Service service = (Service) entity;
                 String name = KubernetesHelper.getName(service);
-                Resource<Service, DoneableService> serviceResource = kubernetes.services().inNamespace(namespace).withName(name);
+                Resource<Service> serviceResource = kubernetes.services().inNamespace(namespace).withName(name);
                 String url = null;
                 // lets wait a little while until there is a service URL in case the exposecontroller is running slow
                 for (int i = 0; i < serviceUrlWaitTimeSeconds; i++) {

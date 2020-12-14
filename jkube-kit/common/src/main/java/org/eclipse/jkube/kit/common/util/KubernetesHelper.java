@@ -44,7 +44,6 @@ import java.util.regex.Pattern;
 import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.Context;
-import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -573,8 +572,8 @@ public class KubernetesHelper {
 
 
 
-    public static FilterWatchListDeletable<Pod, PodList, Boolean, Watch> withSelector(NonNamespaceOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> pods, LabelSelector selector, KitLogger log) {
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch> answer = pods;
+    public static FilterWatchListDeletable<Pod, PodList> withSelector(NonNamespaceOperation<Pod, PodList, PodResource<Pod>> pods, LabelSelector selector, KitLogger log) {
+        FilterWatchListDeletable<Pod, PodList> answer = pods;
         Map<String, String> matchLabels = selector.getMatchLabels();
         if (matchLabels != null && !matchLabels.isEmpty()) {
             answer = answer.withLabels(matchLabels);

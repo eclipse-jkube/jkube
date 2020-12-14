@@ -13,28 +13,28 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import io.fabric8.kubernetes.api.model.DoneablePersistentVolumeClaim;
-import io.fabric8.kubernetes.api.model.DoneablePod;
-import io.fabric8.kubernetes.api.model.DoneableReplicationController;
-import io.fabric8.kubernetes.api.model.DoneableSecret;
-import io.fabric8.kubernetes.api.model.DoneableService;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationController;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.batch.DoneableJob;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.api.model.batch.Job;
+import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.DoneableCustomResourceDefinition;
 import io.fabric8.openshift.api.model.BuildConfig;
-import io.fabric8.openshift.api.model.DoneableBuildConfig;
-import io.fabric8.openshift.api.model.DoneableImageStream;
-import io.fabric8.openshift.api.model.DoneableRoute;
+import io.fabric8.openshift.api.model.BuildConfigBuilder;
 import io.fabric8.openshift.api.model.ImageStream;
+import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.Route;
+import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
@@ -101,11 +101,12 @@ public class PatchService {
                 return oldObj;
             }
 
-            DoneablePod entity =
-                client.pods()
+            PodBuilder entity =
+                new PodBuilder(client.pods()
                       .inNamespace(namespace)
                       .withName(oldObj.getMetadata().getName())
-                      .edit();
+                      .fromServer().get());
+
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -114,7 +115,10 @@ public class PatchService {
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
                 entity.withSpec(newObj.getSpec());
             }
-            return entity.done();
+            return client.pods()
+                    .inNamespace(namespace)
+                    .withName(oldObj.getMetadata().getName())
+                    .edit(p -> entity.build());
         };
     }
 
@@ -124,11 +128,11 @@ public class PatchService {
                 return oldObj;
             }
 
-            DoneableReplicationController entity =
-                client.replicationControllers()
+            ReplicationControllerBuilder entity =
+                new ReplicationControllerBuilder(client.replicationControllers()
                       .inNamespace(namespace)
                       .withName(oldObj.getMetadata().getName())
-                      .edit();
+                      .fromServer().get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -137,7 +141,10 @@ public class PatchService {
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
                 entity.withSpec(newObj.getSpec());
             }
-            return entity.done();
+            return client.replicationControllers()
+                    .inNamespace(namespace)
+                    .withName(oldObj.getMetadata().getName())
+                    .edit(p -> entity.build());
         };
     }
 
@@ -147,11 +154,11 @@ public class PatchService {
                 return oldObj;
             }
 
-            DoneableService entity =
-                client.services()
+            ServiceBuilder entity =
+                new ServiceBuilder(client.services()
                       .inNamespace(namespace)
                       .withName(newObj.getMetadata().getName())
-                      .edit();
+                      .fromServer().get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -160,7 +167,10 @@ public class PatchService {
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
                 entity.withSpec(newObj.getSpec());
             }
-            return entity.done();
+            return client.services()
+                    .inNamespace(namespace)
+                    .withName(newObj.getMetadata().getName())
+                    .edit(p -> entity.build());
         };
     }
 
@@ -169,11 +179,11 @@ public class PatchService {
             if (UserConfigurationCompare.configEqual(newObj, oldObj)) {
                 return oldObj;
             }
-            DoneableSecret entity =
-                client.secrets()
+            SecretBuilder entity =
+                new SecretBuilder(client.secrets()
                       .inNamespace(namespace)
                       .withName(oldObj.getMetadata().getName())
-                      .edit();
+                      .fromServer().get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -185,7 +195,10 @@ public class PatchService {
             if(!UserConfigurationCompare.configEqual(newObj.getStringData(), oldObj.getStringData())) {
                 entity.withStringData(newObj.getStringData());
             }
-            return entity.done();
+            return client.secrets()
+                    .inNamespace(namespace)
+                    .withName(oldObj.getMetadata().getName())
+                    .edit(p -> entity.build());
         };
     }
 
@@ -194,11 +207,11 @@ public class PatchService {
             if (UserConfigurationCompare.configEqual(newObj, oldObj)) {
                 return oldObj;
             }
-            DoneablePersistentVolumeClaim entity =
-                client.persistentVolumeClaims()
+            PersistentVolumeClaimBuilder entity =
+                new PersistentVolumeClaimBuilder(client.persistentVolumeClaims()
                       .inNamespace(namespace)
                       .withName(oldObj.getMetadata().getName())
-                      .edit();
+                      .fromServer().get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -207,7 +220,10 @@ public class PatchService {
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
                 entity.withSpec(newObj.getSpec());
             }
-            return entity.done();
+            return client.persistentVolumeClaims()
+                    .inNamespace(namespace)
+                    .withName(oldObj.getMetadata().getName())
+                    .edit(p -> entity.build());
         };
     }
 
@@ -217,10 +233,10 @@ public class PatchService {
                 return oldObj;
             }
 
-            DoneableCustomResourceDefinition entity =
-                    client.apiextensions().v1beta1().customResourceDefinitions()
+            CustomResourceDefinitionBuilder entity =
+                    new CustomResourceDefinitionBuilder(client.apiextensions().v1beta1().customResourceDefinitions()
                             .withName(oldObj.getMetadata().getName())
-                            .edit();
+                            .fromServer().get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -229,7 +245,9 @@ public class PatchService {
             if (!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
                 entity.withSpec(newObj.getSpec());
             }
-            return entity.done();
+            return client.apiextensions().v1beta1().customResourceDefinitions()
+                    .withName(oldObj.getMetadata().getName())
+                    .edit(p -> entity.build());
         };
     }
 
@@ -239,7 +257,7 @@ public class PatchService {
                 return oldObj;
             }
 
-            DoneableJob entity = client.batch().jobs().withName(oldObj.getMetadata().getName()).edit();
+            JobBuilder entity = new JobBuilder(client.batch().jobs().withName(oldObj.getMetadata().getName()).fromServer().get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -253,7 +271,7 @@ public class PatchService {
                 entity.editSpec().withTemplate(newObj.getSpec().getTemplate());
             }
 
-            return entity.done();
+            return client.batch().jobs().withName(oldObj.getMetadata().getName()).edit(p -> entity.build());
         };
     }
 
@@ -270,11 +288,10 @@ public class PatchService {
             if (openShiftClient == null) {
                 throw new IllegalArgumentException("BuildConfig can only be patched when connected to an OpenShift cluster");
             }
-            DoneableBuildConfig entity =
-                openShiftClient.buildConfigs()
+            BuildConfigBuilder entity =
+                new BuildConfigBuilder(openShiftClient.buildConfigs()
                       .inNamespace(namespace)
-                      .withName(oldObj.getMetadata().getName())
-                      .edit();
+                      .withName(oldObj.getMetadata().getName()).fromServer().get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -283,7 +300,10 @@ public class PatchService {
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
                 entity.withSpec(newObj.getSpec());
             }
-            return entity.done();
+            return openShiftClient.buildConfigs()
+                    .inNamespace(namespace)
+                    .withName(oldObj.getMetadata().getName())
+                    .edit(p -> entity.build());
         };
     }
 
@@ -296,11 +316,11 @@ public class PatchService {
             if (openShiftClient == null) {
                 throw new IllegalArgumentException("ImageStream can only be patched when connected to an OpenShift cluster");
             }
-            DoneableImageStream entity =
-                openShiftClient.imageStreams()
+            ImageStreamBuilder entity =
+                new ImageStreamBuilder(openShiftClient.imageStreams()
                       .inNamespace(namespace)
                       .withName(oldObj.getMetadata().getName())
-                      .edit();
+                      .fromServer().get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -309,7 +329,10 @@ public class PatchService {
             if(!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
                 entity.withSpec(newObj.getSpec());
             }
-            return entity.done();
+            return openShiftClient.imageStreams()
+                    .inNamespace(namespace)
+                    .withName(oldObj.getMetadata().getName())
+                    .edit(p -> entity.build());
         };
     }
 
@@ -323,10 +346,10 @@ public class PatchService {
                 throw new IllegalArgumentException("Route can only be patched when connected to an OpenShift cluster");
             }
 
-            DoneableRoute entity = openShiftClient.routes()
+            RouteBuilder entity = new RouteBuilder(openShiftClient.routes()
                     .inNamespace(namespace)
                     .withName(oldObj.getMetadata().getName())
-                    .edit();
+                    .fromServer().get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -336,7 +359,10 @@ public class PatchService {
                 entity.withSpec(newObj.getSpec());
             }
 
-            return entity.done();
+            return openShiftClient.routes()
+                    .inNamespace(namespace)
+                    .withName(oldObj.getMetadata().getName())
+                    .edit(p -> entity.build());
         };
     }
 

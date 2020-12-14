@@ -36,7 +36,7 @@
   <properties>
     <jkube.version>${project.version}</jkube.version>
     <commons-codec.version>1.10</commons-codec.version>
-    <istio-client.version>1.5.5</istio-client.version>
+    <istio-client.version>1.7.5-Beta2</istio-client.version>
   </properties>
 
   <modules>

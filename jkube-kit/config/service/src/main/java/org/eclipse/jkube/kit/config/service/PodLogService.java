@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.config.service;
 
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -23,6 +22,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.PodResource;
@@ -120,7 +120,7 @@ public class PodLogService {
 
     private void waitAndLogPods(final KubernetesClient kubernetes, final String namespace, LabelSelector selector, final boolean watchAddedPodsOnly, final String ctrlCMessage, final boolean
             followLog, Date ignorePodsOlderThan, boolean waitInCurrentThread) {
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
+        FilterWatchListDeletable<Pod, PodList> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
         if (context.getPodName() != null) {
             log.info("Watching pod with selector %s, and name %s waiting for a running pod...", selector, context.getPodName());
             pods = pods.withField("metadata.name", context.getPodName());
@@ -165,9 +165,13 @@ public class PodLogService {
             }
 
             @Override
-            public void onClose(KubernetesClientException e) {
+            public void onClose() {
                 // ignore
+            }
 
+            @Override
+            public void onClose(WatcherException e) {
+                // ignore
             }
         });
 
@@ -215,7 +219,7 @@ public class PodLogService {
                 log.info("Closing log watcher for %s as now watching %s", watchingPodName, name);
                 closeLogWatcher();
             }
-            PodResource<Pod, DoneablePod> podResource = kubernetes.pods().inNamespace(namespace).withName(name);
+            PodResource<Pod> podResource = kubernetes.pods().inNamespace(namespace).withName(name);
             List<Container> containers = KubernetesHelper.getContainers(pod);
             String containerName = null;
             if (followLog) {
