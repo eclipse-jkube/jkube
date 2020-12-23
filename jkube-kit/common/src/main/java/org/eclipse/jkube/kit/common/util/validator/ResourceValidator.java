@@ -17,9 +17,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -51,7 +51,7 @@ import com.networknt.schema.ValidationMessage;
 
 public class ResourceValidator {
 
-    public static final String SCHEMA_JSON = "/schema/kube-validation-schema.json";
+    public static final String SCHEMA_JSON = "schema/validation-schema.json";
     private KitLogger log;
     private File[] resources;
     private ResourceClassifier target = ResourceClassifier.KUBERNETES;
@@ -102,15 +102,13 @@ public class ResourceValidator {
     public int validate() throws IOException {
         for(File resource: resources) {
             if (resource.isFile() && resource.exists()) {
-                try {
-                    log.info("validating %s resource", resource.toString());
-                    JsonNode inputSpecNode = geFileContent(resource);
-                    String kind = inputSpecNode.get("kind").toString();
-                    JsonSchema schema = getJsonSchema(prepareSchemaUrl(SCHEMA_JSON), kind);
+                log.info("validating %s resource", resource.toString());
+                JsonNode inputSpecNode = geFileContent(resource);
+                String kind = inputSpecNode.get("kind").toString();
+                for (URL schemaFile : Collections.list(ResourceValidator.class.getClassLoader().getResources(SCHEMA_JSON))) {
+                    JsonSchema schema = getJsonSchema(schemaFile, kind);
                     Set<ValidationMessage> errors = schema.validate(inputSpecNode);
                     processErrors(errors, resource);
-                } catch (URISyntaxException e) {
-                    throw new IOException(e);
                 }
             }
         }
@@ -153,7 +151,7 @@ public class ResourceValidator {
         return  validationError.toString();
     }
 
-    private JsonSchema getJsonSchema(URI schemaUrl, String kind) throws IOException {
+    private JsonSchema getJsonSchema(URL schemaUrl, String kind) throws IOException {
         final JsonMetaSchema v201909 = JsonMetaSchema.getV201909();
         final String defaultUri = v201909.getUri();
         JsonObject jsonSchema = fixUrlIfUnversioned(getSchemaJson(schemaUrl), defaultUri);
@@ -170,19 +168,18 @@ public class ResourceValidator {
     }
 
     private void getResourceProperties(String kind, JsonObject jsonSchema) {
-        jsonSchema.add("properties" , jsonSchema.get("resources").getAsJsonObject()
-                .getAsJsonObject(kind.replaceAll("\"", "").toLowerCase())
-                .getAsJsonObject("properties"));
+        String kindKey = kind.replaceAll("\"", "").toLowerCase();
+        if (jsonSchema.get("resources") != null && jsonSchema.get("resources").getAsJsonObject().get(kindKey) != null) {
+            jsonSchema.add("properties" , jsonSchema.get("resources").getAsJsonObject()
+                    .getAsJsonObject(kindKey)
+                    .getAsJsonObject("properties"));
+        }
     }
 
     private void checkIfKindPropertyExists(String kind) {
         if(kind == null) {
             throw new JsonIOException("Invalid kind of resource or 'kind' is missing from resource definition");
         }
-    }
-
-    private URI prepareSchemaUrl(String schemaFile) throws URISyntaxException {
-        return getClass().getResource(schemaFile).toURI();
     }
 
     private JsonNode geFileContent(File file) throws IOException {
@@ -192,9 +189,9 @@ public class ResourceValidator {
         }
     }
 
-    public JsonObject getSchemaJson(URI schemaUrl) throws IOException {
+    public JsonObject getSchemaJson(URL schemaUrl) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        String rootNode = objectMapper.readValue(schemaUrl.toURL(), JsonNode.class).toString();
+        String rootNode = objectMapper.readValue(schemaUrl, JsonNode.class).toString();
         JsonObject jsonObject = new JsonParser().parse(rootNode).getAsJsonObject();
         jsonObject.remove("id");
         return jsonObject;
@@ -271,7 +268,7 @@ public class ResourceValidator {
 
     private static JsonObject fixUrlIfUnversioned(JsonObject jsonSchema, String versionedUri) {
         final String uri = jsonSchema.get("$schema").getAsString();
-        if (uri.matches("^https?://json-schema.org/schema[^/]*$")) {
+        if (uri.matches("^https?://json-schema.org/draft-05/schema[^/]*$")) {
             final JsonObject ret = jsonSchema.deepCopy();
             ret.addProperty("$schema", versionedUri);
             return ret;

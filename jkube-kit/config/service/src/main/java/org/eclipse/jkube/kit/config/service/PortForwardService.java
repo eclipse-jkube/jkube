@@ -17,9 +17,9 @@ import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -154,9 +154,10 @@ public class PortForwardService {
             }
 
             @Override
-            public void onClose(KubernetesClientException e) {
+            public void onClose(WatcherException e) {
                 // don't care
             }
+
         });
 
         forwarderThread.start();
@@ -195,7 +196,7 @@ public class PortForwardService {
     }
 
     private Pod getNewestPod(LabelSelector selector) {
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch> pods =
+        FilterWatchListDeletable<Pod, PodList> pods =
                 KubernetesHelper.withSelector(kubernetes.pods(), selector, log);
 
         PodList list = pods.list();

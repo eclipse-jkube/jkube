@@ -30,9 +30,8 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
@@ -158,7 +157,7 @@ public class DebugMojo extends ApplyMojo {
 
     private String waitForRunningPodWithEnvVar(final KubernetesClient kubernetes, final String namespace, LabelSelector selector, final Map<String, String> envVars) throws MojoExecutionException {
         //  wait for the newest pod to be ready with the given env var
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
+        FilterWatchListDeletable<Pod, PodList> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
         log.info("Waiting for debug pod with selector " + selector + " and environment variables " + envVars);
         podWaitLog = createLogger("[[Y]][W][[Y]] [[s]]");
         PodList list = pods.list();
@@ -181,9 +180,8 @@ public class DebugMojo extends ApplyMojo {
             }
 
             @Override
-            public void onClose(KubernetesClientException e) {
+            public void onClose(WatcherException e) {
                 // ignore
-
             }
         });
 

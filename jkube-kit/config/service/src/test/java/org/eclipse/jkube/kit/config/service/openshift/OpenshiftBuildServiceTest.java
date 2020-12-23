@@ -108,15 +108,15 @@ public class OpenshiftBuildServiceTest {
 
         new Expectations() {{
             jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
-                withAny(ImageConfiguration.class.cast(null)),
-                withAny(JKubeConfiguration.class.cast(null))
+                    withAny(ImageConfiguration.class.cast(null)),
+                    withAny(JKubeConfiguration.class.cast(null))
             );
             result = dockerFile;
             minTimes = 0;
             jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
-                withAny(null),
-                withAny(null),
-                withAny(null)
+                    withAny(null),
+                    withAny(null),
+                    withAny(null)
             );
             result = dockerFile;
             minTimes = 0;
@@ -187,7 +187,7 @@ public class OpenshiftBuildServiceTest {
                 jKubeServiceHub.getBuildServiceConfig(); result = config;
             }};
             WebServerEventCollector<OpenShiftMockServer> collector = createMockServer(
-                config, true, 50, false, false);
+                    config, true, 50, false, false);
             OpenShiftMockServer mockServer = collector.getMockServer();
 
             DefaultOpenShiftClient client = (DefaultOpenShiftClient) mockServer.createOpenShiftClient();
@@ -407,7 +407,7 @@ public class OpenshiftBuildServiceTest {
             final List<ArchiverCustomizer> customizer = new LinkedList<>();
             new Verifications() {{
                 jKubeServiceHub.getDockerServiceHub().getArchiveService()
-                    .createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(JKubeConfiguration.class), withCapture(customizer));
+                        .createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(JKubeConfiguration.class), withCapture(customizer));
 
                 assertTrue(customizer.size() == 1);
             }};
@@ -457,7 +457,7 @@ public class OpenshiftBuildServiceTest {
             final List<ArchiverCustomizer> customizer = new LinkedList<>();
             new Verifications() {{
                 jKubeServiceHub.getDockerServiceHub().getArchiveService()
-                    .createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(JKubeConfiguration.class), withCapture(customizer));
+                        .createDockerBuildArchive(withInstanceOf(ImageConfiguration.class), withInstanceOf(JKubeConfiguration.class), withCapture(customizer));
 
                 assertEquals(1, customizer.size());
             }};
@@ -490,8 +490,8 @@ public class OpenshiftBuildServiceTest {
 
             BuildServiceConfig config = defaultConfig
                     .resourceConfig(ResourceConfig.builder()
-                        .openshiftBuildConfig(OpenshiftBuildConfig.builder().limits(limitsMap).build())
-                        .build()
+                            .openshiftBuildConfig(OpenshiftBuildConfig.builder().limits(limitsMap).build())
+                            .build()
                     ).build();
             // @formatter:on
             new Expectations() {{
@@ -547,7 +547,7 @@ public class OpenshiftBuildServiceTest {
     }
 
     protected WebServerEventCollector<OpenShiftMockServer> createMockServer(
-        BuildServiceConfig config, boolean success, long buildDelay, boolean buildConfigExists, boolean imageStreamExists) {
+            BuildServiceConfig config, boolean success, long buildDelay, boolean buildConfigExists, boolean imageStreamExists) {
         OpenShiftMockServer mockServer = new OpenShiftMockServer(false);
         WebServerEventCollector<OpenShiftMockServer> collector = new WebServerEventCollector<>(mockServer);
 
@@ -651,7 +651,7 @@ public class OpenshiftBuildServiceTest {
                 .always();
 
         mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/test/builds/" + projectName).andReturn(200, build).always();
-        mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/test/builds/" + projectName + "?watch=true")
+        mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/test/builds?fieldSelector=metadata.name%3D" + projectName + "&watch=true")
                 .andUpgradeToWebSocket().open()
                 .waitFor(buildDelay)
                 .andEmit(new WatchEvent(build, "MODIFIED"))

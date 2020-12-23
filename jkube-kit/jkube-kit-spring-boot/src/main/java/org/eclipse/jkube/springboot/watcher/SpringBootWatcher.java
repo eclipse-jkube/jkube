@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.common.io.Closeables;
-import io.fabric8.kubernetes.api.model.DoneableService;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Service;
@@ -144,7 +143,7 @@ public class SpringBootWatcher extends BaseWatcher {
             if (entity instanceof Service) {
                 Service service = (Service) entity;
                 String name = KubernetesHelper.getName(service);
-                Resource<Service, DoneableService> serviceResource = kubernetes.services()
+                Resource<Service> serviceResource = kubernetes.services()
                     .inNamespace(getContext().getJKubeServiceHub().getClusterAccess().getNamespace())
                     .withName(name);
                 String url = null;

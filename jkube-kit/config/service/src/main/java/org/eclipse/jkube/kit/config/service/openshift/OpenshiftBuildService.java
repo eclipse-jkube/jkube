@@ -23,10 +23,12 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.BuildConfig;
@@ -311,12 +313,12 @@ public class OpenshiftBuildService implements BuildService {
         // lets check if the strategy or output has changed and if so lets update the BC
         // e.g. the S2I builder image or the output tag and
         if (!Objects.equals(buildStrategy, spec.getStrategy()) || !Objects.equals(buildOutput, spec.getOutput())) {
-            client.buildConfigs().withName(buildName).edit()
+            client.buildConfigs().withName(buildName).edit(bc -> new BuildConfigBuilder(bc)
                     .editSpec()
                     .withStrategy(buildStrategy)
                     .withOutput(buildOutput)
                     .endSpec()
-                    .done();
+                    .build());
             log.info("Updating BuildServiceConfig %s for %s strategy", buildName, buildStrategy.getType());
         } else {
             log.info("Using BuildServiceConfig %s for %s strategy", buildName, buildStrategy.getType());
@@ -455,13 +457,13 @@ public class OpenshiftBuildService implements BuildService {
 
     private boolean updateSecret(OpenShiftClient client, String pullSecretName, Map<String, String> data) {
         if (!Objects.equals(data, client.secrets().withName(pullSecretName).get().getData())) {
-            client.secrets().withName(pullSecretName).edit()
+            client.secrets().withName(pullSecretName).edit(s -> new SecretBuilder(s)
                     .editMetadata()
                     .withName(pullSecretName)
                     .endMetadata()
                     .withData(data)
                     .withType("kubernetes.io/dockerconfigjson")
-                    .done();
+                    .build());
             log.info("Updating Secret %s", pullSecretName);
         } else {
             log.info("Using Secret %s", pullSecretName);
@@ -614,8 +616,8 @@ public class OpenshiftBuildService implements BuildService {
             }
 
             @Override
-            public void onClose(KubernetesClientException e) {
-                // Ignore
+            public void onClose(WatcherException e) {
+                // ignore
             }
         })) {
             readyLatch.await(nAwaitTimeout, TimeUnit.SECONDS);
@@ -657,14 +659,10 @@ public class OpenshiftBuildService implements BuildService {
             }
 
             @Override
-            public void onClose(KubernetesClientException cause) {
+            public void onClose(WatcherException cause) {
                 if (cause != null) {
-                    log.error("Error while watching for build to finish: %s [%d]",
-                            cause.getMessage(), cause.getCode());
-                    Status status = cause.getStatus();
-                    if (status != null) {
-                        log.error("%s [%s]", status.getReason(), status.getStatus());
-                    }
+                    log.error("Error while watching for build to finish: %s ",
+                            cause.getMessage());
                 }
                 latch.countDown();
             }
