@@ -17,7 +17,6 @@ import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
@@ -152,11 +151,6 @@ public class PortForwardService {
                 } finally {
                     monitor.unlock();
                 }
-            }
-
-            @Override
-            public void onClose() {
-                // don't care
             }
 
             @Override

@@ -457,7 +457,7 @@ public class OpenshiftBuildService implements BuildService {
 
     private boolean updateSecret(OpenShiftClient client, String pullSecretName, Map<String, String> data) {
         if (!Objects.equals(data, client.secrets().withName(pullSecretName).get().getData())) {
-            client.secrets().withName(pullSecretName).edit(s -> new SecretBuilder()
+            client.secrets().withName(pullSecretName).edit(s -> new SecretBuilder(s)
                     .editMetadata()
                     .withName(pullSecretName)
                     .endMetadata()
@@ -616,11 +616,6 @@ public class OpenshiftBuildService implements BuildService {
             }
 
             @Override
-            public void onClose() {
-                // ignore
-            }
-
-            @Override
             public void onClose(WatcherException e) {
                 // ignore
             }
@@ -661,11 +656,6 @@ public class OpenshiftBuildService implements BuildService {
                 if (OpenshiftHelper.isFinished(status)) {
                     latch.countDown();
                 }
-            }
-
-            @Override
-            public void onClose() {
-                // ignore
             }
 
             @Override

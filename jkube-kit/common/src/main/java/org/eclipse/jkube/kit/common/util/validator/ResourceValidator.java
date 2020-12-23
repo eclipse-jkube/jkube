@@ -17,11 +17,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,7 +30,6 @@ import javax.validation.Path;
 import javax.validation.metadata.ConstraintDescriptor;
 
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -108,14 +105,10 @@ public class ResourceValidator {
                 log.info("validating %s resource", resource.toString());
                 JsonNode inputSpecNode = geFileContent(resource);
                 String kind = inputSpecNode.get("kind").toString();
-                String[] allJars = ClassUtil.getJavaClassPath();
-                for (String jar : allJars) {
-                    URL schemaFile = ClassUtil.getFileFromJar(jar, SCHEMA_JSON);
-                    if (schemaFile != null) {
-                        JsonSchema schema = getJsonSchema(schemaFile, kind);
-                        Set<ValidationMessage> errors = schema.validate(inputSpecNode);
-                        processErrors(errors, resource);
-                    }
+                for (URL schemaFile : Collections.list(ResourceValidator.class.getClassLoader().getResources(SCHEMA_JSON))) {
+                    JsonSchema schema = getJsonSchema(schemaFile, kind);
+                    Set<ValidationMessage> errors = schema.validate(inputSpecNode);
+                    processErrors(errors, resource);
                 }
             }
         }

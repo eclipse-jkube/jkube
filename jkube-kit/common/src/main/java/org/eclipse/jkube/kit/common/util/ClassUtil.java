@@ -19,8 +19,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -29,8 +27,6 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import javassist.ClassPool;
@@ -45,8 +41,6 @@ import org.apache.commons.lang3.ArrayUtils;
  * @since 24/07/16
  */
 public class ClassUtil {
-
-    public static final String JAVA_CLASS_PATH = "java.class.path";
 
     public static Set<String> getResources(String resource) throws IOException {
         return getResources(resource, null);
@@ -224,33 +218,6 @@ public class ClassUtil {
         // return an empty CL .. don't want to have to deal with NULL later
         // if somehow we incorrectly call this method
         return new URLClassLoader(new URL[]{});
-    }
-
-    public static String[] getJavaClassPath() {
-        return System.getProperty(JAVA_CLASS_PATH).split(File.pathSeparator);
-    }
-
-    public static URL getFileFromJar(String jarPath, String filePath) throws IOException {
-        File jarFile = new File(jarPath);
-        if (jarFile.isFile()) {
-            try (final JarFile jar = new JarFile(jarFile)) {
-                final Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
-                while(entries.hasMoreElements()) {
-                    final String name = entries.nextElement().getName();
-                    if (name.contains(filePath)) { //filter according to the path
-                        return new URL("jar:file:" + jarPath + "!" + appendPathSeparatorIfNotPresent(name));
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private static String appendPathSeparatorIfNotPresent(String fileName) {
-        if (!fileName.startsWith(File.separator)) {
-            return File.separator + fileName;
-        }
-        return fileName;
     }
 }
 

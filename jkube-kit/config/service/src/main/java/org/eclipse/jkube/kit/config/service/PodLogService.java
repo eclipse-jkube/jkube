@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
@@ -162,11 +161,6 @@ public class PodLogService {
             @Override
             public void eventReceived(Action action, Pod pod) {
                 onPod(action, pod, kubernetes, namespace, ctrlCMessage, followLog);
-            }
-
-            @Override
-            public void onClose() {
-                // ignore
             }
 
             @Override

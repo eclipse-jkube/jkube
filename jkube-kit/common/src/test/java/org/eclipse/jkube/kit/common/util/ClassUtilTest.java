@@ -66,57 +66,6 @@ public class ClassUtilTest {
         assertEquals(0,ret.size());
     }
 
-    @Test
-    public void testGetJavaClassPath() {
-        // Given + When
-        String[] paths = ClassUtil.getJavaClassPath();
-
-        // Then
-        assertNotNull(paths);
-        assertTrue(paths.length > 0);
-    }
-
-    @Test
-    public void testGetFileFromJar() throws IOException {
-        // Given
-        File testJar = File.createTempFile("test-get-file", ".jar");
-        File testJarEntry = File.createTempFile("test-jar-entry", ".txt");
-        writeSimpleJarWithEntry(testJar.getAbsolutePath(), testJarEntry);
-
-        // When
-        URL url1 = ClassUtil.getFileFromJar(testJar.getAbsolutePath(), "test-jar-entry");
-        URL url2 = ClassUtil.getFileFromJar(testJar.getAbsolutePath(), "i-dont-exist");
-
-        // Then
-        assertNotNull(url1);
-        assertEquals("file:" + testJar.getAbsolutePath() + "!" + testJarEntry.getAbsolutePath(), url1.getPath());
-        assertNull(url2);
-        assertTrue(testJarEntry.delete());
-        assertTrue(testJar.delete());
-    }
-
-    private void writeSimpleJarWithEntry(String outPath, File entry) throws IOException {
-        BufferedOutputStream bo = new BufferedOutputStream(new FileOutputStream(outPath));
-        JarOutputStream jo = new JarOutputStream(bo);
-
-        String act = entry.getPath();
-        BufferedInputStream bi = new BufferedInputStream(new FileInputStream(act));
-
-        JarEntry je = new JarEntry(act);
-        jo.putNextEntry(je);
-
-        byte[] buf = new byte[1024];
-        int anz;
-
-        while ((anz = bi.read(buf)) != -1) {
-            jo.write(buf, 0, anz);
-        }
-
-        bi.close();
-        jo.close();
-        bo.close();
-    }
-
     private File getRelativePackagePath(String subpath) {
     	File parent =        		
             new File(Objects.requireNonNull(getAbsolutePath(this.getClass().getProtectionDomain().getCodeSource().getLocation())));

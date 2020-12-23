@@ -30,8 +30,6 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
@@ -179,11 +177,6 @@ public class DebugMojo extends ApplyMojo {
                     foundPod = pod;
                     terminateLatch.countDown();
                 }
-            }
-
-            @Override
-            public void onClose() {
-                // ignore
             }
 
             @Override
