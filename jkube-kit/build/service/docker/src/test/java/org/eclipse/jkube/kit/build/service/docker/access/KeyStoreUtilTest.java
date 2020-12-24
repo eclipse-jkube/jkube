@@ -13,9 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
+import java.io.FileNotFoundException;
+import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.PrivateKey;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,47 +30,31 @@ import static org.junit.Assert.assertNotNull;
  */
 public class KeyStoreUtilTest {
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
+  @Rule
+  public ExpectedException exception = ExpectedException.none();
 
-    @Test
-    public void createKeyStore() throws Exception {
-        KeyStore keyStore = KeyStoreUtil.createDockerKeyStore(getFile("certpath"));
-        KeyStore.PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry("docker",
-                                                                                        new KeyStore.PasswordProtection("docker".toCharArray()));
-        assertNotNull(pkEntry);
-        assertNotNull(pkEntry.getCertificate());
-        assertNotNull(keyStore.getCertificate("cn=ca-test,o=internet widgits pty ltd,st=some-state,c=cr"));
-        assertNotNull(keyStore.getCertificate("cn=ca-test-2,o=internet widgits pty ltd,st=some-state,c=cr"));
-    }
+  @Test
+  public void createKeyStore() throws Exception {
+    KeyStore keyStore = KeyStoreUtil.createDockerKeyStore(getFile("certpath"));
+    KeyStore.PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry("docker",
+        new KeyStore.PasswordProtection("docker".toCharArray()));
+    assertNotNull(pkEntry);
+    assertNotNull(pkEntry.getCertificate());
+    assertNotNull(keyStore.getCertificate("cn=ca-test,o=internet widgits pty ltd,st=some-state,c=cr"));
+    assertNotNull(keyStore.getCertificate("cn=ca-test-2,o=internet widgits pty ltd,st=some-state,c=cr"));
+  }
 
-    @Test
-    public void loadPrivateKeyDefault() throws Exception {
-        PrivateKey privateKey = KeyStoreUtil.loadPrivateKey(getFile("keys/pkcs1.pem"));
-        assertNotNull(privateKey);
-    }
+  @Test
+  public void loadInvalidPrivateKey() throws Exception {
+    exception.expect(GeneralSecurityException.class);
+    exception.expectMessage("Cannot generate private key");
+    KeyStoreUtil.loadPrivateKey(getFile("keys/invalid.pem"));
+  }
 
-    @Test
-    public void loadPrivateKeyPKCS8() throws Exception {
-        PrivateKey privateKey = KeyStoreUtil.loadPrivateKey(getFile("keys/pkcs8.pem"));
-        assertNotNull(privateKey);
-    }
-
-    @Test
-    public void loadPrivateKeyECDSA() throws Exception {
-        // ecdsa.pem has been created via `openssl ecparam -name secp521r1 -genkey -param_enc explicit -out ecdsa.pem`
-        PrivateKey privateKey = KeyStoreUtil.loadPrivateKey(getFile("keys/ecdsa.pem"));
-        assertNotNull(privateKey);
-    }
-
-    @Test
-    public void loadInvalidPrivateKey() throws Exception {
-        exception.expect(GeneralSecurityException.class);
-        exception.expectMessage("Cannot generate private key");
-        KeyStoreUtil.loadPrivateKey(getFile("keys/invalid.pem"));
-    }
-
-    private String getFile(String path) {
-        return KeyStoreUtilTest.class.getResource(path).getFile();
-    }
+  private String getFile(String path) throws FileNotFoundException {
+    URL fileURL = KeyStoreUtilTest.class.getResource(path);
+    if (fileURL == null)
+      throw new FileNotFoundException("Required private key : '" + path + "' not found it test resource directory");
+    return fileURL.getFile();
+  }
 }
