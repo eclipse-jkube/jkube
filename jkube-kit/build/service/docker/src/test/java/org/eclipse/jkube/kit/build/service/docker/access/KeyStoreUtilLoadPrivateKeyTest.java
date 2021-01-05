@@ -23,10 +23,6 @@ import org.junit.runners.Parameterized;
 
 import static org.junit.Assert.assertNotNull;
 
-/**
- * @author Stas Sukhanov
- * @since 08.03.2017
- */
 @RunWith(Parameterized.class)
 public class KeyStoreUtilLoadPrivateKeyTest {
 
