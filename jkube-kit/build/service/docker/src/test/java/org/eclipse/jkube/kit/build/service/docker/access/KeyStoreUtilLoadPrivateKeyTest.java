@@ -13,14 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
-import java.io.FileNotFoundException;
-import java.net.URL;
 import java.security.PrivateKey;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import static org.eclipse.jkube.kit.build.service.docker.access.KeyStoreUtilTest.*;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(Parameterized.class)
@@ -45,12 +44,5 @@ public class KeyStoreUtilLoadPrivateKeyTest {
   public void loadPrivateKey() throws Exception {
     PrivateKey privateKey = KeyStoreUtil.loadPrivateKey(getFile(privateKeyFile));
     assertNotNull(privateKey);
-  }
-
-  private String getFile(String path) throws FileNotFoundException {
-    URL fileURL = KeyStoreUtilTest.class.getResource(path);
-    if (fileURL == null)
-      throw new FileNotFoundException("Required private key : '" + path + "' not found it test resource directory");
-    return fileURL.getFile();
   }
 }

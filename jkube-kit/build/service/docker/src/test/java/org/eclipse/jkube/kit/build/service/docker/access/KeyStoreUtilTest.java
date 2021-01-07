@@ -51,7 +51,7 @@ public class KeyStoreUtilTest {
     KeyStoreUtil.loadPrivateKey(getFile("keys/invalid.pem"));
   }
 
-  private String getFile(String path) throws FileNotFoundException {
+  static String getFile(String path) throws FileNotFoundException {
     URL fileURL = KeyStoreUtilTest.class.getResource(path);
     if (fileURL == null)
       throw new FileNotFoundException("Required private key : '" + path + "' not found it test resource directory");
