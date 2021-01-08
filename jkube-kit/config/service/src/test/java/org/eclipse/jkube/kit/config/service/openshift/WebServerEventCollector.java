@@ -28,25 +28,19 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * A utility class to record http request events.
  */
-public class WebServerEventCollector<C> {
+public class WebServerEventCollector {
 
-    private C mockServer;
+    private final Queue<String> events;
+    private final List<String> bodies;
 
-    private Queue<String> events = new ConcurrentLinkedQueue<>();
-    private List<String> bodies = new ArrayList<>();
-
-    public WebServerEventCollector(C mockServer) {
-        this.mockServer = mockServer;
-    }
-
-    public C getMockServer() {
-        return mockServer;
+    public WebServerEventCollector() {
+        events = new ConcurrentLinkedQueue<>();
+        bodies = new ArrayList<>();
     }
 
     public List<String> getBodies() {
         return bodies;
     }
-
 
     public void assertEventsRecorded(String... expectedEvents) {
         for (String exp : expectedEvents) {
@@ -85,7 +79,7 @@ public class WebServerEventCollector<C> {
 
     public class WebServerEventRecorder {
 
-        private String event;
+        private final String event;
 
         public WebServerEventRecorder(String event) {
             this.event = event;

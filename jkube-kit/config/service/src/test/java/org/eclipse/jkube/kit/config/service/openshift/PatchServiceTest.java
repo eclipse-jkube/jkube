@@ -87,7 +87,7 @@ public class PatchServiceTest {
                 .withNewMetadata().withName("secret").endMetadata()
                 .addToStringData("test", "test")
                 .build();
-        WebServerEventCollector<OpenShiftServer> collector = new WebServerEventCollector<>(mockServer);
+        WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().get().withPath("/api/v1/namespaces/test/secrets/secret")
                 .andReply(collector.record("get-secret").andReturn(200, oldSecret)).always();
         mockServer.expect().patch().withPath("/api/v1/namespaces/test/secrets/secret")

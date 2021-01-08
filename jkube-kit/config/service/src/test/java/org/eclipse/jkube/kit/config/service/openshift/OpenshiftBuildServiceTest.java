@@ -332,7 +332,6 @@ public class OpenshiftBuildServiceTest {
             jKubeServiceHub.getBuildServiceConfig(); result = config;
         }};
         // @formatter:off
-        WebServerEventCollector collector = createMockServer(config, false, 50, false, false);
 
         OpenShiftClient client = mockServer.getOpenshiftClient();
         OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
@@ -347,7 +346,6 @@ public class OpenshiftBuildServiceTest {
             jKubeServiceHub.getBuildServiceConfig(); result = config;
         }};
         // @formatter:off
-        WebServerEventCollector collector = createMockServer(config, false, 50, false, false);
 
         OpenShiftClient client = mockServer.getOpenshiftClient();
         OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
@@ -384,7 +382,6 @@ public class OpenshiftBuildServiceTest {
                 jKubeServiceHub.getBuildServiceConfig(); result = config;
             }};
             // @formatter:off
-            WebServerEventCollector collector = createMockServer(config, true, 50, true, true);
 
             OpenShiftClient client = mockServer.getOpenshiftClient();
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
@@ -433,7 +430,6 @@ public class OpenshiftBuildServiceTest {
                 jKubeServiceHub.getBuildServiceConfig(); result = config;
             }};
             // @formatter:off
-            WebServerEventCollector collector = createMockServer(config, true, 50, true, true);
 
             OpenShiftClient client = mockServer.getOpenshiftClient();
             final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
@@ -641,7 +637,7 @@ public class OpenshiftBuildServiceTest {
                 .always();
 
         mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/test/builds/" + projectName).andReturn(200, build).always();
-        mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/test/builds/" + projectName + "?watch=true")
+        mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/test/builds?fieldSelector=metadata.name%3D" + projectName + "&watch=true")
                 .andUpgradeToWebSocket().open()
                 .waitFor(buildDelay)
                 .andEmit(new WatchEvent(build, "MODIFIED"))
