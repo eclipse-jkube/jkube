@@ -16,6 +16,7 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
@@ -116,6 +117,18 @@ public class ProjectLabelEnricher extends BaseEnricher {
                 }
                 MapUtil.mergeIfAbsent(selectors, createLabels());
                 builder.editOrNewSpec().editOrNewSelector().withMatchLabels(selectors).endSelector().endSpec();
+            }
+        });
+
+        builder.accept(new TypedVisitor<ReplicationControllerBuilder>() {
+            @Override
+            public void visit(ReplicationControllerBuilder builder) {
+                Map<String, String> selectors = new HashMap<>();
+                if(builder.buildSpec() != null && builder.buildSpec().getSelector() != null) {
+                    selectors.putAll(builder.buildSpec().getSelector());
+                }
+                MapUtil.mergeIfAbsent(selectors, createLabels(true));
+                builder.editOrNewSpec().addToSelector(selectors).endSpec();
             }
         });
 
