@@ -13,17 +13,10 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -31,8 +24,23 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
-import java.util.HashMap;
-import java.util.Map;
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfigSpec;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * Add project labels to any object.
@@ -87,11 +95,10 @@ public class ProjectLabelEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<DeploymentBuilder>() {
             @Override
             public void visit(DeploymentBuilder builder) {
-                Map<String, String> selectors = new HashMap<>();
-                if(builder.buildSpec() != null && builder.buildSpec().getSelector() != null && builder.buildSpec().getSelector().getMatchLabels() != null) {
-                    selectors.putAll(builder.buildSpec().getSelector().getMatchLabels());
-                }
-                MapUtil.mergeIfAbsent(selectors, createLabels(true));
+                final Map<String, String> selectors = mergedSelectors(Optional.ofNullable(builder.buildSpec())
+                    .map(DeploymentSpec::getSelector)
+                    .map(LabelSelector::getMatchLabels)
+                    .orElse(new HashMap<>()));
                 builder.editOrNewSpec().editOrNewSelector().withMatchLabels(selectors).endSelector().endSpec();
             }
         });
@@ -99,11 +106,9 @@ public class ProjectLabelEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<DeploymentConfigBuilder>() {
             @Override
             public void visit(DeploymentConfigBuilder builder) {
-                Map<String, String> selectors = new HashMap<>();
-                if(builder.buildSpec() != null && builder.buildSpec().getSelector() != null) {
-                    selectors.putAll(builder.buildSpec().getSelector());
-                }
-                MapUtil.mergeIfAbsent(selectors, createLabels(true));
+                final Map<String, String> selectors = mergedSelectors(Optional.ofNullable(builder.buildSpec())
+                    .map(DeploymentConfigSpec::getSelector)
+                    .orElse(new HashMap<>()));
                 builder.editOrNewSpec().addToSelector(selectors).endSpec();
             }
         });
@@ -123,12 +128,21 @@ public class ProjectLabelEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<ReplicationControllerBuilder>() {
             @Override
             public void visit(ReplicationControllerBuilder builder) {
-                Map<String, String> selectors = new HashMap<>();
-                if(builder.buildSpec() != null && builder.buildSpec().getSelector() != null) {
-                    selectors.putAll(builder.buildSpec().getSelector());
-                }
-                MapUtil.mergeIfAbsent(selectors, createLabels(true));
+                final Map<String, String> selectors = mergedSelectors(Optional.ofNullable(builder.buildSpec())
+                    .map(ReplicationControllerSpec::getSelector)
+                    .orElse(new HashMap<>()));
                 builder.editOrNewSpec().addToSelector(selectors).endSpec();
+            }
+        });
+
+        builder.accept(new TypedVisitor<ReplicaSetBuilder>() {
+            @Override
+            public void visit(ReplicaSetBuilder builder) {
+                final Map<String, String> selectors = mergedSelectors(Optional.ofNullable(builder.buildSpec())
+                    .map(ReplicaSetSpec::getSelector)
+                    .map(LabelSelector::getMatchLabels)
+                    .orElse(new HashMap<>()));
+                builder.editOrNewSpec().editOrNewSelector().withMatchLabels(selectors).endSelector().endSpec();
             }
         });
 
@@ -144,6 +158,11 @@ public class ProjectLabelEnricher extends BaseEnricher {
             }
         });
 
+    }
+
+    private Map<String, String> mergedSelectors(Map<String, String> originalSelectors) {
+        MapUtil.mergeIfAbsent(originalSelectors, createLabels(true));
+        return originalSelectors;
     }
 
     @Override
