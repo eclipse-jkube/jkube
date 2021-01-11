@@ -35,6 +35,18 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.common.util.MapUtil;
+import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -48,38 +60,21 @@ import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
-import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
-import io.fabric8.kubernetes.api.model.ReplicationController;
-import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
-import io.fabric8.kubernetes.api.model.apps.*;
-import io.fabric8.kubernetes.api.model.batch.Job;
-import io.fabric8.kubernetes.api.model.batch.JobSpec;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.openshift.api.model.Build;
-import io.fabric8.openshift.api.model.DeploymentConfig;
-import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.Template;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.MapUtil;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -756,75 +751,6 @@ public class KubernetesResourceUtil {
             entities.addAll(KubernetesHelper.toItemList(dto));
         }
         return entities;
-    }
-
-    public static LabelSelector getPodLabelSelector(Set<HasMetadata> entities) {
-        LabelSelector chosenSelector = null;
-        for (HasMetadata entity : entities) {
-            LabelSelector selector = getPodLabelSelector(entity);
-            if (selector != null) {
-                if (chosenSelector != null && !chosenSelector.equals(selector)) {
-                    throw new IllegalArgumentException("Multiple selectors found for the given entities: " + chosenSelector + " - " + selector);
-                }
-                chosenSelector = selector;
-            }
-        }
-        return chosenSelector;
-    }
-
-    public static LabelSelector getPodLabelSelector(HasMetadata entity) {
-        LabelSelector selector = null;
-        if (entity instanceof Deployment) {
-            Deployment resource = (Deployment) entity;
-            DeploymentSpec spec = resource.getSpec();
-            if (spec != null) {
-                selector = spec.getSelector();
-            }
-        } else if (entity instanceof ReplicaSet) {
-            ReplicaSet resource = (ReplicaSet) entity;
-            ReplicaSetSpec spec = resource.getSpec();
-            if (spec != null) {
-                selector = spec.getSelector();
-            }
-        } else if (entity instanceof DeploymentConfig) {
-            DeploymentConfig resource = (DeploymentConfig) entity;
-            DeploymentConfigSpec spec = resource.getSpec();
-            if (spec != null) {
-                selector = toLabelSelector(spec.getSelector());
-            }
-        } else if (entity instanceof ReplicationController) {
-            ReplicationController resource = (ReplicationController) entity;
-            ReplicationControllerSpec spec = resource.getSpec();
-            if (spec != null) {
-                selector = toLabelSelector(spec.getSelector());
-            }
-        } else if (entity instanceof DaemonSet) {
-            DaemonSet resource = (DaemonSet) entity;
-            DaemonSetSpec spec = resource.getSpec();
-            if (spec != null) {
-                selector = spec.getSelector();
-            }
-        } else if (entity instanceof StatefulSet) {
-            StatefulSet resource = (StatefulSet) entity;
-            StatefulSetSpec spec = resource.getSpec();
-            if (spec != null) {
-                selector = spec.getSelector();
-            }
-        } else if (entity instanceof Job) {
-            Job resource = (Job) entity;
-            JobSpec spec = resource.getSpec();
-            if (spec != null) {
-                selector = spec.getSelector();
-            }
-        }
-        return selector;
-    }
-
-    private static LabelSelector toLabelSelector(Map<String, String> matchLabels) {
-        if (matchLabels != null && !matchLabels.isEmpty()) {
-            return new LabelSelectorBuilder().withMatchLabels(matchLabels).build();
-        }
-        return null;
     }
 
     /**

@@ -218,7 +218,7 @@ public class KubernetesHelper {
         if (entity != null) {
             return getLabels(entity.getMetadata());
         }
-        return Collections.EMPTY_MAP;
+        return Collections.emptyMap();
     }
 
     /**
@@ -227,7 +227,6 @@ public class KubernetesHelper {
      * @param metadata metadata object ObjectMeta
      * @return labels in form of a hashmap
      */
-    @SuppressWarnings("unchecked")
     public static Map<String, String> getLabels(ObjectMeta metadata) {
         if (metadata != null) {
             Map<String, String> labels = metadata.getLabels();
@@ -235,7 +234,7 @@ public class KubernetesHelper {
                 return labels;
             }
         }
-        return Collections.EMPTY_MAP;
+        return Collections.emptyMap();
     }
 
     public static String getName(HasMetadata entity) {
@@ -407,15 +406,14 @@ public class KubernetesHelper {
             return getContainers(podSpec);
 
         }
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
-    @SuppressWarnings("unchecked")
     public static List<Container> getContainers(PodSpec podSpec) {
         if (podSpec != null) {
             return podSpec.getContainers();
         }
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     private static String getAdditionalPropertyText(Map<String, Object> additionalProperties, String name) {
@@ -616,10 +614,10 @@ public class KubernetesHelper {
         return answer;
     }
 
-    public static LabelSelector getPodLabelSelector(Set<HasMetadata> entities) {
+    public static LabelSelector extractPodLabelSelector(Set<HasMetadata> entities) {
         LabelSelector chosenSelector = null;
         for (HasMetadata entity : entities) {
-            LabelSelector selector = getPodLabelSelector(entity);
+            LabelSelector selector = extractPodLabelSelector(entity);
             if (selector != null) {
                 if (chosenSelector != null && !chosenSelector.equals(selector)) {
                     throw new IllegalArgumentException("Multiple selectors found for the given entities: " + chosenSelector + " - " + selector);
@@ -630,7 +628,7 @@ public class KubernetesHelper {
         return chosenSelector;
     }
 
-    public static LabelSelector getPodLabelSelector(HasMetadata entity) {
+    public static LabelSelector extractPodLabelSelector(HasMetadata entity) {
         LabelSelector selector = null;
         if (entity instanceof Deployment) {
             Deployment resource = (Deployment) entity;
@@ -899,7 +897,7 @@ public class KubernetesHelper {
     }
 
     public static String getNewestApplicationPodName(KubernetesClient client, String namespace, Set<HasMetadata> resources) {
-        LabelSelector selector = KubernetesHelper.getPodLabelSelector(resources);
+        LabelSelector selector = extractPodLabelSelector(resources);
         PodList pods = client.pods().inNamespace(namespace).withLabelSelector(selector).list();
         Pod newestPod = KubernetesHelper.getNewestPod(pods.getItems());
         if (newestPod != null) {

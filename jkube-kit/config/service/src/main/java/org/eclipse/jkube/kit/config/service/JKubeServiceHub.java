@@ -123,7 +123,7 @@ public class JKubeServiceHub implements Closeable {
         });
         migrateService = new LazyBuilder<>(() -> new MigrateService(getConfiguration().getBasedir(), log));
         portForwardService = new LazyBuilder<>(() -> new PortForwardService(client, log));
-        debugService = new LazyBuilder<>(() -> new DebugService(log, portForwardService.get(), applyService.get()));
+        debugService = new LazyBuilder<>(() -> new DebugService(log, client, portForwardService.get(), applyService.get()));
     }
 
     @Override
