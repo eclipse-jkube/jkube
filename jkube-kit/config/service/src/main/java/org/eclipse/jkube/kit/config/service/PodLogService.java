@@ -77,7 +77,7 @@ public class PodLogService {
                                 boolean watchAddedPodsOnly, String onExitOperation, boolean followLog,
                                 Date ignorePodsOlderThan, boolean waitInCurrentThread) {
 
-        LabelSelector selector = KubernetesHelper.getPodLabelSelector(entities);
+        LabelSelector selector = KubernetesHelper.extractPodLabelSelector(entities);
 
         if (selector != null) {
             String ctrlCMessage = "stop tailing the log";

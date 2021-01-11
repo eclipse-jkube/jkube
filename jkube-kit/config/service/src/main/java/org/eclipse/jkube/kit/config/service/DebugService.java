@@ -13,6 +13,20 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Consumer;
+
+import org.eclipse.jkube.kit.common.DebugConstants;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.service.portforward.PortForwardPodWatcher;
+
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -29,64 +43,50 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
-import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.common.DebugConstants;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.CountDownLatch;
-
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.extractPodLabelSelector;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getPodLabelSelector;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.withSelector;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusDescription;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusMessagePostfix;
+import static org.eclipse.jkube.kit.common.util.PodHelper.firstContainerHasEnvVars;
 
 public class DebugService {
     public static final String DEBUG_ENV_VARS_UPDATE_MESSAGE = "Updating %s %s with Debug variables in containers";
     private final KitLogger log;
+    private final KubernetesClient kubernetesClient;
     private final PortForwardService portForwardService;
-    private Pod foundPod;
     private final ApplyService applyService;
     private String debugSuspendValue;
     private String remoteDebugPort = DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT;
-    private final CountDownLatch terminateLatch = new CountDownLatch(1);
 
-    public DebugService(KitLogger log, PortForwardService portFwdSvc, ApplyService applySvc) {
+    public DebugService(KitLogger log, KubernetesClient kubernetesClient, PortForwardService portForwardService, ApplyService applyService) {
         this.log = log;
-        this.portForwardService = portFwdSvc;
-        this.applyService = applySvc;
+        this.kubernetesClient = kubernetesClient;
+        this.portForwardService = portForwardService;
+        this.applyService = applyService;
     }
 
-    public PortForwardService.PortForwardThread debug(KubernetesClient kubernetes, String namespace, String fileName, Set<HasMetadata> entities, String localDebugPort, boolean debugSuspend, KitLogger podWaitLog) {
+    public void debug(
+        String namespace, String fileName, Set<HasMetadata> entities, String localDebugPort, boolean debugSuspend, KitLogger podWaitLog
+    ) {
         if (!isDebugApplicable(entities)) {
             log.error("Unable to proceed with Debug. No application resource found running in the cluster");
-            return null;
+            return;
         }
-
         LabelSelector firstSelector = null;
         for (HasMetadata entity : entities) {
-            String name = getName(entity);
-            LabelSelector selector = getLabelSelectorsFromHasMetadata(entity, kubernetes, namespace, name, debugSuspend);
-            if (selector != null) {
-                firstSelector = selector;
-            } else {
-                applyService.apply(entity, fileName);
+            if (firstSelector == null) {
+                firstSelector = extractPodLabelSelector(entity);
             }
+            enableDebugging(entity, fileName, debugSuspend);
         }
-        return getPodNameFromLabelSelectorAndPortForward(firstSelector, kubernetes, namespace, debugSuspend, localDebugPort, podWaitLog);
+        if (firstSelector == null) {
+            log.error("Debug is not applicable for the currently generated resources");
+            return;
+        }
+        startPortForward(firstSelector, namespace, debugSuspend, localDebugPort, podWaitLog);
     }
 
     /**
@@ -96,7 +96,7 @@ public class DebugService {
      * @return boolean value indicating whether debug should be done or not
      */
     private boolean isDebugApplicable(Set<HasMetadata> entities) {
-        boolean controllersApplied = true;
+        boolean controllersApplied = !entities.isEmpty();
         for (HasMetadata h : entities) {
             if (KubernetesHelper.isControllerResource(h)) {
                 boolean isApplied = applyService.isAlreadyApplied(h);
@@ -109,17 +109,18 @@ public class DebugService {
         return controllersApplied;
     }
 
-    private PortForwardService.PortForwardThread getPodNameFromLabelSelectorAndPortForward(LabelSelector firstSelector, KubernetesClient kubernetes, String namespace, boolean debugSuspend, String localDebugPort, KitLogger podWaitLog) {
+    private void startPortForward(
+        LabelSelector firstSelector, String namespace, boolean debugSuspend, String localDebugPort, KitLogger podWaitLog
+    ) {
         if (firstSelector != null) {
-            Map<String, String> envVars = getDebugEnvVarsMap(debugSuspend);
-
-            String podName = waitForRunningPodWithEnvVar(kubernetes, namespace, firstSelector, envVars, podWaitLog);
-            return portForward(podName, namespace, localDebugPort);
+            Map<String, String> envVars = initDebugEnvVarsMap(debugSuspend);
+            String podName = waitForRunningPodWithEnvVar(namespace, firstSelector, envVars, podWaitLog);
+            portForwardService.startPortForward(podName, namespace, portToInt(remoteDebugPort, "remoteDebugPort"), portToInt(localDebugPort, "localDebugPort"));
         }
-        return null;
     }
 
-    Map<String, String> getDebugEnvVarsMap(boolean debugSuspend) {
+    // Visible for testing
+    Map<String, String> initDebugEnvVarsMap(boolean debugSuspend) {
         Map<String, String> envVars = new TreeMap<>();
         envVars.put(DebugConstants.ENV_VAR_JAVA_DEBUG, "true");
         envVars.put(DebugConstants.ENV_VAR_JAVA_DEBUG_SUSPEND, String.valueOf(debugSuspend));
@@ -129,92 +130,78 @@ public class DebugService {
         return envVars;
     }
 
-    LabelSelector getLabelSelectorsFromHasMetadata(HasMetadata entity, KubernetesClient kubernetes, String namespace, String name, boolean debugSuspend) {
-        LabelSelector selector = null;
-        if (entity instanceof Deployment) {
-            selector = getLabelSelectorForDeployment(kubernetes, namespace, entity, name, selector, debugSuspend);
-        } else if (entity instanceof ReplicaSet) {
-            selector = getLabelSelectorForReplicaSet(kubernetes, namespace, entity, name, selector, debugSuspend);
-        } else if (entity instanceof ReplicationController) {
-            selector = getLabelSelectorForReplicationController(kubernetes, namespace, entity, name, selector, debugSuspend);
-        } else if (entity instanceof DeploymentConfig) {
-            DeploymentConfig resource = (DeploymentConfig) entity;
-            DeploymentConfigSpec spec = resource.getSpec();
-            if (spec != null) {
-                if (enableDebugging(entity, spec.getTemplate(), debugSuspend)) {
-                    OpenShiftClient openshiftClient = applyService.getOpenShiftClient();
-                    if (openshiftClient == null) {
-                        log.warn("Ignoring DeploymentConfig %s as not connected to an OpenShift cluster", name);
-                        return null;
-                    }
-                    log.info(DEBUG_ENV_VARS_UPDATE_MESSAGE, resource.getKind(), resource.getMetadata().getName());
-                    openshiftClient.deploymentConfigs().inNamespace(namespace).withName(name).replace(resource);
-                }
-                selector = getPodLabelSelector(entity);
-            }
-        }
-        return selector;
+    // Visible for testing
+    void enableDebugging(HasMetadata entity, String fileName, boolean debugSuspend) {
+      if (entity instanceof Deployment) {
+        enableDebugging((Deployment) entity, fileName, debugSuspend);
+      } else if (entity instanceof ReplicaSet) {
+        enableDebugging((ReplicaSet) entity, fileName, debugSuspend);
+      } else if (entity instanceof ReplicationController) {
+        enableDebugging((ReplicationController) entity, fileName, debugSuspend);
+      } else if (entity instanceof DeploymentConfig) {
+        enableDebugging((DeploymentConfig) entity, fileName, debugSuspend);
+      }
     }
 
-    private LabelSelector getLabelSelectorForReplicationController(KubernetesClient kubernetes, String namespace, HasMetadata entity, String name, LabelSelector selector, boolean debugSuspend) {
-        ReplicationController resource = (ReplicationController) entity;
-        ReplicationControllerSpec spec = resource.getSpec();
-        if (spec != null) {
-            if (enableDebugging(entity, spec.getTemplate(), debugSuspend)) {
-                log.info(DEBUG_ENV_VARS_UPDATE_MESSAGE, resource.getKind(), resource.getMetadata().getName());
-                kubernetes.replicationControllers().inNamespace(namespace).withName(name).replace(resource);
-            }
-            selector = getPodLabelSelector(entity);
+    private Consumer<PodTemplateSpec> enableDebuggingFunc(
+        HasMetadata entity, String fileName, boolean debugSuspend) {
+      return template -> {
+        if (enableDebugging(entity, template, debugSuspend)) {
+          log.info(DEBUG_ENV_VARS_UPDATE_MESSAGE, entity.getKind(), entity.getMetadata().getName());
+          applyService.apply(entity, fileName);
         }
-        return selector;
+      };
     }
 
-    private LabelSelector getLabelSelectorForReplicaSet(KubernetesClient kubernetes, String namespace, HasMetadata entity, String name, LabelSelector selector, boolean debugSuspend) {
-        ReplicaSet resource = (ReplicaSet) entity;
-        ReplicaSetSpec spec = resource.getSpec();
-        if (spec != null) {
-            if (enableDebugging(entity, spec.getTemplate(), debugSuspend)) {
-                log.info(DEBUG_ENV_VARS_UPDATE_MESSAGE, resource.getKind(), resource.getMetadata().getName());
-                kubernetes.apps().replicaSets().inNamespace(namespace).withName(name).replace(resource);
-            }
-            selector = getPodLabelSelector(entity);
-        }
-        return selector;
+    private void enableDebugging(ReplicationController entity, String fileName, boolean debugSuspend) {
+      applyService.setDeletePodsOnReplicationControllerUpdate(false);
+      Optional.ofNullable(entity)
+          .map(ReplicationController::getSpec)
+          .map(ReplicationControllerSpec::getTemplate)
+          .ifPresent(enableDebuggingFunc(entity, fileName, debugSuspend));
     }
 
-    private LabelSelector getLabelSelectorForDeployment(KubernetesClient kubernetes, String namespace, HasMetadata entity, String name, LabelSelector selector, boolean debugSuspend) {
-        Deployment resource = (Deployment) entity;
-        DeploymentSpec spec = resource.getSpec();
-        if (spec != null) {
-            if (enableDebugging(entity, spec.getTemplate(), debugSuspend)) {
-                log.info(DEBUG_ENV_VARS_UPDATE_MESSAGE, resource.getKind(), resource.getMetadata().getName());
-                kubernetes.apps().deployments().inNamespace(namespace).withName(name).replace(resource);
-            }
-            selector = getPodLabelSelector(entity);
-        }
-        return selector;
+    private void enableDebugging(ReplicaSet entity, String fileName, boolean debugSuspend) {
+      Optional.ofNullable(entity)
+          .map(ReplicaSet::getSpec)
+          .map(ReplicaSetSpec::getTemplate)
+          .ifPresent(enableDebuggingFunc(entity, fileName, debugSuspend));
     }
 
-    private String waitForRunningPodWithEnvVar(final KubernetesClient kubernetes, final String namespace, LabelSelector selector, final Map<String, String> envVars, KitLogger podWaitLog) {
+    private void enableDebugging(Deployment entity, String fileName, boolean debugSuspend) {
+      Optional.ofNullable(entity)
+          .map(Deployment::getSpec)
+          .map(DeploymentSpec::getTemplate)
+          .ifPresent(enableDebuggingFunc(entity, fileName, debugSuspend));
+    }
+
+    private void enableDebugging(DeploymentConfig entity, String fileName, boolean debugSuspend) {
+      Optional.ofNullable(entity)
+          .map(DeploymentConfig::getSpec)
+          .map(DeploymentConfigSpec::getTemplate)
+          .ifPresent(enableDebuggingFunc(entity, fileName, debugSuspend));
+    }
+
+    private String waitForRunningPodWithEnvVar(final String namespace, LabelSelector selector, final Map<String, String> envVars, KitLogger podWaitLog) {
         //  wait for the newest pod to be ready with the given env var
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
+        FilterWatchListDeletable<Pod, PodList> pods = withSelector(kubernetesClient.pods().inNamespace(namespace), selector, log);
         PodList list = pods.list();
         if (list != null) {
             Pod latestPod = KubernetesHelper.getNewestPod(list.getItems());
-            if (latestPod != null && podHasEnvVars(latestPod, envVars) && KubernetesHelper.isPodRunning(latestPod)) {
+            if (latestPod != null && firstContainerHasEnvVars(latestPod, envVars) && KubernetesHelper.isPodRunning(latestPod)) {
                 log.info("Debug Pod ready: %s", latestPod.getMetadata().getName());
                 return getName(latestPod);
             }
         }
-        PortForwardPodWatcher portForwardPodWatcher = new PortForwardPodWatcher(podWaitLog, envVars, foundPod, terminateLatch);
+        PortForwardPodWatcher portForwardPodWatcher = new PortForwardPodWatcher(podWaitLog, envVars);
         log.info("No Active debug pod with provided selector and environment variables found! Waiting for pod to be ready...");
         log.info("Waiting for debug pod with selector " + selector + " and environment variables " + envVars);
         pods.watch(portForwardPodWatcher);
 
         // now lets wait forever?
-        while (portForwardPodWatcher.getTerminateLatch().getCount() > 0) {
+        while (portForwardPodWatcher.getPodReadyLatch().getCount() > 0) {
             try {
-                portForwardPodWatcher.getTerminateLatch().await();
+                portForwardPodWatcher.getPodReadyLatch().await();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -223,11 +210,6 @@ public class DebugService {
             }
         }
         throw new IllegalStateException("Could not find a running pod with environment variables " + envVars);
-    }
-
-
-    PortForwardService.PortForwardThread portForward(String podName, String namespace, String localDebugPort) {
-        return portForwardService.forwardPort(podName, namespace, portToInt(remoteDebugPort, "remoteDebugPort"), portToInt(localDebugPort, "localDebugPort"));
     }
 
     private boolean enableDebugging(HasMetadata entity, PodTemplateSpec template, boolean debugSuspend) {
@@ -314,70 +296,4 @@ public class DebugService {
         }
     }
 
-
-    static boolean podHasEnvVars(Pod pod, Map<String, String> envVars) {
-        for (Map.Entry<String, String> envVar : envVars.entrySet()) {
-            if (!podHasEnvVarValue(pod, envVar.getKey(), envVar.getValue())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean podHasEnvVarValue(Pod pod, String envVarName, String envVarValue) {
-        PodSpec spec = pod.getSpec();
-        if (spec != null) {
-            List<Container> containers = spec.getContainers();
-            if (containers != null && !containers.isEmpty()) {
-                Container container = containers.get(0);
-                List<EnvVar> env = container.getEnv();
-                if (env != null) {
-                    return env.stream()
-                            .anyMatch(e -> e.getName().equals(envVarName) && e.getValue().equals(envVarValue));
-                }
-            }
-        }
-        return false;
-    }
-
-    static class PortForwardPodWatcher implements Watcher<Pod> {
-        private final KitLogger podWaitLog;
-        private final Map<String, String> envVars;
-        private final CountDownLatch terminateLatch;
-        private Pod foundPod;
-
-        public PortForwardPodWatcher(KitLogger podWaitLog, Map<String, String> envVars, Pod foundPod, CountDownLatch terminateLatch) {
-            this.podWaitLog = podWaitLog;
-            this.envVars = envVars;
-            this.foundPod = foundPod;
-            this.terminateLatch = terminateLatch;
-        }
-
-        @Override
-        public void eventReceived(Action action, Pod pod) {
-            podWaitLog.info(getName(pod) + " status: " + getPodStatusDescription(pod) + getPodStatusMessagePostfix(action));
-
-            if (isAddOrModified(action) && KubernetesHelper.isPodRunning(pod) && KubernetesHelper.isPodReady(pod) &&
-                    podHasEnvVars(pod, envVars)) {
-                podWaitLog.info("Debug Pod ready : %s", pod.getMetadata().getName());
-                foundPod = pod;
-                terminateLatch.countDown();
-            }
-        }
-
-        @Override
-        public void onClose(KubernetesClientException e) { }
-
-        private boolean isAddOrModified(Watcher.Action action) {
-            return action.equals(Watcher.Action.ADDED) || action.equals(Watcher.Action.MODIFIED);
-        }
-
-        public Pod getFoundPod() {
-            return this.foundPod;
-        }
-
-        public CountDownLatch getTerminateLatch() {
-            return this.terminateLatch;
-        }
-    }
 }

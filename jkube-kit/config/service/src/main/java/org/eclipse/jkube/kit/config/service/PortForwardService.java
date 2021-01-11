@@ -13,23 +13,7 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.PodList;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.LocalPortForward;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.WatcherException;
-import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +21,20 @@ import java.util.Objects;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.service.portforward.PortForwardTask;
+
+import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodList;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.LocalPortForward;
+import io.fabric8.kubernetes.client.Watch;
+import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 
 /**
  * A service for forwarding connections to remote pods.
@@ -216,90 +214,19 @@ public class PortForwardService {
         return targetPod;
     }
 
-    PortForwardThread forwardPort(String pod, String namespace, int remotePort, int localPort) {
-        log.info("Port forwarding to port " + remotePort + " on pod " + pod );
-        LocalPortForward localPortForward = forwardPortAsync(pod, namespace, remotePort, localPort);
-        log.info("");
-        log.info("Now you can start a Remote debug execution in your IDE by using localhost and the debug port " + localPort);
-        log.info("");
-
-        return new PortForwardThread(kubernetes, pod, namespace, localPortForward, log);
-    }
-
+    // Visible for test
     LocalPortForward forwardPortAsync(String podName, String namespace, int remotePort, int localPort) {
         return kubernetes.pods().inNamespace(namespace).withName(podName).portForward(localPort, remotePort);
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class PortForwardPodMonitorThread extends Thread {
-        private final KubernetesClient kubernetesClient;
-        private final String podName;
-        private final String namespace;
-        private final KitLogger logger;
-
-        @Override
-        public void run() {
-            while (!isInterrupted()) {
-                try {
-                    Pod pod = kubernetesClient.pods().inNamespace(namespace).withName(podName).fromServer().get();
-                    if (pod == null) {
-                        logger.error("Pod %s no longer available", podName);
-                        throw new IllegalStateException("Not able to port forward: Pod used in Port Forward no longer available..");
-                    }
-                    if (!KubernetesHelper.isPodRunning(pod)) {
-                        logger.error("Pod %s no longer in Running state", podName);
-                        throw new IllegalStateException("Not able to port forward: Pod no longer in running state");
-                    }
-                } catch (KubernetesClientException exception) {
-                    throw new IllegalStateException("Error in getting Debug Pod details from Kuberntes API");
-                }
-            }
-        }
+    void startPortForward(String pod, String namespace, int remotePort, int localPort) {
+        log.info("Starting port forwarding to port %s on pod %s", remotePort, pod);
+        LocalPortForward localPortForward = forwardPortAsync(pod, namespace, remotePort, localPort);
+        log.info("Port Forwarding started");
+        log.info("Now you can start a Remote debug session by using localhost and the debug port %s",
+            localPort);
+        log.info("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=%s", localPort);
+        new PortForwardTask(kubernetes, pod, namespace, localPortForward, log).run();
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class PortForwardThread extends Thread {
-        private final KubernetesClient kubernetesClient;
-        private final String podName;
-        private final String namespace;
-        private final LocalPortForward localPortForward;
-        private final KitLogger logger;
-        private final Lock lock = new ReentrantLock();
-        private final Condition notInterrupted  = lock.newCondition();
-
-        @Override
-        public void run() {
-            PortForwardPodMonitorThread monitorThread = new PortForwardPodMonitorThread(kubernetesClient, podName, namespace, logger);
-            lock.lock();
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    monitorThread.run();
-                    notInterrupted.await();
-                } catch (InterruptedException interruptedException) {
-                    logger.warn("Interrupted : %s", interruptedException.getMessage());
-                    monitorThread.interrupt();
-                    Thread.currentThread().interrupt();
-                    notInterrupted.signal();
-                } catch (Exception exception) {
-                    logger.warn("Not able to port forward : %s", exception.getMessage());
-                    Thread.currentThread().interrupt();
-                    notInterrupted.signal();
-                } finally {
-                    close();
-                    lock.unlock();
-                }
-            }
-        }
-
-        private void close() {
-            try {
-                logger.info("Closing port forward for Debug Session ...");
-                localPortForward.close();
-            } catch (IOException exception) {
-                logger.warn("Not able to close Port forward gracefully : %s", exception.getMessage());
-            }
-        }
-    }
 }
