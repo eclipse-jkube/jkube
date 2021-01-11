@@ -16,6 +16,8 @@ package org.eclipse.jkube.kit.config.service;
 import java.io.Closeable;
 import java.util.Collections;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
+import mockit.Verifications;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -28,6 +30,7 @@ import io.fabric8.kubernetes.client.LocalPortForward;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import mockit.Mocked;
+import org.eclipse.jkube.kit.config.service.portforward.PortForwardTask;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -86,6 +89,22 @@ public class PortForwardServiceTest {
         try (Closeable c = service.forwardPortAsync(new LabelSelectorBuilder().withMatchLabels(Collections.singletonMap("mykey", "myvalue")).build(), 8080, 9000)) {
             Thread.sleep(3000);
         }
+    }
+
+    @Test
+    public void startPortForward(
+        @Mocked KubernetesClient kubernetesClient, @Mocked KitLogger logger,
+        @Mocked LocalPortForward lpf, @Mocked PortForwardTask pft
+    ) {
+        // When
+        new PortForwardService(kubernetesClient, logger)
+            .startPortForward("pod", "namespace", 5005, 1337);
+        // Then
+        // @formatter:off
+        new Verifications() {{
+           pft.run(); times = 1;
+        }};
+        // @formatter:on
     }
 
 }

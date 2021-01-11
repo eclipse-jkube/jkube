@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.eclipse.jkube.kit.common.DebugConstants;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -143,43 +144,61 @@ public class DebugService {
       }
     }
 
-    private Consumer<PodTemplateSpec> enableDebuggingFunc(
-        HasMetadata entity, String fileName, boolean debugSuspend) {
+    private Consumer<PodTemplateSpec> applyEntity(HasMetadata entity, String fileName) {
       return template -> {
-        if (enableDebugging(entity, template, debugSuspend)) {
-          log.info(DEBUG_ENV_VARS_UPDATE_MESSAGE, entity.getKind(), entity.getMetadata().getName());
-          applyService.apply(entity, fileName);
-        }
+        log.info(DEBUG_ENV_VARS_UPDATE_MESSAGE, entity.getKind(), entity.getMetadata().getName());
+        applyService.apply(entity, fileName);
       };
     }
 
+    private Predicate<PodTemplateSpec> enableDebuggingFilterFunc(HasMetadata entity, boolean debugSuspend) {
+        return pts -> enableDebugging(entity, pts, debugSuspend);
+    }
+
+    private boolean isDebugAlreadyEnabled(ReplicationController entity, boolean debugSuspend) {
+      return firstContainerHasEnvVars(
+          kubernetesClient.resource(entity).fromServer().get().getSpec().getTemplate().getSpec().getContainers(),
+          initDebugEnvVarsMap(debugSuspend));
+    }
+
+    private boolean isDebugAlreadyEnabled(DeploymentConfig entity, boolean debugSuspend) {
+        return firstContainerHasEnvVars(
+            kubernetesClient.resource(entity).fromServer().get().getSpec().getTemplate().getSpec().getContainers(),
+            initDebugEnvVarsMap(debugSuspend));
+    }
+
     private void enableDebugging(ReplicationController entity, String fileName, boolean debugSuspend) {
-      applyService.setDeletePodsOnReplicationControllerUpdate(false);
       Optional.ofNullable(entity)
           .map(ReplicationController::getSpec)
           .map(ReplicationControllerSpec::getTemplate)
-          .ifPresent(enableDebuggingFunc(entity, fileName, debugSuspend));
+          .filter(enableDebuggingFilterFunc(entity, debugSuspend))
+          .filter(pts -> !isDebugAlreadyEnabled(entity, debugSuspend))
+          .ifPresent(applyEntity(entity, fileName));
     }
 
     private void enableDebugging(ReplicaSet entity, String fileName, boolean debugSuspend) {
       Optional.ofNullable(entity)
           .map(ReplicaSet::getSpec)
           .map(ReplicaSetSpec::getTemplate)
-          .ifPresent(enableDebuggingFunc(entity, fileName, debugSuspend));
+          .filter(enableDebuggingFilterFunc(entity, debugSuspend))
+          .ifPresent(applyEntity(entity, fileName));
     }
 
     private void enableDebugging(Deployment entity, String fileName, boolean debugSuspend) {
       Optional.ofNullable(entity)
           .map(Deployment::getSpec)
           .map(DeploymentSpec::getTemplate)
-          .ifPresent(enableDebuggingFunc(entity, fileName, debugSuspend));
+          .filter(enableDebuggingFilterFunc(entity, debugSuspend))
+          .ifPresent(applyEntity(entity, fileName));
     }
 
     private void enableDebugging(DeploymentConfig entity, String fileName, boolean debugSuspend) {
       Optional.ofNullable(entity)
           .map(DeploymentConfig::getSpec)
           .map(DeploymentConfigSpec::getTemplate)
-          .ifPresent(enableDebuggingFunc(entity, fileName, debugSuspend));
+          .filter(enableDebuggingFilterFunc(entity, debugSuspend))
+          .filter(pts -> !isDebugAlreadyEnabled(entity, debugSuspend))
+          .ifPresent(applyEntity(entity, fileName));
     }
 
     private String waitForRunningPodWithEnvVar(final String namespace, LabelSelector selector, final Map<String, String> envVars, KitLogger podWaitLog) {

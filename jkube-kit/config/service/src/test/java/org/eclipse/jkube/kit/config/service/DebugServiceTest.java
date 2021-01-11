@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpecBuilder;
@@ -140,6 +141,8 @@ public class DebugServiceTest {
   public void enableDebuggingWithReplicationController() {
     // Given
     final ReplicationController replicationController = initReplicationController();
+    mockFromServer(replicationController);
+    // @formatter:on
     // When
     debugService.enableDebugging(replicationController, "file.name", false);
     // Then
@@ -156,6 +159,7 @@ public class DebugServiceTest {
   public void enableDebuggingWithDeploymentConfig() {
     // Given
     final DeploymentConfig deploymentConfig = initDeploymentConfig();
+    mockFromServer(deploymentConfig);
     // When
     debugService.enableDebugging(deploymentConfig, "file.name", false);
     // Then
@@ -234,6 +238,14 @@ public class DebugServiceTest {
         .contains(
             new Tuple("JAVA_DEBUG_SUSPEND", String.valueOf(debugSuspend)),
             new Tuple("JAVA_ENABLE_DEBUG", "true"));
+  }
+
+  private void mockFromServer(HasMetadata entity) {
+    // @formatter:off
+    new Expectations() {{
+      kubernetesClient.resource(entity).fromServer().get(); result = entity;
+    }};
+    // @formatter:on
   }
 
   private static Map<String, String> initLabels() {

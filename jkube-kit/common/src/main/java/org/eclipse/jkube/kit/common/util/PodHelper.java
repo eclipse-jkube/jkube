@@ -13,34 +13,39 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodSpec;
-
-import java.util.List;
-import java.util.Map;
 
 public class PodHelper {
 
   private PodHelper() {}
 
   public static boolean firstContainerHasEnvVars(Pod pod, Map<String, String> envVars) {
+    final List<Container> containers = Optional.ofNullable(pod).map(Pod::getSpec).map(PodSpec::getContainers)
+        .orElse(Collections.emptyList());
     return envVars.entrySet().stream()
-        .allMatch(e -> firstContainerHasEnvVar(pod, e.getKey(), e.getValue()));
+        .allMatch(e -> firstContainerHasEnvVar(containers, e.getKey(), e.getValue()));
   }
 
-  public static boolean firstContainerHasEnvVar(Pod pod, String name, String value) {
-    PodSpec spec = pod.getSpec();
-    if (spec != null) {
-      List<Container> containers = spec.getContainers();
-      if (containers != null && !containers.isEmpty()) {
-        Container container = containers.get(0);
-        List<EnvVar> env = container.getEnv();
-        if (env != null) {
-          return env.stream()
-              .anyMatch(e -> e.getName().equals(name) && e.getValue().equals(value));
-        }
+  public static boolean firstContainerHasEnvVars(List<Container> containers, Map<String, String> envVars) {
+    return envVars.entrySet().stream()
+        .allMatch(e -> firstContainerHasEnvVar(containers, e.getKey(), e.getValue()));
+  }
+
+  public static boolean firstContainerHasEnvVar(List<Container> containers, String name, String value) {
+    if (containers != null && !containers.isEmpty()) {
+      Container container = containers.get(0);
+      List<EnvVar> env = container.getEnv();
+      if (env != null) {
+        return env.stream()
+            .anyMatch(e -> e.getName().equals(name) && e.getValue().equals(value));
       }
     }
     return false;
