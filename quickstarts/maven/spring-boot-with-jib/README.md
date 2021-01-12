@@ -35,16 +35,16 @@ To build project issue this command:
 [INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator spring-boot
-[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.5 as base / builder
+[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.9 as base / builder
 [INFO] k8s: JIB image build started
-JIB> Base image 'quay.io/jkube/jkube-java-binary-s2i:0.0.5' does not use a specific image digest - build may not be reproducible
+JIB> Base image 'quay.io/jkube/jkube-java-binary-s2i:0.0.9' does not use a specific image digest - build may not be reproducible
 JIB> Containerizing application with the following files:                                                                    
 JIB> 	:                                                                                                                      
 JIB> 		/home/rohaan/work/repos/jkube/quickstarts/maven/spring-boot-with-jib/target/docker/maven/eclipse-jkube-sample-spring-boot-jib/latest/build/Dockerfilek8s: 
 JIB> 	:                                                                                                                      
 JIB> 		/home/rohaan/work/repos/jkube/quickstarts/maven/spring-boot-with-jib/target/docker/maven/eclipse-jkube-sample-spring-boot-jib/latest/build/deployments8s: 
 JIB> 		/home/rohaan/work/repos/jkube/quickstarts/maven/spring-boot-with-jib/target/docker/maven/eclipse-jkube-sample-spring-boot-jib/latest/build/deployments/eclipse-jkube-sample-spring-boot-jib-1.0.0-SNAPSHOT.jar
-JIB> Getting manifest for base image quay.io/jkube/jkube-java-binary-s2i:0.0.5...                                            
+JIB> Getting manifest for base image quay.io/jkube/jkube-java-binary-s2i:0.0.9...                                            
 JIB> Building  layer...                                                                                                      
 JIB> Building  layer...                                                                                                      
 JIB> Using base image with digest: sha256:0bdf76ac67d0dc03e8d474edce515ea839810d561b9f1c799ebda1d6e6b7789e                   
@@ -89,16 +89,16 @@ Once we add this property we need to do `mvn k8s:build -PJib-Zero-Config` again 
 [INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator spring-boot
-[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.7 as base / builder
+[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.9 as base / builder
 [INFO] k8s: JIB image build started
-JIB> Base image 'quay.io/jkube/jkube-java-binary-s2i:0.0.7' does not use a specific image digest - build may not be reproducible
+JIB> Base image 'quay.io/jkube/jkube-java-binary-s2i:0.0.9' does not use a specific image digest - build may not be reproducible
 JIB> Containerizing application with the following files:                                                                    
 JIB> 	:                                                                                                                      
 JIB> 		/home/rohaan/work/repos/jkube/quickstarts/maven/spring-boot-with-jib/target/docker/docker.io/rohankanojia/spring-boot-with-jib/1.0.0-SNAPSHOT/build/Dockerfile
 JIB> 	:                                                                                                                      
 JIB> 		/home/rohaan/work/repos/jkube/quickstarts/maven/spring-boot-with-jib/target/docker/docker.io/rohankanojia/spring-boot-with-jib/1.0.0-SNAPSHOT/build/deployments
 JIB> 		/home/rohaan/work/repos/jkube/quickstarts/maven/spring-boot-with-jib/target/docker/docker.io/rohankanojia/spring-boot-with-jib/1.0.0-SNAPSHOT/build/deployments/eclipse-jkube-sample-spring-boot-jib-1.0.0-SNAPSHOT.jar
-JIB> Getting manifest for base image quay.io/jkube/jkube-java-binary-s2i:0.0.7...                                            
+JIB> Getting manifest for base image quay.io/jkube/jkube-java-binary-s2i:0.0.9...                                            
 JIB> Building  layer...                                                                                                      
 JIB> Building  layer...                                                                                                      
 JIB> Using base image with digest: sha256:c834f2b076488a81bd4f59397712940b1187681e190f008ffe2c91ae4787290f                   
@@ -125,7 +125,7 @@ JIB> [==============================] 100.0% complete
 [INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator spring-boot
-[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.7 as base / builder
+[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.9 as base / builder
 [INFO] k8s: This push refers to: docker.io/rohankanojia/spring-boot-with-jib:1.0.0-SNAPSHOT
 JIB> Containerizing application with the following files:                                                                    
 JIB> Retrieving registry credentials for registry-1.docker.io...                                                             
@@ -168,7 +168,7 @@ Once image has been loaded in your docker daemon. You can generate and apply man
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:resource (default-cli) @ eclipse-jkube-sample-spring-boot-jib ---
 [INFO] k8s: Running generator spring-boot
-[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.5 as base / builder
+[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.9 as base / builder
 [INFO] k8s: jkube-controller: Adding a default Deployment
 [INFO] k8s: jkube-service: Adding a default service 'eclipse-jkube-sample-spring-boot-jib' with ports [8080]
 [INFO] k8s: jkube-healthcheck-spring-boot: Adding readiness probe on port 8080, path='/health', scheme='HTTP', with initial delay 10 seconds

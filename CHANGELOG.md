@@ -33,6 +33,7 @@ Usage:
 * Fix #473: Debug goals work with QuarkusGenerator generated container images
 * Fix #484: cacheFrom configuration parameter is missing
 * Fix #181: Refactor PortForwardService to use Kubernetes Client Port Forwarding instead of kubectl binary
+* Fix #535: Bump JKube base images to 0.0.9
 
 ### 1.0.2 (2020-10-30)
 * Fix #429: Added quickstart for Micronaut framework
