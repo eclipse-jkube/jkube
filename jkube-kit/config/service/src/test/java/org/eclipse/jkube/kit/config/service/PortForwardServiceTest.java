@@ -39,6 +39,7 @@ public class PortForwardServiceTest {
     @Rule
     public final OpenShiftServer mockServer = new OpenShiftServer(false);
 
+    @SuppressWarnings("unused")
     @Mocked
     private KitLogger logger;
 
@@ -102,7 +103,8 @@ public class PortForwardServiceTest {
         // Then
         // @formatter:off
         new Verifications() {{
-           pft.run(); times = 1;
+            new PortForwardTask(kubernetesClient, "pod", "namespace", lpf, logger); times = 1;
+            pft.run(); times = 1;
         }};
         // @formatter:on
     }

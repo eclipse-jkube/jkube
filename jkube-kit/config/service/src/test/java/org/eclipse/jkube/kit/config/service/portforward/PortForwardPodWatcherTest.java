@@ -41,7 +41,7 @@ public class PortForwardPodWatcherTest {
   private PortForwardPodWatcher portForwardPodWatcher;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     portForwardPodWatcher = new PortForwardPodWatcher(logger, Collections.singletonMap("SIMPLE_KEY", "1337"));
   }
 

@@ -36,7 +36,7 @@ public class PortForwardTaskTest {
   private PortForwardTask portForwardTask;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     portForwardTask = new PortForwardTask(
         kubernetesClient, "pod-name", "namespace", localPortForward, logger);
   }
