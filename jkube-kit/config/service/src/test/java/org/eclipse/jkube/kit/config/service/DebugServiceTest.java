@@ -74,7 +74,7 @@ public class DebugServiceTest {
   private DebugService debugService;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     debugService = new DebugService(logger, kubernetesClient, portForwardService, applyService);
   }
 
