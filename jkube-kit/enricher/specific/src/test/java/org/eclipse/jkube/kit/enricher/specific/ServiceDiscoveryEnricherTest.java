@@ -26,7 +26,6 @@ import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.eclipse.jkube.kit.enricher.specific.ServiceDiscoveryEnricher.*;
 import static org.junit.Assert.assertEquals;
 
 public class ServiceDiscoveryEnricherTest {
@@ -37,8 +36,9 @@ public class ServiceDiscoveryEnricherTest {
     private static final String scheme = "http";
     private static final String descriptionPath = "/api-doc";
     private static final String discoverable = "true";
-    private static final String discoveryVersion = "v1";
+    private static final String discoveryVersion = "v1337";
 
+    @SuppressWarnings("unused")
     @Mocked
     private JKubeEnricherContext context;
 
@@ -47,6 +47,7 @@ public class ServiceDiscoveryEnricherTest {
     private ServiceBuilder builder;
 
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Before
     public void setUp() {
         Map<String, Object> configMap = new HashMap<>();
@@ -58,7 +59,7 @@ public class ServiceDiscoveryEnricherTest {
         configMap.put("discoveryVersion", discoveryVersion);
 
         ProcessorConfig processorConfig = new ProcessorConfig(
-            null, null, Collections.singletonMap(ENRICHER_NAME, configMap)
+            null, null, Collections.singletonMap("jkube-service-discovery", configMap)
         );
 
         // Setup mock behaviour
@@ -73,57 +74,52 @@ public class ServiceDiscoveryEnricherTest {
     @Test
     public void testDiscoveryLabel() {
         enricher.addAnnotations(builder);
-        String label = label();
-        String value = builder.buildMetadata().getLabels().get(label);
+        String value = builder.buildMetadata().getLabels().get("discovery.3scale.net");
         assertEquals(discoverable, value);
     }
 
     @Test
     public void testDescriptionPathAnnotation() {
         enricher.addAnnotations(builder);
-        String annotation = annotation(DESCRIPTION_PATH);
-        String value = builder.buildMetadata().getAnnotations().get(annotation);
-        assertEquals(descriptionPath, value);
+        assertAnnotation(descriptionPath, "description-path");
     }
 
     @Test
     public void testDiscoveryVersionAnnotation() {
         enricher.addAnnotations(builder);
-        String annotation = annotation(DISCOVERY_VERSION);
-        String value = builder.buildMetadata().getAnnotations().get(annotation);
-        assertEquals(discoveryVersion, value);
+        assertAnnotation(discoveryVersion, "discovery-version");
+    }
+
+    @Test
+    public void testDefaultDiscoveryVersionAnnotation() {
+        context.getConfiguration().getProcessorConfig().getConfig().get("jkube-service-discovery").remove("discoveryVersion");
+        enricher.addAnnotations(builder);
+        assertAnnotation("v1", "discovery-version");
     }
 
     @Test
     public void testPathAnnotation() {
         enricher.addAnnotations(builder);
-        String annotation = annotation(PATH);
-        String value = builder.buildMetadata().getAnnotations().get(annotation);
-        assertEquals("/rest-3scale", value);
+        assertAnnotation("/rest-3scale", "path");
     }
 
     @Test
     public void testPortAnnotation() {
         enricher.addAnnotations(builder);
-        String annotation = annotation(PORT);
-        String value = builder.buildMetadata().getAnnotations().get(annotation);
-        assertEquals(port, value);
+        assertAnnotation(port, "port");
     }
 
     @Test
     public void testSchemeAnnotation() {
         enricher.addAnnotations(builder);
-        String annotation = annotation(SCHEME);
-        String value = builder.buildMetadata().getAnnotations().get(annotation);
-        assertEquals(scheme, value);
+        assertAnnotation(scheme, "scheme");
     }
 
-    private String label() {
-        return ServiceDiscoveryEnricher.PREFIX;
-    }
-
-    private String annotation(String name) {
-        return ServiceDiscoveryEnricher.PREFIX + "/" + name;
+    private void assertAnnotation(String expectedValue, String annotation) {
+        assertEquals(
+            expectedValue,
+            builder.buildMetadata().getAnnotations().get("discovery.3scale.net/" + annotation)
+        );
     }
 
 }

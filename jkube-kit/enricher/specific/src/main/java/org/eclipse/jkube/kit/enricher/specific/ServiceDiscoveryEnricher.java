@@ -17,6 +17,8 @@ import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -35,41 +37,47 @@ import java.util.List;
 import java.util.Map;
 
 public class ServiceDiscoveryEnricher extends BaseEnricher {
-    static final String ENRICHER_NAME = "jkube-service-discovery";
+    private static final String ENRICHER_NAME = "jkube-service-discovery";
 
     //Default Prefix
-    static final String PREFIX = "discovery.3scale.net";
+    private static final String PREFIX = "discovery.3scale.net";
     //Service Annotations
-    static final String DISCOVERY_VERSION = "discovery-version";
-    static final String SCHEME            = "scheme";
-    static final String PATH              = "path";
-    static final String PORT              = "port";
-    static final String DESCRIPTION_PATH  = "description-path";
+    private static final String ANNOTATION_DISCOVERY_VERSION = "discovery-version";
+    private static final String ANNOTATION_SCHEME            = Config.SCHEME.key;
+    private static final String ANNOTATION_PATH              = Config.PATH.key;
+    private static final String ANNOTATION_PORT              = Config.PORT.key;
+    private static final String ANNOTATION_DESCRIPTION_PATH  = "description-path";
 
-    private File springConfigDir;
-    private String path             = null;
-    private String port             = "80";
-    private String scheme           = "http";
-    private String descriptionPath  = null;
-    private String discoverable     = null;
-    private String discoveryVersion = "v1";
-
+    @AllArgsConstructor
     private enum Config implements Configs.Config {
-        descriptionPath,
-        discoverable,
-        discoveryVersion,
-        path,
-        port,
-        scheme,
-        springDir;
+        DESCRIPTION_PATH("descriptionPath", null),
+        DISCOVERABLE("discoverable", null),
+        DISCOVERY_VERSION("discoveryVersion", "v1"),
+        PATH("path", null),
+        PORT("port", "80"),
+        SCHEME("scheme", "http"),
+        SPRING_DIR("springDir", null);
+
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
+
+    private final File springConfigDir;
+    private String path;
+    private String port;
+    private String scheme;
+    private String descriptionPath;
+    private String discoverable;
+
 
     public ServiceDiscoveryEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
 
         File baseDir = getContext().getProjectDirectory();
-        springConfigDir = new File(getConfig(Config.springDir, baseDir + "/src/main/resources/spring"));
-        discoverable = getConfig(Config.discoverable, null);
+        springConfigDir = new File(getConfig(Config.SPRING_DIR, baseDir + "/src/main/resources/spring"));
+        discoverable = getConfig(Config.DISCOVERABLE, null);
     }
 
     @Override
@@ -100,34 +108,32 @@ public class ServiceDiscoveryEnricher extends BaseEnricher {
 
         if (discoverable != null) {
             String labelName = PREFIX;
-            String labelValue = getConfig(Config.discoverable, discoverable);
+            String labelValue = getConfig(Config.DISCOVERABLE, discoverable);
             serviceBuilder.editOrNewMetadata().addToLabels(labelName, labelValue).and().buildMetadata();
 
             log.info("Add %s label: \"%s\" : \"%s\"", PREFIX, labelName, labelValue);
 
             Map<String, String> annotations = new HashMap<>();
-            annotations.put(PREFIX + "/" + DISCOVERY_VERSION, getConfig(Config.discoveryVersion, discoveryVersion));
-            annotations.put(PREFIX + "/" + SCHEME, getConfig(Config.scheme, scheme));
+            annotations.put(PREFIX + "/" + ANNOTATION_DISCOVERY_VERSION, getConfig(Config.DISCOVERY_VERSION));
+            annotations.put(PREFIX + "/" + ANNOTATION_SCHEME, getConfig(Config.SCHEME, scheme));
 
-            String resolvedPath = getConfig(Config.path, path);
+            String resolvedPath = getConfig(Config.PATH, path);
             if (resolvedPath != null) {
                 if (! resolvedPath.startsWith("/")) {
                     resolvedPath = "/" + resolvedPath;
                 }
-                annotations.put(PREFIX + "/" + PATH, resolvedPath);
+                annotations.put(PREFIX + "/" + ANNOTATION_PATH, resolvedPath);
             }
-            annotations.put(PREFIX + "/" + PORT, getConfig(Config.port, port));
+            annotations.put(PREFIX + "/" + ANNOTATION_PORT, getConfig(Config.PORT, port));
 
-            String resolvedDescriptionPath = getConfig(Config.descriptionPath, descriptionPath);
+            String resolvedDescriptionPath = getConfig(Config.DESCRIPTION_PATH, descriptionPath);
             if (resolvedDescriptionPath != null) {
                 if (! resolvedDescriptionPath.toLowerCase().startsWith("http") && ! resolvedDescriptionPath.startsWith("/")) {
                     resolvedDescriptionPath = "/" + resolvedDescriptionPath;
                 }
-                annotations.put(PREFIX + "/" + DESCRIPTION_PATH , resolvedDescriptionPath);
+                annotations.put(PREFIX + "/" + ANNOTATION_DESCRIPTION_PATH, resolvedDescriptionPath);
             }
-            for (String annotationName : annotations.keySet()) {
-                log.info("Add %s annotation: \"%s\" : \"%s\"", PREFIX, annotationName, annotations.get(annotationName));
-            }
+            annotations.forEach((key, value) -> log.info("Add %s annotation: \"%s\" : \"%s\"", PREFIX, key, value));
             serviceBuilder.editMetadata().addToAnnotations(annotations).and().buildMetadata();
         }
     }
