@@ -86,7 +86,6 @@ You specify the properties like for any enricher within the enrichers configurat
 Alternatively you can us a `src/main/jkube/service.yml` fragment to override the values. For example
 -----
 kind: Service
-name:
 metadata:
   labels:
     discovery.3scale.net/discoverable : "true"
@@ -95,6 +94,7 @@ metadata:
     discovery.3scale.net/scheme : "https"
     discovery.3scale.net/path : "/api"
     discovery.3scale.net/description-path : "/api/openapi.json"
+  name: my-service
 spec:
   type: LoadBalancer
 -----
