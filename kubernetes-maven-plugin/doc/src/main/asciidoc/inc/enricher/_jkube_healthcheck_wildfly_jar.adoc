@@ -17,7 +17,7 @@ The enricher will use the following settings by default:
 - readinessPath = `/health/ready`
 - livenessPath = `/health/live`
 - livenessInitialDelay = `60`
-- readinessIntialDelay = `10`
+- readinessInitialDelay = `10`
 - failureThreshold = `3`
 - successThreshold = `1`
 - enforceProbes = 'false'
