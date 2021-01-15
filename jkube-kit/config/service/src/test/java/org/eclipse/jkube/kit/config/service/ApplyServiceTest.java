@@ -14,13 +14,13 @@
 
 package org.eclipse.jkube.kit.config.service;
 
+import io.fabric8.kubernetes.api.model.Namespace;
+import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Namespace;
-import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationController;
@@ -29,9 +29,9 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
-import io.fabric8.openshift.api.model.ProjectListBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
@@ -55,6 +55,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ApplyServiceTest {
 
@@ -70,35 +72,6 @@ public class ApplyServiceTest {
     public void setUp() {
         applyService = new ApplyService(mockServer.getOpenshiftClient(), log);
         applyService.setNamespace("default");
-    }
-
-    @Test
-    public void testApplyNamespaceOrProjectIfPresent() {
-        // Given
-        Set<HasMetadata> entities = new HashSet<>();
-        Namespace namespace = new NamespaceBuilder().withNewMetadata().withName("ns1").endMetadata().build();
-        Project project = new ProjectBuilder().withNewMetadata().withName("p1").endMetadata().build();
-        entities.add(namespace);
-        entities.add(project);
-        WebServerEventCollector collector = new WebServerEventCollector();
-        mockServer.expect().post()
-                .withPath("/api/v1/namespaces")
-                .andReply(collector.record("new-namespace").andReturn(HTTP_CREATED, namespace))
-                .once();
-        mockServer.expect().get()
-                .withPath("/apis/project.openshift.io/v1/projects")
-                .andReply(collector.record("get-project").andReturn(HTTP_OK, new ProjectListBuilder().build()))
-                .once();
-        mockServer.expect().post()
-                .withPath("/apis/project.openshift.io/v1/projectrequests")
-                .andReply(collector.record("new-projectrequest").andReturn(HTTP_CREATED, project))
-                .once();
-
-        // When
-        applyService.applyNamespaceOrProjectIfPresent(entities);
-
-        // Then
-        collector.assertEventsRecordedInOrder( "get-project", "new-projectrequest", "new-namespace");
     }
 
     @Test
@@ -253,7 +226,7 @@ public class ApplyServiceTest {
                 .once();
 
         // When
-        applyService.processCustomEntities(crdNames, crFragmentDir, null, Collections.emptyList());
+        applyService.applyCustomEntities(crdNames, crFragmentDir, null, Collections.emptyList());
 
         // Then
         collector.assertEventsRecordedInOrder("get-crd-virtualservice", "get-crd-gateway", "post-cr-virtualservice", "post-cr-gateway");
@@ -294,7 +267,7 @@ public class ApplyServiceTest {
                 .once();
 
         // When
-        applyService.processCustomEntities(crdNames, crFragmentDir, null, Collections.emptyList());
+        applyService.applyCustomEntities(crdNames, crFragmentDir, null, Collections.emptyList());
 
         // Then
         collector.assertEventsRecordedInOrder("get-crd-virtualservice", "get-crd-gateway", "get-cr-virtualservice", "put-cr-virtualservice", "get-cr-gateway", "put-cr-gateway");
@@ -336,7 +309,7 @@ public class ApplyServiceTest {
         applyService.setRecreateMode(true);
 
         // When
-        applyService.processCustomEntities(crdNames, crFragmentDir, null, Collections.emptyList());
+        applyService.applyCustomEntities(crdNames, crFragmentDir, null, Collections.emptyList());
         applyService.setRecreateMode(false);
 
         // Then
@@ -351,10 +324,46 @@ public class ApplyServiceTest {
         File crFragmentDir = new File(getClass().getResource("/gateway-cr.yml").getFile()).getParentFile();
 
         // When
-        applyService.processCustomEntities(null, crFragmentDir, null, Collections.emptyList());
+        applyService.applyCustomEntities(null, crFragmentDir, null, Collections.emptyList());
 
         // Then
         assertEquals(1, mockServer.getMockServer().getRequestCount()); // This one is just /apis check
+    }
+
+    @Test
+    public void testGetK8sListWithNamespaceFirstWithNamespace() {
+        // Given
+        List<HasMetadata> k8sList = new ArrayList<>();
+        k8sList.add(new PodBuilder().withNewMetadata().withNamespace("p1").endMetadata().build());
+        k8sList.add(new ConfigMapBuilder().withNewMetadata().withName("c1").endMetadata().build());
+        k8sList.add(new NamespaceBuilder().withNewMetadata().withName("n1").endMetadata().build());
+        k8sList.add(new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata().build());
+
+        // When
+        List<HasMetadata> result = ApplyService.getK8sListWithNamespaceFirst(k8sList);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(k8sList.size(), result.size());
+        assertTrue(result.get(0) instanceof Namespace);
+    }
+
+    @Test
+    public void testGetK8sListWithNamespaceFirstWithProject() {
+        // Given
+        List<HasMetadata> k8sList = new ArrayList<>();
+        k8sList.add(new PodBuilder().withNewMetadata().withNamespace("p1").endMetadata().build());
+        k8sList.add(new ConfigMapBuilder().withNewMetadata().withName("c1").endMetadata().build());
+        k8sList.add(new DeploymentConfigBuilder().withNewMetadata().withName("d1").endMetadata().build());
+        k8sList.add(new ProjectBuilder().withNewMetadata().withName("project1").endMetadata().build());
+
+        // When
+        List<HasMetadata> result = ApplyService.getK8sListWithNamespaceFirst(k8sList);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(k8sList.size(), result.size());
+        assertTrue(result.get(0) instanceof Project);
     }
 
     private Route buildRoute() {
