@@ -76,6 +76,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCustomResourcesFileToNameMap;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getKind;
@@ -1381,7 +1382,7 @@ public class ApplyService {
         this.rollingUpgradePreserveScale = rollingUpgradePreserveScale;
     }
 
-    public void processCustomEntities(List<String> customResourceDefinitions, File resourceDir, String environment, List<String> remotes) throws Exception {
+    public void applyCustomEntities(List<String> customResourceDefinitions, File resourceDir, String environment, List<String> remotes) throws Exception {
         if(customResourceDefinitions == null)
             return;
 
@@ -1398,32 +1399,14 @@ public class ApplyService {
         }
     }
 
-
-    /**
-     * Apply Namespace or Project in Kubernetes resource list if present. We need to process
-     * Namespace before processing other resources since namespace might be required while
-     * applying other resources.
-     *
-     * @param entities Collection of Kubernetes resource entities provided
-     */
-    public void applyNamespaceOrProjectIfPresent(Collection<HasMetadata> entities) {
-        entities.stream()
-                .filter(e -> e instanceof Namespace || e instanceof Project)
-                .forEach(this::applyProjectOrNamespace);
-
-        entities.removeIf(e -> e instanceof Project || e instanceof Namespace);
-    }
-
     public void applyEntities(String fileName, Set<HasMetadata> entities, KitLogger serviceLogger,
                                  long serviceUrlWaitTimeSeconds, ResourceConfig resources, File resourceDir,
                                  String environment) throws Exception {
-        // Apply Namespace/Project first
-        applyNamespaceOrProjectIfPresent(entities);
-        // Apply all items
-        applyStandardEntities(fileName, entities);
-        logExposeServiceUrl(entities, serviceLogger, serviceUrlWaitTimeSeconds);
-        processCustomEntities(resources != null ? resources.getCustomResourceDefinitions() : null,
+
+        applyStandardEntities(fileName, getK8sListWithNamespaceFirst(entities));
+        applyCustomEntities(resources != null ? resources.getCustomResourceDefinitions() : null,
                 resourceDir, environment, resources != null ? resources.getRemotes() : null);
+        logExposeServiceUrl(entities, serviceLogger, serviceUrlWaitTimeSeconds);
     }
 
     private void logExposeServiceUrl(Set<HasMetadata> entities, KitLogger serviceLogger, long serviceUrlWaitTimeSeconds) throws InterruptedException {
@@ -1434,7 +1417,7 @@ public class ApplyService {
     }
 
 
-    private void applyStandardEntities(String fileName, Set<HasMetadata> entities) {
+    private void applyStandardEntities(String fileName, List<HasMetadata> entities) {
         for (HasMetadata entity : entities) {
             if (entity instanceof Pod) {
                 Pod pod = (Pod) entity;
@@ -1448,16 +1431,6 @@ public class ApplyService {
             } else if (entity != null) {
                 apply(entity, fileName);
             }
-        }
-    }
-
-    private void applyProjectOrNamespace(HasMetadata projectOrNs) {
-        if (projectOrNs instanceof Namespace) {
-            Namespace ns = (Namespace) projectOrNs;
-            applyNamespace(ns);
-        } else if (projectOrNs instanceof Project) {
-            Project project = (Project) projectOrNs;
-            applyProject(project);
         }
     }
 
@@ -1476,5 +1449,20 @@ public class ApplyService {
             return clusterAccess.getNamespace();
         }
         return namespaceInProvidedKubernetesList;
+    }
+
+    public static List<HasMetadata> getK8sListWithNamespaceFirst(Collection<HasMetadata> k8sList) {
+        return k8sList.stream().sorted((k1, k2) -> {
+            if (isNamespaceOrProject(k1)) {
+                return -1;
+            } else if (isNamespaceOrProject(k2)) {
+                return 1;
+            }
+            return 0;
+        }).collect(Collectors.toList());
+    }
+
+    private static boolean isNamespaceOrProject(HasMetadata h) {
+        return h instanceof Namespace || h instanceof Project;
     }
 }

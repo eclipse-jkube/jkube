@@ -39,6 +39,7 @@ import io.fabric8.openshift.api.model.Project;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCustomResourcesFileToNameMap;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.loadResources;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.unmarshalCustomResourceFile;
+import static org.eclipse.jkube.kit.config.service.ApplyService.getK8sListWithNamespaceFirst;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getCustomResourceDefinitionContext;
 
 public class KubernetesUndeployService implements UndeployService {
@@ -56,7 +57,7 @@ public class KubernetesUndeployService implements UndeployService {
     final List<File> manifests = Stream.of(manifestFiles)
         .filter(Objects::nonNull).filter(File::exists).filter(File::isFile)
         .collect(Collectors.toList());
-    final List<HasMetadata> entities = new ArrayList<>();
+    List<HasMetadata> entities = new ArrayList<>();
     for (File manifest : manifests) {
       entities.addAll(loadResources(manifest));
     }
@@ -64,26 +65,16 @@ public class KubernetesUndeployService implements UndeployService {
       logger.warn("No such generated manifests found for this project, ignoring.");
       return;
     }
-    Collections.reverse(entities);
-    final String currentNamespace = currentNamespace(entities);
-    undeployResources(currentNamespace, entities);
+    List<HasMetadata> undeployEntities = getK8sListWithNamespaceFirst(entities);
+    Collections.reverse(undeployEntities);
+    final String currentNamespace = currentNamespace(undeployEntities);
     undeployCustomResources(currentNamespace, resourceDir, resourceConfig);
-    undeployNamespace(entities);
+    undeployResources(currentNamespace, undeployEntities);
   }
 
   private void undeployResources(String namespace, List<HasMetadata> entities) {
     final Consumer<HasMetadata> resourceDeleter = resourceDeleter(namespace);
-    entities.stream()
-        .filter(e -> !(e instanceof Namespace))
-        .filter(e -> !(e instanceof Project))
-        .forEach(resourceDeleter);
-  }
-
-  private void undeployNamespace(List<HasMetadata> entities) {
-    final Consumer<HasMetadata> resourceDeleter = clusterScopedResourceDeleter();
-    entities.stream()
-            .filter(e -> (e instanceof Namespace || e instanceof Project))
-            .forEach(resourceDeleter);
+    entities.forEach(resourceDeleter);
   }
 
   protected Consumer<HasMetadata> resourceDeleter(String namespace) {
@@ -93,15 +84,6 @@ public class KubernetesUndeployService implements UndeployService {
           .inNamespace(namespace)
           .withPropagationPolicy(DeletionPropagation.BACKGROUND)
           .delete();
-    };
-  }
-
-  protected Consumer<HasMetadata> clusterScopedResourceDeleter() {
-    return resource -> {
-      logger.info("Deleting resource %s %s", KubernetesHelper.getKind(resource), KubernetesHelper.getName(resource));
-      jKubeServiceHub.getClient().resource(resource)
-              .withPropagationPolicy(DeletionPropagation.BACKGROUND)
-              .delete();
     };
   }
 

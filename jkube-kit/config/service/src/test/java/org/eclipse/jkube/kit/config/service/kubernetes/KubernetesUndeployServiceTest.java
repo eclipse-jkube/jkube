@@ -80,7 +80,7 @@ public class KubernetesUndeployServiceTest {
   }
 
   @Test
-  public void undeployWithManifestShouldDeleteApplicableEntities(@Mocked File file) throws Exception {
+  public void undeployWithManifestShouldDeleteAllEntities(@Mocked File file) throws Exception {
     // Given
     final Namespace namespace = new NamespaceBuilder().withNewMetadata().withName("default").endMetadata().build();
     final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").endMetadata().build();
@@ -113,7 +113,7 @@ public class KubernetesUndeployServiceTest {
   }
 
   @Test
-  public void undeployWithManifestAndCustomResourcesShouldDeleteApplicableEntities(
+  public void undeployWithManifestAndCustomResourcesShouldDeleteAllEntities(
       @Mocked ResourceConfig resourceConfig) throws Exception {
     // Given
     final File manifest = temporaryFolder.newFile("temp.yml");
