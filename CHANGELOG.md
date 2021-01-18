@@ -36,6 +36,7 @@ Usage:
 * Fix #535: Bump JKube base images to 0.0.9
 * Fix #509: Port of ServiceDiscoveryEnricher from FMP
 * Fix #511: Namespace as resource fragment results in NullPointerException
+* Fix #521: NPE on Buildconfig#getContextDir if `<dockerFile>` references a file with no directory
 
 ### 1.0.2 (2020-10-30)
 * Fix #429: Added quickstart for Micronaut framework
