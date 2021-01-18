@@ -92,6 +92,32 @@ public class BuildConfigurationTest {
     assertEquals(config.calculateDockerFilePath(), new File("/tmp/Docker-file"));
   }
 
+  @Test
+  public void getContextDirWithNoContextAndDockerFileWithNoParent() {
+    // Given
+    final BuildConfiguration config = BuildConfiguration.builder()
+        .dockerFile("Docker-file").build();
+    config.validate();
+    config.initAndValidate();
+    // When
+    final File result = config.getContextDir();
+    // Then
+    assertThat(result, equalTo(new File(".")));
+  }
+
+  @Test
+  public void getContextDirWithNoContextAndDockerFileWithParent() {
+    // Given
+    final BuildConfiguration config = BuildConfiguration.builder()
+        .dockerFile("parent-dir/Docker-file").build();
+    config.validate();
+    config.initAndValidate();
+    // When
+    final File result = config.getContextDir();
+    // Then
+    assertThat(result, equalTo(new File("parent-dir")));
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void dockerFileAndDockerArchiveShouldBeInvalid() {
     BuildConfiguration config = BuildConfiguration.builder()
