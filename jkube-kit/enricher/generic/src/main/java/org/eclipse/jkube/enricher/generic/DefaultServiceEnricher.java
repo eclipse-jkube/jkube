@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -529,7 +530,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
     private String getDefaultServiceName(Service defaultService) {
         String defaultServiceName = KubernetesHelper.getName(defaultService);
-        if (defaultServiceName != null && !defaultServiceName.isEmpty()) {
+        if (StringUtils.isBlank(defaultServiceName)) {
             defaultServiceName = getContext().getGav().getSanitizedArtifactId();
         }
         return defaultServiceName;
@@ -562,7 +563,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
     private String ensureServiceName(ObjectMeta serviceMetadata, ServiceBuilder service, String defaultServiceName) {
         String serviceName = KubernetesHelper.getName(serviceMetadata);
-        if (serviceName != null && !serviceName.isEmpty()) {
+        if (StringUtils.isBlank(serviceName)) {
             service.buildMetadata().setName(defaultServiceName);
             serviceName = KubernetesHelper.getName(service.buildMetadata());
         }
@@ -602,14 +603,14 @@ public class DefaultServiceEnricher extends BaseEnricher {
     }
 
     private void ensurePortName(ServicePort port, String protocol) {
-        if (port.getName() == null || port.getName().isEmpty()) {
+        if (StringUtils.isBlank(port.getName())) {
             port.setName(getDefaultPortName(port.getPort(), getProtocol(protocol)));
         }
     }
 
     private String ensureProtocol(ServicePort port) {
         String protocol = port.getProtocol();
-        if (protocol != null && !protocol.isEmpty()) {
+        if (StringUtils.isBlank(protocol)) {
             port.setProtocol("TCP");
             return "TCP";
         }
