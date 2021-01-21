@@ -142,8 +142,16 @@ public class ImageName {
         return builder.toString();
     }
 
-    private boolean isRegistry(String part) {
-        return part.contains(".") || part.contains(":");
+    private boolean containsPeriodOrColon(String part) {
+        return containsPeriod(part) || containsColon(part);
+    }
+
+    private boolean containsPeriod(String part) {
+        return part.contains(".");
+    }
+
+    private boolean containsColon(String part) {
+        return part.contains(":");
     }
 
     /**
@@ -275,14 +283,11 @@ public class ImageName {
             user = null;
             repository = parts[0];
         } else if (parts.length >= 2) {
-            if (isRegistry(parts[0])) {
-                registry = parts[0];
+            if (containsPeriodOrColon(parts[0])) {
                 if (parts.length > 2) {
-                    user = parts[1];
-                    repository = joinTail(parts);
+                    assignRegistryUserAndRepository(parts);
                 } else {
-                    user = null;
-                    repository = parts[1];
+                    checkWhetherFirstElementIsUserOrRegistryAndAssign(parts);
                 }
             } else {
                 registry = null;
@@ -290,6 +295,30 @@ public class ImageName {
                 repository = rest;
             }
         }
+    }
+
+    private void checkWhetherFirstElementIsUserOrRegistryAndAssign(String[] parts) {
+        if (containsColon(parts[0])) {
+            assignRegistryAndRepository(parts);
+        } else {
+            assignUserAndRepository(parts);
+        }
+    }
+
+    private void assignRegistryUserAndRepository(String[] parts) {
+        registry = parts[0];
+        user = parts[1];
+        repository = joinTail(parts);
+    }
+
+    private void assignUserAndRepository(String[] parts) {
+        user = parts[0];
+        repository = String.join("/", parts);
+    }
+
+    private void assignRegistryAndRepository(String[] parts) {
+        registry = parts[0];
+        repository = parts[1];
     }
 
     // ================================================================================================

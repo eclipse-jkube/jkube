@@ -16,6 +16,8 @@ package org.eclipse.jkube.kit.config.image;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class ImageNameTest {
@@ -174,6 +176,38 @@ public class ImageNameTest {
         for (String l : legal) {
             new ImageName(l);
         }
+    }
+
+    @Test
+    public void testImageNameWithUsernameHavingPeriods() {
+        // Given
+        String name = "roman.gordill/customer-service-cache:latest";
+
+        // When
+        ImageName imageName = new ImageName(name);
+
+        // Then
+        assertNotNull(imageName);
+        assertEquals("roman.gordill", imageName.getUser());
+        assertEquals("roman.gordill/customer-service-cache", imageName.getRepository());
+        assertEquals("latest", imageName.getTag());
+        assertNull(imageName.getRegistry());
+    }
+
+    @Test
+    public void testImageNameWithNameContainingRegistryAndName() {
+        // Given
+        String name = "foo.com:5000/customer-service-cache:latest";
+
+        // When
+        ImageName imageName = new ImageName(name);
+
+        // Then
+        assertNotNull(imageName);
+        assertNull(imageName.getUser());
+        assertEquals("foo.com:5000", imageName.getRegistry());
+        assertEquals("customer-service-cache", imageName.getRepository());
+        assertEquals("latest", imageName.getTag());
     }
 
     // =======================================================================================

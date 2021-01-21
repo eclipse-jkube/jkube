@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -543,5 +544,31 @@ public class ContainerHandlerTest {
         assertEquals(3,hostIPCount);
         assertEquals(9,containerPortCount);
         assertEquals(4,hostPortCount);
+    }
+
+    @Test
+    public void testGetContainersWithUserAndImageAndTagWithPeriodInImageUser() {
+        // Given
+        ContainerHandler containerHandler = createContainerHandler(project);
+        List<ImageConfiguration> imageConfigurations = new ArrayList<>();
+        imageConfigurations.add(ImageConfiguration.builder()
+                .name("roman.gordill/customer-service-cache:latest")
+                .registry("quay.io")
+                .build(BuildConfiguration.builder()
+                        .from("quay.io/jkube/jkube-java-binary-s2i:0.0.8")
+                        .assembly(AssemblyConfiguration.builder()
+                                .targetDir("/deployments")
+                                .build())
+                        .build())
+                .build());
+
+        // When
+        List<Container> containers = containerHandler.getContainers(config, imageConfigurations);
+
+        // Then
+        assertNotNull(containers);
+        assertEquals(1, containers.size());
+        Container container = containers.get(0);
+        assertEquals("quay.io/roman.gordill/customer-service-cache:latest", container.getImage());
     }
 }
