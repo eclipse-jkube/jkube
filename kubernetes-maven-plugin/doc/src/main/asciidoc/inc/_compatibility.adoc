@@ -31,14 +31,14 @@ ifeval::["{goal-prefix}" == "oc"]
 
 .OpenShift Compatibility
 |===
-|     OMP             | OpenShift 4.4 | OpenShift 4.2 | OpenShift 3.11
+|     OMP             | OpenShift 4.6 | OpenShift 4.5 | OpenShift 4.4 | OpenShift 4.2 | OpenShift 3.11
 
-| OMP 1.0.2           |        ✓      |        ✓      |        ✓
-| OMP 1.0.1           |        ✓      |        ✓      |        ✓
-| OMP 1.0.0           |        ✓      |        ✓      |        ✓
-| OMP 0.2.0           |        ✓      |        ✓      |        ✓
-| OMP 0.1.1           |        ✓      |        ✓      |        ✓
-| OMP 0.1.0           |        ✓      |        ✓      |        ✓
+| OMP 1.0.2           |        ✓      |        ✓      |        ✓      |        ✓      |        ✓
+| OMP 1.0.1           |        ✓      |        ✓      |        ✓      |        ✓      |        ✓
+| OMP 1.0.0           |        ✓      |        ✓      |        ✓      |        ✓      |        ✓
+| OMP 0.2.0           |        ✓      |        ✓      |        ✓      |        ✓      |        ✓
+| OMP 0.1.1           |        ✓      |        ✓      |        ✓      |        ✓      |        ✓
+| OMP 0.1.0           |        ✓      |        ✓      |        ✓      |        ✓      |        ✓
 
 |===
 
