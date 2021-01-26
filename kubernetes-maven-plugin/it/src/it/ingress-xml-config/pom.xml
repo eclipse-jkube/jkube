@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>ingress-xml-config</artifactId>
+  <groupId>org.eclipse.jkube</groupId>
+  <version>0.1-SNAPSHOT</version>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.3.3.RELEASE</version>
+  </parent>
+
+  <properties>
+    <jkube.createExternalUrls>true</jkube.createExternalUrls>
+    <jkube.domain>org.eclipse.jkube.quickstart</jkube.domain>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
+        <version>@jkube.version@</version>
+
+        <configuration>
+          <enricher>
+            <config>
+              <jkube-service>
+                <type>LoadBalancer</type>
+              </jkube-service>
+            </config>
+          </enricher>
+          <resources>
+            <ingressTlsConfigs>
+              <ingressTlsConfig>
+                <hosts>
+                  https-example.foo.com
+                </hosts>
+                <secretName>testsecret-tls</secretName>
+              </ingressTlsConfig>
+            </ingressTlsConfigs>
+            <ingressRules>
+              <ingressRule>
+                <host>hello.example.systems</host>
+                <paths>
+                  <path>
+                    <pathType>ImplementationSpecific</pathType>
+                    <path>/</path>
+                    <serviceName>${project.artifactId}</serviceName>
+                    <servicePort>8080</servicePort>
+                  </path>
+                </paths>
+              </ingressRule>
+            </ingressRules>
+          </resources>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
