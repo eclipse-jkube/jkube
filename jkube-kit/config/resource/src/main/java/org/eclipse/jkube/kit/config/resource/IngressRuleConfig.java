@@ -18,6 +18,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 import java.util.List;
 
@@ -28,5 +29,6 @@ import java.util.List;
 @EqualsAndHashCode
 public class IngressRuleConfig {
     private String host;
+    @Singular
     private List<IngressRulePathConfig> paths;
 }
