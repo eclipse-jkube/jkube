@@ -18,6 +18,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ import java.util.List;
 @Getter
 @EqualsAndHashCode
 public class IngressTlsConfig {
+    @Singular
     private List<String> hosts;
     private String secretName;
 }

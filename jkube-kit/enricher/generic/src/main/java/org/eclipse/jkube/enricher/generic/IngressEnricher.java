@@ -77,7 +77,7 @@ public class IngressEnricher extends BaseEnricher {
             listBuilder.accept(new TypedVisitor<ServiceBuilder>() {
                 @Override
                 public void visit(ServiceBuilder serviceBuilder) {
-                    Ingress ingress = addIngress(listBuilder, serviceBuilder, getRouteDomain(resourceConfig), getIngressRuleXMLConfig(resourceConfig), getIngressTlsXMLConfig(resourceConfig), log);
+                    Ingress ingress = generateIngress(listBuilder, serviceBuilder, getRouteDomain(resourceConfig), getIngressRuleXMLConfig(resourceConfig), getIngressTlsXMLConfig(resourceConfig), log);
                     if (ingress != null) {
                         listBuilder.addToItems(ingress);
                     }
@@ -86,7 +86,7 @@ public class IngressEnricher extends BaseEnricher {
         }
     }
 
-    protected static Ingress addIngress(KubernetesListBuilder listBuilder, ServiceBuilder serviceBuilder, String routeDomainPostfix, List<IngressRuleConfig> ingressRuleConfigs, List<IngressTlsConfig> ingressTlsConfigs, KitLogger log) {
+    protected static Ingress generateIngress(KubernetesListBuilder listBuilder, ServiceBuilder serviceBuilder, String routeDomainPostfix, List<IngressRuleConfig> ingressRuleConfigs, List<IngressTlsConfig> ingressTlsConfigs, KitLogger log) {
         ObjectMeta serviceMetadata = serviceBuilder.buildMetadata();
         if (serviceMetadata == null) {
             log.info("No Metadata for service! ");
@@ -256,15 +256,15 @@ public class IngressEnricher extends BaseEnricher {
 
     /**
      * Should we try to create an external URL for the given service?
-     * <p>
-     * By default lets ignore the kubernetes services and any service which does not expose ports 80 and 443
+     *
+     * <p> By default let's ignore the kubernetes services and any service which does not expose ports 80 and 443
      *
      * @return true if we should create an Ingress for this service.
      */
     static boolean shouldCreateExternalURLForService(ServiceBuilder service, KitLogger log) {
         String serviceName = service.buildMetadata().getName();
         ServiceSpec spec = service.buildSpec();
-        if (spec != null && !isKuberentesSystemService(serviceName)) {
+        if (spec != null && !isKubernetesSystemService(serviceName)) {
             List<ServicePort> ports = spec.getPorts();
             log.debug("Service " + serviceName + " has ports: " + ports);
             if (ports.size() == 1) {
@@ -280,7 +280,7 @@ public class IngressEnricher extends BaseEnricher {
         return false;
     }
 
-    private static boolean isKuberentesSystemService(String serviceName) {
+    private static boolean isKubernetesSystemService(String serviceName) {
         return "kubernetes".equals(serviceName) || "kubernetes-ro".equals(serviceName);
     }
 
