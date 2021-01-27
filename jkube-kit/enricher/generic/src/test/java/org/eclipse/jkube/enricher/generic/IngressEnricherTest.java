@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.resource.IngressConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
@@ -107,6 +108,7 @@ public class IngressEnricherTest {
     public void testCreateIngressFromXMLConfigWithConfiguredServiceName() {
         // Given
         ResourceConfig resourceConfig = ResourceConfig.builder()
+            .ingress(IngressConfig.builder()
                 .ingressRule(IngressRuleConfig.builder()
                         .host("foo.bar.com")
                         .path(IngressRulePathConfig.builder()
@@ -132,7 +134,8 @@ public class IngressEnricherTest {
                         .host("https-example.foo.com")
                         .secretName("testsecret-tls")
                         .build())
-                .build();
+                .build()
+            ).build();
         // @formatter:off
         new Expectations() {{
             // Enable creation of Ingress for Service of type LoadBalancer
@@ -354,10 +357,12 @@ public class IngressEnricherTest {
     public void testGetIngressRuleXMLConfigWithNonNullResourceConfig() {
         // Given
         ResourceConfig resourceConfig = ResourceConfig.builder()
+            .ingress(IngressConfig.builder()
                 .ingressRule(IngressRuleConfig.builder()
                         .host("host1")
                         .build())
-                .build();
+                .build()
+            ).build();
 
         // When
         List<IngressRuleConfig> ingressRuleXMLConfig = IngressEnricher.getIngressRuleXMLConfig(resourceConfig);
@@ -379,10 +384,12 @@ public class IngressEnricherTest {
     public void testGetIngressTlsXMLConfigWithNonNullResourceConfig() {
         // Given
         ResourceConfig resourceConfig = ResourceConfig.builder()
+            .ingress(IngressConfig.builder()
                 .ingressTlsConfig(IngressTlsConfig.builder()
                         .secretName("secret1")
                         .build())
-                .build();
+                .build()
+            ).build();
 
         // When
         List<IngressTlsConfig> ingressTlsConfigs = IngressEnricher.getIngressTlsXMLConfig(resourceConfig);

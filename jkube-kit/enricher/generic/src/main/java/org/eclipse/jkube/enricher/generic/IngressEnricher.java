@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.resource.IngressConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
@@ -51,6 +52,7 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isExposedService;
@@ -296,16 +298,12 @@ public class IngressEnricher extends BaseEnricher {
     }
 
     static List<IngressRuleConfig> getIngressRuleXMLConfig(ResourceConfig resourceConfig) {
-        if (resourceConfig != null) {
-            return resourceConfig.getIngressRules();
-        }
-        return Collections.emptyList();
+        return Optional.ofNullable(resourceConfig).map(ResourceConfig::getIngress).map(IngressConfig::getIngressRules)
+            .orElse(Collections.emptyList());
     }
 
     static List<IngressTlsConfig> getIngressTlsXMLConfig(ResourceConfig resourceConfig) {
-        if (resourceConfig != null) {
-            return resourceConfig.getIngressTlsConfigs();
-        }
-        return Collections.emptyList();
+        return Optional.ofNullable(resourceConfig).map(ResourceConfig::getIngress).map(IngressConfig::getIngressTlsConfigs)
+            .orElse(Collections.emptyList());
     }
 }
