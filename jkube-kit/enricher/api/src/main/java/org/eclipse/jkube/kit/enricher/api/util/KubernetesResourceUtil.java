@@ -35,6 +35,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 
+import io.fabric8.kubernetes.client.utils.Serialization;
+import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -151,13 +153,26 @@ public class KubernetesResourceUtil {
         KubernetesListBuilder builder = new KubernetesListBuilder();
         if (resourceFiles != null) {
             for (File file : resourceFiles) {
-                if(file.getName().endsWith("cr.yml") || file.getName().endsWith("cr.yaml")) // Don't process custom resources
-                    continue;
-                HasMetadata resource = getResource(platformMode, apiVersions, file, defaultName);
-                builder.addToItems(resource);
+                builder.addToItems(convertFragmentToHasMetadata(platformMode, apiVersions, defaultName, file));
             }
         }
         return builder;
+    }
+
+    private static HasMetadata convertFragmentToHasMetadata(PlatformMode platformMode, ResourceVersioning apiVersions, String defaultName, File file) throws IOException {
+        if(isCustomResourceFragment(file.getName())) {
+            return getCustomResource(file);
+        } else {
+            return getResource(platformMode, apiVersions, file, defaultName);
+        }
+    }
+
+    private static HasMetadata getCustomResource(File file) throws IOException {
+        return Serialization.yamlMapper().readValue(file, GenericCustomResource.class);
+    }
+
+    private static boolean isCustomResourceFragment(String fileName) {
+        return fileName.endsWith("cr.yml") || fileName.endsWith("cr.yaml");
     }
 
     /**
@@ -742,7 +757,7 @@ public class KubernetesResourceUtil {
 
     public static Set<HasMetadata> loadResources(File manifest) throws IOException {
         final Set<HasMetadata> entities = new TreeSet<>(new HasMetadataComparator());
-        for (KubernetesResource dto : ResourceUtil.loadList(manifest, KubernetesResource.class)) {
+        for (KubernetesResource dto : ResourceUtil.loadKubernetesResourceList(manifest)) {
             if (dto == null) {
                 throw new IllegalStateException("Cannot load kubernetes manifest " + manifest);
             }

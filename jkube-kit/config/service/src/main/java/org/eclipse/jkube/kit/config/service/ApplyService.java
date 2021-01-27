@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
@@ -40,6 +41,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
@@ -52,6 +54,7 @@ import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.TagReference;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -60,7 +63,6 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -78,12 +80,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCustomResourcesFileToNameMap;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getFullyQualifiedApiGroupWithKind;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getKind;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateLabels;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateMetadata;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.unmarshalCustomResourceFile;
 
 /**
  * Applies DTOs to the current Kubernetes master
@@ -195,6 +197,8 @@ public class ApplyService {
             applyCustomResourceDefinition((CustomResourceDefinition) dto, sourceName);
         } else if (dto instanceof Job) {
             applyJob((Job) dto, sourceName);
+        } else if (dto instanceof GenericCustomResource) {
+            applyGenericCustomResource((GenericCustomResource) dto, sourceName);
         } else if (dto instanceof HasMetadata) {
             HasMetadata entity = (HasMetadata) dto;
             try {
@@ -205,6 +209,19 @@ public class ApplyService {
             }
         } else {
             throw new IllegalArgumentException("Unknown entity type " + dto);
+        }
+    }
+
+    public void applyGenericCustomResource(GenericCustomResource dto, String sourceName) {
+        try {
+            CustomResourceDefinitionList crdList = kubernetesClient.apiextensions().v1beta1().customResourceDefinitions().list();
+            CustomResourceDefinitionContext crdContext = getCrdContext(crdList, dto);
+            if (crdContext == null) {
+                log.warn("Unable to find CustomResourceDefinition for CustomResource: %s#%s", dto.getApiVersion(), dto.getKind());
+            }
+            applyCustomResource(crdContext, dto, sourceName);
+        } catch (IOException exception) {
+            onApplyError("Failed to apply " + getKind(dto) + " from " + sourceName + ". ", exception);
         }
     }
 
@@ -460,25 +477,26 @@ public class ApplyService {
         }
     }
 
-    public void applyCustomResource(File customResourceFile, String namespace, CustomResourceDefinitionContext context)
+    public void applyCustomResource(CustomResourceDefinitionContext context, GenericCustomResource genericCustomResource, String sourceName)
         throws IOException {
 
-        Map<String, Object> cr = unmarshalCustomResourceFile(customResourceFile);
-        Map<String, Object> objectMeta = (Map<String, Object>)cr.get("metadata");
-        String name = objectMeta.get("name").toString();
+        String customResourceStr = Serialization.jsonMapper().writeValueAsString(genericCustomResource);
+        String name = genericCustomResource.getMetadata().getName();
+        String apiGroupWithKind = KubernetesHelper.getFullyQualifiedApiGroupWithKind(context);
+        Objects.requireNonNull(name, "No name for " + genericCustomResource + " " + sourceName);
 
         if (isRecreateMode()) {
             KubernetesClientUtil.doDeleteCustomResource(kubernetesClient, context, namespace, name);
-            KubernetesClientUtil.doCreateCustomResource(kubernetesClient, context, namespace, customResourceFile);
-            log.info("Created Custom Resource: %s %s", KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), name);
+            KubernetesClientUtil.doCreateCustomResource(kubernetesClient, context, namespace, customResourceStr);
+            log.info("Created Custom Resource: %s %s/%s", apiGroupWithKind, namespace, name);
         } else {
-            cr = KubernetesClientUtil.doGetCustomResource(kubernetesClient, context, namespace, name);
-            if (cr == null) {
-                KubernetesClientUtil.doCreateCustomResource(kubernetesClient, context, namespace, customResourceFile);
-                log.info("Created Custom Resource: %s", KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), name);
+            Map<String, Object> crFromServer = KubernetesClientUtil.doGetCustomResource(kubernetesClient, context, namespace, name);
+            if (crFromServer == null) {
+                KubernetesClientUtil.doCreateCustomResource(kubernetesClient, context, namespace, customResourceStr);
+                log.info("Created Custom Resource: %s %s/%s", apiGroupWithKind, namespace, name);
             } else {
-                KubernetesClientUtil.doEditCustomResource(kubernetesClient, context, namespace, name, customResourceFile);
-                log.info("Updated Custom Resource: %s", KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), name);
+                KubernetesClientUtil.doEditCustomResource(kubernetesClient, context, namespace, name, customResourceStr);
+                log.info("Updated Custom Resource: %s %s/%s", KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), namespace, name);
             }
         }
     }
@@ -1382,30 +1400,10 @@ public class ApplyService {
         this.rollingUpgradePreserveScale = rollingUpgradePreserveScale;
     }
 
-    public void applyCustomEntities(List<String> customResourceDefinitions, File resourceDir, String environment, List<String> remotes) throws Exception {
-        if(customResourceDefinitions == null)
-            return;
-
-        List<CustomResourceDefinitionContext> crdContexts = KubernetesClientUtil.getCustomResourceDefinitionContext(kubernetesClient ,customResourceDefinitions);
-        File resourceDirFinal = ResourceUtil.getFinalResourceDir(resourceDir, environment);
-        Map<File, String> fileToCrdMap = getCustomResourcesFileToNameMap(resourceDirFinal, remotes, log);
-
-        for(CustomResourceDefinitionContext customResourceDefinitionContext : crdContexts) {
-            for(Map.Entry<File, String> entry : fileToCrdMap.entrySet()) {
-                if(entry.getValue().equals(KubernetesHelper.getFullyQualifiedApiGroupWithKind(customResourceDefinitionContext))) {
-                    applyCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
-                }
-            }
-        }
-    }
-
     public void applyEntities(String fileName, Set<HasMetadata> entities, KitLogger serviceLogger,
-                                 long serviceUrlWaitTimeSeconds, ResourceConfig resources, File resourceDir,
-                                 String environment) throws Exception {
+                                 long serviceUrlWaitTimeSeconds) throws InterruptedException {
 
         applyStandardEntities(fileName, getK8sListWithNamespaceFirst(entities));
-        applyCustomEntities(resources != null ? resources.getCustomResourceDefinitions() : null,
-                resourceDir, environment, resources != null ? resources.getRemotes() : null);
         logExposeServiceUrl(entities, serviceLogger, serviceUrlWaitTimeSeconds);
     }
 

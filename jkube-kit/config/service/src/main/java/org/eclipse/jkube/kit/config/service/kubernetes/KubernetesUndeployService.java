@@ -21,9 +21,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
+import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -36,16 +39,15 @@ import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.openshift.api.model.Project;
 
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCustomResourcesFileToNameMap;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.loadResources;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.unmarshalCustomResourceFile;
 import static org.eclipse.jkube.kit.config.service.ApplyService.getK8sListWithNamespaceFirst;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getCustomResourceDefinitionContext;
 
 public class KubernetesUndeployService implements UndeployService {
 
   private final JKubeServiceHub jKubeServiceHub;
   private final KitLogger logger;
+  private static final Predicate<HasMetadata> isCustomResource = item -> item instanceof GenericCustomResource;
 
   public KubernetesUndeployService(JKubeServiceHub jKubeServiceHub, KitLogger logger) {
     this.jKubeServiceHub = jKubeServiceHub;
@@ -68,13 +70,18 @@ public class KubernetesUndeployService implements UndeployService {
     List<HasMetadata> undeployEntities = getK8sListWithNamespaceFirst(entities);
     Collections.reverse(undeployEntities);
     final String currentNamespace = currentNamespace(undeployEntities);
-    undeployCustomResources(currentNamespace, resourceDir, resourceConfig);
+    undeployCustomResources(currentNamespace, undeployEntities);
     undeployResources(currentNamespace, undeployEntities);
+  }
+
+  private void undeployCustomResources(String currentNamespace, List<HasMetadata> entities) {
+    final Consumer<HasMetadata> customResourceDeleter = customResourceDeleter(currentNamespace);
+    entities.stream().filter(isCustomResource).forEach(customResourceDeleter);
   }
 
   private void undeployResources(String namespace, List<HasMetadata> entities) {
     final Consumer<HasMetadata> resourceDeleter = resourceDeleter(namespace);
-    entities.forEach(resourceDeleter);
+    entities.stream().filter(isCustomResource.negate()).forEach(resourceDeleter);
   }
 
   protected Consumer<HasMetadata> resourceDeleter(String namespace) {
@@ -87,21 +94,12 @@ public class KubernetesUndeployService implements UndeployService {
     };
   }
 
-  private void undeployCustomResources(String namespace, File resourceDir, ResourceConfig resourceConfig) throws IOException {
-    if (resourceConfig == null || resourceConfig.getCustomResourceDefinitions() == null || resourceConfig.getCustomResourceDefinitions().isEmpty()) {
-      return;
-    }
-
-    List<CustomResourceDefinitionContext> crdContexts = getCustomResourceDefinitionContext(jKubeServiceHub.getClient(),resourceConfig.getCustomResourceDefinitions());
-    Map<File, String> fileToCrdMap = getCustomResourcesFileToNameMap(resourceDir, resourceConfig.getRemotes(), logger);
-
-    for(CustomResourceDefinitionContext customResourceDefinitionContext : crdContexts) {
-      for(Map.Entry<File, String> entry : fileToCrdMap.entrySet()) {
-        if(entry.getValue().equals(KubernetesHelper.getFullyQualifiedApiGroupWithKind(customResourceDefinitionContext))) {
-            deleteCustomResource(entry.getKey(), namespace, customResourceDefinitionContext);
-        }
-      }
-    }
+  protected Consumer<HasMetadata> customResourceDeleter(String namespace) {
+    return customResource -> {
+      GenericCustomResource genericCustomResource = (GenericCustomResource) customResource;
+      CustomResourceDefinitionList crdList = jKubeServiceHub.getClient().apiextensions().v1beta1().customResourceDefinitions().list();
+      deleteCustomResourceIfCustomResourceDefinitionContextPresent(genericCustomResource, namespace, getCrdContext(crdList, genericCustomResource));
+    };
   }
 
   // Visible for testing
@@ -114,14 +112,28 @@ public class KubernetesUndeployService implements UndeployService {
     return jKubeServiceHub.getClusterAccess().getNamespace();
   }
 
-  private void deleteCustomResource(File customResourceFile, String namespace, CustomResourceDefinitionContext crdContext)
-      throws IOException {
+  private void deleteCustomResourceIfCustomResourceDefinitionContextPresent(GenericCustomResource customResource, String namespace, CustomResourceDefinitionContext crdContext) {
+    if (crdContext != null) {
+        deleteCustomResourceIfPresent(customResource, namespace, crdContext);
+    }
+  }
 
-    Map<String, Object> customResource = unmarshalCustomResourceFile(customResourceFile);
-    Map<String, Object> objectMeta = (Map<String, Object>)customResource.get("metadata");
-    String name = objectMeta.get("name").toString();
-    logger.info("Deleting Custom Resource %s %s", KubernetesHelper.getFullyQualifiedApiGroupWithKind(crdContext), name);
-    KubernetesClientUtil.doDeleteCustomResource(jKubeServiceHub.getClient(), crdContext, namespace, name);
+  private void deleteCustomResourceIfPresent(GenericCustomResource customResource, String namespace, CustomResourceDefinitionContext crdContext) {
+    Map<String, Object> cr = KubernetesClientUtil.doGetCustomResource(jKubeServiceHub.getClient(), crdContext, namespace, customResource.getMetadata().getName());
+    if (cr != null) {
+      deleteCustomResource(customResource, namespace, crdContext);
+    }
+  }
+
+  private void deleteCustomResource(GenericCustomResource customResource, String namespace, CustomResourceDefinitionContext crdContext) {
+    String name = customResource.getMetadata().getName();
+    String apiVersionAndKind = KubernetesHelper.getFullyQualifiedApiGroupWithKind(crdContext);
+    try {
+      logger.info("Deleting Custom Resource %s %s", apiVersionAndKind, name);
+      KubernetesClientUtil.doDeleteCustomResource(jKubeServiceHub.getClient(), crdContext, namespace, name);
+    } catch (IOException exception) {
+      logger.error("Unable to undeploy %s %s/%s", apiVersionAndKind, namespace, name);
+    }
   }
 
   protected JKubeServiceHub getjKubeServiceHub() {

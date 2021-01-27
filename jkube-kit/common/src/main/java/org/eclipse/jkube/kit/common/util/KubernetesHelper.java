@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -51,7 +50,6 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
@@ -67,6 +65,9 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionVersion;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -87,7 +88,6 @@ import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
@@ -95,8 +95,12 @@ import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
+
+import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimGroup;
+import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimVersion;
 
 /**
  * @author roland
@@ -509,7 +513,7 @@ public class KubernetesHelper {
     }
 
     public static Set<HasMetadata> loadResources(File manifest) throws IOException {
-        Object dto = ResourceUtil.load(manifest, KubernetesResource.class);
+        Object dto = ResourceUtil.loadKubernetesResourceList(manifest);
         if (dto == null) {
             throw new IllegalStateException("Cannot load kubernetes manifest " + manifest);
         }
@@ -870,28 +874,6 @@ public class KubernetesHelper {
         return new File[0];
     }
 
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> unmarshalCustomResourceFile(File customResourceFile) throws IOException {
-        return Serialization.unmarshal(new FileInputStream(customResourceFile), Map.class);
-    }
-
-    public static Map<File, String> getCustomResourcesFileToNameMap(
-        File resourceDir, List<String> remotes, KitLogger log) throws IOException {
-
-        Map<File, String> fileToCrdGroupMap = new HashMap<>();
-        File[] resourceFiles = listResourceFragments(resourceDir, remotes, log);
-
-        for (File file : resourceFiles) {
-            if (file.getName().endsWith("cr.yml") || file.getName().endsWith("cr.yaml")) {
-                Map<String, Object> customResource = unmarshalCustomResourceFile(file);
-                String apiVersion = customResource.get("apiVersion").toString();
-                String kind = customResource.get("kind").toString();
-                fileToCrdGroupMap.put(file, apiVersion + "#" + kind);
-            }
-        }
-        return fileToCrdGroupMap;
-    }
-
     public static String getFullyQualifiedApiGroupWithKind(CustomResourceDefinitionContext crdContext) {
         return crdContext.getGroup() + "/" + crdContext.getVersion() + "#" + crdContext.getKind();
     }
@@ -987,6 +969,52 @@ public class KubernetesHelper {
 
     public static boolean isControllerResource(HasMetadata h) {
         return Arrays.stream(POD_CONTROLLER_KINDS).anyMatch(c -> c.equals(h.getKind()));
+    }
+
+    public static CustomResourceDefinitionContext getCrdContext(CustomResourceDefinitionList customResourceDefinitionList, GenericCustomResource customResource) {
+        CustomResourceDefinition matchedCrd = getCrdForCustomResource(customResourceDefinitionList, customResource);
+
+        return matchedCrd != null ? CustomResourceDefinitionContext.fromCrd(matchedCrd) : null;
+    }
+
+    private static CustomResourceDefinition getCrdForCustomResource(CustomResourceDefinitionList crdList, GenericCustomResource cr) {
+        return crdList.getItems().stream()
+                .filter(crd -> isCrdForCustomResource(cr, crd))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static boolean isCrdForCustomResource(GenericCustomResource customResource, CustomResourceDefinition crd) {
+        return crdHasGroup(crd, trimGroup(customResource.getApiVersion())) &&
+                crdHasVersion(crd, trimVersion(customResource.getApiVersion())) &&
+                crdHasKind(crd, customResource.getKind());
+    }
+
+    private static boolean crdHasKind(CustomResourceDefinition crd, String kind) {
+        return crd.getSpec().getNames().getKind().equals(kind);
+    }
+
+    private static boolean crdHasGroup(CustomResourceDefinition crd, String group) {
+        return crd.getSpec().getGroup().equals(group);
+    }
+
+    private static boolean crdHasVersion(CustomResourceDefinition crd, String version) {
+        if (isVersionPresentInSpecVersion(crd, version)) {
+            return true;
+        }
+
+        return isVersionPresentInVersionsList(crd, version);
+    }
+
+    private static boolean isVersionPresentInSpecVersion(CustomResourceDefinition crd, String version) {
+        return crd.getSpec().getVersion() != null && crd.getSpec().getVersion().equals(version);
+    }
+
+    private static boolean isVersionPresentInVersionsList(CustomResourceDefinition crd, String version) {
+        return crd.getSpec().getVersions()
+                .stream()
+                .map(CustomResourceDefinitionVersion::getName)
+                .anyMatch(n -> n.equals(version));
     }
 }
 

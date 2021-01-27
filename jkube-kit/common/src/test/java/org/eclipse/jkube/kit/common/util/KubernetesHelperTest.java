@@ -22,11 +22,14 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.kubernetes.api.model.Service;
@@ -36,11 +39,11 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
+import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,6 +60,28 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class KubernetesHelperTest {
+    private final CustomResourceDefinition crd1 = new CustomResourceDefinitionBuilder()
+            .withNewMetadata().withName("org.eclipse.jkube.jkubecustomresources").endMetadata()
+            .withNewSpec()
+            .withVersion("v1alpha1")
+            .withGroup("org.eclipse.jkube")
+            .withScope("Namespaced")
+            .withNewNames().withKind("JkubeCustomResource").withPlural("jkubecustomresources").endNames()
+            .endSpec()
+            .build();
+    private final CustomResourceDefinition crd2 = new CustomResourceDefinitionBuilder()
+            .withNewMetadata().withName("org.eclipse.jkube.jkubepods").endMetadata()
+            .withNewSpec()
+            .addNewVersion()
+            .withName("v1alpha1")
+            .withServed(true)
+            .endVersion()
+            .withGroup("org.eclipse.jkube")
+            .withScope("Namespaced")
+            .withNewNames().withKind("JkubePods").withPlural("jkubepods").endNames()
+            .endSpec()
+            .build();
+
     @Mocked
     private KitLogger logger;
 
@@ -331,30 +356,6 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void getCustomResourcesFileToNameMapWithNoFragmentsShouldReturnEmptyMap() throws Exception {
-        // When
-        final Map<File, String> result = KubernetesHelper.getCustomResourcesFileToNameMap(null, null, logger);
-        // Then
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    public void getCustomResourceFileToNameMapWithFragment() throws IOException {
-        // Given
-        File fragmentFile = new File(getClass().getResource("/crontab-cr.yml").getFile());
-        File fragmentDir = fragmentFile.getParentFile();
-
-        // When
-        final Map<File, String> result = KubernetesHelper.getCustomResourcesFileToNameMap(fragmentDir, null, logger);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("stable.example.com/v1#CronTab", result.get(fragmentFile));
-    }
-
-    @Test
     public void testGetFullyQualifiedApiGroupWithKind() {
         // Given
         CustomResourceDefinitionContext crd1 = new CustomResourceDefinitionContext.Builder()
@@ -438,6 +439,40 @@ public class KubernetesHelperTest {
         // Then
         assertNotNull(namespace);
         assertEquals("ns1", namespace);
+    }
+
+    @Test
+    public void testGetCrdContextReturnsValidCrdContext() {
+        // Given
+        CustomResourceDefinitionList crdList = new CustomResourceDefinitionListBuilder().addToItems(crd1, crd2).build();
+        GenericCustomResource genericCustomResource = new GenericCustomResource();
+        genericCustomResource.setApiVersion("org.eclipse.jkube/v1alpha1");
+        genericCustomResource.setKind("JkubeCustomResource");
+
+        // When
+        CustomResourceDefinitionContext crdContext = KubernetesHelper.getCrdContext(crdList, genericCustomResource);
+
+        // Then
+        assertNotNull(crdContext);
+        assertEquals("org.eclipse.jkube", crdContext.getGroup());
+        assertEquals("JkubeCustomResource", crdContext.getKind());
+        assertEquals("v1alpha1", crdContext.getVersion());
+        assertEquals("Namespaced", crdContext.getScope());
+    }
+
+    @Test
+    public void testGetCrdContextReturnsNullCrdContext() {
+        // Given
+        CustomResourceDefinitionList crdList = new CustomResourceDefinitionListBuilder().addToItems(crd1, crd2).build();
+        GenericCustomResource genericCustomResource = new GenericCustomResource();
+        genericCustomResource.setApiVersion("org.eclipse.jkube/v1alpha1");
+        genericCustomResource.setKind("Unknown");
+
+        // When
+        CustomResourceDefinitionContext crdContext = KubernetesHelper.getCrdContext(crdList, genericCustomResource);
+
+        // Then
+        assertNull(crdContext);
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {
