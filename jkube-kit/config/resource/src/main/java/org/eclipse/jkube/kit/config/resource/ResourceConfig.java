@@ -77,11 +77,7 @@ public class ResourceConfig {
   private List<String> customResourceDefinitions;
   @Singular
   private List<ServiceAccountConfig> serviceAccounts;
-  @Singular
-  private List<IngressRuleConfig> ingressRules;
-
-  @Singular
-  private List<IngressTlsConfig> ingressTlsConfigs;
+  private IngressConfig ingress;
   private OpenshiftBuildConfig openshiftBuildConfig;
   private String routeDomain;
 
