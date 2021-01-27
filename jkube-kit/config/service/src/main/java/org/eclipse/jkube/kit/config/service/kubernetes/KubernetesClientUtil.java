@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -24,7 +22,6 @@ import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.ReplicationController;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -41,12 +38,9 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.image.ImageName;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -233,19 +227,19 @@ public class KubernetesClientUtil {
         return "";
     }
 
-    public static Map<String, Object> doCreateCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, File customResourceFile) throws IOException {
+    public static Map<String, Object> doCreateCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String customResourceStr) throws IOException {
         if ("Namespaced".equals(crdContext.getScope())) {
-            return kubernetesClient.customResource(crdContext).create(namespace, new FileInputStream(customResourceFile.getAbsolutePath()));
+            return kubernetesClient.customResource(crdContext).create(namespace, customResourceStr);
         } else {
-            return kubernetesClient.customResource(crdContext).create(new FileInputStream(customResourceFile.getAbsolutePath()));
+            return kubernetesClient.customResource(crdContext).create(customResourceStr);
         }
     }
 
-    public static Map<String, Object> doEditCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String name, File customResourceFile) throws IOException {
+    public static Map<String, Object> doEditCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String name, String customResourceStr) throws IOException {
         if ("Namespaced".equals(crdContext.getScope())) {
-            return kubernetesClient.customResource(crdContext).edit(namespace, name, new FileInputStream(customResourceFile.getAbsolutePath()));
+            return kubernetesClient.customResource(crdContext).edit(namespace, name, customResourceStr);
         } else {
-            return kubernetesClient.customResource(crdContext).edit(name, doGetCustomResourceAsString(customResourceFile));
+            return kubernetesClient.customResource(crdContext).edit(name, customResourceStr);
         }
     }
 
@@ -270,32 +264,6 @@ public class KubernetesClientUtil {
         } catch (Exception exception) { // Not found exception
             return null;
         }
-    }
-
-    public static String doGetCustomResourceAsString(File customResourceFile) throws IOException {
-        String yamlFileAsString = FileUtils.readFileToString(customResourceFile, "UTF-8");
-        Object obj = new ObjectMapper(new YAMLFactory()).readValue(yamlFileAsString, Object.class);
-
-        return new ObjectMapper().writeValueAsString(obj);
-    }
-
-    public static List<CustomResourceDefinitionContext> getCustomResourceDefinitionContext(KubernetesClient client, List<String> customResources) {
-        List<CustomResourceDefinitionContext> crdContexts = new ArrayList<>();
-        for(String customResource : customResources) {
-            CustomResourceDefinition customResourceDefinition = client.apiextensions().v1beta1().customResourceDefinitions()
-                    .withName(customResource).get();
-            if(customResourceDefinition != null) {
-                crdContexts.add(new CustomResourceDefinitionContext.Builder()
-                        .withGroup(customResourceDefinition.getSpec().getGroup())
-                        .withName(customResourceDefinition.getMetadata().getName())
-                        .withPlural(customResourceDefinition.getSpec().getNames().getPlural())
-                        .withVersion(customResourceDefinition.getSpec().getVersion())
-                        .withScope(customResourceDefinition.getSpec().getScope())
-                        .withKind(customResourceDefinition.getSpec().getNames().getKind())
-                        .build());
-            }
-        }
-        return crdContexts;
     }
 
 }

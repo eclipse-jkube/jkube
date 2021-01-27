@@ -195,8 +195,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
 
     protected void applyEntities(final KubernetesClient kubernetes, final String namespace, String fileName, final Set<HasMetadata> entities) throws Exception {
         KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
-        applyService.applyEntities(fileName, entities,
-                serviceLogger, serviceUrlWaitTimeSeconds, resources, resourceDir, environment);
+        applyService.applyEntities(fileName, entities, serviceLogger, serviceUrlWaitTimeSeconds);
     }
 
     protected void initServices(KubernetesClient kubernetes) {

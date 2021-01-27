@@ -16,14 +16,19 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
+import io.fabric8.kubernetes.api.model.KubernetesResource;
 import org.apache.commons.io.FilenameUtils;
+import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,6 +53,42 @@ public class ResourceUtil {
 
     public static <T> List<T> loadList(File file, Class<T> clazz) throws IOException {
         return getObjectMapper(ResourceFileType.fromFile(file)).readerFor(clazz).<T>readValues(file).readAll();
+    }
+
+    public static List<KubernetesResource> loadKubernetesResourceList(File file) throws IOException {
+        ResourceFileType resourceFileType = ResourceFileType.fromFile(file);
+        List<KubernetesResource> kubernetesResources = new ArrayList<>();
+        if (file.isFile()) {
+            String fileContentAsStr = new String(Files.readAllBytes(file.toPath()));
+            if (StringUtils.isNotBlank(fileContentAsStr)) {
+                kubernetesResources.addAll(loadKubernetesResourceListFromString(resourceFileType, fileContentAsStr));
+
+            }
+        }
+        return kubernetesResources;
+    }
+
+    private static List<KubernetesResource> loadKubernetesResourceListFromString(ResourceFileType resourceFileType, String fileContentAsStr) throws JsonProcessingException {
+        Map<String, Object> listAsMap = getObjectMapper(resourceFileType).readValue(fileContentAsStr, Map.class);
+        List<KubernetesResource> kubernetesResources = new ArrayList<>();
+        List<Map<String, Object>> items = (List<Map<String, Object>>)listAsMap.get("items");
+        for (Map<String, Object> item : items) {
+            KubernetesResource resource = getHasMetadataOrGenericResource(resourceFileType, item);
+            kubernetesResources.add(resource);
+        }
+        return kubernetesResources;
+    }
+
+    private static KubernetesResource getHasMetadataOrGenericResource(ResourceFileType resourceFileType, Map<String, Object> item) {
+        try {
+            return convertValue(resourceFileType, item, KubernetesResource.class);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return convertValue(resourceFileType, item, GenericCustomResource.class);
+        }
+    }
+
+    private static <T> T convertValue(ResourceFileType resourceFileType, Map<String, Object> item, Class<T> clazz) {
+        return getObjectMapper(resourceFileType).convertValue(item, clazz);
     }
 
     public static <T> T load(File file, Class<T> clazz) throws IOException {

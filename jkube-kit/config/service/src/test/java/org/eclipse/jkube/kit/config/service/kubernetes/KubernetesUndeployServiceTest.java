@@ -20,6 +20,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
+import org.eclipse.jkube.kit.common.GenericCustomResource;
+import org.eclipse.jkube.kit.common.GenericCustomResourceBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -120,6 +124,8 @@ public class KubernetesUndeployServiceTest {
     final File crManifest = temporaryFolder.newFile("temp-cr.yml");
     final String crdId = "org.eclipse.jkube/v1alpha1#Crd";
     final Service service = new Service();
+    final GenericCustomResource customResource = new GenericCustomResource();
+    customResource.setMetadata(new ObjectMetaBuilder().withName("my-cr").build());
     final CustomResourceDefinition crd = new CustomResourceDefinitionBuilder()
         .withNewMetadata().withName(crdId).endMetadata()
         .withNewSpec().withGroup("org.eclipse.jkube").withVersion("v1alpha1").withScope("Cluster")
@@ -130,13 +136,8 @@ public class KubernetesUndeployServiceTest {
         .withKind(crdId).build();
     // @formatter:off
     new Expectations() {{
-      kubernetesHelper.loadResources(manifest); result = new HashSet<>(Collections.singletonList(service));
-      resourceConfig.getCustomResourceDefinitions(); result = Collections.singletonList(crdId);
-      jKubeServiceHub.getClient().apiextensions().v1beta1().customResourceDefinitions().withName(crdId).get(); result = crd;
-      kubernetesHelper.getCustomResourcesFileToNameMap((File)any, (List<String>)any, logger);
-      result = Collections.singletonMap(crManifest, crdId);
-      kubernetesHelper.unmarshalCustomResourceFile(crManifest);
-      result = Collections.singletonMap("metadata", Collections.singletonMap("name", "my-cr"));
+      kubernetesHelper.loadResources(manifest); result = new HashSet<>(Arrays.asList(service, customResource));
+      jKubeServiceHub.getClient().apiextensions().v1beta1().customResourceDefinitions().list(); result = new CustomResourceDefinitionListBuilder().withItems(crd).build();
       kubernetesHelper.getFullyQualifiedApiGroupWithKind((CustomResourceDefinitionContext)any);
       result = crdId;
     }};
