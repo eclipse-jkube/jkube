@@ -301,7 +301,7 @@ public class IngressEnricherTest {
       assertThat(IngressEnricher.shouldCreateExternalURLForService(initTestService().editSpec()
           .withType("ClusterIP")
           .endSpec(), logger))
-              .isFalse();
+              .isTrue();
     }
 
     @Test

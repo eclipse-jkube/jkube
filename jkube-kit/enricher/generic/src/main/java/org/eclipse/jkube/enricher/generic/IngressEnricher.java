@@ -270,11 +270,7 @@ public class IngressEnricher extends BaseEnricher {
             List<ServicePort> ports = spec.getPorts();
             log.debug("Service " + serviceName + " has ports: " + ports);
             if (ports.size() == 1) {
-                String type = spec.getType();
-                if (Objects.equals(type, "LoadBalancer")) {
-                    return true;
-                }
-                log.info("Not generating Ingress for service " + serviceName + " type is not LoadBalancer: " + type);
+                return true;
             } else {
                 log.info("Not generating Ingress for service " + serviceName + " as only single port services are supported. Has ports: " + ports);
             }
