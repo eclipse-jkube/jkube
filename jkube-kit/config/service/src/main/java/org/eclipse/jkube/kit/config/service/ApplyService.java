@@ -435,7 +435,7 @@ public class ApplyService {
             } else {
                 if (isRecreateMode()) {
                     log.info("Deleting Custom Resource Definition: " + id);
-                    kubernetesClient.customResourceDefinitions().withName(id).delete();
+                    kubernetesClient.apiextensions().v1beta1().customResourceDefinitions().withName(id).delete();
                     doCreateCustomResourceDefinition(entity, sourceName);
                 } else {
                     doPatchEntity(old, entity, currentNamespace, sourceName);
