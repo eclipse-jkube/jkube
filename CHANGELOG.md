@@ -20,6 +20,8 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+### 1.2.0-SNAPSHOT
+
 ### 1.1.0 (2021-01-28)
 * Fix #455: Use OpenShiftServer with JUnit rule instead of directly instantiating the OpenShiftMockServer
 * Fix #467: Upgrade assertj-core to 3.18.0
