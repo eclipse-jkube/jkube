@@ -122,28 +122,22 @@ spec:
 Where the above defines the `PersistentVolumeClaim` called `foo` which is then mounted into the container at `/whatnot`
 
 === How do I generate Ingress for my generated Service?
-`Ingress` generation is supported by Eclipse JKube for `Service` objects of type `LoadBalancer`. In order to generate `Ingress` you need to enable `jkube.createExternalUrls` property to `true` and `jkube.domain` property to desired host suffix, it would be appended to your service name for host value. You can also also provide a host for it in XML config like this:
+`Ingress` generation is supported by Eclipse JKube for `Service` objects of type `LoadBalancer`. In order to generate
+`Ingress` you need to enable `jkube.createExternalUrls` property to `true` and `jkube.domain` property to desired host
+suffix, it would be appended to your service name for host value.
+
+You can also provide a host for it in XML config like this:
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
-  <plugin>
-    <groupId>org.eclipse.jkube</groupId>
-    <artifactId>{plugin}</artifactId>
-    <version>{version}</version>
-
-    <configuration>
-      <resources>
-        <routeDomain>org.eclipse.jkube</routeDomain>
-      </resources>
-
-      <enricher>
-        <config>
-          <jkube-service>
-            <type>LoadBalancer</type>
-          </jkube-service>
-        </config>
-      </enricher>
-    </configuration>
-  </plugin>
+<project>
+ <!-- ... -->
+  <properties>
+    <!-- ... -->
+     <jkube.createExternalUrls>true</jkube.createExternalUrls>
+     <jkube.domain>example.com</jkube.domain>
+  </properties>
+</project>
 ----
 
-You can find an example in our link:https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot[spring-boot] quickstart in `kubernetes-with-ingress` profile.
+You can find an example in our link:https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot[spring-boot]
+quickstart in `kubernetes-with-ingress` profile.
