@@ -38,6 +38,7 @@ Usage:
 * Fix #511: Namespace as resource fragment results in NullPointerException
 * Fix #521: NPE on Buildconfig#getContextDir if `<dockerFile>` references a file with no directory
 * Fix #513: openshift-maven-plugin: service.yml fragment with ports creates service with unnamed port mapping
+* Fix #545: Replace Boolean.valueOf with Boolean.parseBoolean for string to boolean conversion
 
 ### 1.0.2 (2020-10-30)
 * Fix #429: Added quickstart for Micronaut framework
