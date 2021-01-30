@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import com.google.common.base.Function;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,6 +25,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 
