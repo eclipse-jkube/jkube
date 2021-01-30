@@ -249,7 +249,7 @@ public class ValueProvider {
         @Override
         protected Boolean withPrefix(String prefix, ConfigKey key, Properties properties) {
             String prop = properties.getProperty(key.asPropertyKey(prefix));
-            return prop == null ? null : Boolean.valueOf(prop);
+            return prop == null ? null : Boolean.parseBoolean(prop);
         }
     }
 

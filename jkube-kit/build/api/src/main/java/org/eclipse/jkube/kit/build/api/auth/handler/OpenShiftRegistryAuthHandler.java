@@ -58,7 +58,7 @@ public class OpenShiftRegistryAuthHandler implements RegistryAuthHandler {
         String useOpenAuthMode = registryAuthConfig.extractFromProperties(props, kind, AUTH_USE_OPENSHIFT_AUTH);
         // Check for system property
         if (useOpenAuthMode != null) {
-            boolean useOpenShift = Boolean.valueOf(useOpenAuthMode);
+            boolean useOpenShift = Boolean.parseBoolean(useOpenAuthMode);
             if (!useOpenShift) {
                 return null;
             }

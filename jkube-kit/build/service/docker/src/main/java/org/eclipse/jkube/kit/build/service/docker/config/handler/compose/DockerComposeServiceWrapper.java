@@ -398,7 +398,7 @@ class DockerComposeServiceWrapper {
     private Boolean asBoolean(String key) {
         Boolean value = null;
         if (configuration.containsKey(key)) {
-            value = Boolean.valueOf(configuration.get(key).toString());
+            value = Boolean.parseBoolean(configuration.get(key).toString());
         }
         return value;
     }
