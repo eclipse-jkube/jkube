@@ -63,7 +63,9 @@ jobs:
         - ~/.m2
 
   sonar:
-    machine: true
+    docker:
+      - image: circleci/openjdk:11
+    resource_class: xlarge
     steps:
     - checkout
     - restore_cache:
@@ -76,7 +78,9 @@ jobs:
         - ~/.m2
 
   sonar-pr:
-    machine: true
+    docker:
+      - image: circleci/openjdk:11
+    resource_class: xlarge
     steps:
     - checkout
     - restore_cache:
