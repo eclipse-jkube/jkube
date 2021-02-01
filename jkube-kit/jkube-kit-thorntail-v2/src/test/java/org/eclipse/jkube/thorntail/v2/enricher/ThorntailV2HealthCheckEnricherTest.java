@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.thorntail.v2.enricher;
 
+import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Properties;
 
@@ -69,7 +70,7 @@ public class ThorntailV2HealthCheckEnricherTest {
       context.getConfiguration().getProcessorConfig(); result = processorConfig;
       context.hasDependency("io.thorntail", "monitor"); result = true;
       context.getProjectClassLoaders(); result =
-          new ProjectClassLoaders((URLClassLoader)ThorntailV2HealthCheckEnricherTest.class.getClassLoader());
+          new ProjectClassLoaders(new URLClassLoader(new URL[0], ThorntailV2HealthCheckEnricherTest.class.getClassLoader()));
     }};
     // @formatter:on
   }
