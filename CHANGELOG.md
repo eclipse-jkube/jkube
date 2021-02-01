@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.2.0-SNAPSHOT
+* Fix [#558:](https://github.com/eclipse/jkube/issues/558) Update CircleCI sonar jobs to run using JDK 11 enviornment.
 
 ### 1.1.0 (2021-01-28)
 * Fix #455: Use OpenShiftServer with JUnit rule instead of directly instantiating the OpenShiftMockServer
