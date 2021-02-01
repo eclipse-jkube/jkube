@@ -65,7 +65,7 @@ jobs:
   sonar:
     docker:
       - image: circleci/openjdk:11
-    resource_class: large
+    resource_class: medium+
     steps:
     - checkout
     - restore_cache:
@@ -80,7 +80,7 @@ jobs:
   sonar-pr:
     docker:
       - image: circleci/openjdk:11
-    resource_class: large
+    resource_class: medium+
     steps:
     - checkout
     - restore_cache:
