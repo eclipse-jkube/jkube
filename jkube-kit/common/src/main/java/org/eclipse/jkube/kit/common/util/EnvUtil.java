@@ -13,12 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -28,6 +22,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
@@ -37,8 +33,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -56,6 +55,9 @@ public class EnvUtil {
     public static final String DOCKER_HTTP_PORT = "2375";
 
     public static final String PROPERTY_COMBINE_POLICY_SUFFIX = "_combine";
+    private static final String COMMA = ",";
+    private static final String WHITESPACE = " ";
+    private static final String COMMA_WHITESPACE = COMMA + WHITESPACE;
 
     private EnvUtil() {
     }
@@ -126,34 +128,16 @@ public class EnvUtil {
      */
     public static List<String[]> splitOnLastColon(List<String> listToSplit) {
         if (listToSplit != null) {
-            return Lists.transform(listToSplit, SPLIT_ON_LAST_COLON);
+            return listToSplit.stream().map(SPLIT_ON_LAST_COLON).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
 
-    private static final Function<String, Iterable<String>> COMMA_SPLITTER = new Function<String, Iterable<String>>() {
-        private Splitter COMMA_SPLIT = Splitter.on(",").trimResults().omitEmptyStrings();
-
-        @Override
-        public Iterable<String> apply(String input) {
-            return COMMA_SPLIT.split(input);
-        }
-    };
-
-    private static final Predicate<String> NOT_EMPTY = new Predicate<String>() {
-        @Override
-        public boolean apply(@Nullable String s) {
-            return s != null && !s.isEmpty();
-        }
-    };
-
-    private static final Function<String, String> TRIM = new Function<String, String>() {
-        @Nullable
-        @Override
-        public String apply(@Nullable String s) {
-            return s != null ? s.trim() : s;
-        }
-    };
+    private static final Function<String, List<String>> COMMA_SPLITTER =
+            input -> Arrays.stream(input.split(COMMA))
+                    .filter(StringUtils::isNotBlank)
+                    .map(StringUtils::trim)
+                    .collect(Collectors.toList());
 
     /**
      * Remove empty members of a list.
@@ -166,9 +150,7 @@ public class EnvUtil {
         if (input == null) {
             return Collections.emptyList();
         }
-        Iterable<String> trimmedInputs = Iterables.transform(input, TRIM);
-        Iterable<String> nonEmptyInputs = Iterables.filter(trimmedInputs, NOT_EMPTY);
-        return Lists.newArrayList(nonEmptyInputs);
+        return input.stream().filter(StringUtils::isNotBlank).map(StringUtils::trim).collect(Collectors.toList());
     }
 
     /**
@@ -182,8 +164,9 @@ public class EnvUtil {
         if (input == null) {
             return Collections.emptyList();
         }
-        Iterable<String> nonEmptyInputs = Iterables.filter(input, Predicates.notNull());
-        return Lists.newArrayList(Iterables.concat(Iterables.transform(nonEmptyInputs, COMMA_SPLITTER)));
+        return StreamSupport.stream(input.spliterator(), false)
+                .filter(StringUtils::isNotBlank).map(COMMA_SPLITTER).flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     public static String[] splitOnSpaceWithEscape(String toSplit) {
@@ -338,18 +321,18 @@ public class EnvUtil {
                 duration -= current.toMillis(temp);
                 res.append(temp).append(" ").append(current.name().toLowerCase());
                 if (temp < 2) res.deleteCharAt(res.length() - 1);
-                res.append(", ");
+                res.append(COMMA_WHITESPACE);
             }
             if (current == SECONDS) {
                 break;
             }
             current = TimeUnit.values()[current.ordinal() - 1];
         }
-        if (res.lastIndexOf(", ") < 0) {
+        if (res.lastIndexOf(COMMA_WHITESPACE) < 0) {
             return duration + " " + MILLISECONDS.name().toLowerCase();
         }
         res.deleteCharAt(res.length() - 2);
-        int i = res.lastIndexOf(", ");
+        int i = res.lastIndexOf(COMMA_WHITESPACE);
         if (i > 0) {
             res.deleteCharAt(i);
             res.insert(i, " and");

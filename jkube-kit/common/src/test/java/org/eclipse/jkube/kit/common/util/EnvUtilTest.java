@@ -271,6 +271,13 @@ public class EnvUtilTest {
     }
 
     @Test
+    public void testFormatDurationTillHoursMinutesAndSeconds() {
+        long startTime = System.currentTimeMillis() - (60*60*1000 + 60*1000 + 1000);
+        String formattedDuration = EnvUtil.formatDurationTill(startTime);
+        assertTrue(formattedDuration.contains("1 hour, 1 minute and 1 second"));
+    }
+
+    @Test
     public void testFirstRegistryOf() {
         assertEquals("quay.io", firstRegistryOf("quay.io", "docker.io", "registry.access.redhat.io"));
         assertEquals("registry.access.redhat.io", firstRegistryOf(null, null, "registry.access.redhat.io"));
@@ -412,5 +419,21 @@ public class EnvUtilTest {
         boolean result= EnvUtil.isWindows();
         //Then
         assertTrue(result);
+    }
+
+    @Test
+    public void testSystemPropertyRead() {
+        System.setProperty("testProperty", "testPropertyValue");
+        String propertyValue =
+                EnvUtil.getEnvVarOrSystemProperty("testProperty", "defaultValue");
+        assertEquals( "testPropertyValue", propertyValue);
+        System.clearProperty("testProperty");
+    }
+
+    @Test
+    public void testDefaultSystemPropertyRead() {
+        String propertyValue =
+                EnvUtil.getEnvVarOrSystemProperty("testProperty", "defaultValue");
+        assertEquals( "defaultValue", propertyValue);
     }
 }
