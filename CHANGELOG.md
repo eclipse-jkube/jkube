@@ -21,9 +21,9 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.2.0-SNAPSHOT
-* Fix #558: Update CircleCI sonar jobs to run using JDK 11 enviornment.
+* Fix #558: Update CircleCI sonar jobs to run using JDK 11 environment.
+* Fix #546: Use `java.util.function.Function` instead of Guava's `com.google.common.base.Function`
 * Fix #545: Replace Boolean.valueOf with Boolean.parseBoolean for string to boolean conversion
-
 
 ### 1.1.0 (2021-01-28)
 * Fix #455: Use OpenShiftServer with JUnit rule instead of directly instantiating the OpenShiftMockServer
@@ -35,7 +35,6 @@ Usage:
 * Fix #488: Controller enricher replica count can be set to `0` when ResourceConfig is provided
 * Fix #485: Filter with placeholders in Dockerfile is broken 
 * Fix #387: Update Fabric8 Kubernetes Client to v4.13.0 to support `networking.k8s.io/v1` `Ingress`
-* Fix [#546:](https://github.com/eclipse/jkube/issues/546) Use `java.util.function.Function` instead of Guava's `com.google.common.base.Function`
 * Fix #473: Debug goals work with QuarkusGenerator generated container images
 * Fix #484: cacheFrom configuration parameter is missing
 * Fix #181: Refactor PortForwardService to use Kubernetes Client Port Forwarding instead of kubectl binary
