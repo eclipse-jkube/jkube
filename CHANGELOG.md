@@ -24,6 +24,7 @@ Usage:
 * Fix #558: Update CircleCI sonar jobs to run using JDK 11 environment.
 * Fix #546: Use `java.util.function.Function` instead of Guava's `com.google.common.base.Function`
 * Fix #545: Replace Boolean.valueOf with Boolean.parseBoolean for string to boolean conversion
+* Fix #515: Properties now get resolved in CustomResource fragments
 
 ### 1.1.0 (2021-01-28)
 * Fix #455: Use OpenShiftServer with JUnit rule instead of directly instantiating the OpenShiftMockServer
@@ -42,7 +43,6 @@ Usage:
 * Fix #509: Port of ServiceDiscoveryEnricher from FMP
 * Fix #510: Update Compatibility matrix for OpenShift 4.5 and 4.6
 * Fix #511: Namespace as resource fragment results in NullPointerException
-* Fix #515: Properties now get resolved in CustomResource fragments
 * Fix #521: NPE on Buildconfig#getContextDir if `<dockerFile>` references a file with no directory
 * Fix #513: openshift-maven-plugin: service.yml fragment with ports creates service with unnamed port mapping
 * Fix #231: IngressEnricher ignores IngressRules defined in XML config
