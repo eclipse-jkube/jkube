@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.config.service;
 
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -28,6 +29,8 @@ import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionNamesBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -69,31 +72,6 @@ public class ApplyServiceTest {
     public final OpenShiftServer mockServer = new OpenShiftServer(false);
 
     private ApplyService applyService;
-
-    private final CustomResourceDefinition virtualServiceCRD = new CustomResourceDefinitionBuilder()
-            .withNewMetadata().withName("networking.istio.io.virtualservices").endMetadata()
-            .withNewSpec()
-            .withGroup("networking.istio.io")
-            .withScope("Namespaced")
-            .withVersion("v1alpha3")
-            .withNewNames()
-            .withKind("VirtualService")
-            .withPlural("virtualservices")
-            .endNames()
-            .endSpec()
-            .build();
-    private final CustomResourceDefinition gatewayCRD = new CustomResourceDefinitionBuilder()
-            .withNewMetadata().withName("networking.istio.io.gateway").endMetadata()
-            .withNewSpec()
-            .withGroup("networking.istio.io")
-            .withScope("Namespaced")
-            .withVersion("v1alpha3")
-            .withNewNames()
-            .withKind("Gateway")
-            .withPlural("gateways")
-            .endNames()
-            .endSpec()
-            .build();
 
     @Before
     public void setUp() {
@@ -237,7 +215,8 @@ public class ApplyServiceTest {
         WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().get()
                 .withPath("/apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions")
-                .andReply(collector.record("get-crds").andReturn(HTTP_OK, new CustomResourceDefinitionListBuilder().withItems(virtualServiceCRD, gatewayCRD).build()))
+                .andReply(collector.record("get-crds").andReturn(HTTP_OK, new CustomResourceDefinitionListBuilder()
+                    .withItems(virtualServiceCRD(), gatewayCRD()).build()))
                 .times(2);
         mockServer.expect().post()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices")
@@ -267,7 +246,8 @@ public class ApplyServiceTest {
         WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().get()
                 .withPath("/apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions")
-                .andReply(collector.record("get-crds").andReturn(HTTP_OK, new CustomResourceDefinitionListBuilder().withItems(virtualServiceCRD, gatewayCRD).build()))
+                .andReply(collector.record("get-crds").andReturn(HTTP_OK, new CustomResourceDefinitionListBuilder()
+                    .withItems(virtualServiceCRD(), gatewayCRD()).build()))
                 .times(2);
         mockServer.expect().get()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
@@ -305,7 +285,8 @@ public class ApplyServiceTest {
         WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().get()
                 .withPath("/apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions")
-                .andReply(collector.record("get-crds").andReturn(HTTP_OK, new CustomResourceDefinitionListBuilder().withItems(virtualServiceCRD, gatewayCRD).build()))
+                .andReply(collector.record("get-crds").andReturn(HTTP_OK, new CustomResourceDefinitionListBuilder()
+                    .withItems(virtualServiceCRD(), gatewayCRD()).build()))
                 .times(2);
         mockServer.expect().delete()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
@@ -387,34 +368,37 @@ public class ApplyServiceTest {
                 .build();
     }
 
-    private CustomResourceDefinition getVirtualServiceIstioCRD() {
+    private static CustomResourceDefinition gatewayCRD() {
         return new CustomResourceDefinitionBuilder()
-                .withNewMetadata().withName("virtualservices.networking.istio.io").endMetadata()
-                .withNewSpec()
+            .withMetadata(new ObjectMetaBuilder()
+                .withName("gateways.networking.istio.io")
+                .build())
+            .withSpec(new CustomResourceDefinitionSpecBuilder()
                 .withGroup("networking.istio.io")
-                .withVersion("v1alpha3")
-                .withNewNames()
-                .withKind("VirtualService")
-                .withPlural("virtualservices")
-                .endNames()
                 .withScope("Namespaced")
-                .endSpec()
-                .build();
+                .withVersion("v1alpha3")
+                .withNames(new CustomResourceDefinitionNamesBuilder()
+                    .withKind("Gateway")
+                    .withPlural("gateways")
+                    .build())
+                .build())
+            .build();
     }
 
-    private CustomResourceDefinition getGatewayIstioCRD() {
+    private static CustomResourceDefinition virtualServiceCRD() {
         return new CustomResourceDefinitionBuilder()
-                .withNewMetadata().withName("gateways.networking.istio.io").endMetadata()
-                .withNewSpec()
+            .withMetadata(new ObjectMetaBuilder()
+                .withName("virtualservices.networking.istio.io")
+                .build())
+            .withSpec(new CustomResourceDefinitionSpecBuilder()
                 .withGroup("networking.istio.io")
-                .withVersion("v1alpha3")
-                .withNewNames()
-                .withKind("Gateway")
-                .withPlural("gateways")
-                .endNames()
                 .withScope("Namespaced")
-                .endSpec()
-                .build();
+                .withVersion("v1alpha3")
+                .withNames(new CustomResourceDefinitionNamesBuilder()
+                    .withKind("VirtualService")
+                    .withPlural("virtualservices")
+                    .build())
+                .build())
+            .build();
     }
-
 }

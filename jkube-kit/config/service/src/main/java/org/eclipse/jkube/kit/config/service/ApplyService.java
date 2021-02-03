@@ -217,7 +217,8 @@ public class ApplyService {
             CustomResourceDefinitionList crdList = kubernetesClient.apiextensions().v1beta1().customResourceDefinitions().list();
             CustomResourceDefinitionContext crdContext = getCrdContext(crdList, dto);
             if (crdContext == null) {
-                log.warn("Unable to find CustomResourceDefinition for CustomResource: %s#%s", dto.getApiVersion(), dto.getKind());
+                onApplyError(String.format("Unable to find CustomResourceDefinition for CustomResource: %s#%s",
+                    dto.getApiVersion(), dto.getKind()), null);
             }
             applyCustomResource(crdContext, dto, sourceName);
         } catch (IOException exception) {

@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import io.fabric8.kubernetes.api.model.Config;
@@ -513,18 +514,8 @@ public class KubernetesHelper {
     }
 
     public static Set<HasMetadata> loadResources(File manifest) throws IOException {
-        Object dto = ResourceUtil.loadKubernetesResourceList(manifest);
-        if (dto == null) {
-            throw new IllegalStateException("Cannot load kubernetes manifest " + manifest);
-        }
-
-        if (dto instanceof Template) {
-            Template template = (Template) dto;
-            dto = OpenshiftHelper.processTemplatesLocally(template, false);
-        }
-
-        Set<HasMetadata> entities = new TreeSet<>(new HasMetadataComparator());
-        entities.addAll(KubernetesHelper.toItemList(dto));
+        final Set<HasMetadata> entities = new TreeSet<>(new HasMetadataComparator());
+        entities.addAll(ResourceUtil.deserializeKubernetesListOrTemplate(manifest));
         return entities;
     }
 
@@ -972,49 +963,38 @@ public class KubernetesHelper {
     }
 
     public static CustomResourceDefinitionContext getCrdContext(CustomResourceDefinitionList customResourceDefinitionList, GenericCustomResource customResource) {
-        CustomResourceDefinition matchedCrd = getCrdForCustomResource(customResourceDefinitionList, customResource);
-
-        return matchedCrd != null ? CustomResourceDefinitionContext.fromCrd(matchedCrd) : null;
+        return findCrdForCustomResource(customResourceDefinitionList, customResource)
+            .map(CustomResourceDefinitionContext::fromCrd)
+            .orElse(null);
     }
 
-    private static CustomResourceDefinition getCrdForCustomResource(CustomResourceDefinitionList crdList, GenericCustomResource cr) {
+    private static Optional<CustomResourceDefinition> findCrdForCustomResource(CustomResourceDefinitionList crdList, GenericCustomResource gcr) {
         return crdList.getItems().stream()
-                .filter(crd -> isCrdForCustomResource(cr, crd))
-                .findFirst()
-                .orElse(null);
+            .filter(hasGroup(gcr))
+            .filter(isVersionPresentInSpecVersion(gcr).or(isVersionPresentInVersionsList(gcr)))
+            .filter(hasKind(gcr))
+            .findFirst();
     }
 
-    private static boolean isCrdForCustomResource(GenericCustomResource customResource, CustomResourceDefinition crd) {
-        return crdHasGroup(crd, trimGroup(customResource.getApiVersion())) &&
-                crdHasVersion(crd, trimVersion(customResource.getApiVersion())) &&
-                crdHasKind(crd, customResource.getKind());
+    private static Predicate<CustomResourceDefinition> hasGroup(GenericCustomResource gcr) {
+        return crd -> crd.getSpec().getGroup().equals(trimGroup(gcr.getApiVersion()));
     }
 
-    private static boolean crdHasKind(CustomResourceDefinition crd, String kind) {
-        return crd.getSpec().getNames().getKind().equals(kind);
+    private static Predicate<CustomResourceDefinition> isVersionPresentInSpecVersion(GenericCustomResource gcr) {
+        final String gcrVersion = trimVersion(gcr.getApiVersion());
+        return crd -> crd.getSpec().getVersion() != null && crd.getSpec().getVersion().equals(gcrVersion);
     }
 
-    private static boolean crdHasGroup(CustomResourceDefinition crd, String group) {
-        return crd.getSpec().getGroup().equals(group);
+    private static Predicate<CustomResourceDefinition> isVersionPresentInVersionsList(GenericCustomResource gcr) {
+        final String gcrVersion = trimVersion(gcr.getApiVersion());
+        return crd -> crd.getSpec().getVersions() != null && crd.getSpec().getVersions()
+            .stream()
+            .map(CustomResourceDefinitionVersion::getName)
+            .anyMatch(n -> n.equals(gcrVersion));
     }
 
-    private static boolean crdHasVersion(CustomResourceDefinition crd, String version) {
-        if (isVersionPresentInSpecVersion(crd, version)) {
-            return true;
-        }
-
-        return isVersionPresentInVersionsList(crd, version);
-    }
-
-    private static boolean isVersionPresentInSpecVersion(CustomResourceDefinition crd, String version) {
-        return crd.getSpec().getVersion() != null && crd.getSpec().getVersion().equals(version);
-    }
-
-    private static boolean isVersionPresentInVersionsList(CustomResourceDefinition crd, String version) {
-        return crd.getSpec().getVersions()
-                .stream()
-                .map(CustomResourceDefinitionVersion::getName)
-                .anyMatch(n -> n.equals(version));
+    private static Predicate<CustomResourceDefinition> hasKind(GenericCustomResource gcr) {
+        return crd -> crd.getSpec().getNames().getKind().equals(gcr.getKind());
     }
 }
 

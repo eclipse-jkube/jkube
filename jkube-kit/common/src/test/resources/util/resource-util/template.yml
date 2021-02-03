@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: template-example
+objects:
+  - apiVersion: v1
+    kind: Pod
+    metadata:
+      name: pod-from-template
+    spec:
+      containers:
+        - env:
+            - name: ENV_VAR_FROM_PARAMETER
+              value: ${ENV_VAR_KEY}
+          image: busybox
+          name: master
+parameters:
+  - name: ENV_VAR_KEY
+    value: "replaced_value"

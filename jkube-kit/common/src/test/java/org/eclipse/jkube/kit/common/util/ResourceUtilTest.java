@@ -15,8 +15,15 @@ package org.eclipse.jkube.kit.common.util;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
+import io.fabric8.openshift.api.model.Template;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Test;
 
 import java.io.File;
@@ -24,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -46,26 +54,12 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void testLoadKubernetesResourceListWithFileContainingRegularAndCustomResources() throws IOException {
-        // Given
-        File kubernetesManifestFile = new File(getClass().getResource("/test-kubernetes.yml").getFile());
-
-        // When
-        List<KubernetesResource> kubernetesResourceList = ResourceUtil.loadKubernetesResourceList(kubernetesManifestFile);
-
-        // Then
-        assertNotNull(kubernetesResourceList);
-        assertEquals(10, kubernetesResourceList.size());
-        assertEquals(5, kubernetesResourceList.stream().filter(h -> h instanceof GenericCustomResource).count());
-    }
-
-    @Test
-    public void testLoadKubernetesResourceListWithNonExistentFile() throws IOException {
+    public void testDeserializeKubernetesListOrTemplateWithNonExistentFile() throws IOException {
         // Given
         File kubernetesManifestFile = new File("i-dont-exist.yml");
 
         // When
-        List<KubernetesResource> kubernetesResourceList = ResourceUtil.loadKubernetesResourceList(kubernetesManifestFile);
+        List<HasMetadata> kubernetesResourceList = ResourceUtil.deserializeKubernetesListOrTemplate(kubernetesManifestFile);
 
         // Then
         assertNotNull(kubernetesResourceList);
@@ -73,15 +67,67 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void testLoadKubernetesResourceListWithEmptyFile() throws IOException {
+    public void testDeserializeKubernetesListOrTemplateWithEmptyFile() throws IOException {
         // Given
         File kubernetesManifestFile = Files.createTempFile("kubernetes-", ".yaml").toFile();
 
         // When
-        List<KubernetesResource> kubernetesResourceList = ResourceUtil.loadKubernetesResourceList(kubernetesManifestFile);
+        List<HasMetadata> kubernetesResourceList = ResourceUtil.deserializeKubernetesListOrTemplate(kubernetesManifestFile);
 
         // Then
         assertNotNull(kubernetesResourceList);
         assertEquals(0, kubernetesResourceList.size());
+    }
+
+    @Test
+    public void testDeserializeKubernetesListOrTemplateWithMixedResourcesFile() throws IOException {
+        // Given
+        final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
+            "/util/resource-util/list-with-standard-template-and-cr-resources.yml").getFile());
+        // When
+        final List<HasMetadata> result = ResourceUtil.deserializeKubernetesListOrTemplate(
+            kubernetesListFile);
+        // Then
+        assertThat(result)
+            .hasSize(7)
+            .allMatch(HasMetadata.class::isInstance)
+            .hasAtLeastOneElementOfType(ServiceAccount.class)
+            .hasAtLeastOneElementOfType(Template.class)
+            .hasAtLeastOneElementOfType(Service.class)
+            .hasAtLeastOneElementOfType(ConfigMap.class)
+            .hasAtLeastOneElementOfType(CustomResourceDefinition.class)
+            .extracting("metadata.name")
+            .containsExactly(
+                "my-new-cron-object-cr",
+                "ribbon",
+                "external-service",
+                "external-config-map",
+                "template-example",
+                "dummies.demo.fabric8.io",
+                "custom-resource"
+            );
+    }
+
+    @Test
+    public void testDeserializeKubernetesListOrTemplateWithTemplateFile() throws IOException {
+        // Given
+        final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
+            "/util/resource-util/template.yml").getFile());
+        // When
+        final List<HasMetadata> result = ResourceUtil.deserializeKubernetesListOrTemplate(
+            kubernetesListFile);
+        // Then
+        assertThat(result)
+            .hasSize(1).first()
+            .isInstanceOf(Pod.class)
+            .asInstanceOf(InstanceOfAssertFactories.type(Pod.class))
+            .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
+            .extracting("spec.containers").asList().first()
+            .extracting("env").asList()
+            .containsExactly(new EnvVarBuilder()
+                .withName("ENV_VAR_FROM_PARAMETER")
+                .withValue("replaced_value")
+                .build()
+            );
     }
 }
