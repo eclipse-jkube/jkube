@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.2.0-SNAPSHOT
+* Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported
 * Fix #558: Update CircleCI sonar jobs to run using JDK 11 environment.
 * Fix #546: Use `java.util.function.Function` instead of Guava's `com.google.common.base.Function`
 * Fix #545: Replace Boolean.valueOf with Boolean.parseBoolean for string to boolean conversion

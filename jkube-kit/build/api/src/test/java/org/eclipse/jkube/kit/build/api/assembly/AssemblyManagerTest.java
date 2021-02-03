@@ -340,7 +340,7 @@ public class AssemblyManagerTest {
         File baseProjectDir = temporaryFolder.newFolder("test-workspace");
         File dockerFile = new File(baseProjectDir, "Dockerfile");
         assertTrue(dockerFile.createNewFile());
-        writeASimpleDockerfile(dockerFile);
+        writeLineTofile(dockerFile, "FROM openjdk:jre");
         File targetDirectory = new File(baseProjectDir, "target");
         File outputDirectory = new File(targetDirectory, "classes");
         assertTrue(outputDirectory.mkdirs());
@@ -348,26 +348,8 @@ public class AssemblyManagerTest {
         assertTrue(finalArtifactFile.createNewFile());
         File dockerDirectory = new File(targetDirectory, "docker");
 
-        final JKubeConfiguration configuration = JKubeConfiguration.builder()
-                .project(JavaProject.builder()
-                        .groupId("org.eclipse.jkube")
-                        .artifactId("test")
-                        .packaging("jar")
-                        .version("0.1.0")
-                        .buildDirectory(targetDirectory)
-                        .baseDirectory(baseProjectDir)
-                        .outputDirectory(outputDirectory)
-                        .properties(new Properties())
-                        .artifact(finalArtifactFile)
-                        .build())
-                .outputDirectory("target/docker")
-                .sourceDirectory(baseProjectDir.getPath() + "/src/main/docker")
-                .build();
-        final BuildConfiguration jKubeBuildConfiguration = BuildConfiguration.builder()
-                .dockerFile(dockerFile.getPath())
-                .dockerFileFile(dockerFile)
-                .build();
-
+        final JKubeConfiguration configuration = getBuildJKubeConfiguration(baseProjectDir, targetDirectory, outputDirectory, finalArtifactFile);
+        final BuildConfiguration jKubeBuildConfiguration = getBuildConfiguration(dockerFile, BuildConfiguration.builder());
 
         // When
         File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
@@ -389,9 +371,9 @@ public class AssemblyManagerTest {
         assertTrue(jarCopiedInBuildDirs.exists());
     }
 
-    private void writeASimpleDockerfile(File dockerFile) throws FileNotFoundException, UnsupportedEncodingException {
+    private void writeLineTofile(File dockerFile, String line) throws FileNotFoundException, UnsupportedEncodingException {
         PrintWriter writer = new PrintWriter(dockerFile, "UTF-8");
-        writer.println("FROM openjdk:jre");
+        writer.println(line);
         writer.close();
     }
 
@@ -400,19 +382,19 @@ public class AssemblyManagerTest {
         // Given
         File baseProjectDir = temporaryFolder.newFolder("test-workspace");
         File dockerFile = new File(baseProjectDir, "Dockerfile");
-        assertTrue(dockerFile.createNewFile());
-        writeASimpleDockerfile(dockerFile);
+        boolean dockerFileCreated = dockerFile.createNewFile();
+        writeLineTofile(dockerFile, "FROM openjdk:jre");
 
         File assemblyFolder = new File(baseProjectDir, "additional");
-        assertTrue(assemblyFolder.mkdirs());
+        boolean assemblyDirCreated = assemblyFolder.mkdirs();
         File extraFile = new File(assemblyFolder, "extraFile.txt");
         assertTrue(extraFile.createNewFile());
 
         File targetDirectory = new File(baseProjectDir, "target");
         File outputDirectory = new File(targetDirectory, "classes");
-        assertTrue(outputDirectory.mkdirs());
+        boolean outputDirectoryCreated = outputDirectory.mkdirs();
         File finalArtifactFile = new File(targetDirectory, "test-0.1.0.jar");
-        assertTrue(finalArtifactFile.createNewFile());
+        boolean finalArtifactFileCreated = finalArtifactFile.createNewFile();
         File dockerDirectory = new File(targetDirectory, "docker");
         File buildOutputDir = new File(dockerDirectory, "test-image");
         File buildDir = new File(buildOutputDir, "build");
@@ -421,7 +403,158 @@ public class AssemblyManagerTest {
         File mavenDir = new File(buildDir, "maven");
         File jarCopiedInBuildDirs = new File(mavenDir, "target/test-0.1.0.jar");
 
-        final JKubeConfiguration configuration = JKubeConfiguration.builder()
+        final JKubeConfiguration configuration = getBuildJKubeConfiguration(baseProjectDir, targetDirectory, outputDirectory, finalArtifactFile);
+        AssemblyConfiguration assemblyConfig = AssemblyConfiguration.builder()
+                .inline(Assembly.builder()
+                        .file(AssemblyFile.builder()
+                              .source(extraFile)
+                              .outputDirectory(mavenDir)
+                              .build())
+                        .build())
+                .build();
+
+        final BuildConfiguration jKubeBuildConfiguration = getBuildConfiguration(dockerFile, BuildConfiguration.builder().assembly(assemblyConfig));
+
+        // When
+        File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+
+        // Then
+        assertTrue(dockerFileCreated);
+        assertTrue(assemblyDirCreated);
+        assertTrue(outputDirectoryCreated);
+        assertTrue(finalArtifactFileCreated);
+        assertTargetDockerOutputDir(dockerArchiveFile, dockerDirectory, buildOutputDir, buildDir, workDir, tmpDir, mavenDir);
+        assertTrue(new File(mavenDir, extraFile.getName()).exists());
+        assertTrue(jarCopiedInBuildDirs.exists());
+    }
+
+    @Test
+    public void testCreateDockerTarArchiveWithDockerfileWithJKubeDockerExclude() throws IOException {
+        // Given
+        File baseProjectDir = temporaryFolder.newFolder("test-workspace");
+        File dockerFile = new File(baseProjectDir, "Dockerfile");
+        boolean dockerFileCreated = dockerFile.createNewFile();
+        writeLineTofile(dockerFile, "FROM openjdk:jre");
+        File jkubeDockerExclude = new File(baseProjectDir, ".jkube-dockerexclude");
+        boolean jkubeDockerExcludeFileCreated = jkubeDockerExclude.createNewFile();
+        writeLineTofile(jkubeDockerExclude, "i-should-be-excluded");
+        File ignoredFile = new File(baseProjectDir, "i-should-be-excluded");
+        boolean ignoredFileCreated = ignoredFile.createNewFile();
+
+        File targetDirectory = new File(baseProjectDir, "target");
+        File outputDirectory = new File(targetDirectory, "classes");
+        boolean outputDirectoryCreated = outputDirectory.mkdirs();
+        File finalArtifactFile = new File(targetDirectory, "test-0.1.0.jar");
+        boolean finalArtifactFileCreated = finalArtifactFile.createNewFile();
+        File dockerDirectory = new File(targetDirectory, "docker");
+        File buildOutputDir = new File(dockerDirectory, "test-image");
+        File buildDir = new File(buildOutputDir, "build");
+        File workDir = new File(buildOutputDir, "work");
+        File tmpDir = new File(buildOutputDir, "tmp");
+        File mavenDir = new File(buildDir, "maven");
+        File jarCopiedInBuildDirs = new File(mavenDir, "target/test-0.1.0.jar");
+        File excludedFileCopiedToBuildDirs = new File(mavenDir, "i-should-be-excluded");
+        final JKubeConfiguration configuration = getBuildJKubeConfiguration(baseProjectDir, targetDirectory, outputDirectory, finalArtifactFile);
+        final BuildConfiguration jKubeBuildConfiguration = getBuildConfiguration(dockerFile, BuildConfiguration.builder());
+
+        // When
+        File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+
+        // Then
+        assertProjectSetup(dockerFileCreated, jkubeDockerExcludeFileCreated, ignoredFileCreated, outputDirectoryCreated, finalArtifactFileCreated);
+        assertTargetDockerOutputDir(dockerArchiveFile, dockerDirectory, buildOutputDir, buildDir, workDir, tmpDir, mavenDir);
+        assertTrue(jarCopiedInBuildDirs.exists());
+        assertFalse(excludedFileCopiedToBuildDirs.exists());
+    }
+
+    @Test
+    public void testCreateDockerTarArchiveWithDockerfileWithJKubeDockerIgnore() throws IOException {
+        // Given
+        File baseProjectDir = temporaryFolder.newFolder("test-workspace");
+        File dockerFile = new File(baseProjectDir, "Dockerfile");
+        boolean dockerFileCreated = dockerFile.createNewFile();
+        writeLineTofile(dockerFile, "FROM openjdk:jre");
+        File jkubeDockerExclude = new File(baseProjectDir, ".jkube-dockerignore");
+        boolean jkubeDockerExcludeFileCreated = jkubeDockerExclude.createNewFile();
+        writeLineTofile(jkubeDockerExclude, "i-should-be-ignored");
+        File ignoredFile = new File(baseProjectDir, "i-should-be-ignored");
+        boolean ignoredFileCreated = ignoredFile.createNewFile();
+
+        File targetDirectory = new File(baseProjectDir, "target");
+        File outputDirectory = new File(targetDirectory, "classes");
+        boolean outputDirectoryCreated = outputDirectory.mkdirs();
+        File finalArtifactFile = new File(targetDirectory, "test-0.1.0.jar");
+        boolean finalArtifactFileCreated = finalArtifactFile.createNewFile();
+        File dockerDirectory = new File(targetDirectory, "docker");
+        File buildOutputDir = new File(dockerDirectory, "test-image");
+        File buildDir = new File(buildOutputDir, "build");
+        File workDir = new File(buildOutputDir, "work");
+        File tmpDir = new File(buildOutputDir, "tmp");
+        File mavenDir = new File(buildDir, "maven");
+        File jarCopiedInBuildDirs = new File(mavenDir, "target/test-0.1.0.jar");
+        File ignoredFileCopiedToBuildDirs = new File(mavenDir, "i-should-be-ignored");
+        final JKubeConfiguration configuration = getBuildJKubeConfiguration(baseProjectDir, targetDirectory, outputDirectory, finalArtifactFile);
+        final BuildConfiguration jKubeBuildConfiguration = getBuildConfiguration(dockerFile, BuildConfiguration.builder());
+
+        // When
+        File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+
+        // Then
+        assertProjectSetup(dockerFileCreated, jkubeDockerExcludeFileCreated, ignoredFileCreated, outputDirectoryCreated, finalArtifactFileCreated);
+        assertTargetDockerOutputDir(dockerArchiveFile, dockerDirectory, buildOutputDir, buildDir, workDir, tmpDir, mavenDir);
+        assertTrue(jarCopiedInBuildDirs.exists());
+        assertFalse(ignoredFileCopiedToBuildDirs.exists());
+    }
+
+    @Test
+    public void testCreateDockerTarArchiveWithDockerfileWithJKubeDockerInclude() throws IOException {
+        // Given
+        File baseProjectDir = temporaryFolder.newFolder("test-workspace");
+        File dockerFile = new File(baseProjectDir, "Dockerfile");
+        boolean dockerFileCreated = dockerFile.createNewFile();
+        writeLineTofile(dockerFile, "FROM openjdk:jre");
+        File jkubeDockerExclude = new File(baseProjectDir, ".jkube-dockerinclude");
+        boolean jkubeDockerExcludeFileCreated = jkubeDockerExclude.createNewFile();
+        writeLineTofile(jkubeDockerExclude, "i-should-be-included");
+        File includedFile = new File(baseProjectDir, "i-should-be-included");
+        boolean includedFileCreated = includedFile.createNewFile();
+
+        File targetDirectory = new File(baseProjectDir, "target");
+        File outputDirectory = new File(targetDirectory, "classes");
+        boolean outputDirectoryCreated = outputDirectory.mkdirs();
+        File finalArtifactFile = new File(targetDirectory, "test-0.1.0.jar");
+        boolean finalArtifactFileCreated = finalArtifactFile.createNewFile();
+        File dockerDirectory = new File(targetDirectory, "docker");
+        File buildOutputDir = new File(dockerDirectory, "test-image");
+        File buildDir = new File(buildOutputDir, "build");
+        File workDir = new File(buildOutputDir, "work");
+        File tmpDir = new File(buildOutputDir, "tmp");
+        File mavenDir = new File(buildDir, "maven");
+        File jarCopiedInBuildDirs = new File(mavenDir, "target/test-0.1.0.jar");
+        File includedFileCopiedToBuildDirs = new File(mavenDir, "i-should-be-included");
+
+        final JKubeConfiguration configuration = getBuildJKubeConfiguration(baseProjectDir, targetDirectory, outputDirectory, finalArtifactFile);
+        final BuildConfiguration jKubeBuildConfiguration = getBuildConfiguration(dockerFile, BuildConfiguration.builder());
+
+        // When
+        File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+
+        // Then
+        assertProjectSetup(dockerFileCreated, jkubeDockerExcludeFileCreated, includedFileCreated, outputDirectoryCreated, finalArtifactFileCreated);
+        assertTargetDockerOutputDir(dockerArchiveFile, dockerDirectory, buildOutputDir, buildDir, workDir, tmpDir, mavenDir);
+        assertFalse(jarCopiedInBuildDirs.exists());
+        assertTrue(includedFileCopiedToBuildDirs.exists());
+    }
+
+    private BuildConfiguration getBuildConfiguration(File dockerFile, BuildConfiguration.BuildConfigurationBuilder builder) {
+        return builder
+                .dockerFile(dockerFile.getPath())
+                .dockerFileFile(dockerFile)
+                .build();
+    }
+
+    private JKubeConfiguration getBuildJKubeConfiguration(File baseProjectDir, File targetDirectory, File outputDirectory, File finalArtifactFile) {
+        return JKubeConfiguration.builder()
                 .project(JavaProject.builder()
                         .groupId("org.eclipse.jkube")
                         .artifactId("test")
@@ -436,26 +569,9 @@ public class AssemblyManagerTest {
                 .outputDirectory("target/docker")
                 .sourceDirectory(baseProjectDir.getPath() + "/src/main/docker")
                 .build();
+    }
 
-        AssemblyConfiguration assemblyConfig = AssemblyConfiguration.builder()
-                .inline(Assembly.builder()
-                        .file(AssemblyFile.builder()
-                              .source(extraFile)
-                              .outputDirectory(mavenDir)
-                              .build())
-                        .build())
-                .build();
-
-        final BuildConfiguration jKubeBuildConfiguration = BuildConfiguration.builder()
-                .assembly(assemblyConfig)
-                .dockerFile(dockerFile.getPath())
-                .dockerFileFile(dockerFile)
-                .build();
-
-        // When
-        File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
-
-        // Then
+    private void assertTargetDockerOutputDir(File dockerArchiveFile, File dockerDirectory, File buildOutputDir, File buildDir, File workDir, File tmpDir, File mavenDir) {
         assertNotNull(dockerArchiveFile);
         assertTrue(dockerArchiveFile.exists());
         assertTrue(dockerDirectory.isDirectory() && dockerDirectory.exists());
@@ -465,8 +581,14 @@ public class AssemblyManagerTest {
         assertTrue(tmpDir.isDirectory() && tmpDir.exists());
         assertTrue(new File(buildDir, "Dockerfile").exists());
         assertTrue(mavenDir.isDirectory() && mavenDir.exists());
-        assertTrue(new File(mavenDir, extraFile.getName()).exists());
-        assertTrue(jarCopiedInBuildDirs.exists());
+    }
+
+    private void assertProjectSetup(boolean dockerFileCreated, boolean jkubeDockerExcludeFileCreated, boolean ignoreFileCreated, boolean outputDirectoryCreated, boolean finalArtifactFileCreated) {
+        assertTrue(dockerFileCreated);
+        assertTrue(jkubeDockerExcludeFileCreated);
+        assertTrue(outputDirectoryCreated);
+        assertTrue(finalArtifactFileCreated);
+        assertTrue(ignoreFileCreated);
     }
 }
 

@@ -66,6 +66,9 @@ public class AssemblyManager {
     public static final String SCRATCH_IMAGE = "scratch";
 
     // Assembly name used also as build directory within outputBuildDir
+    public static final String DOCKER_IGNORE = ".jkube-dockerignore";
+    public static final String DOCKER_EXCLUDE = ".jkube-dockerexclude";
+    public static final String DOCKER_INCLUDE = ".jkube-dockerinclude";
     private static final String DOCKERFILE_NAME = "Dockerfile";
 
     private AssemblyManager() { }
@@ -123,7 +126,7 @@ public class AssemblyManager {
      */
     @Nonnull
     public static AssemblyConfiguration getAssemblyConfiguration(
-        @Nonnull BuildConfiguration buildConfiguration, @Nonnull JKubeConfiguration configuration) {
+        @Nonnull BuildConfiguration buildConfiguration, @Nonnull JKubeConfiguration configuration) throws IOException {
 
         if (buildConfiguration.isDockerFileMode()) {
             return getAssemblyConfigurationForDockerfileMode(buildConfiguration, configuration);
@@ -444,19 +447,21 @@ public class AssemblyManager {
 
     @Nonnull
     private static AssemblyConfiguration getAssemblyConfigurationForDockerfileMode(
-        BuildConfiguration buildConfiguration, JKubeConfiguration params) {
+        BuildConfiguration buildConfiguration, JKubeConfiguration params) throws IOException {
 
         AssemblyConfiguration assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
         final AssemblyConfiguration.AssemblyConfigurationBuilder builder = assemblyConfig.toBuilder();
         final Assembly.AssemblyBuilder inlineBuilder = assemblyConfig.getInline() == null ? Assembly.builder() : assemblyConfig.getInline().toBuilder();
 
         File contextDir = buildConfiguration.getAbsoluteContextDirPath(params.getSourceDirectory(), params.getBasedir().getAbsolutePath());
+        AssemblyFileSet.AssemblyFileSetBuilder assemblyFileSetBuilder = AssemblyFileSet.builder()
+                .directory(contextDir)
+                .outputDirectory(new File("."))
+                .directoryMode("0775");
+        assemblyFileSetBuilder.excludes(createDockerExcludesList(contextDir, params.getOutputDirectory()));
+        assemblyFileSetBuilder.includes(createDockerIncludesList(contextDir));
         builder.inline(inlineBuilder
-                       .fileSet(AssemblyFileSet.builder()
-                           .directory(contextDir)
-                           .outputDirectory(new File("."))
-                           .directoryMode("0775")
-                           .build()).build());
+                       .fileSet(assemblyFileSetBuilder.build()).build());
         return builder.build();
     }
 
@@ -480,6 +485,29 @@ public class AssemblyManager {
                 .forEach(a::setFileMode);
             return a;
         };
+    }
+
+    private static List<String> createDockerExcludesList(File directory, String outputDirectory) throws IOException {
+        List<String> excludes = new ArrayList<>();
+        // Output directory will be always excluded
+        excludes.add(outputDirectory);
+        for (String file : new String[] { DOCKER_EXCLUDE, DOCKER_IGNORE } ) {
+            File dockerIgnore = new File(directory, file);
+            if (dockerIgnore.exists()) {
+                excludes.addAll(Files.readAllLines(dockerIgnore.toPath()));
+                excludes.add(DOCKER_IGNORE);
+            }
+        }
+        return excludes;
+    }
+
+    private static List<String> createDockerIncludesList(File directory) throws IOException {
+        File dockerInclude = new File(directory, DOCKER_INCLUDE);
+        List<String> includes = new ArrayList<>();
+        if (dockerInclude.exists()) {
+            includes.addAll(Files.readAllLines(dockerInclude.toPath()));
+        }
+        return includes;
     }
 
 }
