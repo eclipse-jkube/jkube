@@ -22,6 +22,7 @@ import org.apache.maven.plugin.BuildPluginManager;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -97,7 +98,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
         KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
 
         try {
-            Set<HasMetadata> resources = KubernetesResourceUtil.loadResources(getManifest(kubernetesClient));
+            Set<HasMetadata> resources = KubernetesHelper.loadResources(getManifest(kubernetesClient));
             WatcherContext context = getWatcherContext();
 
             WatcherManager.watch(getResolvedImages(), resources, context);

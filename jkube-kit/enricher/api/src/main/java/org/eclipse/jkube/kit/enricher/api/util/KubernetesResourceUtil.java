@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -41,8 +40,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MapUtil;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -62,9 +59,7 @@ import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodSpec;
@@ -76,7 +71,6 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.Build;
-import io.fabric8.openshift.api.model.Template;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -753,21 +747,6 @@ public class KubernetesResourceUtil {
     public static boolean isAppCatalogResource(HasMetadata templateOrConfigMap) {
         String catalogAnnotation = KubernetesHelper.getOrCreateAnnotations(templateOrConfigMap).get(Constants.RESOURCE_APP_CATALOG_ANNOTATION);
         return "true".equals(catalogAnnotation);
-    }
-
-    public static Set<HasMetadata> loadResources(File manifest) throws IOException {
-        final Set<HasMetadata> entities = new TreeSet<>(new HasMetadataComparator());
-        for (KubernetesResource dto : ResourceUtil.loadKubernetesResourceList(manifest)) {
-            if (dto == null) {
-                throw new IllegalStateException("Cannot load kubernetes manifest " + manifest);
-            }
-            if (dto instanceof Template) {
-                Template template = (Template) dto;
-                dto = OpenshiftHelper.processTemplatesLocally(template, false);
-            }
-            entities.addAll(KubernetesHelper.toItemList(dto));
-        }
-        return entities;
     }
 
     /**

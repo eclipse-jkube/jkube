@@ -16,17 +16,24 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.ResourceFileType;
@@ -38,6 +45,8 @@ import org.apache.commons.lang3.StringUtils;
  * @author roland
  */
 public class ResourceUtil {
+
+    private ResourceUtil() {}
 
     public static boolean jsonEquals(JsonObject first, JsonObject second) {
         final ObjectMapper mapper = new ObjectMapper();
@@ -51,44 +60,47 @@ public class ResourceUtil {
         }
     }
 
-    public static <T> List<T> loadList(File file, Class<T> clazz) throws IOException {
-        return getObjectMapper(ResourceFileType.fromFile(file)).readerFor(clazz).<T>readValues(file).readAll();
-    }
+    public static List<HasMetadata> deserializeKubernetesListOrTemplate(File manifest)
+        throws IOException {
 
-    public static List<KubernetesResource> loadKubernetesResourceList(File file) throws IOException {
-        ResourceFileType resourceFileType = ResourceFileType.fromFile(file);
-        List<KubernetesResource> kubernetesResources = new ArrayList<>();
-        if (file.isFile()) {
-            String fileContentAsStr = new String(Files.readAllBytes(file.toPath()));
+        List<HasMetadata> kubernetesResources = new ArrayList<>();
+        if (manifest.isFile()) {
+            String fileContentAsStr = new String(Files.readAllBytes(manifest.toPath()), StandardCharsets.UTF_8);
             if (StringUtils.isNotBlank(fileContentAsStr)) {
-                kubernetesResources.addAll(loadKubernetesResourceListFromString(resourceFileType, fileContentAsStr));
-
+                kubernetesResources.addAll(parseKubernetesListOrTemplate(
+                    ResourceFileType.fromFile(manifest).getObjectMapper(), fileContentAsStr
+                ));
             }
         }
         return kubernetesResources;
     }
 
-    private static List<KubernetesResource> loadKubernetesResourceListFromString(ResourceFileType resourceFileType, String fileContentAsStr) throws JsonProcessingException {
-        Map<String, Object> listAsMap = getObjectMapper(resourceFileType).readValue(fileContentAsStr, Map.class);
-        List<KubernetesResource> kubernetesResources = new ArrayList<>();
-        List<Map<String, Object>> items = (List<Map<String, Object>>)listAsMap.get("items");
-        for (Map<String, Object> item : items) {
-            KubernetesResource resource = getHasMetadataOrGenericResource(resourceFileType, item);
-            kubernetesResources.add(resource);
-        }
-        return kubernetesResources;
-    }
-
-    private static KubernetesResource getHasMetadataOrGenericResource(ResourceFileType resourceFileType, Map<String, Object> item) {
-        try {
-            return convertValue(resourceFileType, item, KubernetesResource.class);
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return convertValue(resourceFileType, item, GenericCustomResource.class);
+    private static List<HasMetadata> parseKubernetesListOrTemplate(ObjectMapper mapper, String manifestString)
+        throws IOException {
+        final Map<String, Object> manifest = mapper
+            .readValue(manifestString, new TypeReference<Map<String, Object>>() {});
+        if (manifest.get("kind").equals(new Template().getKind())) {
+            return Optional.ofNullable(OpenshiftHelper.processTemplatesLocally(
+                mapper.convertValue(manifest, Template.class), false))
+                .map(KubernetesList::getItems)
+                .orElse(Collections.emptyList());
+        } else {
+            return parseKubernetesList(mapper, manifest);
         }
     }
 
-    private static <T> T convertValue(ResourceFileType resourceFileType, Map<String, Object> item, Class<T> clazz) {
-        return getObjectMapper(resourceFileType).convertValue(item, clazz);
+    private static List<HasMetadata> parseKubernetesList(ObjectMapper mapper, Map<String, Object> manifest) {
+        final List<Map<String, Object>> items = (List<Map<String, Object>>)manifest.get("items");
+        return items.stream().map(item -> {
+            final GenericCustomResource fallback = mapper.convertValue(item, GenericCustomResource.class);
+            try {
+                // Convert Using KubernetesDeserializer or fail and return fallback generic
+                return mapper.convertValue(fallback, HasMetadata.class);
+            } catch(Exception ex) {
+                return fallback;
+            }
+        })
+            .collect(Collectors.toList());
     }
 
     public static <T> T load(File file, Class<T> clazz) throws IOException {

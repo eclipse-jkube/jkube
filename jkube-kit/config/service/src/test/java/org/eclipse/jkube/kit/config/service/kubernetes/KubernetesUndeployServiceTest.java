@@ -13,17 +13,13 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
-
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
-import org.eclipse.jkube.kit.common.GenericCustomResourceBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -51,7 +47,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "AccessStaticViaInstance", "unchecked", "unused"})
+@SuppressWarnings({"ResultOfMethodCallIgnored", "AccessStaticViaInstance", "unused"})
 public class KubernetesUndeployServiceTest {
 
   @Rule
@@ -152,6 +148,7 @@ public class KubernetesUndeployServiceTest {
     }};
     // @formatter:on
   }
+
   @Test
   public void currentNamespaceWithNamespaceEntityShouldReturnFromNamespace() {
     // Given

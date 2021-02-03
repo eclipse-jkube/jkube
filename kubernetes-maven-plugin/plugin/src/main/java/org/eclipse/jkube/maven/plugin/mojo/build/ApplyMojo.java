@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -176,7 +177,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
                 clusterKind = "OpenShift";
             }
             KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
-            Set<HasMetadata> entities = KubernetesResourceUtil.loadResources(manifest);
+            Set<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
             log.info("Using %s at %s in namespace %s with manifest %s ", clusterKind, masterUrl, clusterAccess.getNamespace(), manifest);
 
             configureApplyService(kubernetes, entities);
