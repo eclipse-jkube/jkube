@@ -163,7 +163,6 @@ remote API.
   <assembly>
     <mode>dir</mode>
     <targetDir>/opt/demo</targetDir>
-    <descriptor>assembly.xml</descriptor>
   </assembly>
 </build>
 ----

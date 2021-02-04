@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.3.0-SNAPSHOT
+* Fix #497: Assembly descriptor removed but still in documentation
 * Fix #576: Add support to publishing helm chart
 * Fix #634: Replace occurrences of keySet() with entrySet() when value are needed
 * Fix #659: Update Fabric8 Kubernetes Client to v5.3.0
