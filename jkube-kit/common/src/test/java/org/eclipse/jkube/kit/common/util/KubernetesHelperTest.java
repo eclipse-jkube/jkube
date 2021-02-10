@@ -19,14 +19,12 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.kubernetes.api.model.Service;
@@ -48,6 +46,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -426,18 +425,29 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void testGetNamespaceFromKubernetesList() {
+    public void testGetNamespaceFromKubernetesListReturnsValidNamespace() {
         // Given
-        List<HasMetadata> entities = new ArrayList<>();
-        entities.add(new NamespaceBuilder().withNewMetadata().withName("ns1").endMetadata().build());
-        entities.add(new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata().build());
+        Properties properties = new Properties();
+        properties.put("jkube.namespace", "ns1");
 
         // When
-        String namespace = KubernetesHelper.getNamespaceFromKubernetesList(entities);
+        String namespace = KubernetesHelper.getConfiguredNamespace(properties, "default");
 
         // Then
         assertNotNull(namespace);
         assertEquals("ns1", namespace);
+    }
+
+    @Test
+    public void testGetNamespaceFromKubernetesListReturnsNull() {
+        // Given
+        Properties properties = new Properties();
+
+        // When
+        String namespace = KubernetesHelper.getConfiguredNamespace(properties, "default");
+
+        // Then
+        assertEquals("default", namespace);
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {

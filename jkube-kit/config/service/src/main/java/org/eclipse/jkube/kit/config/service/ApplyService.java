@@ -58,7 +58,6 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
@@ -195,6 +194,11 @@ public class ApplyService {
             applyCustomResourceDefinition((CustomResourceDefinition) dto, sourceName);
         } else if (dto instanceof Job) {
             applyJob((Job) dto, sourceName);
+
+        } else if (dto instanceof Namespace) {
+            applyNamespace((Namespace) dto);
+        } else if (dto instanceof Project) {
+            applyProject((Project) dto);
         } else if (dto instanceof HasMetadata) {
             HasMetadata entity = (HasMetadata) dto;
             try {
@@ -1032,17 +1036,17 @@ public class ApplyService {
      */
     public boolean applyNamespace(Namespace entity) {
         String currentNamespace = getOrCreateMetadata(entity).getName();
-        log.info("Using currentNamespace: " + currentNamespace);
+        log.info("Creating currentNamespace: " + currentNamespace);
         String name = getName(entity);
         Objects.requireNonNull(name, "No name for " + entity );
         Namespace old = kubernetesClient.namespaces().withName(name).get();
         if (!isRunning(old)) {
             try {
                 Object answer = kubernetesClient.namespaces().create(entity);
-                logGeneratedEntity("Created currentNamespace: ", currentNamespace, entity, answer);
+                logGeneratedEntity("Created Namespace: ", currentNamespace, entity, answer);
                 return true;
             } catch (Exception e) {
-                onApplyError("Failed to create currentNamespace: " + name + " due " + e.getMessage(), e);
+                onApplyError("Failed to create Namespace: " + name + " due " + e.getMessage(), e);
             }
         }
         return false;
@@ -1068,7 +1072,7 @@ public class ApplyService {
             return false;
         }
         String currentNamespace = getOrCreateMetadata(entity).getName();
-        log.info("Using project: " + currentNamespace);
+        log.info("Creating project: " + currentNamespace);
         String name = getName(entity);
         Objects.requireNonNull(name, "No name for " + entity);
         OpenShiftClient openshiftClient = getOpenShiftClient();
@@ -1432,23 +1436,6 @@ public class ApplyService {
                 apply(entity, fileName);
             }
         }
-    }
-
-    /**
-     * Picks namespace for ApplyService, by default namespace specified in ClusterAccess is given
-     * preference. If there is namespace specified in provided Kubernetes resources, it would be
-     * given preference over ClusterAccess's namespace
-     *
-     * @param entities a list of Kubernetes resources to process
-     * @param clusterAccess {@link ClusterAccess} Kubernetes Cluster Access
-     * @return namespace for ApplyService
-     */
-    public static String getNamespaceForApplyService(Set<HasMetadata> entities, ClusterAccess clusterAccess) {
-        String namespaceInProvidedKubernetesList = KubernetesHelper.getNamespaceFromKubernetesList(entities);
-        if (namespaceInProvidedKubernetesList == null) {
-            return clusterAccess.getNamespace();
-        }
-        return namespaceInProvidedKubernetesList;
     }
 
     public static List<HasMetadata> getK8sListWithNamespaceFirst(Collection<HasMetadata> k8sList) {

@@ -1,0 +1,23 @@
+[[jkube-namespace]]
+==== jkube-namespace
+
+This enricher adds `Namespace`/`Project` to Kubernetes Resources list or append an already existing `Namespace`/`Project` to all Kubernetes resources' in `.metadata` which are present during the enrichment phase.
+
+The following configuration parameters can be used to influence the behaviour of this enricher:
+
+[[enricher-jkube-namespace]]
+.Default namespace enricher
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *namespace*
+| Namespace as string which we want to create. A new `Namespace` object would be created and added to the list of Kubernetes resources generated during the enrichment phase.
+| `jkube.enricher.jkube-namespace.namespace`
+
+| *type*
+| Whether we want to generate a `Namespace` or an OpenShift specific `Project` resource. One of: _Namespace_, _Project_.
+
+  Defaults to `Namespace`.
+| `jkube.enricher.jkube-namespace.type`
+|===
