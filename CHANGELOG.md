@@ -25,6 +25,7 @@ Usage:
 * Fix #546: Use `java.util.function.Function` instead of Guava's `com.google.common.base.Function`
 * Fix #545: Replace Boolean.valueOf with Boolean.parseBoolean for string to boolean conversion
 * Fix #515: Properties now get resolved in CustomResource fragments
+* Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag
 
 ### 1.1.0 (2021-01-28)
 * Fix #455: Use OpenShiftServer with JUnit rule instead of directly instantiating the OpenShiftMockServer

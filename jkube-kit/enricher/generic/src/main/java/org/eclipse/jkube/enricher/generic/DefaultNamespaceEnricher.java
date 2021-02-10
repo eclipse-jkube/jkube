@@ -16,16 +16,14 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.NamespaceStatus;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
 import io.fabric8.openshift.api.model.ProjectStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -75,27 +73,13 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
      */
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
+        String newNamespaceToCreate = getConfig(Config.NAMESPACE, null);
 
-        final String ns = getNamespace(config, getConfig(Config.NAMESPACE));
-
-        if (ns == null || ns.isEmpty()) {
+        if (StringUtils.isEmpty(newNamespaceToCreate)) {
             return;
         }
 
-        if (!KubernetesResourceUtil.checkForKind(builder, NAMESPACE_KINDS)) {
-            String type = getConfig(Config.TYPE);
-            if ("project".equalsIgnoreCase(type) || NAMESPACE.equalsIgnoreCase(type)) {
-                if (platformMode == PlatformMode.kubernetes) {
-                    log.info("Adding a default Namespace: %s", ns);
-                    Namespace namespace = handlerHub.getNamespaceHandler().getNamespace(ns);
-                    builder.addToNamespaceItems(namespace);
-                } else {
-                    log.info("Adding a default Project %s", ns);
-                    Project project = handlerHub.getProjectHandler().getProject(ns);
-                    builder.addToItems(project);
-                }
-            }
-        }
+        addNewNamespaceToBuilderIfProvided(platformMode, newNamespaceToCreate, builder);
     }
 
     /**
@@ -108,26 +92,20 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
     public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
         builder.accept(new TypedVisitor<ObjectMetaBuilder>() {
             private String getNamespaceName() {
-                final String defaultValue = builder.buildItems().stream()
-                    .filter(item -> NAMESPACE_KINDS_LIST.contains(item.getKind()))
-                    .map(HasMetadata::getMetadata)
-                    .map(ObjectMeta::getName)
-                    .findFirst().orElse(null);
-                return getNamespace(config, getConfig(Config.NAMESPACE, defaultValue));
+                return getNamespace(config, null);
+            }
+
+            private boolean shouldConfigureNamespaceInMetadata() {
+                return StringUtils.isNotEmpty(getNamespaceName());
             }
 
             @Override
             public void visit(ObjectMetaBuilder metaBuilder) {
-                if (!KubernetesResourceUtil.checkForKind(builder, NAMESPACE_KINDS)) {
+                if (!shouldConfigureNamespaceInMetadata()) {
                     return;
                 }
 
-                String name = getNamespaceName();
-                if (name == null || name.isEmpty()) {
-                    return;
-                }
-
-                metaBuilder.withNamespace(name).build();
+                metaBuilder.withNamespace(getNamespaceName()).build();
             }
         });
 
@@ -159,4 +137,34 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
             }
         });
     }
+
+    private void addNewNamespaceToBuilderIfProvided(PlatformMode platformMode, String newNamespaceToCreate, KubernetesListBuilder builder) {
+        if (!KubernetesResourceUtil.checkForKind(builder, NAMESPACE_KINDS)) {
+            String type = getConfig(Config.TYPE);
+            if (StringUtils.isNotEmpty(newNamespaceToCreate)) {
+                addNamespaceToBuilder(platformMode, newNamespaceToCreate, builder, type);
+            }
+        }
+    }
+
+    private void addNamespaceToBuilder(PlatformMode platformMode, String newNamespaceToCreate, KubernetesListBuilder builder, String type) {
+        HasMetadata namespaceOrProject = getNamespaceOrProject(platformMode, type, newNamespaceToCreate);
+        if (namespaceOrProject != null) {
+            builder.addToItems(namespaceOrProject);
+        }
+    }
+
+    private HasMetadata getNamespaceOrProject(PlatformMode platformMode, String type, String ns) {
+        if ("project".equalsIgnoreCase(type) || NAMESPACE.equalsIgnoreCase(type)) {
+            if (platformMode == PlatformMode.kubernetes) {
+                log.info("Adding a default Namespace: %s", ns);
+                return handlerHub.getNamespaceHandler().getNamespace(ns);
+            } else {
+                log.info("Adding a default Project %s", ns);
+                return handlerHub.getProjectHandler().getProject(ns);
+            }
+        }
+        return null;
+    }
+
 }

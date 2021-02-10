@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.config.service.kubernetes;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Properties;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
@@ -35,8 +36,6 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.fabric8.openshift.api.model.Project;
-import io.fabric8.openshift.api.model.ProjectBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
@@ -44,8 +43,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "AccessStaticViaInstance", "unused"})
 public class KubernetesUndeployServiceTest {
@@ -91,6 +88,8 @@ public class KubernetesUndeployServiceTest {
       file.isFile(); result = true;
       kubernetesHelper.loadResources(file);
       result = new HashSet<>(Arrays.asList(namespace, pod, service));
+      kubernetesHelper.getConfiguredNamespace((Properties) any, anyString);
+      result = "default";
     }};
     // @formatter:on
     // When
@@ -105,7 +104,7 @@ public class KubernetesUndeployServiceTest {
       jKubeServiceHub.getClient().resource(service).inNamespace("default")
           .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
       times = 1;
-      jKubeServiceHub.getClient().resource(namespace)
+      jKubeServiceHub.getClient().resource(namespace).inNamespace("default")
               .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
       times = 1;
     }};
@@ -147,44 +146,6 @@ public class KubernetesUndeployServiceTest {
       times = 1;
     }};
     // @formatter:on
-  }
-
-  @Test
-  public void currentNamespaceWithNamespaceEntityShouldReturnFromNamespace() {
-    // Given
-    final Pod other = new PodBuilder().withNewMetadata().withName("MrPoddington").endMetadata().build();
-    final Namespace namespace = new NamespaceBuilder().withNewMetadata().withName("FromNamespace").endMetadata().build();
-    final Project project = new ProjectBuilder().withNewMetadata().withName("FromProject").endMetadata().build();
-    // When
-    final String result = kubernetesUndeployService.currentNamespace(Arrays.asList(other, namespace, project, null));
-    // Then
-    assertThat(result).isEqualTo("FromNamespace");
-  }
-
-  @Test
-  public void currentNamespaceWithNoNamespaceEntityShouldReturnFromProject() {
-    // Given
-    final Pod other = new PodBuilder().withNewMetadata().withName("MrPoddington").endMetadata().build();
-    final Project project = new ProjectBuilder().withNewMetadata().withName("FromProject").endMetadata().build();
-    // When
-    final String result = kubernetesUndeployService.currentNamespace(Arrays.asList(other, project, null));
-    // Then
-    assertThat(result).isEqualTo("FromProject");
-  }
-
-  @Test
-  public void currentNamespaceWithNoValidEntitiesShouldReturnFromConfig() {
-    // Given
-    final Pod other = new PodBuilder().withNewMetadata().withName("MrPoddington").endMetadata().build();
-    // @formatter:off
-    new Expectations() {{
-      jKubeServiceHub.getClusterAccess().getNamespace(); result = "the-default";
-    }};
-    // @formatter
-    // When
-    final String result = kubernetesUndeployService.currentNamespace(Arrays.asList(other, null));
-    // Then
-    assertThat(result).isEqualTo("the-default");
   }
 
 }
