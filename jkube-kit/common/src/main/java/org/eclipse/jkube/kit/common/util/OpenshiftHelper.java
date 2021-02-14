@@ -133,11 +133,7 @@ public class OpenshiftHelper {
             Map<String, String> otherAnnotations = KubernetesHelper.getOrCreateAnnotations(template);
             Set<Map.Entry<String, String>> entries = otherAnnotations.entrySet();
             for (Map.Entry<String, String> entry : entries) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                if (!annotations.containsKey(key)) {
-                    annotations.put(key, value);
-                }
+                annotations.putIfAbsent(entry.getKey(), entry.getValue());
             }
         }
         return firstTemplate;

@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceFluent;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
-import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.resource.ServiceConfig;
 import org.apache.commons.lang3.StringUtils;
 
@@ -90,7 +89,7 @@ public class ServiceHandler {
     private Map<String, String> getLabels(ServiceConfig service) {
         Map<String, String> labels = new HashMap<>();
         if (service.isExpose()) {
-            MapUtil.putIfAbsent(labels, "expose", "true");
+            labels.putIfAbsent("expose","true");
         }
         return labels;
     }

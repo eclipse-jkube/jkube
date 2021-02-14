@@ -41,18 +41,6 @@ public class MapUtilTest {
     }
 
     @Test
-    public void testPutIfAbsent() {
-        Map<String, String> map = createMap("eins", "one");
-        MapUtil.putIfAbsent(map, "eins", "un");
-        assertEquals(1,map.size());
-        assertEquals("one", map.get("eins"));
-        MapUtil.putIfAbsent(map, "zwei", "deux");
-        assertEquals(2, map.size());
-        assertEquals("one", map.get("eins"));
-        assertEquals("deux", map.get("zwei"));
-    }
-
-    @Test
     public void testMergeMaps() {
         Map<String, String> mapA = createMap("eins", "one", "zwei", "two");
         Map<String, String> mapB = createMap("zwei", "deux", "drei", "trois");

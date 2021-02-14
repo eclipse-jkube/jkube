@@ -27,26 +27,13 @@ public class MapUtil {
     private MapUtil() {}
 
     /**
-     * Adds the given key and value pair into the map if the map does not already contain a value for that key
-     *
-     * @param map hashmap provided
-     * @param name name entry
-     * @param value value entry
-     */
-    public static void putIfAbsent(Map<String, String> map, String name, String value) {
-        if (map != null && !map.containsKey(name)) {
-            map.put(name, value);
-        }
-    }
-
-    /**
-     * Add all values of a map to another map, but onlfy if not already existing.
+     * Add all values of a map to another map, but only if not already existing.
      * @param map target map
      * @param toMerge the values to ad
      */
     public static void mergeIfAbsent(Map<String, String> map, Map<String, String> toMerge) {
         for (Map.Entry<String, String> entry : toMerge.entrySet()) {
-            putIfAbsent(map, entry.getKey(), entry.getValue());;
+            map.putIfAbsent(entry.getKey(), entry.getValue());
         }
     }
 
