@@ -109,11 +109,7 @@ public class ContainerTracker {
 
     private void updatePomLabelMap(GavLabel gavLabel, ContainerShutdownDescriptor descriptor) {
         if (gavLabel != null) {
-            List<ContainerShutdownDescriptor> descList = shutdownDescriptorPerPomLabelMap.get(gavLabel);
-            if (descList == null) {
-                descList = new ArrayList<>();
-                shutdownDescriptorPerPomLabelMap.put(gavLabel, descList);
-            }
+            List<ContainerShutdownDescriptor> descList = shutdownDescriptorPerPomLabelMap.computeIfAbsent(gavLabel, k -> new ArrayList<>());
             descList.add(descriptor);
         }
     }

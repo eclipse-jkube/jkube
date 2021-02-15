@@ -125,9 +125,7 @@ public abstract class MetadataVisitor<T> extends TypedVisitor<T> {
         targetMap = ensureMap(targetMap);
         enrichMap = ensureMap(enrichMap);
         for (Map.Entry<String, String> entry : enrichMap.entrySet()) {
-            if (!targetMap.containsKey(entry.getKey())) {
-                targetMap.put(entry.getKey(), entry.getValue());
-            }
+            targetMap.putIfAbsent(entry.getKey(),entry.getValue());
         }
     }
 

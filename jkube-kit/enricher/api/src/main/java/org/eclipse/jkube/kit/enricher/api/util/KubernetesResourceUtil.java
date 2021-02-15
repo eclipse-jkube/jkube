@@ -295,11 +295,12 @@ public class KubernetesResourceUtil {
                 break;
         }
 
-        addIfNotExistent(fragment, "apiVersion", apiVersion);
+        fragment.putIfAbsent("apiVersion", apiVersion);
 
         Map<String, Object> metaMap = getMetadata(fragment);
         // No name means: generated app name should be taken as resource name
-        addIfNotExistent(metaMap, "name", StringUtils.isNotBlank(name) ? name : appName);
+        String value = StringUtils.isNotBlank(name) ? name : appName;
+        metaMap.putIfAbsent("name", value);
 
         return fragment;
     }
@@ -321,7 +322,7 @@ public class KubernetesResourceUtil {
                     "No type given as part of the file name (e.g. 'app-rc.yml') " +
                             "and no 'Kind' defined in resource descriptor " + fileName);
         }
-        addIfNotExistent(fragment, "kind", kind);
+        fragment.putIfAbsent("kind", kind);
     }
 
     public static void removeItemFromKubernetesBuilder(KubernetesListBuilder builder, HasMetadata item) {
@@ -347,12 +348,6 @@ public class KubernetesResourceUtil {
             return (Map<String, Object>) mo;
         } else {
             throw new IllegalArgumentException("Metadata is expected to be a Map, not a " + mo.getClass());
-        }
-    }
-
-    private static void addIfNotExistent(Map<String, Object> fragment, String key, String value) {
-        if (!fragment.containsKey(key)) {
-            fragment.put(key, value);
         }
     }
 
@@ -738,10 +733,10 @@ public class KubernetesResourceUtil {
 
     public static void setSourceUrlAnnotationIfNotSet(HasMetadata item, String sourceUrl) {
         Map<String, String> annotations = KubernetesHelper.getOrCreateAnnotations(item);
-        if (!annotations.containsKey(Constants.RESOURCE_SOURCE_URL_ANNOTATION)) {
-            annotations.put(Constants.RESOURCE_SOURCE_URL_ANNOTATION, sourceUrl);
+        annotations.computeIfAbsent(Constants.RESOURCE_SOURCE_URL_ANNOTATION, s -> {
             item.getMetadata().setAnnotations(annotations);
-        }
+            return sourceUrl;
+        });
     }
 
     public static boolean isAppCatalogResource(HasMetadata templateOrConfigMap) {

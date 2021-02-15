@@ -64,13 +64,13 @@ public class ExposeEnricher extends BaseEnricher {
                 service.setMetadata(metadata);
             }
             Map<String, String> labels = KubernetesHelper.getOrCreateLabels(service);
-            if (!labels.containsKey(EXPOSE_LABEL)) {
-                labels.put(EXPOSE_LABEL, "true");
+            labels.computeIfAbsent(EXPOSE_LABEL,s -> {
                 log.verbose("Adding Service label '%s:true' on service %s" +
-                            " so that it is exposed by the exposecontroller microservice." +
-                            " To disable use the maven argument: '-Dfabric8.profile=internal-microservice'",
-                            EXPOSE_LABEL, KubernetesHelper.getName(service));
-            }
+                                " so that it is exposed by the exposecontroller microservice." +
+                                " To disable use the maven argument: '-Dfabric8.profile=internal-microservice'",
+                        EXPOSE_LABEL, KubernetesHelper.getName(service));
+                return "true";
+            });
         }
     }
 
