@@ -83,7 +83,7 @@ public class QuarkusHealthCheckEnricherTest {
         .extracting(
             "livenessProbe.httpGet.scheme", "livenessProbe.httpGet.path",
             "readinessProbe.httpGet.scheme", "readinessProbe.httpGet.path")
-        .containsExactly(tuple("HTTP", "/health", "HTTP", "/health"));
+        .containsExactly(tuple("HTTP", "/health/live", "HTTP", "/health/ready"));
   }
 
   @Test
@@ -102,7 +102,7 @@ public class QuarkusHealthCheckEnricherTest {
         .extracting(
             "livenessProbe.httpGet.scheme", "livenessProbe.httpGet.path",
             "readinessProbe.httpGet.scheme", "readinessProbe.httpGet.path")
-        .containsExactly(tuple("HTTP", "/my-custom-path", "HTTP", "/my-custom-path"));
+        .containsExactly(tuple("HTTP", "/my-custom-path/live", "HTTP", "/my-custom-path/ready"));
   }
 
   @Test
