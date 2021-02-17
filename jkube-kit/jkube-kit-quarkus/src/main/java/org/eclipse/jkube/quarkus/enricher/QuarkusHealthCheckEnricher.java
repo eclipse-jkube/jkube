@@ -15,6 +15,7 @@ package org.eclipse.jkube.quarkus.enricher;
 
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import java.nio.file.Paths;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
@@ -29,6 +30,9 @@ import static org.eclipse.jkube.kit.common.Configs.asInteger;
  */
 public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
+    private static final String READY_SUBPATH = "ready";
+    private static final String LIVE_SUBPATH = "live";
+
     public QuarkusHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-quarkus");
     }
@@ -42,7 +46,7 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         SUCCESS_THRESHOLD("successThreshold", "1"),
         LIVENESS_INITIAL_DELAY("livenessInitialDelay", null),
         READINESS_INTIAL_DELAY("readinessIntialDelay", null),
-        PATH("path", "/health");
+        HEALTH_PATH("path", "health");
 
         @Getter
         protected String key;
@@ -52,15 +56,17 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     @Override
     protected Probe getReadinessProbe() {
-        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.READINESS_INTIAL_DELAY, "5")));
+        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.READINESS_INTIAL_DELAY, "5")),
+            READY_SUBPATH);
     }
 
     @Override
     protected Probe getLivenessProbe() {
-        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.LIVENESS_INITIAL_DELAY, "10")));
+        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.LIVENESS_INITIAL_DELAY, "10")),
+            LIVE_SUBPATH);
     }
 
-    private Probe discoverQuarkusHealthCheck(int initialDelay) {
+    private Probe discoverQuarkusHealthCheck(int initialDelay, String subPath) {
         if (!getContext().hasDependency("io.quarkus", "quarkus-smallrye-health")) {
             return null;
         }
@@ -68,7 +74,7 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         return new ProbeBuilder()
             .withNewHttpGet()
               .withNewPort(asInteger(getConfig(Config.PORT)))
-              .withPath(getConfig(Config.PATH))
+              .withPath(Paths.get("/", getConfig(Config.HEALTH_PATH), subPath).toString())
               .withScheme(getConfig(Config.SCHEME))
             .endHttpGet()
             .withFailureThreshold(asInteger(getConfig(Config.FAILURE_THRESHOLD)))
