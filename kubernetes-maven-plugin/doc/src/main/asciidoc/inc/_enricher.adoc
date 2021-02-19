@@ -72,6 +72,9 @@ This plugin comes with a set of default enrichers. In addition custom enrichers 
 | <<jkube-name>>
 | Add a default name to every object which misses a name.
 
+| <<jkube-namespace>>
+| Add specified _Namespace_ to Kubernetes resources metadata or create a new Namespace
+
 | <<jkube-pod-annotation>>
 | Copy over annotations from a `Deployment` to a `Pod`
 
@@ -120,6 +123,9 @@ include::enricher/_jkube_service.adoc[]
 
 [[jkube-name]]
 ==== jkube-name
+
+[[jkube-namespace]]
+include::enricher/_jkube_namespace.adoc[]
 
 [[jkube-portname]]
 ==== jkube-portname
