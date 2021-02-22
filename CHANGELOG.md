@@ -22,9 +22,9 @@ Usage:
 ```
 ### 1.1.1-SNAPSHOT
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag
+* Fix #579: Fixed quarkus health paths
 
 ### 1.1.0 (2021-01-28)
-* Fix #579: Fixed quarkus health paths
 * Fix #455: Use OpenShiftServer with JUnit rule instead of directly instantiating the OpenShiftMockServer
 * Fix #467: Upgrade assertj-core to 3.18.0
 * Fix #460: Added a Quickstart for implementing and using a Custom Enricher based on Eclipse JKube Kit Enricher API

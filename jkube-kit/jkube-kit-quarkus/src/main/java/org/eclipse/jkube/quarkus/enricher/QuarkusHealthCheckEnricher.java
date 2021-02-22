@@ -15,7 +15,7 @@ package org.eclipse.jkube.quarkus.enricher;
 
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import java.nio.file.Paths;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
@@ -23,6 +23,7 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
+import static org.eclipse.jkube.kit.common.util.FileUtil.stripPrefix;
 
 
 /**
@@ -70,11 +71,10 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         if (!getContext().hasDependency("io.quarkus", "quarkus-smallrye-health")) {
             return null;
         }
-
         return new ProbeBuilder()
             .withNewHttpGet()
               .withNewPort(asInteger(getConfig(Config.PORT)))
-              .withPath(Paths.get("/", getConfig(Config.HEALTH_PATH), subPath).toString())
+              .withPath(String.format("/%s/%s", stripPrefix(getConfig(Config.HEALTH_PATH), "/"), subPath))
               .withScheme(getConfig(Config.SCHEME))
             .endHttpGet()
             .withFailureThreshold(asInteger(getConfig(Config.FAILURE_THRESHOLD)))
