@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.1.1-SNAPSHOT
+### 1.1.1 (2021-02-23)
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag
 * Fix #579: Fixed quarkus health paths
 
