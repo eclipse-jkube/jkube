@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -414,18 +415,29 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void testGetNamespaceFromKubernetesList() {
+    public void testGetNamespaceFromKubernetesListReturnsValidNamespace() {
         // Given
-        List<HasMetadata> entities = new ArrayList<>();
-        entities.add(new NamespaceBuilder().withNewMetadata().withName("ns1").endMetadata().build());
-        entities.add(new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata().build());
+        Properties properties = new Properties();
+        properties.put("jkube.namespace", "ns1");
 
         // When
-        String namespace = KubernetesHelper.getNamespaceFromKubernetesList(entities);
+        String namespace = KubernetesHelper.getConfiguredNamespace(properties, "default");
 
         // Then
         assertNotNull(namespace);
         assertEquals("ns1", namespace);
+    }
+
+    @Test
+    public void testGetNamespaceFromKubernetesListReturnsNull() {
+        // Given
+        Properties properties = new Properties();
+
+        // When
+        String namespace = KubernetesHelper.getConfiguredNamespace(properties, "default");
+
+        // Then
+        assertEquals("default", namespace);
     }
 
     @Test

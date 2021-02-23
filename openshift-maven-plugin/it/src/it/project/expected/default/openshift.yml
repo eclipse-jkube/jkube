@@ -1,0 +1,130 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        jkube.io/git-commit: "@ignore@"
+        prometheus.io/scrape: "true"
+        jkube.io/git-branch: "@ignore@"
+        prometheus.io/port: "9779"
+      labels:
+        expose: "true"
+        app: project
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube
+      name: project
+    spec:
+      ports:
+        - name: http
+          port: 8080
+          protocol: TCP
+          targetPort: 8080
+      selector:
+        app: project
+        provider: jkube
+        group: org.eclipse.jkube
+  - apiVersion: apps.openshift.io/v1
+    kind: DeploymentConfig
+    metadata:
+      annotations:
+        jkube.io/git-commit: "@ignore@"
+        jkube.io/git-branch: "@ignore@"
+      labels:
+        provider: jkube
+        app: project
+        version: "@ignore@"
+        group: org.eclipse.jkube
+      name: project
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      selector:
+        app: project
+        provider: jkube
+        group: org.eclipse.jkube
+      strategy:
+        rollingParams:
+          timeoutSeconds: 3600
+        type: Rolling
+      template:
+        metadata:
+          annotations:
+            app.openshift.io/vcs-ref: "@ignore@"
+            app.openshift.io/vcs-uri: "@ignore@"
+            jkube.io/git-commit: "@ignore@"
+            jkube.io/git-branch: "@ignore@"
+          labels:
+            provider: jkube
+            app: project
+            version: "@ignore@"
+            group: org.eclipse.jkube
+        spec:
+          containers:
+          - env:
+              - name: KUBERNETES_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+            image: "@matches('project:.*$')@"
+            imagePullPolicy: IfNotPresent
+            name: spring-boot
+            ports:
+              - containerPort: 8080
+                name: http
+                protocol: TCP
+              - containerPort: 9779
+                name: prometheus
+                protocol: TCP
+              - containerPort: 8778
+                name: jolokia
+                protocol: TCP
+            securityContext:
+              privileged: false
+      triggers:
+      - type: ConfigChange
+      - imageChangeParams:
+          automatic: true
+          containerNames:
+          - spring-boot
+          from:
+            kind: ImageStreamTag
+            name: project:latest
+        type: ImageChange
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      annotations:
+        app.openshift.io/vcs-ref: "@ignore@"
+        app.openshift.io/vcs-uri: "@ignore@"
+        jkube.io/git-commit: "@ignore@"
+        jkube.io/git-branch: "@ignore@"
+      labels:
+        app: project
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube
+      name: project
+    spec:
+      port:
+        targetPort: 8080
+      to:
+        kind: Service
+        name: project

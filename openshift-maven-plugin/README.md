@@ -16,7 +16,7 @@ To enable OpenShift maven plugin on your project just add this to the plugins se
 ```
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>oc-maven-plugin</artifactId>
+        <artifactId>openshift-maven-plugin</artifactId>
         <version>${jkube.openshift.version}</version>
       </plugin>
 ```

@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.kit</groupId>
   <artifactId>dynamic-docker-image-file-multi-layer</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
   <name>Eclipse JKube :: Quickstarts :: Kit :: Docker Image from Multilayer Dockerfile</name>
   <packaging>jar</packaging>
 

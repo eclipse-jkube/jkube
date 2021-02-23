@@ -26,6 +26,10 @@ Usage:
 * Fix #545: Replace Boolean.valueOf with Boolean.parseBoolean for string to boolean conversion
 * Fix #515: Properties now get resolved in CustomResource fragments
 
+### 1.1.1 (2021-02-23)
+* Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag
+* Fix #579: Fixed quarkus health paths
+
 ### 1.1.0 (2021-01-28)
 * Fix #455: Use OpenShiftServer with JUnit rule instead of directly instantiating the OpenShiftMockServer
 * Fix #467: Upgrade assertj-core to 3.18.0

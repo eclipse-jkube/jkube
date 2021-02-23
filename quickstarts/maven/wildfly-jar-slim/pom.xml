@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>wildfly-jar-slim</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Wildfly JAR</name>
   <packaging>war</packaging>
 
