@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.config.service.kubernetes;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -44,8 +43,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "AccessStaticViaInstance", "unused"})
 public class KubernetesUndeployServiceTest {
