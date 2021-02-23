@@ -106,7 +106,7 @@ function emailTemplate() {
   lines+="We are pleased to announce Eclipse JKube $1 was just released! You can find the release at Maven Central [1].\n\n"
   lines+="Eclipse JKube is a collection of plugins and libraries that are used for building container images using Docker, JIB or S2I build strategies.\nEclipse JKube generates and deploys Kubernetes/OpenShift manifests at compile time too.\n\n"
   lines+="JKube is the successor to the deprecated Fabric8 Maven Plugin, please check our migration guide [2] if you come from FMP.\n\n"
-  lines+="Using this release:\n\n<plugin>\n  <groupId>org.eclipse.jkube</groupId>\n  <artifactId>kubernetes-maven-plugin</artifactId>\n  <version>$1</version\n</plugin>\n\n(Check Maven Central [1] for the rest of artifacts)\n\n"
+  lines+="Using this release:\n\n<plugin>\n  <groupId>org.eclipse.jkube</groupId>\n  <artifactId>kubernetes-maven-plugin</artifactId>\n  <version>$1</version>\n</plugin>\n\n(Check Maven Central [1] for the rest of artifacts)\n\n"
   lines+="These are the features and fixes included in $1:\n"
   lines+="$numberedChangelog\n\n"
   lines+="Your feedback is highly appreciated, you can provide it replying to the mailing list or through the usual channels. $githubLinkId $gitterLinkId\n\n"
