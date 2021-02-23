@@ -415,32 +415,6 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void testGetNamespaceFromKubernetesListReturnsValidNamespace() {
-        // Given
-        Properties properties = new Properties();
-        properties.put("jkube.namespace", "ns1");
-
-        // When
-        String namespace = KubernetesHelper.getConfiguredNamespace(properties, "default");
-
-        // Then
-        assertNotNull(namespace);
-        assertEquals("ns1", namespace);
-    }
-
-    @Test
-    public void testGetNamespaceFromKubernetesListReturnsNull() {
-        // Given
-        Properties properties = new Properties();
-
-        // When
-        String namespace = KubernetesHelper.getConfiguredNamespace(properties, "default");
-
-        // Then
-        assertEquals("default", namespace);
-    }
-
-    @Test
     public void loadResourcesWithNestedTemplateAndDuplicateResources() throws IOException {
         // Given
         final File manifest = new File(KubernetesHelperTest.class.getResource(

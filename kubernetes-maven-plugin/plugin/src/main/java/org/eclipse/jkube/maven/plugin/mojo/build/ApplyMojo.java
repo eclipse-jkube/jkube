@@ -20,7 +20,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -34,9 +33,8 @@ import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Optional;
 import java.util.Set;
-
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getConfiguredNamespace;
 
 /**
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
@@ -124,9 +122,6 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
     @Parameter(property = "jkube.serviceUrl.waitSeconds", defaultValue = "5")
     protected long serviceUrlWaitTimeSeconds;
 
-    @Parameter
-    protected ResourceConfig resources;
-
     /**
      * Folder where to find project specific files
      */
@@ -139,6 +134,12 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
      */
     @Parameter(property = "jkube.environment")
     private String environment;
+
+    /**
+     * Namespace to use when accessing Kubernetes or OpenShift
+     */
+    @Parameter(property = "jkube.namespace")
+    protected String namespace;
 
     @Parameter(property = "jkube.skip.apply", defaultValue = "false")
     protected boolean skipApply;
@@ -183,18 +184,16 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
             configureApplyService(kubernetes);
 
             // Apply rest of the entities present in manifest
-            applyEntities(kubernetes, getConfiguredNamespace(project.getProperties(), clusterAccess.getNamespace()), manifest.getName(), entities);
+            applyEntities(kubernetes, manifest.getName(), entities);
             log.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShift() ? "oc" : "kubectl");
         } catch (KubernetesClientException e) {
             KubernetesResourceUtil.handleKubernetesClientException(e, this.log);
-        } catch (MojoExecutionException e) {
-            throw e;
         } catch (Exception e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
     }
 
-    protected void applyEntities(final KubernetesClient kubernetes, final String namespace, String fileName, final Set<HasMetadata> entities) throws Exception {
+    protected void applyEntities(final KubernetesClient kubernetes, String fileName, final Set<HasMetadata> entities) throws InterruptedException {
         KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
         applyService.applyEntities(fileName, entities, serviceLogger, serviceUrlWaitTimeSeconds);
     }
@@ -233,7 +232,12 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         applyService.setRollingUpgrade(rollingUpgrades);
         applyService.setRollingUpgradePreserveScale(isRollingUpgradePreserveScale());
         applyService.setRecreateMode(recreate);
-        applyService.setNamespace(getConfiguredNamespace(project.getProperties(), clusterAccess.getNamespace()));
+        applyService.setNamespace(
+            Optional.ofNullable(namespace)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .orElse(clusterAccess.getNamespace())
+        );
 
         boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
         if (openShift) {

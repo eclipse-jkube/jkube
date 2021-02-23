@@ -11,17 +11,19 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.maven.plugin.mojo.build;
+package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
 
+import mockit.Verifications;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.kit.config.service.PodLogService;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
@@ -35,9 +37,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-public class ApplyMojoTest {
+@SuppressWarnings("unused")
+public class LogMojoTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -56,18 +57,20 @@ public class ApplyMojoTest {
   private Settings mavenSettings;
   @Mocked
   private DefaultKubernetesClient defaultKubernetesClient;
+  @Mocked
+  private PodLogService podLogService;
 
-  private ApplyMojo applyMojo;
+  private LogMojo logMojo;
 
   @Before
   public void setUp() throws IOException {
     kubernetesManifestFile = temporaryFolder.newFile("kubernetes.yml");
     mavenProperties = new Properties();
     // @formatter:off
-    applyMojo = new ApplyMojo() { {
-        project = mavenProject;
-        settings = mavenSettings;
-        kubernetesManifest = kubernetesManifestFile;
+    logMojo = new LogMojo() { {
+      project = mavenProject;
+      settings = mavenSettings;
+      kubernetesManifest = kubernetesManifestFile;
     }};
     new Expectations(){{
       jKubeServiceHub.getApplyService(); result = new ApplyService(defaultKubernetesClient, logger);
@@ -88,30 +91,27 @@ public class ApplyMojoTest {
   @After
   public void tearDown() {
     mavenProject = null;
-    applyMojo = null;
+    logMojo = null;
   }
 
   @Test
-  public void executeInternalWithDefaults() throws Exception {
+  public void execute() throws Exception {
     // When
-    applyMojo.execute();
+    logMojo.execute();
     // Then
-    assertThat(applyMojo.applyService)
-        .hasFieldOrPropertyWithValue("recreateMode", false);
+    // @formatter:off
+    new Verifications() {{
+      podLogService.tailAppPodsLogs(
+          defaultKubernetesClient,
+          null,
+          withNotNull(),
+          false,
+          null,
+          false,
+          null,
+          true);
+      times = 1;
+    }};
+    // @formatter:on
   }
-
-  @Test
-  public void executeInternalWithProperties() throws Exception {
-    // Given
-    applyMojo.recreate = true;
-    applyMojo.namespace = "custom-namespace";
-    // When
-    applyMojo.execute();
-    // Then
-    assertThat(applyMojo.applyService)
-        .hasFieldOrPropertyWithValue("recreateMode", true)
-        .hasFieldOrPropertyWithValue("namespace", "custom-namespace");
-  }
-
-
 }

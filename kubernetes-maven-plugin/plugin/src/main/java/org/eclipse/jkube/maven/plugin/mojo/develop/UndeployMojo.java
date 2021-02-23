@@ -17,7 +17,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
@@ -49,7 +51,7 @@ public class UndeployMojo extends AbstractJKubeMojo implements ManifestProvider 
    * Folder where to find project specific files
    */
   @Parameter(property = "jkube.resourceDir", defaultValue = "${basedir}/src/main/jkube")
-  private File resourceDir;
+  protected File resourceDir;
 
   /**
    * Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, jkube will look at src/main/jkube/dev
@@ -58,12 +60,29 @@ public class UndeployMojo extends AbstractJKubeMojo implements ManifestProvider 
   @Parameter(property = "jkube.environment")
   private String environment;
 
+  /**
+   * Namespace to use when accessing Kubernetes or OpenShift
+   */
+  @Parameter(property = "jkube.namespace")
+  protected String namespace;
+
   @Parameter
   protected ResourceConfig resources;
 
   @Override
   public File getKubernetesManifest() {
     return kubernetesManifest;
+  }
+
+  @Override
+  protected void init() throws DependencyResolutionRequiredException {
+    super.init();
+    resources = ResourceConfig.toBuilder(resources)
+        .namespace(Optional.ofNullable(namespace)
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .orElse(clusterAccess.getNamespace()))
+        .build();
   }
 
   @Override
