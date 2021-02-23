@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -114,8 +113,6 @@ public class KubernetesHelper {
     public static final Pattern PROFILES_PATTERN = Pattern.compile(PROFILES_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
     protected static final String[] POD_CONTROLLER_KINDS =
             { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job" };
-    public static final String JKUBE_NAMESPACE = "jkube.namespace";
-
 
     private KubernetesHelper() {}
 
@@ -923,14 +920,6 @@ public class KubernetesHelper {
             return getOrCreateAnnotations(item).get(annotationKey);
         }
         return null;
-    }
-
-    public static String getConfiguredNamespace(Properties properties, String defaultNamespaceFromConfig) {
-        String jkubeNamespace = (String) properties.get(JKUBE_NAMESPACE);
-        if (StringUtils.isNotEmpty(jkubeNamespace)) {
-            return jkubeNamespace;
-        }
-        return defaultNamespaceFromConfig;
     }
 
     public static boolean containsPort(List<ContainerPort> ports, String portValue) {

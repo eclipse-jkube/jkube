@@ -50,6 +50,12 @@
           <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${version.assertj-core}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
           <groupId>org.jmockit</groupId>
           <artifactId>jmockit</artifactId>
           <version>${version.jmockit}</version>

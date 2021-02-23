@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.config.service.kubernetes;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Properties;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
@@ -67,7 +66,7 @@ public class KubernetesUndeployServiceTest {
     // Given
     final File nonexistent = new File("I don't exist");
     // When
-    kubernetesUndeployService.undeploy(null, null, nonexistent, null);
+    kubernetesUndeployService.undeploy(null, ResourceConfig.builder().build(), nonexistent, null);
     // Then
     // @formatter:off
     new Verifications() {{
@@ -79,6 +78,7 @@ public class KubernetesUndeployServiceTest {
   @Test
   public void undeployWithManifestShouldDeleteAllEntities(@Mocked File file) throws Exception {
     // Given
+    final ResourceConfig resourceConfig = ResourceConfig.builder().namespace("default").build();
     final Namespace namespace = new NamespaceBuilder().withNewMetadata().withName("default").endMetadata().build();
     final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").endMetadata().build();
     final Service service = new Service();
@@ -88,12 +88,10 @@ public class KubernetesUndeployServiceTest {
       file.isFile(); result = true;
       kubernetesHelper.loadResources(file);
       result = new HashSet<>(Arrays.asList(namespace, pod, service));
-      kubernetesHelper.getConfiguredNamespace((Properties) any, anyString);
-      result = "default";
     }};
     // @formatter:on
     // When
-    kubernetesUndeployService.undeploy(null, null, file);
+    kubernetesUndeployService.undeploy(null, resourceConfig, file);
     // Then
     // @formatter:off
     new Verifications() {{

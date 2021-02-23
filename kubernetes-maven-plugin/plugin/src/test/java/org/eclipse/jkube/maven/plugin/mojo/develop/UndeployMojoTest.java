@@ -31,6 +31,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @SuppressWarnings("unused")
 public class UndeployMojoTest {
 
@@ -45,13 +47,16 @@ public class UndeployMojoTest {
   @Mocked
   private Settings mavenSettings;
   private File mockManifest;
+  private File mockResourceDir;
   private UndeployMojo undeployMojo;
 
   @Before
   public void setUp() throws IOException {
     mockManifest = temporaryFolder.newFile();
+    mockResourceDir = temporaryFolder.newFolder();
     // @formatter:off
     undeployMojo = new UndeployMojo() {{
+      resourceDir = mockResourceDir;
       kubernetesManifest = mockManifest;
       project = mavenProject;
       settings = mavenSettings;
@@ -72,9 +77,25 @@ public class UndeployMojoTest {
     // When
     undeployMojo.execute();
     // Then
+    assertUndeployServiceUndeployWasCalled();
+  }
+
+  @Test
+  public void executeWithCustomProperties() throws Exception {
+    // Given
+    undeployMojo.namespace = "  custom-namespace  ";
+    // When
+    undeployMojo.execute();
+    // Then
+    assertUndeployServiceUndeployWasCalled();
+    assertThat(undeployMojo.resources)
+        .hasFieldOrPropertyWithValue("namespace", "custom-namespace");
+  }
+
+  private void assertUndeployServiceUndeployWasCalled() throws Exception {
     // @formatter:off
     new Verifications() {{
-      jKubeServiceHub.getUndeployService().undeploy(null, null, mockManifest);
+      jKubeServiceHub.getUndeployService().undeploy(mockResourceDir, withNotNull(), mockManifest);
       times = 1;
     }};
     // @formatter:on

@@ -26,32 +26,39 @@ import java.util.Set;
 
 /**
  * This goal tails the log of the most recent pod for the app that was deployed via <code>k8s:deploy</code>
- * <p>
- * To terminate the log hit
+ * <p> To terminate the log hit
  * <code>Ctrl+C</code>
  */
 @Mojo(name = "log", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.VALIDATE)
 public class LogMojo extends ApplyMojo {
 
-    @Parameter(property = "jkube.log.follow", defaultValue = "true")
-    private boolean followLog;
-    @Parameter(property = "jkube.log.container")
-    private String logContainerName;
-    @Parameter(property = "jkube.log.pod")
-    private String podName;
+  @Parameter(property = "jkube.log.follow", defaultValue = "true")
+  private boolean followLog;
+  @Parameter(property = "jkube.log.container")
+  private String logContainerName;
+  @Parameter(property = "jkube.log.pod")
+  private String podName;
 
-    @Override
-    protected void applyEntities(final KubernetesClient kubernetes, final String namespace, String fileName, final Set<HasMetadata> entities) throws Exception {
-        new PodLogService(podLogServiceContextBuilder().build())
-            .tailAppPodsLogs(kubernetes, namespace, entities, false, null, followLog, null, true);
-    }
+  @Override
+  protected void applyEntities(final KubernetesClient kubernetes, String fileName, final Set<HasMetadata> entities) {
+    new PodLogService(podLogServiceContextBuilder().build()).tailAppPodsLogs(
+        kubernetes,
+        applyService.getNamespace(),
+        entities,
+        false,
+        null,
+        followLog,
+        null,
+        true
+    );
+  }
 
-    protected PodLogService.PodLogServiceContext.PodLogServiceContextBuilder podLogServiceContextBuilder() {
-        return PodLogService.PodLogServiceContext.builder()
-                .log(log)
-                .logContainerName(logContainerName)
-                .podName(podName)
-                .newPodLog(createLogger("[[C]][NEW][[C]] "))
-                .oldPodLog(createLogger("[[R]][OLD][[R]] "));
-    }
+  protected PodLogService.PodLogServiceContext.PodLogServiceContextBuilder podLogServiceContextBuilder() {
+    return PodLogService.PodLogServiceContext.builder()
+        .log(log)
+        .logContainerName(logContainerName)
+        .podName(podName)
+        .newPodLog(createLogger("[[C]][NEW][[C]] "))
+        .oldPodLog(createLogger("[[R]][OLD][[R]] "));
+  }
 }
