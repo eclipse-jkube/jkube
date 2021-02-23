@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -55,7 +56,6 @@ import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
 import io.fabric8.kubernetes.api.model.NamedContext;
-import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodCondition;
@@ -92,7 +92,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
-import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -115,6 +114,7 @@ public class KubernetesHelper {
     public static final Pattern PROFILES_PATTERN = Pattern.compile(PROFILES_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
     protected static final String[] POD_CONTROLLER_KINDS =
             { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job" };
+    public static final String JKUBE_NAMESPACE = "jkube.namespace";
 
 
     private KubernetesHelper() {}
@@ -925,13 +925,12 @@ public class KubernetesHelper {
         return null;
     }
 
-    public static String getNamespaceFromKubernetesList(Collection<HasMetadata> entities) {
-        for (HasMetadata h : entities) {
-            if (h instanceof Namespace || h instanceof Project) {
-                return h.getMetadata().getName();
-            }
+    public static String getConfiguredNamespace(Properties properties, String defaultNamespaceFromConfig) {
+        String jkubeNamespace = (String) properties.get(JKUBE_NAMESPACE);
+        if (StringUtils.isNotEmpty(jkubeNamespace)) {
+            return jkubeNamespace;
         }
-        return null;
+        return defaultNamespaceFromConfig;
     }
 
     public static boolean containsPort(List<ContainerPort> ports, String portValue) {

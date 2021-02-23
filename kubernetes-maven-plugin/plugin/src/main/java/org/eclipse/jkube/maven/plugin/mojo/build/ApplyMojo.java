@@ -36,7 +36,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.Set;
 
-import static org.eclipse.jkube.kit.config.service.ApplyService.getNamespaceForApplyService;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getConfiguredNamespace;
 
 /**
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
@@ -180,10 +180,10 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
             Set<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
             log.info("Using %s at %s in namespace %s with manifest %s ", clusterKind, masterUrl, clusterAccess.getNamespace(), manifest);
 
-            configureApplyService(kubernetes, entities);
+            configureApplyService(kubernetes);
 
             // Apply rest of the entities present in manifest
-            applyEntities(kubernetes, getNamespaceForApplyService(entities, clusterAccess), manifest.getName(), entities);
+            applyEntities(kubernetes, getConfiguredNamespace(project.getProperties(), clusterAccess.getNamespace()), manifest.getName(), entities);
             log.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShift() ? "oc" : "kubectl");
         } catch (KubernetesClientException e) {
             KubernetesResourceUtil.handleKubernetesClientException(e, this.log);
@@ -221,7 +221,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         applyService.setProcessTemplatesLocally(true);
     }
 
-    private void configureApplyService(KubernetesClient kubernetes, Set<HasMetadata> entities) {
+    private void configureApplyService(KubernetesClient kubernetes) {
         applyService.setAllowCreate(createNewResources);
         applyService.setServicesOnlyMode(servicesOnly);
         applyService.setIgnoreServiceMode(ignoreServices);
@@ -233,7 +233,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         applyService.setRollingUpgrade(rollingUpgrades);
         applyService.setRollingUpgradePreserveScale(isRollingUpgradePreserveScale());
         applyService.setRecreateMode(recreate);
-        applyService.setNamespace(getNamespaceForApplyService(entities, clusterAccess));
+        applyService.setNamespace(getConfiguredNamespace(project.getProperties(), clusterAccess.getNamespace()));
 
         boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
         if (openShift) {

@@ -35,11 +35,11 @@ import org.eclipse.jkube.kit.config.service.UndeployService;
 
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.fabric8.openshift.api.model.Project;
 
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCustomResourcesFileToNameMap;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getConfiguredNamespace;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.loadResources;
 import static org.eclipse.jkube.kit.config.service.ApplyService.getK8sListWithNamespaceFirst;
 
@@ -69,7 +69,8 @@ public class KubernetesUndeployService implements UndeployService {
     }
     List<HasMetadata> undeployEntities = getK8sListWithNamespaceFirst(entities);
     Collections.reverse(undeployEntities);
-    final String currentNamespace = currentNamespace(undeployEntities);
+    final String currentNamespace = getConfiguredNamespace(jKubeServiceHub.getConfiguration().getProperties(),
+        jKubeServiceHub.getClusterAccess().getNamespace());
     undeployCustomResources(currentNamespace, undeployEntities);
     undeployResources(currentNamespace, undeployEntities);
   }
