@@ -402,7 +402,7 @@ You can provide registry credentials in 3 formats:
 
   <servers>
     <server>
-      <id>docker.io</id>
+      <id>https://index.docker.io/v1</id>
       <username>testuser</username>
       <password>testpassword</password>
     </server>
