@@ -21,7 +21,7 @@ to make the Pod port accessible:
 
 # Building Docker image
 ```shell script
-$ mvn k8s:build
+$ mvn package k8s:build
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] ----------------< org.eclipse.jkube:docker-file-simple >----------------
