@@ -22,9 +22,9 @@ You can compile project as usual by issuing a simple `mvn clean install` command
 
 ### Zero Configuration Build
 To build project issue this command:
-> mvn k8s:build -PJib-Zero-Config
+> mvn package k8s:build -PJib-Zero-Config
 ```
-~/work/repos/jkube/quickstarts/maven/spring-boot-with-jib : $ mvn k8s:build -PJib-Zero-Config
+~/work/repos/jkube/quickstarts/maven/spring-boot-with-jib : $ mvn package k8s:build -PJib-Zero-Config
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] --< org.eclipse.jkube.quickstarts.maven:eclipse-jkube-sample-spring-boot-jib >--
@@ -248,9 +248,9 @@ This profile tries to add some extra files inside the image. If you see there is
 
 ### JIB with Customized Assembly Build
 Now to build you need to issue same build goal but with different profile, build goal generates a tarball which needs to be loaded into your docker daemon afterwards. Or maybe you can push it to some registry:
->  mvn k8s:build -PJib-With-Assembly
+>  mvn package k8s:build -PJib-With-Assembly
 ```
-~/work/repos/jkube/quickstarts/maven/spring-boot-with-jib : $ mvn k8s:build -PJib-With-Assembly
+~/work/repos/jkube/quickstarts/maven/spring-boot-with-jib : $ mvn package k8s:build -PJib-With-Assembly
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] --< org.eclipse.jkube.quickstarts.maven:eclipse-jkube-sample-spring-boot-jib >--
