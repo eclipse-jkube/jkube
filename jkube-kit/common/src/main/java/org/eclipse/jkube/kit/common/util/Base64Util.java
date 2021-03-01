@@ -14,8 +14,7 @@
 package org.eclipse.jkube.kit.common.util;
 
 import java.nio.charset.StandardCharsets;
-
-import javax.xml.bind.DatatypeConverter;
+import java.util.Base64;
 
 /**
  * For java 7 or lower version, java.util doesn't provide a base64 encode/decode way
@@ -23,7 +22,7 @@ import javax.xml.bind.DatatypeConverter;
 public class Base64Util {
 
     public static String encodeToString(byte[] bytes) {
-        return DatatypeConverter.printBase64Binary(bytes);
+        return new String(Base64.getEncoder().encode(bytes));
     }
 
     public static byte[] encode(byte[] bytes) {
@@ -39,7 +38,7 @@ public class Base64Util {
     }
 
     public static byte[] decode(String raw) {
-        return DatatypeConverter.parseBase64Binary(raw);
+        return Base64.getDecoder().decode(raw);
     }
 
     public static byte[] decode(byte[] bytes) {

@@ -28,6 +28,7 @@ Usage:
 * Fix #515: Properties now get resolved in CustomResource fragments
 * Fix #586: Apply and Undeploy service use configured namespace
 * Fix #584: Improved Vert.x 4 support
+* Fix #592: Upgrade kubernetes client from 5.0.0 to 5.1.1
 
 ### 1.1.1 (2021-02-23)
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag
