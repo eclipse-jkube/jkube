@@ -167,7 +167,9 @@ public class HelmService {
 
   private static String interpolateTemplateWithHelmParameter(String template, HelmParameter parameter) {
     String name = parameter.getParameter().getName();
-    String from = "${" + name + "}";
+    final String from = "$" + name;
+    final String braceEnclosedFrom = "${" + name + "}";
+    final String quotedBraceEnclosedFrom = "\"" + braceEnclosedFrom + "\"";
     String answer = template;
     String defaultExpression = "";
     String required = "";
@@ -178,10 +180,11 @@ public class HelmService {
     if (Boolean.TRUE.equals(parameter.getParameter().getRequired())) {
       required = "required \"A valid .Values." + parameter.getHelmName() + " entry required!\" ";
     }
-    String to = "{{ " + required + ".Values." + parameter.getHelmName() + defaultExpression + " }}";
-    answer = answer.replace(from,to);
-    from = "$" + name;
-    return answer.replace(from, to);
+    final String to = "{{ " + required + ".Values." + parameter.getHelmName() + defaultExpression + " }}";
+    answer = answer.replace(quotedBraceEnclosedFrom, to);
+    answer = answer.replace(braceEnclosedFrom, to);
+    answer = answer.replace(from, to);
+    return answer;
   }
 
   private static void interpolateTemplateParameterExpressionsWithHelmExpressions(File file, List<HelmParameter> helmParameters) throws IOException {
