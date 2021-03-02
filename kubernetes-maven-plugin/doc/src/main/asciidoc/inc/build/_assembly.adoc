@@ -107,6 +107,9 @@ Each fileset has the following fields:
    FileSystem#getPathMatcher] `glob` syntax.
 * `excludes`: A set of files and directory to exclude.
 ** If none is present, then there are no exclusions.
+** Wildcards are also supported, patterns will be matched using
+https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)[
+FileSystem#getPathMatcher] `glob` syntax.
 * `fileMode`: Similar to a UNIX permission, sets the file mode of the files included.
 * `directoryMode`: Similar to a UNIX permission, sets the directory mode of the directories included.
 

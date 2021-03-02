@@ -32,7 +32,17 @@ COPY maven/ /my/target/directory
 
 so that the assembly files will end up in `/my/target/directory` within the container.
 
-If this directory contains a `.jkube-dockerignore` (or alternatively, a `.jkube-dockerexclude` file), then it is used for excluding files for the build. Each line in this file is treated as a http://ant.apache.org/manual/Types/fileset.html[FileSet exclude pattern] as used by the http://maven.apache.org/plugins/maven-assembly-plugin[maven-assembly-plugin]. It is similar to `.dockerignore` when using Docker but has a slightly different syntax (hence the different name).
+If this directory contains a `.jkube-dockerignore` (or alternatively, a `.jkube-dockerexclude` file), then it is used
+for excluding files for the build. If the file doesn't exist, or it's empty, then there are no exclusions.
+
+Each line in this file is treated as an entry in the `excludes` assembly `fileSet` <<build-assembly-inline, configuration >>.
+Files can be referenced by using their relative path name.
+Wildcards are also supported, patterns will be matched using
+https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)[
+FileSystem#getPathMatcher] `glob` syntax.
+
+It is similar to `.dockerignore` when using Docker but has a slightly different syntax (hence the different name).
+
 <<ex-build-dockerexclude>> is an  example which excludes all compiled Java classes.
 
 [[ex-build-dockerexclude]]
@@ -46,7 +56,16 @@ target/classes/**  # <1>
 ====
 
 
-If this directory contains a `.jkube-dockerinclude` file, then it is used for including only those files for the build. Each line in this file is also treated as a http://ant.apache.org/manual/Types/fileset.html[FileSet exclude pattern] as used by the http://maven.apache.org/plugins/maven-assembly-plugin[maven-assembly-plugin]. <<ex-build-dockerinclude>> shows how to include only jar file that have build to the Docker build context.
+If this directory contains a `.jkube-dockerinclude` file, then it is used for including only those files for the build.
+If the file doesn't exist or it's empty, then everything is included.
+
+Each line in this file is treated as an entry in the `includes` assembly `fileSet` <<build-assembly-inline, configuration >>.
+Files can be referenced by using their relative path name.
+Wildcards are also supported, patterns will be matched using
+https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)[
+FileSystem#getPathMatcher] `glob` syntax.
+
+<<ex-build-dockerinclude>> shows how to include only jar file that have build to the Docker build context.
 
 [[ex-build-dockerinclude]]
 .Example `.jkube-dockerinclude`
