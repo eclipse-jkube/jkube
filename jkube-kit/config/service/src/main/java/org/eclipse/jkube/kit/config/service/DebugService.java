@@ -297,6 +297,10 @@ public class DebugService {
                 log.info("Readiness probe will be disabled on " + KubernetesHelper.getKind(entity) + " " + getName(entity) + " to allow attaching a remote debugger during suspension");
                 container.setReadinessProbe(null);
             }
+            if (container.getLivenessProbe() != null) {
+                log.info("Liveness probe will be disabled on " + KubernetesHelper.getKind(entity) + " " + getName(entity) + " to allow attaching a remote debugger during suspension");
+                container.setLivenessProbe(null);
+            }
             return true;
         } else {
             if (KubernetesHelper.removeEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_SESSION)) {
