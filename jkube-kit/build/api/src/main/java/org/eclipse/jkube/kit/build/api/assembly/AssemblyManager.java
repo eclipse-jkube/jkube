@@ -66,9 +66,9 @@ public class AssemblyManager {
     public static final String SCRATCH_IMAGE = "scratch";
 
     // Assembly name used also as build directory within outputBuildDir
-    public static final String DOCKER_IGNORE = ".jkube-dockerignore";
-    public static final String DOCKER_EXCLUDE = ".jkube-dockerexclude";
-    public static final String DOCKER_INCLUDE = ".jkube-dockerinclude";
+    private static final String DOCKER_IGNORE = ".jkube-dockerignore";
+    private static final String DOCKER_EXCLUDE = ".jkube-dockerexclude";
+    private static final String DOCKER_INCLUDE = ".jkube-dockerinclude";
     private static final String DOCKERFILE_NAME = "Dockerfile";
 
     private AssemblyManager() { }
@@ -454,14 +454,14 @@ public class AssemblyManager {
         final Assembly.AssemblyBuilder inlineBuilder = assemblyConfig.getInline() == null ? Assembly.builder() : assemblyConfig.getInline().toBuilder();
 
         File contextDir = buildConfiguration.getAbsoluteContextDirPath(params.getSourceDirectory(), params.getBasedir().getAbsolutePath());
-        AssemblyFileSet.AssemblyFileSetBuilder assemblyFileSetBuilder = AssemblyFileSet.builder()
+        final AssemblyFileSet assemblyFileSet = AssemblyFileSet.builder()
                 .directory(contextDir)
                 .outputDirectory(new File("."))
-                .directoryMode("0775");
-        assemblyFileSetBuilder.excludes(createDockerExcludesList(contextDir, params.getOutputDirectory()));
-        assemblyFileSetBuilder.includes(createDockerIncludesList(contextDir));
-        builder.inline(inlineBuilder
-                       .fileSet(assemblyFileSetBuilder.build()).build());
+                .directoryMode("0775")
+            .excludes(createDockerExcludesList(contextDir, params.getOutputDirectory()))
+            .includes(createDockerIncludesList(contextDir))
+            .build();
+        builder.inline(inlineBuilder.fileSet(assemblyFileSet).build());
         return builder.build();
     }
 
@@ -491,11 +491,11 @@ public class AssemblyManager {
         List<String> excludes = new ArrayList<>();
         // Output directory will be always excluded
         excludes.add(outputDirectory);
-        for (String file : new String[] { DOCKER_EXCLUDE, DOCKER_IGNORE } ) {
-            File dockerIgnore = new File(directory, file);
+        for (String dockerConfigFile : new String[] { DOCKER_EXCLUDE, DOCKER_IGNORE } ) {
+            File dockerIgnore = new File(directory, dockerConfigFile);
             if (dockerIgnore.exists()) {
                 excludes.addAll(Files.readAllLines(dockerIgnore.toPath()));
-                excludes.add(DOCKER_IGNORE);
+                excludes.add(dockerConfigFile);
             }
         }
         return excludes;
