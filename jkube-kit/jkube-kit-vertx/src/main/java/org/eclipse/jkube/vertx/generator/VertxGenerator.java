@@ -57,7 +57,7 @@ public class VertxGenerator extends JavaExecGenerator {
   @Override
   protected List<String> getExtraJavaOptions() {
     List<String> opts = super.getExtraJavaOptions();
-    opts.add("-Dvertx.cacheDirBase=/tmp");
+    opts.add("-Dvertx.cacheDirBase=/tmp/vertx-cache");
 
     if (! contains("-Dvertx.disableDnsResolver=", opts)) {
       opts.add("-Dvertx.disableDnsResolver=true");

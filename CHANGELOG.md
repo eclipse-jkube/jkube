@@ -27,6 +27,7 @@ Usage:
 * Fix #545: Replace Boolean.valueOf with Boolean.parseBoolean for string to boolean conversion
 * Fix #515: Properties now get resolved in CustomResource fragments
 * Fix #586: Apply and Undeploy service use configured namespace
+* Fix #584: Improved Vert.x 4 support
 
 ### 1.1.1 (2021-02-23)
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag
