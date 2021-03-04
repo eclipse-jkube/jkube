@@ -120,7 +120,7 @@ public class VertxGeneratorTest {
     // When
     List<String> list = new VertxGenerator(context).getExtraJavaOptions();
     // Then
-    assertThat(list).containsOnly("-Dvertx.cacheDirBase=/tmp", "-Dvertx.disableDnsResolver=true");
+    assertThat(list).containsOnly("-Dvertx.cacheDirBase=/tmp/vertx-cache", "-Dvertx.disableDnsResolver=true");
   }
 
   @Test
@@ -138,7 +138,7 @@ public class VertxGeneratorTest {
     // Then
     assertThat(list).containsOnly(
             // Default entries
-            "-Dvertx.cacheDirBase=/tmp", "-Dvertx.disableDnsResolver=true",
+            "-Dvertx.cacheDirBase=/tmp/vertx-cache", "-Dvertx.disableDnsResolver=true",
             // Metrics entries
             "-Dvertx.metrics.options.enabled=true", "-Dvertx.metrics.options.jmxEnabled=true", "-Dvertx.metrics.options.jmxDomain=vertx");
   }
@@ -156,7 +156,7 @@ public class VertxGeneratorTest {
       // When
       Map<String, String> env = new VertxGenerator(context).getEnv(true);
       // Then
-      assertThat(env).contains(entry("JAVA_OPTIONS", "-Dvertx.cacheDirBase=/tmp -Dvertx.disableDnsResolver=true " +
+      assertThat(env).contains(entry("JAVA_OPTIONS", "-Dvertx.cacheDirBase=/tmp/vertx-cache -Dvertx.disableDnsResolver=true " +
               // Force IPv4
               "-Djava.net.preferIPv4Stack=true"));
       assertThat(env).contains(entry("JAVA_ARGS", "-cluster"));

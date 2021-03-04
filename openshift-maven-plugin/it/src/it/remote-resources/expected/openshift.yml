@@ -62,7 +62,7 @@ items:
         containers:
         - env:
           - name: JAVA_OPTIONS
-            value: -Dvertx.cacheDirBase=/tmp -Dvertx.disableDnsResolver=true -Dvertx.metrics.options.enabled=true
+            value: -Dvertx.cacheDirBase=/tmp/vertx-cache -Dvertx.disableDnsResolver=true -Dvertx.metrics.options.enabled=true
               -Dvertx.metrics.options.jmxEnabled=true -Dvertx.metrics.options.jmxDomain=vertx
               -Xmx1500m
           - name: KUBERNETES_NAMESPACE
