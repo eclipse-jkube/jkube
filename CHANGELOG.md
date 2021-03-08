@@ -30,6 +30,7 @@ Usage:
 * Fix #584: Improved Vert.x 4 support
 * Fix #592: Upgrade kubernetes client from 5.0.0 to 5.1.1
 * Fix #594: Debug with suspend mode removes Liveness Probe
+* Fix #591: Helm linter no longer fails with generated charts
 
 ### 1.1.1 (2021-02-23)
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag

@@ -32,9 +32,7 @@ import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HelmServiceIT {
 
@@ -62,19 +60,19 @@ public class HelmServiceIT {
     // When
     HelmService.generateHelmCharts(logger, helmConfig);
     // Then
-    assertThat(new File("target/helm-it/kubernetes/Chart.yaml").exists(), is(true));
-    assertThat(new File("target/helm-it/kubernetes/values.yaml").exists(), is(true));
-    assertThat(new File("target/helm-it/kubernetes/additional-file.txt").exists(), is(true));
-    assertThat(new File("target/helm-it/kubernetes/templates/kubernetes.yaml").exists(), is(true));
-    assertThat(new File("target/helm-it/openshift/Chart.yaml").exists(), is(true));
-    assertThat(new File("target/helm-it/openshift/values.yaml").exists(), is(true));
-    assertThat(new File("target/helm-it/openshift/additional-file.txt").exists(), is(true));
-    assertThat(new File("target/helm-it/openshift/templates/test-pod.yaml").exists(), is(true));
-    assertThat(new File("target/helm-it/openshift/templates/openshift.yaml").exists(), is(true));
-    assertThat(new File("target/helm-it/ITChart-1337-helm.tar").exists(), is(true));
-    assertThat(new File("target/helm-it/ITChart-1337-helmshift.tar").exists(), is(true));
+    assertThat(new File("target/helm-it/kubernetes/Chart.yaml")).exists().isNotEmpty();
+    assertThat(new File("target/helm-it/kubernetes/values.yaml")).exists().isNotEmpty();
+    assertThat(new File("target/helm-it/kubernetes/additional-file.txt")).exists().isNotEmpty();
+    assertThat(new File("target/helm-it/kubernetes/templates/kubernetes.yaml")).exists().isNotEmpty();
+    assertThat(new File("target/helm-it/openshift/Chart.yaml")).exists().isNotEmpty();
+    assertThat(new File("target/helm-it/openshift/values.yaml")).exists().isNotEmpty();
+    assertThat(new File("target/helm-it/openshift/additional-file.txt")).exists().isNotEmpty();
+    assertThat(new File("target/helm-it/openshift/templates/test-pod.yaml")).exists().isNotEmpty();
+    assertThat(new File("target/helm-it/openshift/templates/openshift.yaml")).exists().isNotEmpty();
+    assertThat(new File("target/helm-it/ITChart-1337-helm.tar")).exists().isNotEmpty();
+    assertThat(new File("target/helm-it/ITChart-1337-helmshift.tar")).exists().isNotEmpty();
     assertYamls();
-    assertThat(generatedChartCount.get(), is(2));
+    assertThat(generatedChartCount).hasValue(2);
   }
 
   private static void assertYamls() throws Exception {
@@ -85,7 +83,7 @@ public class HelmServiceIT {
       final Map<String, ?> expectedContent = mapper.readValue(replacePlaceholders(expected), Map.class);
       final Map<String, ?> actualContent =
           mapper.readValue(replacePlaceholders(generatedYamls.resolve(expectations.relativize(expected))), Map.class);
-      assertThat(expectedContent, equalTo(actualContent));
+      assertThat(expectedContent).isEqualTo(actualContent);
     }
   }
 

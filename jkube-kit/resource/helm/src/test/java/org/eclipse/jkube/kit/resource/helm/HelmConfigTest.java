@@ -17,9 +17,7 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 public class HelmConfigTest {
@@ -29,7 +27,7 @@ public class HelmConfigTest {
     // When
     final List<HelmConfig.HelmType> result = HelmConfig.HelmType.parseString(null);
     // Then
-    assertThat(result.isEmpty(), is(true));
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -37,7 +35,7 @@ public class HelmConfigTest {
     // When
     final List<HelmConfig.HelmType> result = HelmConfig.HelmType.parseString(" ");
     // Then
-    assertThat(result.isEmpty(), is(true));
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -45,7 +43,7 @@ public class HelmConfigTest {
     // When
     final List<HelmConfig.HelmType> result = HelmConfig.HelmType.parseString(",,  ,   ,, ");
     // Then
-    assertThat(result.isEmpty(), is(true));
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -53,7 +51,8 @@ public class HelmConfigTest {
     // When
     final List<HelmConfig.HelmType> result = HelmConfig.HelmType.parseString("kuBerNetes");
     // Then
-    assertThat(result, hasItem(HelmConfig.HelmType.KUBERNETES));
+
+    assertThat(result).containsOnly(HelmConfig.HelmType.KUBERNETES);
   }
 
   @Test(expected = IllegalArgumentException.class)

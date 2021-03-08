@@ -18,9 +18,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MaintainerTest {
 
@@ -43,8 +41,9 @@ public class MaintainerTest {
     // When
     final Maintainer result = objectMapper.readValue(serializedMaintainer, Maintainer.class);
     // Then
-    assertThat(result.getName(), is("John"));
-    assertThat(result.getEmail(), is("john@example.com"));
-    assertThat(result, equalTo(new Maintainer("John", "john@example.com")));
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("name", "John")
+        .hasFieldOrPropertyWithValue("email", "john@example.com")
+        .isEqualTo(new Maintainer("John", "john@example.com"));
   }
 }
