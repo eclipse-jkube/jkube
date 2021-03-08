@@ -27,8 +27,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HelmServiceTest {
 
@@ -73,8 +72,10 @@ public class HelmServiceTest {
     new Verifications() {{
       Chart chart;
       ResourceUtil.save(withNotNull(), chart = withCapture(), ResourceFileType.yaml);
-      assertThat(chart.getName(), is("Chart Name"));
-      assertThat(chart.getVersion(), is("1337"));
+      assertThat(chart)
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("name", "Chart Name")
+          .hasFieldOrPropertyWithValue("version", "1337");
     }};
   }
 }

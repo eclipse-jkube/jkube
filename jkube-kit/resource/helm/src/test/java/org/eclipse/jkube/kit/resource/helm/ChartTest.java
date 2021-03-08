@@ -18,9 +18,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ChartTest {
 
@@ -48,9 +46,10 @@ public class ChartTest {
     // When
     final Chart result = objectMapper.readValue(serializedMaintainer, Chart.class);
     // Then
-    assertThat(result.getName(), is("chart"));
-    assertThat(result.getHome(), is("e.t."));
-    assertThat(result.getVersion(), is("1337"));
-    assertThat(result.getSources(), contains("source"));
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("name", "chart")
+        .hasFieldOrPropertyWithValue("home", "e.t.")
+        .hasFieldOrPropertyWithValue("version", "1337")
+        .extracting("sources").asList().containsExactly("source");
   }
 }

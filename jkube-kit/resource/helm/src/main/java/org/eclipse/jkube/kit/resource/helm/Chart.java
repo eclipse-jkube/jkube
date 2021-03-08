@@ -29,6 +29,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Chart {
   @JsonProperty
+  private String apiVersion;
+  @JsonProperty
   private String name;
   @JsonProperty
   private String home;
@@ -54,6 +56,14 @@ public class Chart {
       ", home='" + home + '\'' +
       ", version='" + version + '\'' +
       '}';
+  }
+
+  public String getApiVersion() {
+    return apiVersion;
+  }
+
+  public void setApiVersion(String apiVersion) {
+    this.apiVersion = apiVersion;
   }
 
   public String getName() {

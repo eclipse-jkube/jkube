@@ -42,6 +42,7 @@ import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
 public class HelmService {
 
   private static final String YAML_EXTENSION = ".yaml";
+  private static final String CHART_API_VERSION = "v1";
   private static final String CHART_FILENAME = "Chart" + YAML_EXTENSION;
   private static final String VALUES_FILENAME = "values" + YAML_EXTENSION;
 
@@ -145,6 +146,7 @@ public class HelmService {
 
   static void createChartYaml(HelmConfig helmConfig, File outputDir) throws IOException {
     final Chart chart = new Chart();
+    chart.setApiVersion(CHART_API_VERSION);
     chart.setName(helmConfig.getChart());
     chart.setVersion(helmConfig.getVersion());
     chart.setDescription(helmConfig.getDescription());
