@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 public class JKubeTarArchiver {
 
@@ -42,9 +44,17 @@ public class JKubeTarArchiver {
 
   public static File createTarBall(
       File outputFile, File inputDirectory, List<File> fileList, Map<File, String> fileModeMap,
-      ArchiveCompression compression)
-      throws IOException {
+      ArchiveCompression compression
+  ) throws IOException {
+    return JKubeTarArchiver.createTarBall(
+        outputFile, inputDirectory, fileList, fileModeMap, compression, null, null);
+  }
 
+  public static File createTarBall(
+      File outputFile, File inputDirectory, List<File> fileList, Map<File, String> fileModeMap,
+      ArchiveCompression compression,
+      Consumer<TarArchiveOutputStream> tarCustomizer, Consumer<TarArchiveEntry> tarArchiveEntryCustomizer
+  ) throws IOException {
     try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
         BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
 
@@ -56,24 +66,23 @@ public class JKubeTarArchiver {
       } else {
         tarArchiveOutputStream = new TarArchiveOutputStream(bufferedOutputStream);
       }
-
       tarArchiveOutputStream.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
-      tarArchiveOutputStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
+      tarArchiveOutputStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
+      Optional.ofNullable(tarCustomizer).ifPresent(tc -> tc.accept(tarArchiveOutputStream));
       for (File currentFile : fileList) {
 
         String relativeFilePath = inputDirectory.toURI().relativize(
             new File(currentFile.getAbsolutePath()).toURI()).getPath();
 
-        TarArchiveEntry tarEntry = new TarArchiveEntry(currentFile, relativeFilePath);
+        final TarArchiveEntry tarEntry = new TarArchiveEntry(currentFile, relativeFilePath);
         tarEntry.setSize(currentFile.length());
         if (fileModeMap.containsKey(currentFile)) {
           tarEntry.setMode(Integer.parseInt(fileModeMap.get(currentFile), 8));
         } else if (currentFile.isDirectory()) {
           tarEntry.setMode(TarArchiveEntry.DEFAULT_DIR_MODE);
         }
-
+        Optional.ofNullable(tarArchiveEntryCustomizer).ifPresent(tac -> tac.accept(tarEntry));
         tarArchiveOutputStream.putArchiveEntry(tarEntry);
-        tarArchiveOutputStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
         if (currentFile.isFile()) {
           tarArchiveOutputStream.write(IOUtils.toByteArray(new FileInputStream(currentFile)));
         }

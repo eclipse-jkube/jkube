@@ -21,9 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
@@ -72,7 +74,11 @@ public class HelmService {
       final File tarballFile = new File(tarballOutputDir, String.format("%s-%s-%s.%s",
           helmConfig.getChart(), helmConfig.getVersion(), helmType.getClassifier(), helmConfig.getChartExtension()));
       logger.debug("Creating Helm configuration Tarball: '%s'", tarballFile.getAbsolutePath());
-      JKubeTarArchiver.createTarBallOfDirectory(tarballFile, outputDir, ArchiveCompression.fromFileName(tarballFile.getName()));
+      final Consumer<TarArchiveEntry> prependNameAsDirectory = tae ->
+          tae.setName(String.format("%s/%s", helmConfig.getChart(), tae.getName()));
+      JKubeTarArchiver.createTarBall(
+          tarballFile, outputDir, FileUtil.listFilesAndDirsRecursivelyInDirectory(outputDir), Collections.emptyMap(),
+          ArchiveCompression.fromFileName(tarballFile.getName()), null, prependNameAsDirectory);
       Optional.ofNullable(helmConfig.getGeneratedChartListeners()).orElse(Collections.emptyList())
           .forEach(listener -> listener.chartFileGenerated(helmConfig, helmType, tarballFile));
     }

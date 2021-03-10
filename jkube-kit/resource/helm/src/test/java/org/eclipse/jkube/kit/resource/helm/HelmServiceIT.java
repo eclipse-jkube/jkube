@@ -31,6 +31,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -69,8 +70,21 @@ public class HelmServiceIT {
     assertThat(new File("target/helm-it/openshift/additional-file.txt")).exists().isNotEmpty();
     assertThat(new File("target/helm-it/openshift/templates/test-pod.yaml")).exists().isNotEmpty();
     assertThat(new File("target/helm-it/openshift/templates/openshift.yaml")).exists().isNotEmpty();
-    assertThat(new File("target/helm-it/ITChart-1337-helm.tar")).exists().isNotEmpty();
-    assertThat(new File("target/helm-it/ITChart-1337-helmshift.tar")).exists().isNotEmpty();
+    ArchiveAssertions.assertThat(new File("target/helm-it/ITChart-1337-helm.tar"))
+        .exists().isNotEmpty().isUncompressed().fileTree().containsExactlyInAnyOrder(
+            "ITChart/additional-file.txt",
+            "ITChart/templates/",
+            "ITChart/templates/kubernetes.yaml",
+            "ITChart/Chart.yaml",
+            "ITChart/values.yaml");
+    ArchiveAssertions.assertThat(new File("target/helm-it/ITChart-1337-helmshift.tar"))
+        .exists().isNotEmpty().isUncompressed().fileTree().containsExactlyInAnyOrder(
+            "ITChart/additional-file.txt",
+            "ITChart/templates/",
+            "ITChart/templates/openshift.yaml",
+            "ITChart/templates/test-pod.yaml",
+            "ITChart/Chart.yaml",
+            "ITChart/values.yaml");
     assertYamls();
     assertThat(generatedChartCount).hasValue(2);
   }
