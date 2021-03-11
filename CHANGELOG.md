@@ -32,6 +32,7 @@ Usage:
 * Fix #594: Debug with suspend mode removes Liveness Probe
 * Fix #591: Helm linter no longer fails with generated charts
 * Fix #587: Helm tar.gz packaged chart can be deployed
+* Fix #571: Replace usages of deprecated `org.apache.commons.text.StrSubstitutor`
 
 ### 1.1.1 (2021-02-23)
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag
