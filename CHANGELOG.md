@@ -25,6 +25,7 @@ Usage:
 * Fix #546: Use `java.util.function.Function` instead of Guava's `com.google.common.base.Function`
 * Fix #545: Replace Boolean.valueOf with Boolean.parseBoolean for string to boolean conversion
 * Fix #515: Properties now get resolved in CustomResource fragments
+* Fix #571: Replace usages of deprecated `org.apache.commons.text.StrSubstitutor with org.apache.commons.text.StringSubstitutor
 
 ### 1.1.1 (2021-02-23)
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag
