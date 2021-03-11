@@ -13,14 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
-import org.eclipse.jkube.kit.common.JsonFactory;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.apache.commons.text.StrSubstitutor;
-
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -29,6 +21,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import org.eclipse.jkube.kit.common.JsonFactory;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.apache.commons.text.StringSubstitutor;
 
 
 public class ContainerCreateConfig {
@@ -87,7 +87,7 @@ public class ContainerCreateConfig {
                      */
                     value = value.substring(1, value.length());
                 }
-                envProps.put(entry.getKey(), StrSubstitutor.replace(value, mavenProps));
+                envProps.put(entry.getKey(), StringSubstitutor.replace(value, mavenProps));
             }
         }
         if (envPropsFile != null) {
