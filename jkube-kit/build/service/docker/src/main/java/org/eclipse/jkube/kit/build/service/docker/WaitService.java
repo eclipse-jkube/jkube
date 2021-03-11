@@ -148,8 +148,7 @@ public class WaitService {
 
 	private WaitChecker getUrlWaitChecker(String imageConfigDesc, Properties projectProperties,
 			WaitConfiguration wait) {
-		StringSubstitutor stringSubstitutor = new StringSubstitutor();
-		String waitUrl = stringSubstitutor.replace(wait.getUrl(), projectProperties);
+		String waitUrl = StringSubstitutor.replace(wait.getUrl(), projectProperties);
 		WaitConfiguration.HttpConfiguration httpConfig = wait.getHttp();
 		HttpPingChecker checker;
 		if (httpConfig != null) {
