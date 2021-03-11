@@ -85,8 +85,7 @@ public class ContainerCreateConfig {
 					 */
 					value = value.substring(1, value.length());
 				}
-				StringSubstitutor stringSubstitutor = new StringSubstitutor();
-				envProps.put(entry.getKey(), stringSubstitutor.replace(value, mavenProps));
+				envProps.put(entry.getKey(), StringSubstitutor.replace(value, mavenProps));
 			}
 		}
 		if (envPropsFile != null) {
