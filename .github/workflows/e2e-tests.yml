@@ -79,7 +79,7 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
           restore-keys: ${{ runner.os }}-m2
       - name: Setup Minikube-Kubernetes
-        uses: manusa/actions-setup-minikube@v2.3.0
+        uses: manusa/actions-setup-minikube@v2.3.1
         with:
           minikube version: v1.18.0
           kubernetes version: ${{ matrix.kubernetes }}
