@@ -290,11 +290,11 @@ public class ApplyServiceTest {
                 .times(2);
         mockServer.expect().delete()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
-                .andReply(collector.record("delete-cr-virtualservice").andReturn(HTTP_OK, "{}"))
+                .andReply(collector.record("delete-cr-virtualservice").andReturn(HTTP_OK, "{\"kind\":\"Status\",\"status\":\"Success\"}"))
                 .once();
         mockServer.expect().delete()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways/mygateway-https")
-                .andReply(collector.record("delete-cr-gateway").andReturn(HTTP_OK, "{}"))
+                .andReply(collector.record("delete-cr-gateway").andReturn(HTTP_OK, "{\"kind\":\"Status\",\"status\":\"Success\"}"))
                 .once();
         mockServer.expect().post()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices")
