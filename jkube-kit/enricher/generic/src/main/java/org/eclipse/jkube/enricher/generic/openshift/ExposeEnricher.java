@@ -13,22 +13,23 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.containsLabelInMetadata;
 
 
 /**
@@ -41,47 +42,40 @@ public class ExposeEnricher extends BaseEnricher {
         super(buildContext, "jkube-openshift-service-expose");
     }
 
-    private Set<Integer> webPorts = new HashSet<>(Arrays.asList(80, 443, 8080, 9080, 9090, 9443));
+    private static final Set<Integer> WEB_PORTS = new HashSet<>(Arrays.asList(80, 443, 8080, 9080, 9090, 9443));
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        List<HasMetadata> items = builder.buildItems();
-        if (items != null) {
-            for (HasMetadata item : items) {
-                if (item instanceof Service) {
-                    Service service = (Service) item;
-                    enrichService(service);
-                }
+        builder.accept(new TypedVisitor<ServiceBuilder>() {
+
+            @Override
+            public void visit(ServiceBuilder serviceBuilder) {
+                enrichService(serviceBuilder);
             }
-        }
+        });
     }
 
-    private void enrichService(Service service) {
-        if (hasWebPort(service)) {
-            ObjectMeta metadata = service.getMetadata();
-            if (metadata == null) {
-                metadata = new ObjectMeta();
-                service.setMetadata(metadata);
-            }
-            Map<String, String> labels = KubernetesHelper.getOrCreateLabels(service);
-            labels.computeIfAbsent(EXPOSE_LABEL,s -> {
+    private void enrichService(ServiceBuilder serviceBuilder) {
+        if (hasWebPort(serviceBuilder)) {
+            ObjectMeta serviceMetadata = serviceBuilder.buildMetadata();
+            if (! containsLabelInMetadata(serviceMetadata, EXPOSE_LABEL, "false")) {
                 log.verbose("Adding Service label '%s:true' on service %s" +
                                 " so that it is exposed by the exposecontroller microservice." +
                                 " To disable use the maven argument: '-Dfabric8.profile=internal-microservice'",
-                        EXPOSE_LABEL, KubernetesHelper.getName(service));
-                return "true";
-            });
+                        EXPOSE_LABEL, KubernetesHelper.getName(serviceMetadata));
+                serviceBuilder.editOrNewMetadata().addToLabels(EXPOSE_LABEL, "true").endMetadata();
+            }
         }
     }
 
-    private boolean hasWebPort(Service service) {
-        ServiceSpec spec = service.getSpec();
+    private boolean hasWebPort(ServiceBuilder serviceBuilder) {
+        ServiceSpec spec = serviceBuilder.buildSpec();
         if (spec != null) {
             List<ServicePort> ports = spec.getPorts();
             if (ports != null) {
                 for (ServicePort port : ports) {
                     Integer portNumber = port.getPort();
-                    if (portNumber != null && webPorts.contains(portNumber)) {
+                    if (portNumber != null && WEB_PORTS.contains(portNumber)) {
                         return true;
                     }
                 }
