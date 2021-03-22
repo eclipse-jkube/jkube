@@ -39,7 +39,7 @@
     <version.bouncycastle.bcpkix>1.61</version.bouncycastle.bcpkix>
     <version.commons-codec>1.15</version.commons-codec>
     <version.commons-compress>1.19</version.commons-compress>
-    <version.commons-io>2.6</version.commons-io>
+    <version.commons-io>2.8.0</version.commons-io>
     <version.commons-lang3>3.11</version.commons-lang3>
     <version.commons-text>1.9</version.commons-text>
     <version.gson>2.8.6</version.gson>
