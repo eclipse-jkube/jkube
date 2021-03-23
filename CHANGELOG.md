@@ -36,6 +36,7 @@ Usage:
 * Fix #571: Replace usages of deprecated `org.apache.commons.text.StrSubstitutor`
 * Fix #450: Quarkus port is inferred from application.properties/yaml (considers profile too)
 * Fix #471: Remove the declaration of thrown runtime exceptions across javadoc
+* Fix #620: Added k8s support for NetworkPolicy
 
 ### 1.1.1 (2021-02-23)
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag

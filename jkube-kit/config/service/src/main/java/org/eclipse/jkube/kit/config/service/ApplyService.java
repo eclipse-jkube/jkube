@@ -34,6 +34,7 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -167,7 +168,7 @@ public class ApplyService {
         } else if (dto instanceof RoleBinding) {
             applyRoleBinding((RoleBinding) dto, sourceName);
         } else if (dto instanceof Role) {
-            applyResource((Role)dto, sourceName, kubernetesClient.rbac().roles());
+            applyResource((Role) dto, sourceName, kubernetesClient.rbac().roles());
         } else if (dto instanceof ImageStream) {
             applyImageStream((ImageStream) dto, sourceName);
         } else if (dto instanceof OAuthClient) {
@@ -192,10 +193,12 @@ public class ApplyService {
             applyResource((Ingress) dto, sourceName, kubernetesClient.extensions().ingresses());
         } else if (dto instanceof PersistentVolumeClaim) {
             applyPersistentVolumeClaim((PersistentVolumeClaim) dto, sourceName);
-        }else if (dto instanceof CustomResourceDefinition) {
+        } else if (dto instanceof CustomResourceDefinition) {
             applyCustomResourceDefinition((CustomResourceDefinition) dto, sourceName);
         } else if (dto instanceof Job) {
             applyJob((Job) dto, sourceName);
+        } else if (dto instanceof NetworkPolicy) {
+            applyResource( (NetworkPolicy) dto, sourceName, kubernetesClient.network().networkPolicies());
         } else if (dto instanceof Namespace) {
             applyNamespace((Namespace) dto);
         } else if (dto instanceof Project) {
