@@ -91,6 +91,7 @@ public class KubernetesResourceUtil {
     public static final String API_VERSION = "v1";
     public static final String API_EXTENSIONS_VERSION = "extensions/v1beta1";
     public static final String API_APPS_VERSION = "apps/v1";
+    public static final String API_NETWORKING_VERSION = "networking.k8s.io/v1";
     public static final String JOB_VERSION = "batch/v1";
     public static final String OPENSHIFT_V1_VERSION = "apps.openshift.io/v1";
     public static final String CRONJOB_VERSION = "batch/v1beta1";
@@ -101,6 +102,7 @@ public class KubernetesResourceUtil {
             .withCoreVersion(API_VERSION)
             .withExtensionsVersion(API_EXTENSIONS_VERSION)
             .withAppsVersion(API_APPS_VERSION)
+            .withNetworkingVersion(API_NETWORKING_VERSION)
             .withOpenshiftV1Version(OPENSHIFT_V1_VERSION)
             .withJobVersion(JOB_VERSION)
             .withCronJobVersion(CRONJOB_VERSION)
@@ -273,6 +275,10 @@ public class KubernetesResourceUtil {
             case "StatefulSet" :
             case "Deployment" :
                 apiVersion = apiVersions.getAppsVersion();
+                break;
+
+            case "NetworkPolicy" :
+                apiVersion = apiVersions.getNetworkingVersion();
                 break;
 
             case "Job" :

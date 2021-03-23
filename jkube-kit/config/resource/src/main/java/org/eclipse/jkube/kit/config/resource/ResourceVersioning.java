@@ -25,6 +25,8 @@ public class ResourceVersioning {
 
     private String appsVersion;
 
+    private String networkingVersion;
+
     private String jobVersion;
 
     private String openshiftV1version;
@@ -36,10 +38,11 @@ public class ResourceVersioning {
     public ResourceVersioning() {
     }
 
-    public ResourceVersioning(String coreVersion, String extensionsVersion, String appsVersion, String jobVersion, String openshiftV1version, String cronJobVersion, String rbacVersion) {
+    public ResourceVersioning(String coreVersion, String extensionsVersion, String appsVersion, String networkingVersion, String jobVersion, String openshiftV1version, String cronJobVersion, String rbacVersion) {
         this.coreVersion = coreVersion;
         this.extensionsVersion = extensionsVersion;
         this.appsVersion = appsVersion;
+        this.networkingVersion = networkingVersion;
         this.jobVersion = jobVersion;
         this.openshiftV1version = openshiftV1version;
         this.cronJobVersion = cronJobVersion;
@@ -68,6 +71,14 @@ public class ResourceVersioning {
 
     public void setAppsVersion(String appsVersion) {
         this.appsVersion = appsVersion;
+    }
+
+    public String getNetworkingVersion() {
+        return networkingVersion;
+    }
+
+    public void setNetworkingVersion(String networkingVersion) {
+        this.networkingVersion = networkingVersion;
     }
 
     public void setOpenshiftV1Version(String openshiftV1Version) {
@@ -112,6 +123,12 @@ public class ResourceVersioning {
         return c;
     }
 
+    public ResourceVersioning withNetworkingVersion(String networkingVersion) {
+        ResourceVersioning c = copy();
+        c.setNetworkingVersion(networkingVersion);
+        return c;
+    }
+
     public ResourceVersioning withOpenshiftV1Version(String version) {
         ResourceVersioning c = copy();
         c.setOpenshiftV1Version(version);
@@ -142,6 +159,7 @@ public class ResourceVersioning {
         sb.append("coreVersion='").append(coreVersion).append('\'');
         sb.append(", extensionsVersion='").append(extensionsVersion).append('\'');
         sb.append(", appsVersion='").append(appsVersion).append('\'');
+        sb.append(", networkingVersion='").append(networkingVersion).append('\'');
         sb.append(", jobVersion='").append(jobVersion).append('\'');
         sb.append(", openshiftV1Version='").append(openshiftV1version).append('\'');
         sb.append(", cronjobVersion='").append(cronJobVersion).append('\'');
@@ -151,7 +169,7 @@ public class ResourceVersioning {
     }
 
     protected ResourceVersioning copy() {
-        return new ResourceVersioning(coreVersion, extensionsVersion, appsVersion, jobVersion, openshiftV1version, cronJobVersion, rbacVersion);
+        return new ResourceVersioning(coreVersion, extensionsVersion, appsVersion, networkingVersion, jobVersion, openshiftV1version, cronJobVersion, rbacVersion);
     }
 }
 
