@@ -20,8 +20,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
 
 public class PropertiesUtilTest {
 
@@ -46,5 +45,32 @@ public class PropertiesUtilTest {
     Properties result = getPropertiesFromResource(PropertiesUtilTest.class.getResource("/this-file-does-not-exist"));
     // Then
     assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetValueFromProperties() {
+    // Given
+    Properties properties = new Properties();
+    String[] keys = new String[] {"property1", "property2"};
+
+    // When
+    String imageName = getValueFromProperties(properties, keys);
+
+    // Then
+    assertThat(imageName).isNull();
+  }
+
+  @Test
+  public void testGetValueFromPropertiesReturnsValidValue() {
+    // Given
+    Properties properties = new Properties();
+    properties.put("property1", "value1");
+    String[] keys = new String[] {"property1", "property2"};
+
+    // When
+    String imageName = getValueFromProperties(properties, keys);
+
+    // Then
+    assertThat(imageName).isNotNull().isEqualTo("value1");
   }
 }

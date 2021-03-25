@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import io.fabric8.kubernetes.client.utils.Utils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -38,5 +40,24 @@ public class PropertiesUtil {
       }
     }
     return ret;
+  }
+
+  /**
+   * Return first Non Null set property from a set of provided properties
+   *
+   * @param properties {@link Properties} in a given project
+   * @param keys an array of property key values to find
+   * @return a string which is first non null value found for the provided list
+   */
+  public static String getValueFromProperties(Properties properties, String... keys) {
+    for (String property : keys) {
+      if (properties.containsKey(property)) {
+        String value = properties.get(property).toString();
+        if (Utils.isNotNullOrEmpty(value)) {
+          return value;
+        }
+      }
+    }
+    return null;
   }
 }
