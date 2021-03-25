@@ -78,6 +78,8 @@ public class QuarkusGeneratorTest {
       project.getBaseDirectory(); result = baseDir; minTimes = 0;
       project.getBuildDirectory(); result = baseDir.getAbsolutePath();
       project.getProperties(); result = projectProps;
+      project.getCompileClassPathElements(); result = Collections.emptyList(); minTimes = 0;
+      project.getOutputDirectory(); result = baseDir;
       ctx.getProject(); result = project;
       ctx.getConfig(); result = config;
       ctx.getStrategy(); result = JKubeBuildStrategy.s2i; minTimes = 0;
@@ -88,7 +90,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void testCustomizeReturnsDefaultFromInOpenShift() {
+  public void customize_inOpenShift_shouldReturnS2iFrom() {
     // Given
     in(RuntimeMode.OPENSHIFT);
     // When
@@ -98,7 +100,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void testCustomizeReturnsDefaultFromInKubernetes() {
+  public void customize_inKubernetes_shouldReturnDockerFrom() {
     // Given
     in(RuntimeMode.KUBERNETES);
     // When
@@ -108,7 +110,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void testCustomizeReturnsDefaultFromWhenNativeInOpenShift() throws IOException {
+  public void customize_inOpenShift_shouldReturnNativeS2iFrom() throws IOException {
     // Given
     in(RuntimeMode.OPENSHIFT);
     setNativeConfig();
@@ -119,18 +121,18 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void testCustomizeReturnsDefaultFromWhenNativeInKubernetes() throws IOException {
+  public void customize_inKubernetes_shouldReturnNativeUbiFrom() throws IOException {
     // Given
     in(RuntimeMode.KUBERNETES);
     setNativeConfig();
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
     // Then
-    assertBuildFrom(resultImages, "registry.access.redhat.com/ubi8/ubi-minimal:8.1");;
+    assertBuildFrom(resultImages, "registry.access.redhat.com/ubi8/ubi-minimal:8.1");
   }
 
   @Test
-  public void testCustomizeReturnsConfiguredFrom () {
+  public void customize_withConfiguredImage_shouldReturnConfigured() {
     config.getConfig().put("quarkus", Collections.singletonMap("from", BASE_JAVA_IMAGE));
     QuarkusGenerator generator = new QuarkusGenerator(ctx);
     List<ImageConfiguration> existingImages = new ArrayList<>();
@@ -141,7 +143,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void testCustomizeReturnsConfiguredFromWhenNative () throws IOException {
+  public void customize_withConfiguredNativeImage_shouldReturnConfiguredNative() throws IOException {
     setNativeConfig();
     config.getConfig().put("quarkus", Collections.singletonMap("from", BASE_NATIVE_IMAGE));
 
@@ -154,21 +156,20 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void testCustomizeReturnsPropertiesFrom () {
+  public void customize_withConfiguredInProperties_shouldReturnConfigured() {
     projectProps.put("jkube.generator.quarkus.from", BASE_JAVA_IMAGE);
 
     QuarkusGenerator generator = new QuarkusGenerator(ctx);
-    List<ImageConfiguration> resultImages = null;
     List<ImageConfiguration> existingImages = new ArrayList<>();
 
-    resultImages = generator.customize(existingImages, true);
+    List<ImageConfiguration> resultImages = generator.customize(existingImages, true);
 
     assertBuildFrom(resultImages, BASE_JAVA_IMAGE);
   }
 
 
   @Test
-  public void testCustomizeReturnsPropertiesFromWhenNative () throws IOException {
+  public void customize_withConfiguredNativeInProperties_shouldReturnConfiguredNative() throws IOException {
     setNativeConfig();
     projectProps.put("jkube.generator.quarkus.from", BASE_NATIVE_IMAGE);
 
@@ -181,7 +182,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void testAssembly() throws IOException {
+  public void assembly_withDefaults_shouldReturnDefaultAssemblyInImage() {
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
         .customize(new ArrayList<>(), false);
@@ -202,7 +203,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void testAssemblyWhenNative() throws IOException {
+  public void assembly_withDefaultsInNative_shouldReturnDefaultNativeAssemblyInImage() throws IOException {
     // Given
     setNativeConfig();
     // When
@@ -225,7 +226,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void testIsFatJarShouldBeFalse() {
+  public void isFatJar_withDefaults_shouldBeFalse() {
     // When
     final boolean result = new QuarkusGenerator(ctx).isFatJar();
     // Then

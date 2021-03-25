@@ -89,6 +89,12 @@
   </build>
   <profiles>
     <profile>
+      <id>dev</id>
+      <properties>
+        <quarkus.profile>dev</quarkus.profile>
+      </properties>
+    </profile>
+    <profile>
       <id>native-docker</id>
       <activation>
         <property>
