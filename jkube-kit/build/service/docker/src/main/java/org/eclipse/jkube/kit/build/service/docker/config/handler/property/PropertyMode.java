@@ -33,7 +33,6 @@ public enum PropertyMode {
      *
      * @param name null or a valid name
      * @return PropertyMode
-     * @throws IllegalArgumentException if empty or invalid names
      */
     static PropertyMode parse(String name) {
         if(name == null) {

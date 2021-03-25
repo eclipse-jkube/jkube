@@ -106,7 +106,6 @@ public class DockerFileBuilder {
      * <a href="http://docs.docker.io/reference/builder/#usage">Docker reference manual</a>
      *
      * @return the dockerfile create
-     * @throws IllegalArgumentException if no src/dest entries have been added
      */
     public String content() {
 
