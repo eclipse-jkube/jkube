@@ -31,7 +31,6 @@ import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
@@ -94,7 +93,12 @@ import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 import org.fusesource.jansi.Ansi;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.addSimpleDockerfileConfig;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.createSimpleDockerfileConfig;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.getTopLevelDockerfile;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.isSimpleDockerFileMode;
 import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
 import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo.DEFAULT_LOG_PREFIX;
 
 public abstract class AbstractDockerMojo extends AbstractMojo
@@ -789,6 +793,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     // Resolve and customize image configuration
     protected String initImageConfiguration(Date buildTimeStamp) throws DependencyResolutionRequiredException {
+        ImageNameFormatter imageNameFormatter = new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), buildTimeStamp);
         // Resolve images
         resolvedImages = ConfigHelper.resolveImages(
                 log,
@@ -805,17 +810,19 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 this);                     // customizer (can be overwritten by a subclass)
 
         // Check for simple Dockerfile mode
-        if (DockerFileUtil.isSimpleDockerFileMode(project.getBasedir())) {
-            File topDockerfile = DockerFileUtil.getTopLevelDockerfile(project.getBasedir());
+        if (isSimpleDockerFileMode(project.getBasedir())) {
+            File topDockerfile = getTopLevelDockerfile(project.getBasedir());
+            String defaultImageName = imageNameFormatter.format(getValueFromProperties(project.getProperties(),
+                    "jkube.image.name", "jkube.generator.name"));
             if (resolvedImages.isEmpty()) {
-                resolvedImages.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("jkube.image.name")));
+                resolvedImages.add(createSimpleDockerfileConfig(topDockerfile, defaultImageName));
             } else if (resolvedImages.size() == 1 && resolvedImages.get(0).getBuildConfiguration() == null) {
-                resolvedImages.set(0, DockerFileUtil.addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
+                resolvedImages.set(0, addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
             }
         }
 
         // Initialize configuration and detect minimal API version
-        return ConfigHelper.initAndValidate(resolvedImages, apiVersion, new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), buildTimeStamp));
+        return ConfigHelper.initAndValidate(resolvedImages, apiVersion, imageNameFormatter);
     }
 
     /**

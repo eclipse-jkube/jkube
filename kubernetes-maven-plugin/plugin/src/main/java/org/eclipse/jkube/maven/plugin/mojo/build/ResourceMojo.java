@@ -25,7 +25,6 @@ import java.util.Properties;
 import javax.validation.ConstraintViolationException;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
@@ -67,7 +66,12 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenFilteringException;
 
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.addSimpleDockerfileConfig;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.createSimpleDockerfileConfig;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.getTopLevelDockerfile;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.isSimpleDockerFileMode;
 import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
 import static org.eclipse.jkube.kit.common.util.ResourceMojoUtil.DEFAULT_RESOURCE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.ResourceMojoUtil.useDekorate;
 import static org.eclipse.jkube.maven.plugin.mojo.build.BuildMojo.CONTEXT_KEY_BUILD_TIMESTAMP;
@@ -387,18 +391,21 @@ public class ResourceMojo extends AbstractJKubeMojo {
             });
 
         Date now = getBuildReferenceDate();
+        ImageNameFormatter imageNameFormatter = new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), now);
         storeReferenceDateInPluginContext(now);
         // Check for simple Dockerfile mode
-        if (DockerFileUtil.isSimpleDockerFileMode(project.getBasedir())) {
-            File topDockerfile = DockerFileUtil.getTopLevelDockerfile(project.getBasedir());
+        if (isSimpleDockerFileMode(project.getBasedir())) {
+            File topDockerfile = getTopLevelDockerfile(project.getBasedir());
+            String defaultImageName = imageNameFormatter.format(getValueFromProperties(project.getProperties(),
+                    "jkube.image.name", "jkube.generator.name"));
             if (ret.isEmpty()) {
-                ret.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, MavenUtil.getPropertiesWithSystemOverrides(project).getProperty("jkube.image.name")));
+                ret.add(createSimpleDockerfileConfig(topDockerfile, defaultImageName));
             } else if (ret.size() == 1 && ret.get(0).getBuildConfiguration() == null) {
-                ret.set(0, DockerFileUtil.addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
+                ret.set(0, addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
             }
         }
         String minimalApiVersion = ConfigHelper.initAndValidate(ret, null /* no minimal api version */,
-            new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), now));
+          imageNameFormatter);
         return ret;
     }
 

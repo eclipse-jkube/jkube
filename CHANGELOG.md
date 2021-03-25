@@ -37,6 +37,7 @@ Usage:
 * Fix #450: Quarkus port is inferred from application.properties/yaml (considers profile too)
 * Fix #471: Remove the declaration of thrown runtime exceptions across javadoc
 * Fix #620: Added k8s support for NetworkPolicy
+* Fix #624: Unable to override Image Name in Simple Dockerfile Mode with `jkube.generator.name` 
 
 ### 1.1.1 (2021-02-23)
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag
