@@ -29,11 +29,12 @@ Usage:
 * Fix #586: Apply and Undeploy service use configured namespace
 * Fix #584: Improved Vert.x 4 support
 * Fix #592: Upgrade kubernetes client from 5.0.0 to 5.1.1
-* Update Fabric8 Kubernetes Client from v5.1.1 to v5.2.1
+* Fix #615: Update Fabric8 Kubernetes Client from v5.1.1 to v5.2.1
 * Fix #594: Debug with suspend mode removes Liveness Probe
 * Fix #591: Helm linter no longer fails with generated charts
 * Fix #587: Helm tar.gz packaged chart can be deployed
 * Fix #571: Replace usages of deprecated `org.apache.commons.text.StrSubstitutor`
+* Fix #450: Quarkus port is inferred from application.properties/yaml (considers profile too)
 * Fix #471: Remove the declaration of thrown runtime exceptions across javadoc
 
 ### 1.1.1 (2021-02-23)

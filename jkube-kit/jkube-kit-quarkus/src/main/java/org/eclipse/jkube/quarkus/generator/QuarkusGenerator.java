@@ -37,6 +37,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
+import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+
 public class QuarkusGenerator extends JavaExecGenerator {
 
   public QuarkusGenerator(GeneratorContext context) {
@@ -63,13 +67,17 @@ public class QuarkusGenerator extends JavaExecGenerator {
 
   @Override
   protected List<String> extractPorts() {
-    // TODO: Check application.properties for a port
-    if (isNativeImage()) {
-      return new ArrayList<>(Collections.singletonList(
-          getConfig(JavaExecGenerator.Config.WEB_PORT)
-      ));
+    final List<String> ports = new ArrayList<>();
+    final String quarkusPort = extractPort(
+        getProject(),
+        getQuarkusConfiguration(getClassLoader(getProject())),
+        null);
+    addPortIfValid(ports, getConfig(JavaExecGenerator.Config.WEB_PORT,quarkusPort));
+    if (!isNativeImage()) {
+      addPortIfValid(ports, getConfig(JavaExecGenerator.Config.JOLOKIA_PORT));
+      addPortIfValid(ports, getConfig(JavaExecGenerator.Config.PROMETHEUS_PORT));
     }
-    return super.extractPorts();
+    return ports;
   }
 
   @Override
