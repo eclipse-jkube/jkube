@@ -35,6 +35,7 @@ Usage:
 * Fix #587: Helm tar.gz packaged chart can be deployed
 * Fix #571: Replace usages of deprecated `org.apache.commons.text.StrSubstitutor`
 * Fix #450: Quarkus port is inferred from application.properties/yaml (considers profile too)
+* Fix #471: Remove the declaration of thrown runtime exceptions across javadoc
 
 ### 1.1.1 (2021-02-23)
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag

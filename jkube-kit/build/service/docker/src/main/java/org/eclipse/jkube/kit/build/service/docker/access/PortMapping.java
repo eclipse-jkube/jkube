@@ -82,7 +82,6 @@ public class PortMapping {
      *            <code>host_ip:host_port:container_port</code>. If the <code>host-port</code> is non-numeric it is
      *            assumed to be a variable (which later might be filled in with the dynamically created port).
      * @param projProperties project properties
-     * @throws IllegalArgumentException if the format doesn't fit
      */
     public PortMapping(List<String> portMappings, Properties projProperties) {
         this.projProperties = projProperties;

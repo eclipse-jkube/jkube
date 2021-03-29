@@ -155,7 +155,6 @@ public class VolumeBindingUtil {
      *                {@code ~}) present in the {@code bindingString}; <em>must</em> be absolute
      * @param bindingString the volume string from the docker-compose file
      * @return the volume string, with any relative paths resolved as absolute paths
-     * @throws IllegalArgumentException if the supplied {@code baseDir} is not absolute
      */
     public static String resolveRelativeVolumeBinding(File baseDir, String bindingString) {
 
@@ -217,7 +216,6 @@ public class VolumeBindingUtil {
      * @param baseDir the base directory used to resolve relative paths (e.g. beginning with {@code ./}, {@code ../},
      *                {@code ~}) present in the binding string; <em>must</em> be absolute
      * @param volumeConfiguration the volume configuration that may contain volume binding specifications
-     * @throws IllegalArgumentException if the supplied {@code baseDir} is not absolute
      */
     public static void resolveRelativeVolumeBindings(File baseDir, RunVolumeConfiguration volumeConfiguration) {
         List<String> bindings = volumeConfiguration.getBind();

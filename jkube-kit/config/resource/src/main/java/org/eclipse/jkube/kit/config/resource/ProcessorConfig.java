@@ -117,7 +117,6 @@ public class ProcessorConfig {
      * @param type a description used in an error message (like 'generator' or 'enricher')
      * @param <T> the concrete type
      * @return the ordered list according to the algorithm described above
-     * @throws IllegalArgumentException if the includes reference an non existing element
      */
     public <T extends Named> List<T> prepareProcessors(List<T> namedList, String type) {
         List<T> ret = new ArrayList<>();

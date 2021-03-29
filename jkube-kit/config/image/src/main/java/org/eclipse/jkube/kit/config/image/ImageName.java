@@ -237,7 +237,6 @@ public class ImageName {
      * Check whether the given name validates against the Docker rules for names
      *
      * @param image image name to validate
-     * d@throws IllegalArgumentException if the name doesnt validate
      */
     public static void validate(String image) {
         // Validation will be triggered during construction
