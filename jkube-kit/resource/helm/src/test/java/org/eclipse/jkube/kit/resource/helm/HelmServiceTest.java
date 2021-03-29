@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.Arrays;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
@@ -23,6 +24,7 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
+import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,6 +78,41 @@ public class HelmServiceTest {
           .hasFieldOrPropertyWithValue("apiVersion", "v1")
           .hasFieldOrPropertyWithValue("name", "Chart Name")
           .hasFieldOrPropertyWithValue("version", "1337");
+    }};
+  }
+
+  @Test
+  public void uploadChart(
+      @Mocked HelmUploader helmUploader,
+      @Mocked HelmRepository helmRepository)
+      throws IOException, BadUploadException {
+    //Given
+    new Expectations() {{
+      helmConfig.getTypes();
+      result = Arrays.asList(HelmType.KUBERNETES);
+      helmConfig.getChart();
+      result = "chartName";
+      helmConfig.getVersion();
+      result = "1337";
+      helmConfig.getChartExtension();
+      result = "tar.gz";
+      helmConfig.getOutputDir();
+      result = "target";
+      helmConfig.getTarballOutputDir();
+      result = "target";
+      helmRepository.getName();
+      result = "Artifactory";
+      helmUploader.uploadSingle(withInstanceOf(File.class), helmRepository);
+    }};
+    // When
+    HelmService.uploadHelmChart(kitLogger, helmConfig, helmRepository);
+    // Then
+    new Verifications() {{
+      String fileName = "chartName-1337-helm.tar.gz";
+      File file;
+      helmUploader.uploadSingle(file = withCapture(), helmRepository);
+      assertThat(file)
+          .hasName(fileName);
     }};
   }
 }

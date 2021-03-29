@@ -48,6 +48,9 @@ public class HelmConfig {
   private String outputDir;
   private String tarballOutputDir;
   private List<GeneratedChartListener> generatedChartListeners;
+  private HelmRepository stableRepository;
+  private HelmRepository snapshotRepository;
+  private String security;
 
   public String getChart() {
     return chart;
@@ -192,6 +195,30 @@ public class HelmConfig {
 
   public void setGeneratedChartListeners(List<GeneratedChartListener> generatedChartListeners) {
     this.generatedChartListeners = generatedChartListeners;
+  }
+
+  public HelmRepository getStableRepository() {
+    return stableRepository;
+  }
+
+  public void setStableRepository(HelmRepository stableRepository) {
+    this.stableRepository = stableRepository;
+  }
+
+  public HelmRepository getSnapshotRepository() {
+    return snapshotRepository;
+  }
+
+  public void setSnapshotRepository(HelmRepository snapshotRepository) {
+    this.snapshotRepository = snapshotRepository;
+  }
+
+  public String getSecurity() {
+    return security;
+  }
+
+  public void setSecurity(String security) {
+    this.security = security;
   }
 
   public enum HelmType {
