@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.3.0-SNAPSHOT
+* Fix #576: Add support to publishing helm chart
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported

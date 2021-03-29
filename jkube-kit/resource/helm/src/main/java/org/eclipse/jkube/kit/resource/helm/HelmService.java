@@ -84,6 +84,25 @@ public class HelmService {
     }
   }
 
+  public static void uploadHelmChart(KitLogger logger, HelmConfig helmConfig,
+      HelmRepository helmRepository) throws IOException, BadUploadException {
+
+    for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
+
+      HelmUploader helmUploader = new HelmUploader(logger);
+      logger.info("Uploading Helm Chart \"%s\" to %s", helmConfig.getChart(), helmRepository.getName());
+      logger.debug("OutputDir: %s", helmConfig.getOutputDir());
+
+      final File tarballOutputDir =
+          new File(Objects.requireNonNull(helmConfig.getTarballOutputDir(), "Tarball output directory is required"));
+      final File tarballFile = new File(tarballOutputDir, String.format("%s-%s-%s.%s",
+          helmConfig.getChart(), helmConfig.getVersion(), helmType.getClassifier(), helmConfig.getChartExtension()));
+
+      helmUploader.uploadSingle(tarballFile, helmRepository);
+    }
+  }
+
+
   static File prepareSourceDir(HelmConfig helmConfig, HelmConfig.HelmType type) throws IOException {
     final File sourceDir = new File(helmConfig.getSourceDir(), type.getSourceDir());
     if (!sourceDir.isDirectory()) {

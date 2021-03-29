@@ -124,6 +124,10 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
             getLogPrefix() + Optional.ofNullable(prefix).map(" "::concat).orElse(""));
     }
 
+    protected Settings getSettings() {
+        return settings;
+    }
+
     /**
      * Determine whether to enable colorized log messages
      * @return true if log statements should be colorized

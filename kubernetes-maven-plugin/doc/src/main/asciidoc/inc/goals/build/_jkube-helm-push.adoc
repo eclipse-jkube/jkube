@@ -1,0 +1,142 @@
+
+[[jkube:helm-push]]
+== *{goal-prefix}:helm*
+
+This goal is for pushing
+https://helm.sh/docs/topics/charts[Helm charts]
+in a remote repository [Artifactory, Chartmuseum, Nexus].
+
+To publish a Helm chart you simply call `{goal-prefix}:helm-push` goal on the command line:
+
+[source, sh, subs="+attributes"]
+----
+mvn {goal-prefix}:resource {goal-prefix}:helm {goal-prefix}:helm-push
+----
+
+The `{goal-prefix}:resource` and the `{goal-prefix}:helm` goals are required to create the resource descriptors which are included in the Helm chart and the Helm chart itself.
+If you have already built the resource and create the chart, then you can omit these goals.
+
+The configuration is defined in a `<helm>` section within the plugin's configuration:
+
+.Example Helm configuration
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <configuration>
+    <helm>
+      <chart>Jenkins</chart>
+      <keywords>ci,cd,server</keywords>
+      <stableRepository>
+        <name>stable-repo-id</name>
+        <url>https://stable-repo-url</url>
+        <type>ARTIFACTORY</type>
+      </stableRepository>
+      <snapshotRepository>
+        <name>snapshot-repo-id</name>
+        <url>https://snapshot-repo-url</url>
+        <type>ARTIFACTORY</type>
+      </snapshotRepository>
+    </helm>
+  </configuration>
+</plugin>
+----
+
+This configuration section knows the following sub-elements in order to configure your Helm chart.
+
+.Helm configuration
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+| *stableRepository*
+| The configuration of the stable helm repository (see Helm stable repository configuration).
+|
+
+| *snapshotRepository*
+| The configuration of the snapshot helm repository (see Helm repository configuration).
+|
+
+|===
+
+.Helm stable repository configuration
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+| *name*
+| The name (id) of the server configuration. It can select the maven server by this ID.
+| `jkube.helm.stableRepository.name`
+
+| *url*
+| The url of the server.
+| `jkube.helm.stableRepository.url`
+
+| *username*
+| The username of the repository. Optional. If a maven server ID is specified, the username is taken from there.
+| `jkube.helm.stableRepository.username`
+
+| *password*
+| The password of the repository. Optional. If a maven server ID is specified, the password is taken from there.
+| `jkube.helm.stableRepository.password`
+
+| *type*
+| The type of the repository. One of ARTIFACTORY, NEXUS, CHARTMUSEUM
+| `jkube.helm.stableRepository.type`
+
+|
+|===
+
+.Helm snapshot repository configuration
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+| *name*
+| The name (id) of the server configuration. It can select the maven server by this ID.
+| `jkube.helm.snapshotRepository.name`
+
+| *url*
+| The url of the server.
+| `jkube.helm.snapshotRepository.url`
+
+| *username*
+| The username of the repository. Optional. If a maven server ID is specified, the username is taken from there.
+| `jkube.helm.snapshotRepository.username`
+
+| *password*
+| The password of the repository. Optional. If a maven server ID is specified, the password is taken from there.
+| `jkube.helm.snapshotRepository.password`
+
+| *type*
+| The type of the repository. One of ARTIFACTORY, NEXUS, CHARTMUSEUM
+| `jkube.helm.snapshotRepository.type`
+
+|
+|===
+
+
+To add the `helm-push` goal to your project so that it is automatically executed just add the `helm-push` goal to the `executions`
+section of the `{plugin}` section of your `pom.xml`.
+
+.Add helm goal
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+
+  <!-- ... -->
+
+  <executions>
+    <execution>
+      <goals>
+        <goal>resource</goal>
+        <goal>helm</goal>
+        <goal>build</goal>
+        <goal>deploy</goal>
+        <goal>helm-push</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+----

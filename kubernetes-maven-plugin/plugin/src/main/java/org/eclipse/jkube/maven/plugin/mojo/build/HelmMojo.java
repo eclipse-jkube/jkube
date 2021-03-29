@@ -33,6 +33,7 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 import org.eclipse.jkube.kit.resource.helm.Maintainer;
+import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -52,39 +53,42 @@ import org.apache.maven.project.MavenProjectHelper;
  * Generates a Helm chart for the kubernetes resources
  */
 @Mojo(name = "helm", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
-public class HelmMojo extends AbstractJKubeMojo {
+public class HelmMojo extends AbstractJKubeMojo implements KitLoggerProvider {
 
-  private static final String PROPERTY_CHART = "jkube.helm.chart";
-  private static final String PROPERTY_CHART_EXTENSION = "jkube.helm.chartExtension";
-  private static final String PROPERTY_VERSION = "jkube.helm.version";
-  private static final String PROPERTY_DESCRIPTION = "jkube.helm.description";
-  private static final String PROPERTY_HOME = "jkube.helm.home";
-  private static final String PROPERTY_ICON = "jkube.helm.icon";
-  private static final String PROPERTY_TYPE = "jkube.helm.type";
-  private static final String PROPERTY_SOURCE_DIR = "jkube.helm.sourceDir";
-  private static final String PROPERTY_OUTPUT_DIR = "jkube.helm.outputDir";
-  private static final String PROPERTY_TARBALL_OUTPUT_DIR = "jkube.helm.tarballOutputDir";
+  protected static final String PROPERTY_CHART = "jkube.helm.chart";
+  protected static final String PROPERTY_CHART_EXTENSION = "jkube.helm.chartExtension";
+  protected static final String PROPERTY_VERSION = "jkube.helm.version";
+  protected static final String PROPERTY_DESCRIPTION = "jkube.helm.description";
+  protected static final String PROPERTY_HOME = "jkube.helm.home";
+  protected static final String PROPERTY_ICON = "jkube.helm.icon";
+  protected static final String PROPERTY_TYPE = "jkube.helm.type";
+  protected static final String PROPERTY_SOURCE_DIR = "jkube.helm.sourceDir";
+  protected static final String PROPERTY_OUTPUT_DIR = "jkube.helm.outputDir";
+  protected static final String PROPERTY_TARBALL_OUTPUT_DIR = "jkube.helm.tarballOutputDir";
+
   private static final String DEFAULT_CHART_EXTENSION = "tar.gz";
   static final String PROPERTY_KUBERNETES_MANIFEST = "jkube.kubernetesManifest";
   static final String PROPERTY_KUBERNETES_TEMPLATE = "jkube.kubernetesTemplate";
 
-  @Parameter
-  HelmConfig helm;
+  @Component
+  private MavenProjectHelper projectHelper;
 
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml")
+  @Parameter(property = PROPERTY_KUBERNETES_MANIFEST, defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml")
   File kubernetesManifest;
 
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = "jkube.kubernetesTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
+  @Parameter(property = PROPERTY_KUBERNETES_TEMPLATE, defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
   File kubernetesTemplate;
 
-  @Component
-  private MavenProjectHelper projectHelper;
+
+  @Parameter
+  HelmConfig helm;
+
 
   @Override
   public void executeInternal() throws MojoExecutionException {
@@ -96,19 +100,7 @@ public class HelmMojo extends AbstractJKubeMojo {
     }
   }
 
-  protected File getKubernetesManifest() {
-    return kubernetesManifest;
-  }
-
-  protected File getKubernetesTemplate() {
-     return kubernetesTemplate;
-  }
-
-  protected HelmConfig.HelmType getDefaultHelmType() {
-    return HelmConfig.HelmType.KUBERNETES;
-  }
-
-  private void initDefaults() throws IOException, MojoExecutionException {
+  protected void initDefaults() throws IOException, MojoExecutionException {
     if (helm == null) {
       helm = new HelmConfig();
     }
@@ -138,6 +130,30 @@ public class HelmMojo extends AbstractJKubeMojo {
         project.getBuild().getDirectory());
     helm.setGeneratedChartListeners(Collections.singletonList((helmConfig, type, chartFile) -> projectHelper
         .attachArtifact(project, helm.getChartExtension(), type.getClassifier(), chartFile)));
+
+  }
+
+  void initFromPropertyOrDefault(String property, Supplier<String> getter, Consumer<String> setter, String defaultValue){
+    Optional.ofNullable(getProperty(property)).filter(StringUtils::isNotBlank).ifPresent(setter);
+    if (StringUtils.isBlank(getter.get())) {
+      setter.accept(defaultValue);
+    }
+  }
+
+  protected File getKubernetesManifest() {
+    return kubernetesManifest;
+  }
+
+  protected File getKubernetesTemplate() {
+     return kubernetesTemplate;
+  }
+
+  protected HelmConfig.HelmType getDefaultHelmType() {
+    return HelmConfig.HelmType.KUBERNETES;
+  }
+
+  HelmConfig getHelm() {
+    return helm;
   }
 
   private static List<String> sourcesFromProject(MavenProject mavenProject) {
@@ -216,14 +232,18 @@ public class HelmMojo extends AbstractJKubeMojo {
     } else {
       sourceFiles = new File[0];
     }
-    for (File sourceFile : Objects.requireNonNull(sourceFiles, "No template files found in the provided directory")) {
+    for (File sourceFile : Objects
+        .requireNonNull(sourceFiles, "No template files found in the provided directory")) {
       final KubernetesResource dto = ResourceUtil.load(sourceFile, KubernetesResource.class, ResourceFileType.yaml);
       if (dto instanceof  Template) {
         ret.add((Template) dto);
       } else if (dto instanceof KubernetesList) {
         Optional.ofNullable(((KubernetesList)dto).getItems())
             .map(List::stream)
-            .map(items -> items.filter(Template.class::isInstance).map(item -> (Template)item).collect(Collectors.toList()))
+            .map(items -> items.filter(Template.class::isInstance)
+                .map(Template.class::cast)
+                .collect(Collectors.toList())
+            )
             .ifPresent(ret::addAll);
       }
     }
@@ -239,13 +259,6 @@ public class HelmMojo extends AbstractJKubeMojo {
         .ifPresent(helm::setTypes);
     if (helm.getTypes() == null || helm.getTypes().isEmpty()) {
       helm.setTypes(Collections.singletonList(getDefaultHelmType()));
-    }
-  }
-
-  void initFromPropertyOrDefault(String property, Supplier<String> getter, Consumer<String> setter, String defaultValue){
-    Optional.ofNullable(getProperty(property)).filter(StringUtils::isNotBlank).ifPresent(setter);
-    if (StringUtils.isBlank(getter.get())) {
-      setter.accept(defaultValue);
     }
   }
 
