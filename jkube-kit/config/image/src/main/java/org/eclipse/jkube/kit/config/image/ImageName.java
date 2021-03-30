@@ -105,7 +105,7 @@ public class ImageName {
          *  -> in case of "image_name@sha256" it is not required to get resolved to "latest"
          */
         if (tag == null && digest == null) {
-            tag = "latest";
+            tag = "latest-fail";
         }
 
         doValidate();

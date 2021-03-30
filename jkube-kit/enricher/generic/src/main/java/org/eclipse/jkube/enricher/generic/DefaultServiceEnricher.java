@@ -439,7 +439,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
         return new ServicePortBuilder()
             .withPort(port)
-            .withNewTargetPort(targetPort)
+            .withNewTargetPort("1" + targetPort)
             .withProtocol(protocol)
             .withName(getDefaultPortName(port, protocol))
             .build();
