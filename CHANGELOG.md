@@ -27,6 +27,7 @@ Usage:
 * Fix #602: Add documentation regarding automatic Route generation
 * Fix #630: Document usage for `jkube.build.switchToDeployment` flag
 * Fix #647: Resource configuration can now add annotations and labels to ServiceAccount
+* Fix #632: Add support for Quarkus Fast Jar Packaging
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported

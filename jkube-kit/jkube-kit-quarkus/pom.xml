@@ -64,5 +64,6 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
         </dependency>
+
     </dependencies>
 </project>
