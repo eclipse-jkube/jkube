@@ -47,15 +47,16 @@ public class QuarkusGenerator extends JavaExecGenerator {
   static final String QUARKUS_PACKAGING = "quarkus.package.type";
   static final String UBER_JAR_PACKAGING = "uber-jar";
   static final String LEGACY_JAR_PACKAGING = "legacy-jar";
+  public static final String QUARKUS = "quarkus";
 
   public QuarkusGenerator(GeneratorContext context) {
-    super(context, "quarkus");
+    super(context, QUARKUS);
   }
 
   @AllArgsConstructor
   public enum Config implements Configs.Config {
 
-    //Whether to add native image or plain java image
+    // Whether to add native image or plain java image
     NATIVE_IMAGE("nativeImage", "false");
 
     @Getter
@@ -95,7 +96,6 @@ public class QuarkusGenerator extends JavaExecGenerator {
 
   @Override
   protected AssemblyConfiguration createAssembly() {
-
     if (isNativeImage()) {
       return createAssemblyConfiguration("/", getNativeFileToInclude());
     } else if (isUberJar(getQuarkusPackaging())) {
@@ -119,28 +119,11 @@ public class QuarkusGenerator extends JavaExecGenerator {
   protected Arguments getBuildEntryPoint() {
     if (isNativeImage()) {
       final Arguments.ArgumentsBuilder ab = Arguments.builder();
-      ab.execArgument("./" + findSingleFileThatEndsWith(null,"-runner"));
+      ab.execArgument("./" + findSingleFileThatEndsWith(null, "-runner"));
       getExtraJavaOptions().forEach(ab::execArgument);
       return ab.build();
     }
     return null;
-  }
-
-  @Override
-  protected boolean isFatJar() {
-    return isUberJar(getQuarkusPackaging());
-  }
-
-  protected boolean isUberJar(String packaging) {
-    return UBER_JAR_PACKAGING.equals(packaging);
-  }
-
-  private boolean isLegacyJar(String packaging) {
-    return LEGACY_JAR_PACKAGING.equals(packaging);
-  }
-
-  private boolean isNativeImage() {
-    return Boolean.parseBoolean(getConfig(Config.NATIVE_IMAGE));
   }
 
   @Override
@@ -154,16 +137,15 @@ public class QuarkusGenerator extends JavaExecGenerator {
     return Collections.singletonList("-Dquarkus.http.host=0.0.0.0");
   }
 
+  private boolean isNativeImage() {
+    return Boolean.parseBoolean(getConfig(Config.NATIVE_IMAGE));
+  }
+
   private String getNativeFrom() {
     if (getContext().getRuntimeMode() != RuntimeMode.OPENSHIFT) {
       return "registry.access.redhat.com/ubi8/ubi-minimal:8.1";
     }
     return "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0";
-  }
-
-  private String getQuarkusPackaging() {
-    return JKubeProjectUtil.getPropertiesWithSystemOverrides(getProject())
-        .getProperty(QUARKUS_PACKAGING);
   }
 
   private AssemblyConfiguration createAssemblyConfiguration(String targetDir, AssemblyFileSet jKubeAssemblyFileSet) {
@@ -175,17 +157,9 @@ public class QuarkusGenerator extends JavaExecGenerator {
         .build();
   }
 
-  private AssemblyFileSet getFastJarFilesToInclude() {
-    AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder = getQuarkusAppDirectory();
-    fileSetBuilder.include("lib").outputDirectory(new File("lib"));
-    fileSetBuilder.include("app").outputDirectory(new File("app"));
-    fileSetBuilder.include("quarkus").outputDirectory(new File("quarkus"));
-    fileSetBuilder.fileMode("0640");
-    return fileSetBuilder.build();
-  }
-
   private AssemblyFileSet getLegacyJarFilesToInclude() {
-    AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
+    AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder =
+        getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
     fileSetBuilder.include("lib");
     // We also need to exclude default jar file
     File defaultJarFile = JKubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
@@ -196,8 +170,18 @@ public class QuarkusGenerator extends JavaExecGenerator {
     return fileSetBuilder.build();
   }
 
+  private AssemblyFileSet getFastJarFilesToInclude() {
+    AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder = getQuarkusAppDirectory();
+    fileSetBuilder.include("lib").outputDirectory(new File("lib"));
+    fileSetBuilder.include("app").outputDirectory(new File("app"));
+    fileSetBuilder.include(QUARKUS).outputDirectory(new File(QUARKUS));
+    fileSetBuilder.fileMode("0640");
+    return fileSetBuilder.build();
+  }
+
   private AssemblyFileSet getFatJarFilesToInclude() {
-    AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
+    AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder =
+        getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
     // We also need to exclude default jar file
     File defaultJarFile = JKubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
     if (defaultJarFile != null) {
@@ -216,7 +200,7 @@ public class QuarkusGenerator extends JavaExecGenerator {
   private AssemblyFileSet.AssemblyFileSetBuilder getFileSetWithFileFromBuildThatEndsWith(String suffix) {
     List<String> relativePaths = new ArrayList<>();
 
-    String fileToInclude = findSingleFileThatEndsWith(null,suffix);
+    String fileToInclude = findSingleFileThatEndsWith(null, suffix);
     if (fileToInclude != null && !fileToInclude.isEmpty()) {
       relativePaths.add(fileToInclude);
     }
@@ -224,6 +208,19 @@ public class QuarkusGenerator extends JavaExecGenerator {
         .directory(FileUtil.getRelativePath(getProject().getBaseDirectory(), getProject().getBuildDirectory()))
         .includes(relativePaths)
         .fileMode("0777");
+  }
+
+  private String findSingleFileThatEndsWith(File buildDir, String suffix) {
+    if(buildDir == null) {
+      buildDir = getProject().getBuildDirectory();
+    }
+    String[] file = buildDir.list((dir, name) -> name.endsWith(suffix));
+    if (file == null || file.length != 1) {
+      throw new IllegalStateException("Can't find single file with suffix '" + suffix +
+          "' in " + buildDir + " (zero or more than one files found ending with '" +
+          suffix + "')");
+    }
+    return file[0];
   }
 
   private AssemblyFileSet.AssemblyFileSetBuilder getQuarkusAppDirectory() {
@@ -242,16 +239,26 @@ public class QuarkusGenerator extends JavaExecGenerator {
         .fileMode("0777");
   }
 
-  private String findSingleFileThatEndsWith(File buildDir,String suffix) {
-    if(buildDir == null) {
-      buildDir = getProject().getBuildDirectory();
-    }
-    String[] file = buildDir.list((dir, name) -> name.endsWith(suffix));
-    if (file == null || file.length != 1) {
-      throw new IllegalStateException("Can't find single file with suffix '" + suffix + "' in " + buildDir
-          + " (zero or more than one files found ending with '" + suffix + "')");
-    }
-    return file[0];
+  private String getQuarkusPackaging() {
+    return JKubeProjectUtil.getPropertiesWithSystemOverrides(getProject())
+        .getProperty(QUARKUS_PACKAGING);
+  }
+
+  private boolean isFastJAR() {
+    return new File(getProject().getBuildDirectory() +
+        "/quarkus-app").exists();
+  }
+  @Override
+  protected boolean isFatJar() {
+    return isUberJar(getQuarkusPackaging());
+  }
+
+  protected boolean isUberJar(String packaging) {
+    return UBER_JAR_PACKAGING.equals(packaging);
+  }
+
+  private boolean isLegacyJar(String packaging) {
+    return LEGACY_JAR_PACKAGING.equals(packaging) || !isFastJAR();
   }
 
 }

@@ -70,9 +70,8 @@ public class QuarkusGeneratorTest {
     projectProps = new Properties();
     projectProps.put("jkube.generator.name", "quarkus");
     baseDir = temporaryFolder.newFolder("target");
-    createFakeRunnerJar();
-    createQuarkusAppRunnerJar();
-    createFakeNativeImage();
+    createFakeRunnerJar(false);
+    createFakeNativeImage(false);
     // @formatter:off
     new Expectations() {{
       project.getVersion(); result = "0.0.1-SNAPSHOT"; minTimes = 0;
@@ -114,7 +113,7 @@ public class QuarkusGeneratorTest {
   public void customize_inOpenShift_shouldReturnNativeS2iFrom() throws IOException {
     // Given
     in(RuntimeMode.OPENSHIFT);
-    setNativeConfig();
+    setNativeConfig(false);
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
     // Then
@@ -125,7 +124,7 @@ public class QuarkusGeneratorTest {
   public void customize_inKubernetes_shouldReturnNativeUbiFrom() throws IOException {
     // Given
     in(RuntimeMode.KUBERNETES);
-    setNativeConfig();
+    setNativeConfig(false);
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
     // Then
@@ -145,7 +144,7 @@ public class QuarkusGeneratorTest {
 
   @Test
   public void customize_withConfiguredNativeImage_shouldReturnConfiguredNative() throws IOException {
-    setNativeConfig();
+    setNativeConfig(false);
     config.getConfig().put("quarkus", Collections.singletonMap("from", BASE_NATIVE_IMAGE));
 
     QuarkusGenerator generator = new QuarkusGenerator(ctx);
@@ -171,7 +170,7 @@ public class QuarkusGeneratorTest {
 
   @Test
   public void customize_withConfiguredNativeInProperties_shouldReturnConfiguredNative() throws IOException {
-    setNativeConfig();
+    setNativeConfig(false);
     projectProps.put("jkube.generator.quarkus.from", BASE_NATIVE_IMAGE);
 
     QuarkusGenerator generator = new QuarkusGenerator(ctx);
@@ -184,8 +183,6 @@ public class QuarkusGeneratorTest {
 
   @Test
   public void assembly_withDefaults_shouldReturnDefaultAssemblyInImage() {
-    //defaults to fast-jar
-    projectProps.remove("quarkus.package.type");
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
         .customize(new ArrayList<>(), false);
@@ -202,8 +199,38 @@ public class QuarkusGeneratorTest {
         .asList()
         .hasSize(1)
         .flatExtracting("includes")
-        .containsOnly("lib","app","quarkus", "quarkus-run.jar")
-        .doesNotContain("sample-runner.jar");
+        .containsExactlyInAnyOrder("lib", "sample-runner.jar");
+  }
+
+  @Test
+  public void assembly_withDefaultsInNative_shouldReturnDefaultNativeAssemblyInImage() throws IOException {
+    // Given
+    setNativeConfig(false);
+    // When
+    final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
+        .customize(new ArrayList<>(), false);
+    // Then
+    assertThat(resultImages)
+        .isNotNull()
+        .hasSize(1)
+        .element(0)
+        .extracting(ImageConfiguration::getBuild)
+        .extracting(BuildConfiguration::getAssembly)
+        .hasFieldOrPropertyWithValue("targetDir", "/")
+        .extracting(AssemblyConfiguration::getInline)
+        .extracting(Assembly::getFileSets)
+        .asList()
+        .hasSize(1)
+        .flatExtracting("includes")
+        .containsExactly("sample-runner");
+  }
+
+  @Test
+  public void isFatJar_withDefaults_shouldBeFalse() {
+    // When
+    final boolean result = new QuarkusGenerator(ctx).isFatJar();
+    // Then
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -253,9 +280,9 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void assembly_withDefaultsInNative_shouldReturnDefaultNativeAssemblyInImage() throws IOException {
+  public void assembly_withFastJar_shouldReturnDefaultAssemblyInImage() throws IOException {
     // Given
-    setNativeConfig();
+    createFakeRunnerJar(true);
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
         .customize(new ArrayList<>(), false);
@@ -266,21 +293,13 @@ public class QuarkusGeneratorTest {
         .element(0)
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
-        .hasFieldOrPropertyWithValue("targetDir", "/")
+        .hasFieldOrPropertyWithValue("targetDir", "/deployments")
         .extracting(AssemblyConfiguration::getInline)
         .extracting(Assembly::getFileSets)
         .asList()
         .hasSize(1)
         .flatExtracting("includes")
-        .containsExactly("sample-runner");
-  }
-
-  @Test
-  public void isFatJar_withDefaults_shouldBeFalse() {
-    // When
-    final boolean result = new QuarkusGenerator(ctx).isFatJar();
-    // Then
-    assertThat(result).isFalse();
+        .containsExactly("quarkus-run.jar","lib","app", "quarkus");
   }
 
   private void assertBuildFrom (List<ImageConfiguration> resultImages, String baseImage) {
@@ -291,17 +310,11 @@ public class QuarkusGeneratorTest {
         .containsExactly(baseImage);
   }
 
-  private void createFakeRunnerJar () throws IOException {
-    File runnerJar = new File(baseDir, "sample-runner.jar");
+  private void createFakeRunnerJar(boolean fastJAR) throws IOException {
+    File runnerJar = new File(
+        fastJAR ? temporaryFolder.newFolder("target/quarkus-app") : baseDir,
+        fastJAR ? "quarkus-run.jar" : "sample-runner.jar");
     runnerJar.createNewFile();
-  }
-
-  private void createQuarkusAppRunnerJar () throws IOException {
-    File quarkusAppDir = new File(baseDir,"quarkus-app");
-    if(quarkusAppDir.mkdirs()) {
-      File runnerJar = new File(quarkusAppDir, "quarkus-run.jar");
-      runnerJar.createNewFile();
-    }
   }
 
   private void in(RuntimeMode runtimeMode) {
@@ -312,13 +325,15 @@ public class QuarkusGeneratorTest {
     // @formatter:on
   }
 
-  private void setNativeConfig () throws IOException {
-    createFakeNativeImage();
+  private void setNativeConfig (boolean fastJAR) throws IOException {
+    createFakeNativeImage(fastJAR);
     projectProps.put("jkube.generator.quarkus.nativeImage", "true");
   }
 
-  private void createFakeNativeImage () throws IOException {
-    File runnerExec = new File(baseDir, "sample-runner");
+  private void createFakeNativeImage (boolean fastJAR) throws IOException {
+    File runnerExec = new File(
+        fastJAR ? temporaryFolder.newFolder("target/quarkus-app") : baseDir,
+        "sample-runner");
     runnerExec.createNewFile();
   }
 
