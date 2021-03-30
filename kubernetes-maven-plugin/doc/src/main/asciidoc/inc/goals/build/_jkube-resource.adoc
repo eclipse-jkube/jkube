@@ -445,4 +445,8 @@ endif::[]
 | Domain added to the Service ID when creating Kubernetes Ingresses or OpenShift routes.
 | `jkube.domain`
 
+| *replicas*
+| Number of replicas for the container.
+| `jkube.replicas`
+
 |===
