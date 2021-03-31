@@ -14,25 +14,32 @@
 
 package org.eclipse.jkube.kit.config.service;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.eclipse.jkube.kit.common.GenericCustomResource;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
+
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.PodBuilder;
-import io.fabric8.kubernetes.api.model.ReplicationController;
-import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionNamesBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionSpecBuilder;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyBuilder;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Project;
@@ -41,24 +48,13 @@ import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -82,45 +78,52 @@ public class ApplyServiceTest {
     @Test
     public void testApplyEntities() throws Exception {
         // Given
-        Set<HasMetadata> entities = new HashSet<>();
+        final Set<HasMetadata> entities = new HashSet<>(Arrays.asList(
+            new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata().build(),
+            new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build(),
+            new ConfigMapBuilder().withNewMetadata().withName("c1").endMetadata().build(),
+            new PodBuilder().withNewMetadata().withName("p1").endMetadata().build(),
+            new ReplicationControllerBuilder().withNewMetadata().withName("rc1").endMetadata().build(),
+            new NetworkPolicyBuilder().withNewMetadata().withName("npv1").endMetadata().build(),
+            new io.fabric8.kubernetes.api.model.extensions.NetworkPolicyBuilder().withNewMetadata().withName("np-ext").endMetadata().build()
+        ));
         String fileName = "foo.yml";
-        Deployment deployment = new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata().build();
-        Service service = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
-        ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("c1").endMetadata().build();
-        Pod pod = new PodBuilder().withNewMetadata().withName("p1").endMetadata().build();
-        ReplicationController rc = new ReplicationControllerBuilder().withNewMetadata().withName("rc1").endMetadata().build();
-        entities.add(deployment);
-        entities.add(service);
-        entities.add(configMap);
-        entities.add(pod);
-        entities.add(rc);
         WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().post()
                 .withPath("/api/v1/namespaces/default/services")
-                .andReply(collector.record("new-service").andReturn(HTTP_CREATED, service))
+                .andReply(collector.record("new-service").andReturn(HTTP_CREATED, ""))
                 .once();
         mockServer.expect().post()
                 .withPath("/api/v1/namespaces/default/configmaps")
-                .andReply(collector.record("new-configmap").andReturn(HTTP_CREATED, configMap))
+                .andReply(collector.record("new-configmap").andReturn(HTTP_CREATED, ""))
                 .once();
         mockServer.expect().post()
                 .withPath("/apis/apps/v1/namespaces/default/deployments")
-                .andReply(collector.record("new-deploy").andReturn(HTTP_CREATED, deployment))
+                .andReply(collector.record("new-deploy").andReturn(HTTP_CREATED, ""))
                 .once();
         mockServer.expect().post()
                 .withPath("/api/v1/namespaces/default/pods")
-                .andReply(collector.record("new-pod").andReturn(HTTP_CREATED, pod))
+                .andReply(collector.record("new-pod").andReturn(HTTP_CREATED, ""))
                 .once();
         mockServer.expect().post()
                 .withPath("/api/v1/namespaces/default/replicationcontrollers")
-                .andReply(collector.record("new-rc").andReturn(HTTP_CREATED, rc))
+                .andReply(collector.record("new-rc").andReturn(HTTP_CREATED, ""))
                 .once();
+        mockServer.expect().post()
+            .withPath("/apis/networking.k8s.io/v1/namespaces/default/networkpolicies")
+            .andReply(collector.record("new-np-v1").andReturn(HTTP_CREATED, ""))
+            .once();
+        mockServer.expect().post()
+            .withPath("/apis/extensions/v1beta1/namespaces/default/networkpolicies")
+            .andReply(collector.record("new-np-extensions").andReturn(HTTP_CREATED, ""))
+            .once();
 
         // When
         applyService.applyEntities(fileName, entities, log, 5);
 
         // Then
         collector.assertEventsRecordedInOrder("new-rc", "new-configmap", "new-service", "new-deploy", "new-pod");
+        collector.assertEventsRecorded("new-np-v1", "new-np-extensions");
     }
 
     @Test
