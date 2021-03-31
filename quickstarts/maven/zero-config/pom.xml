@@ -20,7 +20,7 @@
 
   <artifactId>jkube-maven-sample-zero-config</artifactId>
   <groupId>org.eclipse.jkube</groupId>
-  <version>1.1.1</version>
+  <version>1.2.0</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Zero-Config</name>
   <packaging>jar</packaging>
 
