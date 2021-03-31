@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -37,6 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -265,6 +267,20 @@ public class KubernetesResourceUtilTest {
         assertEquals("networking.k8s.io/v1", result.getApiVersion());
         assertEquals("Ingress", result.getKind());
         assertEquals("my-ingress", result.getMetadata().getName());
+    }
+
+    @Test
+    public void getResourceWithNetworkPolicyShouldLoadV1NetworkPolicy() throws Exception {
+      // Given
+      final File resource = new File(jkubeDir, "networking-v1-np.yml");
+      // When
+      final HasMetadata result = KubernetesResourceUtil.getResource(PlatformMode.kubernetes,
+          KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING, resource, "app");
+      // Then
+      assertThat(result)
+          .isInstanceOf(NetworkPolicy.class)
+      .hasFieldOrPropertyWithValue("kind", "NetworkPolicy")
+      .hasFieldOrPropertyWithValue("spec.podSelector.matchLabels.role", "db");
     }
 
     @Test

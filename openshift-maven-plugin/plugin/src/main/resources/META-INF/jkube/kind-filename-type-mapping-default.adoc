@@ -58,6 +58,9 @@
 |Namespace
 |`ns`, `namespace`
 
+|NetworkPolicy
+|`np`, `networkpolicy`
+
 |OAuthClient
 |`oauthclient`
 
