@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.3.0-SNAPSHOT
 * Fix #576: Add support to publishing helm chart
+* Fix #634: Replace occutrences of keySet() with entrySet() when value are needed
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported

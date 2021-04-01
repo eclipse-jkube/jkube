@@ -43,8 +43,8 @@ public class LogDispatcher {
     }
 
     public synchronized void untrackAllContainerLogs() {
-        for (String key : logHandles.keySet()) {
-            LogGetHandle handle = logHandles.get(key);
+        for (Map.Entry<String,LogGetHandle> logHandlesEntry : logHandles.entrySet()) {
+            LogGetHandle handle = logHandlesEntry.getValue();
             handle.finish();
         }
         logHandles.clear();
