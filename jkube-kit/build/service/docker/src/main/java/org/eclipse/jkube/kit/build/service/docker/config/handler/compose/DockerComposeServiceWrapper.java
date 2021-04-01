@@ -263,15 +263,15 @@ class DockerComposeServiceWrapper {
         }
         Map<String, Object> ulimitMap = (Map<String, Object>) ulimits;
         List<UlimitConfig> ret = new ArrayList<>();
-        for (String ulimit : ulimitMap.keySet()) {
-            Object val = ulimitMap.get(ulimit);
+        for (Map.Entry<String, Object> ulimitMapEntry : ulimitMap.entrySet()) {
+            Object val = ulimitMapEntry.getValue();
             if (val instanceof Map) {
                 Map<String, Integer> valMap = (Map<String, Integer>) val;
                 Integer soft = valMap.get("soft");
                 Integer hard = valMap.get("hard");
-                ret.add(new UlimitConfig(ulimit, hard, soft));
+                ret.add(new UlimitConfig(ulimitMapEntry.getKey(), hard, soft));
             } else if (val instanceof Integer) {
-                ret.add(new UlimitConfig(ulimit, (Integer) val, null));
+                ret.add(new UlimitConfig(ulimitMapEntry.getKey(), (Integer) val, null));
             } else {
                 throwIllegalArgumentException("'ulimits:' invalid limit value " + val + " (class : " + val.getClass() + ")");
             }
