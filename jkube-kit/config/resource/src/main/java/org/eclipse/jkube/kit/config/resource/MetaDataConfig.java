@@ -62,4 +62,8 @@ public class MetaDataConfig {
    */
   private Properties deployment;
 
+  /**
+   * Labels or annotations for Service Account
+   */
+  private Properties serviceAccount;
 }

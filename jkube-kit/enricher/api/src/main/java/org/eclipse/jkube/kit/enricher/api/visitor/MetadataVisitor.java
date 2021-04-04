@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.enricher.api.visitor;
 
+import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -101,6 +102,8 @@ public abstract class MetadataVisitor<T> extends TypedVisitor<T> {
             ret = propertiesToMap(config.getPod());
         } else if (kind == Kind.INGRESS) {
             ret = propertiesToMap(config.getIngress());
+        }else if (kind == Kind.SERVICE_ACCOUNT){
+            ret = propertiesToMap(config.getServiceAccount());
         } else {
             ret = new HashMap<>();
         }
@@ -359,6 +362,23 @@ public abstract class MetadataVisitor<T> extends TypedVisitor<T> {
         protected ObjectMeta getOrCreateMetadata(IngressBuilder item) {
             return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
                     .endMetadata().buildMetadata();
+        }
+    }
+
+    public static class ServiceAccountVisitor extends MetadataVisitor<ServiceAccountBuilder> {
+        public ServiceAccountVisitor(ResourceConfig resourceConfig) {
+            super(resourceConfig);
+        }
+
+        @Override
+        protected Kind getKind() {
+            return Kind.SERVICE_ACCOUNT;
+        }
+
+        @Override
+        protected ObjectMeta getOrCreateMetadata(ServiceAccountBuilder item) {
+            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
+                .endMetadata().buildMetadata();
         }
     }
 
