@@ -31,6 +31,7 @@ public enum Kind {
     POD_SPEC,
     BUILD_CONFIG,
     BUILD,
+    SERVICE_ACCOUNT,
     INGRESS;
 
 
