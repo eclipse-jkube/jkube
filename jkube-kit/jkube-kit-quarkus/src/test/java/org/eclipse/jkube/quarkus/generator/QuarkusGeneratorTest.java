@@ -71,6 +71,7 @@ public class QuarkusGeneratorTest {
     projectProps.put("jkube.generator.name", "quarkus");
     baseDir = temporaryFolder.newFolder("target");
     createFakeRunnerJar();
+    createQuarkusAppRunnerJar();
     createFakeNativeImage();
     // @formatter:off
     new Expectations() {{
@@ -183,6 +184,8 @@ public class QuarkusGeneratorTest {
 
   @Test
   public void assembly_withDefaults_shouldReturnDefaultAssemblyInImage() {
+    //defaults to fast-jar
+    projectProps.remove("quarkus.package.type");
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
         .customize(new ArrayList<>(), false);
@@ -199,7 +202,54 @@ public class QuarkusGeneratorTest {
         .asList()
         .hasSize(1)
         .flatExtracting("includes")
-        .containsExactlyInAnyOrder("lib", "sample-runner.jar");
+        .containsOnly("lib","app","quarkus", "quarkus-run.jar")
+        .doesNotContain("sample-runner.jar");
+  }
+
+  @Test
+  public void assembly_withLegacyJar_shouldReturnDefaultAssemblyInImage() {
+    projectProps.put("quarkus.package.type","legacy-jar");
+    // When
+    final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
+        .customize(new ArrayList<>(), false);
+    // Then
+    assertThat(resultImages)
+        .isNotNull()
+        .hasSize(1)
+        .element(0)
+        .extracting(ImageConfiguration::getBuild)
+        .extracting(BuildConfiguration::getAssembly)
+        .hasFieldOrPropertyWithValue("targetDir", "/deployments")
+        .extracting(AssemblyConfiguration::getInline)
+        .extracting(Assembly::getFileSets)
+        .asList()
+        .hasSize(1)
+        .flatExtracting("includes")
+        .containsOnly("lib","sample-runner.jar");
+    projectProps.remove("quarkus.package.type");
+  }
+
+  @Test
+  public void assembly_withUberJar_shouldReturnDefaultAssemblyInImage() {
+    projectProps.put("quarkus.package.type","uber-jar");
+    // When
+    final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
+        .customize(new ArrayList<>(), false);
+    // Then
+    assertThat(resultImages)
+        .isNotNull()
+        .hasSize(1)
+        .element(0)
+        .extracting(ImageConfiguration::getBuild)
+        .extracting(BuildConfiguration::getAssembly)
+        .hasFieldOrPropertyWithValue("targetDir", "/deployments")
+        .extracting(AssemblyConfiguration::getInline)
+        .extracting(Assembly::getFileSets)
+        .asList()
+        .hasSize(1)
+        .flatExtracting("includes")
+        .containsExactly("sample-runner.jar");
+    projectProps.remove("quarkus.package.type");
   }
 
   @Test
@@ -244,6 +294,14 @@ public class QuarkusGeneratorTest {
   private void createFakeRunnerJar () throws IOException {
     File runnerJar = new File(baseDir, "sample-runner.jar");
     runnerJar.createNewFile();
+  }
+
+  private void createQuarkusAppRunnerJar () throws IOException {
+    File quarkusAppDir = new File(baseDir,"quarkus-app");
+    if(quarkusAppDir.mkdirs()) {
+      File runnerJar = new File(quarkusAppDir, "quarkus-run.jar");
+      runnerJar.createNewFile();
+    }
   }
 
   private void in(RuntimeMode runtimeMode) {
