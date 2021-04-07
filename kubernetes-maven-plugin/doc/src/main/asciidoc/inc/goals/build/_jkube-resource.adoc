@@ -215,6 +215,8 @@ https://docs.openshift.org/latest/architecture/networking/routes.html[Route] des
 generated along the service if an {cluster} cluster is targeted.
 If you do not want to generate a Route descriptor, you can set the `jkube.openshift.generateRoute` property to `false`.
 
+Note: For automatic Route generation, Service resources need to have `expose: true` or `jkube.io/exposeUrl: true` labels in their metadata. Services with recognized web ports(`80`, `443`, `8080`, `9080`, , `9090`, `9443`) are automatically exposed. If your application is using some other port than these standard ports, You might need to manually set the Service as exposed by configuring ServiceEnricher(either set `jkube.enricher.jkube-service.expose` to `true` or by using XML configuration).
+
 .Route Generation Configuration
 [cols="1,6,1"]
 |===
