@@ -16,11 +16,14 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.extensions.Deployment;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import mockit.Expectations;
@@ -53,6 +56,7 @@ public class DependencyEnricherTest {
     // Some resource files related to test case placed in resources/ directory:
     private static final String OVERRIDE_FRAGMENT_FILE = "/jenkins-kubernetes-cm.yml";
     private static final String ARTIFACT_FILE_PATH = "/jenkins-4.0.41.jar";
+    private static final int EXPECTED_REPLICAS = 2;
 
     @Test
     public void checkDuplicatesInResource() throws Exception {
@@ -63,6 +67,18 @@ public class DependencyEnricherTest {
         // Assert
         assertNotNull(aResourceList.getItems());
         assertTrue(checkUniqueResources(aResourceList.getItems()));
+    }
+
+    @Test
+    public void checkReplicaCountInResources() throws Exception {
+        // Generate given Resources
+        KubernetesListBuilder aBuilder = createResourcesForTest();
+        // Enrich
+        KubernetesList aResourceList = enrichResources(aBuilder);
+
+        assertTrue(aResourceList.getItems().stream()
+                .filter(item -> item instanceof Deployment)
+                .allMatch(item -> ((Deployment) item).getSpec().getReplicas() == EXPECTED_REPLICAS));
     }
 
     private KubernetesList enrichResources(KubernetesListBuilder aBuilder) {
@@ -97,6 +113,13 @@ public class DependencyEnricherTest {
 
             context.getDependencies(true);
             result = getDummyArtifacts();
+
+            Configuration config =
+                    Configuration.builder()
+                            .resource(ResourceConfig.builder().replicas(EXPECTED_REPLICAS).build())
+                            .build();
+            context.getConfiguration();
+            result = config;
         }};
     }
 

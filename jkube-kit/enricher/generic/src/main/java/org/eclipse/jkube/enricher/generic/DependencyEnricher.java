@@ -18,12 +18,17 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.extensions.Deployment;
+import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfig;
+import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Template;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
@@ -43,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -149,6 +155,7 @@ public class DependencyEnricher extends BaseEnricher {
             }
             return null;
         });
+        applyConfiguration(builder, kubernetesItems);
         filterAndAddItemsToBuilder(builder, kubernetesItems);
     }
 
@@ -158,6 +165,7 @@ public class DependencyEnricher extends BaseEnricher {
             openshiftItems.addAll(Arrays.asList(items.toArray(new HasMetadata[0])));
             return null;
         });
+        applyConfiguration(builder, openshiftItems);
         filterAndAddItemsToBuilder(builder, openshiftItems);
     }
 
@@ -172,6 +180,23 @@ public class DependencyEnricher extends BaseEnricher {
             }
         }
 
+    }
+
+    private void applyConfiguration(KubernetesListBuilder builder, List<HasMetadata> items) {
+        int replicas = getReplicaCount(builder, getConfiguration().getResource(), 1);
+        for (HasMetadata item : items) {
+            if ("Deployment".equalsIgnoreCase(item.getKind()) || "DeploymentConfig".equalsIgnoreCase(item.getKind())) {
+                if (item instanceof Deployment) {
+                    ((Deployment) item).getSpec().setReplicas(replicas);
+                } else if (item instanceof DeploymentBuilder) {
+                    ((DeploymentBuilder) item).editOrNewSpec().withReplicas(replicas).endSpec();
+                } else if (item instanceof DeploymentConfig) {
+                    ((DeploymentConfig) item).getSpec().setReplicas(replicas);
+                } else if (item instanceof DeploymentConfigBuilder) {
+                    ((DeploymentConfigBuilder) item).editOrNewSpec().withReplicas(replicas).endSpec();
+                }
+            }
+        }
     }
 
     public void filterAndAddItemsToBuilder(KubernetesListBuilder builder, List<HasMetadata> items) {
