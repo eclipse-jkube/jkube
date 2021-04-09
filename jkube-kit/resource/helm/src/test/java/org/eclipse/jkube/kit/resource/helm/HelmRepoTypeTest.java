@@ -86,26 +86,41 @@ public class HelmRepoTypeTest {
     assertThat(result)
         .isNotNull()
         .hasFieldOrPropertyWithValue("url", new URL("https://example.com/base/chart.tar"))
-        .hasFieldOrPropertyWithValue("requestMethod", "POST")
+        .hasFieldOrPropertyWithValue("requestMethod", "PUT")
         .hasFieldOrPropertyWithValue("doOutput", true)
         .extracting(HttpURLConnection::getRequestProperties)
         .hasFieldOrPropertyWithValue("Content-Type", Collections.singletonList("application/gzip"));
   }
 
   @Test
-  public void createConnection_withNexusAndNoAuth_shouldReturnConnection() throws IOException {
+  public void createConnection_withNexusAndNoAuthAndTarGzExtension_shouldReturnConnectionToTgzUrl() throws IOException {
     // Given
     helmRepositoryBuilder.url("https://example.com");
     // When
     final HttpURLConnection result = HelmRepository.HelmRepoType.NEXUS
-        .createConnection(temporaryFolder.newFile("chart.tar"), helmRepositoryBuilder.build());
+        .createConnection(temporaryFolder.newFile("chart.tar.gz"), helmRepositoryBuilder.build());
     // Then
     assertThat(result)
         .isNotNull()
-        .hasFieldOrPropertyWithValue("url", new URL("https://example.com/chart.tar"))
-        .hasFieldOrPropertyWithValue("requestMethod", "POST")
+        .hasFieldOrPropertyWithValue("url", new URL("https://example.com/chart.tgz"))
+        .hasFieldOrPropertyWithValue("requestMethod", "PUT")
         .hasFieldOrPropertyWithValue("doOutput", true)
         .extracting(HttpURLConnection::getRequestProperties)
-        .hasFieldOrPropertyWithValue("Content-Type", null);
+        .hasFieldOrPropertyWithValue("Content-Type", Collections.singletonList("application/gzip"));
+  }
+
+  @Test
+  public void createConnection_withNexusAndNoAuthAndTgzExtension_shouldReturnConnection() throws IOException {
+    // When
+    final HttpURLConnection result = HelmRepository.HelmRepoType.NEXUS
+        .createConnection(temporaryFolder.newFile("chart.tgz"), helmRepositoryBuilder.build());
+    // Then
+    assertThat(result)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("url", new URL("https://example.com/base/chart.tgz"))
+        .hasFieldOrPropertyWithValue("requestMethod", "PUT")
+        .hasFieldOrPropertyWithValue("doOutput", true)
+        .extracting(HttpURLConnection::getRequestProperties)
+        .hasFieldOrPropertyWithValue("Content-Type", Collections.singletonList("application/gzip"));
   }
 }
