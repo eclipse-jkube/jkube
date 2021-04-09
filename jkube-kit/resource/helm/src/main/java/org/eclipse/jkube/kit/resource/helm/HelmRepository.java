@@ -20,6 +20,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
@@ -35,9 +39,24 @@ public class HelmRepository {
   private HelmRepoType type;
 
   public enum HelmRepoType {
-    CHARTMUSEUM,
-    ARTIFACTORY,
-    NEXUS
+    CHARTMUSEUM(HelmRepositoryConnectionUtils::getConnectionForUploadToChartMuseum),
+    ARTIFACTORY(HelmRepositoryConnectionUtils::getConnectionForUploadToArtifactory),
+    NEXUS(HelmRepositoryConnectionUtils::getConnectionForUploadToNexus);
+
+    private final ConnectionCreator connectionCreator;
+
+    HelmRepoType(ConnectionCreator connectionCreator) {
+      this.connectionCreator = connectionCreator;
+    }
+
+    public HttpURLConnection createConnection(File file, HelmRepository repository) throws IOException {
+      return connectionCreator.createConnectionForUploadToArtifactory(file, repository);
+    }
+
+    @FunctionalInterface
+    protected interface ConnectionCreator {
+      HttpURLConnection createConnectionForUploadToArtifactory(File file, HelmRepository repository) throws IOException;
+    }
   }
 
   @Override

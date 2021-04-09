@@ -77,4 +77,5 @@ public class HelmRepositoryTest {
         .hasFieldOrPropertyWithValue("type", HelmRepoType.ARTIFACTORY)
         .hasToString("[repo-name / http://example.com/url]");
   }
+
 }
