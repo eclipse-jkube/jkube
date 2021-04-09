@@ -196,9 +196,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter(property="jkube.interpolateTemplateParameters", defaultValue = "true")
     private Boolean interpolateTemplateParameters;
 
-    @Parameter(property = "jkube.replicas")
-    private Integer replicas;
-
     @Component
     private MavenProjectHelper projectHelper;
 
@@ -254,9 +251,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
         realResourceDir = ResourceUtil.getFinalResourceDir(resourceDir, environment);
         if (namespace != null && !namespace.isEmpty()) {
             resources = ResourceConfig.toBuilder(resources).namespace(namespace).build();
-        }
-        if (replicas != null) {
-            resources = ResourceConfig.toBuilder(resources).replicas(replicas).build();
         }
         final ResourceServiceConfig resourceServiceConfig = ResourceServiceConfig.builder()
             .project(javaProject)
