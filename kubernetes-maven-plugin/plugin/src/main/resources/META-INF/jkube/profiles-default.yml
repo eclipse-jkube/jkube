@@ -41,6 +41,7 @@
     - jkube-volume-permission
     - jkube-configmap-file
     - jkube-secret-file
+    - jkube-replicas
 
     # Route exposure
     - jkube-openshift-service-expose
