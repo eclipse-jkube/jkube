@@ -19,18 +19,23 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.resource.helm.HelmRepository.HelmRepoType;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.Verifications;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
 public class HelmUploaderTest {
+
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Mocked
   KitLogger kitLogger;
@@ -48,151 +53,113 @@ public class HelmUploaderTest {
     helmUploader = null;
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void uploadThrowsException(
-      @Mocked HelmRepository helmRepository) throws IOException, BadUploadException {
+  @Test
+  public void uploadSingle_withMissingType_shouldThrowException(@Mocked HelmRepository helmRepository) {
     // Given
     File file = new File("test");
+    // @formatter:off
     new Expectations(helmUploader) {{
       helmRepository.getType(); result = null;
     }};
+    // @formatter:on
     // When
-    helmUploader.uploadSingle(file, helmRepository);
+    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+        () -> helmUploader.uploadSingle(file, helmRepository));
     // Then
-    fail();
+    assertThat(result)
+        .isNotNull()
+        .hasMessage("Repository type missing. Check your plugin configuration.");
   }
 
-  @Test(expected = BadUploadException.class)
-  public void uploadResponseCodeLessHigherThan300InputStreamNullThrowsException(
+  @Test
+  public void uploadSingle_withServerErrorAndErrorStream_shouldThrowException(
       @Mocked HelmRepository helmRepository,
-      @Mocked HttpURLConnection httpURLConnection) throws IOException, BadUploadException {
+      @Mocked HttpURLConnection httpURLConnection) throws IOException {
     // Given
-    File file = File.createTempFile("test",".tmp");
-    file.deleteOnExit();
+    File file = temporaryFolder.newFile("test.tmp");
+    // @formatter:off
     new Expectations(helmUploader) {{
-      helmRepository.getType(); result = HelmRepoType.ARTIFACTORY;
-      helmRepository.getUrl(); result = "http://some-url";
-      helmRepository.getUsername(); result = "username";
-      helmRepository.getPassword(); result = "password";
-      helmUploader.createConnection(anyString); result = httpURLConnection;
+      helmRepository.getType().createConnection((File) any, helmRepository); result = httpURLConnection;
       httpURLConnection.getResponseCode(); result = 500;
-      httpURLConnection.getErrorStream(); result = new ByteArrayInputStream("error".getBytes());
+      httpURLConnection.getErrorStream(); result = new ByteArrayInputStream("Server error in ES".getBytes());
+      httpURLConnection.getInputStream(); result = new ByteArrayInputStream("Server error in IS".getBytes()); minTimes = 0;
     }};
+    // @formatter:on
     // When
-    helmUploader.uploadSingle(file, helmRepository);
+    final BadUploadException result = assertThrows(BadUploadException.class,
+        () -> helmUploader.uploadSingle(file, helmRepository));
     // Then
-    fail();
+    assertThat(result)
+        .isNotNull()
+        .hasMessage("Server error in ES");
   }
 
-  @Test(expected = BadUploadException.class)
-  public void uploadResponseCodeLessHigherThan300ErrorStreamNullThrowsException(
+  @Test
+  public void uploadSingle_withServerErrorAndInputStream_shouldThrowException(
       @Mocked HelmRepository helmRepository,
-      @Mocked HttpURLConnection httpURLConnection) throws IOException, BadUploadException {
+      @Mocked HttpURLConnection httpURLConnection) throws IOException {
     // Given
-    File file = File.createTempFile("test",".tmp");
-    file.deleteOnExit();
+    File file = temporaryFolder.newFile("test.tmp");
+    // @formatter:off
     new Expectations(helmUploader) {{
-      helmRepository.getType(); result = HelmRepoType.ARTIFACTORY;
-      helmRepository.getUrl(); result = "http://some-url";
-      helmRepository.getUsername(); result = "username";
-      helmRepository.getPassword(); result = "password";
-      helmUploader.createConnection(anyString); result = httpURLConnection;
-      httpURLConnection.getResponseCode(); result = 500;
-      httpURLConnection.getInputStream(); result = new ByteArrayInputStream("error".getBytes());
-      httpURLConnection.getErrorStream(); result = null;
-    }};
-    // When
-    helmUploader.uploadSingle(file, helmRepository);
-    // Then
-    fail();
-  }
-
-  @Test(expected = BadUploadException.class)
-  public void uploadResponseCodeLessHigherThan300ThrowsException(
-      @Mocked HelmRepository helmRepository,
-      @Mocked HttpURLConnection httpURLConnection) throws IOException, BadUploadException {
-    // Given
-    File file = File.createTempFile("test",".tmp");
-    file.deleteOnExit();
-    new Expectations(helmUploader) {{
-      helmRepository.getType(); result = HelmRepoType.ARTIFACTORY;
-      helmRepository.getUrl(); result = "http://some-url";
-      helmRepository.getUsername(); result = "username";
-      helmRepository.getPassword(); result = "password";
-      helmUploader.createConnection(anyString); result = httpURLConnection;
+      helmRepository.getType().createConnection((File) any, helmRepository); result = httpURLConnection;
       httpURLConnection.getResponseCode(); result = 500;
       httpURLConnection.getErrorStream(); result = null;
-      httpURLConnection.getInputStream(); result = null;
+      httpURLConnection.getInputStream(); result = new ByteArrayInputStream("Server error in IS".getBytes());
     }};
+    // @formatter:on
     // When
-    helmUploader.uploadSingle(file, helmRepository);
+    final BadUploadException result = assertThrows(BadUploadException.class,
+        () -> helmUploader.uploadSingle(file, helmRepository));
     // Then
-    fail();
+    assertThat(result)
+        .isNotNull()
+        .hasMessage("Server error in IS");
   }
 
   @Test
-  public void uploadOnArtifactory(
+  public void uploadSingle_withServerError_shouldThrowException(
       @Mocked HelmRepository helmRepository,
-      @Mocked HttpURLConnection httpURLConnection) throws IOException, BadUploadException {
+      @Mocked HttpURLConnection httpURLConnection) throws IOException {
     // Given
-    File file = File.createTempFile("test",".tmp");
-    file.deleteOnExit();
+    File file = temporaryFolder.newFile("test.tmp");
+    // @formatter:off
     new Expectations(helmUploader) {{
-      helmRepository.getType(); result = HelmRepoType.ARTIFACTORY;
-      helmRepository.getUrl(); result = "http://some-url";
-      helmRepository.getUsername(); result = "username";
-      helmRepository.getPassword(); result = "password";
-      helmUploader.createConnection(anyString); result = httpURLConnection;
-      httpURLConnection.getResponseCode(); result = 201;
+      helmRepository.getType().createConnection((File) any, helmRepository); result = httpURLConnection;
+      httpURLConnection.getResponseCode(); result = 500;
+      httpURLConnection.getErrorStream(); result = null;
       httpURLConnection.getInputStream(); result = null;
     }};
+    // @formatter:on
     // When
-    helmUploader.uploadSingle(file, helmRepository);
+    final BadUploadException result = assertThrows(BadUploadException.class,
+        () -> helmUploader.uploadSingle(file, helmRepository));
     // Then
-    assertThat(httpURLConnection.getResponseCode()).isEqualTo(201);
+    assertThat(result)
+        .isNotNull()
+        .hasMessage("No details provided");
   }
 
   @Test
-  public void uploadOnNexus(
+  public void uploadSingle_withCreatedStatus_shouldDisconnect(
       @Mocked HelmRepository helmRepository,
       @Mocked HttpURLConnection httpURLConnection) throws IOException, BadUploadException {
     // Given
-    File file = File.createTempFile("test",".tmp");
-    file.deleteOnExit();
+    File file = temporaryFolder.newFile("test.tmp");
+    // @formatter:off
     new Expectations(helmUploader) {{
-      helmRepository.getType(); result = HelmRepoType.NEXUS;
-      helmRepository.getUrl(); result = "http://some-url";
-      helmRepository.getUsername(); result = "username";
-      helmRepository.getPassword(); result = "password";
-      helmUploader.createConnection(anyString); result = httpURLConnection;
+      helmRepository.getType().createConnection((File)any, helmRepository); result = httpURLConnection;
       httpURLConnection.getResponseCode(); result = 201;
       httpURLConnection.getInputStream(); result = null;
     }};
+    // @formatter:on
     // When
     helmUploader.uploadSingle(file, helmRepository);
     // Then
-    assertThat(httpURLConnection.getResponseCode()).isEqualTo(201);
-  }
-
-  @Test
-  public void uploadOnChartMuseum(
-      @Mocked HelmRepository helmRepository,
-      @Mocked HttpURLConnection httpURLConnection) throws IOException, BadUploadException {
-    // Given
-    File file = File.createTempFile("test",".tmp");
-    file.deleteOnExit();
-    new Expectations(helmUploader) {{
-      helmRepository.getType(); result = HelmRepoType.CHARTMUSEUM;
-      helmRepository.getUrl(); result = "http://some-url";
-      helmRepository.getUsername(); result = "username";
-      helmRepository.getPassword(); result = "password";
-      helmUploader.createConnection(anyString); result = httpURLConnection;
-      httpURLConnection.getResponseCode(); result = 201;
-      httpURLConnection.getInputStream(); result = null;
+    // @formatter:off
+    new Verifications() {{
+      httpURLConnection.disconnect(); times = 1;
     }};
-    // When
-    helmUploader.uploadSingle(file, helmRepository);
-    // Then
-    assertThat(httpURLConnection.getResponseCode()).isEqualTo(201);
+    // @formatter:on
   }
 }

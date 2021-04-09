@@ -33,7 +33,6 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 import org.eclipse.jkube.kit.resource.helm.Maintainer;
-import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -53,22 +52,20 @@ import org.apache.maven.project.MavenProjectHelper;
  * Generates a Helm chart for the kubernetes resources
  */
 @Mojo(name = "helm", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST)
-public class HelmMojo extends AbstractJKubeMojo implements KitLoggerProvider {
+public class HelmMojo extends AbstractJKubeMojo {
 
-  protected static final String PROPERTY_CHART = "jkube.helm.chart";
-  protected static final String PROPERTY_CHART_EXTENSION = "jkube.helm.chartExtension";
-  protected static final String PROPERTY_VERSION = "jkube.helm.version";
-  protected static final String PROPERTY_DESCRIPTION = "jkube.helm.description";
-  protected static final String PROPERTY_HOME = "jkube.helm.home";
-  protected static final String PROPERTY_ICON = "jkube.helm.icon";
-  protected static final String PROPERTY_TYPE = "jkube.helm.type";
-  protected static final String PROPERTY_SOURCE_DIR = "jkube.helm.sourceDir";
-  protected static final String PROPERTY_OUTPUT_DIR = "jkube.helm.outputDir";
-  protected static final String PROPERTY_TARBALL_OUTPUT_DIR = "jkube.helm.tarballOutputDir";
+  private static final String PROPERTY_CHART = "jkube.helm.chart";
+  private static final String PROPERTY_CHART_EXTENSION = "jkube.helm.chartExtension";
+  private static final String PROPERTY_VERSION = "jkube.helm.version";
+  private static final String PROPERTY_DESCRIPTION = "jkube.helm.description";
+  private static final String PROPERTY_HOME = "jkube.helm.home";
+  private static final String PROPERTY_ICON = "jkube.helm.icon";
+  private static final String PROPERTY_TYPE = "jkube.helm.type";
+  private static final String PROPERTY_SOURCE_DIR = "jkube.helm.sourceDir";
+  private static final String PROPERTY_OUTPUT_DIR = "jkube.helm.outputDir";
+  private static final String PROPERTY_TARBALL_OUTPUT_DIR = "jkube.helm.tarballOutputDir";
 
   private static final String DEFAULT_CHART_EXTENSION = "tar.gz";
-  static final String PROPERTY_KUBERNETES_MANIFEST = "jkube.kubernetesManifest";
-  static final String PROPERTY_KUBERNETES_TEMPLATE = "jkube.kubernetesTemplate";
 
   @Component
   private MavenProjectHelper projectHelper;
@@ -76,19 +73,17 @@ public class HelmMojo extends AbstractJKubeMojo implements KitLoggerProvider {
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = PROPERTY_KUBERNETES_MANIFEST, defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml")
+  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml")
   File kubernetesManifest;
 
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = PROPERTY_KUBERNETES_TEMPLATE, defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
+  @Parameter(property = "jkube.kubernetesTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
   File kubernetesTemplate;
-
 
   @Parameter
   HelmConfig helm;
-
 
   @Override
   public void executeInternal() throws MojoExecutionException {

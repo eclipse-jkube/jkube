@@ -117,8 +117,7 @@ public class HelmPushMojo extends HelmMojo {
   }
 
   HelmRepository getHelmRepository() {
-    if (getHelm().getVersion() != null && getHelm().getVersion().endsWith("-SNAPSHOT"))
-    {
+    if (getHelm().getVersion() != null && getHelm().getVersion().endsWith("-SNAPSHOT")) {
       return getHelm().getSnapshotRepository();
     }
     return getHelm().getStableRepository();
