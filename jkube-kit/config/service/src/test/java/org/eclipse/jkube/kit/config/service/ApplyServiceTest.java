@@ -256,7 +256,7 @@ public class ApplyServiceTest {
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
                 .andReply(collector.record("get-cr-virtualservice").andReturn(HTTP_OK, "{\"metadata\":{\"resourceVersion\":\"1001\"}}"))
                 .times(2);
-        mockServer.expect().put()
+        mockServer.expect().patch()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
                 .andReply(collector.record("put-cr-virtualservice").andReturn(HTTP_OK, "{}"))
                 .once();
@@ -264,7 +264,7 @@ public class ApplyServiceTest {
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways/mygateway-https")
                 .andReply(collector.record("get-cr-gateway").andReturn(HTTP_OK, "{\"metadata\":{\"resourceVersion\":\"1002\"}}"))
                 .times(2);
-        mockServer.expect().put()
+        mockServer.expect().patch()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways/mygateway-https")
                 .andReply(collector.record("put-cr-gateway").andReturn(HTTP_OK, "{}"))
                 .once();

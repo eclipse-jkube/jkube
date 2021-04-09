@@ -22,7 +22,8 @@ Usage:
 ```
 ### 1.3.0-SNAPSHOT
 * Fix #576: Add support to publishing helm chart
-* Fix #634: Replace occutrences of keySet() with entrySet() when value are needed
+* Fix #634: Replace occurrences of keySet() with entrySet() when value are needed
+* Fix #659: Update Fabric8 Kubernetes Client to v5.3.0
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported
