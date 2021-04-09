@@ -16,11 +16,21 @@ package org.eclipse.jkube.kit.resource.helm;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
 @JsonInclude(NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Maintainer {
@@ -31,48 +41,4 @@ public class Maintainer {
   @JsonProperty
   private String email;
 
-  public Maintainer() {}
-
-  public Maintainer(String name, String email) {
-    this.name = name;
-    this.email = email;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-
-    if (o == null || getClass() != o.getClass()) return false;
-
-    Maintainer that = (Maintainer) o;
-
-    return new EqualsBuilder()
-        .append(name, that.name)
-        .append(email, that.email)
-        .isEquals();
-  }
-
-  @Override
-  public int hashCode() {
-    return new HashCodeBuilder(17, 37)
-        .append(name)
-        .append(email)
-        .toHashCode();
-  }
 }
