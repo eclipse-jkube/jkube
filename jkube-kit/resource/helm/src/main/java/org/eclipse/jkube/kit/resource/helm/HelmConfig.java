@@ -14,6 +14,12 @@
 package org.eclipse.jkube.kit.resource.helm;
 
 import io.fabric8.openshift.api.model.Template;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -28,6 +34,12 @@ import java.util.stream.Stream;
  * @author roland
  * @since 11/08/16
  */
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
 public class HelmConfig {
 
   private String chart;
@@ -52,110 +64,7 @@ public class HelmConfig {
   private HelmRepository snapshotRepository;
   private String security;
 
-  public String getChart() {
-    return chart;
-  }
-
-  public void setChart(String chart) {
-    this.chart = chart;
-  }
-
-  public String getChartExtension() {
-    return chartExtension;
-  }
-
-  public void setChartExtension(String chartExtension) {
-    this.chartExtension = chartExtension;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public String getHome() {
-    return home;
-  }
-
-  public void setHome(String home) {
-    this.home = home;
-  }
-
-  public List<String> getSources() {
-    return sources;
-  }
-
-  public void setSources(List<String> sources) {
-    this.sources = sources;
-  }
-
-  public List<Maintainer> getMaintainers() {
-    return maintainers;
-  }
-
-  public void setMaintainers(List<Maintainer> maintainers) {
-    this.maintainers = maintainers;
-  }
-
-  public String getIcon() {
-    return icon;
-  }
-
-  public void setIcon(String icon) {
-    this.icon = icon;
-  }
-
-  public List<String> getKeywords() {
-    return keywords;
-  }
-
-  public void setKeywords(List<String> keywords) {
-    this.keywords = keywords;
-  }
-
-  public String getEngine() {
-    return engine;
-  }
-
-  public void setEngine(String engine) {
-    this.engine = engine;
-  }
-
-  public List<File> getAdditionalFiles() {
-    return additionalFiles;
-  }
-
-  public void setAdditionalFiles(List<File> additionalFiles) {
-    this.additionalFiles = additionalFiles;
-  }
-
-  public List<Template> getTemplates() {
-    return templates;
-  }
-
-  public void setTemplates(List<Template> templates) {
-    this.templates = templates;
-  }
-
-  public List<HelmType> getTypes() {
-    return types;
-  }
-
-  public void setTypes(List<HelmType> types) {
-    this.types = types;
-  }
-
+  // Plexus deserialization specific setters
   /**
    * Used by Plexus/Eclipse Sisu deserialization (pom.xml Unmarshalling)
    *
@@ -163,62 +72,6 @@ public class HelmConfig {
    */
   public void setType(String types) {
     setTypes(HelmType.parseString(types));
-  }
-
-  public String getSourceDir() {
-    return sourceDir;
-  }
-
-  public void setSourceDir(String sourceDir) {
-    this.sourceDir = sourceDir;
-  }
-
-  public String getOutputDir() {
-    return outputDir;
-  }
-
-  public void setOutputDir(String outputDir) {
-    this.outputDir = outputDir;
-  }
-
-  public String getTarballOutputDir() {
-    return tarballOutputDir;
-  }
-
-  public void setTarballOutputDir(String tarballOutputDir) {
-    this.tarballOutputDir = tarballOutputDir;
-  }
-
-  public List<GeneratedChartListener> getGeneratedChartListeners() {
-    return generatedChartListeners;
-  }
-
-  public void setGeneratedChartListeners(List<GeneratedChartListener> generatedChartListeners) {
-    this.generatedChartListeners = generatedChartListeners;
-  }
-
-  public HelmRepository getStableRepository() {
-    return stableRepository;
-  }
-
-  public void setStableRepository(HelmRepository stableRepository) {
-    this.stableRepository = stableRepository;
-  }
-
-  public HelmRepository getSnapshotRepository() {
-    return snapshotRepository;
-  }
-
-  public void setSnapshotRepository(HelmRepository snapshotRepository) {
-    this.snapshotRepository = snapshotRepository;
-  }
-
-  public String getSecurity() {
-    return security;
-  }
-
-  public void setSecurity(String security) {
-    this.security = security;
   }
 
   public enum HelmType {

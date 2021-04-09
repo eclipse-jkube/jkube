@@ -13,7 +13,21 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
 public class HelmRepository {
+
   private String name;
   private String url;
   private String username;
@@ -25,47 +39,6 @@ public class HelmRepository {
     ARTIFACTORY,
     NEXUS
   }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getUrl() {
-    return url;
-  }
-
-  public void setUrl(String url) {
-    this.url = url;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public HelmRepoType getType() {
-    return type;
-  }
-
-  public void setType(HelmRepoType type) {
-    this.type = type;
-  }
-
 
   @Override
   public String toString() {

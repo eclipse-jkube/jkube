@@ -18,6 +18,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ChartTest {
@@ -37,19 +39,61 @@ public class ChartTest {
   @Test
   public void deserialize() throws Exception {
     // Given
-    final String serializedMaintainer = "{" +
+    final String serializedChart = "{" +
         "\"name\":\"chart\"," +
         "\"home\":\"e.t.\"," +
         "\"version\":\"1337\"," +
         "\"sources\":[\"source\"]," +
         "\"ignored\":\"don't fail\"}";
     // When
-    final Chart result = objectMapper.readValue(serializedMaintainer, Chart.class);
+    final Chart result = objectMapper.readValue(serializedChart, Chart.class);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("name", "chart")
         .hasFieldOrPropertyWithValue("home", "e.t.")
         .hasFieldOrPropertyWithValue("version", "1337")
+        .hasToString("Chart{name='chart', home='e.t.', version='1337'}")
         .extracting("sources").asList().containsExactly("source");
+  }
+
+  @Test
+  public void builder() {
+    // Given
+    final Chart.ChartBuilder builder = Chart.builder()
+        .name("chart")
+        .home("e.t.")
+        .version("1337")
+        .sources(Arrays.asList("source-1", "source-2"));
+    // When
+    final Chart result = builder.build();
+    // Then
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("name", "chart")
+        .hasFieldOrPropertyWithValue("home", "e.t.")
+        .hasFieldOrPropertyWithValue("version", "1337")
+        .hasToString("Chart{name='chart', home='e.t.', version='1337'}")
+        .extracting("sources").asList().containsExactly("source-1", "source-2");
+  }
+
+  @Test
+  public void equals() {
+    // Given
+    final Chart chart1 = Chart.builder()
+        .name("chart")
+        .home("e.t.")
+        .version("1337")
+        .sources(Arrays.asList("source-1", "source-2"))
+        .build();
+    // When
+    final Chart result = Chart.builder()
+        .name("chart")
+        .home("e.t.")
+        .version("1337")
+        .sources(Arrays.asList("source-1", "source-2"))
+        .build();
+    // Then
+    assertThat(result)
+        .isNotSameAs(chart1)
+        .isEqualTo(chart1);
   }
 }

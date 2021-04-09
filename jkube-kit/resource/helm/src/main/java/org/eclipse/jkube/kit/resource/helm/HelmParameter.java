@@ -13,12 +13,14 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import io.fabric8.openshift.api.model.Parameter;
 
 public class HelmParameter {
 
   private final Parameter parameter;
 
+  @JsonCreator
   public HelmParameter(Parameter parameter) {
     this.parameter = parameter;
   }

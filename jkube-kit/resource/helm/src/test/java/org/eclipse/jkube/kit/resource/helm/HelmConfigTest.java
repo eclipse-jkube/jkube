@@ -16,17 +16,33 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.openshift.api.model.Template;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 public class HelmConfigTest {
+
+  private ObjectMapper objectMapper;
+
+  @Before
+  public void setUp() {
+    objectMapper = new ObjectMapper();
+  }
+
+  @After
+  public void tearDown() {
+    objectMapper = null;
+  }
 
   @Test
   public void helmTypeParseStringNullTest() {
@@ -70,6 +86,53 @@ public class HelmConfigTest {
   }
 
   @Test
+  public void deserialize() throws Exception {
+    // Given
+    final String serializedChart = "{" +
+        "\"version\":\"1337\"," +
+        "\"security\":\"NYPD\"," +
+        "\"chart\":\"pie\"," +
+        "\"type\":\"kUberNetes\"," +
+        "\"chartExtension\":\"tar\"," +
+        "\"outputDir\":\"./output\"," +
+        "\"sourceDir\":\"./src\"," +
+        "\"snapshotRepository\":{}," +
+        "\"stableRepository\":{}," +
+        "\"tarballOutputDir\":\"./tar-output\"," +
+        "\"templates\":[{}]," +
+        "\"description\":\"The description\"," +
+        "\"home\":\"e.t.\"," +
+        "\"icon\":\"Warhol\"," +
+        "\"maintainers\":[{}]," +
+        "\"sources\":[\"source\"]," +
+        "\"engine\":\"V8\"," +
+        "\"keywords\":[\"SEO\"]" +
+        "}";
+    // When
+    final HelmConfig result = objectMapper.readValue(serializedChart, HelmConfig.class);
+    // Then
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("version", "1337")
+        .hasFieldOrPropertyWithValue("security", "NYPD")
+        .hasFieldOrPropertyWithValue("chart", "pie")
+        .hasFieldOrPropertyWithValue("types", Collections.singletonList(HelmType.KUBERNETES))
+        .hasFieldOrPropertyWithValue("chartExtension", "tar")
+        .hasFieldOrPropertyWithValue("outputDir", "./output")
+        .hasFieldOrPropertyWithValue("sourceDir", "./src")
+        .hasFieldOrPropertyWithValue("snapshotRepository", new HelmRepository())
+        .hasFieldOrPropertyWithValue("stableRepository", new HelmRepository())
+        .hasFieldOrPropertyWithValue("tarballOutputDir", "./tar-output")
+        .hasFieldOrPropertyWithValue("templates", Collections.singletonList(new Template()))
+        .hasFieldOrPropertyWithValue("description", "The description")
+        .hasFieldOrPropertyWithValue("home", "e.t.")
+        .hasFieldOrPropertyWithValue("icon", "Warhol")
+        .hasFieldOrPropertyWithValue("maintainers", Collections.singletonList(new Maintainer()))
+        .hasFieldOrPropertyWithValue("sources", Collections.singletonList("source"))
+        .hasFieldOrPropertyWithValue("engine", "V8")
+        .hasFieldOrPropertyWithValue("keywords", Collections.singletonList("SEO"));
+  }
+
+  @Test
   public void createHelmConfig() throws IOException {
     // Given
     File file = File.createTempFile("test", ".tmp");
@@ -79,23 +142,23 @@ public class HelmConfigTest {
     helmConfig.setVersion("version");
     helmConfig.setSecurity("security");
     helmConfig.setChart("chart");
-    helmConfig.setTypes(Arrays.asList(HelmType.KUBERNETES));
+    helmConfig.setTypes(Collections.singletonList(HelmType.KUBERNETES));
     helmConfig.setType(HelmType.KUBERNETES.name());
-    helmConfig.setAdditionalFiles(Arrays.asList(file));
+    helmConfig.setAdditionalFiles(Collections.singletonList(file));
     helmConfig.setChartExtension("chartExtension");
     helmConfig.setOutputDir("outputDir");
     helmConfig.setSourceDir("sourceDir");
     helmConfig.setSnapshotRepository(new HelmRepository());
     helmConfig.setStableRepository(new HelmRepository());
     helmConfig.setTarballOutputDir("tarballOutputDir");
-    helmConfig.setTemplates(Arrays.asList(new Template()));
+    helmConfig.setTemplates(Collections.singletonList(new Template()));
     helmConfig.setDescription("description");
     helmConfig.setHome("home");
     helmConfig.setIcon("icon");
-    helmConfig.setMaintainers(Arrays.asList(new Maintainer()));
-    helmConfig.setSources(Arrays.asList("source"));
+    helmConfig.setMaintainers(Collections.singletonList(new Maintainer()));
+    helmConfig.setSources(Collections.singletonList("source"));
     helmConfig.setEngine("engine");
-    helmConfig.setKeywords(Arrays.asList("keyword"));
+    helmConfig.setKeywords(Collections.singletonList("keyword"));
 
     helmConfig.setGeneratedChartListeners(Arrays.asList((helmConfig1, type, chartFile) -> {
     }));
@@ -119,5 +182,37 @@ public class HelmConfigTest {
     assertThat(helmConfig.getSources().get(0)).isEqualTo("source");
     assertThat(helmConfig.getEngine()).isEqualTo("engine");
     assertThat(helmConfig.getKeywords().get(0)).isEqualTo("keyword");
+  }
+
+  @Test
+  public void equals() {
+    // Given
+    final HelmConfig helmConfig1 = HelmConfig.builder()
+        .version("1337")
+        .security("NYPD")
+        .chart("Chart")
+        .types(Collections.singletonList(HelmType.KUBERNETES))
+        .additionalFiles(Collections.emptyList())
+        .chartExtension("tar")
+        .outputDir("./output")
+        .sourceDir("./source")
+        .snapshotRepository(new HelmRepository())
+        .stableRepository(new HelmRepository())
+        .tarballOutputDir("tarballOutputDir")
+        .templates(Collections.singletonList(new Template()))
+        .description("description")
+        .home("e.t.")
+        .icon("Warhol")
+        .maintainers(Collections.singletonList(new Maintainer()))
+        .sources(Arrays.asList("source-1", "source-2"))
+        .engine("V8")
+        .keywords(Collections.singletonList("keyword"))
+        .build();
+    // When
+    final HelmConfig result = helmConfig1.toBuilder().build();
+    // Then
+    assertThat(result)
+        .isNotSameAs(helmConfig1)
+        .isEqualTo(helmConfig1);
   }
 }
