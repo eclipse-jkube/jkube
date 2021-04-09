@@ -21,6 +21,7 @@ import java.net.PasswordAuthentication;
 import java.net.URL;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHeaders;
 
 public class HelmRepositoryConnectionUtils {
 
@@ -28,28 +29,32 @@ public class HelmRepositoryConnectionUtils {
 
   protected static HttpURLConnection getConnectionForUploadToChartMuseum(
       File file, HelmRepository repository) throws IOException {
-    final HttpURLConnection connection = createConnection(repository, repository.getUrl());
-    connection.setRequestProperty("Content-Type", "application/gzip");
-    return connection;
+    return createConnection(repository, repository.getUrl());
   }
 
   protected static HttpURLConnection getConnectionForUploadToArtifactory(
       File file,
       HelmRepository repository) throws IOException {
     final HttpURLConnection connection = createConnection(repository, formatRepositoryURL(file, repository));
-    connection.setRequestProperty("Content-Type", "application/gzip");
+    connection.setRequestMethod("PUT");
     return connection;
   }
 
   protected static HttpURLConnection getConnectionForUploadToNexus(File file, HelmRepository repository) throws IOException {
-    return createConnection(repository, formatRepositoryURL(file, repository));
+    String url = formatRepositoryURL(file, repository);
+    if (url.endsWith(".tar.gz")) {
+      url = url.replaceAll("tar.gz$", "tgz");
+    }
+    final HttpURLConnection connection = createConnection(repository, url);
+    connection.setRequestMethod("PUT");
+    return connection;
   }
 
   private static HttpURLConnection createConnection(HelmRepository repository, String url) throws IOException {
-    final HttpURLConnection connection = (HttpURLConnection) new URL(url)
-        .openConnection();
+    final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
     connection.setDoOutput(true);
     connection.setRequestMethod("POST");
+    connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, "application/gzip");
     verifyAndSetAuthentication(repository);
     return connection;
   }
