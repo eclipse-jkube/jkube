@@ -15,11 +15,10 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository;
-import org.eclipse.jkube.kit.resource.helm.HelmRepository.HelmRepoType;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -47,7 +46,7 @@ public class HelmPushMojo extends HelmMojo {
   protected static final String DEFAULT_SECURITY = "~/.m2/settings-security.xml";
 
   @Component(role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class, hint = "default")
-  private SecDispatcher securityDispatcher;
+  protected SecDispatcher securityDispatcher;
 
   @Override
   protected boolean canExecute() {
@@ -61,62 +60,66 @@ public class HelmPushMojo extends HelmMojo {
     }
     try {
       super.executeInternal();
-      HelmRepository helmRepository = getHelmRepository();
-      if (helmRepository != null) {
+      final HelmRepository helmRepository = getHelmRepository();
+      if (isRepositoryValid(helmRepository)) {
         this.setAuthentication(helmRepository);
         HelmService.uploadHelmChart(getKitLogger(), helm, helmRepository);
       } else {
-        String error = "No repository configured for upload";
+        String error = "No repository or invalid repository configured for upload";
         getKitLogger().error(error);
         throw new MojoExecutionException(error);
       }
     } catch (Exception exp) {
       getKitLogger().error("Error performing helm push", exp);
-      throw new MojoExecutionException(exp.getMessage());
+      throw new MojoExecutionException(exp.getMessage(), exp);
     }
+  }
+
+  private static boolean isRepositoryValid(HelmRepository repository) {
+    return repository != null
+        && repository.getType() != null
+        && StringUtils.isNotBlank(repository.getName())
+        && StringUtils.isNotBlank(repository.getUrl());
   }
 
   @Override
   protected void initDefaults() throws IOException, MojoExecutionException {
     super.initDefaults();
 
-    if (!StringUtils.isBlank(getProperty(PROPERTY_UPLOAD_REPO_STABLE_NAME))) {
-      try {
-        HelmRepository stableRepository = new HelmRepository();
-        stableRepository.setName(getProperty(PROPERTY_UPLOAD_REPO_STABLE_NAME));
-        stableRepository.setUrl(getProperty(PROPERTY_UPLOAD_REPO_STABLE_URL));
-        stableRepository.setUsername(getProperty(PROPERTY_UPLOAD_REPO_STABLE_USERNAME));
-        stableRepository.setPassword(getProperty(PROPERTY_UPLOAD_REPO_STABLE_PASSWORD));
-        stableRepository
-            .setType(HelmRepoType.valueOf(getProperty(PROPERTY_UPLOAD_REPO_STABLE_TYPE)));
-        getHelm().setStableRepository(stableRepository);
-      } catch (Exception ex) {
-        getKitLogger().debug("Error configuring Helm stable repository", ex);
-        throw new MojoExecutionException("Error configuring Helm stable repository", ex);
-      }
+    if (getHelm().getStableRepository() == null) {
+      getHelm().setStableRepository(new HelmRepository());
     }
+    final HelmRepository stableRepository = getHelm().getStableRepository();
+    initFromPropertyOrDefault(PROPERTY_UPLOAD_REPO_STABLE_TYPE,
+        stableRepository::getTypeAsString, stableRepository::setType, null);
+    initFromPropertyOrDefault(PROPERTY_UPLOAD_REPO_STABLE_NAME,
+        stableRepository::getName, stableRepository::setName, null);
+    initFromPropertyOrDefault(PROPERTY_UPLOAD_REPO_STABLE_URL,
+        stableRepository::getUrl, stableRepository::setUrl, null);
+    initFromPropertyOrDefault(PROPERTY_UPLOAD_REPO_STABLE_USERNAME,
+        stableRepository::getUsername, stableRepository::setUsername, null);
+    initFromPropertyOrDefault(PROPERTY_UPLOAD_REPO_STABLE_PASSWORD,
+        stableRepository::getPassword, stableRepository::setPassword, null);
 
-    if (!StringUtils.isBlank(getProperty(PROPERTY_UPLOAD_REPO_SNAPSHOT_NAME))) {
-      try {
-        HelmRepository snapshotRepository = new HelmRepository();
-        snapshotRepository.setName(getProperty(PROPERTY_UPLOAD_REPO_SNAPSHOT_NAME));
-        snapshotRepository.setUrl(getProperty(PROPERTY_UPLOAD_REPO_SNAPSHOT_URL));
-        snapshotRepository.setUsername(getProperty(PROPERTY_UPLOAD_REPO_SNAPSHOT_USERNAME));
-        snapshotRepository.setPassword(getProperty(PROPERTY_UPLOAD_REPO_SNAPSHOT_PASSWORD));
-        snapshotRepository
-            .setType(HelmRepoType.valueOf(getProperty(PROPERTY_UPLOAD_REPO_SNAPSHOT_TYPE)));
-        getHelm().setSnapshotRepository(snapshotRepository);
-      } catch (Exception ex) {
-        getKitLogger().debug("Error configuring Helm snapshot repository", ex);
-        throw new MojoExecutionException("Error configuring Helm snapshot repository", ex);
-      }
+    if (getHelm().getSnapshotRepository() == null) {
+      getHelm().setSnapshotRepository(new HelmRepository());
     }
+    final HelmRepository snapshotRepository = getHelm().getSnapshotRepository();
+    initFromPropertyOrDefault(PROPERTY_UPLOAD_REPO_SNAPSHOT_TYPE,
+        snapshotRepository::getTypeAsString, snapshotRepository::setType, null);
+    initFromPropertyOrDefault(PROPERTY_UPLOAD_REPO_SNAPSHOT_NAME,
+        snapshotRepository::getName, snapshotRepository::setName, null);
+    initFromPropertyOrDefault(PROPERTY_UPLOAD_REPO_SNAPSHOT_URL,
+        snapshotRepository::getUrl, snapshotRepository::setUrl, null);
+    initFromPropertyOrDefault(PROPERTY_UPLOAD_REPO_SNAPSHOT_USERNAME,
+        snapshotRepository::getUsername, snapshotRepository::setUsername, null);
+    initFromPropertyOrDefault(PROPERTY_UPLOAD_REPO_SNAPSHOT_PASSWORD,
+        snapshotRepository::getPassword, snapshotRepository::setPassword, null);
 
     initFromPropertyOrDefault(PROPERTY_SECURITY, helm::getSecurity, helm::setSecurity, DEFAULT_SECURITY);
-
   }
 
-  HelmRepository getHelmRepository() {
+  private HelmRepository getHelmRepository() {
     if (getHelm().getVersion() != null && getHelm().getVersion().endsWith("-SNAPSHOT")) {
       return getHelm().getSnapshotRepository();
     }
@@ -130,11 +133,9 @@ public class HelmPushMojo extends HelmMojo {
    * @param repository Helm repo with id and optional credentials.
    * @throws IllegalArgumentException Unable to get authentication because of misconfiguration.
    */
-  void setAuthentication(HelmRepository repository)
-      throws SecDispatcherException {
-    String id = repository.getName();
+  private void setAuthentication(HelmRepository repository) throws SecDispatcherException {
+    final String id = repository.getName();
     final String REPO = "Repo ";
-
     if (repository.getUsername() != null) {
       if (repository.getPassword() == null) {
         throw new IllegalArgumentException(REPO + id + " has a username but no password defined.");
@@ -144,7 +145,7 @@ public class HelmPushMojo extends HelmMojo {
 
       Server server = getSettings().getServer(id);
       if (server == null) {
-        getKitLogger().info(
+        throw new IllegalArgumentException(
             "No credentials found for " + id + " in configuration or settings.xml server list.");
       } else {
 
