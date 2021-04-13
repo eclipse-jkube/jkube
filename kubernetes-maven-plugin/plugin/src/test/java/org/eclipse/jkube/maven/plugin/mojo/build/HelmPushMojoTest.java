@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -23,15 +21,12 @@ import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository.HelmRepoType;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
-import org.eclipse.jkube.kit.resource.helm.Maintainer;
 
+import mockit.Delegate;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.apache.maven.model.Developer;
-import org.apache.maven.model.Scm;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -39,34 +34,41 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
-import static org.eclipse.jkube.maven.plugin.mojo.build.HelmPushMojo.PROPERTY_UPLOAD_REPO_SNAPSHOT_NAME;
-import static org.eclipse.jkube.maven.plugin.mojo.build.HelmPushMojo.PROPERTY_UPLOAD_REPO_SNAPSHOT_TYPE;
-import static org.eclipse.jkube.maven.plugin.mojo.build.HelmPushMojo.PROPERTY_UPLOAD_REPO_STABLE_NAME;
-import static org.eclipse.jkube.maven.plugin.mojo.build.HelmPushMojo.PROPERTY_UPLOAD_REPO_STABLE_TYPE;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 public class HelmPushMojoTest {
 
   @Mocked
-  private KitLogger logger;
+  KitLogger logger;
   @Mocked
   MavenProject mavenProject;
   @Mocked
   HelmService helmService;
+  @Mocked
+  SecDispatcher secDispatcher;
+
+  private Properties mavenProperties;
+
   private HelmPushMojo helmPushMojo;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
+    mavenProperties = new Properties();
     helmPushMojo = new HelmPushMojo();
+    helmPushMojo.helm = new HelmConfig();
     helmPushMojo.project = mavenProject;
+    helmPushMojo.settings = new Settings();
+    helmPushMojo.securityDispatcher = secDispatcher;
+    // @formatter:off
+    new Expectations(helmPushMojo) {{
+      helmPushMojo.getKitLogger(); result = logger; minTimes = 0;
+      mavenProject.getProperties(); result = mavenProperties; minTimes = 0;
+      secDispatcher.decrypt(anyString);
+      result = new Delegate<String>() {String delegate(String arg) {return arg;}}; minTimes = 0;
+    }};
+    // @formatter:on
   }
 
   @After
@@ -77,305 +79,248 @@ public class HelmPushMojoTest {
   }
 
   @Test
-  public void executeInternalWithNoConfigShouldInitConfigWithDefaultValuesAndGenerate(
-      @Mocked Scm scm, @Mocked Developer developer) throws Exception {
-
+  public void executeInternalWithValidXMLConfigShouldGenerate() throws Exception {
     // Given
-    assertThat(helmPushMojo.helm, nullValue());
-    new Expectations(helmPushMojo) {{
-      helmPushMojo.getKitLogger(); result = logger;
-      helmPushMojo.getHelmRepository(); result = new HelmRepository();
-      helmPushMojo.setAuthentication(withInstanceOf(HelmRepository.class));
-    }};
+    helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+    // @formatter:off
     new Expectations() {{
-      mavenProject.getProperties();
-      result = new Properties();
-      mavenProject.getBuild().getOutputDirectory();
-      result = "target/classes";
-      mavenProject.getBuild().getDirectory();
-      result = "target";
-      mavenProject.getArtifactId();
-      result = "artifact-id";
-      mavenProject.getVersion();
-      result = "1337";
-      mavenProject.getDescription();
-      result = "A description from Maven";
-      mavenProject.getUrl();
-      result = "https://project.url";
-      mavenProject.getScm();
-      result = scm;
-      scm.getUrl();
-      result = "https://scm.url";
-      mavenProject.getDevelopers();
-      result = Arrays.asList(developer, developer);
-      developer.getName();
-      result = "John"; result = "John"; result = null;
-      developer.getEmail();
-      result = "john@example.com"; result = null;
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
     }};
+    // @formatter:on
     // When
     helmPushMojo.executeInternal();
     // Then
-    assertThat(helmPushMojo.helm, notNullValue());
-    assertThat(helmPushMojo.helm.getChart(), is("artifact-id"));
-    assertThat(helmPushMojo.helm.getChartExtension(), is("tar.gz"));
-    assertThat(helmPushMojo.helm.getVersion(), is("1337"));
-    assertThat(helmPushMojo.helm.getDescription(), is("A description from Maven"));
-    assertThat(helmPushMojo.helm.getHome(), is("https://project.url"));
-    assertThat(helmPushMojo.helm.getSources(), contains("https://scm.url"));
-    assertThat(helmPushMojo.helm.getMaintainers(), contains(
-        new Maintainer("John", "john@example.com")
-    ));
-    assertThat(helmPushMojo.helm.getIcon(), nullValue());
-    assertThat(helmPushMojo.helm.getAdditionalFiles(), empty());
-    assertThat(helmPushMojo.helm.getTemplates(), empty());
-    assertThat(helmPushMojo.helm.getTypes(), contains(HelmConfig.HelmType.KUBERNETES));
-    assertThat(helmPushMojo.helm.getSourceDir(), is("target/classes/META-INF/jkube/"));
-    assertThat(helmPushMojo.helm.getOutputDir(), is("target/jkube/helm/artifact-id"));
-    assertThat(helmPushMojo.helm.getTarballOutputDir(), is("target"));
-    assertThat(helmPushMojo.helm.getSnapshotRepository(), nullValue());
-    assertThat(helmPushMojo.helm.getStableRepository(), nullValue());
-    assertThat(helmPushMojo.helm.getSecurity(), is("~/.m2/settings-security.xml"));
+    assertThat(helmPushMojo.helm)
+        .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml")
+        .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.ARTIFACTORY);
+    assertHelmServiceUpload();
+  }
+
+  @Test
+  public void executeInternalWithInvalidXMLRepositoryConfigShouldFail() {
+    // Given
+    helmPushMojo.helm.setSnapshotRepository(new HelmRepository());
+    helmPushMojo.helm.getSnapshotRepository().setName("SNAP-REPO");
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    final MojoExecutionException result = assertThrows(MojoExecutionException.class,
+        () -> helmPushMojo.executeInternal());
+    // Then
+    assertThat(result).hasMessage("No repository or invalid repository configured for upload");
+  }
+
+  @Test
+  public void executeInternalWithMissingXMLRepositoryConfigShouldFail() {
+    // Given
+    helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337"; // Will require the stable repository
+    }};
+    // @formatter:on
+    // When
+    final MojoExecutionException result = assertThrows(MojoExecutionException.class,
+        () -> helmPushMojo.executeInternal());
+    // Then
+    assertThat(result).hasMessage("No repository or invalid repository configured for upload");
+  }
+
+  @Test
+  public void executeInternalWithValidXMLConfigAndUploadErrorShouldFail() throws Exception {
+    // Given
+    helmPushMojo.helm.setStableRepository(completeValidRepository());
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337";
+      helmService.uploadHelmChart(null, withNotNull(), withNotNull());
+      result = new BadUploadException("Error uploading helm chart");
+    }};
+    // When
+    final MojoExecutionException result = assertThrows(MojoExecutionException.class,
+        () -> helmPushMojo.executeInternal());
+    // Then
+    assertThat(result).hasMessage("Error uploading helm chart");
+  }
+
+  @Test
+  public void executeInternalWithValidPropertiesConfigShouldGenerate() throws Exception {
+    // Given
+    mavenProperties.put("jkube.helm.snapshotRepository.name", "props repo");
+    mavenProperties.put("jkube.helm.snapshotRepository.type", "nExus");
+    mavenProperties.put("jkube.helm.snapshotRepository.url", "http://example.com/url");
+    mavenProperties.put("jkube.helm.snapshotRepository.username", "propsUser");
+    mavenProperties.put("jkube.helm.snapshotRepository.password", "propS3cret");
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    helmPushMojo.executeInternal();
+    // Then
+    assertThat(helmPushMojo.helm)
+        .hasFieldOrPropertyWithValue("snapshotRepository.name", "props repo")
+        .hasFieldOrPropertyWithValue("snapshotRepository.url", "http://example.com/url")
+        .hasFieldOrPropertyWithValue("snapshotRepository.username", "propsUser")
+        .hasFieldOrPropertyWithValue("snapshotRepository.password", "propS3cret")
+        .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.NEXUS)
+        .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml");
+    assertHelmServiceUpload();
+  }
+
+  @Test
+  public void executeInternalWithValidPropertiesAndXMLConfigShouldGenerateWithPropertiesTakingPrecedence() throws Exception {
+    // Given
+    helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+    mavenProperties.put("jkube.helm.snapshotRepository.password", "propS3cret");
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    helmPushMojo.executeInternal();
+    // Then
+    assertThat(helmPushMojo.helm)
+        .hasFieldOrPropertyWithValue("snapshotRepository.name", "SNAP-REPO")
+        .hasFieldOrPropertyWithValue("snapshotRepository.url", "https://example.com/artifactory")
+        .hasFieldOrPropertyWithValue("snapshotRepository.username", "User")
+        .hasFieldOrPropertyWithValue("snapshotRepository.password", "propS3cret")
+        .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.ARTIFACTORY)
+        .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml");
+    assertHelmServiceUpload();
+  }
+
+  @Test
+  public void executeInternalWithoutUsernameShouldFail() {
+    // Given
+    helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+    helmPushMojo.helm.getSnapshotRepository().setUsername(null);
+    helmPushMojo.helm.getSnapshotRepository().setPassword(null);
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    final MojoExecutionException result = assertThrows(MojoExecutionException.class,
+        () -> helmPushMojo.executeInternal());
+    // Then
+    assertThat(result).hasMessage("No credentials found for SNAP-REPO in configuration or settings.xml server list.");
+  }
+
+  @Test
+  public void executeInternalWithUsernameWithoutPasswordShouldFail() {
+    // Given
+    helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+    helmPushMojo.helm.getSnapshotRepository().setPassword(null);
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    final MojoExecutionException result = assertThrows(MojoExecutionException.class,
+        () -> helmPushMojo.executeInternal());
+    // Then
+    assertThat(result).hasMessage("Repo SNAP-REPO has a username but no password defined.");
+  }
+
+  @Test
+  public void executeInternalWithValidMavenSettingsShouldGenerate() throws Exception {
+    // Given
+    helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+    helmPushMojo.helm.getSnapshotRepository().setUsername(null);
+    helmPushMojo.helm.getSnapshotRepository().setPassword(null);
+    helmPushMojo.settings.addServer(completeValidServer());
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    helmPushMojo.executeInternal();
+    // Then
+    assertThat(helmPushMojo.helm)
+        .hasFieldOrPropertyWithValue("snapshotRepository.username", "mavenUser")
+        .hasFieldOrPropertyWithValue("snapshotRepository.password", "mavenPassword")
+        .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.ARTIFACTORY)
+        .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml");
+    assertHelmServiceUpload();
+  }
+
+  @Test
+  public void executeInternalWithMavenSettingsWithoutUsernameShouldFail() {
+    // Given
+    helmPushMojo.helm = new HelmConfig();
+    helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+    helmPushMojo.helm.getSnapshotRepository().setUsername(null);
+    helmPushMojo.helm.getSnapshotRepository().setPassword(null);
+    helmPushMojo.settings.addServer(completeValidServer());
+    helmPushMojo.settings.getServer("SNAP-REPO").setUsername(null);
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    final MojoExecutionException result = assertThrows(MojoExecutionException.class,
+        () -> helmPushMojo.executeInternal());
+    // Then
+    assertThat(result).hasMessage("Repo SNAP-REPO was found in server list but has no username/password.");
+  }
+
+  @Test
+  public void executeInternalWithSkipShouldSkipExecution() throws Exception {
+    // Given
+    helmPushMojo.skip = true;
+    // When
+    helmPushMojo.executeInternal();
+    // Then
+    new Verifications() {{
+      HelmService.uploadHelmChart(null, helmPushMojo.helm, withNotNull());
+      times = 0;
+    }};
+  }
+
+  @Test
+  public void canExecuteWithSkipShouldReturnFalse() throws Exception {
+    // Given
+    helmPushMojo.skip = true;
+    // When
+    final boolean result = helmPushMojo.canExecute();
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  private void assertHelmServiceUpload() throws Exception {
+    // @formatter:off
     new Verifications() {{
       HelmService.uploadHelmChart(null, helmPushMojo.helm, withNotNull());
       times = 1;
     }};
+    // @formatter:on
   }
 
-  @Test(expected = MojoExecutionException.class)
-  public void executeInternalWithNoConfigGenerateThrowsExceptionShouldRethrowWithMojoExecutionException()
-  throws Exception {
-
-    // Given
-    helmPushMojo.skip = false;
-    new Expectations(helmPushMojo) {{
-      helmPushMojo.getKitLogger(); result = logger;
-      helmPushMojo.getHelmRepository(); result = new HelmRepository();
-      helmPushMojo.setAuthentication(withInstanceOf(HelmRepository.class));
-    }};
-    new Expectations() {{
-      mavenProject.getProperties();
-      result = new Properties();
-      helmService.uploadHelmChart(null, withNotNull(), withNotNull());
-      result = new BadUploadException("Exception is thrown");
-    }};
-    // When
-    helmPushMojo.executeInternal();
-    // Then
-    fail();
+  private static HelmRepository completeValidRepository() {
+    final HelmRepository repository = new HelmRepository();
+    repository.setName("SNAP-REPO");
+    repository.setType("ArtIFACTORY");
+    repository.setUrl("https://example.com/artifactory");
+    repository.setUsername("User");
+    repository.setPassword("S3cret");
+    return repository;
   }
 
-  @Test(expected = MojoExecutionException.class)
-  public void executeInternalWithNoRepositoryGenerateThrowsExceptionShouldRethrowWithMojoExecutionException()
-      throws Exception {
-
-    // Given
-    helmPushMojo.skip = false;
-    new Expectations(helmPushMojo) {{
-        helmPushMojo.getKitLogger(); result = logger;
-    }};
-    new Expectations() {{
-      mavenProject.getProperties(); result = new Properties();
-    }};
-    // When
-    helmPushMojo.executeInternal();
-    // Then
-    fail();
-  }
-
-
-  @Test
-  public void initFromPropertyOrDefaultPropertyHasPrecedenceOverConfiguration() {
-    // Given
-    final Properties properties = new Properties();
-    properties.put("jkube.helm.property", "Overrides Current Value");
-    properties.put("jkube.helm.otherProperty", "Ignored");
-    final HelmConfig config = new HelmConfig();
-    config.setSecurity("This value will be overridden");
-    new Expectations() {{
-      mavenProject.getProperties();
-      result = properties;
-    }};
-    // When
-    helmPushMojo.initFromPropertyOrDefault(
-        "jkube.helm.property", config::getChart, config::setChart, "default is ignored");
-    // Then
-    assertThat(config.getChart(), is("Overrides Current Value"));
-  }
-
-  @Test
-  public void initRepositoriesFromProperties(@Mocked HelmConfig helmConfig) throws IOException, MojoExecutionException {
-    // Given
-    final Properties properties = new Properties();
-    properties.put(PROPERTY_UPLOAD_REPO_STABLE_NAME, "stable");
-    properties.put(PROPERTY_UPLOAD_REPO_STABLE_TYPE, HelmRepoType.ARTIFACTORY.name());
-    properties.put(PROPERTY_UPLOAD_REPO_SNAPSHOT_NAME, "snapshot");
-    properties.put(PROPERTY_UPLOAD_REPO_SNAPSHOT_TYPE, HelmRepoType.ARTIFACTORY.name());
-
-    new Expectations() {{
-      mavenProject.getProperties();
-      result = properties;
-    }};
-    new Expectations(helmPushMojo, helmConfig) {{
-      helmPushMojo.getHelm(); result = helmConfig;
-    }};
-    // When
-    helmPushMojo.initDefaults();
-    // Then
-    assertThat(helmConfig.getStableRepository().getName(), is("stable"));
-    assertThat(helmConfig.getSnapshotRepository().getName(), is("snapshot"));
-  }
-
-  @Test(expected = MojoExecutionException.class)
-  public void initStableRepositoriesWithIncompletePropertiesThrowsException(@Mocked HelmConfig helmConfig) throws IOException, MojoExecutionException {
-    // Given
-    final Properties properties = new Properties();
-    properties.put(PROPERTY_UPLOAD_REPO_STABLE_NAME, "stable");
-    new Expectations() {{
-      mavenProject.getProperties();
-      result = properties;
-    }};
-    new Expectations(helmPushMojo, helmConfig) {{
-      helmPushMojo.getKitLogger(); result = logger;
-    }};
-    // When
-    helmPushMojo.initDefaults();
-    // Then
-    fail();
-  }
-
-  @Test(expected = MojoExecutionException.class)
-  public void initSnapshotRepositoriesWithIncompletePropertiesThrowsException(@Mocked HelmConfig helmConfig) throws IOException, MojoExecutionException {
-    // Given
-    final Properties properties = new Properties();
-    properties.put(PROPERTY_UPLOAD_REPO_SNAPSHOT_NAME, "stable");
-    new Expectations() {{
-      mavenProject.getProperties();
-      result = properties;
-    }};
-    new Expectations(helmPushMojo, helmConfig) {{
-      helmPushMojo.getKitLogger(); result = logger;
-    }};
-    // When
-    helmPushMojo.initDefaults();
-    // Then
-    fail();
-  }
-
-  @Test
-  public void executeSetAuthentication() throws SecDispatcherException {
-    // Given
-    final HelmRepository helmRepository = new HelmRepository();
-    helmRepository.setName("repository");
-    helmRepository.setUsername("username");
-    helmRepository.setPassword("password");
-    new Expectations(helmPushMojo) {{
-      helmPushMojo.getKitLogger(); result = logger;
-    }};
-    // When
-    helmPushMojo.setAuthentication(helmRepository);
-    // Then
-    assertThat(helmRepository.getName(), is("repository"));
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void executeSetAuthenticationWithUsernameWithoutPasswordThrowsException() throws SecDispatcherException {
-    // Given
-    final HelmRepository helmRepository = new HelmRepository();
-    helmRepository.setName("repository");
-    helmRepository.setUsername("username");
-    // When
-    helmPushMojo.setAuthentication(helmRepository);
-    // Then
-    fail();
-  }
-
-
-  @Test
-  public void executeSetAuthenticationWithoutUsername(@Mocked Settings settings) throws SecDispatcherException {
-    // Given
-    final HelmRepository helmRepository = new HelmRepository();
-    helmRepository.setName("repository");
-    new Expectations(helmPushMojo) {{
-      helmPushMojo.getKitLogger(); result = logger;
-      helmPushMojo.getSettings(); result = settings;
-      settings.getServer(anyString); result = withNull();
-    }};
-    // When
-    helmPushMojo.setAuthentication(helmRepository);
-    // Then
-    assertThat(helmRepository.getUsername(), nullValue());
-  }
-
-  @Test
-  public void executeSetAuthenticationWithoutUsernameWithNullServer(@Mocked Settings settings) throws SecDispatcherException {
-    // Given
-    final HelmRepository helmRepository = new HelmRepository();
-    helmRepository.setName("repository");
-    new Expectations(helmPushMojo) {{
-      helmPushMojo.getKitLogger(); result = logger;
-      helmPushMojo.getSettings(); result = settings;
-      settings.getServer(anyString); result = withNull();
-    }};
-    // When
-    helmPushMojo.setAuthentication(helmRepository);
-    // Then
-    assertThat(helmRepository.getUsername(), nullValue());
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void executeSetAuthenticationWithoutUsernameWithServerThrowsException(@Mocked Settings settings) throws SecDispatcherException {
-    // Given
-    final HelmRepository helmRepository = new HelmRepository();
-    helmRepository.setName("repository");
+  private static Server completeValidServer() {
     final Server server = new Server();
-
-    new Expectations(helmPushMojo) {{
-      helmPushMojo.getKitLogger(); result = logger;
-      helmPushMojo.getSettings(); result = settings;
-      settings.getServer(anyString); result = server;
-    }};
-    // When
-    helmPushMojo.setAuthentication(helmRepository);
-    // Then
-    fail();
-  }
-
-  @Test
-  public void executeSetAuthenticationWithoutUsernameWithServer(@Mocked Settings settings, @Mocked
-      SecDispatcher secDispatcher) throws SecDispatcherException {
-    // Given
-    final HelmRepository helmRepository = new HelmRepository();
-    helmRepository.setName("repository");
-    final Server server = new Server();
-    server.setUsername("username");
-    server.setPassword("password");
-
-    new Expectations(helmPushMojo) {{
-      helmPushMojo.getKitLogger(); result = logger;
-      helmPushMojo.getSettings(); result = settings;
-      settings.getServer(anyString); result = server;
-      helmPushMojo.getSecDispatcher(); result = secDispatcher;
-      secDispatcher.decrypt(anyString); result = "password";
-    }};
-    // When
-    helmPushMojo.setAuthentication(helmRepository);
-    // Then
-    assertThat(helmRepository.getPassword(), is("password"));
-  }
-
-  @Test
-  public void skipExecution() throws MojoFailureException, MojoExecutionException {
-    // Given
-    helmPushMojo.skip = true;
-    new Expectations(helmPushMojo) {{
-    }};
-    // When
-    helmPushMojo.canExecute();
-    // Then
-    new Verifications() {{
-      helmPushMojo.execute();
-      times = 0;
-    }};
+    server.setId("SNAP-REPO");
+    server.setUsername("mavenUser");
+    server.setPassword("mavenPassword");
+    return server;
   }
 }

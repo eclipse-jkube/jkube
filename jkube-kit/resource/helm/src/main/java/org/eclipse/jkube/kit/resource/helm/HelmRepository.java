@@ -23,6 +23,7 @@ import lombok.Setter;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.Optional;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -38,6 +39,16 @@ public class HelmRepository {
   private String password;
   private HelmRepoType type;
 
+
+  public String getTypeAsString() {
+    return Optional.ofNullable(type).map(HelmRepoType::toString).orElse(null);
+  }
+
+  // Plexus deserialization specific setters
+  public void setType(String type) {
+    this.type = HelmRepoType.parseString(type);
+  }
+
   public enum HelmRepoType {
     CHARTMUSEUM(HelmRepositoryConnectionUtils::getConnectionForUploadToChartMuseum),
     ARTIFACTORY(HelmRepositoryConnectionUtils::getConnectionForUploadToArtifactory),
@@ -51,6 +62,10 @@ public class HelmRepository {
 
     public HttpURLConnection createConnection(File file, HelmRepository repository) throws IOException {
       return connectionCreator.createConnectionForUploadToArtifactory(file, repository);
+    }
+
+    public static HelmRepoType parseString(String repoType) {
+      return Optional.ofNullable(repoType).map(String::toUpperCase).map(HelmRepoType::valueOf).orElse(null);
     }
 
     @FunctionalInterface
