@@ -25,6 +25,7 @@ Usage:
 * Fix #634: Replace occurrences of keySet() with entrySet() when value are needed
 * Fix #659: Update Fabric8 Kubernetes Client to v5.3.0
 * Fix #602: Add documentation regarding automatic Route generation
+* Fix #630: Document usage for `jkube.build.switchToDeployment` flag
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported
