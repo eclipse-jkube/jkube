@@ -355,6 +355,12 @@ ifeval::["{goal-prefix}" == "oc"]
 
   Defaults to `false`.
 | `jkube.openshift.enrichAllWithImageChangeTrigger`
+
+| *switchToDeployment*
+| Generate `Deployment` instead of `DeploymentConfig` during resource generation phase.
+
+  Defaults to `false`
+| `jkube.build.switchToDeployment`
 endif::[]
 
 | *profile*
