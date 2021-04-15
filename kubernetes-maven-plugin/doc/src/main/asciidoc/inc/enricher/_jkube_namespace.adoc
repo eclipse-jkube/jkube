@@ -21,3 +21,16 @@ The following configuration parameters can be used to influence the behaviour of
   Defaults to `Namespace`.
 | `jkube.enricher.jkube-namespace.type`
 |===
+
+This enricher also configures generated Namespace in `.metadata.namespace` field for Kubernetes resources as per provided XML configuration too. Here is an example:
+
+[source,xml]
+----
+<configuration>
+    <resources>
+        <namespace>mynamespace</namespace>
+    </resources>
+</configuration>
+----
+
+

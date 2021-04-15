@@ -158,3 +158,67 @@ This example shows also the mapping rules:
 Multiple ports are **only** mapped when _multiPort_ mode is enabled (which is switched off by default). If _multiPort_ mode is disabled, only the first port from the list of mapped ports calculated as above is taken.
 
 When you set `legacyPortMapping` to true than ports 8080 to 9090 are mapped to port 80 automatically if not explicitly mapped via `_port_`. I.e. when an image exposes port 8080 with a legacy mapping this mapped to a service port 80, not 8080. You _should not_ switch this on for any good reason. In fact it might be that this option can vanish anytime.
+
+This enricher is also used by `<resources>` XML configuration to generate Service configured via XML. Here are the fields supported in `<resources>` which work with this enricher:
+
+.Fields supported in `<resources>`
+[cols="1,5"]
+|===
+| Element | Description
+| <<service-xml-configuration, `services`>>
+| Configuration element for generating Service resource
+|===
+
+[[service-xml-configuration]]
+===== Service XML Configuration
+`<services>` is a list of `<service>` configuration objects. Here are the supported options while providing `<service>` in XML configuration
+
+.XML `<service>` configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `name`
+| Service name
+
+| `port`
+| Port to expose
+
+| `headless`
+| Whether this is a headless service.
+
+| `type`
+| Service type
+
+| `normalizePort`
+| Whether to normalize service port numbering.
+
+| <<service-port-xml-configuration, `ports`>>
+| Ports to expose
+|===
+
+[[service-port-xml-configuration]]
+===== Service `<port>` Configuration
+`<ports>` is a list of `<port>` configuration objects. Here are the supported options while providing `<port>` in XML configuration
+
+.XML service port configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `protocol`
+| Protocol to use. Can be either "tcp" or "udp".
+
+| `port`
+| Container port to expose.
+
+| `targetPort`
+| Target port to expose.
+
+| `nodePort`
+| Port to expose from the port.
+
+| `name`
+| Name of the port
+|===
+

@@ -72,6 +72,51 @@ The configuration consists of two parts:
 Many of the options below are relevant for the <<build-kubernetes, Kubernetes Workflow>> or the <<build-openshift, OpenShift Workflow>> with Docker builds as they influence how the Docker image is build.
 
 For an S2I binary build, on the other hand, the most relevant section is the <<build-assembly, Assembly>> one because the build depends on which buider/base image is used and how it interprets the content of the uploaded `docker.tar`.
+
+[[setting-quota-openshift-build]]
+==== Setting Quotas for OpenShift Build
+You can also limit resource use by specifying resource limits as part of the build configuration. You can do this by providing `<openshiftBuildConfig>` field in `<resource>` configuration. Below is an example on how to do this:
+
+.Example of OpenShift S2I Build resource/limit Configuration
+[source,xml]
+----
+<configuration>
+    <resources>
+         <openshiftBuildConfig>
+            <requests> <!--1-->
+              <cpu>500m</cpu> <!--2-->
+              <memory>512Mi</memory> <!--3-->
+            </requests>
+            <limits> <!--4-->
+              <cpu>1000m</cpu> <!--5-->
+              <memory>1Gi</memory> <!--6-->
+            </limits>
+         </openshiftBuildConfig>
+    </resources>
+</configuration>
+----
+
+<1> Request field which maps to created BuildConfig's `.spec.resources.requests`
+<2> Minimum CPU required by Build Pod
+<3> Minimum memory required by Build Pod
+<4> Limits field which maps to created BuildConfig's (`.spec.resources.limits`)
+<5> Maximum CPU required by Build Pod
+<6> Maximum memory required by Build Pod
+
+It's also possible to provide a `buildconfig.yml` BuildConfig resource fragment in `src/main/jkube` directory like this:
+
+.BuildConfig fragment Example(`buildconfig.yml`)
+[source,yaml]
+----
+spec:
+  resources:
+    limits:
+      cpu: "600m"
+      memory: "512Mi"
+    requests:
+      cpu: "500m"
+      memory: "300Mi"
+----
 endif::[]
 
 [[build-goal-configuration]]

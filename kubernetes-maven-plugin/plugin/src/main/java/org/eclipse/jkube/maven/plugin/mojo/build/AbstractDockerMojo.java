@@ -673,6 +673,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 .forcePull(forcePull)
                 .imagePullManager(getImagePullManager(imagePullPolicy, autoPull))
                 .buildDirectory(project.getBuild().getDirectory())
+                .resourceConfig(resources)
+                .resourceDir(resourceDir)
                 .attacher((classifier, destFile) -> {
                     if (destFile.exists()) {
                         projectHelper.attachArtifact(project, "yml", classifier, destFile);
