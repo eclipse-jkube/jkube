@@ -31,7 +31,9 @@ There are some configuration options which are shared by all generators:
 
 | *name*
 | The Docker image name used when doing Docker builds. For OpenShift S2I builds its the name of the image stream. This
-  can be a pattern as descibed in <<image-name-placeholders, Name Placeholders>>. The default is `%g/%a:%l`.
+  can be a pattern as described in <<image-name-placeholders, Name Placeholders>>. The default is `%g/%a:%l`. Note that this flag would only work
+  when you're using opinionated image configuration provided by generators. if generators are not applicable for your project configuration, this
+  flag won't work.
 | `jkube.generator.name`
 
 | *registry*
