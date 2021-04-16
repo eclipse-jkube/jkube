@@ -50,7 +50,7 @@
     <version.javassist>3.20.0-GA</version.javassist>
     <version.jgit>5.11.0.202103091610-r</version.jgit>
     <version.jnr-unixsocket>0.12</version.jnr-unixsocket>
-    <version.json-path-assert>2.2.0</version.json-path-assert>
+    <version.json-path-assert>2.5.0</version.json-path-assert>
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.1.1</version.JUnitParams>
     <version.kubernetes-client>5.3.0</version.kubernetes-client>
