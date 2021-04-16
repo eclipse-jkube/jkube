@@ -102,6 +102,12 @@ endif::[]
 
 | *service*
 | Labels and annotations applied to `Service` objects.
+
+| *ingress*
+| Labels and annotations applied to `Ingress` objects.
+
+| *serviceAccount*
+| Labels and annotations applied to `ServiceAccount` objects.
 |===
 
 [[resource-secrets]]

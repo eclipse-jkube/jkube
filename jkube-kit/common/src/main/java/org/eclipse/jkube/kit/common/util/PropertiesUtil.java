@@ -18,6 +18,10 @@ import io.fabric8.kubernetes.client.utils.Utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 public class PropertiesUtil {
@@ -59,5 +63,19 @@ public class PropertiesUtil {
       }
     }
     return null;
+  }
+
+  /**
+   * Converts the provided Properties to a <code>Map&lt;String, String&gt;</code>
+   * @param properties to convert to Map
+   * @return a Map representation of the provided Properties
+   */
+  public static Map<String, String> toMap(Properties properties) {
+    final Map<String, String> map = new HashMap<>();
+    for (Map.Entry<Object, Object> entry : Optional.ofNullable(properties).map(Properties::entrySet)
+        .orElse(Collections.emptySet())) {
+      map.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
+    }
+    return map;
   }
 }

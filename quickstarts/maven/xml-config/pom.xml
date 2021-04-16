@@ -202,6 +202,10 @@
             <labels>
               <all>
                 <extra-label>quickstarts-xml-configurations</extra-label>
+                <property>
+                  <name>test</name>
+                  <value>42</value>
+                </property>
               </all>
             </labels>
             <!-- Name of the replication controller, which will have a sane default (container alisa, mvn coords, ..) -->

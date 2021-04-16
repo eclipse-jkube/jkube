@@ -13,390 +13,249 @@
  */
 package org.eclipse.jkube.kit.enricher.api.visitor;
 
-import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
-import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.Kind;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.builder.VisitableBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaFluent;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.PodTemplateSpecFluent;
+import io.fabric8.kubernetes.api.model.PodTemplateSpecFluentImpl;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationControllerFluent;
+import io.fabric8.kubernetes.api.model.ReplicationControllerFluentImpl;
+import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
+import io.fabric8.kubernetes.api.model.ServiceAccountFluent;
+import io.fabric8.kubernetes.api.model.ServiceAccountFluentImpl;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceFluent;
+import io.fabric8.kubernetes.api.model.ServiceFluentImpl;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetFluent;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetFluentImpl;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentFluent;
+import io.fabric8.kubernetes.api.model.apps.DeploymentFluentImpl;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetFluent;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetFluentImpl;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetFluent;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetFluentImpl;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
+import io.fabric8.kubernetes.api.model.batch.JobFluent;
+import io.fabric8.kubernetes.api.model.batch.JobFluentImpl;
 import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
+import io.fabric8.kubernetes.api.model.extensions.IngressFluent;
+import io.fabric8.kubernetes.api.model.extensions.IngressFluentImpl;
 import io.fabric8.openshift.api.model.BuildBuilder;
 import io.fabric8.openshift.api.model.BuildConfigBuilder;
+import io.fabric8.openshift.api.model.BuildConfigFluent;
+import io.fabric8.openshift.api.model.BuildConfigFluentImpl;
+import io.fabric8.openshift.api.model.BuildFluent;
+import io.fabric8.openshift.api.model.BuildFluentImpl;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfigFluent;
+import io.fabric8.openshift.api.model.DeploymentConfigFluentImpl;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
+import io.fabric8.openshift.api.model.ImageStreamFluent;
+import io.fabric8.openshift.api.model.ImageStreamFluentImpl;
+import lombok.AllArgsConstructor;
+
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
 
 /**
  * Visitor which adds labels and annotations
- *
- * @author roland
- * @since 02/05/16
  */
-public abstract class MetadataVisitor<T> extends TypedVisitor<T> {
+@AllArgsConstructor
+public class MetadataVisitor<T extends VisitableBuilder> extends TypedVisitor<T> {
 
-    private static ThreadLocal<ProcessorConfig> configHolder = new ThreadLocal<>();
-    private final Map<String, String> labelsFromConfig;
-    private final Map<String, String> annotationFromConfig;
+  private final Class<T> clazz;
+  private final Supplier<Properties> annotationSupplier;
+  private final Supplier<Properties> labelSupplier;
+  private final Function<T, ObjectMetaFluent<?>> objectMeta;
+  private final Function<ObjectMetaFluent<?>, Runnable> endMetadata;
 
-    private MetadataVisitor(ResourceConfig resourceConfig) {
-        if (resourceConfig != null) {
-            labelsFromConfig = getMapFromConfiguration(resourceConfig.getLabels(), getKind());
-            annotationFromConfig = getMapFromConfiguration(resourceConfig.getAnnotations(), getKind());
-        } else {
-            labelsFromConfig = new HashMap<>();
-            annotationFromConfig = new HashMap<>();
-        }
+  public MetadataVisitor(
+      Class<T> clazz,
+      Supplier<Properties> annotationSupplier,
+      Supplier<Properties> labelSupplier,
+      Function<T, ObjectMetaFluent<?>> objectMeta) {
+    this(clazz, annotationSupplier, labelSupplier, objectMeta, null);
+  }
+
+  @Override
+  public Class<T> getType() {
+    return clazz;
+  }
+
+  @Override
+  public void visit(T item) {
+    final ObjectMetaFluent<?> omf = objectMeta.apply(item);
+    omf.withAnnotations(overlayMap(annotationSupplier.get(), omf.getAnnotations()))
+        .withLabels(overlayMap(labelSupplier.get(), omf.getLabels()));
+    Optional.ofNullable(endMetadata).map(em -> em.apply(omf)).ifPresent(Runnable::run);
+  }
+
+  private Map<String, String> overlayMap(Properties properties, Map<String, String> originalMap) {
+    final Map<String, String> ret = new HashMap<>(Optional.ofNullable(originalMap).orElse(Collections.emptyMap()));
+    for (Map.Entry<String, String> entry : toMap(properties).entrySet()) {
+      ret.putIfAbsent(entry.getKey(), entry.getValue());
     }
+    return ret;
+  }
 
-    public static void setProcessorConfig(ProcessorConfig config) {
-        configHolder.set(config);
-    }
+  private static MetaDataConfig getAnnotations(ResourceConfig resourceConfig) {
+    return Optional.ofNullable(resourceConfig).map(ResourceConfig::getAnnotations).orElse(new MetaDataConfig());
+  }
 
-    public static void clearProcessorConfig() {
-        configHolder.remove();
-    }
+  private static MetaDataConfig getLabels(ResourceConfig resourceConfig) {
+    return Optional.ofNullable(resourceConfig).map(ResourceConfig::getLabels).orElse(new MetaDataConfig());
+  }
 
-    public void visit(T item) {
-        ObjectMeta metadata = getOrCreateMetadata(item);
-        updateLabels(metadata);
-        updateAnnotations(metadata);
-    }
+  // =======================================================================================
 
-    private void updateLabels(ObjectMeta metadata) {
-        overlayMap(metadata.getLabels(),labelsFromConfig);
-    }
+  public static MetadataVisitor<ObjectMetaBuilder> metadata(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        ObjectMetaBuilder.class,
+        getAnnotations(resourceConfig)::getAll, getLabels(resourceConfig)::getAll,
+        omb -> omb);
+  }
 
-    private void updateAnnotations(ObjectMeta metadata) {
-        overlayMap(metadata.getAnnotations(),annotationFromConfig);
-    }
+  public static MetadataVisitor<DeploymentBuilder> deployment(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        DeploymentBuilder.class,
+        getAnnotations(resourceConfig)::getDeployment, getLabels(resourceConfig)::getDeployment,
+        DeploymentFluentImpl::editOrNewMetadata, omf -> ((DeploymentFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-    private Map<String, String> getMapFromConfiguration(MetaDataConfig config, Kind kind) {
-        if (config == null) {
-            return new HashMap<>();
-        }
-        Map<String, String> ret;
-        if (kind == Kind.SERVICE) {
-            ret = propertiesToMap(config.getService());
-        } else if (kind == Kind.DEPLOYMENT || kind == Kind.DEPLOYMENT_CONFIG) {
-            ret = propertiesToMap(config.getDeployment());
-        } else if (kind == Kind.REPLICATION_CONTROLLER || kind == Kind.REPLICA_SET) {
-            ret = propertiesToMap(config.getReplicaSet());
-        } else if (kind == Kind.POD_SPEC) {
-            ret = propertiesToMap(config.getPod());
-        } else if (kind == Kind.INGRESS) {
-            ret = propertiesToMap(config.getIngress());
-        }else if (kind == Kind.SERVICE_ACCOUNT){
-            ret = propertiesToMap(config.getServiceAccount());
-        } else {
-            ret = new HashMap<>();
-        }
-        if (config.getAll() != null) {
-            ret.putAll(propertiesToMap(config.getAll()));
-        }
-        return ret;
-    }
+  public static MetadataVisitor<io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder> extensionsDeployment(
+      ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder.class,
+        getAnnotations(resourceConfig)::getDeployment, getLabels(resourceConfig)::getDeployment,
+        io.fabric8.kubernetes.api.model.extensions.DeploymentFluentImpl::editOrNewMetadata,
+        omf -> ((io.fabric8.kubernetes.api.model.extensions.DeploymentFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-    private Map<String, String> propertiesToMap(Properties properties) {
-        Map<String, String> propertyMap = new HashMap<>();
-        if(properties != null) {
-            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-                propertyMap.put(entry.getKey().toString(), entry.getValue().toString());
-            }
-        }
-        return propertyMap;
-    }
+  public static MetadataVisitor<DeploymentConfigBuilder> deploymentConfig(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        DeploymentConfigBuilder.class,
+        getAnnotations(resourceConfig)::getDeployment, getLabels(resourceConfig)::getDeployment,
+        DeploymentConfigFluentImpl::editOrNewMetadata, omf -> ((DeploymentConfigFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
+  public static MetadataVisitor<ReplicaSetBuilder> replicaSet(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        ReplicaSetBuilder.class,
+        getAnnotations(resourceConfig)::getReplicaSet, getLabels(resourceConfig)::getReplicaSet,
+        ReplicaSetFluentImpl::editOrNewMetadata, omf -> ((ReplicaSetFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-    private void overlayMap(Map<String, String> targetMap, Map<String, String> enrichMap) {
-        targetMap = ensureMap(targetMap);
-        enrichMap = ensureMap(enrichMap);
-        for (Map.Entry<String, String> entry : enrichMap.entrySet()) {
-            targetMap.putIfAbsent(entry.getKey(),entry.getValue());
-        }
-    }
+  public static MetadataVisitor<ReplicationControllerBuilder> replicationController(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        ReplicationControllerBuilder.class,
+        getAnnotations(resourceConfig)::getReplicaSet, getLabels(resourceConfig)::getReplicaSet,
+        ReplicationControllerFluentImpl::editOrNewMetadata,
+        omf -> ((ReplicationControllerFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-    protected abstract Kind getKind();
-    protected abstract ObjectMeta getOrCreateMetadata(T item);
+  public static MetadataVisitor<ServiceBuilder> service(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        ServiceBuilder.class,
+        getAnnotations(resourceConfig)::getService, getLabels(resourceConfig)::getService,
+        ServiceFluentImpl::editOrNewMetadata, omf -> ((ServiceFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-    private Map<String, String> ensureMap(Map<String, String> labels) {
-        return labels != null ? labels : new HashMap<>();
-    }
+  public static MetadataVisitor<PodTemplateSpecBuilder> podTemplateSpec(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        PodTemplateSpecBuilder.class,
+        getAnnotations(resourceConfig)::getPod, getLabels(resourceConfig)::getPod,
+        PodTemplateSpecFluentImpl::editOrNewMetadata, omf -> ((PodTemplateSpecFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
+  public static MetadataVisitor<DaemonSetBuilder> daemonSet(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        DaemonSetBuilder.class,
+        getAnnotations(resourceConfig)::getAll, getLabels(resourceConfig)::getAll,
+        DaemonSetFluentImpl::editOrNewMetadata, omf -> ((DaemonSetFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-    // =======================================================================================
+  public static MetadataVisitor<StatefulSetBuilder> statefulSet(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        StatefulSetBuilder.class,
+        getAnnotations(resourceConfig)::getAll, getLabels(resourceConfig)::getAll,
+        StatefulSetFluentImpl::editOrNewMetadata, omf -> ((StatefulSetFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-    public static class PodTemplateSpecBuilderVisitor extends MetadataVisitor<PodTemplateSpecBuilder> {
+  public static MetadataVisitor<JobBuilder> job(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        JobBuilder.class,
+        getAnnotations(resourceConfig)::getAll, getLabels(resourceConfig)::getAll,
+        JobFluentImpl::editOrNewMetadata, omf -> ((JobFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-        public PodTemplateSpecBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
+  public static MetadataVisitor<ImageStreamBuilder> imageStream(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        ImageStreamBuilder.class,
+        getAnnotations(resourceConfig)::getAll, getLabels(resourceConfig)::getAll,
+        ImageStreamFluentImpl::editOrNewMetadata, omf -> ((ImageStreamFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-        @Override
-        protected Kind getKind() {
-            return Kind.POD_SPEC;
-        }
+  public static MetadataVisitor<BuildConfigBuilder> buildConfig(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        BuildConfigBuilder.class,
+        getAnnotations(resourceConfig)::getAll, getLabels(resourceConfig)::getAll,
+        BuildConfigFluentImpl::editOrNewMetadata, omf -> ((BuildConfigFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-        @Override
-        protected ObjectMeta getOrCreateMetadata(PodTemplateSpecBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
+  public static MetadataVisitor<BuildBuilder> build(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        BuildBuilder.class,
+        getAnnotations(resourceConfig)::getAll, getLabels(resourceConfig)::getAll,
+        BuildFluentImpl::editOrNewMetadata, omf -> ((BuildFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-    public static class ServiceBuilderVisitor extends MetadataVisitor<ServiceBuilder> {
+  public static MetadataVisitor<IngressBuilder> extensionsIngress(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        IngressBuilder.class,
+        getAnnotations(resourceConfig)::getIngress, getLabels(resourceConfig)::getIngress,
+        IngressFluentImpl::editOrNewMetadata, omf -> ((IngressFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-        public ServiceBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
+  public static MetadataVisitor<io.fabric8.kubernetes.api.model.networking.v1beta1.IngressBuilder> ingressV1beta1(
+      ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        io.fabric8.kubernetes.api.model.networking.v1beta1.IngressBuilder.class,
+        getAnnotations(resourceConfig)::getIngress, getLabels(resourceConfig)::getIngress,
+        io.fabric8.kubernetes.api.model.networking.v1beta1.IngressFluentImpl::editOrNewMetadata,
+        omf -> ((io.fabric8.kubernetes.api.model.networking.v1beta1.IngressFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-        @Override
-        protected Kind getKind() {
-            return Kind.SERVICE;
-        }
+  public static MetadataVisitor<io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder> ingressV1(
+      ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder.class,
+        getAnnotations(resourceConfig)::getIngress, getLabels(resourceConfig)::getIngress,
+        io.fabric8.kubernetes.api.model.networking.v1.IngressFluentImpl::editOrNewMetadata,
+        omf -> ((io.fabric8.kubernetes.api.model.networking.v1.IngressFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-        @Override
-        protected ObjectMeta getOrCreateMetadata(ServiceBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
+  public static MetadataVisitor<ServiceAccountBuilder> serviceAccount(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(
+        ServiceAccountBuilder.class,
+        getAnnotations(resourceConfig)::getServiceAccount, getLabels(resourceConfig)::getServiceAccount,
+        ServiceAccountFluentImpl::editOrNewMetadata, omf -> ((ServiceAccountFluent.MetadataNested<?>) omf)::endMetadata);
+  }
 
-    public static class ReplicaSet extends MetadataVisitor<ReplicaSetBuilder> {
-        public ReplicaSet(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.REPLICA_SET;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(ReplicaSetBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class ReplicationControllerBuilderVisitor extends MetadataVisitor<ReplicationControllerBuilder> {
-        public ReplicationControllerBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.REPLICATION_CONTROLLER;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(ReplicationControllerBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class DeploymentBuilderVisitor extends MetadataVisitor<DeploymentBuilder> {
-        public DeploymentBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.DEPLOYMENT;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(DeploymentBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class DeploymentConfigBuilderVisitor extends MetadataVisitor<DeploymentConfigBuilder> {
-        public DeploymentConfigBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.DEPLOYMENT;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(DeploymentConfigBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class DaemonSetBuilderVisitor extends MetadataVisitor<DaemonSetBuilder> {
-        public DaemonSetBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.DAEMON_SET;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(DaemonSetBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class StatefulSetBuilderVisitor extends MetadataVisitor<StatefulSetBuilder> {
-        public StatefulSetBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.STATEFUL_SET;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(StatefulSetBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class JobBuilderVisitor extends MetadataVisitor<JobBuilder> {
-        public JobBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.JOB;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(JobBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class ImageStreamBuilderVisitor extends MetadataVisitor<ImageStreamBuilder> {
-        public ImageStreamBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.IMAGESTREAM;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(ImageStreamBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class BuildConfigBuilderVisitor extends MetadataVisitor<BuildConfigBuilder> {
-        public BuildConfigBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.BUILD_CONFIG;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(BuildConfigBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class BuildBuilderVisitor extends MetadataVisitor<BuildBuilder> {
-        public BuildBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.BUILD;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(BuildBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class IngressBuilderVisitor extends MetadataVisitor<IngressBuilder> {
-        public IngressBuilderVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.BUILD;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(IngressBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                    .endMetadata().buildMetadata();
-        }
-    }
-
-    public static class ServiceAccountVisitor extends MetadataVisitor<ServiceAccountBuilder> {
-        public ServiceAccountVisitor(ResourceConfig resourceConfig) {
-            super(resourceConfig);
-        }
-
-        @Override
-        protected Kind getKind() {
-            return Kind.SERVICE_ACCOUNT;
-        }
-
-        @Override
-        protected ObjectMeta getOrCreateMetadata(ServiceAccountBuilder item) {
-            return addEmptyLabelsAndAnnotations(item::hasMetadata, item::withNewMetadata, item::editMetadata, item::buildMetadata)
-                .endMetadata().buildMetadata();
-        }
-    }
-
-    private static <T extends ObjectMetaFluent<?>> T addEmptyLabelsAndAnnotations(
-        BooleanSupplier hasMetadata, Supplier<T> withNewMetadata, Supplier<T> editMetadata, Supplier<ObjectMeta> buildMetadata) {
-        final T ret;
-        if (hasMetadata.getAsBoolean()) {
-            ret = editMetadata.get();
-            if (buildMetadata.get().getLabels() == null) {
-                ret.withLabels(Collections.emptyMap());
-            }
-            if (buildMetadata.get().getAnnotations() == null) {
-                ret.withAnnotations(Collections.emptyMap());
-            }
-        } else {
-            ret = withNewMetadata.get();
-            ret.withLabels(Collections.emptyMap()).withAnnotations(Collections.emptyMap());
-        }
-        return ret;
-    }
 }

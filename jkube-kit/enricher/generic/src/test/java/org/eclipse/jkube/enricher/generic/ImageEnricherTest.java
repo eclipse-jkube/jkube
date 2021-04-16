@@ -55,6 +55,7 @@ public class ImageEnricherTest {
     @Before
     public void prepareMock() {
         // Setup mock behaviour
+        // @formatter:off
         new Expectations() {{
             Configuration configuration = Configuration.builder()
                 .resource(ResourceConfig.builder()
@@ -67,6 +68,7 @@ public class ImageEnricherTest {
             imageConfiguration.getName(); result = "busybox";
             imageConfiguration.getAlias(); result = "busybox";
         }};
+        // @formatter:on
 
         imageEnricher = new ImageEnricher(context);
     }

@@ -33,6 +33,8 @@ import org.eclipse.jkube.kit.common.PrefixedLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
+
 public abstract class AbstractPortsExtractor implements PortsExtractor {
 
 	public static final ObjectMapper JSON_MAPPER = new ObjectMapper();
@@ -63,7 +65,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 
 	/**
 	 * Finds the name of the configuration file from the {@link JavaProject}.
-	 * 
+	 *
 	 * @param project The {@link JavaProject} to use.
 	 * @return The path to the configuration file or null if none has been found
 	 */
@@ -118,7 +120,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 
 	/**
 	 * Reads the configuration from the file.
-	 * 
+	 *
 	 * @param f
 	 * @return
 	 * @throws IOException
@@ -132,7 +134,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 		} else if (f.getName().endsWith(PROPERTIES_EXTENSION)) {
 			Properties properties = new Properties();
 			properties.load(new FileInputStream(f));
-			map = propertiesToMap(properties);
+			map = toMap(properties);
 		} else {
 			throw new IllegalArgumentException(
 					"Can't read configuration from: [" + f.getName() + "]. Unknown file extension.");
@@ -142,7 +144,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 
 	/**
 	 * Flattens a nested map into a Map<String, String>.
-	 * 
+	 *
 	 * @param map The target map.
 	 * @return The flattened map.
 	 */
@@ -167,23 +169,9 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 	}
 
 	/**
-	 * Converts a {@link Properties} object to a {@link Map}.
-	 * 
-	 * @param properties The properties object.
-	 * @return The map.
-	 */
-	private Map<String, String> propertiesToMap(Properties properties) {
-		Map<String, String> map = new HashMap<>();
-		for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-			map.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
-		}
-		return map;
-	}
-
-	/**
 	 * Checks if the given string matches the port property key convention. The
 	 * regex for the convention is ([a-zA-Z0-9_]+)(([\.-_]+p{1})|([P]{1}))ort.
-	 * 
+	 *
 	 * @param candidate The string to check
 	 * @return
 	 */
@@ -193,7 +181,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 
 	/**
 	 * Adds a port to the list.
-	 * 
+	 *
 	 * @param map  The list.
 	 * @param key  The key.
 	 * @param port The candidate port.
