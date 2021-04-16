@@ -31,6 +31,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '11'
+          distribution: 'adopt'
       - name: Install JKube
         run: mvn -f pom.xml -B -DskipTests clean install
       - name: Change version to current JKube version
