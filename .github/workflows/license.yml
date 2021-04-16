@@ -31,5 +31,6 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '11'
+          distribution: 'adopt'
       - name: Check License Headers
         run: mvn -N license:check
