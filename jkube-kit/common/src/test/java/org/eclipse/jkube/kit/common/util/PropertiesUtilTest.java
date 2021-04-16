@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.util.Map;
 import java.util.Properties;
 
 import org.junit.Test;
@@ -21,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
 
 public class PropertiesUtilTest {
 
@@ -72,5 +74,43 @@ public class PropertiesUtilTest {
 
     // Then
     assertThat(imageName).isNotNull().isEqualTo("value1");
+  }
+
+  @Test
+  public void toMap_null_shouldReturnEmpty() {
+    // When
+    final Map<String, String> result = toMap(null);
+    // Then
+    assertThat(result)
+        .isNotNull()
+        .isEmpty();
+  }
+
+  @Test
+  public void toMap_empty_shouldReturnEmpty() {
+    // When
+    final Map<String, String> result = toMap(new Properties());
+    // Then
+    assertThat(result)
+        .isNotNull()
+        .isEmpty();
+  }
+
+  @Test
+  public void toMap_validProperties_shouldReturnValidMap() {
+    // Given
+    final Properties properties = new Properties();
+    properties.put("Number", 1L);
+    properties.put("String", "string");
+    properties.put("Char", 'c');
+    // When
+    final Map<String, String> result = toMap(properties);
+    // Then
+    assertThat(result)
+        .containsOnly(
+            entry("Number", "1"),
+            entry("String", "string"),
+            entry("Char", "c")
+        );
   }
 }

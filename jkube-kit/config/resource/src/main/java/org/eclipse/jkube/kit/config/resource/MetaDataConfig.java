@@ -26,7 +26,7 @@ import java.util.Properties;
  *
  * @author roland
  */
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -53,7 +53,7 @@ public class MetaDataConfig {
   private Properties service;
 
   /**
-   * Labels or annotations for deployment or deployment configs
+   * Labels or annotations for Ingress
    */
   private Properties ingress;
 
