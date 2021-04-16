@@ -17,12 +17,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import com.google.gson.JsonElement;
+import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 
 public class EntityStreamReaderUtil {
 
@@ -31,12 +31,10 @@ public class EntityStreamReaderUtil {
     public static void processJsonStream(JsonEntityResponseHandler handler, InputStream stream) throws IOException {
         handler.start();
         try(JsonReader json = new JsonReader(new InputStreamReader(stream))) {
-            JsonParser parser = new JsonParser();
-
             json.setLenient(true);
             while (json.peek() != JsonToken.END_DOCUMENT) {
-                JsonElement element = parser.parse(json);
-                handler.process(element.getAsJsonObject());
+            	JsonObject jsonObject = JsonParser.parseReader(json).getAsJsonObject();
+                handler.process(jsonObject);
             }
         } finally {
             handler.stop();
