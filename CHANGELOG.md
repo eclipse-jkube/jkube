@@ -30,6 +30,7 @@ Usage:
 * Fix #632: Add support for Quarkus Fast Jar Packaging
 * Fix #578: NullPointerException in ContainerEnvJavaOptionsMergeEnricher on k8s:resource
 * Fix #682: Update CircleCI image to new version
+* Fix #666: Replace deprecated JsonParser
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported
