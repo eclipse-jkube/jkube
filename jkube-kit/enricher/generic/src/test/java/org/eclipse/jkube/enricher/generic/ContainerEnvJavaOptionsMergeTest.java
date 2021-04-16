@@ -105,6 +105,24 @@ public class ContainerEnvJavaOptionsMergeTest {
   }
 
   @Test
+  public void enrichWithNullBuildInImageConfiguration() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      imageConfiguration.getName(); result = "the-image:latest"; minTimes = 0;
+      imageConfiguration.getBuild(); result = null;
+    }};
+    // @formatter:on
+    // When
+    containerEnvJavaOptionsMergeEnricher.enrich(PlatformMode.kubernetes, kubernetesListBuilder);
+    // Then
+    assertThat(containerList(kubernetesListBuilder))
+            .flatExtracting("env")
+            .hasSize(1)
+            .containsOnly(new EnvVar("JAVA_OPTIONS", "val-from-container", null));
+  }
+
+  @Test
   public void enrichWithNullEnvInImageConfiguration() {
     // Given
     // @formatter:off
