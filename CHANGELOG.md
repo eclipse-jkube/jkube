@@ -32,6 +32,7 @@ Usage:
 * Fix #677: KarafGenerator includes Jolokia port (8778)
 * Fix #682: Update CircleCI image to new version
 * Fix #666: Replace deprecated JsonParser
+* Fix #679: Quarkus package detection improvements
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported

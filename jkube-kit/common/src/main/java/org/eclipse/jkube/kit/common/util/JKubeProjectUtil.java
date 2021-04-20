@@ -109,7 +109,8 @@ public class JKubeProjectUtil {
   }
 
     public static Properties getPropertiesWithSystemOverrides(JavaProject project) {
-        Properties properties = new Properties(project.getProperties());
+        final Properties properties = new Properties();
+        properties.putAll(project.getProperties());
         properties.putAll(System.getProperties());
         return properties;
     }

@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,30 +22,25 @@ import java.util.Optional;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.quarkus.QuarkusMode;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
-import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.findSingleFileThatEndsWith;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
 
 public class QuarkusGenerator extends JavaExecGenerator {
 
-  //For more info on packaging refer https://quarkus.io/guides/getting-started
-  static final String QUARKUS_PACKAGING = "quarkus.package.type";
-  static final String UBER_JAR_PACKAGING = "uber-jar";
-  static final String LEGACY_JAR_PACKAGING = "legacy-jar";
   public static final String QUARKUS = "quarkus";
 
   public QuarkusGenerator(GeneratorContext context) {
@@ -56,7 +50,11 @@ public class QuarkusGenerator extends JavaExecGenerator {
   @AllArgsConstructor
   public enum Config implements Configs.Config {
 
-    // Whether to add native image or plain java image
+    /**
+     * Whether to add native image or plain java image
+     * @deprecated no longer necessary, inferred from Quarkus properties
+     */
+    @Deprecated
     NATIVE_IMAGE("nativeImage", "false");
 
     @Getter
@@ -76,7 +74,7 @@ public class QuarkusGenerator extends JavaExecGenerator {
     final List<String> ports = new ArrayList<>();
     final String quarkusPort = extractPort(
         getProject(),
-        getQuarkusConfiguration(getClassLoader(getProject())),
+        getQuarkusConfiguration(getProject()),
         null);
     addPortIfValid(ports, getConfig(JavaExecGenerator.Config.WEB_PORT, quarkusPort));
     if (!isNativeImage()) {
@@ -97,14 +95,9 @@ public class QuarkusGenerator extends JavaExecGenerator {
   @Override
   protected AssemblyConfiguration createAssembly() {
     if (isNativeImage()) {
-      return createAssemblyConfiguration("/", getNativeFileToInclude());
-    } else if (isUberJar(getQuarkusPackaging())) {
-      return createAssemblyConfiguration(getConfig(JavaExecGenerator.Config.TARGET_DIR), getFatJarFilesToInclude());
-    } else if (isLegacyJar(getQuarkusPackaging())) {
-      return createAssemblyConfiguration(getConfig(JavaExecGenerator.Config.TARGET_DIR), getLegacyJarFilesToInclude());
+      return QuarkusMode.NATIVE.getAssembly().createAssemblyConfiguration(this);
     }
-    return createAssemblyConfiguration(getConfig(JavaExecGenerator.Config.TARGET_DIR),
-        getFastJarFilesToInclude());
+    return QuarkusMode.from(getProject()).getAssembly().createAssemblyConfiguration(this);
   }
 
   @Override
@@ -119,7 +112,7 @@ public class QuarkusGenerator extends JavaExecGenerator {
   protected Arguments getBuildEntryPoint() {
     if (isNativeImage()) {
       final Arguments.ArgumentsBuilder ab = Arguments.builder();
-      ab.execArgument("./" + findSingleFileThatEndsWith(null, "-runner"));
+      ab.execArgument("./" + findSingleFileThatEndsWith(getProject(), runnerSuffix(getQuarkusConfiguration(getProject()))));
       getExtraJavaOptions().forEach(ab::execArgument);
       return ab.build();
     }
@@ -138,7 +131,7 @@ public class QuarkusGenerator extends JavaExecGenerator {
   }
 
   private boolean isNativeImage() {
-    return Boolean.parseBoolean(getConfig(Config.NATIVE_IMAGE));
+    return Boolean.parseBoolean(getConfig(Config.NATIVE_IMAGE)) || QuarkusMode.from(getProject()) == QuarkusMode.NATIVE;
   }
 
   private String getNativeFrom() {
@@ -148,117 +141,9 @@ public class QuarkusGenerator extends JavaExecGenerator {
     return "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0";
   }
 
-  private AssemblyConfiguration createAssemblyConfiguration(String targetDir, AssemblyFileSet jKubeAssemblyFileSet) {
-    jKubeAssemblyFileSet.setOutputDirectory(".");
-    return AssemblyConfiguration.builder()
-        .targetDir(targetDir)
-        .excludeFinalOutputArtifact(true)
-        .inline(Assembly.builder().fileSet(jKubeAssemblyFileSet).build())
-        .build();
-  }
-
-  private AssemblyFileSet getLegacyJarFilesToInclude() {
-    AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder =
-        getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
-    fileSetBuilder.include("lib");
-    // We also need to exclude default jar file
-    File defaultJarFile = JKubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
-    if (defaultJarFile != null) {
-      fileSetBuilder.exclude(defaultJarFile.getName());
-    }
-    fileSetBuilder.fileMode("0640");
-    return fileSetBuilder.build();
-  }
-
-  private AssemblyFileSet getFastJarFilesToInclude() {
-    AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder = getQuarkusAppDirectory();
-    fileSetBuilder.include("lib").outputDirectory(new File("lib"));
-    fileSetBuilder.include("app").outputDirectory(new File("app"));
-    fileSetBuilder.include(QUARKUS).outputDirectory(new File(QUARKUS));
-    fileSetBuilder.fileMode("0640");
-    return fileSetBuilder.build();
-  }
-
-  private AssemblyFileSet getFatJarFilesToInclude() {
-    AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder =
-        getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
-    // We also need to exclude default jar file
-    File defaultJarFile = JKubeProjectUtil.getFinalOutputArtifact(getContext().getProject());
-    if (defaultJarFile != null) {
-      fileSetBuilder.exclude(defaultJarFile.getName());
-    }
-    fileSetBuilder.fileMode("0640");
-    return fileSetBuilder.build();
-  }
-
-  private AssemblyFileSet getNativeFileToInclude() {
-    return getFileSetWithFileFromBuildThatEndsWith("-runner")
-        .fileMode("0755")
-        .build();
-  }
-
-  private AssemblyFileSet.AssemblyFileSetBuilder getFileSetWithFileFromBuildThatEndsWith(String suffix) {
-    List<String> relativePaths = new ArrayList<>();
-
-    String fileToInclude = findSingleFileThatEndsWith(null, suffix);
-    if (fileToInclude != null && !fileToInclude.isEmpty()) {
-      relativePaths.add(fileToInclude);
-    }
-    return AssemblyFileSet.builder()
-        .directory(FileUtil.getRelativePath(getProject().getBaseDirectory(), getProject().getBuildDirectory()))
-        .includes(relativePaths)
-        .fileMode("0777");
-  }
-
-  private String findSingleFileThatEndsWith(File buildDir, String suffix) {
-    if(buildDir == null) {
-      buildDir = getProject().getBuildDirectory();
-    }
-    String[] file = buildDir.list((dir, name) -> name.endsWith(suffix));
-    if (file == null || file.length != 1) {
-      throw new IllegalStateException("Can't find single file with suffix '" + suffix +
-          "' in " + buildDir + " (zero or more than one files found ending with '" +
-          suffix + "')");
-    }
-    return file[0];
-  }
-
-  private AssemblyFileSet.AssemblyFileSetBuilder getQuarkusAppDirectory() {
-    List<String> relativePaths = new ArrayList<>();
-    final File projectBuildDir = getProject().getBaseDirectory();
-    final File quarkusAppDir = new File(getProject().getBuildDirectory(), "quarkus-app");
-
-    String fileToInclude = findSingleFileThatEndsWith(quarkusAppDir,"quarkus-run.jar");
-    if (fileToInclude != null && !fileToInclude.isEmpty()) {
-      relativePaths.add(fileToInclude);
-    }
-
-    return AssemblyFileSet.builder()
-        .directory(FileUtil.getRelativePath(projectBuildDir, quarkusAppDir))
-        .includes(relativePaths)
-        .fileMode("0777");
-  }
-
-  private String getQuarkusPackaging() {
-    return JKubeProjectUtil.getPropertiesWithSystemOverrides(getProject())
-        .getProperty(QUARKUS_PACKAGING);
-  }
-
-  private boolean isFastJAR() {
-    return new File(getProject().getBuildDirectory() +
-        "/quarkus-app").exists();
-  }
   @Override
   protected boolean isFatJar() {
-    return isUberJar(getQuarkusPackaging());
-  }
-
-  protected boolean isUberJar(String packaging) {
-    return UBER_JAR_PACKAGING.equals(packaging);
-  }
-
-  private boolean isLegacyJar(String packaging) {
-    return LEGACY_JAR_PACKAGING.equals(packaging) || !isFastJAR();
+    return QuarkusMode.from(getProject()).isFatJar();
   }
 
 }
