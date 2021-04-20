@@ -13,14 +13,17 @@
  */
 package org.eclipse.jkube.quarkus;
 
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -29,11 +32,17 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
 
 public class QuarkusUtilsTest {
 
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
   private JavaProject javaProject;
 
   @Before
-  public void setUp() {
-    javaProject = JavaProject.builder().properties(new Properties()).build();
+  public void setUp() throws IOException {
+    javaProject = JavaProject.builder()
+        .properties(new Properties())
+        .outputDirectory(temporaryFolder.newFolder())
+        .build();
   }
 
   @Test
@@ -81,14 +90,30 @@ public class QuarkusUtilsTest {
   }
 
   @Test
+  public void getQuarkusConfiguration_propertiesAndYamlProjectProperties_shouldUseProjectProperties() {
+    // Given
+    javaProject.getProperties().put("quarkus.http.port", "42");
+    javaProject.setCompileClassPathElements(Arrays.asList(
+        QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/").getPath(),
+        QuarkusUtilsTest.class.getResource("/utils-test/config/properties/").getPath()
+    ));
+    // When
+    final Properties props = getQuarkusConfiguration(javaProject);
+    // Then
+    assertThat(props).containsOnly(
+        entry("quarkus.http.port", "42"),
+        entry("%dev.quarkus.http.port", "8082"));
+  }
+
+  @Test
   public void getQuarkusConfiguration_propertiesAndYaml_shouldUseProperties() {
     // Given
-    final URLClassLoader ucl = URLClassLoader.newInstance(new URL[] {
-        QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/"),
-        QuarkusUtilsTest.class.getResource("/utils-test/config/properties/")
-    });
+    javaProject.setCompileClassPathElements(Arrays.asList(
+        QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/").getPath(),
+        QuarkusUtilsTest.class.getResource("/utils-test/config/properties/").getPath()
+    ));
     // When
-    final Properties props = getQuarkusConfiguration(ucl);
+    final Properties props = getQuarkusConfiguration(javaProject);
     // Then
     assertThat(props).containsOnly(
         entry("quarkus.http.port", "1337"),
@@ -98,11 +123,11 @@ public class QuarkusUtilsTest {
   @Test
   public void getQuarkusConfiguration_yamlOnly_shouldUseYaml() {
     // Given
-    final URLClassLoader ucl = URLClassLoader.newInstance(new URL[] {
-        QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/")
-    });
+    javaProject.setCompileClassPathElements(Collections.singletonList(
+        QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/").getPath()
+    ));
     // When
-    final Properties props = getQuarkusConfiguration(ucl);
+    final Properties props = getQuarkusConfiguration(javaProject);
     // Then
     assertThat(props).containsOnly(
         entry("quarkus.http.port", "31337"),
@@ -112,11 +137,11 @@ public class QuarkusUtilsTest {
   @Test
   public void getQuarkusConfiguration_noConfigFiles_shouldReturnEmpty() {
     // Given
-    final URLClassLoader ucl = URLClassLoader.newInstance(new URL[] {
-        QuarkusUtilsTest.class.getResource("/")
-    });
+    javaProject.setCompileClassPathElements(Collections.singletonList(
+        QuarkusUtilsTest.class.getResource("/").getPath()
+    ));
     // When
-    final Properties props = getQuarkusConfiguration(ucl);
+    final Properties props = getQuarkusConfiguration(javaProject);
     // Then
     assertThat(props).isEmpty();
   }
