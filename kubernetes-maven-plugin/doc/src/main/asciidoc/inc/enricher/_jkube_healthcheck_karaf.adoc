@@ -3,7 +3,7 @@
 ==== jkube-healthcheck-karaf
 
 This enricher adds kubernetes readiness and liveness probes with Apache Karaf. This requires that
-`jkube.karaf-checks` has been enabled in the Karaf startup features.
+`jkube-karaf-checks` has been enabled in the Karaf startup features.
 
 The enricher will use the following settings by default:
 
