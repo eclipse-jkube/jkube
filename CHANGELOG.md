@@ -29,6 +29,7 @@ Usage:
 * Fix #647: Resource configuration can now add annotations and labels to ServiceAccount
 * Fix #632: Add support for Quarkus Fast Jar Packaging
 * Fix #578: NullPointerException in ContainerEnvJavaOptionsMergeEnricher on k8s:resource
+* Fix #677: KarafGenerator includes Jolokia port (8778)
 * Fix #682: Update CircleCI image to new version
 
 ### 1.2.0 (2021-03-31)
