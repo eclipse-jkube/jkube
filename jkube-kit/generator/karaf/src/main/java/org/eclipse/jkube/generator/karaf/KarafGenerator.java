@@ -14,6 +14,7 @@
 package org.eclipse.jkube.generator.karaf;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,6 +47,7 @@ public class KarafGenerator extends BaseGenerator {
   @AllArgsConstructor
   private enum Config implements Configs.Config {
     BASE_DIR("baseDir", "/deployments"),
+    JOLOKIA_PORT("jolokiaPort", "8778"),
     WEB_PORT("webPort", "8181");
 
     @Getter
@@ -86,10 +88,18 @@ public class KarafGenerator extends BaseGenerator {
 
 
   protected List<String> extractPorts() {
-    return Stream.of(getConfig(Config.WEB_PORT))
-        .filter(StringUtils::isNotBlank)
-        .collect(Collectors.toList());
+    List<String> answer = new ArrayList<>();
+    addPortIfValid(answer, getConfig(Config.WEB_PORT));
+    addPortIfValid(answer, getConfig(Config.JOLOKIA_PORT));
+    return answer;
   }
+
+  protected void addPortIfValid(List<String> list, String port) {
+    if (StringUtils.isNotBlank(port) && Integer.parseInt(port) > 0) {
+      list.add(port);
+    }
+  }
+
 
   private AssemblyConfiguration createDefaultAssembly() {
     return AssemblyConfiguration.builder()

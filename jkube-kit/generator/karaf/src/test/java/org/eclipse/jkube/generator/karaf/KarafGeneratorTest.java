@@ -114,7 +114,7 @@ public class KarafGeneratorTest {
     assertThat(imageConfiguration.getAlias(), equalTo("karaf"));
     final BuildConfiguration bc = imageConfiguration.getBuildConfiguration();
     assertThat(bc.getTags(), contains("latest"));
-    assertThat(bc.getPorts(), contains("8181"));
+    assertThat(bc.getPorts(), contains("8181", "8778"));
     assertThat(bc.getEnv(), hasEntry("DEPLOYMENTS_DIR", "/deployments"));
     assertThat(bc.getEnv(), hasEntry("KARAF_HOME", "/deployments/karaf"));
     final AssemblyConfiguration ac = bc.getAssembly();
@@ -155,7 +155,7 @@ public class KarafGeneratorTest {
     // Then
     assertThat(result, hasSize(1));
     final ImageConfiguration imageConfiguration = result.iterator().next();
-    assertThat(imageConfiguration.getBuildConfiguration().getPorts(), contains("8080"));
+    assertThat(imageConfiguration.getBuildConfiguration().getPorts(), contains("8080", "8778"));
     assertThat(imageConfiguration.getBuildConfiguration().getEnv(), hasEntry("DEPLOYMENTS_DIR", "/other-dir"));
   }
 }
