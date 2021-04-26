@@ -64,6 +64,9 @@ import static org.eclipse.jkube.enricher.generic.ControllerViaPluginConfiguratio
  * @author roland
  */
 public class DefaultControllerEnricher extends BaseEnricher {
+
+    public static final String ENRICHER_NAME = "jkube-controller";
+
     private final DeploymentHandler deployHandler;
     private final DeploymentConfigHandler deployConfigHandler;
     private final ReplicationControllerHandler rcHandler;
@@ -73,7 +76,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
     private final JobHandler jobHandler;
 
     @AllArgsConstructor
-    private enum Config implements Configs.Config {
+    public enum Config implements Configs.Config {
         NAME("name", null),
         PULL_POLICY("pullPolicy", "IfNotPresent"),
         TYPE("type", "deployment"),
@@ -86,7 +89,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
     }
 
     public DefaultControllerEnricher(JKubeEnricherContext buildContext) {
-        super(buildContext, "jkube-controller");
+        super(buildContext, ENRICHER_NAME);
 
         HandlerHub handlers = new HandlerHub(
             getContext().getGav(), getContext().getProperties());
@@ -125,7 +128,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
                         setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(deployment.getSpec().getTemplate()));
                     } else {
                         log.info("Adding a default DeploymentConfig");
-                        DeploymentConfig deploymentConfig = deployConfigHandler.getDeploymentConfig(config, images, getOpenshiftDeployTimeoutInSeconds(3600L), getValueFromConfig(IMAGE_CHANGE_TRIGGERS, true), getValueFromConfig(OPENSHIFT_ENABLE_AUTOMATIC_TRIGGER, true), isOpenShiftMode(), getProcessingInstructionViaKey(FABRIC8_GENERATED_CONTAINERS));
+                        DeploymentConfig deploymentConfig = deployConfigHandler.getDeploymentConfig(config, images, getOpenshiftDeployTimeoutInSeconds(3600L));
                         builder.addToItems(deploymentConfig);
                         setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS, getContainersFromPodSpec(deploymentConfig.getSpec().getTemplate()));
                     }

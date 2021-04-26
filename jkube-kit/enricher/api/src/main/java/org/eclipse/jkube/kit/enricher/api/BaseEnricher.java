@@ -211,7 +211,7 @@ public class BaseEnricher implements Enricher {
      * @param defaultValue default value if not defined (true or false)
      * @return property value
      */
-    protected Boolean getValueFromConfig(String propertyName, Boolean defaultValue) {
+    protected boolean getValueFromConfig(String propertyName, Boolean defaultValue) {
         return Boolean.parseBoolean(getValueFromConfig(propertyName, defaultValue.toString()));
     }
 

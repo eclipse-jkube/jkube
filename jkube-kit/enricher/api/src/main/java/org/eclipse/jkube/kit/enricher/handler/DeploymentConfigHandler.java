@@ -13,7 +13,12 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.Container;
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
@@ -21,11 +26,6 @@ import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-
-import java.util.List;
 
 public class DeploymentConfigHandler {
     private final PodTemplateHandler podTemplateHandler;
@@ -33,15 +33,12 @@ public class DeploymentConfigHandler {
         this.podTemplateHandler = podTemplateHandler;
     }
 
-    public DeploymentConfig getDeploymentConfig(ResourceConfig config,
-                                                List<ImageConfiguration> images, Long openshiftDeployTimeoutSeconds, Boolean imageChangeTrigger, Boolean enableAutomaticTrigger, Boolean isOpenshiftBuildStrategy, List<String> generatedContainers) {
-
-        DeploymentConfig deploymentConfig = new DeploymentConfigBuilder()
-                .withMetadata(createDeploymentConfigMetaData(config))
-                .withSpec(createDeploymentConfigSpec(config, images, openshiftDeployTimeoutSeconds, imageChangeTrigger, enableAutomaticTrigger, isOpenshiftBuildStrategy, generatedContainers))
-                .build();
-
-        return deploymentConfig;
+    public DeploymentConfig getDeploymentConfig(ResourceConfig config, List<ImageConfiguration> images,
+        Long openshiftDeployTimeoutSeconds) {
+      return new DeploymentConfigBuilder()
+          .withMetadata(createDeploymentConfigMetaData(config))
+          .withSpec(createDeploymentConfigSpec(config, images, openshiftDeployTimeoutSeconds))
+          .build();
     }
 
     // ===========================================================
@@ -52,7 +49,7 @@ public class DeploymentConfigHandler {
                 .build();
     }
 
-    private DeploymentConfigSpec createDeploymentConfigSpec(ResourceConfig config, List<ImageConfiguration> images, Long openshiftDeployTimeoutSeconds, Boolean imageChangeTrigger, Boolean enableAutomaticTrigger, Boolean isOpenshiftBuildStrategy, List<String> generatedContainers) {
+    private DeploymentConfigSpec createDeploymentConfigSpec(ResourceConfig config, List<ImageConfiguration> images, Long openshiftDeployTimeoutSeconds) {
         DeploymentConfigSpecBuilder specBuilder = new DeploymentConfigSpecBuilder();
 
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config,images);
@@ -67,12 +64,5 @@ public class DeploymentConfigHandler {
         }
 
         return specBuilder.build();
-    }
-
-    private void validateContainer(Container container) {
-        if (container.getImage() == null) {
-            throw new IllegalArgumentException("Container " + container.getName() + " has no Docker image configured. " +
-                    "Please check your Docker image configuration (including the generators which are supposed to run)");
-        }
     }
 }
