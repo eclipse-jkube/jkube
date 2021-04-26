@@ -19,6 +19,9 @@ import org.eclipse.jkube.kit.enricher.api.Enricher;
 import java.util.List;
 
 public class Misc {
+
+    private Misc() {}
+
     public static List<Enricher> filterEnrichers(ProcessorConfig config, List<Enricher> enrichers) {
         return config.prepareProcessors(enrichers, "enricher");
     }

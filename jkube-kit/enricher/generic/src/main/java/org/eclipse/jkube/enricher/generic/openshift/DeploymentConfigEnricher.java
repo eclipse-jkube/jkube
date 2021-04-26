@@ -26,8 +26,10 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
 import io.fabric8.openshift.api.model.DeploymentStrategy;
 import io.fabric8.openshift.api.model.DeploymentStrategyBuilder;
+import org.eclipse.jkube.enricher.generic.DefaultControllerEnricher;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.EnricherConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,33 +40,40 @@ import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.rem
 
 
 public class DeploymentConfigEnricher extends BaseEnricher {
-    static final String ENRICHER_NAME = "jkube-openshift-deploymentconfig";
-    private Boolean enableAutomaticTrigger;
-    private Long openshiftDeployTimeoutSeconds;
+
+    private static final String ENRICHER_NAME = "jkube-openshift-deploymentconfig";
 
     public DeploymentConfigEnricher(JKubeEnricherContext context) {
         super(context, ENRICHER_NAME);
-        this.enableAutomaticTrigger = getValueFromConfig(OPENSHIFT_ENABLE_AUTOMATIC_TRIGGER, true);
-        this.openshiftDeployTimeoutSeconds =  getOpenshiftDeployTimeoutInSeconds(3600L);
     }
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-
-        if(platformMode == PlatformMode.openshift) {
-
+        if (isApplicable(platformMode)) {
             for(HasMetadata item : builder.buildItems()) {
-                if(item instanceof Deployment && !useDeploymentForOpenShift()) {
+                if(item instanceof Deployment) {
                     DeploymentConfig deploymentConfig = convertFromAppsV1Deployment(item);
                     removeItemFromKubernetesBuilder(builder, item);
                     builder.addToItems(deploymentConfig);
-                } else if (item instanceof io.fabric8.kubernetes.api.model.extensions.Deployment && !useDeploymentForOpenShift()) {
+                } else if (item instanceof io.fabric8.kubernetes.api.model.extensions.Deployment) {
                     DeploymentConfig deploymentConfig = convertFromExtensionsV1Beta1Deployment(item);
                     removeItemFromKubernetesBuilder(builder, item);
                     builder.addToItems(deploymentConfig);
                 }
             }
         }
+    }
+
+    private boolean isApplicable(PlatformMode platformMode) {
+        return platformMode == PlatformMode.openshift
+            && !useDeploymentForOpenShift()
+            && isNotHandledByDefaultControllerEnricher();
+    }
+
+    private boolean isNotHandledByDefaultControllerEnricher() {
+        final String type = new EnricherConfig(DefaultControllerEnricher.ENRICHER_NAME, getContext())
+            .get(DefaultControllerEnricher.Config.TYPE, "DeploymentConfig");
+        return type.equalsIgnoreCase("DeploymentConfig");
     }
 
     private DeploymentConfig convertFromAppsV1Deployment(HasMetadata item) {
@@ -115,7 +124,7 @@ public class DeploymentConfigEnricher extends BaseEnricher {
             specBuilder.withStrategy(deploymentStrategy);
         }
 
-        if(enableAutomaticTrigger.equals(Boolean.TRUE)) {
+        if(getValueFromConfig(OPENSHIFT_ENABLE_AUTOMATIC_TRIGGER, true)) {
             specBuilder.addNewTrigger().withType("ConfigChange").endTrigger();
         }
 
@@ -123,7 +132,8 @@ public class DeploymentConfigEnricher extends BaseEnricher {
     }
 
     private DeploymentStrategy getDeploymentStrategy(String strategyType) {
-        if (openshiftDeployTimeoutSeconds != null && openshiftDeployTimeoutSeconds > 0) {
+        final long openshiftDeployTimeoutSeconds = getOpenshiftDeployTimeoutInSeconds(3600L);
+        if (openshiftDeployTimeoutSeconds > 0) {
             if (StringUtils.isBlank(strategyType) || "Rolling".equals(strategyType)) {
                 return new DeploymentStrategyBuilder().withType("Rolling").
                         withNewRollingParams().withTimeoutSeconds(openshiftDeployTimeoutSeconds).endRollingParams().build();
