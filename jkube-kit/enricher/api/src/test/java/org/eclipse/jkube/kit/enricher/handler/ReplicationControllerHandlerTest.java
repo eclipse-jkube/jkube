@@ -94,7 +94,7 @@ public class ReplicationControllerHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        ReplicationController replicationController = replicationControllerHandler.getReplicationController(config,images);
+        ReplicationController replicationController = replicationControllerHandler.get(config,images);
 
         //Assertion
         assertNotNull(replicationController.getSpec());
@@ -135,7 +135,7 @@ public class ReplicationControllerHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        replicationControllerHandler.getReplicationController(config, images);
+        replicationControllerHandler.get(config, images);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -155,6 +155,6 @@ public class ReplicationControllerHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        replicationControllerHandler.getReplicationController(config, images);
+        replicationControllerHandler.get(config, images);
     }
 }

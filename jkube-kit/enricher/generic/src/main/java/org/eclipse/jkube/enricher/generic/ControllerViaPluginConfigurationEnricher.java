@@ -82,7 +82,7 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
         if (KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS)) {
             // At least one image must be present, otherwise the resulting config will be invalid
             if (KubernetesResourceUtil.checkForKind(builder, "StatefulSet")) {
-                final StatefulSetSpec spec = statefulSetHandler.getStatefulSet(config, images).getSpec();
+                final StatefulSetSpec spec = statefulSetHandler.get(config, images).getSpec();
                 if (spec != null) {
                     builder.accept(new TypedVisitor<StatefulSetBuilder>() {
                         @Override
@@ -106,7 +106,7 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
                     }
                 }
             } else {
-                final DeploymentSpec spec = deployHandler.getDeployment(config, images).getSpec();
+                final DeploymentSpec spec = deployHandler.get(config, images).getSpec();
                 if (spec != null) {
                     builder.accept(new TypedVisitor<DeploymentBuilder>() {
                         @Override

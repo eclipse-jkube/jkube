@@ -94,7 +94,7 @@ public class DeploymentHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        Deployment deployment = deploymentHandler.getDeployment(config,images);
+        Deployment deployment = deploymentHandler.get(config, images);
 
         //Assertion
         assertNotNull(deployment.getSpec());
@@ -135,7 +135,7 @@ public class DeploymentHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        deploymentHandler.getDeployment(config, images);
+        deploymentHandler.get(config, images);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -155,6 +155,6 @@ public class DeploymentHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        deploymentHandler.getDeployment(config, images);
+        deploymentHandler.get(config, images);
     }
 }

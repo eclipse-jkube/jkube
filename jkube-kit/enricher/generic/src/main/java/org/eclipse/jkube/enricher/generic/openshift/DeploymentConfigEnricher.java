@@ -55,10 +55,12 @@ public class DeploymentConfigEnricher extends BaseEnricher {
                     DeploymentConfig deploymentConfig = convertFromAppsV1Deployment(item);
                     removeItemFromKubernetesBuilder(builder, item);
                     builder.addToItems(deploymentConfig);
+                    log.info("Converting Deployment to DeploymentConfig");
                 } else if (item instanceof io.fabric8.kubernetes.api.model.extensions.Deployment) {
                     DeploymentConfig deploymentConfig = convertFromExtensionsV1Beta1Deployment(item);
                     removeItemFromKubernetesBuilder(builder, item);
                     builder.addToItems(deploymentConfig);
+                    log.info("Converting Deployment to DeploymentConfig");
                 }
             }
         }

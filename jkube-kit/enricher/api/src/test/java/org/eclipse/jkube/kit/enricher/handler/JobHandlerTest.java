@@ -94,7 +94,7 @@ public class JobHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        Job job = jobHandler.getJob(config,images);
+        Job job = jobHandler.get(config,images);
 
         //Assertion
         assertNotNull(job.getSpec());
@@ -133,7 +133,7 @@ public class JobHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        jobHandler.getJob(config, images);
+        jobHandler.get(config, images);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -152,6 +152,6 @@ public class JobHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        jobHandler.getJob(config, images);
+        jobHandler.get(config, images);
     }
 }

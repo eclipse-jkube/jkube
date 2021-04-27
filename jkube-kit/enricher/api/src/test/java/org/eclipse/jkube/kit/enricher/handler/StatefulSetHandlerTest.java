@@ -94,7 +94,7 @@ public class StatefulSetHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        StatefulSet statefulSet = statefulSetHandler.getStatefulSet(config,images);
+        StatefulSet statefulSet = statefulSetHandler.get(config,images);
 
         //Assertion
         assertNotNull(statefulSet.getSpec());
@@ -136,7 +136,7 @@ public class StatefulSetHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        statefulSetHandler.getStatefulSet(config, images);
+        statefulSetHandler.get(config, images);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -156,6 +156,6 @@ public class StatefulSetHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        statefulSetHandler.getStatefulSet(config, images);
+        statefulSetHandler.get(config, images);
     }
 }

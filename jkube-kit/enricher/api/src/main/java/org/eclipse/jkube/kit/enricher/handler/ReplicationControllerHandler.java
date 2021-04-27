@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
@@ -28,35 +29,40 @@ import java.util.List;
 /**
  * @author roland
  */
-public class ReplicationControllerHandler {
+public class ReplicationControllerHandler implements ControllerHandler<ReplicationController> {
 
-    private final PodTemplateHandler podTemplateHandler;
+  private final PodTemplateHandler podTemplateHandler;
 
-    ReplicationControllerHandler(PodTemplateHandler podTemplateHandler) {
-        this.podTemplateHandler = podTemplateHandler;
-    }
+  ReplicationControllerHandler(PodTemplateHandler podTemplateHandler) {
+    this.podTemplateHandler = podTemplateHandler;
+  }
 
-    public ReplicationController getReplicationController(ResourceConfig config,
-                                                          List<ImageConfiguration> images) {
-        return new ReplicationControllerBuilder()
-            .withMetadata(createRcMetaData(config))
-            .withSpec(createRcSpec(config, images))
-            .build();
-    }
+  @Override
+  public ReplicationController get(ResourceConfig config, List<ImageConfiguration> images) {
+    return new ReplicationControllerBuilder()
+        .withMetadata(createRcMetaData(config))
+        .withSpec(createRcSpec(config, images))
+        .build();
+  }
 
-    // ===========================================================
-    // TODO: "replica set" config used
+  @Override
+  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+    return get(config, images).getSpec().getTemplate();
+  }
 
-    private ObjectMeta createRcMetaData(ResourceConfig config) {
-        return new ObjectMetaBuilder()
-            .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "replication controller name"))
-            .build();
-    }
+  // ===========================================================
+  // TODO: "replica set" config used
 
-    private ReplicationControllerSpec createRcSpec(ResourceConfig config, List<ImageConfiguration> images) {
-        return new ReplicationControllerSpecBuilder()
-            .withReplicas(config.getReplicas())
-            .withTemplate(podTemplateHandler.getPodTemplate(config,images))
-            .build();
-    }
+  private ObjectMeta createRcMetaData(ResourceConfig config) {
+    return new ObjectMetaBuilder()
+        .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "replication controller name"))
+        .build();
+  }
+
+  private ReplicationControllerSpec createRcSpec(ResourceConfig config, List<ImageConfiguration> images) {
+    return new ReplicationControllerSpecBuilder()
+        .withReplicas(config.getReplicas())
+        .withTemplate(podTemplateHandler.getPodTemplate(config, images))
+        .build();
+  }
 }

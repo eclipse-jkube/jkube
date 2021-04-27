@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.enricher.handler;
 
 
+import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 
 import java.util.Properties;
@@ -25,46 +26,60 @@ import java.util.Properties;
 public class HandlerHub {
 
     private final PodTemplateHandler podTemplateHandler;
+    private final LazyBuilder<DeploymentHandler> deploymentHandler;
+    private final LazyBuilder<ReplicaSetHandler> replicaSetHandler;
+    private final LazyBuilder<ReplicationControllerHandler> replicationControllerHandler;
+    private final LazyBuilder<StatefulSetHandler> statefulSetHandler;
+    private final LazyBuilder<DaemonSetHandler> daemonSetHandler;
+    private final LazyBuilder<JobHandler> jobHandler;
+    private final LazyBuilder<NamespaceHandler> namespaceHandler;
+    private final LazyBuilder<ProjectHandler> projectHandler;
+    private final LazyBuilder<ServiceHandler> serviceHandler;
 
     public HandlerHub(GroupArtifactVersion groupArtifactVersion, Properties configuration) {
         ProbeHandler probeHandler = new ProbeHandler();
         ContainerHandler containerHandler = new ContainerHandler(configuration, groupArtifactVersion, probeHandler);
         podTemplateHandler = new PodTemplateHandler(containerHandler);
-    }
-
-    public ServiceHandler getServiceHandler() {
-        return new ServiceHandler();
+        deploymentHandler = new LazyBuilder<>(() -> new DeploymentHandler(podTemplateHandler));
+        replicaSetHandler = new LazyBuilder<>(() -> new ReplicaSetHandler(podTemplateHandler));
+        replicationControllerHandler = new LazyBuilder<>(() -> new ReplicationControllerHandler(podTemplateHandler));
+        statefulSetHandler = new LazyBuilder<>(() -> new StatefulSetHandler(podTemplateHandler));
+        daemonSetHandler = new LazyBuilder<>(() -> new DaemonSetHandler(podTemplateHandler));
+        jobHandler = new LazyBuilder<>(() -> new JobHandler(podTemplateHandler));
+        namespaceHandler = new LazyBuilder<>(NamespaceHandler::new);
+        projectHandler = new LazyBuilder<>(ProjectHandler::new);
+        serviceHandler = new LazyBuilder<>(ServiceHandler::new);
     }
 
     public DeploymentHandler getDeploymentHandler() {
-        return new DeploymentHandler(podTemplateHandler);
-    }
-
-    public DeploymentConfigHandler getDeploymentConfigHandler() {
-        return new DeploymentConfigHandler(podTemplateHandler);
+        return deploymentHandler.get();
     }
 
     public ReplicaSetHandler getReplicaSetHandler() {
-        return new ReplicaSetHandler(podTemplateHandler);
+        return replicaSetHandler.get();
     }
 
     public ReplicationControllerHandler getReplicationControllerHandler() {
-        return new ReplicationControllerHandler(podTemplateHandler);
+        return replicationControllerHandler.get();
     }
 
     public StatefulSetHandler getStatefulSetHandler() {
-        return new StatefulSetHandler(podTemplateHandler);
+        return statefulSetHandler.get();
     }
 
     public DaemonSetHandler getDaemonSetHandler() {
-        return new DaemonSetHandler(podTemplateHandler);
+        return daemonSetHandler.get();
     }
 
     public JobHandler getJobHandler() {
-        return new JobHandler(podTemplateHandler);
+        return jobHandler.get();
     }
 
-    public ProjectHandler getProjectHandler() { return new ProjectHandler(); }
+    public NamespaceHandler getNamespaceHandler() { return namespaceHandler.get(); }
 
-    public NamespaceHandler getNamespaceHandler() { return new NamespaceHandler(); }
+    public ProjectHandler getProjectHandler() { return projectHandler.get(); }
+
+    public ServiceHandler getServiceHandler() {
+        return serviceHandler.get();
+    }
 }
