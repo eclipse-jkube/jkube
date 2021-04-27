@@ -91,7 +91,7 @@ public class DaemonSetHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        DaemonSet daemonSet = daemonSetHandler.getDaemonSet(config,images);
+        DaemonSet daemonSet = daemonSetHandler.get(config, images);
 
         //Assertion
         assertNotNull(daemonSet.getSpec());
@@ -130,7 +130,7 @@ public class DaemonSetHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        daemonSetHandler.getDaemonSet(config, images);
+        daemonSetHandler.get(config, images);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -148,6 +148,6 @@ public class DaemonSetHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        daemonSetHandler.getDaemonSet(config, images);
+        daemonSetHandler.get(config, images);
     }
 }

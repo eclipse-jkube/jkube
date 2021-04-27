@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
@@ -28,34 +29,37 @@ import java.util.List;
 /**
  * @author roland
  */
-public class ReplicaSetHandler {
+public class ReplicaSetHandler implements ControllerHandler<ReplicaSet> {
 
-    private final PodTemplateHandler podTemplateHandler;
+  private final PodTemplateHandler podTemplateHandler;
 
-    ReplicaSetHandler(PodTemplateHandler podTemplateHandler) {
-        this.podTemplateHandler = podTemplateHandler;
-    }
+  ReplicaSetHandler(PodTemplateHandler podTemplateHandler) {
+    this.podTemplateHandler = podTemplateHandler;
+  }
 
-    public ReplicaSet getReplicaSet(ResourceConfig config,
-                                    List<ImageConfiguration> images) {
-        return new ReplicaSetBuilder()
-            .withMetadata(createRsMetaData(config))
-            .withSpec(createRsSpec(config, images))
-            .build();
-    }
+  @Override
+  public ReplicaSet get(ResourceConfig config, List<ImageConfiguration> images) {
+    return new ReplicaSetBuilder()
+        .withMetadata(createRsMetaData(config))
+        .withSpec(createRsSpec(config, images))
+        .build();
+  }
 
-    // ===========================================================
+  @Override
+  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+    return get(config, images).getSpec().getTemplate();
+  }
 
-    private ObjectMeta createRsMetaData(ResourceConfig config) {
-        return new ObjectMetaBuilder()
-            .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
-            .build();
-    }
+  private ObjectMeta createRsMetaData(ResourceConfig config) {
+    return new ObjectMetaBuilder()
+        .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
+        .build();
+  }
 
-    private ReplicaSetSpec createRsSpec(ResourceConfig config, List<ImageConfiguration> images) {
-        return new ReplicaSetSpecBuilder()
-            .withReplicas(config.getReplicas())
-            .withTemplate(podTemplateHandler.getPodTemplate(config,images))
-            .build();
-    }
+  private ReplicaSetSpec createRsSpec(ResourceConfig config, List<ImageConfiguration> images) {
+    return new ReplicaSetSpecBuilder()
+        .withReplicas(config.getReplicas())
+        .withTemplate(podTemplateHandler.getPodTemplate(config, images))
+        .build();
+  }
 }

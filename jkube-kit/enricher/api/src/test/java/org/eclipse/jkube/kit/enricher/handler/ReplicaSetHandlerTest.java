@@ -94,7 +94,7 @@ public class ReplicaSetHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        ReplicaSet replicaSet = replicaSetHandler.getReplicaSet(config,images);
+        ReplicaSet replicaSet = replicaSetHandler.get(config,images);
 
         //Assertion
         assertNotNull(replicaSet.getSpec());
@@ -135,7 +135,7 @@ public class ReplicaSetHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        replicaSetHandler.getReplicaSet(config, images);
+        replicaSetHandler.get(config, images);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -155,6 +155,6 @@ public class ReplicaSetHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        replicaSetHandler.getReplicaSet(config, images);
+        replicaSetHandler.get(config, images);
     }
 }

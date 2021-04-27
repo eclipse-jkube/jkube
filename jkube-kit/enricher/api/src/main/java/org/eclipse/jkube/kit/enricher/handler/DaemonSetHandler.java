@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
@@ -28,34 +29,37 @@ import java.util.List;
 /**
  * Created by matthew on 26/10/16.
  */
-public class DaemonSetHandler {
+public class DaemonSetHandler implements ControllerHandler<DaemonSet> {
 
-    private final PodTemplateHandler podTemplateHandler;
+  private final PodTemplateHandler podTemplateHandler;
 
-    DaemonSetHandler(PodTemplateHandler podTemplateHandler) {
-        this.podTemplateHandler = podTemplateHandler;
-    }
+  DaemonSetHandler(PodTemplateHandler podTemplateHandler) {
+    this.podTemplateHandler = podTemplateHandler;
+  }
 
-    public DaemonSet getDaemonSet(ResourceConfig config,
-                                  List<ImageConfiguration> images) {
-        return new DaemonSetBuilder()
-                .withMetadata(createDaemonSetMetaData(config))
-                .withSpec(createDaemonSetSpec(config, images))
-                .build();
-    }
+  @Override
+  public DaemonSet get(ResourceConfig config, List<ImageConfiguration> images) {
+    return new DaemonSetBuilder()
+        .withMetadata(createDaemonSetMetaData(config))
+        .withSpec(createDaemonSetSpec(config, images))
+        .build();
+  }
 
-    // ===========================================================
+  @Override
+  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+    return get(config, images).getSpec().getTemplate();
+  }
 
-    private ObjectMeta createDaemonSetMetaData(ResourceConfig config) {
-        return new ObjectMetaBuilder()
-                .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
-                .build();
-    }
+  private ObjectMeta createDaemonSetMetaData(ResourceConfig config) {
+    return new ObjectMetaBuilder()
+        .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
+        .build();
+  }
 
-    private DaemonSetSpec createDaemonSetSpec(ResourceConfig config, List<ImageConfiguration> images) {
-        return new DaemonSetSpecBuilder()
-                .withTemplate(podTemplateHandler.getPodTemplate(config,images))
-                .build();
-    }
+  private DaemonSetSpec createDaemonSetSpec(ResourceConfig config, List<ImageConfiguration> images) {
+    return new DaemonSetSpecBuilder()
+        .withTemplate(podTemplateHandler.getPodTemplate(config, images))
+        .build();
+  }
 
 }

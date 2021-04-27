@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobSpec;
@@ -30,32 +31,36 @@ import java.util.List;
  *
  * @author matthew on 11/02/17.
  */
-public class JobHandler {
-    private final PodTemplateHandler podTemplateHandler;
+public class JobHandler implements ControllerHandler<Job> {
 
-    JobHandler(PodTemplateHandler podTemplateHandler) {
-        this.podTemplateHandler = podTemplateHandler;
-    }
+  private final PodTemplateHandler podTemplateHandler;
 
-    public Job getJob(ResourceConfig config,
-                      List<ImageConfiguration> images) {
-        return new JobBuilder()
-                .withMetadata(createJobSpecMetaData(config))
-                .withSpec(createJobSpec(config, images))
-                .build();
-    }
+  JobHandler(PodTemplateHandler podTemplateHandler) {
+    this.podTemplateHandler = podTemplateHandler;
+  }
 
-    // ===========================================================
+  @Override
+  public Job get(ResourceConfig config, List<ImageConfiguration> images) {
+    return new JobBuilder()
+        .withMetadata(createJobSpecMetaData(config))
+        .withSpec(createJobSpec(config, images))
+        .build();
+  }
 
-    private ObjectMeta createJobSpecMetaData(ResourceConfig config) {
-        return new ObjectMetaBuilder()
-                .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
-                .build();
-    }
+  @Override
+  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+    return get(config, images).getSpec().getTemplate();
+  }
 
-    private JobSpec createJobSpec(ResourceConfig config, List<ImageConfiguration> images) {
-        return new JobSpecBuilder()
-                .withTemplate(podTemplateHandler.getPodTemplate(config, images))
-                .build();
-    }
+  private ObjectMeta createJobSpecMetaData(ResourceConfig config) {
+    return new ObjectMetaBuilder()
+        .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
+        .build();
+  }
+
+  private JobSpec createJobSpec(ResourceConfig config, List<ImageConfiguration> images) {
+    return new JobSpecBuilder()
+        .withTemplate(podTemplateHandler.getPodTemplate(config, images))
+        .build();
+  }
 }

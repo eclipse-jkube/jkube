@@ -34,6 +34,7 @@ Usage:
 * Fix #666: Replace deprecated JsonParser
 * Fix #679: Quarkus package detection improvements
 * Fix #622: Corrected documentation for `jkube-healthcheck-karaf`
+* Fix #630: DeploymentConfigEnricher and DefaultControllerEnricher refactored and aligned
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported
