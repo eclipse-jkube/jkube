@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 // Required if using any of the ObjectMappers provided by KubernetesDeserializer (yamlMapper, jsonMapper)
 @JsonDeserialize(
@@ -82,4 +83,16 @@ public class GenericCustomResource implements HasMetadata {
     this.additionalProperties.put(name, value);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    GenericCustomResource that = (GenericCustomResource) o;
+    return Objects.equals(apiVersion, that.apiVersion) && Objects.equals(kind, that.kind) && Objects.equals(metadata, that.metadata) && Objects.equals(additionalProperties, that.additionalProperties);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(apiVersion, kind, metadata, additionalProperties);
+  }
 }

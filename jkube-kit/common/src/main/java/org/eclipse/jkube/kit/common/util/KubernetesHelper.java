@@ -35,11 +35,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.eclipse.jkube.kit.common.GenericCustomResource;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.ResourceFileType;
 
 import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.Container;
@@ -49,6 +52,7 @@ import io.fabric8.kubernetes.api.model.Context;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -85,18 +89,14 @@ import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
-import io.fabric8.kubernetes.api.model.HasMetadataComparator;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.ResourceFileType;
 
 import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimGroup;
 import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimVersion;
@@ -510,10 +510,11 @@ public class KubernetesHelper {
         }
     }
 
-    public static Set<HasMetadata> loadResources(File manifest) throws IOException {
-        final Set<HasMetadata> entities = new TreeSet<>(new HasMetadataComparator());
-        entities.addAll(ResourceUtil.deserializeKubernetesListOrTemplate(manifest));
-        return entities;
+    public static List<HasMetadata> loadResources(File manifest) throws IOException {
+        return ResourceUtil.deserializeKubernetesListOrTemplate(manifest).stream()
+            .distinct()
+            .sorted(new HasMetadataComparator())
+            .collect(Collectors.toList());
     }
 
     public static String getBuildStatusPhase(Build build) {
@@ -606,7 +607,7 @@ public class KubernetesHelper {
         return answer;
     }
 
-    public static LabelSelector extractPodLabelSelector(Set<HasMetadata> entities) {
+    public static LabelSelector extractPodLabelSelector(Collection<HasMetadata> entities) {
         LabelSelector chosenSelector = null;
         for (HasMetadata entity : entities) {
             LabelSelector selector = extractPodLabelSelector(entity);
@@ -866,7 +867,7 @@ public class KubernetesHelper {
         return crdContext.getGroup() + "/" + crdContext.getVersion() + "#" + crdContext.getKind();
     }
 
-    public static String getNewestApplicationPodName(KubernetesClient client, String namespace, Set<HasMetadata> resources) {
+    public static String getNewestApplicationPodName(KubernetesClient client, String namespace, Collection<HasMetadata> resources) {
         LabelSelector selector = extractPodLabelSelector(resources);
         PodList pods = client.pods().inNamespace(namespace).withLabelSelector(selector).list();
         Pod newestPod = KubernetesHelper.getNewestPod(pods.getItems());

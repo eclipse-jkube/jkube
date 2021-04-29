@@ -15,10 +15,7 @@ package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.HashSet;
 
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -29,11 +26,13 @@ import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -86,8 +85,7 @@ public class KubernetesUndeployServiceTest {
     new Expectations() {{
       file.exists(); result = true;
       file.isFile(); result = true;
-      kubernetesHelper.loadResources(file);
-      result = new HashSet<>(Arrays.asList(namespace, pod, service));
+      kubernetesHelper.loadResources(file); result = Arrays.asList(namespace, pod, service);
     }};
     // @formatter:on
     // When
@@ -129,7 +127,7 @@ public class KubernetesUndeployServiceTest {
         .withKind(crdId).build();
     // @formatter:off
     new Expectations() {{
-      kubernetesHelper.loadResources(manifest); result = new HashSet<>(Arrays.asList(service, customResource));
+      kubernetesHelper.loadResources(manifest); result = Arrays.asList(service, customResource);
       jKubeServiceHub.getClient().apiextensions().v1beta1().customResourceDefinitions().list(); result = new CustomResourceDefinitionListBuilder().withItems(crd).build();
       kubernetesHelper.getFullyQualifiedApiGroupWithKind((CustomResourceDefinitionContext)any);
       result = crdId;

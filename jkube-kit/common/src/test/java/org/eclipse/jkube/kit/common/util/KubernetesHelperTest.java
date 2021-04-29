@@ -13,6 +13,20 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.eclipse.jkube.kit.common.GenericCustomResource;
+import org.eclipse.jkube.kit.common.KitLogger;
+
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
@@ -20,10 +34,11 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Namespace;
-import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
@@ -35,31 +50,15 @@ import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Template;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -420,13 +419,28 @@ public class KubernetesHelperTest {
         final File manifest = new File(KubernetesHelperTest.class.getResource(
             "/util/kubernetes-helper/list-with-duplicates-and-template.yml").getFile());
         // When
-        final Set<HasMetadata> result = KubernetesHelper.loadResources(manifest);
+        final List<HasMetadata> result = KubernetesHelper.loadResources(manifest);
         // Then
         assertThat(result)
             .hasSize(3)
             .hasOnlyElementsOfTypes(Namespace.class, GenericCustomResource.class, Template.class)
             .extracting("metadata.name")
             .containsExactly("should-be-first", "custom-resource", "template-example");
+    }
+
+    @Test
+    public void loadResourcesWithDuplicateAndSameNameCustomResources() throws IOException {
+        // Given
+        final File manifest = new File(KubernetesHelperTest.class.getResource(
+            "/util/kubernetes-helper/list-with-duplicates-and-same-name-custom-resource.yml").getFile());
+        // When
+        final List<HasMetadata> result = KubernetesHelper.loadResources(manifest);
+        // Then
+        assertThat(result)
+            .hasSize(3)
+            .hasOnlyElementsOfTypes(Namespace.class, GenericCustomResource.class)
+            .extracting("metadata.name")
+            .containsExactly("should-be-first", "custom-resource", "custom-resource");
     }
 
     @Test

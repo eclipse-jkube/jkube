@@ -45,10 +45,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -60,7 +60,7 @@ public class KubernetesClientUtil {
 
     private KubernetesClientUtil() {}
 
-    public static void resizeApp(KubernetesClient kubernetes, String namespace, Set<HasMetadata> entities, int replicas, KitLogger log) {
+    public static void resizeApp(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> entities, int replicas, KitLogger log) {
         for (HasMetadata entity : entities) {
             String name = KubernetesHelper.getName(entity);
             Scaleable<?> scalable = null;
@@ -85,7 +85,7 @@ public class KubernetesClientUtil {
         }
     }
 
-    public static void deleteEntities(KubernetesClient kubernetes, String namespace, Set<HasMetadata> entities, KitLogger log) {
+    public static void deleteEntities(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> entities, KitLogger log) {
         List<HasMetadata> list = new ArrayList<>(entities);
 
         // lets delete in reverse order
@@ -97,7 +97,7 @@ public class KubernetesClientUtil {
         }
     }
 
-    public static void deleteOpenShiftEntities(KubernetesClient kubernetes, String namespace, Set<HasMetadata> entities, String s2iBuildNameSuffix, KitLogger log) {
+    public static void deleteOpenShiftEntities(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> entities, String s2iBuildNameSuffix, KitLogger log) {
         // For OpenShift cluster, also delete s2i buildconfig
         OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(kubernetes);
         if (openshiftClient == null) {

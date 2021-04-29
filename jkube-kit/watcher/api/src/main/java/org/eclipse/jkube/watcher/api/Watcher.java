@@ -13,13 +13,14 @@
  */
 package org.eclipse.jkube.watcher.api;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+
+import org.eclipse.jkube.kit.common.Named;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Named;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
 
 
 public interface Watcher extends Named {
@@ -30,7 +31,7 @@ public interface Watcher extends Named {
      * @return true if the watcher is applicable
      * @param configs all image configurations
      */
-    boolean isApplicable(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode);
+    boolean isApplicable(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode);
 
 
     /**
@@ -38,6 +39,6 @@ public interface Watcher extends Named {
      *
      * @param configs all image configurations
      */
-    void watch(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) throws Exception;
+    void watch(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) throws Exception;
 
 }

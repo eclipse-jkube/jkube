@@ -1407,14 +1407,14 @@ public class ApplyService {
         this.rollingUpgradePreserveScale = rollingUpgradePreserveScale;
     }
 
-    public void applyEntities(String fileName, Set<HasMetadata> entities, KitLogger serviceLogger,
+    public void applyEntities(String fileName, Collection<HasMetadata> entities, KitLogger serviceLogger,
                                  long serviceUrlWaitTimeSeconds) throws InterruptedException {
 
         applyStandardEntities(fileName, getK8sListWithNamespaceFirst(entities));
         logExposeServiceUrl(entities, serviceLogger, serviceUrlWaitTimeSeconds);
     }
 
-    private void logExposeServiceUrl(Set<HasMetadata> entities, KitLogger serviceLogger, long serviceUrlWaitTimeSeconds) throws InterruptedException {
+    private void logExposeServiceUrl(Collection<HasMetadata> entities, KitLogger serviceLogger, long serviceUrlWaitTimeSeconds) throws InterruptedException {
         String url = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
         if (url != null) {
             serviceLogger.info("ExposeController Service URL: %s", url);

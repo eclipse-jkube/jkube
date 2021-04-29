@@ -16,22 +16,21 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Set;
+import java.util.List;
 
-import org.apache.maven.plugin.BuildPluginManager;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
-import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 import org.eclipse.jkube.maven.plugin.mojo.build.AbstractDockerMojo;
 import org.eclipse.jkube.maven.plugin.watcher.WatcherManager;
@@ -41,12 +40,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
@@ -98,7 +98,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
         KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
 
         try {
-            Set<HasMetadata> resources = KubernetesHelper.loadResources(getManifest(kubernetesClient));
+            List<HasMetadata> resources = KubernetesHelper.loadResources(getManifest(kubernetesClient));
             WatcherContext context = getWatcherContext();
 
             WatcherManager.watch(getResolvedImages(), resources, context);

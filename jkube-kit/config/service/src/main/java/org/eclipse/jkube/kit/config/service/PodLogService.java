@@ -34,12 +34,12 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
@@ -73,7 +73,7 @@ public class PodLogService {
         this.log = context.getLog();
     }
 
-    public void tailAppPodsLogs(final KubernetesClient kubernetes, final String namespace, final Set<HasMetadata> entities,
+    public void tailAppPodsLogs(final KubernetesClient kubernetes, final String namespace, final Collection<HasMetadata> entities,
                                 boolean watchAddedPodsOnly, String onExitOperation, boolean followLog,
                                 Date ignorePodsOlderThan, boolean waitInCurrentThread) {
 

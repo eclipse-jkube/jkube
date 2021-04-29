@@ -17,8 +17,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -54,7 +54,7 @@ public class PodExecutor {
     objectMapper = new ObjectMapper();
   }
 
-  void executeCommandInPod(Set<HasMetadata> resources, String command) throws IOException, InterruptedException, WatchException {
+  void executeCommandInPod(Collection<HasMetadata> resources, String command) throws IOException, InterruptedException, WatchException {
     try (
         KubernetesClient client = clusterAccess.createDefaultClient();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
