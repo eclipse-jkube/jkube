@@ -20,9 +20,9 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintWriter;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
@@ -67,14 +67,14 @@ public class DockerImageWatcher extends BaseWatcher {
     }
 
     @Override
-    public boolean isApplicable(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) {
+    public boolean isApplicable(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) {
         // TODO: There's no reason for this watcher to work only on Kubernetes at least for some of the modes
         // https://github.com/eclipse/jkube/issues/422
         return mode == PlatformMode.kubernetes;
     }
 
     @Override
-    public void watch(List<ImageConfiguration> configs, final Set<HasMetadata> resources, PlatformMode mode) {
+    public void watch(List<ImageConfiguration> configs, final Collection<HasMetadata> resources, PlatformMode mode) {
 
         WatchContext watchContext = getContext().getWatchContext();
 
@@ -119,7 +119,7 @@ public class DockerImageWatcher extends BaseWatcher {
         return imagePrefix;
     }
 
-    protected void restartContainer(WatchService.ImageWatcher watcher, Set<HasMetadata> resources) {
+    protected void restartContainer(WatchService.ImageWatcher watcher, Collection<HasMetadata> resources) {
         ImageConfiguration imageConfig = watcher.getImageConfiguration();
         String imageName = imageConfig.getName();
         ClusterAccess clusterAccess = getContext().getJKubeServiceHub().getClusterAccess();
@@ -177,7 +177,7 @@ public class DockerImageWatcher extends BaseWatcher {
         }
     }
 
-    private String executeCommandInPod(String command, Set<HasMetadata> resources) throws IOException, WatchException {
+    private String executeCommandInPod(String command, Collection<HasMetadata> resources) throws IOException, WatchException {
         ClusterAccess clusterAccess = getContext().getJKubeServiceHub().getClusterAccess();
         try {
             final PodExecutor podExecutor = new PodExecutor(clusterAccess, WAIT_TIMEOUT);
@@ -190,7 +190,7 @@ public class DockerImageWatcher extends BaseWatcher {
         return null;
     }
 
-    private void copyFileToPod(File fileToUpload, Set<HasMetadata> resources) throws IOException, WatchException {
+    private void copyFileToPod(File fileToUpload, Collection<HasMetadata> resources) throws IOException, WatchException {
         ClusterAccess clusterAccess = getContext().getJKubeServiceHub().getClusterAccess();
         try (
             final PipedOutputStream pos = new PipedOutputStream();

@@ -13,16 +13,17 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.Collection;
+
 import org.eclipse.jkube.kit.config.service.PodLogService;
 import org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo;
+
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-
-import java.util.Set;
 
 /**
  * This goal tails the log of the most recent pod for the app that was deployed via <code>k8s:deploy</code>
@@ -40,7 +41,7 @@ public class LogMojo extends ApplyMojo {
   private String podName;
 
   @Override
-  protected void applyEntities(final KubernetesClient kubernetes, String fileName, final Set<HasMetadata> entities) {
+  protected void applyEntities(final KubernetesClient kubernetes, String fileName, final Collection<HasMetadata> entities) {
     new PodLogService(podLogServiceContextBuilder().build()).tailAppPodsLogs(
         kubernetes,
         applyService.getNamespace(),

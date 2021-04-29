@@ -36,6 +36,7 @@ Usage:
 * Fix #622: Corrected documentation for `jkube-healthcheck-karaf`
 * Fix #630: DeploymentConfigEnricher and DefaultControllerEnricher refactored and aligned
 * Fix #639: Quotas for OpenShift BuildConfig not working
+* Fix #688: Multiple Custom Resources with same (different apiGroup) name can be added
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported

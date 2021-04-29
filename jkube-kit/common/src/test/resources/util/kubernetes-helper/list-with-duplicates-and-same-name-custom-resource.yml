@@ -1,0 +1,43 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: custom.resource.example.com/v1
+    kind: Example
+    metadata:
+      labels:
+        app: custom-resources
+      name: custom-resource
+      namespace: code
+    spec:
+      field: i-have-a-duplicate
+  - apiVersion: custom.resource.example.com/v1
+    kind: Example
+    metadata:
+      labels:
+        app: custom-resources
+      name: custom-resource
+      namespace: code
+    spec:
+      field: i-have-a-duplicate
+  - apiVersion: custom-other.resource.example.com/v1
+    kind: Example
+    metadata:
+      labels:
+        app: custom-resources
+      name: custom-resource
+      namespace: code
+    spec:
+      field: not-the-same
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      labels:
+        provider: jkube
+      name: should-be-first
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      labels:
+        provider: jkube
+      name: should-be-first

@@ -21,10 +21,10 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.jkube.kit.common.Configs;
@@ -78,13 +78,13 @@ public class SpringBootWatcher extends BaseWatcher {
     }
 
     @Override
-    public boolean isApplicable(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) {
+    public boolean isApplicable(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) {
         return JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(),
             SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
     }
 
     @Override
-    public void watch(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) throws Exception {
+    public void watch(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) throws Exception {
         KubernetesClient kubernetes = getContext().getJKubeServiceHub().getClient();
 
         PodLogService.PodLogServiceContext logContext = PodLogService.PodLogServiceContext.builder()
@@ -110,7 +110,7 @@ public class SpringBootWatcher extends BaseWatcher {
         }
     }
 
-    private String getPortForwardUrl(final Set<HasMetadata> resources) {
+    private String getPortForwardUrl(final Collection<HasMetadata> resources) {
         LabelSelector selector = KubernetesHelper.extractPodLabelSelector(resources);
         if (selector == null) {
             log.warn("Unable to determine a selector for application pods");
@@ -135,7 +135,7 @@ public class SpringBootWatcher extends BaseWatcher {
         return scheme + "localhost:" + localPort + contextPath;
     }
 
-    private String getServiceExposeUrl(KubernetesClient kubernetes, Set<HasMetadata> resources) throws InterruptedException {
+    private String getServiceExposeUrl(KubernetesClient kubernetes, Collection<HasMetadata> resources) throws InterruptedException {
         long serviceUrlWaitTimeSeconds = Configs.asInt(getConfig(Config.SERVICE_URL_WAIT_TIME_SECONDS));
         String url = KubernetesHelper.getServiceExposeUrl(kubernetes, resources, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
         if (StringUtils.isNotBlank(url)) {

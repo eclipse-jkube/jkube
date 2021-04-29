@@ -13,15 +13,23 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
+import java.io.File;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
+
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -29,12 +37,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
-
-import java.io.File;
-import java.net.URL;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
@@ -178,7 +180,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
                 clusterKind = "OpenShift";
             }
             KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
-            Set<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
+            List<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
             log.info("Using %s at %s in namespace %s with manifest %s ", clusterKind, masterUrl, clusterAccess.getNamespace(), manifest);
 
             configureApplyService(kubernetes);
@@ -193,7 +195,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         }
     }
 
-    protected void applyEntities(final KubernetesClient kubernetes, String fileName, final Set<HasMetadata> entities) throws InterruptedException {
+    protected void applyEntities(final KubernetesClient kubernetes, String fileName, final Collection<HasMetadata> entities) throws InterruptedException {
         KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
         applyService.applyEntities(fileName, entities, serviceLogger, serviceUrlWaitTimeSeconds);
     }

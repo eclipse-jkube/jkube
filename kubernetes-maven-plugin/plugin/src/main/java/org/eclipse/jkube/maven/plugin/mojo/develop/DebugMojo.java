@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import java.util.Collection;
+
+import org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-
-import java.util.Set;
 
 /**
  * Ensures that the current app has debug enabled, then opens the debug port so that you can debug the latest pod
@@ -37,7 +38,7 @@ public class DebugMojo extends ApplyMojo {
   private boolean debugSuspend;
 
   @Override
-  protected void applyEntities(KubernetesClient kubernetes, String fileName, Set<HasMetadata> entities) {
+  protected void applyEntities(KubernetesClient kubernetes, String fileName, Collection<HasMetadata> entities) {
     jkubeServiceHub.getDebugService().debug(
         applyService.getNamespace(), fileName, entities, localDebugPort, debugSuspend, createLogger("[[Y]][W][[Y]] [[s]]"));
   }

@@ -86,7 +86,7 @@ public class OpenshiftUndeployServiceTest {
   private void withLoadedEntities(HasMetadata... entities) throws Exception {
     // @formatter:off
     new Expectations() {{
-      kubernetesHelper.loadResources((File)any); result = new HashSet<>(Arrays.asList(entities));
+      kubernetesHelper.loadResources((File)any); result = Arrays.asList(entities);
     }};
     // @formatter:on
   }
