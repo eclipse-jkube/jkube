@@ -37,6 +37,7 @@ Usage:
 * Fix #630: DeploymentConfigEnricher and DefaultControllerEnricher refactored and aligned
 * Fix #639: Quotas for OpenShift BuildConfig not working
 * Fix #688: Multiple Custom Resources with same (different apiGroup) name can be added
+* Fix #676: Define Helm Chart dependencies
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported
