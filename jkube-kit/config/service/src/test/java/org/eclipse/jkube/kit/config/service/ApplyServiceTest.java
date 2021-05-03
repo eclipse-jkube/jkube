@@ -52,6 +52,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -255,27 +256,33 @@ public class ApplyServiceTest {
         mockServer.expect().get()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
                 .andReply(collector.record("get-cr-virtualservice").andReturn(HTTP_OK, "{\"metadata\":{\"resourceVersion\":\"1001\"}}"))
-                .times(2);
-        mockServer.expect().patch()
-                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
-                .andReply(collector.record("put-cr-virtualservice").andReturn(HTTP_OK, "{}"))
+                .once();
+        mockServer.expect().post()
+                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices")
+                .andReply(collector.record("post-cr-virtualservice").andReturn(HTTP_OK, "{}"))
                 .once();
         mockServer.expect().get()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways/mygateway-https")
                 .andReply(collector.record("get-cr-gateway").andReturn(HTTP_OK, "{\"metadata\":{\"resourceVersion\":\"1002\"}}"))
-                .times(2);
-        mockServer.expect().patch()
-                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways/mygateway-https")
-                .andReply(collector.record("put-cr-gateway").andReturn(HTTP_OK, "{}"))
                 .once();
+        mockServer.expect().post()
+                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways")
+                .andReply(collector.record("post-cr-gateway").andReturn(HTTP_CONFLICT, "{}"))
+                .once();
+        mockServer.expect().put()
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways/mygateway-https")
+            .andReply(collector.record("put-cr-gateway").andReturn(HTTP_OK, "{\"metadata\":{\"resourceVersion\":\"1002\"}}"))
+            .once();
 
         // When
         applyService.applyGenericCustomResource(gateway, gatewayFragment.getName());
         applyService.applyGenericCustomResource(virtualService, virtualServiceFragment.getName());
 
         // Then
-        collector.assertEventsRecordedInOrder("get-crds", "get-cr-gateway", "get-cr-gateway", "put-cr-gateway", "get-crds", "get-cr-virtualservice", "get-cr-virtualservice", "put-cr-virtualservice");
-        assertEquals(9, mockServer.getMockServer().getRequestCount());
+        collector.assertEventsRecordedInOrder(
+            "get-crds", "get-cr-gateway", "post-cr-gateway", "put-cr-gateway",
+            "get-crds", "get-cr-virtualservice", "post-cr-virtualservice");
+        assertEquals(8, mockServer.getMockServer().getRequestCount());
     }
 
     @Test
@@ -315,7 +322,7 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("get-crds", "delete-cr-gateway", "post-cr-gateway", "get-crds", "delete-cr-virtualservice", "post-cr-virtualservice");
-        assertEquals(7, mockServer.getMockServer().getRequestCount());
+        assertEquals(11, mockServer.getMockServer().getRequestCount());
         applyService.setRecreateMode(false);
     }
 

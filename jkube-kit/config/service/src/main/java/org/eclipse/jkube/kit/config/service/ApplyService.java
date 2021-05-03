@@ -13,6 +13,29 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.eclipse.jkube.kit.common.GenericCustomResource;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.FileUtil;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
+import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -55,33 +78,12 @@ import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.TagReference;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
-import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getFullyQualifiedApiGroupWithKind;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getKind;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateLabels;
@@ -395,7 +397,7 @@ public class ApplyService {
                 (serviceAccount));
         try {
             Object answer;
-            if (StringUtils.isNotBlank(namespace)) {
+            if (isNotBlank(namespace)) {
                 answer = kubernetesClient.serviceAccounts().inNamespace(namespace).create(serviceAccount);
             } else {
                 answer = kubernetesClient.serviceAccounts().inNamespace(getNamespace()).create(serviceAccount);
@@ -484,28 +486,27 @@ public class ApplyService {
         }
     }
 
-    public void applyCustomResource(CustomResourceDefinitionContext context, GenericCustomResource genericCustomResource, String sourceName)
+    private void applyCustomResource(CustomResourceDefinitionContext context, GenericCustomResource genericCustomResource, String sourceName)
         throws IOException {
 
-        String customResourceStr = Serialization.jsonMapper().writeValueAsString(genericCustomResource);
         String name = genericCustomResource.getMetadata().getName();
         String apiGroupWithKind = KubernetesHelper.getFullyQualifiedApiGroupWithKind(context);
         Objects.requireNonNull(name, "No name for " + genericCustomResource + " " + sourceName);
 
         if (isRecreateMode()) {
-            KubernetesClientUtil.doDeleteCustomResource(kubernetesClient, context, namespace, name);
-            KubernetesClientUtil.doCreateCustomResource(kubernetesClient, context, namespace, customResourceStr);
-            log.info("Created Custom Resource: %s %s/%s", apiGroupWithKind, namespace, name);
-        } else {
-            Map<String, Object> crFromServer = KubernetesClientUtil.doGetCustomResource(kubernetesClient, context, namespace, name);
-            if (crFromServer == null) {
-                KubernetesClientUtil.doCreateCustomResource(kubernetesClient, context, namespace, customResourceStr);
-                log.info("Created Custom Resource: %s %s/%s", apiGroupWithKind, namespace, name);
-            } else {
-                KubernetesClientUtil.doEditCustomResource(kubernetesClient, context, namespace, name, customResourceStr);
-                log.info("Updated Custom Resource: %s %s/%s", KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), namespace, name);
-            }
+            log.info("Attempting to delete Custom Resource: %s %s/%s", apiGroupWithKind, namespace, name);
+            KubernetesClientUtil.doDeleteAndWait(kubernetesClient, context, namespace, name, 10L);
+
         }
+        final GenericCustomResource existentCR = KubernetesClientUtil.doGetCustomResource(kubernetesClient, context, namespace, name);
+        if (existentCR != null && isBlank(existentCR.getMetadata().getDeletionTimestamp())) {
+            log.info("Replacing Custom Resource: %s %s/%s",
+                KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), namespace, name);
+            genericCustomResource.getMetadata().setResourceVersion(existentCR.getMetadata().getResourceVersion());
+        }
+        kubernetesClient.customResource(context).inNamespace(namespace).withName(name)
+            .createOrReplace(Serialization.jsonMapper().writeValueAsString(genericCustomResource));
+        log.info("Created Custom Resource: %s %s/%s", apiGroupWithKind, namespace, name);
     }
 
     protected boolean isBound(PersistentVolumeClaim claim) {
@@ -518,7 +519,7 @@ public class ApplyService {
         log.info("Creating a PersistentVolumeClaim from " + sourceName + " namespace " + namespace + " name " + getName(entity));
         try {
             Object answer;
-            if (StringUtils.isNotBlank(namespace)) {
+            if (isNotBlank(namespace)) {
                 answer = kubernetesClient.persistentVolumeClaims().inNamespace(namespace).create(entity);
             } else {
                 answer = kubernetesClient.persistentVolumeClaims().inNamespace(getNamespace()).create(entity);
@@ -565,7 +566,7 @@ public class ApplyService {
         log.info("Creating a Secret from " + sourceName + " namespace " + namespace + " name " + getName(secret));
         try {
             Object answer;
-            if (StringUtils.isNotBlank(namespace)) {
+            if (isNotBlank(namespace)) {
                 answer = kubernetesClient.secrets().inNamespace(namespace).create(secret);
             } else {
                 answer = kubernetesClient.secrets().inNamespace(getNamespace()).create(secret);
@@ -582,7 +583,7 @@ public class ApplyService {
             namespaceDir.mkdirs();
             String kind = getKind(entity);
             String name = getName(entity);
-            if (StringUtils.isNotBlank(kind)) {
+            if (isNotBlank(kind)) {
                 name = kind.toLowerCase() + "-" + name;
             }
             if (StringUtils.isBlank(name)) {
@@ -938,7 +939,7 @@ public class ApplyService {
         log.info("Creating a " + kind + " from " + sourceName + " namespace " + namespace + " name " + getName(resource));
         try {
             Object answer;
-            if (StringUtils.isNotBlank(namespace)) {
+            if (isNotBlank(namespace)) {
                 answer = resources.inNamespace(namespace).create(resource);
             } else {
                 answer = resources.inNamespace(getNamespace()).create(resource);
@@ -964,7 +965,7 @@ public class ApplyService {
         log.info("Creating a Service from " + sourceName + " namespace " + namespace + " name " + getName(service));
         try {
             Object answer;
-            if (StringUtils.isNotBlank(namespace)) {
+            if (isNotBlank(namespace)) {
                 answer = kubernetesClient.services().inNamespace(namespace).create(service);
             } else {
                 answer = kubernetesClient.services().inNamespace(getNamespace()).create(service);
@@ -1023,7 +1024,7 @@ public class ApplyService {
             ObjectMeta metadata = getOrCreateMetadata(entity);
             metadata.setName(namespaceName);
             String kubernetesClientNamespace = kubernetesClient.getNamespace();
-            if (StringUtils.isNotBlank(kubernetesClientNamespace)) {
+            if (isNotBlank(kubernetesClientNamespace)) {
                 Map<String, String> entityLabels = getOrCreateLabels(entity);
                 if (labels != null) {
                     entityLabels.putAll(labels);
@@ -1039,7 +1040,7 @@ public class ApplyService {
             ObjectMeta metadata = getOrCreateMetadata(entity);
             metadata.setName(namespaceName);
             String kubernetesClientNamespace = kubernetesClient.getNamespace();
-            if (StringUtils.isNotBlank(kubernetesClientNamespace)) {
+            if (isNotBlank(kubernetesClientNamespace)) {
                 Map<String, String> entityLabels = getOrCreateLabels(entity);
                 if (labels != null) {
                     entityLabels.putAll(labels);
@@ -1177,7 +1178,7 @@ public class ApplyService {
         log.info("Creating a ReplicationController from " + sourceName + " namespace " + namespace + " name " + getName(replicationController));
         try {
             Object answer;
-            if (StringUtils.isNotBlank(namespace)) {
+            if (isNotBlank(namespace)) {
                 answer = kubernetesClient.replicationControllers().inNamespace(namespace).create(replicationController);
             } else {
                 answer =  kubernetesClient.replicationControllers().inNamespace(getNamespace()).create(replicationController);
@@ -1222,7 +1223,7 @@ public class ApplyService {
         log.info("Creating a Pod from " + sourceName + " namespace " + namespace + " name " + getName(pod));
         try {
             Object answer;
-            if (StringUtils.isNotBlank(namespace)) {
+            if (isNotBlank(namespace)) {
                 answer = kubernetesClient.pods().inNamespace(namespace).create(pod);
             } else {
                 answer = kubernetesClient.pods().inNamespace(getNamespace()).create(pod);
@@ -1256,7 +1257,7 @@ public class ApplyService {
     }
 
     public void doCreateJob(Job job, String namespace, String sourceName) {
-        if (StringUtils.isNotBlank(namespace)) {
+        if (isNotBlank(namespace)) {
             kubernetesClient.batch().jobs().inNamespace(namespace).create(job);
         } else {
             kubernetesClient.batch().jobs().inNamespace(getNamespace()).create(job);

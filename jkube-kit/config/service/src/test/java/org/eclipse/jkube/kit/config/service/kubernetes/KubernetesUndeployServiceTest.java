@@ -138,7 +138,7 @@ public class KubernetesUndeployServiceTest {
     // Then
     // @formatter:off
     new Verifications() {{
-      jKubeServiceHub.getClient().customResource((CustomResourceDefinitionContext)any).delete("my-cr");
+      jKubeServiceHub.getClient().customResource((CustomResourceDefinitionContext)any).inNamespace(null).withName("my-cr").delete();
       times = 1;
     }};
     // @formatter:on
