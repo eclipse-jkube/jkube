@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.getNameWithSuffix;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -287,6 +288,16 @@ public class KubernetesResourceUtilTest {
     public void testIsExposedService() {
         assertTrue(KubernetesResourceUtil.isExposedService(new ObjectMetaBuilder().addToLabels("expose", "true").build()));
         assertTrue(KubernetesResourceUtil.isExposedService(new ObjectMetaBuilder().addToLabels("jkube.io/exposeUrl", "true").build()));
+    }
+
+    @Test
+    public void getNameWithSuffix_withKnownMapping_shouldReturnKnownMapping() {
+        assertEquals("name-pod", getNameWithSuffix("name", "Pod"));
+    }
+
+    @Test
+    public void getNameWithSuffix_withUnknownMapping_shouldReturnCR() {
+        assertEquals("name-cr", getNameWithSuffix("name", "VeryCustomKind"));
     }
 
     private PodSpec getDefaultGeneratedPodSpec() {

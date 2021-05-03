@@ -1,0 +1,4 @@
+apiVersion: "custom.example.com/v1"
+kind: SomeCustomResource
+metadata:
+  name: my-custom-resource
