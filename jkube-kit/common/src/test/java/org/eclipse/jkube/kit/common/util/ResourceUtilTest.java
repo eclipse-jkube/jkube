@@ -24,6 +24,8 @@ import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.openshift.api.model.Template;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.common.GenericCustomResource;
+import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.junit.Test;
 
 import java.io.File;
@@ -129,5 +131,34 @@ public class ResourceUtilTest {
                 .withValue("replaced_value")
                 .build()
             );
+    }
+
+    @Test
+    public void load_withCustomResourceFile_shouldLoadGenericCustomResource() throws Exception {
+        // When
+        final HasMetadata result = ResourceUtil.load(
+            new File(ResourceUtilTest.class.getResource( "/util/resource-util/custom-resource-cr.yml").getFile()),
+            HasMetadata.class
+        );
+        // Then
+        assertThat(result)
+            .isInstanceOf(GenericCustomResource.class)
+            .hasFieldOrPropertyWithValue("kind", "SomeCustomResource")
+            .hasFieldOrPropertyWithValue("metadata.name", "my-custom-resource");
+    }
+
+    @Test
+    public void load_withCustomResourceStream_shouldLoadGenericCustomResource() throws Exception {
+        // When
+        final HasMetadata result = ResourceUtil.load(
+            ResourceUtilTest.class.getResourceAsStream( "/util/resource-util/custom-resource-cr.yml"),
+            HasMetadata.class,
+            ResourceFileType.yaml
+        );
+        // Then
+        assertThat(result)
+            .isInstanceOf(GenericCustomResource.class)
+            .hasFieldOrPropertyWithValue("kind", "SomeCustomResource")
+            .hasFieldOrPropertyWithValue("metadata.name", "my-custom-resource");
     }
 }

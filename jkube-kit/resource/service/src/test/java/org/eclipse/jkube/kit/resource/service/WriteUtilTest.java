@@ -16,6 +16,8 @@ package org.eclipse.jkube.kit.resource.service;
 import java.io.File;
 import java.io.IOException;
 
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
@@ -107,6 +109,28 @@ public class WriteUtilTest {
     verifyResourceUtilSave(new File(resourceFileBase, "secret-1-secret"), 1);
   }
 
+  @Test
+  public void writeResourcesIndividualAndComposite_withResourcesWithSameName_shouldWriteAll() throws IOException {
+    // Given
+    klb.addToItems(
+        new ConfigMapBuilder().withNewMetadata().withNamespace("default").withName("cm-1").endMetadata().build(),
+        new ConfigMapBuilder().withNewMetadata().withNamespace("different").withName("cm-1").endMetadata().build(),
+        genericCustomResource("CustomResourceOfKind1","repeated"),
+        genericCustomResource("CustomResourceOfKind2","repeated"),
+        genericCustomResource("CustomResourceOfKind3","repeated")
+    );
+    // When
+    WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
+    // Then
+    verifyResourceUtilSave(null, 6);
+    verifyResourceUtilSave(resourceFileBase, 1);
+    verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"), 1);
+    verifyResourceUtilSave(new File(resourceFileBase, "cm-1-1-configmap"), 1);
+    verifyResourceUtilSave(new File(resourceFileBase, "repeated-cr"), 1);
+    verifyResourceUtilSave(new File(resourceFileBase, "repeated-1-cr"), 1);
+    verifyResourceUtilSave(new File(resourceFileBase, "repeated-2-cr"), 1);
+  }
+
   private void mockResourceUtilSave(Object returnValue) throws IOException {
     // @formatter:off
     new Expectations() {{
@@ -122,5 +146,12 @@ public class WriteUtilTest {
       resourceUtil.save(file, any, null); times = numTimes;
     }};
     // @formatter:on
+  }
+
+  private static GenericCustomResource genericCustomResource(String kind, String name) {
+    final GenericCustomResource gcr = new GenericCustomResource();
+    gcr.setKind(kind);
+    gcr.setMetadata(new ObjectMetaBuilder().withName(name).build());
+    return gcr;
   }
 }

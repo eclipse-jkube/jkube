@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,8 +34,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.apache.commons.lang3.StringUtils;
@@ -103,17 +106,39 @@ public class ResourceUtil {
             .collect(Collectors.toList());
     }
 
-    public static <T> T load(File file, Class<T> clazz) throws IOException {
+    public static <T extends KubernetesResource> T load(File file, Class<T> clazz) throws IOException {
         ResourceFileType type = ResourceFileType.fromFile(file);
         return load(file, clazz, type);
     }
 
-    public static <T> T load(File file, Class<T> clazz, ResourceFileType resourceFileType) throws IOException {
-        return getObjectMapper(resourceFileType).readValue(file, clazz);
+    private static boolean isGenericCustomResourceCompatible(Class<?> clazz){
+        return clazz.isAssignableFrom(GenericCustomResource.class);
     }
 
-    public static <T> T load(InputStream in, Class<T> clazz, ResourceFileType resourceFileType) throws IOException {
-        return getObjectMapper(resourceFileType).readValue(in, clazz);
+    public static <T extends KubernetesResource> T load(File file, Class<T> clazz, ResourceFileType resourceFileType)
+        throws IOException {
+        try {
+            return getObjectMapper(resourceFileType).readValue(file, clazz);
+        } catch(IOException ex) {
+            if (isGenericCustomResourceCompatible(clazz)) {
+                return clazz.cast(getObjectMapper(resourceFileType).readValue(file, GenericCustomResource.class));
+            }
+            throw ex;
+        }
+    }
+
+    public static <T extends KubernetesResource> T load(InputStream in, Class<T> clazz, ResourceFileType resourceFileType)
+        throws IOException {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            IOUtils.copy(in, baos);
+            return getObjectMapper(resourceFileType).readValue(baos.toByteArray(), clazz);
+        } catch(IOException ex) {
+            if (isGenericCustomResourceCompatible(clazz)) {
+                return clazz.cast(getObjectMapper(resourceFileType).readValue(baos.toByteArray(), GenericCustomResource.class));
+            }
+            throw ex;
+        }
     }
 
     public static File save(File file, Object data) throws IOException {

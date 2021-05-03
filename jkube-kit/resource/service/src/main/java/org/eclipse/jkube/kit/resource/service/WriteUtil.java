@@ -25,6 +25,8 @@ import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTemplate;
 
@@ -56,18 +58,23 @@ class WriteUtil {
     return file;
   }
 
-  private static void writeIndividualResources(KubernetesList resources, File targetDir,
-                                               ResourceFileType resourceFileType, KitLogger log) throws IOException {
+  private static void writeIndividualResources(
+      KubernetesList resources, File targetDir, ResourceFileType resourceFileType, KitLogger log) throws IOException {
+    final Map<String, Integer> generatedFiles = new HashMap<>();
     for (HasMetadata item : resources.getItems()) {
       String name = KubernetesHelper.getName(item);
       if (StringUtils.isBlank(name)) {
         log.error("No name for generated item %s", item);
         continue;
       }
-      String itemFile = KubernetesResourceUtil.getNameWithSuffix(name, item.getKind());
+      String fileName = KubernetesResourceUtil.getNameWithSuffix(name, item.getKind());
+      int fileCount = generatedFiles.compute(fileName, (f, i) -> i == null ? 0 : i + 1);
+      if (fileCount > 0) {
+        fileName = KubernetesResourceUtil.getNameWithSuffix(name + "-" + fileCount, item.getKind());
+      }
 
       // Here we are writing individual file for all the resources.
-      File itemTarget = new File(targetDir, itemFile);
+      File itemTarget = new File(targetDir, fileName);
       writeResource(itemTarget, item, resourceFileType);
     }
   }

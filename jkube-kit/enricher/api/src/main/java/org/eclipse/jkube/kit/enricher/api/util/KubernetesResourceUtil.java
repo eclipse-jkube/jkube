@@ -370,7 +370,7 @@ public class KubernetesResourceUtil {
 
     public static String getNameWithSuffix(String name, String kind) {
         String suffix =  KIND_TO_FILENAME_MAPPER.get(kind);
-        return suffix != null ? name +  "-" + suffix : name;
+        return String.format("%s-%s", name, suffix != null ? suffix : "cr");
     }
 
     public static String extractContainerName(GroupArtifactVersion groupArtifactVersion, ImageConfiguration imageConfig) {
