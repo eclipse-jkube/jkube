@@ -181,6 +181,7 @@ public class HelmService {
     chart.setIcon(helmConfig.getIcon());
     chart.setKeywords(helmConfig.getKeywords());
     chart.setEngine(helmConfig.getEngine());
+    chart.setDependencies(helmConfig.getDependencies());
 
     File outputChartFile = new File(outputDir, CHART_FILENAME);
     ResourceUtil.save(outputChartFile, chart, ResourceFileType.yaml);

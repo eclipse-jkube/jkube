@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.openshift.api.model.Template;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -63,6 +64,9 @@ public class HelmConfig {
   private HelmRepository stableRepository;
   private HelmRepository snapshotRepository;
   private String security;
+
+  @JsonProperty("dependencies")
+  private List<HelmDependency> dependencies;
 
   // Plexus deserialization specific setters
   /**

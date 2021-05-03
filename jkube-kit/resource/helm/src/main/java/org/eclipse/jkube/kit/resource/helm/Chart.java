@@ -60,6 +60,8 @@ public class Chart {
   private String engine;
   @JsonProperty
   private String icon;
+  @JsonProperty
+  private List<HelmDependency> dependencies;
 
   @Override
   public String toString() {

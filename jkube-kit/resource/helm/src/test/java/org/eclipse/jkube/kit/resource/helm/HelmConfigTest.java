@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -106,7 +107,12 @@ public class HelmConfigTest {
         "\"maintainers\":[{}]," +
         "\"sources\":[\"source\"]," +
         "\"engine\":\"V8\"," +
-        "\"keywords\":[\"SEO\"]" +
+        "\"keywords\":[\"SEO\"]," +
+        "\"dependencies\":[{" +
+        "\"name\": \"ngnix\"," +
+        "\"version\": \"1.2.3\"," +
+        "\"repository\": \"https://example.com/charts\"" +
+        "}]" +
         "}";
     // When
     final HelmConfig result = objectMapper.readValue(serializedChart, HelmConfig.class);
@@ -129,7 +135,9 @@ public class HelmConfigTest {
         .hasFieldOrPropertyWithValue("maintainers", Collections.singletonList(new Maintainer()))
         .hasFieldOrPropertyWithValue("sources", Collections.singletonList("source"))
         .hasFieldOrPropertyWithValue("engine", "V8")
-        .hasFieldOrPropertyWithValue("keywords", Collections.singletonList("SEO"));
+        .hasFieldOrPropertyWithValue("keywords", Collections.singletonList("SEO"))
+        .hasFieldOrPropertyWithValue("dependencies", Collections.singletonList(new HelmDependency()
+        .toBuilder().name("ngnix").version("1.2.3").repository("https://example.com/charts").build()));
   }
 
   @Test

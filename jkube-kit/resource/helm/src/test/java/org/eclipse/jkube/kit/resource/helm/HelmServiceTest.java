@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.Arrays;
+import java.util.Collections;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
@@ -78,6 +79,38 @@ public class HelmServiceTest {
           .hasFieldOrPropertyWithValue("apiVersion", "v1")
           .hasFieldOrPropertyWithValue("name", "Chart Name")
           .hasFieldOrPropertyWithValue("version", "1337");
+    }};
+  }
+
+  @Test
+  public void createChartYamlWithDependencies(@Mocked File outputDir, @Mocked ResourceUtil resourceUtil) throws Exception {
+    // Given
+    HelmDependency helmDependency = new HelmDependency()
+        .toBuilder()
+        .name("nginx")
+        .version("1.2.3.")
+        .repository("repository")
+        .build();
+    new Expectations() {{
+      helmConfig.getChart();
+      result = "Chart Name";
+      helmConfig.getVersion();
+      result = "1337";
+      helmConfig.getDependencies();
+      result = Arrays.asList(helmDependency);
+    }};
+    // When
+    HelmService.createChartYaml(helmConfig, outputDir);
+    // Then
+    new Verifications() {{
+      Chart chart;
+      ResourceUtil.save(withNotNull(), chart = withCapture(), ResourceFileType.yaml);
+      assertThat(chart)
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("name", "Chart Name")
+          .hasFieldOrPropertyWithValue("version", "1337")
+          .hasFieldOrPropertyWithValue("dependencies",
+              Collections.singletonList(helmDependency));
     }};
   }
 
