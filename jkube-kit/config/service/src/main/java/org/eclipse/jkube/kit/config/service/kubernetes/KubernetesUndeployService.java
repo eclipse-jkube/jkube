@@ -18,14 +18,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -35,6 +33,7 @@ import org.eclipse.jkube.kit.config.service.UndeployService;
 
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
@@ -106,7 +105,7 @@ public class KubernetesUndeployService implements UndeployService {
   }
 
   private void deleteCustomResourceIfPresent(GenericCustomResource customResource, String namespace, CustomResourceDefinitionContext crdContext) {
-    Map<String, Object> cr = KubernetesClientUtil.doGetCustomResource(jKubeServiceHub.getClient(), crdContext, namespace, customResource.getMetadata().getName());
+    final GenericCustomResource cr = KubernetesClientUtil.doGetCustomResource(jKubeServiceHub.getClient(), crdContext, namespace, customResource.getMetadata().getName());
     if (cr != null) {
       deleteCustomResource(customResource, namespace, crdContext);
     }
@@ -117,8 +116,8 @@ public class KubernetesUndeployService implements UndeployService {
     String apiVersionAndKind = KubernetesHelper.getFullyQualifiedApiGroupWithKind(crdContext);
     try {
       logger.info("Deleting Custom Resource %s %s", apiVersionAndKind, name);
-      KubernetesClientUtil.doDeleteCustomResource(jKubeServiceHub.getClient(), crdContext, namespace, name);
-    } catch (IOException exception) {
+      jKubeServiceHub.getClient().customResource(crdContext).inNamespace(namespace).withName(name).delete();
+    } catch (Exception exception) {
       logger.error("Unable to undeploy %s %s/%s", apiVersionAndKind, namespace, name);
     }
   }

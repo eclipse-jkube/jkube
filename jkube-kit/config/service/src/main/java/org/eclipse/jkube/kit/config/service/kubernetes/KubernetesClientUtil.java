@@ -13,43 +13,36 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
+
+import org.eclipse.jkube.kit.common.GenericCustomResource;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.config.image.ImageName;
+
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodCondition;
-import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
-import io.fabric8.kubernetes.client.dsl.LogWatch;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.Scaleable;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.fabric8.kubernetes.client.dsl.internal.RawCustomResourceOperationsImpl;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.image.ImageName;
 import org.apache.commons.lang3.StringUtils;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Utility class for executing common tasks using the Kubernetes client
@@ -118,71 +111,6 @@ public class KubernetesClientUtil {
         return imageName.getSimpleName() + s2iBuildNameSuffix;
     }
 
-
-    public static FilterWatchListDeletable<Pod, PodList> withSelector(NonNamespaceOperation<Pod, PodList, PodResource<Pod>> pods, LabelSelector selector, KitLogger log) {
-        FilterWatchListDeletable<Pod, PodList> answer = pods;
-        Map<String, String> matchLabels = selector.getMatchLabels();
-        if (matchLabels != null && !matchLabels.isEmpty()) {
-            answer = answer.withLabels(matchLabels);
-        }
-        List<LabelSelectorRequirement> matchExpressions = selector.getMatchExpressions();
-        if (matchExpressions != null) {
-            for (LabelSelectorRequirement expression : matchExpressions) {
-                String key = expression.getKey();
-                List<String> values = expression.getValues();
-                if (StringUtils.isBlank(key)) {
-                    log.warn("Ignoring empty key in selector expression %s", expression);
-                    continue;
-                }
-                if (values == null || values.isEmpty()) {
-                    log.warn("Ignoring empty values in selector expression %s", expression);
-                    continue;
-                }
-                String[] valuesArray = values.toArray(new String[values.size()]);
-                String operator = expression.getOperator();
-                switch (operator) {
-                case "In":
-                    answer = answer.withLabelIn(key, valuesArray);
-                    break;
-                case "NotIn":
-                    answer = answer.withLabelNotIn(key, valuesArray);
-                    break;
-                default:
-                    log.warn("Ignoring unknown operator %s in selector expression %s", operator, expression);
-                }
-            }
-        }
-        return answer;
-    }
-
-    public static void printLogsAsync(LogWatch logWatcher, final String failureMessage, final CountDownLatch terminateLatch, final KitLogger log) {
-        final InputStream in = logWatcher.getOutput();
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-                    while (true) {
-                        String line = reader.readLine();
-                        if (line == null) {
-                            return;
-                        }
-                        if (terminateLatch.getCount() <= 0L) {
-                            return;
-                        }
-                        log.info("[[s]]%s", line);
-                    }
-                } catch (IOException e) {
-                    // Check again the latch which could be already count down to zero in between
-                    // so that an IO exception occurs on read
-                    if (terminateLatch.getCount() > 0L) {
-                        log.error("%s : %s", failureMessage, e);
-                    }
-                }
-            }
-        };
-        thread.start();
-    }
-
     public static String getPodStatusDescription(Pod pod) {
         return KubernetesHelper.getPodPhase(pod) + " " + getPodCondition(pod);
     }
@@ -227,42 +155,33 @@ public class KubernetesClientUtil {
         return "";
     }
 
-    public static Map<String, Object> doCreateCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String customResourceStr) throws IOException {
-        if ("Namespaced".equals(crdContext.getScope())) {
-            return kubernetesClient.customResource(crdContext).create(namespace, customResourceStr);
-        } else {
-            return kubernetesClient.customResource(crdContext).create(customResourceStr);
-        }
-    }
-
-    public static Map<String, Object> doEditCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String name, String customResourceStr) throws IOException {
-        if ("Namespaced".equals(crdContext.getScope())) {
-            return kubernetesClient.customResource(crdContext).edit(namespace, name, customResourceStr);
-        } else {
-            return kubernetesClient.customResource(crdContext).edit(name, customResourceStr);
-        }
-    }
-
-    public static Boolean doDeleteCustomResource(
-        KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String name)
-        throws IOException{
-
-        if ("Namespaced".equals(crdContext.getScope())) {
-            return kubernetesClient.customResource(crdContext).inNamespace(namespace).withName(name).delete();
-        } else {
-            return kubernetesClient.customResource(crdContext).delete(name);
-        }
-    }
-
-    public static Map<String, Object> doGetCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String name) {
+    public static GenericCustomResource doGetCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String name) {
         try {
-            if ("Namespaced".equals(crdContext.getScope())) {
-                return kubernetesClient.customResource(crdContext).get(namespace, name);
-            } else {
-                return kubernetesClient.customResource(crdContext).get(name);
-            }
+            return Serialization.jsonMapper().convertValue(
+                kubernetesClient.customResource(crdContext).inNamespace(namespace).withName(name).get(),
+                GenericCustomResource.class
+            );
         } catch (Exception exception) { // Not found exception
             return null;
+        }
+    }
+
+    public static void doDeleteAndWait(KubernetesClient kubernetesClient, CustomResourceDefinitionContext context,
+        String namespace, String name, long seconds) {
+        final RawCustomResourceOperationsImpl crClient = kubernetesClient.customResource(context)
+            .inNamespace(namespace)
+            .withName(name);
+        try {
+            crClient.delete();
+            /* Not implemented in Fabric8 Kubernetes Client ----> TODO: replace when sth like this is available
+            crClient.waitUntilCondition(Objects::isNull, seconds, TimeUnit.SECONDS);
+             */
+            final Supplier<GenericCustomResource> getter = () -> doGetCustomResource(kubernetesClient, context, namespace, name);
+            while (seconds-- > 0 && !Objects.isNull(getter.get())) {
+                Thread.sleep(1000L);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
