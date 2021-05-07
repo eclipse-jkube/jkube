@@ -37,7 +37,6 @@ Usage:
 * Fix #630: DeploymentConfigEnricher and DefaultControllerEnricher refactored and aligned
 * Fix #639: Quotas for OpenShift BuildConfig not working
 * Fix #688: Multiple Custom Resources with same (different apiGroup) name can be added
-* Fix #676: Define Helm Chart dependencies
 * Fix #689: Recreate and update of CustomResource fragments works
 * Fix: Helm charts can be generated for custom resources, even those with same name (different apiGroup)
 * Fix #676: Define Helm Chart dependencies
