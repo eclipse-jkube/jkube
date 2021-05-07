@@ -31,7 +31,7 @@ public class HelmDependencyTest {
         .build();
 
     // Then
-    assertThat(helmDependency.equals(helmDependency)).isTrue();
+    assertThat(helmDependency).isEqualTo(helmDependency);
     assertThat(helmDependency.getName()).isEqualTo("name");
     assertThat(helmDependency.getRepository()).isEqualTo("repository");
     assertThat(helmDependency.getVersion()).isEqualTo("version");
