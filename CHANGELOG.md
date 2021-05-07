@@ -32,6 +32,7 @@ Usage:
 * Fix #677: KarafGenerator includes Jolokia port (8778)
 * Fix #682: Update CircleCI image to new version
 * Fix #666: Replace deprecated JsonParser
+* Fix #673: Remove unused `ports` field in ResourceConfig
 * Fix #679: Quarkus package detection improvements
 * Fix #622: Corrected documentation for `jkube-healthcheck-karaf`
 * Fix #630: DeploymentConfigEnricher and DefaultControllerEnricher refactored and aligned
