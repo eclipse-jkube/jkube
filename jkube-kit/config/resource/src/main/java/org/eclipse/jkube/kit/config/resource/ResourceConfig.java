@@ -62,12 +62,6 @@ public class ResourceConfig {
   private String imagePullPolicy;
 
   /**
-   * Mapping of port to names.
-   */
-  @Singular
-  private Map<String, Integer> ports;
-
-  /**
    * Number of replicas to create.
    */
   private Integer replicas;
