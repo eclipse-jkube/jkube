@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
-import java.util.List;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,11 +25,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
-
 /**
- * Represents the <a href="https://github.com/kubernetes/helm">Helm</a>
- * <a href="https://github.com/kubernetes/helm/blob/master/pkg/proto/hapi/chart/metadata.pb.go#L50">Chart.yaml file</a>
+ * Configuration for a helm dependency
+ * @author dloiacono
+ * @since 03/05/21
  */
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -39,37 +38,15 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @EqualsAndHashCode
 @JsonInclude(NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Chart {
-  @JsonProperty
-  private String apiVersion;
+public class HelmDependency {
+
   @JsonProperty
   private String name;
-  @JsonProperty
-  private String home;
-  @JsonProperty
-  private List<String> sources;
+
   @JsonProperty
   private String version;
-  @JsonProperty
-  private String description;
-  @JsonProperty
-  private List<String> keywords;
-  @JsonProperty
-  private List<Maintainer> maintainers;
-  @JsonProperty
-  private String engine;
-  @JsonProperty
-  private String icon;
-  @JsonProperty
-  private List<HelmDependency> dependencies;
 
-  @Override
-  public String toString() {
-    return "Chart{" +
-      "name='" + name + '\'' +
-      ", home='" + home + '\'' +
-      ", version='" + version + '\'' +
-      '}';
-  }
+  @JsonProperty
+  private String repository;
 
 }

@@ -27,6 +27,13 @@ The configuration is defined in a `<helm>` section within the plugin's configura
     <helm>
       <chart>Jenkins</chart>
       <keywords>ci,cd,server</keywords>
+      <dependencies>
+        <dependency>
+          <name>ingress-nginx</name>
+          <version>1.26.0</version>
+          <repository>https://kubernetes.github.io/ingress-nginx</repository>
+        </dependency>
+      </dependencies>
     </helm>
   </configuration>
 </plugin>
@@ -106,7 +113,10 @@ This configuration section knows the following sub-elements in order to configur
 | *chartExtension*
 | The Helm chart file extension (`tgz`, `tar.bz`, `tar.bzip2`, `tar.bz2`), default value is `tar.gz` if not provided.
 | `jkube.helm.chartExtension`
-|
+
+| *dependencies*
+| The list of dependencies for this chart
+
 |===
 
 
