@@ -16,6 +16,8 @@ package org.eclipse.jkube.kit.config.service.kubernetes;
 import java.io.File;
 import java.util.Arrays;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -139,6 +141,41 @@ public class KubernetesUndeployServiceTest {
     // @formatter:off
     new Verifications() {{
       jKubeServiceHub.getClient().customResource((CustomResourceDefinitionContext)any).inNamespace(null).withName("my-cr").delete();
+      times = 1;
+    }};
+    // @formatter:on
+  }
+
+  @Test
+  public void undeployWithManifestShouldDeleteEntitiesInMultipleNamespaces(@Mocked File file) throws Exception {
+    // Given
+    final ResourceConfig resourceConfig = ResourceConfig.builder().namespace("default").build();
+    final ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("ns1").endMetadata().build();
+    final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").withNamespace("ns2").endMetadata().build();
+    final Service service = new Service();
+    // @formatter:off
+    new Expectations() {{
+      file.exists(); result = true;
+      file.isFile(); result = true;
+      kubernetesHelper.loadResources(file); result = Arrays.asList(configMap, pod, service);
+      kubernetesHelper.getNamespace(configMap); result = "ns1";
+      kubernetesHelper.getNamespace(pod); result = "ns2";
+    }};
+    // @formatter:on
+    // When
+    kubernetesUndeployService.undeploy(null, resourceConfig, file);
+    // Then
+    // @formatter:off
+    new Verifications() {{
+      kubernetesHelper.getKind((HasMetadata)any); times = 3;
+      jKubeServiceHub.getClient().resource(pod).inNamespace("ns2")
+              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+      times = 1;
+      jKubeServiceHub.getClient().resource(service).inNamespace("default")
+              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+      times = 1;
+      jKubeServiceHub.getClient().resource(configMap).inNamespace("ns1")
+              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
       times = 1;
     }};
     // @formatter:on

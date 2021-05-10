@@ -82,9 +82,10 @@ public class KubernetesUndeployService implements UndeployService {
 
   protected Consumer<HasMetadata> resourceDeleter(String namespace) {
     return resource -> {
-      logger.info("Deleting resource %s %s/%s", KubernetesHelper.getKind(resource), namespace, KubernetesHelper.getName(resource));
+      String undeployNamespace = resolveEffectiveNamespace(resource, namespace);
+      logger.info("Deleting resource %s %s/%s", KubernetesHelper.getKind(resource), undeployNamespace, KubernetesHelper.getName(resource));
       jKubeServiceHub.getClient().resource(resource)
-          .inNamespace(namespace)
+          .inNamespace(undeployNamespace)
           .withPropagationPolicy(DeletionPropagation.BACKGROUND)
           .delete();
     };
@@ -92,9 +93,10 @@ public class KubernetesUndeployService implements UndeployService {
 
   protected Consumer<HasMetadata> customResourceDeleter(String namespace) {
     return customResource -> {
+      String undeployNamespace = resolveEffectiveNamespace(customResource, namespace);
       GenericCustomResource genericCustomResource = (GenericCustomResource) customResource;
       CustomResourceDefinitionList crdList = jKubeServiceHub.getClient().apiextensions().v1beta1().customResourceDefinitions().list();
-      deleteCustomResourceIfCustomResourceDefinitionContextPresent(genericCustomResource, namespace, getCrdContext(crdList, genericCustomResource));
+      deleteCustomResourceIfCustomResourceDefinitionContextPresent(genericCustomResource, undeployNamespace, getCrdContext(crdList, genericCustomResource));
     };
   }
 
@@ -120,6 +122,13 @@ public class KubernetesUndeployService implements UndeployService {
     } catch (Exception exception) {
       logger.error("Unable to undeploy %s %s/%s", apiVersionAndKind, namespace, name);
     }
+  }
+
+  private String resolveEffectiveNamespace(HasMetadata entity, String fallbackNamespace) {
+    if (KubernetesHelper.getNamespace(entity) != null) {
+      return KubernetesHelper.getNamespace(entity);
+    }
+    return fallbackNamespace;
   }
 
   protected JKubeServiceHub getjKubeServiceHub() {

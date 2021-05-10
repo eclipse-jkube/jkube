@@ -234,12 +234,10 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         applyService.setRollingUpgrade(rollingUpgrades);
         applyService.setRollingUpgradePreserveScale(isRollingUpgradePreserveScale());
         applyService.setRecreateMode(recreate);
-        applyService.setNamespace(
-            Optional.ofNullable(namespace)
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .orElse(clusterAccess.getNamespace())
-        );
+        applyService.setNamespace(resolveEffectiveNamespace());
+        if (namespace != null) {
+            applyService.setFallbackNamespace(namespace);
+        }
 
         boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
         if (openShift) {
@@ -247,5 +245,14 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         } else {
             disableOpenShiftFeatures(applyService);
         }
+    }
+
+    private String resolveEffectiveNamespace() {
+        if (namespace != null) {
+            return namespace;
+        } else if (resources != null && resources.getNamespace() != null) {
+            return resources.getNamespace();
+        }
+        return clusterAccess.getNamespace();
     }
 }

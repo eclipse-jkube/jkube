@@ -66,9 +66,6 @@ public class UndeployMojo extends AbstractJKubeMojo implements ManifestProvider 
   @Parameter(property = "jkube.namespace")
   protected String namespace;
 
-  @Parameter
-  protected ResourceConfig resources;
-
   @Override
   public File getKubernetesManifest() {
     return kubernetesManifest;

@@ -88,7 +88,7 @@ public class UndeployMojoTest {
     undeployMojo.execute();
     // Then
     assertUndeployServiceUndeployWasCalled();
-    assertThat(undeployMojo.resources)
+    assertThat(undeployMojo.getResources())
         .hasFieldOrPropertyWithValue("namespace", "custom-namespace");
   }
 

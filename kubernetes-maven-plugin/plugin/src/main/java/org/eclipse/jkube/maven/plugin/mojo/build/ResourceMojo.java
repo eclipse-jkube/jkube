@@ -125,10 +125,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.workDir", defaultValue = "${project.build.directory}/jkube")
     private File workDir;
 
-    // Resource specific configuration for this plugin
-    @Parameter
-    private ResourceConfig resources;
-
     // Skip resource descriptors validation
     @Parameter(property = "jkube.skipResourceValidation", defaultValue = "false")
     private Boolean skipResourceValidation;
