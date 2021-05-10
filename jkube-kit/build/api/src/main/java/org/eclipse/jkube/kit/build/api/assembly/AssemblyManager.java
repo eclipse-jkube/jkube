@@ -490,7 +490,7 @@ public class AssemblyManager {
     private static List<String> createDockerExcludesList(File directory, String outputDirectory) throws IOException {
         List<String> excludes = new ArrayList<>();
         // Output directory will be always excluded
-        excludes.add(outputDirectory);
+        excludes.add(String.format("%s{/**,}", outputDirectory));
         for (String dockerConfigFile : new String[] { DOCKER_EXCLUDE, DOCKER_IGNORE } ) {
             File dockerIgnore = new File(directory, dockerConfigFile);
             if (dockerIgnore.exists()) {
