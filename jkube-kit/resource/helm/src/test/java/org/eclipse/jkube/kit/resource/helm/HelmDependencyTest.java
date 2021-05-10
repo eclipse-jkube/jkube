@@ -36,4 +36,20 @@ public class HelmDependencyTest {
     assertThat(helmDependency.getRepository()).isEqualTo("repository");
     assertThat(helmDependency.getVersion()).isEqualTo("version");
   }
+
+  @Test
+  public void contructorTest() {
+
+    // Given
+    HelmDependency helmDependency = new HelmDependency();
+    helmDependency.setVersion("version");
+    helmDependency.setName("name");
+    helmDependency.setRepository("repository");
+
+    // Then
+    assertThat(helmDependency).isEqualTo(helmDependency);
+    assertThat(helmDependency.getName()).isEqualTo("name");
+    assertThat(helmDependency.getRepository()).isEqualTo("repository");
+    assertThat(helmDependency.getVersion()).isEqualTo("version");
+  }
 }
