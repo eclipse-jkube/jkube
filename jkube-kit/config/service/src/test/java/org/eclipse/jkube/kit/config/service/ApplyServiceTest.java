@@ -15,12 +15,18 @@
 package org.eclipse.jkube.kit.config.service;
 
 import java.io.File;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
@@ -360,6 +366,71 @@ public class ApplyServiceTest {
         assertNotNull(result);
         assertEquals(k8sList.size(), result.size());
         assertTrue(result.get(0) instanceof Project);
+    }
+
+    @Test
+    public void testApplyToMultipleNamespaceNoNamespaceConfigured() throws InterruptedException {
+        // Given
+        ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("ns1").endMetadata().build();
+        Ingress ingress = new IngressBuilder().withNewMetadata().withName("ing1").withNamespace("ns2").endMetadata().build();
+        ServiceAccount serviceAccount = new ServiceAccountBuilder().withNewMetadata().withName("sa1").endMetadata().build();
+
+        List<HasMetadata> entities = new ArrayList<>();
+        entities.add(configMap);
+        entities.add(serviceAccount);
+        entities.add(ingress);
+        WebServerEventCollector collector = new WebServerEventCollector();
+        mockServer.expect().post().withPath("/api/v1/namespaces/ns1/configmaps")
+                .andReply(collector.record("configmap-ns1-create").andReturn(HTTP_OK, configMap))
+                .once();
+        mockServer.expect().post().withPath("/apis/networking.k8s.io/v1/namespaces/ns2/ingresses")
+                .andReply(collector.record("ingress-ns2-create").andReturn(HTTP_OK, ingress))
+                .once();
+        mockServer.expect().post().withPath("/api/v1/namespaces/default/serviceaccounts")
+                .andReply(collector.record("serviceaccount-default-create").andReturn(HTTP_OK, serviceAccount))
+                .once();
+
+
+        // When
+        applyService.applyEntities(null, entities, log, 5);
+
+        // Then
+        collector.assertEventsRecordedInOrder("configmap-ns1-create", "serviceaccount-default-create", "ingress-ns2-create");
+        assertEquals(6, mockServer.getMockServer().getRequestCount());
+    }
+
+    @Test
+    public void testApplyToMultipleNamespacesFallbackNamespaceConfigured() throws InterruptedException {
+        // Given
+        // If namespace is configured via properties/XML.
+        // namespace would be set in metadata during the resource phase itself
+        ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("fallback-ns").endMetadata().build();
+        Ingress ingress = new IngressBuilder().withNewMetadata().withName("ing1").withNamespace("fallback-ns").endMetadata().build();
+        ServiceAccount serviceAccount = new ServiceAccountBuilder().withNewMetadata().withName("fallback-ns").endMetadata().build();
+
+        List<HasMetadata> entities = new ArrayList<>();
+        entities.add(configMap);
+        entities.add(serviceAccount);
+        entities.add(ingress);
+        WebServerEventCollector collector = new WebServerEventCollector();
+        mockServer.expect().post().withPath("/api/v1/namespaces/fallback-ns/configmaps")
+                .andReply(collector.record("configmap-fallback-ns-create").andReturn(HTTP_OK, configMap))
+                .once();
+        mockServer.expect().post().withPath("/apis/networking.k8s.io/v1/namespaces/fallback-ns/ingresses")
+                .andReply(collector.record("ingress-fallback-ns-create").andReturn(HTTP_OK, ingress))
+                .once();
+        mockServer.expect().post().withPath("/api/v1/namespaces/fallback-ns/serviceaccounts")
+                .andReply(collector.record("serviceaccount-fallback-ns-create").andReturn(HTTP_OK, serviceAccount))
+                .once();
+        applyService.setFallbackNamespace("fallback-ns");
+
+        // When
+        applyService.applyEntities(null, entities, log, 5);
+
+        // Then
+        collector.assertEventsRecordedInOrder("configmap-fallback-ns-create", "serviceaccount-fallback-ns-create", "ingress-fallback-ns-create");
+        assertEquals(6, mockServer.getMockServer().getRequestCount());
+        applyService.setFallbackNamespace(null);
     }
 
     private Route buildRoute() {

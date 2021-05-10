@@ -31,6 +31,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
@@ -44,6 +45,10 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
+
+    // Resource specific configuration for this plugin
+    @Parameter
+    protected ResourceConfig resources;
 
     @Parameter(defaultValue = "${session}", readonly = true)
     protected MavenSession session;
@@ -150,6 +155,10 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
                 .build())
             .clusterAccess(clusterAccess)
             .platformMode(getRuntimeMode());
+    }
+
+    public ResourceConfig getResources() {
+        return resources;
     }
 
 }

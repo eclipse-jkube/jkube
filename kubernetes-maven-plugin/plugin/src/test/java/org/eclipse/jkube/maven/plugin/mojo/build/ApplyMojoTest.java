@@ -18,8 +18,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
@@ -33,6 +36,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.internal.runners.statements.ExpectException;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -113,5 +117,39 @@ public class ApplyMojoTest {
         .hasFieldOrPropertyWithValue("namespace", "custom-namespace");
   }
 
+  @Test
+  public void testResolveEffectiveNamespaceWhenNamespacePropertySet() throws MojoExecutionException, MojoFailureException {
+    // Given
+    applyMojo.namespace = "custom-namespace";
+    // When
+    applyMojo.execute();
+    // Then
+    assertThat(applyMojo.applyService.getFallbackNamespace()).isEqualTo("custom-namespace");
+  }
+
+  @Test
+  public void testResolveEffectiveNamespaceWhenNamespaceSetInResourceConfig() throws MojoExecutionException, MojoFailureException {
+    // Given
+    applyMojo.resources = ResourceConfig.builder().namespace("xml-namespace").build();
+    // When
+    applyMojo.execute();
+    // Then
+    assertThat(applyMojo.applyService.getNamespace()).isEqualTo("xml-namespace");
+    assertThat(applyMojo.applyService.getFallbackNamespace()).isNull();
+  }
+
+  @Test
+  public void testResolveEffectiveNamespaceWhenNoNamespaceConfigured() throws MojoExecutionException, MojoFailureException {
+    // Given
+    new Expectations() {{
+      clusterAccess.getNamespace();
+      result = "clusteraccess-namespace";
+    }};
+    // When
+    applyMojo.execute();
+    // Then
+    assertThat(applyMojo.applyService.getNamespace()).isEqualTo("clusteraccess-namespace");
+    assertThat(applyMojo.applyService.getFallbackNamespace()).isNull();
+  }
 
 }

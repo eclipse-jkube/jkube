@@ -109,6 +109,7 @@ public class ApplyService {
     private boolean supportOAuthClients;
     private boolean deletePodsOnReplicationControllerUpdate = true;
     private String namespace = KubernetesHelper.getDefaultNamespace();
+    private String fallbackNamespace;
     private boolean rollingUpgradePreserveScale = true;
     private boolean recreateMode;
     private PatchService patchService;
@@ -211,7 +212,7 @@ public class ApplyService {
             HasMetadata entity = (HasMetadata) dto;
             try {
                 log.info("Applying %s %s from %s", getKind(entity), getName(entity), sourceName);
-                kubernetesClient.resource(entity).inNamespace(getNamespace()).createOrReplace();
+                kubernetesClient.resource(entity).inNamespace(getApplyNamespace((HasMetadata) dto)).createOrReplace();
             } catch (Exception e) {
                 onApplyError("Failed to create " + getKind(entity) + " from " + sourceName + ". " + e, e);
             }
@@ -303,7 +304,7 @@ public class ApplyService {
             return;
         }
         if (!isProcessTemplatesLocally()) {
-            String currentNamespace = getNamespace();
+            String currentNamespace = getApplyNamespace(entity);
             String id = getName(entity);
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
             Template old = openShiftClient.templates().inNamespace(currentNamespace).withName(id).get();
@@ -358,7 +359,7 @@ public class ApplyService {
      * Creates/updates a service account and processes it returning the processed DTOs
      */
     public void applyServiceAccount(ServiceAccount serviceAccount, String sourceName) {
-        String currentNamespace = getNamespace();
+        String currentNamespace = getApplyNamespace(serviceAccount);
         String id = getName(serviceAccount);
         Objects.requireNonNull(id, "No name for " + serviceAccount + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -396,12 +397,7 @@ public class ApplyService {
         log.info("Creating a ServiceAccount from " + sourceName + " namespace " + namespace + " name " + getName
                 (serviceAccount));
         try {
-            Object answer;
-            if (isNotBlank(namespace)) {
-                answer = kubernetesClient.serviceAccounts().inNamespace(namespace).create(serviceAccount);
-            } else {
-                answer = kubernetesClient.serviceAccounts().inNamespace(getNamespace()).create(serviceAccount);
-            }
+            Object answer = kubernetesClient.serviceAccounts().inNamespace(namespace).create(serviceAccount);
             logGeneratedEntity("Created ServiceAccount: ", namespace, serviceAccount, answer);
         } catch (Exception e) {
             onApplyError("Failed to create ServiceAccount from " + sourceName + ". " + e + ". " + serviceAccount, e);
@@ -411,7 +407,7 @@ public class ApplyService {
     public void applyPersistentVolumeClaim(PersistentVolumeClaim entity, String sourceName) {
         // we cannot update PVCs
         boolean alwaysRecreate = true;
-        String currentNamespace = getNamespace();
+        String currentNamespace = getApplyNamespace(entity);
         String id = getName(entity);
         Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -447,7 +443,7 @@ public class ApplyService {
     }
 
     public void applyCustomResourceDefinition(CustomResourceDefinition entity, String sourceName) {
-        String currentNamespace = getNamespace();
+        String currentNamespace = getApplyNamespace(entity);
         String id = getName(entity);
         Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -490,23 +486,24 @@ public class ApplyService {
         throws IOException {
 
         String name = genericCustomResource.getMetadata().getName();
+        String applyNamespace = getApplyNamespace(genericCustomResource);
         String apiGroupWithKind = KubernetesHelper.getFullyQualifiedApiGroupWithKind(context);
         Objects.requireNonNull(name, "No name for " + genericCustomResource + " " + sourceName);
 
         if (isRecreateMode()) {
             log.info("Attempting to delete Custom Resource: %s %s/%s", apiGroupWithKind, namespace, name);
-            KubernetesClientUtil.doDeleteAndWait(kubernetesClient, context, namespace, name, 10L);
+            KubernetesClientUtil.doDeleteAndWait(kubernetesClient, context, applyNamespace, name, 10L);
 
         }
-        final GenericCustomResource existentCR = KubernetesClientUtil.doGetCustomResource(kubernetesClient, context, namespace, name);
+        final GenericCustomResource existentCR = KubernetesClientUtil.doGetCustomResource(kubernetesClient, context, applyNamespace, name);
         if (existentCR != null && isBlank(existentCR.getMetadata().getDeletionTimestamp())) {
             log.info("Replacing Custom Resource: %s %s/%s",
-                KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), namespace, name);
+                KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), applyNamespace, name);
             genericCustomResource.getMetadata().setResourceVersion(existentCR.getMetadata().getResourceVersion());
         }
-        kubernetesClient.customResource(context).inNamespace(namespace).withName(name)
+        kubernetesClient.customResource(context).inNamespace(applyNamespace).withName(name)
             .createOrReplace(Serialization.jsonMapper().writeValueAsString(genericCustomResource));
-        log.info("Created Custom Resource: %s %s/%s", apiGroupWithKind, namespace, name);
+        log.info("Created Custom Resource: %s %s/%s", apiGroupWithKind, applyNamespace, name);
     }
 
     protected boolean isBound(PersistentVolumeClaim claim) {
@@ -519,11 +516,7 @@ public class ApplyService {
         log.info("Creating a PersistentVolumeClaim from " + sourceName + " namespace " + namespace + " name " + getName(entity));
         try {
             Object answer;
-            if (isNotBlank(namespace)) {
-                answer = kubernetesClient.persistentVolumeClaims().inNamespace(namespace).create(entity);
-            } else {
-                answer = kubernetesClient.persistentVolumeClaims().inNamespace(getNamespace()).create(entity);
-            }
+            answer = kubernetesClient.persistentVolumeClaims().inNamespace(namespace).create(entity);
             logGeneratedEntity("Created PersistentVolumeClaim: ", namespace, entity, answer);
         } catch (Exception e) {
             onApplyError("Failed to create PersistentVolumeClaim from " + sourceName + ". " + e + ". " + entity, e);
@@ -531,7 +524,7 @@ public class ApplyService {
     }
 
     public void applySecret(Secret secret, String sourceName) {
-        String currentNamespace = getNamespace(secret);
+        String currentNamespace = getApplyNamespace(secret);
         String id = getName(secret);
         Objects.requireNonNull(id, "No name for " + secret + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -565,12 +558,7 @@ public class ApplyService {
     protected void doCreateSecret(Secret secret, String namespace, String sourceName) {
         log.info("Creating a Secret from " + sourceName + " namespace " + namespace + " name " + getName(secret));
         try {
-            Object answer;
-            if (isNotBlank(namespace)) {
-                answer = kubernetesClient.secrets().inNamespace(namespace).create(secret);
-            } else {
-                answer = kubernetesClient.secrets().inNamespace(getNamespace()).create(secret);
-            }
+            Object answer = kubernetesClient.secrets().inNamespace(namespace).create(secret);
             logGeneratedEntity("Created Secret: ", namespace, secret, answer);
         } catch (Exception e) {
             onApplyError("Failed to create Secret from " + sourceName + ". " + e + ". " + secret, e);
@@ -649,10 +637,7 @@ public class ApplyService {
         if (openShiftClient != null) {
             String id = getName(entity);
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-            String currentNamespace = KubernetesHelper.getNamespace(entity);
-            if (StringUtils.isBlank(currentNamespace)) {
-                currentNamespace = getNamespace();
-            }
+            String currentNamespace = getApplyNamespace(entity);
             if (isServicesOnlyMode()) {
                 log.debug("Ignoring Route: " + currentNamespace + ":" + id);
                 return;
@@ -700,10 +685,7 @@ public class ApplyService {
             String id = getName(entity);
 
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-            String currentNamespace = KubernetesHelper.getNamespace(entity);
-            if (StringUtils.isBlank(currentNamespace)) {
-                currentNamespace = getNamespace();
-            }
+            String currentNamespace = getApplyNamespace(entity);
             applyNamespace(currentNamespace);
             BuildConfig old = openShiftClient.buildConfigs().inNamespace(currentNamespace).withName(id).get();
             if (isRunning(old)) {
@@ -743,10 +725,7 @@ public class ApplyService {
         String id = getName(entity);
 
         Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-        String currentNamespace = KubernetesHelper.getNamespace(entity);
-        if (StringUtils.isBlank(currentNamespace)) {
-            currentNamespace = getNamespace();
-        }
+        String currentNamespace = getApplyNamespace(entity);
         applyNamespace(currentNamespace);
         RoleBinding old = kubernetesClient.rbac().roleBindings().inNamespace(currentNamespace).withName(id).get();
         if (isRunning(old)) {
@@ -794,7 +773,7 @@ public class ApplyService {
         if (openShiftClient != null) {
             String kind = getKind(entity);
             String name = getName(entity);
-            String currentNamespace = getNamespace();
+            String currentNamespace = getApplyNamespace(entity);
             try {
                 Resource<ImageStream> resource = openShiftClient.imageStreams().inNamespace(currentNamespace).withName(name);
                 ImageStream old = resource.get();
@@ -868,7 +847,7 @@ public class ApplyService {
     }
 
     public void applyService(Service service, String sourceName) {
-        String currentNamespace = getNamespace();
+        String currentNamespace = getApplyNamespace(service);
         String id = getName(service);
         Objects.requireNonNull(id, "No name for " + service + " " + sourceName);
         if (isIgnoreServiceMode()) {
@@ -898,7 +877,7 @@ public class ApplyService {
     }
 
     public <T extends HasMetadata,L> void applyResource(T resource, String sourceName, MixedOperation<T, L, ? extends Resource<T>> resources) {
-        String currentNamespace = getNamespace();
+        String currentNamespace = getApplyNamespace(resource);
         String id = getName(resource);
         String kind = getKind(resource);
         Objects.requireNonNull(id, "No name for " + resource + " " + sourceName);
@@ -938,12 +917,7 @@ public class ApplyService {
         String kind = getKind(resource);
         log.info("Creating a " + kind + " from " + sourceName + " namespace " + namespace + " name " + getName(resource));
         try {
-            Object answer;
-            if (isNotBlank(namespace)) {
-                answer = resources.inNamespace(namespace).create(resource);
-            } else {
-                answer = resources.inNamespace(getNamespace()).create(resource);
-            }
+            Object answer = resources.inNamespace(namespace).create(resource);
             logGeneratedEntity("Created " + kind + ": ", namespace, resource, answer);
         } catch (Exception e) {
             onApplyError("Failed to create " + kind + " from " + sourceName + ". " + e + ". " + resource, e);
@@ -964,12 +938,7 @@ public class ApplyService {
     protected void doCreateService(Service service, String namespace, String sourceName) {
         log.info("Creating a Service from " + sourceName + " namespace " + namespace + " name " + getName(service));
         try {
-            Object answer;
-            if (isNotBlank(namespace)) {
-                answer = kubernetesClient.services().inNamespace(namespace).create(service);
-            } else {
-                answer = kubernetesClient.services().inNamespace(getNamespace()).create(service);
-            }
+            Object answer = kubernetesClient.services().inNamespace(namespace).create(service);
             logGeneratedEntity("Created Service: ", namespace, service, answer);
         } catch (Exception e) {
             onApplyError("Failed to create Service from " + sourceName + ". " + e + ". " + service, e);
@@ -1119,7 +1088,7 @@ public class ApplyService {
     }
 
     public void applyReplicationController(ReplicationController replicationController, String sourceName) {
-        String currentNamespace = getNamespace();
+        String currentNamespace = getApplyNamespace(replicationController);
         String id = getName(replicationController);
         Objects.requireNonNull(id, "No name for " + replicationController + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -1177,12 +1146,7 @@ public class ApplyService {
     protected void doCreateReplicationController(ReplicationController replicationController, String namespace, String sourceName) {
         log.info("Creating a ReplicationController from " + sourceName + " namespace " + namespace + " name " + getName(replicationController));
         try {
-            Object answer;
-            if (isNotBlank(namespace)) {
-                answer = kubernetesClient.replicationControllers().inNamespace(namespace).create(replicationController);
-            } else {
-                answer =  kubernetesClient.replicationControllers().inNamespace(getNamespace()).create(replicationController);
-            }
+            Object answer = kubernetesClient.replicationControllers().inNamespace(namespace).create(replicationController);
             logGeneratedEntity("Created ReplicationController: ", namespace, replicationController, answer);
         } catch (Exception e) {
             onApplyError("Failed to create ReplicationController from " + sourceName + ". " + e + ". " + replicationController, e);
@@ -1190,7 +1154,7 @@ public class ApplyService {
     }
 
     public void applyPod(Pod pod, String sourceName) {
-        String currentNamespace = getNamespace();
+        String currentNamespace = getApplyNamespace(pod);
         String id = getName(pod);
         Objects.requireNonNull(id, "No name for " + pod + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -1222,12 +1186,7 @@ public class ApplyService {
     protected void doCreatePod(Pod pod, String namespace, String sourceName) {
         log.info("Creating a Pod from " + sourceName + " namespace " + namespace + " name " + getName(pod));
         try {
-            Object answer;
-            if (isNotBlank(namespace)) {
-                answer = kubernetesClient.pods().inNamespace(namespace).create(pod);
-            } else {
-                answer = kubernetesClient.pods().inNamespace(getNamespace()).create(pod);
-            }
+            Object answer = kubernetesClient.pods().inNamespace(namespace).create(pod);
             log.info("Created Pod result: " + answer);
         } catch (Exception e) {
             onApplyError("Failed to create Pod from " + sourceName + ". " + e + ". " + pod, e);
@@ -1235,7 +1194,7 @@ public class ApplyService {
     }
 
     protected void applyJob(Job job, String sourceName) {
-        String currentNamespace = getNamespace();
+        String currentNamespace = getApplyNamespace(job);
         String id = getName(job);
         Objects.requireNonNull(id, "No name for " + job + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -1257,11 +1216,7 @@ public class ApplyService {
     }
 
     public void doCreateJob(Job job, String namespace, String sourceName) {
-        if (isNotBlank(namespace)) {
-            kubernetesClient.batch().jobs().inNamespace(namespace).create(job);
-        } else {
-            kubernetesClient.batch().jobs().inNamespace(getNamespace()).create(job);
-        }
+        kubernetesClient.batch().jobs().inNamespace(namespace).create(job);
         log.info("Creating a Job from " + sourceName + " namespace " + namespace + " name " + getName(job));
     }
 
@@ -1269,6 +1224,9 @@ public class ApplyService {
         return namespace;
     }
 
+    public String getFallbackNamespace() {
+        return fallbackNamespace;
+    }
 
     /**
      * Returns the namespace defined in the entity or the configured namespace
@@ -1285,6 +1243,10 @@ public class ApplyService {
 
     public void setNamespace(String namespace) {
         this.namespace = namespace;
+    }
+
+    public void setFallbackNamespace(String namespace) {
+        this.fallbackNamespace = namespace;
     }
 
     public boolean isProcessTemplatesLocally() {
@@ -1422,6 +1384,14 @@ public class ApplyService {
         }
     }
 
+    private String getApplyNamespace(HasMetadata item) {
+        if (fallbackNamespace != null) {
+            return fallbackNamespace;
+        } else if (KubernetesHelper.getNamespace(item) != null) {
+            return KubernetesHelper.getNamespace(item);
+        }
+        return getNamespace();
+    }
 
     private void applyStandardEntities(String fileName, List<HasMetadata> entities) {
         for (HasMetadata entity : entities) {
