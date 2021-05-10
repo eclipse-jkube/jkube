@@ -13,14 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.archive;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.common.AssemblyFileEntry;
-import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.util.FileUtil;
-
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -37,6 +29,16 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.annotation.Nonnull;
+
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.util.FileUtil;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class AssemblyFileSetUtils {
 
@@ -109,11 +111,6 @@ public class AssemblyFileSetUtils {
       final String effectiveInclude = isSelfPath(include) ? "**" : include;
       allEntries.addAll(processInclude(sourceDirectory.toPath(), effectiveInclude, destinationDirectory.toPath(), assemblyFileSet));
     }
-    final List<AssemblyFileEntry> excludedEntries = allEntries.stream()
-        .filter(excludeFilter(sourceDirectory.toPath(), assemblyFileSet))
-        .peek(afe -> FileUtils.deleteQuietly(afe.getDest()))
-        .collect(Collectors.toList());
-    allEntries.removeAll(excludedEntries);
     return allEntries;
   }
 
@@ -121,40 +118,49 @@ public class AssemblyFileSetUtils {
       Path sourceDirectory, String include, Path destinationDirectory, AssemblyFileSet assemblyFileSet) throws IOException {
 
     final Set<AssemblyFileEntry> entries = new LinkedHashSet<>();
-    for(File sourceFile : findFilesUsingGlobMatcher(sourceDirectory, include)) {
+    for (File sourceFile : findFilesUsingGlobMatcher(sourceDirectory, include, assemblyFileSet)) {
       final File destFile = destinationDirectory.resolve(sourceDirectory.relativize(sourceFile.toPath())).toFile();
       FileUtil.createDirectory(destFile.getParentFile());
-      entries.addAll(copy(sourceFile, destFile, assemblyFileSet));
+      entries.addAll(copy(sourceDirectory, sourceFile, destFile, assemblyFileSet));
     }
     return entries;
   }
 
-  private static List<File> findFilesUsingGlobMatcher(Path sourceDirectory, String include) throws IOException {
+  private static List<File> findFilesUsingGlobMatcher(
+      Path sourceDirectory, String include, AssemblyFileSet assemblyFileSet) throws IOException {
     final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(String.format("glob:%s", include));
     try (Stream<Path> sourceDirectoryStream = Files.walk(sourceDirectory)) {
-      return sourceDirectoryStream.filter(p -> pathMatcher.matches(sourceDirectory.relativize(p)))
+      return sourceDirectoryStream
+          .filter(p -> pathMatcher.matches(sourceDirectory.relativize(p)))
+          .filter(isNotExcluded(sourceDirectory, assemblyFileSet))
+          .map(Path::normalize)
           .map(Path::toFile).collect(Collectors.toList());
     }
   }
 
   static File resolveSourceDirectory(File baseDirectory, AssemblyFileSet assemblyFileSet) {
+    final Path sourceDirectory;
     if (Objects.requireNonNull(assemblyFileSet.getDirectory(), "Assembly FileSet directory is required").isAbsolute()) {
-      return assemblyFileSet.getDirectory();
+      sourceDirectory = assemblyFileSet.getDirectory().toPath();
     } else {
-      return baseDirectory.toPath()
-          .resolve(assemblyFileSet.getDirectory().toPath())
-          .toFile();
+      sourceDirectory = baseDirectory.toPath()
+          .resolve(assemblyFileSet.getDirectory().toPath());
     }
+    return sourceDirectory.normalize().toFile();
   }
 
   static boolean isSelfPath(String path) {
     return StringUtils.isBlank(path) || path.equals(PATH_TO_SELF);
   }
 
-  private static List<AssemblyFileEntry> copy(File source, File target, AssemblyFileSet assemblyFileSet) throws IOException {
-    if (source.exists()) {
+  private static List<AssemblyFileEntry> copy(Path sourceDirectory, File source, File target, AssemblyFileSet assemblyFileSet)
+      throws IOException {
+    if (source.exists() && isNotExcluded(sourceDirectory, assemblyFileSet).test(source.toPath())) {
       if (source.isDirectory()) {
-        FileUtil.copyDirectoryIfNotExists(source, target);
+        FileUtils.forceMkdir(target);
+        for (File sourceChild : Optional.ofNullable(source.listFiles()).orElse(new File[0])) {
+          copy(sourceDirectory, sourceChild, new File(target, sourceChild.getName()), assemblyFileSet);
+        }
       } else {
         FileUtil.copy(source, target);
       }
@@ -168,15 +174,20 @@ public class AssemblyFileSetUtils {
    * paths provided in {@link AssemblyFileSet#getExcludes()} using {@link PathMatcher} glob syntax.
    *
    * @param sourceDirectory the source directory to relativize files prior to applying th path matcher
-   * @param fileSet the fileSet with the declared exclude patterns
-   * @return Predicate function to evaluate a Stream of {@link AssemblyFileEntry}
+   * @param afs the fileSet with the declared exclude patterns
+   * @return Predicate function to evaluate a Stream of {@link Path}
    */
   @Nonnull
-  private static Predicate<AssemblyFileEntry> excludeFilter(@Nonnull Path sourceDirectory, @Nonnull AssemblyFileSet fileSet) {
-    final List<PathMatcher> pathMatchers = Optional.ofNullable(fileSet.getExcludes()).orElse(Collections.emptyList())
+  static Predicate<Path> isNotExcluded(@Nonnull Path sourceDirectory, @Nonnull AssemblyFileSet afs) {
+    final List<PathMatcher> excludePM = excludePathMatchers(afs);
+    return path -> excludePM.stream().noneMatch(pm -> pm.matches(sourceDirectory.relativize(path).normalize()));
+  }
+
+  @Nonnull
+  private static List<PathMatcher> excludePathMatchers(@Nonnull AssemblyFileSet fileSet) {
+    return Optional.ofNullable(fileSet.getExcludes()).orElse(Collections.emptyList())
         .stream()
         .map(exclude -> FileSystems.getDefault().getPathMatcher(String.format("glob:%s", exclude)))
         .collect(Collectors.toList());
-    return afe -> pathMatchers.stream().anyMatch(p -> p.matches(sourceDirectory.relativize(afe.getSource().toPath())));
   }
 }

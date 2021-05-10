@@ -17,12 +17,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -30,11 +28,11 @@ import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
+import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
 
 import mockit.Mocked;
-import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.AbstractFileAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ListAssert;
@@ -335,12 +333,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
 
   private AbstractListAssert<ListAssert<String>, List<? extends String>, String, ObjectAssert<String>> assertBuildDirectoryFileTree(
       String imageDirName) throws IOException {
-    final Path buildPath = resolveDockerBuild(imageDirName);
-    return assertThat(Files.walk(buildPath)
-        .map(buildPath::relativize)
-        .map(Path::toString)
-        .filter(StringUtils::isNotBlank)
-        .collect(Collectors.toList()));
+    return FileAssertions.assertThat(resolveDockerBuild(imageDirName).toFile()).fileTree();
   }
 
   private static void writeLineToFile(File file, String line) throws IOException {

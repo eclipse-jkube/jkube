@@ -15,15 +15,14 @@ package org.eclipse.jkube.kit.common.archive;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -33,16 +32,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.resolveSourceDirectory;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayContaining;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.startsWith;
 
 public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
 
@@ -75,7 +66,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
 
   private static void populateSampleFiles(File baseDirectory) throws IOException {
     for (String fileName : new String[]{"1.txt", "3.other", "37"}) {
-      assertThat(new File(baseDirectory, fileName).createNewFile(), equalTo(true));
+      FileUtils.touch(new File(baseDirectory, fileName));
     }
   }
 
@@ -87,9 +78,10 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final File result = resolveSourceDirectory(baseDirectory, afs);
     // Then
-    assertThat(result, equalTo(directory));
-    final Path relativeToBase = baseDirectory.toPath().relativize(result.toPath());
-    assertThat(relativeToBase.toString(), startsWith(".."));
+    assertThat(result)
+        .isEqualTo(directory)
+        .isAbsolute()
+        .satisfies(f -> assertThat(baseDirectory.toPath().relativize(result.toPath()).toString()).startsWith(".."));
   }
 
   @Test
@@ -100,9 +92,10 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final File result = resolveSourceDirectory(baseDirectory, afs);
     // Then
-    assertThat(result, equalTo(new File(baseDirectory, "source-directory")));
-    final Path relativeToBase = baseDirectory.toPath().relativize(result.toPath());
-    assertThat(relativeToBase.toString(), equalTo("source-directory"));
+    assertThat(result)
+        .isEqualTo(new File(baseDirectory, "source-directory"))
+        .isAbsolute()
+        .satisfies(f -> assertThat(baseDirectory.toPath().relativize(result.toPath())).hasToString("source-directory"));
   }
 
   @Test
@@ -113,11 +106,12 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .name("deployments")
         .build();
     // When
-    final Exception result = Assert.assertThrows(NullPointerException.class, () ->
+    final NullPointerException result = Assert.assertThrows(NullPointerException.class, () ->
       AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac)
     );
     // Then
-    assertThat(result.getMessage(), equalTo("Assembly FileSet directory is required"));
+    assertThat(result)
+        .hasMessage("Assembly FileSet directory is required");
   }
 
   @Test
@@ -128,11 +122,12 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder().build();
     // When
-    final Exception result = Assert.assertThrows(NullPointerException.class, () ->
+    final NullPointerException result = Assert.assertThrows(NullPointerException.class, () ->
         AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac)
     );
     // Then
-    assertThat(result.getMessage(), equalTo("Assembly Configuration target dir is required"));
+    assertThat(result)
+        .hasMessage("Assembly Configuration target dir is required");
   }
 
   /**
@@ -154,15 +149,16 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(16));
-    final File deployments = new File(outputDirectory, "deployments");
-    assertThat(deployments.exists(), equalTo(true));
-    assertThat(deployments.listFiles(), arrayWithSize(1));
-    final File outputSourceDir = Objects.requireNonNull(deployments.listFiles())[0];
-    assertThat(outputSourceDir.getName(), equalTo("source-directory"));
-    assertThat(outputSourceDir.exists(), equalTo(true));
-    assertThat(outputSourceDir.listFiles(), arrayWithSize(6));
-    assertThat(outputSourceDir.list(), arrayContainingInAnyOrder("one", "two", "three", "1.txt", "3.other", "37"));
+    assertThat(result).hasSize(16);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "source-directory", "source-directory/1.txt", "source-directory/3.other", "source-directory/37",
+            "source-directory/one", "source-directory/one/1.txt", "source-directory/one/3.other", "source-directory/one/37",
+            "source-directory/two", "source-directory/two/1.txt", "source-directory/two/3.other", "source-directory/two/37",
+            "source-directory/three", "source-directory/three/1.txt", "source-directory/three/3.other", "source-directory/three/37"
+        );
   }
 
   /**
@@ -184,9 +180,8 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, empty());
-    final File deployments = new File(outputDirectory, "deployments");
-    assertThat(deployments.exists(), equalTo(false));
+    assertThat(result).isEmpty();
+    FileAssertions.assertThat(new File(outputDirectory, "deployments")).doesNotExist();
   }
 
   /**
@@ -210,12 +205,17 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(16));
-    final File deployments = new File(outputDirectory, "deployments");
-    assertThat(deployments.exists(), equalTo(true));
-    assertThat(deployments.listFiles(), arrayWithSize(6));
-    assertThat(deployments.list(), arrayContainingInAnyOrder("one", "two", "three", "1.txt", "3.other", "37"));
-    assertThat(new File(deployments, "source-directory").exists(), equalTo(false));
+    assertThat(result).hasSize(16);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "1.txt", "3.other", "37",
+            "one", "one/1.txt", "one/3.other", "one/37",
+            "two", "two/1.txt", "two/3.other", "two/37",
+            "three", "three/1.txt", "three/3.other", "three/37"
+        )
+        .doesNotContainSequence("source-directory");
   }
 
   /**
@@ -228,7 +228,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   public void fileSetDirectoryAndAbsoluteOutputDirectory() throws Exception {
     // Given
     final File absoluteOutputDirectory = temp.newFolder("absolute-output");
-    assertThat(absoluteOutputDirectory.listFiles(), emptyArray());
+    assertThat(absoluteOutputDirectory).isEmptyDirectory();
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
         .outputDirectory(absoluteOutputDirectory)
@@ -239,10 +239,18 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(16));
-    assertThat(new File(outputDirectory, "deployments").exists(), equalTo(false));
-    assertThat(absoluteOutputDirectory.listFiles(), arrayWithSize(6));
-    assertThat(absoluteOutputDirectory.list(), arrayContainingInAnyOrder("one", "two", "three", "1.txt", "3.other", "37"));
+    assertThat(result).hasSize(16);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments")).doesNotExist();
+    FileAssertions.assertThat(absoluteOutputDirectory)
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "1.txt", "3.other", "37",
+            "one", "one/1.txt", "one/3.other", "one/37",
+            "two", "two/1.txt", "two/3.other", "two/37",
+            "three", "three/1.txt", "three/3.other", "three/37"
+        )
+        .doesNotContainSequence("source-directory");
   }
 
   /**
@@ -266,15 +274,17 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(16));
-    final File deployments = new File(outputDirectory, "deployments");
-    assertThat(deployments.exists(), equalTo(true));
-    assertThat(deployments.listFiles(), arrayWithSize(1));
-    final File resultingDirectory = outputDirectory.toPath().resolve("deployments").resolve("relative-output").toFile();
-    assertThat(Objects.requireNonNull(deployments.listFiles())[0], equalTo(resultingDirectory));
-    assertThat(resultingDirectory.exists(), equalTo(true));
-    assertThat(resultingDirectory.listFiles(), arrayWithSize(6));
-    assertThat(resultingDirectory.list(), arrayContainingInAnyOrder("one", "two", "three", "1.txt", "3.other", "37"));
+    assertThat(result).hasSize(16);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "relative-output", "relative-output/1.txt", "relative-output/3.other", "relative-output/37",
+            "relative-output/one", "relative-output/one/1.txt", "relative-output/one/3.other", "relative-output/one/37",
+            "relative-output/two", "relative-output/two/1.txt", "relative-output/two/3.other", "relative-output/two/37",
+            "relative-output/three", "relative-output/three/1.txt", "relative-output/three/3.other", "relative-output/three/37"
+        )
+        .doesNotContainSequence("source-directory");
   }
 
   /**
@@ -299,17 +309,15 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(6));
-    final File deployments = new File(outputDirectory, "deployments");
-    assertThat(deployments.exists(), equalTo(true));
-    assertThat(deployments.listFiles(), arrayWithSize(1));
-    final File outputSourceDir = Objects.requireNonNull(deployments.listFiles())[0];
-    assertThat(outputSourceDir.getName(), equalTo("source-directory"));
-    assertThat(outputSourceDir.exists(), equalTo(true));
-    assertThat(outputSourceDir.listFiles(), arrayWithSize(3));
-    assertThat(outputSourceDir.list(), arrayContainingInAnyOrder("one", "two", "1.txt"));
-    assertThat(new File(outputSourceDir, "one").listFiles(), arrayWithSize(1));
-    assertThat(new File(outputSourceDir, "two").listFiles(), arrayWithSize(3));
+    assertThat(result).hasSize(6);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "source-directory", "source-directory/1.txt",
+            "source-directory/one", "source-directory/one/1.txt",
+            "source-directory/two", "source-directory/two/1.txt", "source-directory/two/3.other", "source-directory/two/37"
+        );
   }
 
   /**
@@ -334,17 +342,15 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(6));
-    final File maven = new File(outputDirectory, "maven");
-    assertThat(maven.exists(), equalTo(true));
-    assertThat(maven.listFiles(), arrayWithSize(1));
-    final File outputSourceDir = Objects.requireNonNull(maven.listFiles())[0];
-    assertThat(outputSourceDir.getName(), equalTo("relative"));
-    assertThat(outputSourceDir.exists(), equalTo(true));
-    assertThat(outputSourceDir.listFiles(), arrayWithSize(3));
-    assertThat(outputSourceDir.list(), arrayContainingInAnyOrder("one", "three", "37"));
-    assertThat(new File(outputSourceDir, "one").listFiles(), arrayWithSize(1));
-    assertThat(new File(outputSourceDir, "three").listFiles(), arrayWithSize(3));
+    assertThat(result).hasSize(6);
+    FileAssertions.assertThat(new File(outputDirectory, "maven"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "relative", "relative/37",
+            "relative/one", "relative/one/1.txt",
+            "relative/three", "relative/three/1.txt", "relative/three/3.other", "relative/three/37"
+        );
   }
 
   @Test
@@ -362,14 +368,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(1));
-    final File deployments = new File(outputDirectory, "deployments");
-    assertThat(deployments.exists(), equalTo(true));
-    assertThat(deployments.listFiles(), arrayWithSize(1));
-    final File outputSourceDir = Objects.requireNonNull(deployments.listFiles())[0];
-    assertThat(outputSourceDir.getName(), equalTo("source-directory"));
-    assertThat(outputSourceDir.exists(), equalTo(true));
-    assertThat(outputSourceDir.list(), arrayContaining("1.txt"));
+    assertThat(result).hasSize(1);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "source-directory", "source-directory/1.txt"
+        );
   }
 
   @Test
@@ -387,18 +392,16 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(4));
-    final File deployments = new File(outputDirectory, "deployments");
-    assertThat(deployments.exists(), equalTo(true));
-    assertThat(deployments.listFiles(), arrayWithSize(1));
-    final File outputSourceDir = Objects.requireNonNull(deployments.listFiles())[0];
-    assertThat(outputSourceDir.getName(), equalTo("source-directory"));
-    assertThat(outputSourceDir.exists(), equalTo(true));
-    assertThat(outputSourceDir.listFiles(), arrayWithSize(4));
-    assertThat(outputSourceDir.list(), arrayContainingInAnyOrder("one", "two", "three", "1.txt"));
-    assertThat(new File(outputSourceDir, "one").list(), arrayContaining( "1.txt"));
-    assertThat(new File(outputSourceDir, "two").list(), arrayContaining( "1.txt"));
-    assertThat(new File(outputSourceDir, "three").list(), arrayContaining( "1.txt"));
+    assertThat(result).hasSize(4);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "source-directory", "source-directory/1.txt",
+            "source-directory/one", "source-directory/one/1.txt",
+            "source-directory/two", "source-directory/two/1.txt",
+            "source-directory/three", "source-directory/three/1.txt"
+        );
   }
 
   @Test
@@ -416,18 +419,16 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(3));
-    final File deployments = new File(outputDirectory, "deployments");
-    assertThat(deployments.exists(), equalTo(true));
-    assertThat(deployments.listFiles(), arrayWithSize(1));
-    final File outputSourceDir = Objects.requireNonNull(deployments.listFiles())[0];
-    assertThat(outputSourceDir.getName(), equalTo("source-directory"));
-    assertThat(outputSourceDir.exists(), equalTo(true));
-    assertThat(outputSourceDir.listFiles(), arrayWithSize(3));
-    assertThat(outputSourceDir.list(), arrayContainingInAnyOrder("one", "two", "three"));
-    assertThat(new File(outputSourceDir, "one").list(), arrayContaining( "1.txt"));
-    assertThat(new File(outputSourceDir, "two").list(), arrayContaining( "1.txt"));
-    assertThat(new File(outputSourceDir, "three").list(), arrayContaining( "1.txt"));
+    assertThat(result).hasSize(3);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "source-directory",
+            "source-directory/one", "source-directory/one/1.txt",
+            "source-directory/two", "source-directory/two/1.txt",
+            "source-directory/three", "source-directory/three/1.txt"
+        );
   }
 
   @Test
@@ -446,18 +447,16 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(4));
-    final File deployments = new File(outputDirectory, "deployments");
-    assertThat(deployments.exists(), equalTo(true));
-    assertThat(deployments.listFiles(), arrayWithSize(1));
-    final File outputSourceDir = Objects.requireNonNull(deployments.listFiles())[0];
-    assertThat(outputSourceDir.getName(), equalTo("source-directory"));
-    assertThat(outputSourceDir.exists(), equalTo(true));
-    assertThat(outputSourceDir.listFiles(), arrayWithSize(4));
-    assertThat(outputSourceDir.list(), arrayContainingInAnyOrder("one", "two", "three", "3.other"));
-    assertThat(new File(outputSourceDir, "one").list(), arrayContaining( "3.other"));
-    assertThat(new File(outputSourceDir, "two").list(), arrayContaining( "3.other"));
-    assertThat(new File(outputSourceDir, "three").list(), arrayContaining( "3.other"));
+    assertThat(result).hasSize(4);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "source-directory", "source-directory/3.other",
+            "source-directory/one", "source-directory/one/3.other",
+            "source-directory/two", "source-directory/two/3.other",
+            "source-directory/three", "source-directory/three/3.other"
+        );
   }
 
   @Test
@@ -468,8 +467,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .fileMode("0764")
         .exclude("one/**")
         .exclude("one")
-        .exclude("two/**")
-        .exclude("two")
+        .exclude("two{/**,}")
         .build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("deployments")
@@ -478,15 +476,45 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     // When
     final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
     // Then
-    assertThat(result, hasSize(8));
-    final File deployments = new File(outputDirectory, "deployments");
-    assertThat(deployments.exists(), equalTo(true));
-    assertThat(deployments.listFiles(), arrayWithSize(1));
-    final File outputSourceDir = Objects.requireNonNull(deployments.listFiles())[0];
-    assertThat(outputSourceDir.getName(), equalTo("source-directory"));
-    assertThat(outputSourceDir.exists(), equalTo(true));
-    assertThat(outputSourceDir.listFiles(), arrayWithSize(4));
-    assertThat(outputSourceDir.list(), arrayContainingInAnyOrder("three", "1.txt", "3.other", "37"));
-    assertThat(new File(outputSourceDir, "three").listFiles(), arrayWithSize(3));
+    assertThat(result).hasSize(8);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "source-directory", "source-directory/1.txt", "source-directory/3.other", "source-directory/37",
+            "source-directory/three", "source-directory/three/1.txt", "source-directory/three/3.other", "source-directory/three/37"
+        );
   }
+
+  @Test
+  public void withRelativeSourceAndDirectoryExcludes() throws Exception {
+    // Given
+    final File quickstartDirectory = new File(sourceDirectory, "quickstarts/directory");
+    FileUtils.forceMkdir(quickstartDirectory);
+    final AssemblyFileSet afs = AssemblyFileSet.builder()
+        .directory(new File(quickstartDirectory, "../../"))
+        .outputDirectory(new File("."))
+        .fileMode("0764")
+        .exclude("quickstarts{/**,}")
+        .exclude("three/**")
+        .build();
+    final AssemblyConfiguration ac = AssemblyConfiguration.builder()
+        .name("deployments")
+        .targetDir("/deployments")
+        .build();
+    // When
+    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    // Then
+    assertThat(result).hasSize(13);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "1.txt", "3.other", "37",
+            "one", "one/1.txt", "one/3.other", "one/37",
+            "two", "two/1.txt", "two/3.other", "two/37",
+            "three"
+        );
+  }
+
 }
