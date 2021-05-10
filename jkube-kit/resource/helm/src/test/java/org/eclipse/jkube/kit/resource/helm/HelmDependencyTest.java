@@ -30,8 +30,15 @@ public class HelmDependencyTest {
         .version("version")
         .build();
 
+    HelmDependency sameHelmDependency = HelmDependency
+        .builder()
+        .name("name")
+        .repository("repository")
+        .version("version")
+        .build();
+
     // Then
-    assertThat(helmDependency).isEqualTo(helmDependency);
+    assertThat(helmDependency).isEqualTo(sameHelmDependency);
     assertThat(helmDependency.getName()).isEqualTo("name");
     assertThat(helmDependency.getRepository()).isEqualTo("repository");
     assertThat(helmDependency.getVersion()).isEqualTo("version");
