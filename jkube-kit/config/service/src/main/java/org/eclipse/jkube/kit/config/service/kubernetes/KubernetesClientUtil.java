@@ -51,7 +51,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class KubernetesClientUtil {
 
-    private KubernetesClientUtil() {}
+    private KubernetesClientUtil() { }
 
     public static void resizeApp(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> entities, int replicas, KitLogger log) {
         for (HasMetadata entity : entities) {
@@ -118,12 +118,12 @@ public class KubernetesClientUtil {
     public static String getPodStatusMessagePostfix(Watcher.Action action) {
         String message = "";
         switch (action) {
-        case DELETED:
-            message = ": Pod Deleted";
-            break;
-        case ERROR:
-            message = ": Error";
-            break;
+            case DELETED:
+                message = ": Pod Deleted";
+                break;
+            case ERROR:
+                message = ": Error";
+                break;
         }
         return message;
     }
@@ -158,8 +158,8 @@ public class KubernetesClientUtil {
     public static GenericCustomResource doGetCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String name) {
         try {
             return Serialization.jsonMapper().convertValue(
-                kubernetesClient.customResource(crdContext).inNamespace(namespace).withName(name).get(),
-                GenericCustomResource.class
+                    kubernetesClient.customResource(crdContext).inNamespace(namespace).withName(name).get(),
+                    GenericCustomResource.class
             );
         } catch (Exception exception) { // Not found exception
             return null;
@@ -167,10 +167,10 @@ public class KubernetesClientUtil {
     }
 
     public static void doDeleteAndWait(KubernetesClient kubernetesClient, CustomResourceDefinitionContext context,
-        String namespace, String name, long seconds) {
+                                       String namespace, String name, long seconds) {
         final RawCustomResourceOperationsImpl crClient = kubernetesClient.customResource(context)
-            .inNamespace(namespace)
-            .withName(name);
+                .inNamespace(namespace)
+                .withName(name);
         try {
             crClient.delete();
             /* Not implemented in Fabric8 Kubernetes Client ----> TODO: replace when sth like this is available
@@ -185,4 +185,13 @@ public class KubernetesClientUtil {
         }
     }
 
+    public static String applicableNamespace(HasMetadata resource, String namespace, String fallbackNamespace) {
+        if (StringUtils.isNotBlank(namespace)) {
+            return namespace;
+        }
+        if (StringUtils.isNotBlank(KubernetesHelper.getNamespace(resource))) {
+            return KubernetesHelper.getNamespace(resource);
+        }
+        return StringUtils.isNotBlank(fallbackNamespace) ? fallbackNamespace : KubernetesHelper.getDefaultNamespace();
+    }
 }

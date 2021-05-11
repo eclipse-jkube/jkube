@@ -120,11 +120,12 @@ public class ApplyMojoTest {
   @Test
   public void testResolveEffectiveNamespaceWhenNamespacePropertySet() throws MojoExecutionException, MojoFailureException {
     // Given
-    applyMojo.namespace = "custom-namespace";
+    applyMojo.namespace = "configured-namespace";
     // When
     applyMojo.execute();
     // Then
-    assertThat(applyMojo.applyService.getFallbackNamespace()).isEqualTo("custom-namespace");
+    assertThat(applyMojo.applyService.getNamespace()).isEqualTo("configured-namespace");
+    assertThat(applyMojo.applyService.getFallbackNamespace()).isNull();
   }
 
   @Test
@@ -134,8 +135,8 @@ public class ApplyMojoTest {
     // When
     applyMojo.execute();
     // Then
-    assertThat(applyMojo.applyService.getNamespace()).isEqualTo("xml-namespace");
-    assertThat(applyMojo.applyService.getFallbackNamespace()).isNull();
+    assertThat(applyMojo.applyService.getNamespace()).isNull();
+    assertThat(applyMojo.applyService.getFallbackNamespace()).isEqualTo("xml-namespace");
   }
 
   @Test
@@ -148,8 +149,8 @@ public class ApplyMojoTest {
     // When
     applyMojo.execute();
     // Then
-    assertThat(applyMojo.applyService.getNamespace()).isEqualTo("clusteraccess-namespace");
-    assertThat(applyMojo.applyService.getFallbackNamespace()).isNull();
+    assertThat(applyMojo.applyService.getNamespace()).isNull();
+    assertThat(applyMojo.applyService.getFallbackNamespace()).isEqualTo("clusteraccess-namespace");
   }
 
 }

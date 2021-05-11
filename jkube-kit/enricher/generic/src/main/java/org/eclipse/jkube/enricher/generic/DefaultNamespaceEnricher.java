@@ -48,6 +48,7 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
     @AllArgsConstructor
     private enum Config implements Configs.Config {
         NAMESPACE(DefaultNamespaceEnricher.NAMESPACE, null),
+        FORCE("force", "false"),
         TYPE("type", DefaultNamespaceEnricher.NAMESPACE);
 
         @Getter
@@ -105,7 +106,10 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
                     return;
                 }
 
-                metaBuilder.withNamespace(getNamespaceName()).build();
+                boolean forceModifyNamespace = Boolean.parseBoolean(getConfig(Config.FORCE));
+                if (StringUtils.isBlank(metaBuilder.getNamespace()) || forceModifyNamespace) {
+                    metaBuilder.withNamespace(getNamespaceName()).build();
+                }
             }
         });
 

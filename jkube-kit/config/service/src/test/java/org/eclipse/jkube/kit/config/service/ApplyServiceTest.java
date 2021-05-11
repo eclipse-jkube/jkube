@@ -15,7 +15,6 @@
 package org.eclipse.jkube.kit.config.service;
 
 import java.io.File;
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -389,7 +388,9 @@ public class ApplyServiceTest {
         mockServer.expect().post().withPath("/api/v1/namespaces/default/serviceaccounts")
                 .andReply(collector.record("serviceaccount-default-create").andReturn(HTTP_OK, serviceAccount))
                 .once();
-
+        String configuredNamespace = applyService.getNamespace();
+        applyService.setNamespace(null);
+        applyService.setFallbackNamespace("default");
 
         // When
         applyService.applyEntities(null, entities, log, 5);
@@ -397,38 +398,37 @@ public class ApplyServiceTest {
         // Then
         collector.assertEventsRecordedInOrder("configmap-ns1-create", "serviceaccount-default-create", "ingress-ns2-create");
         assertEquals(6, mockServer.getMockServer().getRequestCount());
+        applyService.setFallbackNamespace(null);
+        applyService.setNamespace(configuredNamespace);
     }
 
     @Test
-    public void testApplyToMultipleNamespacesFallbackNamespaceConfigured() throws InterruptedException {
+    public void testApplyToMultipleNamespacesOverriddenWhenNamespaceConfigured() throws InterruptedException {
         // Given
-        // If namespace is configured via properties/XML.
-        // namespace would be set in metadata during the resource phase itself
-        ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("fallback-ns").endMetadata().build();
-        Ingress ingress = new IngressBuilder().withNewMetadata().withName("ing1").withNamespace("fallback-ns").endMetadata().build();
-        ServiceAccount serviceAccount = new ServiceAccountBuilder().withNewMetadata().withName("fallback-ns").endMetadata().build();
+        ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("default").endMetadata().build();
+        Ingress ingress = new IngressBuilder().withNewMetadata().withName("ing1").withNamespace("default").endMetadata().build();
+        ServiceAccount serviceAccount = new ServiceAccountBuilder().withNewMetadata().withName("default").endMetadata().build();
 
         List<HasMetadata> entities = new ArrayList<>();
         entities.add(configMap);
         entities.add(serviceAccount);
         entities.add(ingress);
         WebServerEventCollector collector = new WebServerEventCollector();
-        mockServer.expect().post().withPath("/api/v1/namespaces/fallback-ns/configmaps")
-                .andReply(collector.record("configmap-fallback-ns-create").andReturn(HTTP_OK, configMap))
+        mockServer.expect().post().withPath("/api/v1/namespaces/default/configmaps")
+                .andReply(collector.record("configmap-default-ns-create").andReturn(HTTP_OK, configMap))
                 .once();
-        mockServer.expect().post().withPath("/apis/networking.k8s.io/v1/namespaces/fallback-ns/ingresses")
-                .andReply(collector.record("ingress-fallback-ns-create").andReturn(HTTP_OK, ingress))
+        mockServer.expect().post().withPath("/apis/networking.k8s.io/v1/namespaces/default/ingresses")
+                .andReply(collector.record("ingress-default-ns-create").andReturn(HTTP_OK, ingress))
                 .once();
-        mockServer.expect().post().withPath("/api/v1/namespaces/fallback-ns/serviceaccounts")
-                .andReply(collector.record("serviceaccount-fallback-ns-create").andReturn(HTTP_OK, serviceAccount))
+        mockServer.expect().post().withPath("/api/v1/namespaces/default/serviceaccounts")
+                .andReply(collector.record("serviceaccount-default-ns-create").andReturn(HTTP_OK, serviceAccount))
                 .once();
-        applyService.setFallbackNamespace("fallback-ns");
 
         // When
         applyService.applyEntities(null, entities, log, 5);
 
         // Then
-        collector.assertEventsRecordedInOrder("configmap-fallback-ns-create", "serviceaccount-fallback-ns-create", "ingress-fallback-ns-create");
+        collector.assertEventsRecordedInOrder("configmap-default-ns-create", "serviceaccount-default-ns-create", "ingress-default-ns-create");
         assertEquals(6, mockServer.getMockServer().getRequestCount());
         applyService.setFallbackNamespace(null);
     }

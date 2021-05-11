@@ -39,6 +39,7 @@ import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.loadResources;
 import static org.eclipse.jkube.kit.config.service.ApplyService.getK8sListWithNamespaceFirst;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
 
 public class KubernetesUndeployService implements UndeployService {
 
@@ -52,7 +53,7 @@ public class KubernetesUndeployService implements UndeployService {
   }
 
   @Override
-  public void undeploy(File resourceDir, ResourceConfig resourceConfig, File... manifestFiles) throws IOException {
+  public void undeploy(String fallbackNamespace, File resourceDir, ResourceConfig resourceConfig, File... manifestFiles) throws IOException {
     final List<File> manifests = Stream.of(manifestFiles)
         .filter(Objects::nonNull).filter(File::exists).filter(File::isFile)
         .collect(Collectors.toList());
@@ -66,23 +67,23 @@ public class KubernetesUndeployService implements UndeployService {
     }
     List<HasMetadata> undeployEntities = getK8sListWithNamespaceFirst(entities);
     Collections.reverse(undeployEntities);
-    undeployCustomResources(resourceConfig.getNamespace(), undeployEntities);
-    undeployResources(resourceConfig.getNamespace(), undeployEntities);
+    undeployCustomResources(resourceConfig.getNamespace(), fallbackNamespace, undeployEntities);
+    undeployResources(resourceConfig.getNamespace(), fallbackNamespace, undeployEntities);
   }
 
-  private void undeployCustomResources(String currentNamespace, List<HasMetadata> entities) {
-    final Consumer<HasMetadata> customResourceDeleter = customResourceDeleter(currentNamespace);
+  private void undeployCustomResources(String currentNamespace, String fallbackNamespace, List<HasMetadata> entities) {
+    final Consumer<HasMetadata> customResourceDeleter = customResourceDeleter(currentNamespace, fallbackNamespace);
     entities.stream().filter(isCustomResource).forEach(customResourceDeleter);
   }
 
-  private void undeployResources(String namespace, List<HasMetadata> entities) {
-    final Consumer<HasMetadata> resourceDeleter = resourceDeleter(namespace);
+  private void undeployResources(String namespace, String fallbackNamespace, List<HasMetadata> entities) {
+    final Consumer<HasMetadata> resourceDeleter = resourceDeleter(namespace, fallbackNamespace);
     entities.stream().filter(isCustomResource.negate()).forEach(resourceDeleter);
   }
 
-  protected Consumer<HasMetadata> resourceDeleter(String namespace) {
+  protected Consumer<HasMetadata> resourceDeleter(String namespace, String fallbackNamespace) {
     return resource -> {
-      String undeployNamespace = resolveEffectiveNamespace(resource, namespace);
+      String undeployNamespace = applicableNamespace(resource, namespace, fallbackNamespace);
       logger.info("Deleting resource %s %s/%s", KubernetesHelper.getKind(resource), undeployNamespace, KubernetesHelper.getName(resource));
       jKubeServiceHub.getClient().resource(resource)
           .inNamespace(undeployNamespace)
@@ -91,9 +92,9 @@ public class KubernetesUndeployService implements UndeployService {
     };
   }
 
-  protected Consumer<HasMetadata> customResourceDeleter(String namespace) {
+  protected Consumer<HasMetadata> customResourceDeleter(String namespace, String fallbackNamespace) {
     return customResource -> {
-      String undeployNamespace = resolveEffectiveNamespace(customResource, namespace);
+      String undeployNamespace = applicableNamespace(customResource, namespace, fallbackNamespace);
       GenericCustomResource genericCustomResource = (GenericCustomResource) customResource;
       CustomResourceDefinitionList crdList = jKubeServiceHub.getClient().apiextensions().v1beta1().customResourceDefinitions().list();
       deleteCustomResourceIfCustomResourceDefinitionContextPresent(genericCustomResource, undeployNamespace, getCrdContext(crdList, genericCustomResource));
@@ -122,13 +123,6 @@ public class KubernetesUndeployService implements UndeployService {
     } catch (Exception exception) {
       logger.error("Unable to undeploy %s %s/%s", apiVersionAndKind, namespace, name);
     }
-  }
-
-  private String resolveEffectiveNamespace(HasMetadata entity, String fallbackNamespace) {
-    if (KubernetesHelper.getNamespace(entity) != null) {
-      return KubernetesHelper.getNamespace(entity);
-    }
-    return fallbackNamespace;
   }
 
   protected JKubeServiceHub getjKubeServiceHub() {

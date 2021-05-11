@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
@@ -237,6 +238,42 @@ public class DefaultNamespaceEnricherTest {
     assertThat(kubernetesListBuilder.build().getItems()).hasSize(2);
     assertThat(kubernetesListBuilder.build().getItems().get(0).getMetadata().getNamespace()).isEqualTo("mynamespace-configured");
     assertThat(kubernetesListBuilder.build().getItems().get(1).getMetadata().getNamespace()).isEqualTo("mynamespace-configured");
+  }
+
+  @Test
+  public void namespaceSetInResourceShouldNotBeOverwritten() {
+    // Given
+    setNamespaceInResourceConfig("mynamespace-configured");
+    final KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
+    kubernetesListBuilder.addToItems(new ConfigMapBuilder()
+            .withNewMetadata().withName("cm1").withNamespace("ns1").endMetadata()
+            .build());
+
+    // When
+    new DefaultNamespaceEnricher(context).enrich(PlatformMode.kubernetes, kubernetesListBuilder);
+
+    // Then
+    assertThat(kubernetesListBuilder.build().getItems()).hasSize(1);
+    assertThat(kubernetesListBuilder.build().getItems().get(0).getMetadata().getNamespace()).isEqualTo("ns1");
+  }
+
+  @Test
+  public void namespaceSetInResourceGetsOverwrittenWhenForceEnabled() {
+    // Given
+    Properties properties = new Properties();
+    properties.put("jkube.enricher.jkube-namespace.force", "true");
+    setExpectations(properties, ResourceConfig.builder().namespace("mynamespace-configured").build());
+    final KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
+    kubernetesListBuilder.addToItems(new ConfigMapBuilder()
+            .withNewMetadata().withName("cm1").withNamespace("ns1").endMetadata()
+            .build());
+
+    // When
+    new DefaultNamespaceEnricher(context).enrich(PlatformMode.kubernetes, kubernetesListBuilder);
+
+    // Then
+    assertThat(kubernetesListBuilder.build().getItems()).hasSize(1);
+    assertThat(kubernetesListBuilder.build().getItems().get(0).getMetadata().getNamespace()).isEqualTo("mynamespace-configured");
   }
 
   private void setNamespaceInResourceConfig(String namespace) {
