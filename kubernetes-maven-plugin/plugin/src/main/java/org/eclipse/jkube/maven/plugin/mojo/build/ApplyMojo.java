@@ -23,6 +23,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
@@ -234,10 +235,10 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         applyService.setRollingUpgrade(rollingUpgrades);
         applyService.setRollingUpgradePreserveScale(isRollingUpgradePreserveScale());
         applyService.setRecreateMode(recreate);
-        applyService.setNamespace(resolveEffectiveNamespace());
-        if (namespace != null) {
-            applyService.setFallbackNamespace(namespace);
-        }
+        applyService.setNamespace(namespace);
+        applyService.setFallbackNamespace(
+                Optional.ofNullable(resources)
+                        .map(ResourceConfig::getNamespace).orElse(clusterAccess.getNamespace()));
 
         boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
         if (openShift) {
@@ -245,14 +246,5 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         } else {
             disableOpenShiftFeatures(applyService);
         }
-    }
-
-    private String resolveEffectiveNamespace() {
-        if (namespace != null) {
-            return namespace;
-        } else if (resources != null && resources.getNamespace() != null) {
-            return resources.getNamespace();
-        }
-        return clusterAccess.getNamespace();
     }
 }

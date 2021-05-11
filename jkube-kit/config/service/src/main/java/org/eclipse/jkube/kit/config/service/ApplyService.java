@@ -88,6 +88,7 @@ import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getKind;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateLabels;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateMetadata;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
 
 /**
  * Applies DTOs to the current Kubernetes master
@@ -212,7 +213,7 @@ public class ApplyService {
             HasMetadata entity = (HasMetadata) dto;
             try {
                 log.info("Applying %s %s from %s", getKind(entity), getName(entity), sourceName);
-                kubernetesClient.resource(entity).inNamespace(getApplyNamespace((HasMetadata) dto)).createOrReplace();
+                kubernetesClient.resource(entity).inNamespace(applicableNamespace((HasMetadata) dto, namespace, fallbackNamespace)).createOrReplace();
             } catch (Exception e) {
                 onApplyError("Failed to create " + getKind(entity) + " from " + sourceName + ". " + e, e);
             }
@@ -304,7 +305,7 @@ public class ApplyService {
             return;
         }
         if (!isProcessTemplatesLocally()) {
-            String currentNamespace = getApplyNamespace(entity);
+            String currentNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
             String id = getName(entity);
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
             Template old = openShiftClient.templates().inNamespace(currentNamespace).withName(id).get();
@@ -359,7 +360,7 @@ public class ApplyService {
      * Creates/updates a service account and processes it returning the processed DTOs
      */
     public void applyServiceAccount(ServiceAccount serviceAccount, String sourceName) {
-        String currentNamespace = getApplyNamespace(serviceAccount);
+        String currentNamespace = applicableNamespace(serviceAccount, namespace, fallbackNamespace);
         String id = getName(serviceAccount);
         Objects.requireNonNull(id, "No name for " + serviceAccount + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -407,7 +408,7 @@ public class ApplyService {
     public void applyPersistentVolumeClaim(PersistentVolumeClaim entity, String sourceName) {
         // we cannot update PVCs
         boolean alwaysRecreate = true;
-        String currentNamespace = getApplyNamespace(entity);
+        String currentNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
         String id = getName(entity);
         Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -443,7 +444,7 @@ public class ApplyService {
     }
 
     public void applyCustomResourceDefinition(CustomResourceDefinition entity, String sourceName) {
-        String currentNamespace = getApplyNamespace(entity);
+        String currentNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
         String id = getName(entity);
         Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -486,7 +487,7 @@ public class ApplyService {
         throws IOException {
 
         String name = genericCustomResource.getMetadata().getName();
-        String applyNamespace = getApplyNamespace(genericCustomResource);
+        String applyNamespace = applicableNamespace(genericCustomResource, namespace, fallbackNamespace);
         String apiGroupWithKind = KubernetesHelper.getFullyQualifiedApiGroupWithKind(context);
         Objects.requireNonNull(name, "No name for " + genericCustomResource + " " + sourceName);
 
@@ -524,7 +525,7 @@ public class ApplyService {
     }
 
     public void applySecret(Secret secret, String sourceName) {
-        String currentNamespace = getApplyNamespace(secret);
+        String currentNamespace = applicableNamespace(secret, namespace, fallbackNamespace);
         String id = getName(secret);
         Objects.requireNonNull(id, "No name for " + secret + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -637,7 +638,7 @@ public class ApplyService {
         if (openShiftClient != null) {
             String id = getName(entity);
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-            String currentNamespace = getApplyNamespace(entity);
+            String currentNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
             if (isServicesOnlyMode()) {
                 log.debug("Ignoring Route: " + currentNamespace + ":" + id);
                 return;
@@ -685,7 +686,7 @@ public class ApplyService {
             String id = getName(entity);
 
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-            String currentNamespace = getApplyNamespace(entity);
+            String currentNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
             applyNamespace(currentNamespace);
             BuildConfig old = openShiftClient.buildConfigs().inNamespace(currentNamespace).withName(id).get();
             if (isRunning(old)) {
@@ -725,7 +726,7 @@ public class ApplyService {
         String id = getName(entity);
 
         Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-        String currentNamespace = getApplyNamespace(entity);
+        String currentNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
         applyNamespace(currentNamespace);
         RoleBinding old = kubernetesClient.rbac().roleBindings().inNamespace(currentNamespace).withName(id).get();
         if (isRunning(old)) {
@@ -773,7 +774,7 @@ public class ApplyService {
         if (openShiftClient != null) {
             String kind = getKind(entity);
             String name = getName(entity);
-            String currentNamespace = getApplyNamespace(entity);
+            String currentNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
             try {
                 Resource<ImageStream> resource = openShiftClient.imageStreams().inNamespace(currentNamespace).withName(name);
                 ImageStream old = resource.get();
@@ -847,7 +848,7 @@ public class ApplyService {
     }
 
     public void applyService(Service service, String sourceName) {
-        String currentNamespace = getApplyNamespace(service);
+        String currentNamespace = applicableNamespace(service, namespace, fallbackNamespace);
         String id = getName(service);
         Objects.requireNonNull(id, "No name for " + service + " " + sourceName);
         if (isIgnoreServiceMode()) {
@@ -877,7 +878,7 @@ public class ApplyService {
     }
 
     public <T extends HasMetadata,L> void applyResource(T resource, String sourceName, MixedOperation<T, L, ? extends Resource<T>> resources) {
-        String currentNamespace = getApplyNamespace(resource);
+        String currentNamespace = applicableNamespace(resource, namespace, fallbackNamespace);
         String id = getName(resource);
         String kind = getKind(resource);
         Objects.requireNonNull(id, "No name for " + resource + " " + sourceName);
@@ -1088,7 +1089,7 @@ public class ApplyService {
     }
 
     public void applyReplicationController(ReplicationController replicationController, String sourceName) {
-        String currentNamespace = getApplyNamespace(replicationController);
+        String currentNamespace = applicableNamespace(replicationController, namespace, fallbackNamespace);
         String id = getName(replicationController);
         Objects.requireNonNull(id, "No name for " + replicationController + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -1154,7 +1155,7 @@ public class ApplyService {
     }
 
     public void applyPod(Pod pod, String sourceName) {
-        String currentNamespace = getApplyNamespace(pod);
+        String currentNamespace = applicableNamespace(pod, namespace, fallbackNamespace);
         String id = getName(pod);
         Objects.requireNonNull(id, "No name for " + pod + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -1194,7 +1195,7 @@ public class ApplyService {
     }
 
     protected void applyJob(Job job, String sourceName) {
-        String currentNamespace = getApplyNamespace(job);
+        String currentNamespace = applicableNamespace(job, namespace, fallbackNamespace);
         String id = getName(job);
         Objects.requireNonNull(id, "No name for " + job + " " + sourceName);
         if (isServicesOnlyMode()) {
@@ -1382,15 +1383,6 @@ public class ApplyService {
         if (url != null) {
             serviceLogger.info("ExposeController Service URL: %s", url);
         }
-    }
-
-    private String getApplyNamespace(HasMetadata item) {
-        if (fallbackNamespace != null) {
-            return fallbackNamespace;
-        } else if (KubernetesHelper.getNamespace(item) != null) {
-            return KubernetesHelper.getNamespace(item);
-        }
-        return getNamespace();
     }
 
     private void applyStandardEntities(String fileName, List<HasMetadata> entities) {

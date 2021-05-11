@@ -45,8 +45,8 @@ public class OpenshiftUndeployService extends KubernetesUndeployService {
   }
 
   @Override
-  protected Consumer<HasMetadata> resourceDeleter(String namespace) {
-    final Consumer<HasMetadata> standardDeleter = super.resourceDeleter(namespace);
+  protected Consumer<HasMetadata> resourceDeleter(String namespace, String fallbackNamespace) {
+    final Consumer<HasMetadata> standardDeleter = super.resourceDeleter(namespace, fallbackNamespace);
     final OpenShiftClient oc = asOpenShiftClient(getjKubeServiceHub().getClient());
     return entity -> {
       final List<String> isTags = imageStreamTags(entity);

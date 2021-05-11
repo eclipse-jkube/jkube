@@ -67,7 +67,7 @@ public class KubernetesUndeployServiceTest {
     // Given
     final File nonexistent = new File("I don't exist");
     // When
-    kubernetesUndeployService.undeploy(null, ResourceConfig.builder().build(), nonexistent, null);
+    kubernetesUndeployService.undeploy(null, null, ResourceConfig.builder().build(), nonexistent, null);
     // Then
     // @formatter:off
     new Verifications() {{
@@ -91,7 +91,7 @@ public class KubernetesUndeployServiceTest {
     }};
     // @formatter:on
     // When
-    kubernetesUndeployService.undeploy(null, resourceConfig, file);
+    kubernetesUndeployService.undeploy(null, null, resourceConfig, file);
     // Then
     // @formatter:off
     new Verifications() {{
@@ -136,7 +136,7 @@ public class KubernetesUndeployServiceTest {
     }};
     // @formatter:on
     // When
-    kubernetesUndeployService.undeploy(null, resourceConfig, manifest);
+    kubernetesUndeployService.undeploy(null, null, resourceConfig, manifest);
     // Then
     // @formatter:off
     new Verifications() {{
@@ -149,7 +149,7 @@ public class KubernetesUndeployServiceTest {
   @Test
   public void undeployWithManifestShouldDeleteEntitiesInMultipleNamespaces(@Mocked File file) throws Exception {
     // Given
-    final ResourceConfig resourceConfig = ResourceConfig.builder().namespace("default").build();
+    final ResourceConfig resourceConfig = ResourceConfig.builder().build();
     final ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("ns1").endMetadata().build();
     final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").withNamespace("ns2").endMetadata().build();
     final Service service = new Service();
@@ -163,7 +163,7 @@ public class KubernetesUndeployServiceTest {
     }};
     // @formatter:on
     // When
-    kubernetesUndeployService.undeploy(null, resourceConfig, file);
+    kubernetesUndeployService.undeploy("default", null, resourceConfig, file);
     // Then
     // @formatter:off
     new Verifications() {{
