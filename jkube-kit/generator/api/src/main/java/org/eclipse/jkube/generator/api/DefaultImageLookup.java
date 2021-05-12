@@ -14,6 +14,7 @@
 package org.eclipse.jkube.generator.api;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -34,7 +35,9 @@ public class DefaultImageLookup {
             Enumeration<URL> resourceUrls = realm.getClassLoader().getResources(DEFAULT_IMAGES_PROPERTIES);
             while (resourceUrls.hasMoreElements()) {
                 URL resourceUrl = resourceUrls.nextElement();
-                defaultImageProps.load(resourceUrl.openStream());
+                try (InputStream resourceUrlStream = resourceUrl.openStream()) {
+                    defaultImageProps.load(resourceUrlStream);
+                }
             }
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot load default images properties " + DEFAULT_IMAGES_PROPERTIES + ": " + e, e);
