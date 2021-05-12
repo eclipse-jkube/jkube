@@ -38,14 +38,16 @@ public class HelmDependencyTest {
         .build();
 
     // Then
-    assertThat(helmDependency).isEqualTo(sameHelmDependency);
-    assertThat(helmDependency.getName()).isEqualTo("name");
-    assertThat(helmDependency.getRepository()).isEqualTo("repository");
-    assertThat(helmDependency.getVersion()).isEqualTo("version");
+    assertThat(helmDependency)
+        .isNotSameAs(sameHelmDependency)
+        .isEqualTo(sameHelmDependency)
+        .hasFieldOrPropertyWithValue("name", "name")
+        .hasFieldOrPropertyWithValue("repository", "repository")
+        .hasFieldOrPropertyWithValue("version", "version");
   }
 
   @Test
-  public void contructorTest() {
+  public void emptyConstructorTest() {
 
     // Given
     HelmDependency helmDependency = new HelmDependency();
@@ -54,9 +56,9 @@ public class HelmDependencyTest {
     helmDependency.setRepository("repository");
 
     // Then
-    assertThat(helmDependency).isEqualTo(helmDependency);
-    assertThat(helmDependency.getName()).isEqualTo("name");
-    assertThat(helmDependency.getRepository()).isEqualTo("repository");
-    assertThat(helmDependency.getVersion()).isEqualTo("version");
+    assertThat(helmDependency)
+        .hasFieldOrPropertyWithValue("name", "name")
+        .hasFieldOrPropertyWithValue("repository", "repository")
+        .hasFieldOrPropertyWithValue("version", "version");
   }
 }

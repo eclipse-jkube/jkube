@@ -181,7 +181,7 @@ public class ContainerCreateConfig {
 
     private void addEnvironment(Properties envProps) {
         JsonArray containerEnv = new JsonArray();
-        Enumeration keys = envProps.keys();
+        Enumeration<Object> keys = envProps.keys();
         while (keys.hasMoreElements()) {
             String key = (String) keys.nextElement();
             String value = envProps.getProperty(key);
@@ -195,8 +195,7 @@ public class ContainerCreateConfig {
 
     private void addPropertiesFromFile(String envPropsFile, Properties envProps) {
         // External properties override internally specified properties
-        try {
-            FileReader reader = new FileReader(envPropsFile);
+        try (FileReader reader = new FileReader(envPropsFile)) {
             envProps.load(reader);
         } catch (FileNotFoundException e) {
             throw new IllegalArgumentException(String.format("Cannot find environment property file '%s'", envPropsFile));

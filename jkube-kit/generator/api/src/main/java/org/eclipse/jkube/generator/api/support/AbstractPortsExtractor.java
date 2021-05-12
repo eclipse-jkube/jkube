@@ -133,7 +133,9 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 			map = flatten(YAML_MAPPER.readValue(f, Map.class));
 		} else if (f.getName().endsWith(PROPERTIES_EXTENSION)) {
 			Properties properties = new Properties();
-			properties.load(new FileInputStream(f));
+			try (FileInputStream fis = new FileInputStream(f)) {
+				properties.load(fis);
+			}
 			map = toMap(properties);
 		} else {
 			throw new IllegalArgumentException(
