@@ -13,6 +13,14 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
@@ -20,11 +28,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecBuilder;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-
-import java.util.List;
 
 /**
  * Handler for StatefulSets
@@ -50,6 +53,16 @@ public class StatefulSetHandler implements ControllerHandler<StatefulSet> {
   @Override
   public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
     return get(config, images).getSpec().getTemplate();
+  }
+
+  @Override
+  public void overrideReplicas(KubernetesListBuilder resources, int replicas) {
+    resources.accept(new TypedVisitor<StatefulSetBuilder>() {
+      @Override
+      public void visit(StatefulSetBuilder builder) {
+        builder.editOrNewSpec().withReplicas(replicas).endSpec();
+      }
+    });
   }
 
   private ObjectMeta createStatefulSetMetaData(ResourceConfig config) {

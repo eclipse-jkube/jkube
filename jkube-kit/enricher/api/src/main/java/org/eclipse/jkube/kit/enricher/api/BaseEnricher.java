@@ -54,6 +54,7 @@ public class BaseEnricher implements Enricher {
     private static final String SWITCH_TO_DEPLOYMENT = "jkube.build.switchToDeployment";
     public static final String CREATE_EXTERNAL_URLS = "jkube.createExternalUrls";
     public static final String JKUBE_DOMAIN = "jkube.domain";
+    public static final String JKUBE_ENFORCED_REPLICAS = "jkube.replicas";
 
     protected KitLogger log;
 
@@ -211,8 +212,8 @@ public class BaseEnricher implements Enricher {
      * @param defaultValue default value if not defined (true or false)
      * @return property value
      */
-    protected boolean getValueFromConfig(String propertyName, Boolean defaultValue) {
-        return Boolean.parseBoolean(getValueFromConfig(propertyName, defaultValue.toString()));
+    protected boolean getValueFromConfig(String propertyName, boolean defaultValue) {
+        return Boolean.parseBoolean(getValueFromConfig(propertyName, Boolean.toString(defaultValue)));
     }
 
     protected boolean useDeploymentForOpenShift() {

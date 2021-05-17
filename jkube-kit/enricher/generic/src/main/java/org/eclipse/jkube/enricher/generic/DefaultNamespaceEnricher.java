@@ -32,15 +32,12 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 public class DefaultNamespaceEnricher extends BaseEnricher {
 
     private static final String NAMESPACE = "namespace";
     protected static final String[] NAMESPACE_KINDS = {"Project", "Namespace" };
-    protected static final List<String> NAMESPACE_KINDS_LIST = Arrays.asList(NAMESPACE_KINDS);
 
     private final HandlerHub handlerHub;
 

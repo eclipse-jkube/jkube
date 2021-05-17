@@ -13,14 +13,13 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 
 /**
  * This enricher fixes replica count for Kubernetes/Openshift resources whenever a -Djkube.replicas=n parameter is
@@ -28,30 +27,20 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
  */
 public class ReplicaCountEnricher extends BaseEnricher {
 
-    public ReplicaCountEnricher(JKubeEnricherContext context) {
-        super(context, "jkube-replicas");
-    }
+  private final HandlerHub handlerHub;
+
+  public ReplicaCountEnricher(JKubeEnricherContext context) {
+    super(context, "jkube-replicas");
+    handlerHub = new HandlerHub(getContext().getGav(), getContext().getProperties());
+  }
 
 
-    @Override
-    public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
-        Integer replicas = Configs.asInteger(getContext().getProperty("jkube.replicas"));
-        if (replicas != null) {
-            // Kubernetes
-            builder.accept(new TypedVisitor<DeploymentBuilder>() {
-                @Override
-                public void visit(DeploymentBuilder deploymentBuilder) {
-                    deploymentBuilder.editOrNewSpec().withReplicas(replicas).endSpec();
-                }
-            });
-            // Openshift
-            builder.accept(new TypedVisitor<DeploymentConfigBuilder>() {
-                @Override
-                public void visit(DeploymentConfigBuilder deploymentBuilder) {
-                    deploymentBuilder.editOrNewSpec().withReplicas(replicas).endSpec();
-                }
-            });
-        }
+  @Override
+  public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
+    Integer replicas = Configs.asInteger(getValueFromConfig(JKUBE_ENFORCED_REPLICAS, null));
+    if (replicas != null) {
+      handlerHub.getControllerHandlers().forEach(controller -> controller.overrideReplicas(builder, replicas));
     }
+  }
 
 }

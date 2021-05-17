@@ -34,6 +34,7 @@ public class HandlerHubTest {
   public static Collection<Function<HandlerHub, Supplier<Object>>> data() {
     return Arrays.asList(
         hh -> hh::getDeploymentHandler,
+        hh -> hh::getDeploymentConfigHandler,
         hh -> hh::getReplicaSetHandler,
         hh -> hh::getReplicationControllerHandler,
         hh -> hh::getStatefulSetHandler,

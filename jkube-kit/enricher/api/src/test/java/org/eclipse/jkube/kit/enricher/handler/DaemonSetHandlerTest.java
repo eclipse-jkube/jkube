@@ -13,20 +13,23 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.apps.DaemonSet;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -46,6 +49,8 @@ public class DaemonSetHandlerTest {
     List<String> ports = new ArrayList<>();
 
     List<String> tags = new ArrayList<>();
+
+    private DaemonSetHandler daemonSetHandler;
 
     @Before
     public void before(){
@@ -74,16 +79,13 @@ public class DaemonSetHandlerTest {
                 .registry("docker.io").build();
 
         images.add(imageConfiguration);
+
+        daemonSetHandler = new DaemonSetHandler(new PodTemplateHandler(new ContainerHandler(project.getProperties(),
+            new GroupArtifactVersion("g","a","v"), probeHandler)));
     }
 
     @Test
     public void daemonTemplateHandlerTest() {
-        ContainerHandler containerHandler = getContainerHandler();
-
-        PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
-
-        DaemonSetHandler daemonSetHandler = new DaemonSetHandler(podTemplateHandler);
-
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -109,20 +111,9 @@ public class DaemonSetHandlerTest {
 
     }
 
-    private ContainerHandler getContainerHandler() {
-        return new ContainerHandler(project.getProperties(), new GroupArtifactVersion("g","a","v"), probeHandler);
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void daemonTemplateHandlerWithInvalidNameTest() {
-        //invalid controller name
-        ContainerHandler containerHandler = getContainerHandler();
-
-        PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
-
-        DaemonSetHandler daemonSetHandler = new DaemonSetHandler(podTemplateHandler);
-
-        //with invalid controller name
+        // with invalid controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
@@ -135,13 +126,7 @@ public class DaemonSetHandlerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void daemonTemplateHandlerWithoutControllerTest() {
-        //without controller name
-        ContainerHandler containerHandler = getContainerHandler();
-
-        PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
-
-        DaemonSetHandler daemonSetHandler = new DaemonSetHandler(podTemplateHandler);
-        //without controller name
+        // without controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")
@@ -149,5 +134,17 @@ public class DaemonSetHandlerTest {
                 .build();
 
         daemonSetHandler.get(config, images);
+    }
+
+    @Test
+    public void overrideReplicas() {
+        // Given
+        final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(new DaemonSet());
+        // When
+        daemonSetHandler.overrideReplicas(klb, 1337);
+        // Then
+        assertThat(klb.buildItems())
+            .hasSize(1)
+            .first().isEqualTo(new DaemonSet());
     }
 }

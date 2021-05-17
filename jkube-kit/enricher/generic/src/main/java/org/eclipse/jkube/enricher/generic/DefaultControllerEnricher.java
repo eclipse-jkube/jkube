@@ -76,6 +76,8 @@ public class DefaultControllerEnricher extends BaseEnricher {
     }
 
     private static ControllerType fromType(String type) {
+      // There's no DEPLOYMENTCONFIG entry since it will be taken care of by DeploymentConfigEnricher
+      // where the resulting Deployment is converted to a DeploymentConfig
       switch (Optional.ofNullable(type).orElse("").toUpperCase(Locale.ENGLISH)) {
         case "STATEFULSET":
           return STATEFUL_SET;
