@@ -13,20 +13,24 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -47,6 +51,8 @@ public class ReplicaSetHandlerTest {
     List<String> ports = new ArrayList<>();
 
     List<String> tags = new ArrayList<>();
+
+    private ReplicaSetHandler replicaSetHandler;
 
     @Before
     public void before(){
@@ -75,17 +81,13 @@ public class ReplicaSetHandlerTest {
                 .registry("docker.io").build();
 
         images.add(imageConfiguration);
+
+        replicaSetHandler = new ReplicaSetHandler(new PodTemplateHandler(new ContainerHandler(project.getProperties(),
+            new GroupArtifactVersion("g","a","v"), probeHandler)));
     }
 
     @Test
     public void replicaSetHandlerTest() {
-
-        ContainerHandler containerHandler = getContainerHandler();
-
-        PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
-
-        ReplicaSetHandler replicaSetHandler = new ReplicaSetHandler(podTemplateHandler);
-
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -113,20 +115,9 @@ public class ReplicaSetHandlerTest {
 
     }
 
-    private ContainerHandler getContainerHandler() {
-        return new ContainerHandler(project.getProperties(), new GroupArtifactVersion("g","a","v"), probeHandler);
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void replicaSetHandlerWithInvalidNameTest() {
-        //invalid controller name
-        ContainerHandler containerHandler = getContainerHandler();
-
-        PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
-
-        ReplicaSetHandler replicaSetHandler = new ReplicaSetHandler(podTemplateHandler);
-
-        //with invalid controller name
+        // with invalid controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
@@ -140,14 +131,7 @@ public class ReplicaSetHandlerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void replicaSetHandlerWithoutControllerTest() {
-        //without controller name
-        ContainerHandler containerHandler = getContainerHandler();
-
-        PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
-
-        ReplicaSetHandler replicaSetHandler = new ReplicaSetHandler(podTemplateHandler);
-
-        //without controller name
+        // without controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")
@@ -156,5 +140,19 @@ public class ReplicaSetHandlerTest {
                 .build();
 
         replicaSetHandler.get(config, images);
+    }
+
+    @Test
+    public void overrideReplicas() {
+        // Given
+        final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(new ReplicaSetBuilder()
+            .editOrNewSpec().withReplicas(1).endSpec()
+            .build());
+        // When
+        replicaSetHandler.overrideReplicas(klb, 1337);
+        // Then
+        assertThat(klb.buildItems())
+            .hasSize(1)
+            .first().hasFieldOrPropertyWithValue("spec.replicas", 1337);
     }
 }

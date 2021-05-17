@@ -13,20 +13,24 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -47,6 +51,8 @@ public class DeploymentHandlerTest {
     List<String> ports = new ArrayList<>();
 
     List<String> tags = new ArrayList<>();
+
+    private DeploymentHandler deploymentHandler;
 
     @Before
     public void before(){
@@ -75,17 +81,13 @@ public class DeploymentHandlerTest {
                 .registry("docker.io").build();
 
         images.add(imageConfiguration);
+
+        deploymentHandler = new DeploymentHandler(new PodTemplateHandler(new ContainerHandler(project.getProperties(),
+            new GroupArtifactVersion("g", "a", "v"), probeHandler)));
     }
 
     @Test
     public void deploymentTemplateHandlerTest() {
-
-        ContainerHandler containerHandler = getContainerHandler();
-
-        PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
-
-        DeploymentHandler deploymentHandler = new DeploymentHandler(podTemplateHandler);
-
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -113,20 +115,9 @@ public class DeploymentHandlerTest {
 
     }
 
-    private ContainerHandler getContainerHandler() {
-        return new ContainerHandler(project.getProperties(), new GroupArtifactVersion("g","a","v"), probeHandler);
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void deploymentTemplateHandlerWithInvalidNameTest() {
-        //invalid controller name
-        ContainerHandler containerHandler = getContainerHandler();
-
-        PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
-
-        DeploymentHandler deploymentHandler = new DeploymentHandler(podTemplateHandler);
-
-        //with invalid controller name
+        // with invalid controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
@@ -140,14 +131,7 @@ public class DeploymentHandlerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void deploymentTemplateHandlerWithoutControllerTest() {
-        //without controller name
-        ContainerHandler containerHandler = getContainerHandler();
-
-        PodTemplateHandler podTemplateHandler = new PodTemplateHandler(containerHandler);
-
-        DeploymentHandler deploymentHandler = new DeploymentHandler(podTemplateHandler);
-
-        //without controller name
+        // without controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")
@@ -156,5 +140,19 @@ public class DeploymentHandlerTest {
                 .build();
 
         deploymentHandler.get(config, images);
+    }
+
+    @Test
+    public void overrideReplicas() {
+        // Given
+        final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
+            .editOrNewSpec().withReplicas(1).endSpec()
+            .build());
+        // When
+        deploymentHandler.overrideReplicas(klb, 1337);
+        // Then
+        assertThat(klb.buildItems())
+            .hasSize(1)
+            .first().hasFieldOrPropertyWithValue("spec.replicas", 1337);
     }
 }

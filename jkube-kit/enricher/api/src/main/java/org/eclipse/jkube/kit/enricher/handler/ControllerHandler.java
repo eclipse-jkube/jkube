@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -25,4 +26,6 @@ public interface ControllerHandler<T extends HasMetadata> {
   T get(ResourceConfig config, List<ImageConfiguration> images);
 
   PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images);
+
+  void overrideReplicas(KubernetesListBuilder resources, int replicas);
 }

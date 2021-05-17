@@ -19,6 +19,8 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
@@ -45,6 +47,16 @@ public class DeploymentHandler implements ControllerHandler<Deployment> {
   @Override
   public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
     return get(config, images).getSpec().getTemplate();
+  }
+
+  @Override
+  public void overrideReplicas(KubernetesListBuilder resources, int replicas) {
+    resources.accept(new TypedVisitor<DeploymentBuilder>() {
+      @Override
+      public void visit(DeploymentBuilder builder) {
+        builder.editOrNewSpec().withReplicas(replicas).endSpec();
+      }
+    });
   }
 
   private ObjectMeta createDeploymentMetaData(ResourceConfig config) {

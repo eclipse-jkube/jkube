@@ -24,27 +24,23 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpecBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfig;
+import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfigSpec;
+import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
 
-/**
- * @author roland
- */
-public class ReplicaSetHandler implements ControllerHandler<ReplicaSet> {
-
+public class DeploymentConfigHandler implements ControllerHandler<DeploymentConfig> {
   private final PodTemplateHandler podTemplateHandler;
 
-  ReplicaSetHandler(PodTemplateHandler podTemplateHandler) {
+  DeploymentConfigHandler(PodTemplateHandler podTemplateHandler) {
     this.podTemplateHandler = podTemplateHandler;
   }
 
   @Override
-  public ReplicaSet get(ResourceConfig config, List<ImageConfiguration> images) {
-    return new ReplicaSetBuilder()
-        .withMetadata(createRsMetaData(config))
-        .withSpec(createSpec(config, images))
+  public DeploymentConfig get(ResourceConfig config, List<ImageConfiguration> images) {
+    return new DeploymentConfigBuilder()
+        .withMetadata(createMetaData(config))
+        .withSpec(createDeploymentConfigSpec(config, images))
         .build();
   }
 
@@ -55,22 +51,22 @@ public class ReplicaSetHandler implements ControllerHandler<ReplicaSet> {
 
   @Override
   public void overrideReplicas(KubernetesListBuilder resources, int replicas) {
-    resources.accept(new TypedVisitor<ReplicaSetBuilder>() {
+    resources.accept(new TypedVisitor<DeploymentConfigBuilder>() {
       @Override
-      public void visit(ReplicaSetBuilder builder) {
+      public void visit(DeploymentConfigBuilder builder) {
         builder.editOrNewSpec().withReplicas(replicas).endSpec();
       }
     });
   }
 
-  private ObjectMeta createRsMetaData(ResourceConfig config) {
+  private ObjectMeta createMetaData(ResourceConfig config) {
     return new ObjectMetaBuilder()
         .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
         .build();
   }
 
-  private ReplicaSetSpec createSpec(ResourceConfig config, List<ImageConfiguration> images) {
-    return new ReplicaSetSpecBuilder()
+  private DeploymentConfigSpec createDeploymentConfigSpec(ResourceConfig config, List<ImageConfiguration> images) {
+    return new DeploymentConfigSpecBuilder()
         .withReplicas(config.getReplicas())
         .withTemplate(podTemplateHandler.getPodTemplate(config, images))
         .build();

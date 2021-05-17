@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
@@ -48,6 +49,11 @@ public class DaemonSetHandler implements ControllerHandler<DaemonSet> {
   @Override
   public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
     return get(config, images).getSpec().getTemplate();
+  }
+
+  @Override
+  public void overrideReplicas(KubernetesListBuilder resources, int replicas) {
+    // NOOP
   }
 
   private ObjectMeta createDaemonSetMetaData(ResourceConfig config) {

@@ -30,7 +30,6 @@ import java.util.List;
 
 /**
  * @author roland
- * @since 08/04/16
  */
 public class PodTemplateHandler {
 
@@ -42,14 +41,13 @@ public class PodTemplateHandler {
 
     public PodTemplateSpec getPodTemplate(ResourceConfig config, List<ImageConfiguration> images)  {
         return new PodTemplateSpecBuilder()
-            .withMetadata(createPodMetaData(config))
+            .withMetadata(createPodMetaData())
             .withSpec(createPodSpec(config, images))
             .build();
     }
 
-    private ObjectMeta createPodMetaData(ResourceConfig config) {
-        return new ObjectMetaBuilder()
-            .build();
+    private ObjectMeta createPodMetaData() {
+        return new ObjectMetaBuilder().build();
     }
 
     private PodSpec createPodSpec(ResourceConfig config, List<ImageConfiguration> images) {

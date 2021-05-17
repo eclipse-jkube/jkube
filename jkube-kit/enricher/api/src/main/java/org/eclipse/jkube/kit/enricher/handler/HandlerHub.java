@@ -17,6 +17,8 @@ package org.eclipse.jkube.kit.enricher.handler;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -27,6 +29,7 @@ public class HandlerHub {
 
     private final PodTemplateHandler podTemplateHandler;
     private final LazyBuilder<DeploymentHandler> deploymentHandler;
+    private final LazyBuilder<DeploymentConfigHandler> deploymentConfigHandler;
     private final LazyBuilder<ReplicaSetHandler> replicaSetHandler;
     private final LazyBuilder<ReplicationControllerHandler> replicationControllerHandler;
     private final LazyBuilder<StatefulSetHandler> statefulSetHandler;
@@ -41,6 +44,7 @@ public class HandlerHub {
         ContainerHandler containerHandler = new ContainerHandler(configuration, groupArtifactVersion, probeHandler);
         podTemplateHandler = new PodTemplateHandler(containerHandler);
         deploymentHandler = new LazyBuilder<>(() -> new DeploymentHandler(podTemplateHandler));
+        deploymentConfigHandler = new LazyBuilder<>(() -> new DeploymentConfigHandler(podTemplateHandler));
         replicaSetHandler = new LazyBuilder<>(() -> new ReplicaSetHandler(podTemplateHandler));
         replicationControllerHandler = new LazyBuilder<>(() -> new ReplicationControllerHandler(podTemplateHandler));
         statefulSetHandler = new LazyBuilder<>(() -> new StatefulSetHandler(podTemplateHandler));
@@ -51,8 +55,23 @@ public class HandlerHub {
         serviceHandler = new LazyBuilder<>(ServiceHandler::new);
     }
 
+    public List<? extends ControllerHandler<?>> getControllerHandlers() {
+        return Arrays.asList(
+            getDaemonSetHandler(),
+            getDeploymentConfigHandler(),
+            getDeploymentHandler(),
+            getJobHandler(),
+            getReplicaSetHandler(),
+            getReplicationControllerHandler(),
+            getStatefulSetHandler()
+        );
+    }
     public DeploymentHandler getDeploymentHandler() {
         return deploymentHandler.get();
+    }
+
+    public DeploymentConfigHandler getDeploymentConfigHandler() {
+        return deploymentConfigHandler.get();
     }
 
     public ReplicaSetHandler getReplicaSetHandler() {
