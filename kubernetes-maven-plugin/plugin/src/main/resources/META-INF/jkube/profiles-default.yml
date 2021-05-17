@@ -41,7 +41,6 @@
     - jkube-volume-permission
     - jkube-configmap-file
     - jkube-secret-file
-    - jkube-replicas
 
     # Route exposure
     - jkube-openshift-service-expose
@@ -77,6 +76,9 @@
     - jkube-docker-registry-secret
     - jkube-triggers-annotation
     - jkube-openshift-imageChangeTrigger
+
+    # ReplicaCountEnricher overrides .spec.replicas field of any resource (even dependencies)
+    - jkube-replicas
 
   generator:
     # The order given in "includes" is the order in which generators are called

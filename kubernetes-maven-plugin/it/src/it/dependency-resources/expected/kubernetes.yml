@@ -1,0 +1,81 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.io/git-url: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: jkube-maven-sample-dependency-resources-dependent
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube
+    name: example
+  spec:
+    replicas: 1337
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: jkube-maven-sample-dependency-resources-dependent
+        provider: jkube
+        group: org.eclipse.jkube
+    template:
+      metadata:
+        annotations:
+          jkube.io/git-url: "@ignore@"
+          jkube.io/git-commit: "@ignore@"
+          jkube.io/git-branch: "@ignore@"
+        labels:
+          app: jkube-maven-sample-dependency-resources-dependent
+          provider: jkube
+          version: "@ignore@"
+          group: org.eclipse.jkube
+      spec:
+        containers:
+        - env:
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: busybox
+          name: jkube-maven-sample-dependency-resources-dependent
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      image.openshift.io/triggers: "@ignore@"
+    labels:
+      env: dev
+      role: web
+    name: web
+  spec:
+    replicas: 1337
+    selector:
+      matchLabels:
+        role: web
+    template:
+      metadata:
+        labels:
+          role: web
+      spec:
+        containers:
+          - image: nginx
+            name: nginx
