@@ -973,6 +973,6 @@ endif::[]
 
 | *replicas*
 | Number of replicas for the container.
-| `jkube.replicas`
+|
 
 |===

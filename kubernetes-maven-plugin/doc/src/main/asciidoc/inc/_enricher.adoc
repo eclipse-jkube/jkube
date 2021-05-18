@@ -82,7 +82,7 @@ This plugin comes with a set of default enrichers. In addition custom enrichers 
 | Add a default name to every object which misses a name.
 
 | <<jkube-namespace>>
-| Add specified _Namespace_ to Kubernetes resources metadata or create a new Namespace
+| Set the _Namespace_ of the generated and processed Kubernetes resources metadata and optionally create a new Namespace
 
 | <<jkube-pod-annotation>>
 | Copy over annotations from a `Deployment` to a `Pod`
@@ -95,6 +95,9 @@ This plugin comes with a set of default enrichers. In addition custom enrichers 
 
 | <<jkube-prometheus>>
 | Add Prometheus annotations.
+
+| <<jkube-replicas>>
+| Override number of replicas for any controller processed by JKube.
 
 | <<jkube-revision-history-enricher>>
 | Add revision history limit (https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit[Kubernetes doc]) as a deployment spec property to the Kubernetes/OpenShift resources.
@@ -169,6 +172,8 @@ include::enricher/_jkube_openshift_autotls.adoc[]
 include::enricher/_jkube_project_label.adoc[]
 
 include::enricher/_jkube_prometheus.adoc[]
+
+include::enricher/_jkube_replicas.adoc[]
 
 include::enricher/_jkube_revision_history.adoc[]
 
