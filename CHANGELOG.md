@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.3.0-SNAPSHOT
+### 1.3.0
 * Fix #497: Assembly descriptor removed but still in documentation
 * Fix #576: Add support to publishing helm chart
 * Fix #634: Replace occurrences of keySet() with entrySet() when value are needed
