@@ -1207,7 +1207,7 @@ public class ApplyService {
             doCreateJob(job, currentNamespace, sourceName);
         } catch (KubernetesClientException exception) {
             if(exception.getStatus().getCode().equals(HttpURLConnection.HTTP_CONFLICT)) {
-                Job old = kubernetesClient.batch().jobs().inNamespace(currentNamespace).withName(id).get();
+                Job old = kubernetesClient.batch().v1().jobs().inNamespace(currentNamespace).withName(id).get();
                 Job updatedJob = patchService.compareAndPatchEntity(currentNamespace, job, old);
                 log.info("Updated Job: " + updatedJob.getMetadata().getName());
                 return;
@@ -1217,7 +1217,7 @@ public class ApplyService {
     }
 
     public void doCreateJob(Job job, String namespace, String sourceName) {
-        kubernetesClient.batch().jobs().inNamespace(namespace).create(job);
+        kubernetesClient.batch().v1().jobs().inNamespace(namespace).create(job);
         log.info("Creating a Job from " + sourceName + " namespace " + namespace + " name " + getName(job));
     }
 

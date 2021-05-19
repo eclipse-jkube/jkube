@@ -257,7 +257,7 @@ public class PatchService {
                 return oldObj;
             }
 
-            JobBuilder entity = new JobBuilder(client.batch().jobs().withName(oldObj.getMetadata().getName()).fromServer().get());
+            JobBuilder entity = new JobBuilder(client.batch().v1().jobs().withName(oldObj.getMetadata().getName()).fromServer().get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -271,7 +271,7 @@ public class PatchService {
                 entity.editSpec().withTemplate(newObj.getSpec().getTemplate());
             }
 
-            return client.batch().jobs().withName(oldObj.getMetadata().getName()).edit(p -> entity.build());
+            return client.batch().v1().jobs().withName(oldObj.getMetadata().getName()).edit(p -> entity.build());
         };
     }
 
