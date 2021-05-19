@@ -78,7 +78,7 @@ public class PatchServiceTest {
     }
 
     @Test
-    public void testSecretPatching() {
+    public void testSecretPatching() throws InterruptedException {
         Secret oldSecret = new SecretBuilder()
                 .withNewMetadata().withName("secret").endMetadata()
                 .addToData("test", "dGVzdA==")
@@ -97,7 +97,9 @@ public class PatchServiceTest {
 
         patchService.compareAndPatchEntity("test", newSecret, oldSecret);
         collector.assertEventsRecordedInOrder("get-secret", "get-secret", "patch-secret");
-        assertEquals("[{\"op\":\"remove\",\"path\":\"/data\"},{\"op\":\"add\",\"path\":\"/stringData\",\"value\":{\"test\":\"test\"}}]", collector.getBodies().get(3));
+        // Due to recent patch related improvements in KubernetesClient now edit call requires 2 GET requests
+        // for resource from server instead of 3 GET requests.
+        assertEquals("[{\"op\":\"remove\",\"path\":\"/data\"},{\"op\":\"add\",\"path\":\"/stringData\",\"value\":{\"test\":\"test\"}}]", collector.getBodies().get(2));
 
     }
 
