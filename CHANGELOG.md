@@ -28,8 +28,9 @@ Usage:
 * Port fabric8io/docker-maven-plugin#1311: Use AWS SDK to fetch AWS credentials
 * Fix #710: Support DockerImage as output for Openshift builds
 * Fix #548: Define property for skipping cluster autodetect/offline mode
+* Fix: Update Fabric8 Kubernetes Client to 5.4.0
 
-### 1.3.0
+### 1.3.0 (2021-05-18)
 * Fix #497: Assembly descriptor removed but still in documentation
 * Fix #576: Add support to publishing helm chart
 * Fix #634: Replace occurrences of keySet() with entrySet() when value are needed
