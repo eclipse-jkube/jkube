@@ -34,12 +34,14 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -95,13 +97,14 @@ public class JibBuildServiceTest {
         File projectBaseDir = Files.createTempDirectory("test").toFile();
         ImageConfiguration imageConfiguration = getImageConfiguration();
         setupServiceHubExpectations(projectBaseDir);
-
         // When
         File tarArchive = JibBuildService.getBuildTarArchive(imageConfiguration, serviceHub);
-
         // Then
-        assertNotNull(tarArchive);
-        assertEquals("/target/test/testimage/0.0.1/tmp/docker-build.tar", tarArchive.getAbsolutePath().substring(projectBaseDir.getAbsolutePath().length()));
+        assertThat(tarArchive)
+          .isNotNull()
+          .isEqualTo(projectBaseDir.toPath().resolve(
+            FileSystems.getDefault().getPath("target", "test", "testimage", "0.0.1", "tmp", "docker-build.tar")
+          ).toFile());
     }
 
 
@@ -111,13 +114,14 @@ public class JibBuildServiceTest {
         File projectBaseDir = Files.createTempDirectory("test").toFile();
         ImageConfiguration imageConfiguration = getImageConfiguration();
         setupServiceHubExpectations(projectBaseDir);
-
         // When
         File tarArchive = JibBuildService.getAssemblyTarArchive(imageConfiguration, serviceHub.getConfiguration(), logger);
-
         // Then
-        assertNotNull(tarArchive);
-        assertEquals("/target/test/testimage/0.0.1/tmp/docker-build.tar", tarArchive.getAbsolutePath().substring(projectBaseDir.getAbsolutePath().length()));
+        assertThat(tarArchive)
+          .isNotNull()
+          .isEqualTo(projectBaseDir.toPath().resolve(
+            FileSystems.getDefault().getPath("target", "test", "testimage", "0.0.1", "tmp", "docker-build.tar")
+          ).toFile());
     }
 
     @Test

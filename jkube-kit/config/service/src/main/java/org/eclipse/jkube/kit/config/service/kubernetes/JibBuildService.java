@@ -77,21 +77,22 @@ public class JibBuildService implements BuildService {
                 configuration.getRegistryConfig(), false, imageConfig, log);
             final JibContainerBuilder containerBuilder = containerFromImageConfiguration(imageConfig, pullRegistryCredential);
 
-            File dockerTarArchive = getAssemblyTarArchive(imageConfig, configuration, log);
-            // TODO: Improve Assembly Manager so that the effective assemblyFileEntries computed can be properly shared
-            // the call to AssemblyManager.getInstance().createDockerTarArchive should not be necessary,
-            // files should be added using the AssemblyFileEntry list. AssemblyManager, should provide
-            // a common way to achieve this so that both the tar builder and any other builder could get a hold of
-            // archive customizers, file entries, etc.
             final Map<File, AssemblyFileEntry> files = AssemblyManager.getInstance()
                 .copyFilesToFinalTarballDirectory(
                     configuration.getProject(), buildDirs,
                     AssemblyManager.getAssemblyConfiguration(imageConfig.getBuildConfiguration(), configuration)
                 ).stream()
                 .collect(Collectors.toMap(AssemblyFileEntry::getDest, Function.identity(), (oldV, newV) -> newV));
+            // END
             JibServiceUtil.copyToContainer(
                 containerBuilder, buildDirs.getOutputDirectory(), buildDirs.getOutputDirectory().getAbsolutePath(), files);
 
+            // TODO: Improve Assembly Manager so that the effective assemblyFileEntries computed can be properly shared
+            // the call to AssemblyManager.getInstance().createDockerTarArchive should not be necessary,
+            // files should be added using the AssemblyFileEntry list. AssemblyManager, should provide
+            // a common way to achieve this so that both the tar builder and any other builder could get a hold of
+            // archive customizers, file entries, etc.
+            File dockerTarArchive = getAssemblyTarArchive(imageConfig, configuration, log);
             JibServiceUtil.buildContainer(containerBuilder,
                     TarImage.at(dockerTarArchive.toPath()).named(imageConfig.getName()), log);
             log.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
