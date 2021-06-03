@@ -21,3 +21,5 @@ parameters:
     value: 512Mi
   - name: requests_memory
     value: 256Mi
+  - name: replicas
+    value: 2

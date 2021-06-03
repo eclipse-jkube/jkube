@@ -15,3 +15,4 @@
 global_template_env_var: This is a sample
 limits_memory: 512Mi
 requests_memory: 256Mi
+replicas: 2

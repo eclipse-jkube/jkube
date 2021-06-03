@@ -15,6 +15,6 @@
 kind: Template
 parameters:
   - name: limits_memory
-    value: "512Mi"
+    value: 512Mi
   - name: requests_memory
-    value: "256Mi"
+    value: 256Mi

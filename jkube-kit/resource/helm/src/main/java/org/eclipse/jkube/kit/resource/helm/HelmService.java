@@ -203,7 +203,7 @@ public class HelmService {
     String required = "";
     String value = parameter.getParameter().getValue();
     if (value != null) {
-      defaultExpression = " | default \"" + value + "\"";
+      defaultExpression = " | default " + value;
     }
     if (Boolean.TRUE.equals(parameter.getParameter().getRequired())) {
       required = "required \"A valid .Values." + parameter.getHelmName() + " entry required!\" ";

@@ -29,7 +29,7 @@ items:
   metadata:
     annotations:
       jkube/it: This is a test
-      helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default "This is a sample" }}
+      helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default This is a sample }}
       escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
     labels:
       app: test
@@ -52,7 +52,7 @@ items:
   metadata:
     annotations:
       jkube/it: This is a test
-      helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default "This is a sample" }}
+      helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default This is a sample }}
       escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
     labels:
       app: test
@@ -60,7 +60,7 @@ items:
       version: 1337
     name: test
   spec:
-    replicas: 1
+    replicas: {{ .Values.replicas | default 2 }}
     revisionHistoryLimit: 2
     selector:
       matchLabels:
@@ -71,7 +71,7 @@ items:
       metadata:
         annotations:
           jkube/it: This is a test
-          helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default "This is a sample" }}
+          helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default This is a sample }}
           escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
         labels:
           app: test
@@ -99,8 +99,8 @@ items:
             protocol: TCP
           resources:
             limits:
-              memory: {{ .Values.limits_memory | default "512Mi" }}
+              memory: {{ .Values.limits_memory | default 512Mi }}
             requests:
-              memory: {{ .Values.requests_memory | default "256Mi" }}
+              memory: {{ .Values.requests_memory | default 256Mi }}
           securityContext:
             privileged: false
