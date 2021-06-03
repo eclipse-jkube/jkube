@@ -51,7 +51,6 @@ import java.util.Objects;
  */
 public class ImageStreamService {
 
-
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     private static final int IMAGE_STREAM_TAG_RETRIES = 15;
     private static final long IMAGE_STREAM_TAG_RETRY_TIMEOUT_IN_MILLIS = 1000;
@@ -74,7 +73,7 @@ public class ImageStreamService {
         try {
             ImageStream is = new ImageStreamBuilder()
                     .withNewMetadata()
-                    .withName(imageName.getSimpleName())
+                    .withName(resolveImageStreamName(imageName))
                     .endMetadata()
 
                     .withNewSpec()
@@ -87,7 +86,7 @@ public class ImageStreamService {
                     .build();
             createOrUpdateImageStreamTag(client, imageName, is);
             appendImageStreamToFile(is, target);
-            log.info("ImageStream %s written to %s", imageName.getSimpleName(), target);
+            log.info("ImageStream %s written to %s", resolveImageStreamName(imageName), target);
         } catch (KubernetesClientException e) {
             KubernetesHelper.handleKubernetesClientException(e, this.log);
         } catch (IOException e) {
@@ -122,8 +121,8 @@ public class ImageStreamService {
 
     private void createOrUpdateImageStreamTag(OpenShiftClient client, ImageName image, ImageStream is) {
         String namespace = client.getNamespace();
-        String tagSha = findTagSha(client, image.getSimpleName(), client.getNamespace());
-        String name = image.getSimpleName() + "@" + tagSha;
+        String tagSha = findTagSha(client, resolveImageStreamName(image), client.getNamespace());
+        String name = resolveImageStreamName(image) + "@" + tagSha;
 
         TagReference tag = extractTag(is);
         ObjectReference from = extractFrom(tag);
@@ -254,5 +253,8 @@ public class ImageStreamService {
             return null;
         }
 
+    }
+    protected static String resolveImageStreamName(ImageName name) {
+        return name.getSimpleName().replace("/", "-");
     }
 }
