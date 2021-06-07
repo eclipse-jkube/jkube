@@ -42,7 +42,7 @@ public enum ResourceFileType {
         public ObjectMapper getObjectMapper() {
             return new ObjectMapper(new YAMLFactory()
                     .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true)
-                    //.configure(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS, fals)
+                    .configure(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS, true)
             );
         }
     };

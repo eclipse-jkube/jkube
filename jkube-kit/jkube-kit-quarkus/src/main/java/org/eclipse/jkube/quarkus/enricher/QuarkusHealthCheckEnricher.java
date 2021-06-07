@@ -24,6 +24,8 @@ import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
 import static org.eclipse.jkube.kit.common.util.FileUtil.stripPrefix;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
 
 
 /**
@@ -73,7 +75,11 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         }
         return new ProbeBuilder()
             .withNewHttpGet()
-              .withNewPort(asInteger(getConfig(Config.PORT)))
+              .withNewPort(asInteger(
+                  extractPort(
+                      getContext().getProject(),
+                      getQuarkusConfiguration(getContext().getProject()),
+                      getConfig(Config.PORT))))
               .withPath(String.format("/%s/%s", stripPrefix(getConfig(Config.HEALTH_PATH), "/"), subPath))
               .withScheme(getConfig(Config.SCHEME))
             .endHttpGet()

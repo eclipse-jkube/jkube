@@ -18,8 +18,8 @@ parameters:
     required: true
     value: This is a sample
   - name: limits_memory
-    value: 512Mi
+    value: "512Mi"
   - name: requests_memory
-    value: 256Mi
+    value: "256Mi"
   - name: replicas
     value: 2
