@@ -29,7 +29,7 @@ items:
   metadata:
     annotations:
       jkube/it: This is a test
-      helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default This is a sample }}
+      helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default "This is a sample" }}
       escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
     labels:
       app: test
