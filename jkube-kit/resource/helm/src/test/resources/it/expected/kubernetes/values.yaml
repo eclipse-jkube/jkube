@@ -12,6 +12,8 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+golang_expression: "{{ .Values.unused_value | upper | quote }}"
 global_template_env_var: This is a sample
 limits_memory: 512Mi
+unused_value: the-value
 requests_memory: 256Mi

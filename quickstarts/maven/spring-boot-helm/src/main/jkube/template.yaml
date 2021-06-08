@@ -18,3 +18,13 @@ parameters:
     value: "512Mi"
   - name: requests_memory
     value: "256Mi"
+  - name: helm_namespace
+    value: |
+        {{ .Release.Namespace }}
+  - name: i_should_be_quoted
+    value: I need quotes
+  - name: golang_expression
+    value: "{{ .Values.i_should_be_quoted | upper | quote }}"
+  - name: golang_expression_scalar
+    value: >
+        {{ .Values.i_should_be_quoted | upper | quote }}

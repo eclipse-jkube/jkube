@@ -48,6 +48,23 @@ Helm chart can also be customized through `pom.xml` plugin configuration:
 </plugin>
 ```
 
+## Development environment
+
+This quickstart assumes the scenario where you have a project that will be deployed to production (Outer loop) using
+Helm charts. For this purpose you would run the previously mentioned goals (`k8s:resource k8s:helm`) to generate the
+charts. You might even want to configure your CI pipeline to publish the charts for you (`k8s:helm-push`)
+
+However, developer might want to use JKube to test and deploy your project to a development environment
+cluster (Inner loop). For this purpose, the placeholders defined for your Helm variables need to be completed with some
+values. This showcases the power of JKube, because the same fragments and generated YAMLs can be used for those purposes.
+
+In this example you'll find an additional Maven profile `dev` that includes the values for those placeholders, so in case
+you are using this in a development environment, you can also take advantage of JKube.
+
+```shell
+$ mvn k8s:resource k8s:apply -Pdev -Pkubernetes
+```
+
 ## How to test
 
 ### Docker build strategy (default)

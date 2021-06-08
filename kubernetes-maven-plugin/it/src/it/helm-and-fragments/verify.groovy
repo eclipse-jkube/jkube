@@ -21,7 +21,9 @@ import org.eclipse.jkube.maven.it.Verify
 }
 
 // Verify k8s:helm output
-["templates/helm-and-fragments-deployment"].each {
+[
+  "Chart", "values", "templates/helm-and-fragments-deployment"
+].each {
   Verify.verifyResourceDescriptors(
           new File(basedir, sprintf("/target/jkube/helm/helm-and-fragments/kubernetes/%s.yaml", it)),
           new File(basedir, sprintf("/expected/helm/%s.yaml", it)))

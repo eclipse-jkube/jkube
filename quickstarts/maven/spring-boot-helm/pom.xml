@@ -67,6 +67,16 @@
 
   <profiles>
     <profile>
+      <id>dev</id>
+      <properties>
+        <helm_namespace>default</helm_namespace>
+        <golang_expression>n/a development</golang_expression>
+        <golang_expression_scalar>n/a development</golang_expression_scalar>
+        <limits_memory/>
+        <requests_memory/>
+      </properties>
+    </profile>
+    <profile>
       <id>kubernetes</id>
       <build>
         <plugins>
