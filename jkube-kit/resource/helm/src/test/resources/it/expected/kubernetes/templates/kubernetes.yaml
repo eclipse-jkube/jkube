@@ -31,6 +31,7 @@ items:
       jkube/it: This is a test
       helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default "This is a sample" }}
       escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
+      helm-golang-expression: {{ .Values.unused_value | upper | quote }}
     labels:
       app: test
       provider: jkube

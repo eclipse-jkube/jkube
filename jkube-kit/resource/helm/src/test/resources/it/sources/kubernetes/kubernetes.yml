@@ -31,6 +31,7 @@ items:
       jkube/it: This is a test
       helm-variable: ${GLOBAL_TEMPLATE_ENV_VAR}
       escape-test: "{{ }} should be escaped to prevent helm errors"
+      helm-golang-expression: ${golang_expression}
     labels:
       app: test
       provider: jkube

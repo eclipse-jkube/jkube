@@ -21,3 +21,7 @@ parameters:
     value: 512Mi
   - name: requests_memory
     value: 256Mi
+  - name: unused_value
+    value: the-value
+  - name: golang_expression
+    value: "{{ .Values.unused_value | upper | quote }}"

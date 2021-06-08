@@ -97,7 +97,7 @@ public class HelmServiceIT {
       final Map<String, ?> expectedContent = mapper.readValue(replacePlaceholders(expected), Map.class);
       final Map<String, ?> actualContent =
           mapper.readValue(replacePlaceholders(generatedYamls.resolve(expectations.relativize(expected))), Map.class);
-      assertThat(expectedContent).isEqualTo(actualContent);
+      assertThat(actualContent).isEqualTo(expectedContent);
     }
   }
 

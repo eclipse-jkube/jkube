@@ -17,6 +17,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
+    jkube.helm.sh/provided-value: {{ .Values.i_should_be_quoted | upper | quote }}
+    jkube.helm.sh/provided-value-scalar: {{ .Values.i_should_be_quoted | upper | quote }}
     jkube.io/git-url: "@ignore@"
     jkube.io/git-commit: "@ignore@"
     jkube.io/git-branch: "@ignore@"
@@ -26,6 +28,7 @@ metadata:
     version: "@ignore@"
     group: org.eclipse.jkube
   name: helm-and-fragments
+  namespace: {{ .Release.Namespace }
 spec:
   replicas: 1
   revisionHistoryLimit: 2
@@ -36,7 +39,10 @@ spec:
       group: org.eclipse.jkube
   template:
     metadata:
+      namespace: {{ .Release.Namespace }
       annotations:
+        jkube.helm.sh/provided-value: {{ .Values.i_should_be_quoted | upper | quote }}
+        jkube.helm.sh/provided-value-scalar: {{ .Values.i_should_be_quoted | upper | quote }}
         jkube.io/git-url: "@ignore@"
         jkube.io/git-commit: "@ignore@"
         jkube.io/git-branch: "@ignore@"
