@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>xml-image</artifactId>
+  <groupId>org.eclipse.jkube</groupId>
+  <version>0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
+        <version>@jkube.version@</version>
+        <configuration>
+          <images>
+            <image>
+              <name>repository/xml-based-image-test:latest</name>
+              <build>
+                <from>alpine</from>
+                <env>
+                  <JAVA_OPTIONS>-Xmx256m</JAVA_OPTIONS>
+                </env>
+                <labels>
+                  <MAINTAINER>JKube testing team</MAINTAINER>
+                </labels>
+                <assembly>
+                  <targetDir>/deployments</targetDir>
+                  <inline>
+                    <fileSets>
+                      <fileSet>
+                        <directory>src/static</directory>
+                        <outputDirectory>static</outputDirectory>
+                      </fileSet>
+                    </fileSets>
+                  </inline>
+                </assembly>
+                <ports>
+                  <port>8080</port>
+                </ports>
+                <entryPoint>
+                  <shell>java -jar /deployments/${project.artifactId}-${project.version}.jar</shell>
+                </entryPoint>
+              </build>
+            </image>
+          </images>
+          <resources>
+            <env>
+              <JAVA_OPTIONS>valueFromResourcesToBeMerged</JAVA_OPTIONS>
+            </env>
+          </resources>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
