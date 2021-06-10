@@ -35,6 +35,7 @@ import org.junit.rules.TemporaryFolder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
+@SuppressWarnings({"TestMethodWithIncorrectSignature", "ResultOfMethodCallIgnored"})
 public class AssemblyManagerTest {
 
   @Rule
@@ -102,7 +103,7 @@ public class AssemblyManagerTest {
   public void testCopyValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
     BuildConfiguration buildConfig = createBuildConfig();
 
-    assemblyManager.verifyGivenDockerfile(
+    AssemblyManager.verifyGivenDockerfile(
         new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
         buildConfig, new Properties(),
         logger);
@@ -115,10 +116,46 @@ public class AssemblyManagerTest {
   }
 
   @Test
+  public void testCopyMultipleValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
+    BuildConfiguration buildConfig = createBuildConfig().toBuilder()
+        .assembly(AssemblyConfiguration.builder().name("other-layer").build())
+        .build();
+
+    AssemblyManager.verifyGivenDockerfile(
+        new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_multiple_valid.test").getPath()),
+        buildConfig, new Properties(),
+        logger);
+
+    // @formatter:off
+    new Verifications() {{
+      logger.warn(anyString, (Object []) any); times = 0;
+    }};
+    //@formatter:on
+  }
+
+  @Test
+  public void testCopyMultipleInvalidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
+    BuildConfiguration buildConfig = createBuildConfig().toBuilder()
+        .assembly(AssemblyConfiguration.builder().name("other-layer").build())
+        .build();
+
+    AssemblyManager.verifyGivenDockerfile(
+        new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
+        buildConfig, new Properties(),
+        logger);
+
+    // @formatter:off
+    new Verifications() {{
+      logger.warn(anyString, (Object []) any); times = 1;
+    }};
+    //@formatter:on
+  }
+
+  @Test
   public void testCopyInvalidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
     BuildConfiguration buildConfig = createBuildConfig();
 
-    assemblyManager.verifyGivenDockerfile(
+    AssemblyManager.verifyGivenDockerfile(
         new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_invalid.test").getPath()),
         buildConfig, new Properties(),
         logger);
@@ -134,7 +171,7 @@ public class AssemblyManagerTest {
   public void testCopyChownValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
     BuildConfiguration buildConfig = createBuildConfig();
 
-    assemblyManager.verifyGivenDockerfile(
+    AssemblyManager.verifyGivenDockerfile(
         new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_chown_valid.test").getPath()),
         buildConfig,
         new Properties(),

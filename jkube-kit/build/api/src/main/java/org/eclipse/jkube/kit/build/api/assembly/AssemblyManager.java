@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
@@ -144,35 +147,41 @@ public class AssemblyManager {
     }
 
     // visible for testing
-    void verifyGivenDockerfile(File dockerFile, BuildConfiguration buildConfig, Properties properties, KitLogger log) throws IOException {
-        AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
-        if (assemblyConfig == null) {
-            return;
+    static void verifyGivenDockerfile(
+        File dockerFile, BuildConfiguration buildConfig, Properties properties, KitLogger log) throws IOException {
+        final Consumer<AssemblyConfiguration> assemblyVerifier = verifyAssemblyReferencedInDockerfile(
+            dockerFile, buildConfig, properties, log);
+        buildConfig.getAssemblies().forEach(assemblyVerifier);
+    }
+    private static Optional<String> firstNonOptionArgument(String... lineComponents) {
+        return Stream.of(lineComponents)
+            .skip(1)
+            // Skip command flags like --chown
+            .filter(component -> !component.startsWith("--"))
+            .findFirst();
+    }
+
+    private static Consumer<AssemblyConfiguration> verifyAssemblyReferencedInDockerfile(
+        File dockerFile, BuildConfiguration buildConfig, Properties properties, KitLogger log) throws IOException {
+        final List<String[]> keywordLines = new ArrayList<>();
+        for (String keyword : new String[] { "ADD", "COPY" }) {
+            keywordLines.addAll(
+                DockerFileUtil.extractLines(dockerFile, keyword, properties, buildConfig.getFilter()).stream()
+                .filter(line -> !line[0].startsWith("#"))
+                .collect(Collectors.toList())
+            );
         }
-
-        String name = assemblyConfig.getName();
-            for (String keyword : new String[] { "ADD", "COPY" }) {
-                List<String[]> lines = DockerFileUtil.extractLines(dockerFile, keyword, properties, buildConfig.getFilter());
-                for (String[] line : lines) {
-                    if (!line[0].startsWith("#")) {
-                        // Skip command flags like --chown
-                        int i;
-                        for (i = 1; i < line.length; i++) {
-                            String component = line[i];
-                            if (!component.startsWith("--")) {
-                                break;
-                            }
-                        }
-
-                        // contains an ADD/COPY ... targetDir .... All good.
-                        if (i < line.length && line[i].contains(name)) {
-                            return;
-                        }
-                    }
+        return assemblyConfiguration ->  {
+            final String name = assemblyConfiguration.getName();
+            for (String[] line : keywordLines) {
+                // contains an ADD/COPY ... targetDir .... All good.
+                if (firstNonOptionArgument(line).filter(arg -> arg.contains(name)).isPresent()) {
+                    return;
                 }
             }
-        log.warn("Dockerfile %s does not contain an ADD or COPY directive to include assembly created at %s. Ignoring assembly.",
-                 dockerFile.getPath(), name);
+            log.warn("Dockerfile %s does not contain an ADD or COPY directive to include assembly created at %s. Ignoring assembly.",
+                dockerFile.getPath(), name);
+        };
     }
 
     /**
@@ -187,10 +196,11 @@ public class AssemblyManager {
         throws IOException {
 
         BuildDirs buildDirs = createBuildDirs(imageConfiguration.getName(), jKubeConfiguration);
-        AssemblyConfiguration assemblyConfig = imageConfiguration.getBuildConfiguration().getAssembly();
         AssemblyFiles assemblyFiles = new AssemblyFiles(buildDirs.getOutputDirectory());
-        copyFilesToFinalTarballDirectory(jKubeConfiguration.getProject(), buildDirs, assemblyConfig)
-            .forEach(assemblyFiles::addEntry);
+        for (AssemblyConfiguration assemblyConfiguration : imageConfiguration.getBuildConfiguration().getAssemblies()) {
+            copyFilesToFinalTarballDirectory(jKubeConfiguration.getProject(), buildDirs, assemblyConfiguration)
+                .forEach(assemblyFiles::addEntry);
+        }
         return assemblyFiles;
     }
 

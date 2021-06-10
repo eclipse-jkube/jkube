@@ -129,6 +129,7 @@
               <exclude>**/expected-pom.xml</exclude>
               <exclude>**/enricher</exclude>
               <exclude>**/test/resources/**/*</exclude>
+              <exclude>**/it/src/it/*/expected/**/*</exclude>
               <exclude>.lgtm</exclude>
               <exclude>**/.gitkeep</exclude>
               <exclude>Jenkinsfile</exclude>

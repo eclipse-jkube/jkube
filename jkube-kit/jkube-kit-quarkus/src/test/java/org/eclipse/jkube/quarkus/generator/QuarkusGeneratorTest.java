@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.generator.api.DefaultImageLookup;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Assembly;
@@ -34,6 +33,8 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -203,7 +204,8 @@ public class QuarkusGeneratorTest {
         .hasSize(1)
         .element(0)
         .extracting(ImageConfiguration::getBuild)
-        .extracting(BuildConfiguration::getAssembly)
+        .extracting(BuildConfiguration::getAssemblies)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(AssemblyConfiguration.class))
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
         .extracting(AssemblyConfiguration::getInline)
         .extracting(Assembly::getFileSets)
@@ -226,7 +228,8 @@ public class QuarkusGeneratorTest {
         .hasSize(1)
         .element(0)
         .extracting(ImageConfiguration::getBuild)
-        .extracting(BuildConfiguration::getAssembly)
+        .extracting(BuildConfiguration::getAssemblies)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(AssemblyConfiguration.class))
         .hasFieldOrPropertyWithValue("targetDir", "/")
         .extracting(AssemblyConfiguration::getInline)
         .extracting(Assembly::getFileSets)
@@ -249,7 +252,8 @@ public class QuarkusGeneratorTest {
         .hasSize(1)
         .element(0)
         .extracting(ImageConfiguration::getBuild)
-        .extracting(BuildConfiguration::getAssembly)
+        .extracting(BuildConfiguration::getAssemblies)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(AssemblyConfiguration.class))
         .hasFieldOrPropertyWithValue("targetDir", "/")
         .extracting(AssemblyConfiguration::getInline)
         .extracting(Assembly::getFileSets)
@@ -272,7 +276,8 @@ public class QuarkusGeneratorTest {
         .hasSize(1)
         .element(0)
         .extracting(ImageConfiguration::getBuild)
-        .extracting(BuildConfiguration::getAssembly)
+        .extracting(BuildConfiguration::getAssemblies)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(AssemblyConfiguration.class))
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
         .extracting(AssemblyConfiguration::getInline)
         .extracting(Assembly::getFileSets)
@@ -310,7 +315,8 @@ public class QuarkusGeneratorTest {
         .hasSize(1)
         .element(0)
         .extracting(ImageConfiguration::getBuild)
-        .extracting(BuildConfiguration::getAssembly)
+        .extracting(BuildConfiguration::getAssemblies)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(AssemblyConfiguration.class))
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
         .extracting(AssemblyConfiguration::getInline)
         .extracting(Assembly::getFileSets)
@@ -333,7 +339,8 @@ public class QuarkusGeneratorTest {
         .hasSize(1)
         .element(0)
         .extracting(ImageConfiguration::getBuild)
-        .extracting(BuildConfiguration::getAssembly)
+        .extracting(BuildConfiguration::getAssemblies)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(AssemblyConfiguration.class))
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
         .extracting(AssemblyConfiguration::getInline)
         .extracting(Assembly::getFileSets)

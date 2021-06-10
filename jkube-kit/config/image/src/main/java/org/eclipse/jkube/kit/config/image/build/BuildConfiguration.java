@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.config.image.build;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -36,8 +37,9 @@ import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
+import javax.annotation.Nonnull;
 
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 
 /**
  * @author roland
@@ -200,8 +202,15 @@ public class BuildConfiguration implements Serializable {
   private HealthCheckConfiguration healthCheck;
   /**
    * Specifies the assembly configuration.
+   * @deprecated Use {@link #assemblies} instead
    */
-  private AssemblyConfiguration assembly;
+  @Deprecated
+  private AssemblyConfiguration assemblyDeprecated;
+  /**
+   * Assembly configurations to use
+   */
+  @Singular("assembly")
+  private List<AssemblyConfiguration> assemblies;
   /**
    * If set to true disables building of the image.
    */
@@ -251,6 +260,7 @@ public class BuildConfiguration implements Serializable {
     return dockerArchive;
   }
 
+  @Nonnull
   public File getContextDir() {
     if (contextDir != null) {
       return new File(contextDir);
@@ -402,6 +412,7 @@ public class BuildConfiguration implements Serializable {
     }
   }
 
+  @Nonnull
   public File calculateDockerFilePath() {
     if (dockerFile != null) {
       File dFile = new File(dockerFile);
@@ -469,4 +480,36 @@ public class BuildConfiguration implements Serializable {
     return matcher.matches();
   }
 
+  /**
+   *
+   * @deprecated Use {@link #getAssemblies()} instead
+   */
+  @Deprecated
+  public AssemblyConfiguration getAssembly() {
+    return Optional.ofNullable(getAssemblies())
+        .filter(l -> !l.isEmpty())
+        .map(l -> l.get(l.size() - 1))
+        .orElse(null);
+  }
+
+  /**
+   *
+   * @deprecated Use {@link #assemblies} instead
+   */
+  @Deprecated
+  public void setAssembly(AssemblyConfiguration assemblyDeprecated) {
+    this.assemblyDeprecated = assemblyDeprecated;
+  }
+
+  @Nonnull
+  public List<AssemblyConfiguration> getAssemblies() {
+    final List<AssemblyConfiguration> ret = new ArrayList<>();
+    if (assemblies != null) {
+      ret.addAll(assemblies);
+    }
+    if (assemblyDeprecated != null) {
+      ret.add(assemblyDeprecated);
+    }
+    return ret;
+  }
 }

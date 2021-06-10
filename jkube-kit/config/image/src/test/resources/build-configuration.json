@@ -37,7 +37,13 @@
   },
   "user": "root",
   "healthCheck": {},
-  "assembly": {},
+  "assembly": {
+    "name": "deprecated-single"
+  },
+  "assemblies": [
+    {"name": "multi-layer-support"},
+    {"name": "not-the-last-layer"}
+  ],
   "skip": false,
   "compression": "gzip",
   "buildOptions": {

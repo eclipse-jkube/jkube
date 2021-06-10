@@ -83,8 +83,8 @@ public class WatchService {
 
                 ArrayList<String> tasks = new ArrayList<>();
 
-                if (imageConfig.getBuildConfiguration() != null &&
-                        imageConfig.getBuildConfiguration().getAssembly() != null) {
+                if (imageConfig.getBuildConfiguration() != null
+                    && !imageConfig.getBuildConfiguration().getAssemblies().isEmpty()) {
                     if (watcher.isCopy()) {
                         schedule(executor, createCopyWatchTask(watcher, context.getBuildContext()), interval);
                         tasks.add("copying artifacts");
