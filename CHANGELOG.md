@@ -23,6 +23,7 @@ Usage:
 ### 1.4.0-SNAPSHOT
 * Fix #705: JIB assembly works on Windows
 * Fix #714: feat: Helm support for Golang expressions
+* Port fabric8io/docker-maven-plugin#1318: Update ECR autorization token URL
 
 ### 1.3.0
 * Fix #497: Assembly descriptor removed but still in documentation
