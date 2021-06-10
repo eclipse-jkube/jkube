@@ -26,7 +26,10 @@ import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.validation.constraints.Null;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 public class ServiceDiscoveryEnricherTest {
 
@@ -113,6 +116,24 @@ public class ServiceDiscoveryEnricherTest {
     public void testSchemeAnnotation() {
         enricher.addAnnotations(builder);
         assertAnnotation(scheme, "scheme");
+    }
+
+    @Test
+    public void testServiceWithNullPort() {
+        // Given
+        ServiceBuilder serviceBuilder = new ServiceBuilder()
+                .withNewMetadata().withName("test-svc").endMetadata()
+                .withNewSpec()
+                .addNewPort()
+                .withName("foo")
+                .endPort()
+                .endSpec();
+
+        // When
+        NullPointerException npe = assertThrows(NullPointerException.class, () -> enricher.addAnnotations(serviceBuilder));
+
+        // Then
+        assertEquals("Service test-svc .spec.ports[0].port: required value", npe.getMessage());
     }
 
     private void assertAnnotation(String expectedValue, String annotation) {

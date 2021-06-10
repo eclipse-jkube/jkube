@@ -35,6 +35,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class ServiceDiscoveryEnricher extends BaseEnricher {
     private static final String ENRICHER_NAME = "jkube-service-discovery";
@@ -97,6 +98,8 @@ public class ServiceDiscoveryEnricher extends BaseEnricher {
             List<ServicePort> ports = serviceBuilder.buildSpec().getPorts();
             if (! ports.isEmpty()) {
                 ServicePort firstServicePort = ports.iterator().next();
+                Objects.requireNonNull(firstServicePort.getPort(),
+                        String.format("Service %s .spec.ports[0].port: required value", serviceBuilder.buildMetadata().getName()));
                 port = firstServicePort.getPort().toString();
                 log.info("Using first mentioned service port '%s' " , port);
             } else {
