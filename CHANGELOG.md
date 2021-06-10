@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.4.0-SNAPSHOT
+* Fix #704: NPE when using Service fragment with no port specified
 * Fix #705: JIB assembly works on Windows
 * Fix #714: feat: Helm support for Golang expressions
 * Port fabric8io/docker-maven-plugin#1318: Update ECR autorization token URL
