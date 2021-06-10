@@ -67,7 +67,7 @@ items:
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
-              path: /health
+              path: /actuator/health
               port: 8080
               scheme: HTTP
             initialDelaySeconds: 180
@@ -84,7 +84,7 @@ items:
             protocol: TCP
           readinessProbe:
             httpGet:
-              path: /health
+              path: /actuator/health
               port: 8080
               scheme: HTTP
             initialDelaySeconds: 10
