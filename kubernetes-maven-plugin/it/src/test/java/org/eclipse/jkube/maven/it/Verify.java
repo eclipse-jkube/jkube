@@ -30,6 +30,7 @@ import com.jayway.jsonpath.PathNotFoundException;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
+import org.junit.Assert;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -56,6 +57,10 @@ public class Verify {
                                new JsonMessageValidationContext(),
                                createTestContext(),
                                actualContext);
+    }
+
+    public static void verifyContentEquals(File actualPath, File expectedPath) throws IOException {
+        Assert.assertEquals(readFile(expectedPath), readFile(actualPath));
     }
 
     public static void verifyAbsent(File file, String path) throws IOException {
