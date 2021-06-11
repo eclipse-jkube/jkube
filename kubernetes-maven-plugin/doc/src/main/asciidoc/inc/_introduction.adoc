@@ -317,7 +317,7 @@ An extract of the plugin configuration is shown below:
     </configMap>
 
     <liveness> <!--13-->
-      <getUrl>http://localhost:8080/q/health</getUrl>
+      <getUrl>http://:8080/q/health</getUrl>
       <initialDelaySeconds>3</initialDelaySeconds>
       <timeoutSeconds>3</timeoutSeconds>
     </liveness>

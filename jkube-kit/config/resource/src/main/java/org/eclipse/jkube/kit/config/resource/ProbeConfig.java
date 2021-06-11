@@ -19,6 +19,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 /**
  * @author roland
  */
@@ -38,6 +40,10 @@ public class ProbeConfig {
      */
     private Integer timeoutSeconds;
     /**
+     * How often in seconds to perform the probe. Defaults to 10 seconds. Minimum value is 1.
+     */
+    private Integer periodSeconds;
+    /**
      * Command to execute for probing.
      */
     private String exec;
@@ -45,6 +51,11 @@ public class ProbeConfig {
      * Probe this URL.
      */
     private String getUrl;
+
+    /**
+     * Custom headers to set in the request.
+     */
+    private Map<String, String> httpHeaders;
     /**
      * TCP port to probe.
      */
