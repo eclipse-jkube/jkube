@@ -40,6 +40,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.HTTPHeader;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
@@ -955,6 +956,16 @@ public class KubernetesHelper {
         return findCrdForCustomResource(customResourceDefinitionList, customResource)
             .map(CustomResourceDefinitionContext::fromCrd)
             .orElse(null);
+    }
+
+    public static List<HTTPHeader> convertMapToHTTPHeaderList(Map<String, String> headers) {
+        List<HTTPHeader> httpHeaders = new ArrayList<>();
+        if (headers != null) {
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                httpHeaders.add(new HTTPHeader(header.getKey(), header.getValue()));
+            }
+        }
+        return httpHeaders;
     }
 
     private static Optional<CustomResourceDefinition> findCrdForCustomResource(CustomResourceDefinitionList crdList, GenericCustomResource gcr) {

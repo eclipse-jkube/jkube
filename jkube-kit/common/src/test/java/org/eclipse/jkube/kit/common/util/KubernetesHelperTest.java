@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.fabric8.kubernetes.api.model.HTTPHeader;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -490,6 +492,26 @@ public class KubernetesHelperTest {
         CustomResourceDefinitionContext crdContext = KubernetesHelper.getCrdContext(crdList, genericCustomResource);
         // Then
         assertThat(crdContext).isNull();
+    }
+
+    @Test
+    public void testConvertMapToHTTPHeaderList() {
+        // Given
+        Map<String, String> headerAsMap = new HashMap<>();
+        headerAsMap.put("Accept", "application/json");
+        headerAsMap.put("User-Agent", "MyUserAgent");
+
+        // When
+        List<HTTPHeader> httpHeaders = KubernetesHelper.convertMapToHTTPHeaderList(headerAsMap);
+
+        // Then
+        assertThat(httpHeaders).isNotNull().hasSize(2)
+                .satisfies(h -> assertThat(h).element(0)
+                     .hasFieldOrPropertyWithValue("name", "Accept")
+                     .hasFieldOrPropertyWithValue("value", "application/json"))
+                .satisfies(h -> assertThat(h).element(1)
+                     .hasFieldOrPropertyWithValue("name", "User-Agent")
+                     .hasFieldOrPropertyWithValue("value", "MyUserAgent"));
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {

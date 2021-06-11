@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.ExecAction;
 import io.fabric8.kubernetes.api.model.HTTPGetAction;
+import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.TCPSocketAction;
@@ -24,8 +25,12 @@ import org.eclipse.jkube.kit.config.resource.ProbeConfig;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.convertMapToHTTPHeaderList;
 
 
 /**
@@ -40,23 +45,12 @@ public class ProbeHandler {
         }
 
         Probe probe = new Probe();
-        Integer initialDelaySeconds = probeConfig.getInitialDelaySeconds();
-        if (initialDelaySeconds != null) {
-            probe.setInitialDelaySeconds(initialDelaySeconds);
-        }
-        Integer timeoutSeconds = probeConfig.getTimeoutSeconds();
-        if (timeoutSeconds != null) {
-            probe.setTimeoutSeconds(timeoutSeconds);
-        }
-        Integer failureThreshold = probeConfig.getFailureThreshold();
-        if(failureThreshold != null) {
-            probe.setFailureThreshold(failureThreshold);
-        }
-        Integer successThreshold = probeConfig.getSuccessThreshold();
-        if(successThreshold != null) {
-            probe.setSuccessThreshold(successThreshold);
-        }
-        HTTPGetAction getAction = getHTTPGetAction(probeConfig.getGetUrl());
+        setTimeoutInProbeIfNotNull(probe, probeConfig::getInitialDelaySeconds, (i, p) -> p.setInitialDelaySeconds(i));
+        setTimeoutInProbeIfNotNull(probe, probeConfig::getTimeoutSeconds, (i, p) -> p.setTimeoutSeconds(i));
+        setTimeoutInProbeIfNotNull(probe, probeConfig::getFailureThreshold, (i, p) -> p.setFailureThreshold(i));
+        setTimeoutInProbeIfNotNull(probe, probeConfig::getSuccessThreshold, (i, p) -> p.setSuccessThreshold(i));
+        setTimeoutInProbeIfNotNull(probe, probeConfig::getPeriodSeconds, (i, p) -> p.setPeriodSeconds(i));
+        HTTPGetAction getAction = getHTTPGetAction(probeConfig.getGetUrl(), probeConfig.getHttpHeaders());
         if (getAction != null) {
             probe.setHttpGet(getAction);
             return probe;
@@ -77,19 +71,29 @@ public class ProbeHandler {
 
     // ========================================================================================
 
-    private HTTPGetAction getHTTPGetAction(String getUrl) {
+    private HTTPGetAction getHTTPGetAction(String getUrl, Map<String, String> headers) {
         if (getUrl == null || !getUrl.subSequence(0,4).toString().equalsIgnoreCase("http")) {
             return null;
         }
         try {
             URL url = new URL(getUrl);
+            List<HTTPHeader> httpHeaders = convertMapToHTTPHeaderList(headers);
+
             return new HTTPGetAction(url.getHost(),
-                    null /* headers */,
+                    httpHeaders.isEmpty() ? null : httpHeaders,
                     url.getPath(),
                     new IntOrString(url.getPort()),
                     url.getProtocol().toUpperCase());
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Invalid URL " + getUrl + " given for HTTP GET readiness check");
+        }
+    }
+
+    @SuppressWarnings("java:S4276") // IntSupplier throws NullPointerException when unboxing null Integers
+    private void setTimeoutInProbeIfNotNull(Probe probe, Supplier<Integer> integerSupplier, BiConsumer<Integer, Probe> probeConsumer) {
+        Integer i = integerSupplier.get();
+        if (i != null) {
+            probeConsumer.accept(i, probe);
         }
     }
 
