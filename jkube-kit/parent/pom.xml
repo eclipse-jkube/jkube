@@ -47,7 +47,7 @@
     <version.httpcore>4.4.13</version.httpcore>
     <version.httpclient>4.5.13</version.httpclient>
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
-    <version.jansi>1.16</version.jansi>
+    <version.jansi>2.3.3</version.jansi>
     <version.javassist>3.20.0-GA</version.javassist>
     <version.jgit>5.11.0.202103091610-r</version.jgit>
     <version.jnr-unixsocket>0.12</version.jnr-unixsocket>
