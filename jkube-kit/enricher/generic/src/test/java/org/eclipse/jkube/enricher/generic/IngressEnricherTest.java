@@ -15,14 +15,19 @@ package org.eclipse.jkube.enricher.generic;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeMap;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.IngressConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
 import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
@@ -40,6 +45,7 @@ import io.fabric8.kubernetes.api.model.extensions.IngressTLSBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,6 +59,9 @@ public class IngressEnricherTest {
 
     @Mocked
     private KitLogger logger;
+
+    @Mocked
+    ImageConfiguration imageConfiguration;
 
     private IngressEnricher ingressEnricher;
 
@@ -212,36 +221,6 @@ public class IngressEnricherTest {
             .element(1).asInstanceOf(InstanceOfAssertFactories.type(Ingress.class))
             .isEqualTo(providedIngress)
             .isNotSameAs(providedIngress);
-    }
-
-    @Test
-    public void testGenerateIngress() {
-        // Given
-        ServiceBuilder testSvcBuilder = initTestService();
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(testSvcBuilder);
-
-        // When
-        Ingress ingress = IngressEnricher.generateIngress(kubernetesListBuilder, testSvcBuilder, "org.eclipse.jkube", Collections.emptyList(), Collections.emptyList(), logger);
-
-        // Then
-        assertThat(ingress)
-            .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
-            .extracting("spec.rules").asList()
-            .hasSize(1).element(0)
-            .hasFieldOrPropertyWithValue("host", "test-svc.org.eclipse.jkube");
-    }
-
-    @Test
-    public void testGenerateIngressWithNullServiceMetadata() {
-        // Given
-        ServiceBuilder serviceBuilder = new ServiceBuilder().withMetadata(null);
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(serviceBuilder);
-
-        // When
-        Ingress ingress = IngressEnricher.generateIngress(kubernetesListBuilder, serviceBuilder, "org.eclipse.jkube", Collections.emptyList(), Collections.emptyList(), logger);
-
-        // Then
-        assertThat(ingress).isNull();
     }
 
     @Test
@@ -407,12 +386,61 @@ public class IngressEnricherTest {
         assertThat(ingressTlsConfigs).asList().isEmpty();
     }
 
+    @Test
+    public void testNetworkingV1IngressIsGenerated() {
+        // Given
+        final TreeMap<String, Object> config = new TreeMap<>();
+        config.put("host", "test.192.168.39.25.nip.io");
+        config.put("targetApiVersion", "networking.k8s.io/v1");
+        new Expectations() {{
+            Configuration configuration = Configuration.builder()
+                    .image(imageConfiguration)
+                    .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-ingress", config)))
+                    .build();
+
+            context.getConfiguration();
+            result = configuration;
+
+            context.getProperty("jkube.createExternalUrls");
+            result = "true";
+        }};
+        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
+        kubernetesListBuilder.addToItems(initTestService().build());
+
+        // When
+        ingressEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
+
+        // Then
+        List<HasMetadata> items = kubernetesListBuilder.buildItems();
+        assertThat(items.size()).isEqualTo(2);
+        assertThat(items.get(1)).isInstanceOf(io.fabric8.kubernetes.api.model.networking.v1.Ingress.class);
+        io.fabric8.kubernetes.api.model.networking.v1.Ingress ing = (io.fabric8.kubernetes.api.model.networking.v1.Ingress) items.get(1);
+        assertThat(ing.getSpec().getRules().get(0).getHost()).isEqualTo("test.192.168.39.25.nip.io");
+    }
+
+    @Test
+    public void testNoIngressGeneratedWhenNetworkingV1IngressFragmentPresent() {
+        // Given
+        new Expectations() {{
+            context.getProperty("jkube.createExternalUrls");
+            result = "true";
+        }};
+        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
+        kubernetesListBuilder.addToItems(initTestService().build());
+        kubernetesListBuilder.addToItems(networkingV1IngressFragment().build());
+
+        // When
+        ingressEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
+
+        // Then
+        List<HasMetadata> items = kubernetesListBuilder.buildItems();
+        assertThat(items.size()).isEqualTo(2);
+        assertThat(items.get(1)).isInstanceOf(io.fabric8.kubernetes.api.model.networking.v1.Ingress.class);
+    }
+
     private IngressBuilder initTestIngressFragment() {
         return new IngressBuilder()
-                .withMetadata(new ObjectMetaBuilder()
-                    .withName("test-svc")
-                    .addToAnnotations("ingress.kubernetes.io/rewrite-target", "/")
-                .build())
+                .withMetadata(createIngressFragmentMetadata())
                 .withNewSpec()
                 .withTls(new IngressTLSBuilder()
                         .addNewHost("my.host.com")
@@ -427,6 +455,33 @@ public class IngressEnricherTest {
                 .withNewBackend()
                 .withServiceName("test-svc")
                 .withServicePort(new IntOrString(8080))
+                .endBackend()
+                .endPath()
+                .endHttp()
+                .endRule()
+                .endSpec();
+    }
+
+    private ObjectMeta createIngressFragmentMetadata() {
+        return new ObjectMetaBuilder()
+                .withName("test-svc")
+                .addToAnnotations("ingress.kubernetes.io/rewrite-target", "/")
+                .build();
+    }
+
+    private io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder networkingV1IngressFragment() {
+        return new io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder()
+                .withMetadata(createIngressFragmentMetadata())
+                .withNewSpec()
+                .addNewRule()
+                .withHost("test-jkube-ingress.test.192.168.39.25.nip.io")
+                .withNewHttp()
+                .addNewPath()
+                .withNewBackend()
+                .withNewService()
+                .withName("test-jkube-ingress")
+                .withNewPort().withNumber(8080).endPort()
+                .endService()
                 .endBackend()
                 .endPath()
                 .endHttp()

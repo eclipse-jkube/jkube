@@ -14,9 +14,9 @@
 import org.eclipse.jkube.maven.it.Verify
 import static org.junit.Assert.*;
 
-[ "kubernetes"   ].each {
+[ "xml-config", "zero-config-host-enricher-config", "zero-config-no-host", "zero-config-networkv1-host-enricher-config","zero-config-networkv1-enricher-config"  ].each {
   Verify.verifyResourceDescriptors(
-          new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml",it)),
-          new File(basedir, sprintf("/expected/%s.yml",it)))
+          new File(basedir, sprintf("/%s/classes/META-INF/jkube/kubernetes.yml",it)),
+          new File(basedir, sprintf("/expected/%s/kubernetes.yml",it)))
 }
 true

@@ -30,7 +30,6 @@
 
   <properties>
     <jkube.createExternalUrls>true</jkube.createExternalUrls>
-    <jkube.domain>org.eclipse.jkube.quickstart</jkube.domain>
   </properties>
 
   <dependencies>
@@ -41,53 +40,130 @@
   </dependencies>
 
   <build>
+    <directory>${project.basedir}/${target}</directory>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
-
-      <plugin>
-        <groupId>org.eclipse.jkube</groupId>
-        <artifactId>kubernetes-maven-plugin</artifactId>
-        <version>@jkube.version@</version>
-
-        <configuration>
-          <enricher>
-            <config>
-              <jkube-service>
-                <type>LoadBalancer</type>
-              </jkube-service>
-            </config>
-          </enricher>
-          <resources>
-            <ingress>
-              <ingressTlsConfigs>
-                <ingressTlsConfig>
-                  <hosts>
-                    https-example.foo.com
-                  </hosts>
-                  <secretName>testsecret-tls</secretName>
-                </ingressTlsConfig>
-              </ingressTlsConfigs>
-              <ingressRules>
-                <ingressRule>
-                  <host>hello.example.systems</host>
-                  <paths>
-                    <path>
-                      <pathType>ImplementationSpecific</pathType>
-                      <path>/</path>
-                      <serviceName>${project.artifactId}</serviceName>
-                      <servicePort>8080</servicePort>
-                    </path>
-                  </paths>
-                </ingressRule>
-              </ingressRules>
-            </ingress>
-          </resources>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>zero-config-no-host</id>
+      <properties>
+        <target>zero-config-no-host</target>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>@jkube.version@</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>zero-config-host-enricher-config</id>
+      <properties>
+        <jkube.enricher.jkube-ingress.host>test.example.com</jkube.enricher.jkube-ingress.host>
+        <target>zero-config-host-enricher-config</target>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>@jkube.version@</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>zero-config-networkv1-host-enricher-config</id>
+      <properties>
+        <jkube.enricher.jkube-ingress.host>test.example.com</jkube.enricher.jkube-ingress.host>
+        <jkube.enricher.jkube-ingress.targetApiVersion>networking.k8s.io/v1</jkube.enricher.jkube-ingress.targetApiVersion>
+        <target>zero-config-networkv1-host-enricher-config</target>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>@jkube.version@</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>zero-config-networkv1-enricher-config</id>
+      <properties>
+        <jkube.enricher.jkube-ingress.targetApiVersion>networking.k8s.io/v1</jkube.enricher.jkube-ingress.targetApiVersion>
+        <target>zero-config-networkv1-enricher-config</target>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>@jkube.version@</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>xml-config</id>
+      <properties>
+        <jkube.domain>org.eclipse.jkube.quickstart</jkube.domain>
+        <target>xml-config</target>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>@jkube.version@</version>
+            <configuration>
+              <enricher>
+                <config>
+                  <jkube-service>
+                    <type>LoadBalancer</type>
+                  </jkube-service>
+                </config>
+              </enricher>
+              <resources>
+                <ingress>
+                  <ingressTlsConfigs>
+                    <ingressTlsConfig>
+                      <hosts>
+                        https-example.foo.com
+                      </hosts>
+                      <secretName>testsecret-tls</secretName>
+                    </ingressTlsConfig>
+                  </ingressTlsConfigs>
+                  <ingressRules>
+                    <ingressRule>
+                      <host>hello.example.systems</host>
+                      <paths>
+                        <path>
+                          <pathType>ImplementationSpecific</pathType>
+                          <path>/</path>
+                          <serviceName>${project.artifactId}</serviceName>
+                          <servicePort>8080</servicePort>
+                        </path>
+                      </paths>
+                    </ingressRule>
+                  </ingressRules>
+                </ingress>
+              </resources>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
