@@ -24,7 +24,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class AssemblyConfigurationUtils {
 
@@ -54,17 +57,27 @@ class AssemblyConfigurationUtils {
 
   @Nonnull
   static List<AssemblyFileSet> getJKubeAssemblyFileSets(@Nullable AssemblyConfiguration configuration) {
-    return Optional.ofNullable(configuration)
-            .map(AssemblyConfiguration::getInline)
+    return streamLayers(configuration)
             .map(Assembly::getFileSets)
-            .orElse(Collections.emptyList());
+            .filter(Objects::nonNull)
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
   }
 
   @Nonnull
   static List<AssemblyFile> getJKubeAssemblyFiles(AssemblyConfiguration configuration) {
-    return Optional.ofNullable(configuration)
-            .map(AssemblyConfiguration::getInline)
+    return streamLayers(configuration)
             .map(Assembly::getFiles)
-            .orElse(Collections.emptyList());
+            .filter(Objects::nonNull)
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+  }
+
+  @Nonnull
+  private static Stream<Assembly> streamLayers(AssemblyConfiguration configuration) {
+    return Optional.ofNullable(configuration)
+        .map(AssemblyConfiguration::getLayers)
+        .orElse(Collections.emptyList())
+        .stream();
   }
 }

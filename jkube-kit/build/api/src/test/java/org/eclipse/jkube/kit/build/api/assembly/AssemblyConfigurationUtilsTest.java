@@ -18,23 +18,19 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import mockit.Expectations;
 import mockit.Injectable;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 public class AssemblyConfigurationUtilsTest {
 
@@ -43,16 +39,18 @@ public class AssemblyConfigurationUtilsTest {
           @Injectable final BuildConfiguration buildConfiguration) {
 
     // Given
+    // @formatter:off
     new Expectations() {{
-      buildConfiguration.getAssembly();
-      result = null;
+      buildConfiguration.getAssembly(); result = null;
     }};
+    // @formatter:on
     // When
     final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
-    assertEquals("maven", result.getName());
-    assertEquals("/maven", result.getTargetDir());
-    assertNull(result.getUser());
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("name", "maven")
+        .hasFieldOrPropertyWithValue("targetDir", "/maven")
+        .hasFieldOrPropertyWithValue("user", null);
   }
 
   @Test
@@ -61,82 +59,100 @@ public class AssemblyConfigurationUtilsTest {
 
     // Given
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
+    // @formatter:off
     new Expectations() {{
-      buildConfiguration.getAssembly();
-      result = configuration;
+      buildConfiguration.getAssembly(); result = configuration;
     }};
+    // @formatter:on
     // When
     final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
-    assertNotNull(result);
-    assertEquals("ImageName", result.getName());
-    assertEquals("/ImageName", result.getTargetDir());
-    assertEquals("OtherUser", result.getUser());
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("name", "ImageName")
+        .hasFieldOrPropertyWithValue("targetDir", "/ImageName")
+        .hasFieldOrPropertyWithValue("user", "OtherUser");
   }
-
 
   @Test
   public void getJKubeAssemblyFileSetsNullShouldReturnEmptyList() {
     // When
     final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(null);
     // Then
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
+    assertThat(result).isNotNull().isEmpty();
+  }
+
+  @Test
+  public void getJKubeAssemblyFileSetsNullFileSetsShouldReturnEmptyList() {
+    // Given
+    final AssemblyConfiguration assemblyConfiguration = new AssemblyConfiguration();
+    // When
+    final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(assemblyConfiguration);
+    // Then
+    assertThat(result).isNotNull().isEmpty();
   }
 
   @Test
   public void getJKubeAssemblyFileSetsNotNullShouldReturnFileSets(
-    @Injectable AssemblyConfiguration configuration, @Injectable Assembly assembly,
-    @Injectable AssemblyFileSet fileSet) {
+      @Injectable Assembly assembly, @Injectable AssemblyFileSet fileSet) {
 
     // Given
+    final AssemblyConfiguration configuration = AssemblyConfiguration.builder()
+        .inline(assembly)
+        .build();
+    // @formatter:off
     new Expectations() {{
-      configuration.getInline();
-      result = assembly;
-      assembly.getFileSets();
-      result = Collections.singletonList(fileSet);
-      fileSet.getDirectory();
-      result = "1337";
+      assembly.getFileSets(); result = Collections.singletonList(fileSet);
+      fileSet.getDirectory(); result = "1337";
     }};
+    // @formatter:on
     // When
     final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(configuration);
     // Then
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertEquals("1337", result.iterator().next().getDirectory().getName());
+    assertThat(result)
+        .isNotNull()
+        .hasSize(1).first()
+        .hasFieldOrPropertyWithValue("directory.name", "1337");
   }
-
-
 
   @Test
   public void getJKubeAssemblyFilesNullShouldReturnEmptyList() {
     // When
     final List<AssemblyFile> result = getJKubeAssemblyFiles(null);
     // Then
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
+    assertThat(result).isNotNull().isEmpty();
+  }
+
+  @Test
+  public void getJKubeAssemblyFilesNullFilesShouldReturnEmptyList() {
+    // Given
+    final AssemblyConfiguration assemblyConfiguration = new AssemblyConfiguration();
+    // When
+    final List<AssemblyFile> result = getJKubeAssemblyFiles(assemblyConfiguration);
+    // Then
+    assertThat(result).isNotNull().isEmpty();
   }
 
   @Test
   public void getJKubeAssemblyFilesNotNullShouldReturnFiles(
-    @Injectable AssemblyConfiguration configuration, @Injectable Assembly assembly,
-    @Injectable AssemblyFile file) {
+      @Injectable Assembly assembly, @Injectable AssemblyFile file) {
 
     // Given
+    final AssemblyConfiguration configuration = AssemblyConfiguration.builder()
+        .layer(assembly)
+        .build();
+    // @formatter:off
     new Expectations() {{
-      configuration.getInline();
-      result = assembly;
-      assembly.getFiles();
-      result = Collections.singletonList(file);
-      file.getSource();
-      result = new File("1337");
+      assembly.getFiles(); result = Collections.singletonList(file);
+      file.getSource(); result = new File("1337");
     }};
+    // @formatter:on
     // When
     final List<AssemblyFile> result = getJKubeAssemblyFiles(configuration);
     // Then
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertEquals("1337", result.iterator().next().getSource().getName());
+    assertThat(result)
+        .isNotNull()
+        .hasSize(1).first()
+        .hasFieldOrPropertyWithValue("source.name", "1337");
   }
 
 }

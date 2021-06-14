@@ -13,6 +13,43 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.ResourceFileType;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.common.util.IoUtil;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.image.RegistryConfig;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.service.BuildService;
+import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -42,46 +79,10 @@ import io.fabric8.openshift.api.model.BuildStrategy;
 import io.fabric8.openshift.api.model.BuildStrategyBuilder;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
-import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.RegistryConfig;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
-import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.ResourceFileType;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.util.IoUtil;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.service.BuildService;
-import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
-import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
 
 /**
  * @author nicola
@@ -469,19 +470,6 @@ public class OpenshiftBuildService implements BuildService {
             log.info("Using Secret %s", pullSecretName);
         }
         return true;
-    }
-
-
-    private String extractBaseFromConfiguration(BuildConfiguration buildConfig) {
-        String fromImage;
-        fromImage = buildConfig.getFrom();
-        if (fromImage == null) {
-            AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
-            if (assemblyConfig == null) {
-                fromImage = AssemblyManager.DEFAULT_DATA_BASE_IMAGE;
-            }
-        }
-        return fromImage;
     }
 
     private String extractBaseFromDockerfile(BuildConfiguration buildConfig, JKubeConfiguration configuration) {

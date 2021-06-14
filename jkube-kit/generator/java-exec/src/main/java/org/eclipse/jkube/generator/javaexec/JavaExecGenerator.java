@@ -191,7 +191,7 @@ public class JavaExecGenerator extends BaseGenerator {
             log.warn("No fat Jar detected, make sure your image assembly configuration contains all the required" +
                 " dependencies for your application to run.");
         }
-        builder.inline(Assembly.builder().fileSets(fileSets).build());
+        builder.layer(Assembly.builder().fileSets(fileSets).build());
     }
 
     public List<AssemblyFileSet> addAdditionalFiles() {

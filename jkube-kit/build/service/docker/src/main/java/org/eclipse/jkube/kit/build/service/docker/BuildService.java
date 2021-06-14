@@ -37,9 +37,10 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.CleanupMode;
+
+import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
 
 public class BuildService {
 
@@ -254,8 +255,8 @@ public class BuildService {
         } else {
             fromImages = new LinkedList<>();
             String baseImage = extractBaseFromConfiguration(buildConfig);
-            if (baseImage!=null) {
-                fromImages.add(extractBaseFromConfiguration(buildConfig));
+            if (baseImage != null) {
+                fromImages.add(baseImage);
             }
         }
         for (String fromImage : fromImages) {
@@ -263,18 +264,6 @@ public class BuildService {
                 registryService.pullImageWithPolicy(fromImage, imagePullManager, configuration.getRegistryConfig(), queryService.hasImage(fromImage));
             }
         }
-    }
-
-    private String extractBaseFromConfiguration(BuildConfiguration buildConfig) {
-        String fromImage;
-        fromImage = buildConfig.getFrom();
-        if (fromImage == null) {
-            AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
-            if (assemblyConfig == null) {
-                fromImage = AssemblyManager.DEFAULT_DATA_BASE_IMAGE;
-            }
-        }
-        return fromImage;
     }
 
     private List<String> extractBaseFromDockerfile(BuildConfiguration buildConfig, JKubeConfiguration configuration) {

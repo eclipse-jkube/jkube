@@ -14,6 +14,8 @@
 package org.eclipse.jkube.kit.common;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import lombok.AllArgsConstructor;
@@ -21,6 +23,9 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
+
+import javax.annotation.Nonnull;
 
 @SuppressWarnings("JavaDoc")
 @Builder(toBuilder = true)
@@ -83,8 +88,15 @@ public class AssemblyConfiguration implements Serializable {
     private String tarLongFileMode;
     /**
      * Assembly defined inline in the pom.xml
+     * @deprecated Use {@link #layers} instead
      */
+    @Deprecated
     private Assembly inline;
+    /**
+     * Each of the layers ({@link Assembly} for the Container Image.
+     */
+    @Singular("layer")
+    private List<Assembly> layers;
 
     public AssemblyMode getMode() {
         return mode != null ? mode : AssemblyMode.dir;
@@ -102,6 +114,37 @@ public class AssemblyConfiguration implements Serializable {
         return permissions != null ? permissions.name() : null;
     }
 
+
+    /**
+     * @deprecated Use {@link #getLayers()} instead
+     */
+    @Deprecated
+    public Assembly getInline() {
+        return Optional.ofNullable(getLayers())
+            .filter(l -> !l.isEmpty())
+            .map(l -> l.get(l.size() - 1))
+            .orElse(null);
+    }
+
+    /**
+     * @deprecated Use {@link #layers} instead
+     */
+    @Deprecated
+    public void setInline(Assembly inline) {
+        this.inline = inline;
+    }
+
+    @Nonnull
+    public List<Assembly> getLayers() {
+        final List<Assembly> ret = new ArrayList<>();
+        if (layers != null) {
+            ret.addAll(layers);
+        }
+        if (inline != null) {
+            ret.add(inline);
+        }
+        return ret;
+    }
 
     public static class AssemblyConfigurationBuilder {
 
