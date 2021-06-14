@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -267,10 +268,20 @@ public class AssemblyManager {
             builder.workdir(buildConfig.getWorkdir());
         }
         if (assemblyConfig != null) {
-            builder.add(assemblyConfig.getTargetDir(), "")
-                   .basedir(assemblyConfig.getTargetDir())
+            // TODO - Clean this up
+            builder.basedir(assemblyConfig.getTargetDir())
                    .assemblyUser(assemblyConfig.getUser())
                    .exportTargetDir(assemblyConfig.getExportTargetDir());
+            if (assemblyConfig.getLayers().isEmpty()) {
+                builder.add(assemblyConfig.getTargetDir(), "");
+            }
+            for (Assembly layer: assemblyConfig.getLayers()) {
+                if (StringUtils.isNotBlank(layer.getDirectory())) {
+                    builder.add(assemblyConfig.getTargetDir() + "/" + layer.getDirectory(), layer.getDirectory());
+                } else {
+                    builder.add(assemblyConfig.getTargetDir(), "");
+                }
+            }
         } else {
             builder.exportTargetDir(false);
         }
@@ -358,22 +369,26 @@ public class AssemblyManager {
 
         final List<AssemblyFileEntry> files = new ArrayList<>();
         FileUtil.createDirectory(new File(buildDirs.getOutputDirectory(), assemblyConfiguration.getTargetDir()));
-        for (AssemblyFileSet fileSet : getJKubeAssemblyFileSets(assemblyConfiguration)) {
-            files.addAll(processAssemblyFileSet(project.getBaseDirectory(), buildDirs.getOutputDirectory(), fileSet, assemblyConfiguration));
-        }
-        for (AssemblyFile file : getJKubeAssemblyFiles(assemblyConfiguration)) {
-            files.add(processJKubeProjectAssemblyFile(project, file, buildDirs, assemblyConfiguration));
+        for (Assembly layer : assemblyConfiguration.getLayers()) {
+            for (AssemblyFileSet fileSet : getJKubeAssemblyFileSets(layer)) {
+                files.addAll(processAssemblyFileSet(
+                    project.getBaseDirectory(), buildDirs.getOutputDirectory(), fileSet, layer, assemblyConfiguration));
+            }
+            for (AssemblyFile file : getJKubeAssemblyFiles(layer)) {
+                files.add(processJKubeProjectAssemblyFile(project, file, buildDirs, layer, assemblyConfiguration));
+            }
         }
         return files;
     }
 
     private AssemblyFileEntry processJKubeProjectAssemblyFile(
-        JavaProject project, AssemblyFile assemblyFile, BuildDirs buildDirs, AssemblyConfiguration assemblyConfiguration)
-      throws IOException {
+        JavaProject project, AssemblyFile assemblyFile, BuildDirs buildDirs, Assembly layer,
+        AssemblyConfiguration assemblyConfiguration) throws IOException {
 
         final File sourceFile = resolveSourceFile(project.getBaseDirectory(), assemblyFile);
 
-        final File outputDirectory = getAssemblyFileOutputDirectory(assemblyFile, buildDirs.getOutputDirectory(), assemblyConfiguration);
+        final File outputDirectory = getAssemblyFileOutputDirectory(
+            assemblyFile, buildDirs.getOutputDirectory(), layer, assemblyConfiguration);
         FileUtil.createDirectory(outputDirectory);
 
         final String destinationFilename = Optional.ofNullable(assemblyFile.getDestName()).orElse(sourceFile.getName());
@@ -454,7 +469,11 @@ public class AssemblyManager {
 
         AssemblyConfiguration assemblyConfig = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
         final AssemblyConfiguration.AssemblyConfigurationBuilder builder = assemblyConfig.toBuilder();
-        final Assembly.AssemblyBuilder inlineBuilder = assemblyConfig.getInline() == null ? Assembly.builder() : assemblyConfig.getInline().toBuilder();
+        if (assemblyConfig.getLayers().size() > 1) {
+            throw new IllegalArgumentException("Dockerfile mode assembly configuration should contain a single layer");
+        }
+        final Assembly.AssemblyBuilder layerBuilder = assemblyConfig.getLayers().isEmpty() ?
+            Assembly.builder() : assemblyConfig.getLayers().iterator().next().toBuilder();
 
         File contextDir = buildConfiguration.getAbsoluteContextDirPath(params.getSourceDirectory(), params.getBasedir().getAbsolutePath());
         final AssemblyFileSet assemblyFileSet = AssemblyFileSet.builder()
@@ -464,7 +483,7 @@ public class AssemblyManager {
             .excludes(createDockerExcludesList(contextDir, params.getOutputDirectory()))
             .includes(createDockerIncludesList(contextDir))
             .build();
-        builder.inline(inlineBuilder.fileSet(assemblyFileSet).build());
+        builder.inline(null).layers(Collections.singletonList(layerBuilder.fileSet(assemblyFileSet).build()));
         return builder.build();
     }
 

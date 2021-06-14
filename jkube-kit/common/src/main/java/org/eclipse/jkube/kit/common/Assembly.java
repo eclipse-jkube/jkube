@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.Serializable;
@@ -36,6 +37,8 @@ public class Assembly implements Serializable {
 
     private static final long serialVersionUID = 4048781747133251206L;
 
+    private static final String LAYER_ID_DEFAULT = "default";
+
     /**
      * Unique ID for the Assembly.
      *
@@ -43,6 +46,16 @@ public class Assembly implements Serializable {
      * @return The id of the assembly.
      */
     private String id;
+    /**
+     * The optional directory for this Assembly layer, to be nested within the AssemblyConfiguration targetDir.
+     *
+     * <p> Files are copied to this directory (if configured) beneath the
+     * global {@link AssemblyConfiguration#getTargetDir()}.
+     *
+     * <p> This feature is especially interesting for multi-layered Images, since each layer will be
+     * copied to its own directory allowing the partial images to be cached across iterative builds.
+     */
+    private String directory;
     /**
      * List of files for the Assembly.
      *

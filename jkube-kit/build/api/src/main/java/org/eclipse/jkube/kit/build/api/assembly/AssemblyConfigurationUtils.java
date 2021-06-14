@@ -13,21 +13,20 @@
  */
 package org.eclipse.jkube.kit.build.api.assembly;
 
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.common.AssemblyFile;
-import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.Assembly;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
+import org.apache.commons.lang3.StringUtils;
 
 class AssemblyConfigurationUtils {
 
@@ -56,28 +55,17 @@ class AssemblyConfigurationUtils {
   }
 
   @Nonnull
-  static List<AssemblyFileSet> getJKubeAssemblyFileSets(@Nullable AssemblyConfiguration configuration) {
-    return streamLayers(configuration)
-            .map(Assembly::getFileSets)
-            .filter(Objects::nonNull)
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
+  static List<AssemblyFileSet> getJKubeAssemblyFileSets(@Nullable Assembly assembly) {
+    return Optional.ofNullable(assembly)
+        .map(Assembly::getFileSets)
+        .orElse(Collections.emptyList());
   }
 
   @Nonnull
-  static List<AssemblyFile> getJKubeAssemblyFiles(AssemblyConfiguration configuration) {
-    return streamLayers(configuration)
-            .map(Assembly::getFiles)
-            .filter(Objects::nonNull)
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
+  static List<AssemblyFile> getJKubeAssemblyFiles(@Nullable Assembly assembly) {
+    return Optional.ofNullable(assembly)
+        .map(Assembly::getFiles)
+        .orElse(Collections.emptyList());
   }
 
-  @Nonnull
-  private static Stream<Assembly> streamLayers(AssemblyConfiguration configuration) {
-    return Optional.ofNullable(configuration)
-        .map(AssemblyConfiguration::getLayers)
-        .orElse(Collections.emptyList())
-        .stream();
-  }
 }

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
@@ -33,6 +34,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.resolveSourceDirectory;
 
 public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
@@ -99,15 +101,16 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void assemblyFileSetHasNoDirectoryShouldThrowException() {
+  public void assemblyFileSetHasNoDirectory_shouldThrowException() {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("deployments")
         .build();
     // When
     final NullPointerException result = Assert.assertThrows(NullPointerException.class, () ->
-      AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac)
+      processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac)
     );
     // Then
     assertThat(result)
@@ -115,15 +118,16 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void assemblyConfigurationHasNoTargetDirShouldThrowException() {
+  public void assemblyConfigurationHasNoTargetDir_shouldThrowException() {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder().build();
     // When
     final NullPointerException result = Assert.assertThrows(NullPointerException.class, () ->
-        AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac)
+        processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac)
     );
     // Then
     assertThat(result)
@@ -143,11 +147,12 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .targetDir("deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(16);
     FileAssertions.assertThat(new File(outputDirectory, "deployments"))
@@ -158,6 +163,35 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
             "source-directory/one", "source-directory/one/1.txt", "source-directory/one/3.other", "source-directory/one/37",
             "source-directory/two", "source-directory/two/1.txt", "source-directory/two/3.other", "source-directory/two/37",
             "source-directory/three", "source-directory/three/1.txt", "source-directory/three/3.other", "source-directory/three/37"
+        );
+  }
+
+  /**
+   * @see #minimumRequiredFields()
+   */
+  @Test
+  public void minimumRequiredFieldsWithAssemblyDirectory() throws Exception {
+    // Given
+    final AssemblyFileSet afs = AssemblyFileSet.builder()
+        .directory(sourceDirectory)
+        .build();
+    final Assembly layer = Assembly.builder().directory("layer").build();
+    final AssemblyConfiguration ac = AssemblyConfiguration.builder()
+        .targetDir("deployments")
+        .build();
+    // When
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
+    // Then
+    assertThat(result).hasSize(16);
+    FileAssertions.assertThat(new File(outputDirectory, "deployments"))
+        .exists()
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "layer",
+            "layer/source-directory", "layer/source-directory/1.txt", "layer/source-directory/3.other", "layer/source-directory/37",
+            "layer/source-directory/one", "layer/source-directory/one/1.txt", "layer/source-directory/one/3.other", "layer/source-directory/one/37",
+            "layer/source-directory/two", "layer/source-directory/two/1.txt", "layer/source-directory/two/3.other", "layer/source-directory/two/37",
+            "layer/source-directory/three", "layer/source-directory/three/1.txt", "layer/source-directory/three/3.other", "layer/source-directory/three/37"
         );
   }
 
@@ -174,11 +208,12 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(new File(sourceDirectory, "non-existent"))
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .targetDir("deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).isEmpty();
     FileAssertions.assertThat(new File(outputDirectory, "deployments")).doesNotExist();
@@ -198,12 +233,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .directory(sourceDirectory)
         .outputDirectory(new File("."))
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("NotImportant")
         .targetDir("deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(16);
     FileAssertions.assertThat(new File(outputDirectory, "deployments"))
@@ -233,11 +269,12 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .directory(sourceDirectory)
         .outputDirectory(absoluteOutputDirectory)
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .targetDir("/deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(16);
     FileAssertions.assertThat(new File(outputDirectory, "deployments")).doesNotExist();
@@ -267,12 +304,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .directory(sourceDirectory)
         .outputDirectory(relativeOutputDirectory)
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("MyNameIsAl")
         .targetDir("/deployments/")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(16);
     FileAssertions.assertThat(new File(outputDirectory, "deployments"))
@@ -302,12 +340,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .include("one/1.txt")
         .include("two")
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("deployments")
         .targetDir("/deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(6);
     FileAssertions.assertThat(new File(outputDirectory, "deployments"))
@@ -336,11 +375,12 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .include("one/1.txt")
         .include("three")
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .targetDir("maven")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(6);
     FileAssertions.assertThat(new File(outputDirectory, "maven"))
@@ -361,12 +401,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .include("*.txt")
         .fileMode("0766")
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("deployments")
         .targetDir("/deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(1);
     FileAssertions.assertThat(new File(outputDirectory, "deployments"))
@@ -385,12 +426,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .include("**.txt")
         .fileMode("0766")
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("deployments")
         .targetDir("/deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(4);
     FileAssertions.assertThat(new File(outputDirectory, "deployments"))
@@ -412,12 +454,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .include("**/*.txt")
         .fileMode("0766")
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("deployments")
         .targetDir("/deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(3);
     FileAssertions.assertThat(new File(outputDirectory, "deployments"))
@@ -440,12 +483,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .exclude("**.txt")
         .fileMode("0766")
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("deployments")
         .targetDir("/deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(4);
     FileAssertions.assertThat(new File(outputDirectory, "deployments"))
@@ -469,12 +513,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .exclude("one")
         .exclude("two{/**,}")
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("deployments")
         .targetDir("/deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(8);
     FileAssertions.assertThat(new File(outputDirectory, "deployments"))
@@ -498,12 +543,13 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .exclude("quickstarts{/**,}")
         .exclude("three/**")
         .build();
+    final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
         .name("deployments")
         .targetDir("/deployments")
         .build();
     // When
-    final List<AssemblyFileEntry> result = AssemblyFileSetUtils.processAssemblyFileSet(baseDirectory, outputDirectory, afs, ac);
+    final List<AssemblyFileEntry> result = processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac);
     // Then
     assertThat(result).hasSize(13);
     FileAssertions.assertThat(new File(outputDirectory, "deployments"))

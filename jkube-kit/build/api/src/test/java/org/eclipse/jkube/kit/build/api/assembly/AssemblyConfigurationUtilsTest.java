@@ -84,9 +84,9 @@ public class AssemblyConfigurationUtilsTest {
   @Test
   public void getJKubeAssemblyFileSetsNullFileSetsShouldReturnEmptyList() {
     // Given
-    final AssemblyConfiguration assemblyConfiguration = new AssemblyConfiguration();
+    final Assembly assembly = new Assembly();
     // When
-    final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(assemblyConfiguration);
+    final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(assembly);
     // Then
     assertThat(result).isNotNull().isEmpty();
   }
@@ -96,9 +96,6 @@ public class AssemblyConfigurationUtilsTest {
       @Injectable Assembly assembly, @Injectable AssemblyFileSet fileSet) {
 
     // Given
-    final AssemblyConfiguration configuration = AssemblyConfiguration.builder()
-        .inline(assembly)
-        .build();
     // @formatter:off
     new Expectations() {{
       assembly.getFileSets(); result = Collections.singletonList(fileSet);
@@ -106,7 +103,7 @@ public class AssemblyConfigurationUtilsTest {
     }};
     // @formatter:on
     // When
-    final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(configuration);
+    final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(assembly);
     // Then
     assertThat(result)
         .isNotNull()
@@ -125,9 +122,9 @@ public class AssemblyConfigurationUtilsTest {
   @Test
   public void getJKubeAssemblyFilesNullFilesShouldReturnEmptyList() {
     // Given
-    final AssemblyConfiguration assemblyConfiguration = new AssemblyConfiguration();
+    final Assembly assembly = new Assembly();
     // When
-    final List<AssemblyFile> result = getJKubeAssemblyFiles(assemblyConfiguration);
+    final List<AssemblyFile> result = getJKubeAssemblyFiles(assembly);
     // Then
     assertThat(result).isNotNull().isEmpty();
   }
@@ -137,9 +134,6 @@ public class AssemblyConfigurationUtilsTest {
       @Injectable Assembly assembly, @Injectable AssemblyFile file) {
 
     // Given
-    final AssemblyConfiguration configuration = AssemblyConfiguration.builder()
-        .layer(assembly)
-        .build();
     // @formatter:off
     new Expectations() {{
       assembly.getFiles(); result = Collections.singletonList(file);
@@ -147,7 +141,7 @@ public class AssemblyConfigurationUtilsTest {
     }};
     // @formatter:on
     // When
-    final List<AssemblyFile> result = getJKubeAssemblyFiles(configuration);
+    final List<AssemblyFile> result = getJKubeAssemblyFiles(assembly);
     // Then
     assertThat(result)
         .isNotNull()
