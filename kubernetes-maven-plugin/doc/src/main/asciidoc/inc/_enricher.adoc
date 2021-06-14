@@ -141,8 +141,7 @@ include::enricher/_jkube_git.adoc[]
 [[jkube-image]]
 ==== jkube-image
 
-[[jkube-ingress]]
-==== jkube-ingress
+include::enricher/_jkube_ingress.adoc[]
 
 This enricher is responsible for generating Ingress resource during {goal-prefix}:resource goal. You can read more about it in <<ingress-generation, Ingress Generation>> section.
 
