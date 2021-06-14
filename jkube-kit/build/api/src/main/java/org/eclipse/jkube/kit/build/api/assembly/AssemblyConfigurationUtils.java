@@ -22,9 +22,11 @@ import org.eclipse.jkube.kit.common.Assembly;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 class AssemblyConfigurationUtils {
 
@@ -34,22 +36,28 @@ class AssemblyConfigurationUtils {
   private AssemblyConfigurationUtils() {}
 
   @Nonnull
-  static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(@Nullable BuildConfiguration buildConfiguration) {
-    final AssemblyConfiguration ac = Optional.ofNullable(buildConfiguration)
-            .map(BuildConfiguration::getAssembly)
-            .orElse(AssemblyConfiguration.builder().build());
-    final AssemblyConfiguration.AssemblyConfigurationBuilder builder = ac.toBuilder();
-    final String name;
-    if (StringUtils.isBlank(ac.getName())) {
-      builder.name(DEFAULT_NAME);
-      name = DEFAULT_NAME;
-    } else {
-      name = ac.getName();
+  static List<AssemblyConfiguration> getAssemblyConfigurationOrCreateDefault(@Nullable BuildConfiguration buildConfiguration) {
+    final List<AssemblyConfiguration> assemblies = new ArrayList<>();
+    if (buildConfiguration != null) {
+      assemblies.addAll(buildConfiguration.getAssemblies());
     }
-    if (StringUtils.isBlank(ac.getTargetDir())) {
-      builder.targetDir(LINUX_FILE_SEPARATOR.concat(name));
+    if (assemblies.isEmpty()) {
+      assemblies.add(new AssemblyConfiguration());
     }
-    return builder.build();
+    return assemblies.stream().map(ac -> {
+      final AssemblyConfiguration.AssemblyConfigurationBuilder builder = ac.toBuilder();
+      final String name;
+      if (StringUtils.isBlank(ac.getName())) {
+        builder.name(DEFAULT_NAME);
+        name = DEFAULT_NAME;
+      } else {
+        name = ac.getName();
+      }
+      if (StringUtils.isBlank(ac.getTargetDir())) {
+        builder.targetDir(LINUX_FILE_SEPARATOR.concat(name));
+      }
+      return builder.build();
+    }).collect(Collectors.toList());
   }
 
   @Nonnull

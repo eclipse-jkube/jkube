@@ -80,7 +80,7 @@ public class JibBuildService implements BuildService {
             final Map<File, AssemblyFileEntry> files = AssemblyManager.getInstance()
                 .copyFilesToFinalTarballDirectory(
                     configuration.getProject(), buildDirs,
-                    AssemblyManager.getAssemblyConfiguration(imageConfig.getBuildConfiguration(), configuration)
+                    AssemblyManager.getAssemblyConfigurations(imageConfig.getBuildConfiguration(), configuration)
                 ).stream()
                 .collect(Collectors.toMap(AssemblyFileEntry::getDest, Function.identity(), (oldV, newV) -> newV));
             // END

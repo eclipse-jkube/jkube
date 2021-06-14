@@ -14,28 +14,31 @@
 package org.eclipse.jkube.kit.build.api.assembly;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import mockit.Expectations;
 import mockit.Injectable;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+@SuppressWarnings("TestMethodWithIncorrectSignature")
 public class AssemblyConfigurationUtilsTest {
 
   @Test
@@ -44,15 +47,16 @@ public class AssemblyConfigurationUtilsTest {
 
     // Given
     new Expectations() {{
-      buildConfiguration.getAssembly();
-      result = null;
+      buildConfiguration.getAssemblies();
+      result = Collections.emptyList();
     }};
     // When
-    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    final List<AssemblyConfiguration> result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
-    assertEquals("maven", result.getName());
-    assertEquals("/maven", result.getTargetDir());
-    assertNull(result.getUser());
+    assertThat(result).hasSize(1).first()
+        .hasFieldOrPropertyWithValue("name", "maven")
+        .hasFieldOrPropertyWithValue("targetDir", "/maven")
+        .hasFieldOrPropertyWithValue("user", null);
   }
 
   @Test
@@ -62,16 +66,36 @@ public class AssemblyConfigurationUtilsTest {
     // Given
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
     new Expectations() {{
-      buildConfiguration.getAssembly();
-      result = configuration;
+      buildConfiguration.getAssemblies();
+      result = Collections.singletonList(configuration);
     }};
     // When
-    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    final List<AssemblyConfiguration> result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
-    assertNotNull(result);
-    assertEquals("ImageName", result.getName());
-    assertEquals("/ImageName", result.getTargetDir());
-    assertEquals("OtherUser", result.getUser());
+    assertThat(result).hasSize(1).first()
+        .hasFieldOrPropertyWithValue("name", "ImageName")
+        .hasFieldOrPropertyWithValue("targetDir", "/ImageName")
+        .hasFieldOrPropertyWithValue("user", "OtherUser");
+  }
+
+  @Test
+  public void getAssemblyConfigurationOrCreateDefaultWithMultipleConfigurationShouldReturnConfigurationAndDefault(
+      @Injectable final BuildConfiguration buildConfiguration) {
+
+    // Given
+    final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
+    new Expectations() {{
+      buildConfiguration.getAssemblies();
+      result = Arrays.asList(configuration, new AssemblyConfiguration());
+    }};
+    // When
+    final List<AssemblyConfiguration> result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    // Then
+    assertThat(result).hasSize(2).extracting("name", "targetDir", "user")
+        .containsExactly(
+            tuple("ImageName", "/ImageName", "OtherUser"),
+            tuple("maven", "/maven", null)
+        );
   }
 
 
