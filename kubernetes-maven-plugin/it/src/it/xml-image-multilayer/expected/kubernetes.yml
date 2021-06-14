@@ -1,0 +1,56 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: xml-image-multilayer
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: xml-image-multilayer
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: xml-image-multilayer
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    template:
+      spec:
+        containers:
+        - env:
+          - name: JAVA_OPTIONS
+            value: -Xmx256m valueFromResourcesToBeMerged
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: repository/xml-based-image-test:latest
+          imagePullPolicy: IfNotPresent
+          name: repository-xml-image-multilayer
+          securityContext:
+            privileged: false
