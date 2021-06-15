@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
@@ -47,6 +48,7 @@ public class HelmService {
   private static final String CHART_API_VERSION = "v1";
   private static final String CHART_FILENAME = "Chart" + YAML_EXTENSION;
   private static final String VALUES_FILENAME = "values" + YAML_EXTENSION;
+  private static final String GOLANG_EXPRESSION_REGEX = "\\{\\{.+}}";
 
   private HelmService() {}
 
@@ -199,20 +201,27 @@ public class HelmService {
     final String braceEnclosedFrom = "${" + name + "}";
     final String quotedBraceEnclosedFrom = "\"" + braceEnclosedFrom + "\"";
     String answer = template;
+    final String to = expression(parameter);
+    answer = answer.replace(quotedBraceEnclosedFrom, to);
+    answer = answer.replace(braceEnclosedFrom, to);
+    answer = answer.replace(from, to);
+    return answer;
+  }
+
+  private static String expression(HelmParameter parameter) {
+    final String value = Optional.ofNullable(parameter.getParameter().getValue()).map(StringUtils::trimToEmpty).orElse("");
+    if (value.matches(GOLANG_EXPRESSION_REGEX)) {
+      return value;
+    }
     String defaultExpression = "";
     String required = "";
-    String value = parameter.getParameter().getValue();
-    if (value != null) {
+    if (StringUtils.isNotBlank(value)) {
       defaultExpression = " | default \"" + value + "\"";
     }
     if (Boolean.TRUE.equals(parameter.getParameter().getRequired())) {
       required = "required \"A valid .Values." + parameter.getHelmName() + " entry required!\" ";
     }
-    final String to = "{{ " + required + ".Values." + parameter.getHelmName() + defaultExpression + " }}";
-    answer = answer.replace(quotedBraceEnclosedFrom, to);
-    answer = answer.replace(braceEnclosedFrom, to);
-    answer = answer.replace(from, to);
-    return answer;
+    return "{{ " + required + ".Values." + parameter.getHelmName() + defaultExpression + " }}";
   }
 
   private static void interpolateTemplateParameterExpressionsWithHelmExpressions(File file, List<HelmParameter> helmParameters) throws IOException {

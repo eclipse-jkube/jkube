@@ -13,5 +13,9 @@
 #
 
 ---
+golang_expression: "{{ .Values.i_should_be_quoted | upper | quote }}"
+i_should_be_quoted: I'm a quoted uppercase value
+golang_expression_scalar: "{{ .Values.i_should_be_quoted | upper | quote }}\n"
 limits_memory: 512Mi
+helm_namespace: "{{ .Release.Namespace }}\n"
 requests_memory: 256Mi

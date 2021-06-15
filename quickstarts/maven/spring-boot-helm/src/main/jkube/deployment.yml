@@ -13,15 +13,20 @@
 #
 
 metadata:
+  namespace: ${helm_namespace}
   labels:
     project: ${project.artifactId}
     hystrix.enabled: true
     hystrix.cluster: default
     version: ${project.version}
+  annotations:
+    jkube.helm.sh/expression-example: ${golang_expression}
+    jkube.helm.sh/expression-example-scalar: ${golang_expression_scalar}
 spec:
   replicas: 1
   template:
     metadata:
+      namespace: ${helm_namespace}
       labels:
         project: ${project.artifactId}
         hystrix.enabled: true
