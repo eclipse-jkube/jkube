@@ -83,6 +83,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamName;
+
 /**
  * @author nicola
  */
@@ -90,6 +92,9 @@ public class OpenshiftBuildService implements BuildService {
 
     private static final String DEFAULT_S2I_BUILD_SUFFIX = "-s2i";
     public static final String DEFAULT_S2I_SOURCE_TYPE = "Binary";
+    private static final String IMAGE_STREAM_TAG =  "ImageStreamTag";
+    private static final String DOCKER_IMAGE =  "DockerImage";
+    private static final String DEFAULT_BUILD_OUTPUT_KIND = IMAGE_STREAM_TAG;
     public static final String REQUESTS = "requests";
     public static final String LIMITS = "limits";
 
@@ -132,17 +137,17 @@ public class OpenshiftBuildService implements BuildService {
                 buildName = updateOrCreateBuildConfig(config, client, builder, imageConfig, null);
             }
 
-            checkOrCreateImageStream(config, client, builder, getImageStreamName(imageName));
-            applyResourceObjects(config, client, builder);
+            if (config.getBuildOutputKind() == null || IMAGE_STREAM_TAG.equals(config.getBuildOutputKind())) {
+                checkOrCreateImageStream(config, client, builder, resolveImageStreamName(imageName));
 
-            // Start the actual build
-            Build build = startBuild(client, dockerTar, buildName);
+                applyBuild(buildName, dockerTar, builder);
 
-            // Wait until the build finishes
-            waitForOpenShiftBuildToComplete(client, build);
-
-            // Create a file with generated image streams
-            addImageStreamToFile(getImageStreamFile(), imageName, client);
+                // Create a file with generated image streams
+                addImageStreamToFile(getImageStreamFile(), imageName, client);
+            } else {
+                applyBuild(buildName, dockerTar, builder);
+            }
+            
         } catch (JKubeServiceException e) {
             throw e;
         } catch (Exception ex) {
@@ -154,6 +159,17 @@ public class OpenshiftBuildService implements BuildService {
                 throw new JKubeServiceException("Unable to build the image using the OpenShift build service", ex);
             }
         }
+    }
+
+    private void applyBuild(String buildName, File dockerTar, KubernetesListBuilder builder)
+            throws Exception {
+        applyResourceObjects(config, client, builder);
+
+        // Start the actual build
+        Build build = startBuild(client, dockerTar, buildName);
+
+        // Wait until the build finishes
+        waitForOpenShiftBuildToComplete(client, build);
     }
 
     @Override
@@ -211,14 +227,9 @@ public class OpenshiftBuildService implements BuildService {
     protected String updateOrCreateBuildConfig(BuildServiceConfig config, OpenShiftClient client, KubernetesListBuilder builder, ImageConfiguration imageConfig, String openshiftPullSecret) {
         ImageName imageName = new ImageName(imageConfig.getName());
         String buildName = getS2IBuildName(config, imageName);
-        String imageStreamName = getImageStreamName(imageName);
-        String outputImageStreamTag = imageStreamName + ":" + (imageName.getTag() != null ? imageName.getTag() : "latest");
 
         BuildStrategy buildStrategyResource = createBuildStrategy(imageConfig, config.getJKubeBuildStrategy(), openshiftPullSecret);
-        BuildOutput buildOutput = new BuildOutputBuilder().withNewTo()
-                .withKind("ImageStreamTag")
-                .withName(outputImageStreamTag)
-                .endTo().build();
+        BuildOutput buildOutput = createBuildOutput(config, imageName);
 
         // Fetch existing build config
         BuildConfig buildConfig = client.buildConfigs().withName(buildName).get();
@@ -335,8 +346,8 @@ public class OpenshiftBuildService implements BuildService {
         } else {
             fromName = getMapValueWithDefault(fromExt, JKubeBuildStrategy.SourceStrategy.name, buildConfig.getFrom());
         }
-        final String fromKind = getMapValueWithDefault(fromExt, JKubeBuildStrategy.SourceStrategy.kind, "DockerImage");
-        final String fromNamespace = getMapValueWithDefault(fromExt, JKubeBuildStrategy.SourceStrategy.namespace, "ImageStreamTag".equals(fromKind) ? "openshift" : null);
+        final String fromKind = getMapValueWithDefault(fromExt, JKubeBuildStrategy.SourceStrategy.kind, DOCKER_IMAGE);
+        final String fromNamespace = getMapValueWithDefault(fromExt, JKubeBuildStrategy.SourceStrategy.namespace, IMAGE_STREAM_TAG.equals(fromKind) ? "openshift" : null);
         if (osBuildStrategy == JKubeBuildStrategy.docker) {
             BuildStrategy buildStrategy = new BuildStrategyBuilder()
                     .withType("Docker")
@@ -378,6 +389,20 @@ public class OpenshiftBuildService implements BuildService {
         } else {
             throw new IllegalArgumentException("Unsupported BuildStrategy " + osBuildStrategy);
         }
+    }
+
+    private BuildOutput createBuildOutput(BuildServiceConfig config, ImageName imageName) {
+        final String buildOutputKind = Optional.ofNullable(config.getBuildOutputKind()).orElse(DEFAULT_BUILD_OUTPUT_KIND);
+        final String outputImageStreamTag = resolveImageStreamName(imageName) + ":" + (imageName.getTag() != null ? imageName.getTag() : "latest");
+        final BuildOutputBuilder buildOutputBuilder = new BuildOutputBuilder();
+        buildOutputBuilder.withNewTo().withKind(buildOutputKind).withName(outputImageStreamTag).endTo();
+        if (DOCKER_IMAGE.equals(buildOutputKind)) {
+            buildOutputBuilder.editTo().withName(imageName.getFullName()).endTo();
+        }
+        if(StringUtils.isNotBlank(config.getOpenshiftPushSecret())) {
+            buildOutputBuilder.withNewPushSecret().withName(config.getOpenshiftPushSecret()).endPushSecret();
+        }
+        return buildOutputBuilder.build();
     }
 
     private Boolean checkForNocache(ImageConfiguration imageConfig) {
@@ -676,9 +701,9 @@ public class OpenshiftBuildService implements BuildService {
             String kind = ref.getKind();
             String name = ref.getName();
 
-            if ("DockerImage".equals(kind)) {
+            if (DOCKER_IMAGE.equals(kind)) {
                 log.error("Please, ensure that the Docker image '%s' exists and is accessible by OpenShift", name);
-            } else if ("ImageStreamTag".equals(kind)) {
+            } else if (IMAGE_STREAM_TAG.equals(kind)) {
                 String namespace = ref.getNamespace();
                 String namespaceInfo = "current";
                 String namespaceParams = "";
@@ -720,17 +745,13 @@ public class OpenshiftBuildService implements BuildService {
     // == Utility methods ==========================
 
     private String getS2IBuildName(BuildServiceConfig config, ImageName imageName) {
-        final StringBuilder s2IBuildName = new StringBuilder(imageName.getSimpleName());
+        final StringBuilder s2IBuildName = new StringBuilder(resolveImageStreamName(imageName));
         if (!StringUtils.isEmpty(config.getS2iBuildNameSuffix())) {
             s2IBuildName.append(config.getS2iBuildNameSuffix());
         } else if (config.getJKubeBuildStrategy() == JKubeBuildStrategy.s2i) {
             s2IBuildName.append(DEFAULT_S2I_BUILD_SUFFIX);
         }
         return s2IBuildName.toString();
-    }
-
-    private String getImageStreamName(ImageName name) {
-        return name.getSimpleName();
     }
 
     private String getMapValueWithDefault(Map<String, String> map, JKubeBuildStrategy.SourceStrategy strategy, String defaultValue) {

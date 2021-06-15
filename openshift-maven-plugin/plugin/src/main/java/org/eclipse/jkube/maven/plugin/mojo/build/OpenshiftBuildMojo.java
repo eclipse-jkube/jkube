@@ -58,6 +58,21 @@ public class OpenshiftBuildMojo extends BuildMojo {
     @Parameter(property = "jkube.s2i.imageStreamLookupPolicyLocal", defaultValue = "true")
     protected boolean s2iImageStreamLookupPolicyLocal = true;
 
+    /**
+     * Allow to specify in which registry to push the container image at the end of the build.
+     * If the output kind is ImageStreamTag, then the image will be pushed to the internal OpenShift registry.
+     * If the output is of type DockerImage, then the name of the output reference will be used as a Docker push specification.
+     */
+    @Parameter(property = "jkube.build.buildOutput.kind", defaultValue = "ImageStreamTag")
+    protected String buildOutputKind;
+
+   /**
+     * The name of pushSecret to be used to push the final image in case pushing from a protected
+     * registry which requires authentication.
+     */
+    @Parameter(property = "jkube.build.pushSecret")
+    protected String openshiftPushSecret;
+
     @Override
     protected boolean isDockerAccessRequired() {
         return runtimeMode == KUBERNETES;
@@ -80,7 +95,9 @@ public class OpenshiftBuildMojo extends BuildMojo {
         return super.buildServiceConfigBuilder()
             .openshiftPullSecret(openshiftPullSecret)
             .s2iBuildNameSuffix(s2iBuildNameSuffix)
-            .s2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal);
+            .s2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal)
+            .openshiftPushSecret(openshiftPushSecret)
+            .buildOutputKind(buildOutputKind);
     }
 
     @Override

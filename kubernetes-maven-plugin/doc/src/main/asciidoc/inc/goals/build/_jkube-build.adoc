@@ -273,6 +273,25 @@ ifeval::["{goal-prefix}" == "oc"]
 | `jkube.build.pullSecret`
 endif::[]
 
+ifeval::["{goal-prefix}" == "oc"]
+| *pushSecret*
+| The name of pushSecret to be used to push the final image in case pushing from a
+  protected registry which requires authentication.
+
+| `jkube.build.pushSecret`
+endif::[]
+
+
+ifeval::["{goal-prefix}" == "oc"]
+| *jkube.build.buildOutput.kind*
+|  Allow to specify in which registry to push the container image at the end of the build.
+   If the output kind is ImageStreamTag, then the image will be pushed to the internal OpenShift registry.
+   If the output is of type DockerImage, then the name of the output reference will be used as a Docker push specification.
+   The default value is `ImageStreamTag`
+
+| `jkube.build.buildOutput.kind`
+endif::[]
+
 | *registry*
 | Specify globally a registry to use for pulling and pushing images. See <<registry,Registry handling>> for details.
 | `jkube.docker.registry`

@@ -42,6 +42,7 @@ public class BuildServiceConfig {
     private boolean forcePull;
     private String s2iBuildNameSuffix;
     private String openshiftPullSecret;
+    private String openshiftPushSecret;
     private Task<KubernetesListBuilder> enricherTask;
     private String buildDirectory;
     private Attacher attacher;
@@ -49,6 +50,7 @@ public class BuildServiceConfig {
     private boolean s2iImageStreamLookupPolicyLocal;
     private ResourceConfig resourceConfig;
     private File resourceDir;
+    private String buildOutputKind;
 
     public void attachArtifact(String classifier, File destFile) {
         if (attacher != null) {
