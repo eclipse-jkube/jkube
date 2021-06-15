@@ -609,7 +609,7 @@ public class OpenshiftBuildServiceTest {
             OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
             service.build(image);
 
-            // we should Foadd a better way to assert that a certain call has been made
+            // we should add a better way to assert that a certain call has been made
             assertTrue(mockServer.getMockServer().getRequestCount() > 8);
             collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
             assertEquals("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i-suffix2\"},\"spec\":{\"output\":{\"pushSecret\":{\"name\":\"pushsecret-fabric8\"},\"to\":{\"kind\":\"DockerImage\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}", collector.getBodies().get(1));
