@@ -162,7 +162,7 @@ public class OpenshiftBuildService implements BuildService {
     }
 
     private void applyBuild(String buildName, File dockerTar, KubernetesListBuilder builder)
-            throws Exception, IOException {
+            throws Exception {
         applyResourceObjects(config, client, builder);
 
         // Start the actual build
