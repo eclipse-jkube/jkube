@@ -13,18 +13,22 @@
  */
 package org.eclipse.jkube.kit.build.api.assembly;
 
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.common.AssemblyFile;
-import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.Assembly;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 
 class AssemblyConfigurationUtils {
 
@@ -53,18 +57,58 @@ class AssemblyConfigurationUtils {
   }
 
   @Nonnull
-  static List<AssemblyFileSet> getJKubeAssemblyFileSets(@Nullable AssemblyConfiguration configuration) {
-    return Optional.ofNullable(configuration)
-            .map(AssemblyConfiguration::getInline)
-            .map(Assembly::getFileSets)
-            .orElse(Collections.emptyList());
+  static List<AssemblyFileSet> getJKubeAssemblyFileSets(@Nullable Assembly assembly) {
+    return Optional.ofNullable(assembly)
+        .map(Assembly::getFileSets)
+        .orElse(Collections.emptyList());
   }
 
   @Nonnull
-  static List<AssemblyFile> getJKubeAssemblyFiles(AssemblyConfiguration configuration) {
-    return Optional.ofNullable(configuration)
-            .map(AssemblyConfiguration::getInline)
-            .map(Assembly::getFiles)
-            .orElse(Collections.emptyList());
+  static List<AssemblyFile> getJKubeAssemblyFiles(@Nullable Assembly assembly) {
+    return Optional.ofNullable(assembly)
+        .map(Assembly::getFiles)
+        .orElse(Collections.emptyList());
+  }
+
+  @Nonnull
+  static DockerFileBuilder createDockerFileBuilder(
+      JKubeConfiguration configuration, BuildConfiguration buildConfig, AssemblyConfiguration assemblyConfig) {
+    DockerFileBuilder builder =
+        new DockerFileBuilder()
+            .baseImage(buildConfig.getFrom())
+            .env(buildConfig.getEnv())
+            .labels(buildConfig.getLabels())
+            .expose(buildConfig.getPorts())
+            .run(buildConfig.getRunCmds())
+            .volumes(buildConfig.getVolumes())
+            .user(buildConfig.getUser());
+    Optional.ofNullable(buildConfig.getMaintainer()).ifPresent(builder::maintainer);
+    Optional.ofNullable(buildConfig.getWorkdir()).ifPresent(builder::workdir);
+    Optional.ofNullable(buildConfig.getHealthCheck()).ifPresent(builder::healthCheck);
+    Optional.ofNullable(buildConfig.getCmd()).ifPresent(builder::cmd);
+    Optional.ofNullable(buildConfig.getEntryPoint()).ifPresent(builder::entryPoint);
+    if (assemblyConfig != null) {
+      builder.basedir(assemblyConfig.getTargetDir())
+          .assemblyUser(assemblyConfig.getUser())
+          .exportTargetDir(assemblyConfig.getExportTargetDir());
+      final List<Assembly> effectiveLayers = assemblyConfig.getProcessedLayers(configuration);
+      if (effectiveLayers.isEmpty()) {
+        builder.add(assemblyConfig.getTargetDir(), "");
+      }
+      for (Assembly layer: effectiveLayers) {
+        if (StringUtils.isNotBlank(layer.getId())) {
+          builder.add(StringUtils.prependIfMissing(layer.getId(), "/") + assemblyConfig.getTargetDir(), "");
+        } else {
+          builder.add(assemblyConfig.getTargetDir(), "");
+        }
+      }
+    } else {
+      builder.exportTargetDir(false);
+    }
+
+    if (buildConfig.optimise()) {
+      builder.optimise();
+    }
+    return builder;
   }
 }

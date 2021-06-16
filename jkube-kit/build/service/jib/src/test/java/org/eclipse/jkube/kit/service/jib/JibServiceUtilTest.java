@@ -15,50 +15,61 @@ package org.eclipse.jkube.kit.service.jib;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
-import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
-import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
-import com.google.cloud.tools.jib.api.buildplan.Port;
+import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import com.google.cloud.tools.jib.api.JibContainerBuilder;
-import com.google.cloud.tools.jib.api.LayerConfiguration;
+import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
+import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
+import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
+import com.google.cloud.tools.jib.api.buildplan.Port;
 import mockit.Mocked;
 import mockit.Verifications;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.BUSYBOX;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class JibServiceUtilTest {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Test
     public void testGetBaseImageWithNullBuildConfig() {
-        assertEquals(BUSYBOX, JibServiceUtil.getBaseImage(ImageConfiguration.builder().build()));
+        assertThat(JibServiceUtil.getBaseImage(ImageConfiguration.builder().build())).isEqualTo("busybox:latest");
     }
 
     @Test
     public void testGetBaseImageWithNotNullBuildConfig() {
-        assertEquals("quay.io/jkubeio/jkube-test-image:0.0.1", JibServiceUtil.getBaseImage(ImageConfiguration.builder()
-                .build(BuildConfiguration.builder()
-                        .from("quay.io/jkubeio/jkube-test-image:0.0.1")
-                        .build())
-                .build()));
+        // Given
+        final ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+            .build(BuildConfiguration.builder()
+                .from("quay.io/jkubeio/jkube-test-image:0.0.1")
+                .build())
+            .build();
+        // When
+        final String result = JibServiceUtil.getBaseImage(imageConfiguration);
+        // Then
+        assertThat(result).isEqualTo("quay.io/jkubeio/jkube-test-image:0.0.1");
     }
 
     @Test
@@ -83,50 +94,74 @@ public class JibServiceUtilTest {
     }
 
     @Test
-    public void testCopyToContainer(@Mocked JibContainerBuilder containerBuilder) throws IOException {
-        // Given
-        File temporaryDirectory = Files.createTempDirectory("jib-test").toFile();
-        File temporaryFile = new File(temporaryDirectory, "foo.txt");
-        boolean wasNewFileCreated = temporaryFile.createNewFile();
-
-        // When
-        JibServiceUtil.copyToContainer(containerBuilder, temporaryDirectory, "/tmp", Collections.emptyMap());
-
-        // Then
-        assertTrue(wasNewFileCreated);
-        new Verifications() {{
-            FileEntriesLayer fileEntriesLayer;
-            containerBuilder.addFileEntriesLayer(fileEntriesLayer = withCapture());
-
-            assertNotNull(fileEntriesLayer);
-            assertEquals(1, fileEntriesLayer.getEntries().size());
-            assertEquals(temporaryFile.toPath(), fileEntriesLayer.getEntries().get(0).getSourceFile());
-            assertEquals(AbsoluteUnixPath.get(temporaryFile.getAbsolutePath().substring(4)), fileEntriesLayer.getEntries().get(0).getExtractionPath());
-        }};
-    }
-
-    @Test
     public void testAppendOriginalImageNameTagIfApplicable() {
         // Given
         List<String> imageTagList = Arrays.asList("0.0.1", "0.0.1-SNAPSHOT");
-
         // When
         Set<String> result = JibServiceUtil.getAllImageTags(imageTagList, "test-project");
-
         // Then
-        assertNotNull(result);
-        assertEquals(3, result.size());
-        assertArrayEquals(new String[]{"0.0.1-SNAPSHOT", "0.0.1", "latest"}, result.toArray());
+        assertThat(result)
+            .isNotNull()
+            .hasSize(3)
+            .containsExactlyInAnyOrder("0.0.1-SNAPSHOT", "0.0.1", "latest");
     }
 
     @Test
     public void testGetFullImageNameWithDefaultTag() {
-        assertEquals("test/test-project:latest", JibServiceUtil.getFullImageName(getSampleImageConfiguration(), null));
+        assertThat(JibServiceUtil.getFullImageName(getSampleImageConfiguration(), null))
+            .isEqualTo("test/test-project:latest");
     }
 
     @Test
     public void testGetFullImageNameWithProvidedTag() {
-        assertEquals("test/test-project:0.0.1", JibServiceUtil.getFullImageName(getSampleImageConfiguration(), "0.0.1"));
+        assertThat(JibServiceUtil.getFullImageName(getSampleImageConfiguration(), "0.0.1"))
+            .isEqualTo("test/test-project:0.0.1");
+    }
+
+    @Test
+    public void layers_withEmptyLayers_shouldReturnEmpty() {
+        // When
+        final List<FileEntriesLayer> result = JibServiceUtil.layers(null, Collections.emptyMap());
+        // Then
+        assertThat(result).isNotNull().isEmpty();
+    }
+
+    @Test
+    public void layers_withMultipleLayers_shouldReturnTransformedLayers() throws IOException {
+        // Given
+        final BuildDirs buildDirs = new BuildDirs("layers-test", JKubeConfiguration.builder()
+            .outputDirectory("target/docker")
+            .project(JavaProject.builder().baseDirectory(temporaryFolder.getRoot()).build())
+            .build());
+        final Map<Assembly, List<AssemblyFileEntry>> originalLayers = new HashMap<>();
+        originalLayers.put(Assembly.builder().id("layer-1").build(), Arrays.asList(
+            AssemblyFileEntry.builder().source(temporaryFolder.newFile())
+                .dest(buildDirs.getOutputDirectory().toPath().resolve("layer-1").resolve("l1.1.txt").toFile()).build(),
+            AssemblyFileEntry.builder().source(temporaryFolder.newFile())
+                .dest(buildDirs.getOutputDirectory().toPath().resolve("layer-1").resolve("l1.2.txt").toFile()).build()
+        ));
+        originalLayers.put(Assembly.builder().build(), Arrays.asList(
+            AssemblyFileEntry.builder().source(temporaryFolder.newFile())
+                .dest(new File(buildDirs.getOutputDirectory(),"l2.1.txt")).build(),
+            AssemblyFileEntry.builder().source(temporaryFolder.newFile())
+                .dest(new File(buildDirs.getOutputDirectory(),"l2.2.txt")).build()
+        ));
+        // When
+        final List<FileEntriesLayer> result = JibServiceUtil.layers(buildDirs, originalLayers);
+        // Then
+        assertThat(result).hasSize(2)
+            .anySatisfy(fel -> assertThat(fel)
+                .hasFieldOrPropertyWithValue("name", "layer-1")
+                .extracting(FileEntriesLayer::getEntries).asList().extracting("extractionPath.unixPath")
+                .containsExactly("/l1.1.txt", "/l1.2.txt")
+            )
+            .anySatisfy(fel -> assertThat(fel)
+                .hasFieldOrPropertyWithValue("name", "")
+                .extracting(FileEntriesLayer::getEntries).asList().extracting("extractionPath.unixPath")
+                .containsExactly("/l2.1.txt", "/l2.2.txt")
+            )
+            .extracting(FileEntriesLayer::getName)
+            .containsExactly("layer-1", "");
     }
 
     private ImageConfiguration getSampleImageConfiguration() {
@@ -135,7 +170,7 @@ public class JibServiceUtilTest {
                 .build(BuildConfiguration.builder()
                         .from("quay.io/test/testimage:testtag")
                         .assembly(AssemblyConfiguration.builder()
-                                .inline(Assembly.builder()
+                                .layer(Assembly.builder()
                                         .files(Collections.singletonList(AssemblyFile.builder()
                                                 .source(new File("${project.basedir}/foo"))
                                                 .outputDirectory(new File("targetDir"))

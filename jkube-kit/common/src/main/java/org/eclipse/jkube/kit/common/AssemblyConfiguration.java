@@ -13,14 +13,25 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+
+import javax.annotation.Nonnull;
+
+import lombok.AccessLevel;
+import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 @SuppressWarnings("JavaDoc")
 @Builder(toBuilder = true)
@@ -83,8 +94,23 @@ public class AssemblyConfiguration implements Serializable {
     private String tarLongFileMode;
     /**
      * Assembly defined inline in the pom.xml
+     * @deprecated Use {@link #layers} instead
      */
+    @Deprecated
     private Assembly inline;
+    /**
+     * Each of the layers ({@link Assembly} for the Container Image.
+     */
+    @Singular("layer")
+    private List<Assembly> layers;
+    /**
+     * Internal field.
+     *
+     * <p>true if this image has been flattened ({@link #getFlattenedClone(JKubeConfiguration)}), false otherwise
+     */
+    @Getter(value = AccessLevel.PRIVATE)
+    @Setter(value = AccessLevel.PRIVATE)
+    private boolean flattened;
 
     public AssemblyMode getMode() {
         return mode != null ? mode : AssemblyMode.dir;
@@ -103,7 +129,92 @@ public class AssemblyConfiguration implements Serializable {
     }
 
 
+    /**
+     * @deprecated Use {@link #getLayers()} instead
+     */
+    @Deprecated
+    public Assembly getInline() {
+        return Optional.ofNullable(getLayers())
+            .filter(l -> !l.isEmpty())
+            .map(l -> l.get(l.size() - 1))
+            .orElse(null);
+    }
+
+    /**
+     * @deprecated Use {@link #layers} instead
+     */
+    @Deprecated
+    public void setInline(Assembly inline) {
+        this.inline = inline;
+    }
+
+    @Nonnull
+    public List<Assembly> getLayers() {
+        final List<Assembly> ret = new ArrayList<>();
+        if (layers != null) {
+            ret.addAll(layers);
+        }
+        if (inline != null) {
+            ret.add(inline);
+        }
+        return ret;
+    }
+
+    @Nonnull
+    public List<Assembly> getProcessedLayers(@Nonnull JKubeConfiguration configuration) {
+        final List<Assembly> originalLayers = getLayers();
+        if (flattened) {
+            return originalLayers;
+        }
+        final List<Assembly> ret = new ArrayList<>();
+        if (originalLayers.size() == 1 && StringUtils.isBlank(originalLayers.iterator().next().getId())) {
+            ret.add(originalLayers.iterator().next().toBuilder().id("jkube-generated-layer-original").build());
+        } else {
+            ret.addAll(originalLayers);
+        }
+        final File finalArtifactFile = JKubeProjectUtil.getFinalOutputArtifact(configuration.getProject());
+        if (!isExcludeFinalOutputArtifact() && finalArtifactFile != null) {
+            ret.add(Assembly.builder()
+                .id("jkube-generated-layer-final-artifact")
+                .file(AssemblyFile.builder()
+                    .source(finalArtifactFile)
+                    .destName(finalArtifactFile.getName())
+                    .outputDirectory(new File(".")).build())
+                .build());
+        }
+        return ret;
+    }
+
+    @Nonnull
+    private Assembly getLayersFlattened(@Nonnull JKubeConfiguration configuration) {
+        final Assembly.AssemblyBuilder assemblyBuilder = Assembly.builder();
+        getProcessedLayers(configuration).forEach(layer -> {
+            if (layer.getFileSets() != null) {
+                layer.getFileSets().forEach(assemblyBuilder::fileSet);
+            }
+            if (layer.getFiles() != null) {
+                layer.getFiles().forEach(assemblyBuilder::file);
+            }
+        });
+        return assemblyBuilder.build();
+    }
+
+    @Nonnull
+    public AssemblyConfiguration getFlattenedClone(@Nonnull JKubeConfiguration configuration) {
+        if (isFlattened()) {
+            throw new IllegalStateException("This image has already been flattened, you can only flatten the image once");
+        }
+        return toBuilder()
+            .flattened(true).inline(null).clearLayers().layer(getLayersFlattened(configuration))
+            .build();
+    }
+
     public static class AssemblyConfigurationBuilder {
+
+        private AssemblyConfigurationBuilder flattened(boolean flattened) {
+            this.flattened = flattened;
+            return this;
+        }
 
         public AssemblyConfigurationBuilder permissionsString(String permissionsString) {
             permissions = Optional.ofNullable(permissionsString)

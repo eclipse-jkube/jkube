@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.generator.api.DefaultImageLookup;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Assembly;
@@ -34,6 +33,8 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,7 +46,7 @@ import static org.junit.Assert.assertThrows;
 /**
  * @author jzuriaga
  */
-@SuppressWarnings("ResultOfMethodCallIgnored")
+@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class QuarkusGeneratorTest {
 
   private static final String BASE_JAVA_IMAGE = "java:latest";
@@ -205,7 +206,8 @@ public class QuarkusGeneratorTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
-        .extracting(AssemblyConfiguration::getInline)
+        .extracting(AssemblyConfiguration::getLayers)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
         .asList()
         .hasSize(1)
@@ -228,7 +230,8 @@ public class QuarkusGeneratorTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/")
-        .extracting(AssemblyConfiguration::getInline)
+        .extracting(AssemblyConfiguration::getLayers)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
         .asList()
         .hasSize(1)
@@ -251,7 +254,8 @@ public class QuarkusGeneratorTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/")
-        .extracting(AssemblyConfiguration::getInline)
+        .extracting(AssemblyConfiguration::getLayers)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
         .asList()
         .hasSize(1)
@@ -274,7 +278,8 @@ public class QuarkusGeneratorTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
-        .extracting(AssemblyConfiguration::getInline)
+        .extracting(AssemblyConfiguration::getLayers)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
         .asList()
         .hasSize(1)
@@ -283,7 +288,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void assembly_withConfiguredPackagingAndNoJar_shouldThrowException() throws IOException {
+  public void assembly_withConfiguredPackagingAndNoJar_shouldThrowException() {
     // Given
     projectProps.put("quarkus.package.type", "legacy-jar");
     final QuarkusGenerator quarkusGenerator = new QuarkusGenerator(ctx);
@@ -312,7 +317,8 @@ public class QuarkusGeneratorTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
-        .extracting(AssemblyConfiguration::getInline)
+        .extracting(AssemblyConfiguration::getLayers)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
         .asList()
         .hasSize(1)
@@ -335,7 +341,8 @@ public class QuarkusGeneratorTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
-        .extracting(AssemblyConfiguration::getInline)
+        .extracting(AssemblyConfiguration::getLayers)
+        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
         .asList()
         .hasSize(1)

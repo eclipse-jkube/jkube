@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
@@ -71,12 +72,14 @@ public class AssemblyFileSetUtils {
   }
 
   /**
-   * Will copy files from the provided <code>baseDirectory</code> into <code>outputDirectory/assemblyConfiguration.targetDir</code>
+   * Will copy files from the provided <code>baseDirectory</code> into
+   * <code>outputDirectory/assemblyConfiguration.targetDir[/layer.directory]</code>
    * considering the inclusion and exclusion rules defined in the provided {@link AssemblyFileSet}.
    *
    * @param baseDirectory directory from where to resolve source files.
    * @param outputDirectory directory where files should be output.
    * @param assemblyFileSet fileSet to process.
+   * @param layer the layer to which fileSet belongs to.
    * @param assemblyConfiguration configuration for assembly.
    * @return List containing the copied {@link AssemblyFileEntry} for the processed {@link AssemblyFileSet}
    * @throws IOException in case something goes wrong when performing File operations.
@@ -85,14 +88,19 @@ public class AssemblyFileSetUtils {
   @Nonnull
   public static List<AssemblyFileEntry> processAssemblyFileSet(
       File baseDirectory, File outputDirectory, AssemblyFileSet assemblyFileSet,
-      AssemblyConfiguration assemblyConfiguration) throws IOException {
+      Assembly layer, AssemblyConfiguration assemblyConfiguration) throws IOException {
 
     final File sourceDirectory = resolveSourceDirectory(baseDirectory, assemblyFileSet);
+    Objects.requireNonNull(assemblyConfiguration.getTargetDir(), "Assembly Configuration target dir is required");
     if (!sourceDirectory.exists()) {
       return Collections.emptyList();
     }
-    final File targetDirectory = new File(outputDirectory, Objects.requireNonNull(
-        assemblyConfiguration.getTargetDir(), "Assembly Configuration target dir is required"));
+    final File targetDirectory;
+    if (StringUtils.isNotBlank(layer.getId())) {
+      targetDirectory = new File(new File(outputDirectory, layer.getId()), assemblyConfiguration.getTargetDir());
+    } else {
+      targetDirectory = new File(outputDirectory, assemblyConfiguration.getTargetDir());
+    }
     final File destinationDirectory;
     if (assemblyFileSet.getOutputDirectory() == null) {
       destinationDirectory = new File(targetDirectory, sourceDirectory.getName());

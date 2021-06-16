@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.common.archive;
 
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 
@@ -24,18 +26,25 @@ public class AssemblyFileUtils {
   private AssemblyFileUtils() {}
 
   public static File getAssemblyFileOutputDirectory(
-      AssemblyFile assemblyFile, File outputDirectoryForRelativePaths, AssemblyConfiguration assemblyConfiguration) {
+      AssemblyFile assemblyFile, File outputDirectoryForRelativePaths,
+      Assembly layer, AssemblyConfiguration assemblyConfiguration) {
     final File outputDirectory;
 
     Objects.requireNonNull(assemblyFile.getOutputDirectory(), "Assembly Configuration output dir is required");
 
     if (assemblyFile.getOutputDirectory().isAbsolute()) {
       outputDirectory = assemblyFile.getOutputDirectory();
+    } else if (StringUtils.isBlank(layer.getId())) {
+      Objects.requireNonNull(assemblyConfiguration.getTargetDir(), "Assembly Configuration target dir is required");
+      outputDirectory = new File(outputDirectoryForRelativePaths, assemblyConfiguration.getTargetDir()).toPath()
+          .resolve(assemblyFile.getOutputDirectory().toPath())
+          .toFile();
     } else {
-      outputDirectory = new File(outputDirectoryForRelativePaths, Objects.requireNonNull(
-          assemblyConfiguration.getTargetDir(), "Assembly Configuration target dir is required")).toPath()
-      .resolve(assemblyFile.getOutputDirectory().toPath())
-      .toFile();
+      Objects.requireNonNull(assemblyConfiguration.getTargetDir(), "Assembly Configuration target dir is required");
+      outputDirectory = new File(new File(outputDirectoryForRelativePaths, layer.getId()),
+          assemblyConfiguration.getTargetDir()).toPath()
+          .resolve(assemblyFile.getOutputDirectory().toPath())
+          .toFile();
     }
     return outputDirectory;
   }

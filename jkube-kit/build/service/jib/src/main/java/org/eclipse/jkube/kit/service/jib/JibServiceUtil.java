@@ -13,40 +13,9 @@
  */
 package org.eclipse.jkube.kit.service.jib;
 
-import com.google.cloud.tools.jib.api.CacheDirectoryCreationException;
-import com.google.cloud.tools.jib.api.Containerizer;
-import com.google.cloud.tools.jib.api.Credential;
-import com.google.cloud.tools.jib.api.InvalidImageReferenceException;
-import com.google.cloud.tools.jib.api.Jib;
-import com.google.cloud.tools.jib.api.JibContainerBuilder;
-import com.google.cloud.tools.jib.api.LogEvent;
-import com.google.cloud.tools.jib.api.RegistryException;
-import com.google.cloud.tools.jib.api.RegistryImage;
-import com.google.cloud.tools.jib.api.TarImage;
-import com.google.cloud.tools.jib.api.buildplan.FilePermissions;
-import com.google.cloud.tools.jib.api.buildplan.FilePermissionsProvider;
-import com.google.cloud.tools.jib.event.events.ProgressEvent;
-import com.google.cloud.tools.jib.event.progress.ProgressEventHandler;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.AssemblyFileEntry;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
-import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
-import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
-import com.google.cloud.tools.jib.api.buildplan.Port;
-
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +30,37 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
+import com.google.cloud.tools.jib.api.CacheDirectoryCreationException;
+import com.google.cloud.tools.jib.api.Containerizer;
+import com.google.cloud.tools.jib.api.Credential;
+import com.google.cloud.tools.jib.api.InvalidImageReferenceException;
+import com.google.cloud.tools.jib.api.Jib;
+import com.google.cloud.tools.jib.api.JibContainerBuilder;
+import com.google.cloud.tools.jib.api.LogEvent;
+import com.google.cloud.tools.jib.api.RegistryException;
+import com.google.cloud.tools.jib.api.RegistryImage;
+import com.google.cloud.tools.jib.api.TarImage;
+import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
+import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
+import com.google.cloud.tools.jib.api.buildplan.FilePermissions;
+import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
+import com.google.cloud.tools.jib.api.buildplan.Port;
+import com.google.cloud.tools.jib.event.events.ProgressEvent;
+import com.google.cloud.tools.jib.event.progress.ProgressEventHandler;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.annotation.Nonnull;
 
 import static com.google.cloud.tools.jib.api.LayerConfiguration.DEFAULT_FILE_PERMISSIONS_PROVIDER;
 import static org.fusesource.jansi.Ansi.ansi;
@@ -81,7 +81,7 @@ public class JibServiceUtil {
     }
 
     private static final long JIB_EXECUTOR_SHUTDOWN_TIMEOUT_SECONDS = 10L;
-    protected static final String BUSYBOX = "busybox:latest";
+    private static final String BUSYBOX = "busybox:latest";
 
     /**
      * Build container image using JIB
@@ -270,65 +270,31 @@ public class JibServiceUtil {
                 .orElse(BUSYBOX);
     }
 
-    public static void copyToContainer(
-        JibContainerBuilder containerBuilder, File directory, String targetDir, Map<File, AssemblyFileEntry> files)
-        throws IOException {
-
-        FilePermissionsProvider filePermissionsProvider = (sourcePath, destinationPath) ->
-            Optional.ofNullable(files.get(sourcePath.toFile()))
-                .map(AssemblyFileEntry::getFileMode)
-                .filter(StringUtils::isNotBlank)
-                .map(octalFileMode -> FilePermissions.fromOctalString(StringUtils.right(octalFileMode, 3)))
-                .orElse(DEFAULT_FILE_PERMISSIONS_PROVIDER.get(sourcePath, destinationPath));
-
-
-        Files.walkFileTree(directory.toPath(), new FileVisitor<Path>() {
-            boolean notParentDir = false;
-
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-
-                if (!notParentDir) {
-                    notParentDir = true;
-                    return FileVisitResult.CONTINUE;
-                }
-
-                String fileFullpath = dir.toAbsolutePath().toString();
-                String relativePath = fileFullpath.substring(targetDir.length());
-                AbsoluteUnixPath absoluteUnixPath = AbsoluteUnixPath.fromPath(Paths.get(relativePath));
-                containerBuilder.addFileEntriesLayer(FileEntriesLayer.builder()
-                        .addEntryRecursive(dir, absoluteUnixPath, filePermissionsProvider)
-                        .build());
-                return FileVisitResult.SKIP_SUBTREE;
+    @Nonnull
+    public static List<FileEntriesLayer> layers(BuildDirs buildDirs, Map<Assembly, List<AssemblyFileEntry>> layers) {
+        final List<FileEntriesLayer> fileEntriesLayers = new ArrayList<>();
+        for (Map.Entry<Assembly, List<AssemblyFileEntry>> layer : layers.entrySet()) {
+            final FileEntriesLayer.Builder fel = FileEntriesLayer.builder();
+            final String layerId = layer.getKey().getId();
+            final Path outputPath;
+            if (StringUtils.isBlank(layerId)) {
+                outputPath = buildDirs.getOutputDirectory().toPath();
+            } else {
+                fel.setName(layerId);
+                outputPath = new File(buildDirs.getOutputDirectory(), layerId).toPath();
             }
-
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                String fileFullpath = file.toAbsolutePath().toString();
-                String relativePath = fileFullpath.substring(targetDir.length());
-                AbsoluteUnixPath absoluteUnixPath = AbsoluteUnixPath.fromPath(Paths.get(relativePath));
-                containerBuilder.addFileEntriesLayer(FileEntriesLayer.builder()
-                        .addEntryRecursive(file, absoluteUnixPath, filePermissionsProvider)
-                        .build());
-                return FileVisitResult.CONTINUE;
+            for (AssemblyFileEntry afe : layer.getValue()) {
+                final Path source = afe.getSource().toPath();
+                final AbsoluteUnixPath target = AbsoluteUnixPath.get(StringUtils.prependIfMissing(
+                    FilenameUtils.separatorsToUnix(outputPath.relativize(afe.getDest().toPath()).toString()), "/"));
+                final FilePermissions permissions = StringUtils.isNotBlank(afe.getFileMode()) ?
+                    FilePermissions.fromOctalString(StringUtils.right(afe.getFileMode(), 3)) :
+                    DEFAULT_FILE_PERMISSIONS_PROVIDER.get(source, target);
+                fel.addEntry(source, target, permissions);
             }
-
-            @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                if (exc != null) {
-                    throw new IOException(exc);
-                }
-                return FileVisitResult.TERMINATE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                if (exc != null) {
-                    throw new IOException(exc);
-                }
-                return FileVisitResult.CONTINUE;
-            }
-        });
+            fileEntriesLayers.add(fel.build());
+        }
+        return fileEntriesLayers;
     }
 
     /**

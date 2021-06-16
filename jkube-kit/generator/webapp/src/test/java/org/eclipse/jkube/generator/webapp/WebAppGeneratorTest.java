@@ -16,6 +16,7 @@ package org.eclipse.jkube.generator.webapp;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -23,6 +24,7 @@ import java.util.Properties;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
@@ -32,12 +34,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -62,7 +59,7 @@ public class WebAppGeneratorTest {
     // When
     final boolean result = new WebAppGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
-    assertThat(result, equalTo(true));
+    assertThat(result).isTrue();
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -102,18 +99,20 @@ public class WebAppGeneratorTest {
     final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
         .customize(originalImageConfigurations, false);
     // Then
-    assertThat(originalImageConfigurations, sameInstance(result));
-    assertThat(result, hasSize(1));
-    final ImageConfiguration imageConfiguration = result.iterator().next();
-    assertThat(imageConfiguration.getName(), equalTo("%g/%a:%l"));
-    assertThat(imageConfiguration.getAlias(), equalTo("webapp"));
-    assertThat(imageConfiguration.getBuildConfiguration().getTags(), contains("latest"));
-    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().isExcludeFinalOutputArtifact(),
-        equalTo(true));
-    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().getInline().getFiles().iterator().next().getDestName(),
-        equalTo("ROOT.war"));
-    assertThat(imageConfiguration.getBuildConfiguration().getPorts(), contains("8080"));
-    assertThat(imageConfiguration.getBuildConfiguration().getEnv(), hasEntry("DEPLOY_DIR", "/deployments"));
+    assertThat(result)
+        .isSameAs(originalImageConfigurations)
+        .hasSize(1)
+        .first()
+        .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
+        .hasFieldOrPropertyWithValue("alias", "webapp")
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
+        .hasFieldOrPropertyWithValue("ports", Collections.singletonList("8080"))
+        .hasFieldOrPropertyWithValue("env", Collections.singletonMap("DEPLOY_DIR", "/deployments"))
+        .extracting(BuildConfiguration::getAssembly)
+        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
+        .extracting("inline.files").asList().extracting("destName")
+        .containsExactly("ROOT.war");
   }
 
   @Test
@@ -146,18 +145,21 @@ public class WebAppGeneratorTest {
     final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
         .customize(originalImageConfigurations, false);
     // Then
-    assertThat(result, hasSize(1));
-    final ImageConfiguration imageConfiguration = result.iterator().next();
-    assertThat(imageConfiguration.getName(), equalTo("%a:%l"));
-    assertThat(imageConfiguration.getAlias(), equalTo("webapp"));
-    assertThat(imageConfiguration.getBuildConfiguration().getTags(), contains("latest"));
-    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().isExcludeFinalOutputArtifact(),
-        equalTo(true));
-    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().getUser(), equalTo("root"));
-    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().getInline().getFiles().iterator().next().getDestName(),
-        equalTo("some-context.war"));
-    assertThat(imageConfiguration.getBuildConfiguration().getPorts(), contains("8082", "80"));
-    assertThat(imageConfiguration.getBuildConfiguration().getEnv(), hasEntry("DEPLOY_DIR", "/other-dir"));
-    assertThat(imageConfiguration.getBuildConfiguration().getCmd().getShell(), equalTo("sleep 3600"));
+    assertThat(result)
+        .isSameAs(originalImageConfigurations)
+        .hasSize(1)
+        .first()
+        .hasFieldOrPropertyWithValue("name", "%a:%l")
+        .hasFieldOrPropertyWithValue("alias", "webapp")
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
+        .hasFieldOrPropertyWithValue("ports", Arrays.asList("8082", "80"))
+        .hasFieldOrPropertyWithValue("env", Collections.singletonMap("DEPLOY_DIR", "/other-dir"))
+        .hasFieldOrPropertyWithValue("cmd.shell", "sleep 3600")
+        .extracting(BuildConfiguration::getAssembly)
+        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
+        .hasFieldOrPropertyWithValue("user", "root")
+        .extracting("inline.files").asList().extracting("destName")
+        .containsExactly("some-context.war");
   }
 }
