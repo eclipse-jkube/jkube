@@ -34,8 +34,10 @@ import java.util.Properties;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class JKubeServiceHubTest {
@@ -60,25 +62,26 @@ public class JKubeServiceHubTest {
 
   private JKubeServiceHub.JKubeServiceHubBuilder commonInit() {
     return JKubeServiceHub.builder()
-        .configuration(configuration)
-        .clusterAccess(clusterAccess)
-        .log(logger)
-        .dockerServiceHub(dockerServiceHub)
-        .buildServiceConfig(buildServiceConfig);
+            .configuration(configuration)
+            .clusterAccess(clusterAccess)
+            .log(logger)
+            .dockerServiceHub(dockerServiceHub)
+            .offline(false)
+            .buildServiceConfig(buildServiceConfig);
   }
 
   @Test(expected = NullPointerException.class)
   public void testMissingClusterAccess() {
     JKubeServiceHub.builder()
-        .log(logger)
-        .build();
+            .log(logger)
+            .build();
   }
 
   @Test(expected = NullPointerException.class)
   public void testMissingKitLogger() {
     JKubeServiceHub.builder()
-        .clusterAccess(clusterAccess)
-        .build();
+            .clusterAccess(clusterAccess)
+            .build();
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -92,10 +95,10 @@ public class JKubeServiceHubTest {
     // @formatter:on
     // When
     try (final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
-        .platformMode(RuntimeMode.KUBERNETES)
-        .configuration(configuration)
-        .log(logger)
-        .build()
+            .platformMode(RuntimeMode.KUBERNETES)
+            .configuration(configuration)
+            .log(logger)
+            .build()
     ) {
       // Then
       assertThat(jKubeServiceHub, notNullValue());
@@ -108,8 +111,8 @@ public class JKubeServiceHubTest {
   public void testGetBuildServiceInKubernetes() {
     // Given
     JKubeServiceHub hub = commonInit()
-        .platformMode(RuntimeMode.KUBERNETES)
-        .build();
+            .platformMode(RuntimeMode.KUBERNETES)
+            .build();
     // When
     BuildService buildService = hub.getBuildService();
     // Then
@@ -121,14 +124,14 @@ public class JKubeServiceHubTest {
   public void testGetBuildServiceInOpenShift() {
     // Given
     // @formatter:off
-      new Expectations() {{
-        buildServiceConfig.getJKubeBuildStrategy(); result = null;
-        openShiftClient.isAdaptable(OpenShiftClient.class); result = true;
-      }};
-      // @formatter:on
+    new Expectations() {{
+      buildServiceConfig.getJKubeBuildStrategy(); result = null;
+      openShiftClient.isAdaptable(OpenShiftClient.class); result = true;
+    }};
+    // @formatter:on
     JKubeServiceHub hub = commonInit()
-        .platformMode(RuntimeMode.OPENSHIFT)
-        .build();
+            .platformMode(RuntimeMode.OPENSHIFT)
+            .build();
     // When
     BuildService buildService = hub.getBuildService();
     // Then
@@ -139,8 +142,8 @@ public class JKubeServiceHubTest {
   @Test
   public void testGetArtifactResolverService() {
     JKubeServiceHub hub = commonInit()
-        .platformMode(RuntimeMode.KUBERNETES)
-        .build();
+            .platformMode(RuntimeMode.KUBERNETES)
+            .build();
 
     assertNotNull(hub.getArtifactResolverService());
   }
@@ -154,8 +157,8 @@ public class JKubeServiceHubTest {
     }};
     // @formatter:on
     JKubeServiceHub hub = commonInit()
-        .platformMode(RuntimeMode.KUBERNETES)
-        .build();
+            .platformMode(RuntimeMode.KUBERNETES)
+            .build();
     // When
     BuildService buildService = hub.getBuildService();
     // Then
@@ -167,8 +170,8 @@ public class JKubeServiceHubTest {
   public void testGetUndeployServiceInKubernetes() {
     // Given
     JKubeServiceHub hub = commonInit()
-        .platformMode(RuntimeMode.KUBERNETES)
-        .build();
+            .platformMode(RuntimeMode.KUBERNETES)
+            .build();
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
@@ -185,8 +188,8 @@ public class JKubeServiceHubTest {
     }};
     // @formatter:on
     JKubeServiceHub hub = commonInit()
-        .platformMode(RuntimeMode.OPENSHIFT)
-        .build();
+            .platformMode(RuntimeMode.OPENSHIFT)
+            .build();
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
@@ -203,8 +206,8 @@ public class JKubeServiceHubTest {
     }};
     // @formatter:on
     JKubeServiceHub hub = commonInit()
-        .platformMode(RuntimeMode.OPENSHIFT)
-        .build();
+            .platformMode(RuntimeMode.OPENSHIFT)
+            .build();
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
@@ -238,5 +241,25 @@ public class JKubeServiceHubTest {
 
     // Then
     assertNotNull(debugService);
+  }
+
+  @Test
+  public void testBasicInitWithOffline() {
+    // Given + When
+    try (final JKubeServiceHub jKubeServiceHub = commonInit().platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
+      // Then
+      assertThat(jKubeServiceHub, notNullValue());
+      assertThat(jKubeServiceHub.getClient(), nullValue());
+    }
+  }
+
+  @Test
+  public void testAccessServiceWithNonInitializedClientThrowsException() {
+    // Given + When
+    try (final JKubeServiceHub jKubeServiceHub = commonInit().platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
+      // Then
+      assertThat(jKubeServiceHub, notNullValue());
+      assertThrows(IllegalArgumentException.class, jKubeServiceHub::getApplyService);
+    }
   }
 }

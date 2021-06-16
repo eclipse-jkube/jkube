@@ -65,6 +65,9 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     @Parameter(property = "jkube.verbose", defaultValue = "false")
     protected String verbose;
 
+    @Parameter(property = "jkube.offline", defaultValue = "false")
+    protected boolean offline;
+
     // Settings holding authentication info
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
@@ -154,6 +157,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
                 .reactorProjects(Collections.singletonList(javaProject))
                 .build())
             .clusterAccess(clusterAccess)
+            .offline(offline)
             .platformMode(getRuntimeMode());
     }
 

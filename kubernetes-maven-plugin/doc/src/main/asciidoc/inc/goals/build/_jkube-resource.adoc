@@ -975,4 +975,10 @@ endif::[]
 | Number of replicas for the container.
 |
 
+| *offline*
+| Whether to try detecting Kubernetes Cluster or stay offline.
+
+  Defaults to `false`.
+| `jkube.offline`
+
 |===
