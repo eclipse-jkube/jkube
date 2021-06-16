@@ -38,7 +38,7 @@ import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
-import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
 

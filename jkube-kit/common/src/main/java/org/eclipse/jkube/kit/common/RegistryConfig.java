@@ -11,14 +11,13 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.config.image;
+package org.eclipse.jkube.kit.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
 import java.io.Serializable;
 import java.util.List;

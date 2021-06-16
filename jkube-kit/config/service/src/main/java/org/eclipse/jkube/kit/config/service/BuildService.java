@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.config.service;
 
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.RegistryConfig;
+import org.eclipse.jkube.kit.common.RegistryConfig;
 
 import java.util.Collection;
 
