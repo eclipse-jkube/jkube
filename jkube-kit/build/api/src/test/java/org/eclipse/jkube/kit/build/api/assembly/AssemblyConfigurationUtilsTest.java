@@ -18,23 +18,23 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import mockit.Expectations;
 import mockit.Injectable;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.createDockerFileBuilder;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 public class AssemblyConfigurationUtilsTest {
 
@@ -43,16 +43,18 @@ public class AssemblyConfigurationUtilsTest {
           @Injectable final BuildConfiguration buildConfiguration) {
 
     // Given
+    // @formatter:off
     new Expectations() {{
-      buildConfiguration.getAssembly();
-      result = null;
+      buildConfiguration.getAssembly(); result = null;
     }};
+    // @formatter:on
     // When
     final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
-    assertEquals("maven", result.getName());
-    assertEquals("/maven", result.getTargetDir());
-    assertNull(result.getUser());
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("name", "maven")
+        .hasFieldOrPropertyWithValue("targetDir", "/maven")
+        .hasFieldOrPropertyWithValue("user", null);
   }
 
   @Test
@@ -61,82 +63,170 @@ public class AssemblyConfigurationUtilsTest {
 
     // Given
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
+    // @formatter:off
     new Expectations() {{
-      buildConfiguration.getAssembly();
-      result = configuration;
+      buildConfiguration.getAssembly(); result = configuration;
     }};
+    // @formatter:on
     // When
     final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
-    assertNotNull(result);
-    assertEquals("ImageName", result.getName());
-    assertEquals("/ImageName", result.getTargetDir());
-    assertEquals("OtherUser", result.getUser());
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("name", "ImageName")
+        .hasFieldOrPropertyWithValue("targetDir", "/ImageName")
+        .hasFieldOrPropertyWithValue("user", "OtherUser");
   }
-
 
   @Test
   public void getJKubeAssemblyFileSetsNullShouldReturnEmptyList() {
     // When
     final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(null);
     // Then
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
+    assertThat(result).isNotNull().isEmpty();
+  }
+
+  @Test
+  public void getJKubeAssemblyFileSetsNullFileSetsShouldReturnEmptyList() {
+    // Given
+    final Assembly assembly = new Assembly();
+    // When
+    final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(assembly);
+    // Then
+    assertThat(result).isNotNull().isEmpty();
   }
 
   @Test
   public void getJKubeAssemblyFileSetsNotNullShouldReturnFileSets(
-    @Injectable AssemblyConfiguration configuration, @Injectable Assembly assembly,
-    @Injectable AssemblyFileSet fileSet) {
+      @Injectable Assembly assembly, @Injectable AssemblyFileSet fileSet) {
 
     // Given
+    // @formatter:off
     new Expectations() {{
-      configuration.getInline();
-      result = assembly;
-      assembly.getFileSets();
-      result = Collections.singletonList(fileSet);
-      fileSet.getDirectory();
-      result = "1337";
+      assembly.getFileSets(); result = Collections.singletonList(fileSet);
+      fileSet.getDirectory(); result = "1337";
     }};
+    // @formatter:on
     // When
-    final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(configuration);
+    final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(assembly);
     // Then
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertEquals("1337", result.iterator().next().getDirectory().getName());
+    assertThat(result)
+        .isNotNull()
+        .hasSize(1).first()
+        .hasFieldOrPropertyWithValue("directory.name", "1337");
   }
-
-
 
   @Test
   public void getJKubeAssemblyFilesNullShouldReturnEmptyList() {
     // When
     final List<AssemblyFile> result = getJKubeAssemblyFiles(null);
     // Then
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
+    assertThat(result).isNotNull().isEmpty();
+  }
+
+  @Test
+  public void getJKubeAssemblyFilesNullFilesShouldReturnEmptyList() {
+    // Given
+    final Assembly assembly = new Assembly();
+    // When
+    final List<AssemblyFile> result = getJKubeAssemblyFiles(assembly);
+    // Then
+    assertThat(result).isNotNull().isEmpty();
   }
 
   @Test
   public void getJKubeAssemblyFilesNotNullShouldReturnFiles(
-    @Injectable AssemblyConfiguration configuration, @Injectable Assembly assembly,
-    @Injectable AssemblyFile file) {
+      @Injectable Assembly assembly, @Injectable AssemblyFile file) {
 
     // Given
+    // @formatter:off
     new Expectations() {{
-      configuration.getInline();
-      result = assembly;
-      assembly.getFiles();
-      result = Collections.singletonList(file);
-      file.getSource();
-      result = new File("1337");
+      assembly.getFiles(); result = Collections.singletonList(file);
+      file.getSource(); result = new File("1337");
     }};
+    // @formatter:on
     // When
-    final List<AssemblyFile> result = getJKubeAssemblyFiles(configuration);
+    final List<AssemblyFile> result = getJKubeAssemblyFiles(assembly);
     // Then
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertEquals("1337", result.iterator().next().getSource().getName());
+    assertThat(result)
+        .isNotNull()
+        .hasSize(1).first()
+        .hasFieldOrPropertyWithValue("source.name", "1337");
   }
 
+  @Test
+  public void createDockerFileBuilder_withEmptyBuildConfigurationNoAssembly_shouldReturnOnlyBase() {
+    // Given
+    final BuildConfiguration buildConfig = BuildConfiguration.builder().build();
+    // When
+    final String result = createDockerFileBuilder(null, buildConfig, null).content();
+    // Then
+    assertThat(result)
+        .doesNotContain("COPY", "VOLUME")
+        .isEqualTo("FROM busybox\n");
+  }
+
+  @Test
+  public void createDockerFileBuilder_withNoAssembly_shouldReturnTransformedContent() {
+    // Given
+    final BuildConfiguration buildConfig = BuildConfiguration.builder()
+        .putEnv("ENV_VAR", "VALUE")
+        .label("LABEL", "LABEL_VALUE")
+        .port("8080")
+        .user("1000")
+        .volume("VOLUME")
+        .runCmd("chown -R 1000:1000 /opt")
+        .maintainer("Aitana")
+        .cmd(Arguments.builder().execArgument("sh").execArgument("-c").execArgument("server").build())
+        .build();
+    // When
+    final String result = createDockerFileBuilder(null, buildConfig, null).content();
+    // Then
+    assertThat(result)
+        .isEqualTo("FROM busybox\n" +
+            "MAINTAINER Aitana\n" +
+            "ENV ENV_VAR=VALUE\n" +
+            "LABEL LABEL=LABEL_VALUE\n" +
+            "EXPOSE 8080\n" +
+            "RUN chown -R 1000:1000 /opt\n" +
+            "VOLUME [\"VOLUME\"]\n" +
+            "CMD [\"sh\",\"-c\",\"server\"]\n"+
+            "USER 1000\n");
+  }
+
+  @Test
+  public void createDockerFileBuilder_withAssembly_shouldReturnTransformedContent() {
+    // Given
+    final JKubeConfiguration configuration = JKubeConfiguration.builder().project(JavaProject.builder().build()).build();
+    final BuildConfiguration buildConfig = BuildConfiguration.builder()
+        .putEnv("ENV_VAR", "VALUE")
+        .label("LABEL", "LABEL_VALUE")
+        .port("8080")
+        .user("1000")
+        .volume("VOLUME")
+        .runCmd("chown -R 1000:1000 /opt")
+        .maintainer("Alex")
+        .cmd(Arguments.builder().execArgument("sh").execArgument("-c").execArgument("server").build())
+        .build();
+    final AssemblyConfiguration assemblyConfiguration = AssemblyConfiguration.builder()
+        .targetDir("/deployments")
+        .layer(Assembly.builder().id("layer-with-id").build())
+        .layer(Assembly.builder().build())
+        .build();
+    // When
+    final String result = createDockerFileBuilder(configuration, buildConfig, assemblyConfiguration).content();
+    // Then
+    assertThat(result)
+        .isEqualTo("FROM busybox\n" +
+            "MAINTAINER Alex\n" +
+            "ENV ENV_VAR=VALUE\n" +
+            "LABEL LABEL=LABEL_VALUE\n" +
+            "EXPOSE 8080\n" +
+            "COPY /layer-with-id/deployments /deployments/\n" +
+            "COPY /deployments /deployments/\n" +
+            "RUN chown -R 1000:1000 /opt\n" +
+            "VOLUME [\"/deployments\"]\n" +
+            "VOLUME [\"VOLUME\"]\n" +
+            "CMD [\"sh\",\"-c\",\"server\"]\n" +
+            "USER 1000\n");
+  }
 }

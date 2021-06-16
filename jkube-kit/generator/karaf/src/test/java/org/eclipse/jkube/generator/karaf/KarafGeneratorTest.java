@@ -41,7 +41,6 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.sameInstance;
 
-
 public class KarafGeneratorTest {
 
   @Rule
@@ -120,7 +119,8 @@ public class KarafGeneratorTest {
     final AssemblyConfiguration ac = bc.getAssembly();
     assertThat(ac.getName(), equalTo("deployments"));
     assertThat(ac.isExcludeFinalOutputArtifact(), equalTo(false));
-    assertThat(ac.getInline().getFileSets(), contains(
+    assertThat(ac.getLayers(), hasSize(1));
+    assertThat(ac.getLayers().iterator().next().getFileSets(), contains(
         allOf(
             hasProperty("directory", equalTo(new File(temporaryFolder.getRoot(), "assembly"))),
             hasProperty("outputDirectory", equalTo(new File("karaf"))),

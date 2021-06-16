@@ -28,6 +28,7 @@ import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
+import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -47,7 +48,7 @@ import static org.junit.Assert.assertTrue;
 
 public class AssemblyManagerCreateDockerTarArchiveTest {
 
-  private static final String DOCKERFILE_DEFAULT_FALLBACK_CONTENT = "FROM busybox\nCOPY /maven /maven/\nVOLUME [\"/maven\"]";
+  private static final String DOCKERFILE_DEFAULT_FALLBACK_CONTENT = "FROM busybox\nCOPY /jkube-generated-layer-final-artifact/maven /maven/\nVOLUME [\"/maven\"]";
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -81,11 +82,12 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
     final File result = assemblyManager.createChangedFilesArchive(
         entries, assemblyDirectory, "image-name", jKubeConfiguration);
     // Then
-    assertThat(result)
-        .exists()
+    ArchiveAssertions.assertThat(result)
         .isFile()
+        .hasSize(1536)
         .hasName("changed-files.tar")
-        .hasSize(1536);
+        .fileTree()
+        .containsExactly("test-0.1.0.jar");
   }
 
   @Test
@@ -100,12 +102,23 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
 
     // Then
     assertTargetHasDockerDirectories("test-image");
-    assertThat(dockerArchiveFile).isFile().hasName("docker-build.tar").hasSize(3072);
+    ArchiveAssertions.assertThat(dockerArchiveFile)
+        .isFile().hasName("docker-build.tar").hasSize(4096)
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "Dockerfile",
+            "jkube-generated-layer-final-artifact/",
+            "jkube-generated-layer-final-artifact/maven/",
+            "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+            "maven/");
     assertDockerFile("test-image").hasContent(DOCKERFILE_DEFAULT_FALLBACK_CONTENT);
     assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
         "Dockerfile",
-        "maven",
-        "maven/test-0.1.0.jar");
+        "jkube-generated-layer-final-artifact",
+        "jkube-generated-layer-final-artifact/maven",
+        "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+        "maven"
+    );
   }
 
   @Test
@@ -125,12 +138,22 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
 
     // Then
     assertTargetHasDockerDirectories("no-docker-file-and-customizer");
-    assertThat(dockerArchiveFile).isFile().hasName("docker-build.tar").hasSize(3072);
+    ArchiveAssertions.assertThat(dockerArchiveFile)
+        .isFile().hasName("docker-build.tar").hasSize(4096)
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "Dockerfile",
+            "jkube-generated-layer-final-artifact/",
+            "jkube-generated-layer-final-artifact/maven/",
+            "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+            "maven/");
     assertDockerFile("no-docker-file-and-customizer").hasContent(DOCKERFILE_DEFAULT_FALLBACK_CONTENT);
     assertBuildDirectoryFileTree("no-docker-file-and-customizer").containsExactlyInAnyOrder(
         "Dockerfile",
-        "maven",
-        "maven/test-0.1.0.jar");
+        "jkube-generated-layer-final-artifact",
+        "jkube-generated-layer-final-artifact/maven",
+        "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+        "maven");
     assertThat(customized).isTrue();
   }
 
@@ -150,13 +173,24 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
 
     // Then
     assertTargetHasDockerDirectories("modified-image");
-    assertThat(dockerArchiveFile).isFile().hasName("docker-build.tar").hasSize(4608);
+    ArchiveAssertions.assertThat(dockerArchiveFile)
+        .isFile().hasName("docker-build.tar").hasSize(4608)
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "Dockerfile",
+            "jkube-generated-layer-final-artifact/",
+            "jkube-generated-layer-final-artifact/maven/",
+            "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+            "maven/");
     assertDockerFile("modified-image").hasContent(DOCKERFILE_DEFAULT_FALLBACK_CONTENT);
     assertBuildDirectoryFileTree("modified-image").containsExactlyInAnyOrder(
         "Dockerfile",
-        "maven",
-        "maven/test-0.1.0.jar");
-    assertThat(resolveDockerBuild("modified-image").resolve("maven").resolve("test-0.1.0.jar"))
+        "jkube-generated-layer-final-artifact",
+        "jkube-generated-layer-final-artifact/maven",
+        "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+        "maven");
+    assertThat(resolveDockerBuild("modified-image")
+        .resolve("jkube-generated-layer-final-artifact").resolve("maven").resolve("test-0.1.0.jar"))
         .exists().isRegularFile()
         .hasContent("Modified content");
   }
@@ -175,7 +209,16 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
 
     // Then
     assertTargetHasDockerDirectories("test-image");
-    assertThat(dockerArchiveFile).isFile().hasName("docker-build.tar").hasSize(5120);
+    ArchiveAssertions.assertThat(dockerArchiveFile)
+        .isFile().hasName("docker-build.tar").hasSize(5120)
+        .fileTree()
+        .containsExactlyInAnyOrder(
+            "Dockerfile",
+            "maven/",
+            "maven/Dockerfile",
+            "maven/test-0.1.0.jar",
+            "maven/target/",
+            "maven/target/test-0.1.0.jar");
     assertDockerFile("test-image").hasContent("FROM openjdk:jre\n");
     assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
         "Dockerfile",

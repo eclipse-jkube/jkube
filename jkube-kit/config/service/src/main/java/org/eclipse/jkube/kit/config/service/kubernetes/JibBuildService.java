@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
@@ -42,8 +43,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.getBaseImage;
@@ -77,15 +76,10 @@ public class JibBuildService implements BuildService {
                 configuration.getRegistryConfig(), false, imageConfig, log);
             final JibContainerBuilder containerBuilder = containerFromImageConfiguration(imageConfig, pullRegistryCredential);
 
-            final Map<File, AssemblyFileEntry> files = AssemblyManager.getInstance()
-                .copyFilesToFinalTarballDirectory(
-                    configuration.getProject(), buildDirs,
-                    AssemblyManager.getAssemblyConfiguration(imageConfig.getBuildConfiguration(), configuration)
-                ).stream()
-                .collect(Collectors.toMap(AssemblyFileEntry::getDest, Function.identity(), (oldV, newV) -> newV));
-            // END
-            JibServiceUtil.copyToContainer(
-                containerBuilder, buildDirs.getOutputDirectory(), buildDirs.getOutputDirectory().getAbsolutePath(), files);
+            final Map<Assembly, List<AssemblyFileEntry>> layers = AssemblyManager.getInstance()
+                .copyFilesToFinalTarballDirectory(configuration, buildDirs,
+                    AssemblyManager.getAssemblyConfiguration(imageConfig.getBuildConfiguration(), configuration));
+            JibServiceUtil.layers(buildDirs, layers).forEach(containerBuilder::addFileEntriesLayer);
 
             // TODO: Improve Assembly Manager so that the effective assemblyFileEntries computed can be properly shared
             // the call to AssemblyManager.getInstance().createDockerTarArchive should not be necessary,

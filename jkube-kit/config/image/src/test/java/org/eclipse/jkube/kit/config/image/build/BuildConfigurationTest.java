@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.config.image.build;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -25,21 +26,10 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.bzip2;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.none;
-import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.endsWith;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -54,12 +44,13 @@ public class BuildConfigurationTest {
   public void emptyConfigurationShouldBeValidNonDockerfileWithDefaults() {
     BuildConfiguration config = new BuildConfiguration();
     config.validate();
-    assertFalse(config.isDockerFileMode());
-    assertThat(config.getDockerFile(), nullValue());
-    assertThat(config.getCompression(), is(none));
-    assertThat(config.cleanupMode(), is(CleanupMode.TRY_TO_REMOVE));
-    assertThat(config.optimise(), is(false));
-    assertThat(config.nocache(), is(false));
+    assertThat(config)
+        .hasFieldOrPropertyWithValue("dockerFileMode", false)
+        .hasFieldOrPropertyWithValue("dockerFile", null)
+        .hasFieldOrPropertyWithValue("compression", none)
+        .returns(CleanupMode.TRY_TO_REMOVE, BuildConfiguration::cleanupMode)
+        .returns(false, BuildConfiguration::optimise)
+        .returns(false, BuildConfiguration::nocache);
   }
 
   @Test
@@ -67,8 +58,9 @@ public class BuildConfigurationTest {
     BuildConfiguration config = BuildConfiguration.builder()
         .dockerFile("src/docker/Dockerfile").build();
     config.validate();
-    assertTrue(config.isDockerFileMode());
-    assertEquals(config.calculateDockerFilePath(),new File("src/docker/Dockerfile"));
+    assertThat(config)
+        .hasFieldOrPropertyWithValue("dockerFileMode", true)
+        .returns(new File("src/docker/Dockerfile"), BuildConfiguration::calculateDockerFilePath);
   }
 
   @Test
@@ -76,8 +68,9 @@ public class BuildConfigurationTest {
     BuildConfiguration config = BuildConfiguration.builder()
         .contextDir("src/docker/").build();
     config.validate();
-    assertTrue(config.isDockerFileMode());
-    assertEquals(config.calculateDockerFilePath(), new File("src/docker/Dockerfile"));
+    assertThat(config)
+        .hasFieldOrPropertyWithValue("dockerFileMode", true)
+        .returns(new File("src/docker/Dockerfile"), BuildConfiguration::calculateDockerFilePath);
   }
 
   @Test
@@ -87,9 +80,10 @@ public class BuildConfigurationTest {
         .dockerFile("Docker-file").build();
     config.validate();
     config.initAndValidate();
-    assertTrue(config.isDockerFileMode());
-    assertEquals(config.getDockerFile(), new File("/tmp/Docker-file"));
-    assertEquals(config.calculateDockerFilePath(), new File("/tmp/Docker-file"));
+    assertThat(config)
+        .hasFieldOrPropertyWithValue("dockerFileMode", true)
+        .hasFieldOrPropertyWithValue("dockerFile", new File("/tmp/Docker-file"))
+        .returns(new File("/tmp/Docker-file"), BuildConfiguration::calculateDockerFilePath);
   }
 
   @Test
@@ -102,7 +96,7 @@ public class BuildConfigurationTest {
     // When
     final File result = config.getContextDir();
     // Then
-    assertThat(result, equalTo(new File(".")));
+    assertThat(result).isEqualTo(new File("."));
   }
 
   @Test
@@ -115,7 +109,7 @@ public class BuildConfigurationTest {
     // When
     final File result = config.getContextDir();
     // Then
-    assertThat(result, equalTo(new File("parent-dir")));
+    assertThat(result).isEqualTo(new File("parent-dir"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -136,37 +130,39 @@ public class BuildConfigurationTest {
     config.validate();
     config.initAndValidate();
 
-    assertFalse(config.isDockerFileMode());
-    assertEquals(new File("docker-archive.tar"), config.getDockerArchive());
+    assertThat(config)
+        .hasFieldOrPropertyWithValue("dockerFileMode", false)
+        .hasFieldOrPropertyWithValue("dockerArchive", new File("docker-archive.tar"));
   }
 
   @Test
   public void compressionStringGzip() {
     BuildConfiguration config = BuildConfiguration.builder()
         .compressionString("gzip").build();
-    assertEquals(gzip, config.getCompression());
+    assertThat(config.getCompression()).isEqualTo(gzip);
   }
 
   @Test
   public void compressionStringNone() {
     BuildConfiguration config = BuildConfiguration.builder().build();
-    assertEquals(none, config.getCompression());
+    assertThat(config.getCompression()).isEqualTo(none);
   }
 
   @Test
   public void compressionStringBzip2() {
     BuildConfiguration config = BuildConfiguration.builder()
         .compressionString("bzip2").build();
-    assertEquals(bzip2, config.getCompression());
+    assertThat(config.getCompression()).isEqualTo(bzip2);
   }
 
   @Test
   public void compressionStringInvalid() {
     final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () -> builder.compressionString("bzip"));
-    assertThat(result.getMessage(), allOf(startsWith("No enum constant"), endsWith("ArchiveCompression.bzip")));
+    assertThat(result)
+        .hasMessageStartingWith("No enum constant")
+        .hasMessageEndingWith("ArchiveCompression.bzip");
   }
-
 
   @Test
   public void isValidWindowsFileName() {
@@ -180,7 +176,8 @@ public class BuildConfigurationTest {
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder()
             .addCacheFrom("foo/bar:latest")
             .build();
-    assertEquals(Collections.singletonList("foo/bar:latest"), buildConfiguration.getCacheFrom());
+    assertThat(buildConfiguration.getCacheFrom())
+        .containsExactly("foo/bar:latest");
   }
 
   @Test
@@ -198,8 +195,33 @@ public class BuildConfigurationTest {
         .user("super-user")
         .build();
     // Then
-    assertThat(result.getUser(), equalTo("super-user"));
-    assertThat(result.getAssembly().getName(), equalTo("1337"));
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("user", "super-user")
+        .hasFieldOrPropertyWithValue("assembly.name", "1337");
+  }
+
+  @Test
+  public void getAssembly_withNoAssembly_shouldReturnNull() {
+    // Given
+    final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder()
+        .user("test");
+    // When
+    final BuildConfiguration result = builder.build();
+    // Then
+    assertThat(result.getAssembly()).isNull();
+  }
+
+  @Test
+  public void getAssembly_withAssembly_shouldReturnAssembly() {
+    // Given
+    final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder()
+        .user("test")
+        .assembly(AssemblyConfiguration.builder().name("assembly-1").build());
+    // When
+    final BuildConfiguration result = builder.build();
+    // Then
+    assertThat(result.getAssembly())
+        .hasFieldOrPropertyWithValue("name", "assembly-1");
   }
 
   /**
@@ -218,38 +240,37 @@ public class BuildConfigurationTest {
         BuildConfiguration.class
     );
     // Then
-    assertThat(result, notNullValue());
-    assertThat(result.getContextDirRaw(), is("context"));
-    assertThat(result.getContextDir(), is(new File("context")));
-    assertThat(result.getDockerFileRaw(), is("Dockerfile.jvm"));
-    assertThat(result.getDockerArchiveRaw(), is("docker-archive.tar"));
-    assertThat(result.getFilter(), is("@"));
-    assertThat(result.getFrom(), is("jkube-images/image:1337"));
-    assertThat(result.getFromExt().values(), hasSize(1));
-    assertThat(result.getFromExt(), hasEntry("name", "jkube-images/image:ext"));
-    assertThat(result.getMaintainer(), is("A-Team"));
-    assertThat(result.getPorts(), is(Collections.singletonList("8080")));
-    assertThat(result.getShell().getShell(), is("java -version"));
-    assertThat(result.getImagePullPolicy(), is("Always"));
-    assertThat(result.getRunCmds(), contains("ls -la", "sleep 1", "echo done"));
-    assertThat(result.getCleanup(), is("none"));
-    assertThat(result.cleanupMode(), is(CleanupMode.NONE));
-    assertThat(result.getNocache(), is(true));
-    assertThat(result.getOptimise(), is(false));
-    assertThat(result.getVolumes(), contains("volume 1"));
-    assertThat(result.getTags(), contains("latest", "1337"));
-    assertThat(result.getEnv().values(), hasSize(1));
-    assertThat(result.getEnv(), hasEntry("JAVA_OPTS", "-Xmx1337m"));
-    assertThat(result.getLabels(), hasEntry("label-1", "label"));
-    assertThat(result.getArgs(), hasEntry("CODE_VERSION", "latest"));
-    assertThat(result.getEntryPoint().getExec(), contains("java -version"));
-    assertThat(result.getWorkdir(), is("/tmp"));
-    assertThat(result.getCmd().getExec(), contains("sh", "-c"));
-    assertThat(result.getUser(), is("root"));
-    assertThat(result.getHealthCheck(), notNullValue());
-    assertThat(result.getAssembly(), notNullValue());
-    assertThat(result.getSkip(), is(false));
-    assertThat(result.getCompression(), is(gzip));
-    assertThat(result.getBuildOptions(), hasEntry("NetworkMode", "bridge"));
+    assertThat(result)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("contextDirRaw", "context")
+        .hasFieldOrPropertyWithValue("contextDir", new File("context"))
+        .hasFieldOrPropertyWithValue("dockerFileRaw", "Dockerfile.jvm")
+        .hasFieldOrPropertyWithValue("dockerArchiveRaw", "docker-archive.tar")
+        .hasFieldOrPropertyWithValue("filter", "@")
+        .hasFieldOrPropertyWithValue("from", "jkube-images/image:1337")
+        .hasFieldOrPropertyWithValue("fromExt", Collections.singletonMap("name", "jkube-images/image:ext"))
+        .hasFieldOrPropertyWithValue("maintainer", "A-Team")
+        .hasFieldOrPropertyWithValue("ports", Collections.singletonList("8080"))
+        .hasFieldOrPropertyWithValue("shell.shell", "java -version")
+        .hasFieldOrPropertyWithValue("imagePullPolicy", "Always")
+        .hasFieldOrPropertyWithValue("runCmds", Arrays.asList("ls -la", "sleep 1", "echo done"))
+        .hasFieldOrPropertyWithValue("cleanup", "none")
+        .returns(CleanupMode.NONE, BuildConfiguration::cleanupMode)
+        .hasFieldOrPropertyWithValue("nocache", true)
+        .hasFieldOrPropertyWithValue("optimise", false)
+        .hasFieldOrPropertyWithValue("volumes", Collections.singletonList("volume 1"))
+        .hasFieldOrPropertyWithValue("tags", Arrays.asList("latest", "1337"))
+        .hasFieldOrPropertyWithValue("env", Collections.singletonMap("JAVA_OPTS", "-Xmx1337m"))
+        .hasFieldOrPropertyWithValue("labels", Collections.singletonMap("label-1", "label"))
+        .hasFieldOrPropertyWithValue("args", Collections.singletonMap("CODE_VERSION", "latest"))
+        .hasFieldOrPropertyWithValue("entryPoint.exec", Collections.singletonList("java -version"))
+        .hasFieldOrPropertyWithValue("workdir", "/tmp")
+        .hasFieldOrPropertyWithValue("cmd.exec", Arrays.asList("sh", "-c"))
+        .hasFieldOrPropertyWithValue("user", "root")
+        .hasFieldOrPropertyWithValue("healthCheck.mode", HealthCheckMode.cmd)
+        .hasFieldOrPropertyWithValue("skip", false)
+        .hasFieldOrPropertyWithValue("compression", gzip)
+        .hasFieldOrPropertyWithValue("buildOptions", Collections.singletonMap("NetworkMode", "bridge"))
+        .hasFieldOrPropertyWithValue("assembly.name", "the-assembly");
   }
 }

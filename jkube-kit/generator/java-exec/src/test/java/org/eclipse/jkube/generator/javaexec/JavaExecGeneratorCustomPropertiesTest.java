@@ -13,32 +13,32 @@
  */
 package org.eclipse.jkube.generator.javaexec;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import mockit.Expectations;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class JavaExecGeneratorCustomPropertiesTest {
 
   @Mocked
+  @SuppressWarnings("unused")
   private GeneratorContext generatorContext;
 
   @Test
-  public void customizeWithOverriddenPropertiesShouldAddImageConfiguration() throws IOException {
+  public void customizeWithOverriddenPropertiesShouldAddImageConfiguration() {
     // Given
     final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
     final Properties projectProperties = new Properties();
@@ -57,18 +57,20 @@ public class JavaExecGeneratorCustomPropertiesTest {
     final List<ImageConfiguration> result = new JavaExecGenerator(generatorContext)
         .customize(originalImageConfigurations, false);
     // Then
-    assertThat(result, hasSize(1));
-    final ImageConfiguration imageConfiguration = result.iterator().next();
-    assertThat(imageConfiguration.getName(), equalTo("%g/%a:%l"));
-    assertThat(imageConfiguration.getAlias(), equalTo("java-exec"));
-    assertThat(imageConfiguration.getBuildConfiguration().getFrom(), equalTo("custom-image"));
-    assertThat(imageConfiguration.getBuildConfiguration().getTags(), contains("latest"));
-    assertThat(imageConfiguration.getBuildConfiguration().getAssembly().isExcludeFinalOutputArtifact(),
-        equalTo(false));
-    assertThat(imageConfiguration.getBuildConfiguration().getPorts(), contains("8082", "8780", "9779"));
-    assertThat(imageConfiguration.getBuildConfiguration().getEnv(), allOf(
-        hasEntry("JAVA_APP_DIR", "/other-dir"),
-        hasEntry("JAVA_MAIN_CLASS", "com.example.Main")
-    ));
+    assertThat(result)
+        .hasSize(1)
+        .first()
+        .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
+        .hasFieldOrPropertyWithValue("alias", "java-exec")
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .hasFieldOrPropertyWithValue("from", "custom-image")
+        .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
+        .hasFieldOrPropertyWithValue("env", new HashMap<String, String>(){{
+          put("JAVA_APP_DIR", "/other-dir");
+          put("JAVA_MAIN_CLASS", "com.example.Main");
+        }})
+        .hasFieldOrPropertyWithValue("ports", Arrays.asList("8082", "8780", "9779"))
+        .extracting(BuildConfiguration::getAssembly)
+        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", false);
   }
 }

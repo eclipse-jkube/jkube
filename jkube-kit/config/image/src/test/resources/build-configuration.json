@@ -37,7 +37,9 @@
   },
   "user": "root",
   "healthCheck": {},
-  "assembly": {},
+  "assembly": {
+    "name": "the-assembly"
+  },
   "skip": false,
   "compression": "gzip",
   "buildOptions": {

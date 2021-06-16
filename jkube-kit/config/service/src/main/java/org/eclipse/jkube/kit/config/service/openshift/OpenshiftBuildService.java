@@ -82,21 +82,7 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
 
 import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamName;
 
@@ -137,19 +123,26 @@ public class OpenshiftBuildService implements BuildService {
     public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
         String buildName = null;
         try {
-            ImageName imageName = new ImageName(imageConfig.getName());
+            final ImageConfiguration.ImageConfigurationBuilder applicableImageConfigBuilder = imageConfig.toBuilder();
+            if (imageConfig.getBuildConfiguration() != null && imageConfig.getBuildConfiguration().getAssembly() != null) {
+                applicableImageConfigBuilder.build(imageConfig.getBuild().toBuilder().assembly(
+                    imageConfig.getBuildConfiguration().getAssembly().getFlattenedClone(jKubeServiceHub.getConfiguration()))
+                    .build());
+            }
+            final ImageConfiguration applicableImageConfig = applicableImageConfigBuilder.build();
+            ImageName imageName = new ImageName(applicableImageConfig.getName());
 
-            File dockerTar = createBuildArchive(imageConfig);
+            File dockerTar = createBuildArchive(applicableImageConfig);
 
             KubernetesListBuilder builder = new KubernetesListBuilder();
 
             // Check for buildconfig / imagestream / pullSecret and create them if necessary
             String openshiftPullSecret = config.getOpenshiftPullSecret();
-            final boolean usePullSecret = checkOrCreatePullSecret(client, builder, openshiftPullSecret, imageConfig);
+            final boolean usePullSecret = checkOrCreatePullSecret(client, builder, openshiftPullSecret, applicableImageConfig);
             if (usePullSecret) {
-                buildName = updateOrCreateBuildConfig(config, client, builder, imageConfig, openshiftPullSecret);
+                buildName = updateOrCreateBuildConfig(config, client, builder, applicableImageConfig, openshiftPullSecret);
             } else {
-                buildName = updateOrCreateBuildConfig(config, client, builder, imageConfig, null);
+                buildName = updateOrCreateBuildConfig(config, client, builder, applicableImageConfig, null);
             }
 
             if (config.getBuildOutputKind() == null || IMAGE_STREAM_TAG.equals(config.getBuildOutputKind())) {
@@ -509,19 +502,6 @@ public class OpenshiftBuildService implements BuildService {
             log.info("Using Secret %s", pullSecretName);
         }
         return true;
-    }
-
-
-    private String extractBaseFromConfiguration(BuildConfiguration buildConfig) {
-        String fromImage;
-        fromImage = buildConfig.getFrom();
-        if (fromImage == null) {
-            AssemblyConfiguration assemblyConfig = buildConfig.getAssembly();
-            if (assemblyConfig == null) {
-                fromImage = AssemblyManager.DEFAULT_DATA_BASE_IMAGE;
-            }
-        }
-        return fromImage;
     }
 
     private String extractBaseFromDockerfile(BuildConfiguration buildConfig, JKubeConfiguration configuration) {

@@ -20,21 +20,20 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.Plugin;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unchecked", "unused"})
+@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class JavaExecGeneratorTest {
 
   @Mocked
@@ -59,7 +58,7 @@ public class JavaExecGeneratorTest {
     // When
     final boolean result = new JavaExecGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
-    assertThat(result, equalTo(false));
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -69,7 +68,7 @@ public class JavaExecGeneratorTest {
     // When
     final boolean result = new JavaExecGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
-    assertThat(result, equalTo(true));
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -79,7 +78,7 @@ public class JavaExecGeneratorTest {
     // When
     final boolean result = new JavaExecGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
-    assertThat(result, equalTo(true));
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -89,9 +88,12 @@ public class JavaExecGeneratorTest {
     // When
     new JavaExecGenerator(generatorContext).addAssembly(builder);
     // Then
-    final AssemblyConfiguration ac = builder.build();
-    assertThat(ac.getInline().getFileSets(), hasSize(2));
-    assertThat(ac.isExcludeFinalOutputArtifact(), equalTo(false));
+    assertThat(builder.build())
+        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", false)
+        .extracting(AssemblyConfiguration::getLayers).asList().hasSize(1)
+        .first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+        .extracting(Assembly::getFileSets).asList()
+        .hasSize(2);
   }
 
   @Test
@@ -110,13 +112,17 @@ public class JavaExecGeneratorTest {
     // When
     new JavaExecGenerator(generatorContext).addAssembly(builder);
     // Then
-    final AssemblyConfiguration ac = builder.build();
-    assertThat(ac.getInline().getFileSets(), hasSize(3));
-    assertThat(ac.getInline().getFileSets(), containsInAnyOrder(
-        hasProperty("directory", equalTo(new File("src/main/jkube-includes"))),
-        hasProperty("directory", equalTo(new File("src/main/jkube-includes/bin"))),
-        hasProperty("includes", containsInAnyOrder("fat.jar"))
-    ));
-    assertThat(ac.isExcludeFinalOutputArtifact(), equalTo(true));
+    assertThat(builder.build())
+        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
+        .extracting(AssemblyConfiguration::getLayers).asList().hasSize(1)
+        .first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+        .extracting(Assembly::getFileSets).asList()
+        .hasSize(3)
+        .extracting("directory", "includes")
+        .containsExactlyInAnyOrder(
+            tuple(new File("src/main/jkube-includes"), Collections.emptyList()),
+            tuple(new File("src/main/jkube-includes/bin"), Collections.emptyList()),
+            tuple(new File(""), Collections.singletonList("fat.jar"))
+        );
   }
 }
