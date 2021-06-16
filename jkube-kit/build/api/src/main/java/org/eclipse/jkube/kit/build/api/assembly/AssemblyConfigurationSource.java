@@ -18,7 +18,7 @@ import java.util.List;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 
 /**
  * @author roland

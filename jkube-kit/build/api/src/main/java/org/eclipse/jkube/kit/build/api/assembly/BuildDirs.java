@@ -15,7 +15,7 @@ package org.eclipse.jkube.kit.build.api.assembly;
 
 
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 
 import java.io.File;
 
