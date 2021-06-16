@@ -392,6 +392,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(property = "jkube.watch.autoCreateCustomNetworks", defaultValue = "false")
     protected boolean autoCreateCustomNetworks;
 
+    @Parameter(property = "jkube.offline", defaultValue = "false")
+    protected boolean offline;
+
     @Override
     public void contextualize(Context context) throws ContextException {
         plexusContainer = ((PlexusContainer) context.get(PlexusConstants.PLEXUS_KEY));
@@ -439,6 +442,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                         .platformMode(getConfiguredRuntimeMode())
                         .dockerServiceHub(serviceHubFactory.createServiceHub(access, log, logSpecFactory))
                         .buildServiceConfig(buildServiceConfigBuilder().build())
+                        .offline(offline)
                         .build();
                     this.minimalApiVersion = initImageConfiguration(getBuildTimestamp());
                     executeInternal();
