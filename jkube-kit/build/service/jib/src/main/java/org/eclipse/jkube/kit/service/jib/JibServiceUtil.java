@@ -286,7 +286,7 @@ public class JibServiceUtil {
             for (AssemblyFileEntry afe : layer.getValue()) {
                 final Path source = afe.getSource().toPath();
                 final AbsoluteUnixPath target = AbsoluteUnixPath.get(StringUtils.prependIfMissing(
-                    FilenameUtils.separatorsToUnix(outputPath.relativize(afe.getDest().toPath()).toString()), "/"));
+                    FilenameUtils.separatorsToUnix(outputPath.relativize(afe.getDest().toPath()).normalize().toString()), "/"));
                 final FilePermissions permissions = StringUtils.isNotBlank(afe.getFileMode()) ?
                     FilePermissions.fromOctalString(StringUtils.right(afe.getFileMode(), 3)) :
                     DEFAULT_FILE_PERMISSIONS_PROVIDER.get(source, target);
