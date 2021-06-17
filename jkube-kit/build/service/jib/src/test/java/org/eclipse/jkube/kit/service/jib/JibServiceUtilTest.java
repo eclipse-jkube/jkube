@@ -17,8 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -133,7 +133,7 @@ public class JibServiceUtilTest {
             .outputDirectory("target/docker")
             .project(JavaProject.builder().baseDirectory(temporaryFolder.getRoot()).build())
             .build());
-        final Map<Assembly, List<AssemblyFileEntry>> originalLayers = new HashMap<>();
+        final Map<Assembly, List<AssemblyFileEntry>> originalLayers = new LinkedHashMap<>();
         originalLayers.put(Assembly.builder().id("layer-1").build(), Arrays.asList(
             AssemblyFileEntry.builder().source(temporaryFolder.newFile())
                 .dest(buildDirs.getOutputDirectory().toPath().resolve("layer-1").resolve("l1.1.txt").toFile()).build(),
@@ -146,10 +146,16 @@ public class JibServiceUtilTest {
             AssemblyFileEntry.builder().source(temporaryFolder.newFile())
                 .dest(new File(buildDirs.getOutputDirectory(),"l2.2.txt")).build()
         ));
+        // Creates a denormalized path in JDK 8
+        originalLayers.put(Assembly.builder().id("jkube-generated-layer-final-artifact").build(), Collections.singletonList(
+            AssemblyFileEntry.builder().source(temporaryFolder.newFile())
+                    .dest(buildDirs.getOutputDirectory().toPath().resolve("jkube-generated-layer-final-artifact")
+                        .resolve("deployments").resolve(".").resolve("edge.case").toFile()).build()
+        ));
         // When
         final List<FileEntriesLayer> result = JibServiceUtil.layers(buildDirs, originalLayers);
         // Then
-        assertThat(result).hasSize(2)
+        assertThat(result).hasSize(3)
             .anySatisfy(fel -> assertThat(fel)
                 .hasFieldOrPropertyWithValue("name", "layer-1")
                 .extracting(FileEntriesLayer::getEntries).asList().extracting("extractionPath.unixPath")
@@ -160,8 +166,13 @@ public class JibServiceUtilTest {
                 .extracting(FileEntriesLayer::getEntries).asList().extracting("extractionPath.unixPath")
                 .containsExactly("/l2.1.txt", "/l2.2.txt")
             )
+            .anySatisfy(fel -> assertThat(fel)
+                .hasFieldOrPropertyWithValue("name", "jkube-generated-layer-final-artifact")
+                .extracting(FileEntriesLayer::getEntries).asList().extracting("extractionPath.unixPath")
+                .containsExactly("/deployments/edge.case")
+            )
             .extracting(FileEntriesLayer::getName)
-            .containsExactly("layer-1", "");
+            .containsExactly("layer-1", "", "jkube-generated-layer-final-artifact");
     }
 
     private ImageConfiguration getSampleImageConfiguration() {
