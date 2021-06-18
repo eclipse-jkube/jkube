@@ -637,7 +637,7 @@ public class DockerAccessWithHcClient implements DockerAccess {
         if (authConfig == null) {
             authConfig = AuthConfig.EMPTY_AUTH_CONFIG;
         }
-        return Collections.singletonMap("X-Registry-Auth", authConfig.toHeaderValue());
+        return Collections.singletonMap("X-Registry-Auth", authConfig.toHeaderValue(log));
     }
 
     private boolean isRetryableErrorCode(int errorCode) {

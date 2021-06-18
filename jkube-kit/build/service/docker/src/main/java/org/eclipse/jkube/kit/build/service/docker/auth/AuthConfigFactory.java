@@ -17,6 +17,8 @@ import com.google.common.net.UrlEscapers;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
@@ -35,11 +37,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -63,12 +66,18 @@ public class AuthConfigFactory {
     private static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
 
     private final KitLogger log;
+    private final AwsSdkHelper awsSdkHelper;
     private static final String[] DEFAULT_REGISTRIES = new String[]{
             "docker.io", "index.docker.io", "registry.hub.docker.com"
     };
 
     public AuthConfigFactory(KitLogger log) {
+        this(log, new AwsSdkHelper());
+    }
+
+    AuthConfigFactory(KitLogger log, AwsSdkHelper awsSdkHelper) {
         this.log = log;
+        this.awsSdkHelper = awsSdkHelper;
     }
 
     /**
@@ -111,7 +120,7 @@ public class AuthConfigFactory {
     public AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod)
             throws IOException {
 
-        AuthConfig ret = createStandardAuthConfig(isPush, authConfig, settings, user, registry, passwordDecryptionMethod, log);
+        AuthConfig ret = createStandardAuthConfig(isPush, authConfig, settings, user, registry, passwordDecryptionMethod, log, awsSdkHelper);
         if (ret != null) {
             if (registry == null || skipExtendedAuth) {
                 return ret;
@@ -185,7 +194,7 @@ public class AuthConfigFactory {
      *
      * @throws IOException any exception in case of fetching authConfig
      */
-    private static AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod, KitLogger log)
+    private static AuthConfig createStandardAuthConfig(boolean isPush, Map authConfigMap, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod, KitLogger log, AwsSdkHelper awsSdkHelper)
             throws IOException {
         AuthConfig ret;
 
@@ -225,6 +234,18 @@ public class AuthConfigFactory {
 
         // check EC2 instance role if registry is ECR
         if (EcrExtendedAuth.isAwsRegistry(registry)) {
+            ret = getAuthConfigViaAwsSdk(awsSdkHelper, log);
+            if (ret != null) {
+                log.debug("AuthConfig: AWS credentials from AWS SDK");
+                return ret;
+            }
+
+            ret = getAuthConfigFromAwsEnvironmentVariables(awsSdkHelper, log);
+            if (ret != null) {
+                log.debug("AuthConfig: AWS credentials from ENV variables");
+                return ret;
+            }
+
             try {
                 ret = getAuthConfigFromEC2InstanceRole(log);
             } catch (ConnectTimeoutException ex) {
@@ -236,6 +257,18 @@ public class AuthConfigFactory {
             }
             if (ret != null) {
                 log.debug("AuthConfig: credentials from EC2 instance role");
+                return ret;
+            }
+            try {
+                ret = getAuthConfigFromTaskRole(awsSdkHelper, log);
+            } catch (ConnectTimeoutException ex) {
+                log.debug("Connection timeout while retrieving ECS meta-data, likely not an ECS instance (%s)",
+                        ex.getMessage());
+            } catch (IOException ex) {
+                log.warn("Error while retrieving ECS Task role credentials: %s", ex.getMessage());
+            }
+            if (ret != null) {
+                log.debug("AuthConfig: credentials from ECS Task role");
                 return ret;
             }
         }
@@ -431,6 +464,108 @@ public class AuthConfigFactory {
             return auths.getAsJsonObject(registryWithScheme);
         }
         return null;
+    }
+
+    // if the local credentials don't contain user and password & is not a EC2 instance,
+    // use ECS|Fargate Task instance role credentials
+    private static AuthConfig getAuthConfigFromTaskRole(AwsSdkHelper awsSdkHelper, KitLogger log) throws IOException {
+        log.debug("No user and password set for ECR, checking ECS Task role");
+        URI uri = getMetadataEndpointForCredentials(awsSdkHelper, log);
+        if (uri == null) {
+            return null;
+        }
+        // get temporary credentials
+        log.debug("Getting temporary security credentials from: %s", uri);
+        try (CloseableHttpClient client = HttpClients.custom().useSystemProperties().build()) {
+            RequestConfig conf =
+                    RequestConfig.custom().setConnectionRequestTimeout(1000).setConnectTimeout(1000)
+                            .setSocketTimeout(1000).build();
+            HttpGet request = new HttpGet(uri);
+            request.setConfig(conf);
+            return readAwsCredentials(client, request, log);
+        }
+    }
+
+
+    private static AuthConfig readAwsCredentials(CloseableHttpClient client, HttpGet request, KitLogger log) throws IOException {
+        try (CloseableHttpResponse response = client.execute(request)) {
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                log.debug("No security credential found, return code was %d",
+                        response.getStatusLine().getStatusCode());
+                // no instance role found
+                return null;
+            }
+
+            // read instance role
+            try (Reader r = new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8)) {
+                JsonObject securityCredentials = new Gson().fromJson(r, JsonObject.class);
+
+                String user = securityCredentials.getAsJsonPrimitive("AccessKeyId").getAsString();
+                String password = securityCredentials.getAsJsonPrimitive("SecretAccessKey").getAsString();
+                String token = securityCredentials.getAsJsonPrimitive("Token").getAsString();
+
+                log.debug("Received temporary access key %s...", user.substring(0, 8));
+                return AuthConfig.builder()
+                        .username(user)
+                        .password(password)
+                        .email("none")
+                        .auth(token)
+                        .build();
+            }
+        }
+    }
+
+    private static URI getMetadataEndpointForCredentials(AwsSdkHelper awsSdkHelper, KitLogger log) {
+        // get ECS task role - if available
+        String awsContainerCredentialsUri = awsSdkHelper.getAwsContainerCredentialsRelativeUri();
+        if (awsContainerCredentialsUri == null) {
+            log.debug("System environment not set for variable AWS_CONTAINER_CREDENTIALS_RELATIVE_URI, no task role found");
+            return null;
+        }
+        if (awsContainerCredentialsUri.charAt(0) != '/') {
+            awsContainerCredentialsUri = "/" + awsContainerCredentialsUri;
+        }
+
+        try {
+            return new URI(awsSdkHelper.getEcsMetadataEndpoint() + awsContainerCredentialsUri);
+        } catch (URISyntaxException e) {
+            log.warn("Failed to construct path to ECS metadata endpoint for credentials", e);
+            return null;
+        }
+    }
+
+    private static AuthConfig getAuthConfigViaAwsSdk(AwsSdkHelper awsSdkHelper, KitLogger log) {
+        boolean credProviderPresent = awsSdkHelper.isDefaultAWSCredentialsProviderChainPresentInClassPath();
+        if (!credProviderPresent) {
+            log.info("It appears that you're using AWS ECR." +
+                    " Consider integrating the AWS SDK in order to make use of common AWS authentication mechanisms," +
+                    " see https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#extended-authentication");
+            return null;
+        }
+        return new AwsSdkAuthConfigFactory(log, awsSdkHelper).createAuthConfig();
+    }
+
+    /**
+     * Try using the AWS credentials provided via ENV variables.
+     * See https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html
+     */
+    private static AuthConfig getAuthConfigFromAwsEnvironmentVariables(AwsSdkHelper awsSdkHelper, KitLogger log) {
+        String accessKeyId = awsSdkHelper.getAwsAccessKeyIdEnvVar();
+        if (accessKeyId == null) {
+            log.debug("System environment not set for variable AWS_ACCESS_KEY_ID, no AWS credentials found");
+            return null;
+        }
+        String secretAccessKey = awsSdkHelper.getAwsSecretAccessKeyEnvVar();
+        if (secretAccessKey == null) {
+            log.warn("System environment set for variable AWS_ACCESS_KEY_ID, but NOT for variable AWS_SECRET_ACCESS_KEY!");
+            return null;
+        }
+        return AuthConfig.builder()
+                .username(accessKeyId)
+                .password(secretAccessKey)
+                .email("none")
+                .auth(awsSdkHelper.getAwsSessionTokenEnvVar())
+                .build();
     }
 
     // =======================================================================================================

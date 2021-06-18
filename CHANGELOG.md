@@ -25,6 +25,7 @@ Usage:
 * Fix #705: JIB assembly works on Windows
 * Fix #714: feat: Helm support for Golang expressions
 * Port fabric8io/docker-maven-plugin#1318: Update ECR autorization token URL
+* Port fabric8io/docker-maven-plugin#1311: Use AWS SDK to fetch AWS credentials
 * Fix #710: Support DockerImage as output for Openshift builds
 * Fix #548: Define property for skipping cluster autodetect/offline mode
 

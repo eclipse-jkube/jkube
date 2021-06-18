@@ -207,7 +207,7 @@ public class DockerRegistryAuthHandlerTest {
     }
 
     private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
-        JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue().getBytes())), JsonObject.class);
+        JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())), JsonObject.class);
         assertEquals(username,params.get("username").getAsString());
         assertEquals(password,params.get("password").getAsString());
         if (email != null) {

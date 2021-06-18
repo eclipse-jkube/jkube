@@ -18,6 +18,8 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -35,34 +37,43 @@ import java.util.function.UnaryOperator;
 @EqualsAndHashCode
 public class AuthConfig {
 
-  public static final AuthConfig EMPTY_AUTH_CONFIG = new AuthConfig("", "", "", "");
+  public static final AuthConfig EMPTY_AUTH_CONFIG = new AuthConfig("", "", "", "", "");
 
   private final String username;
   private final String password;
   private final String email;
   private final String auth;
+  private final String identityToken;
 
   private String authEncoded;
 
   @Builder
-  public AuthConfig(String username, String password, String email, String auth) {
+  public AuthConfig(String username, String password, String email, String auth, String identityToken) {
     this.username = username;
     this.password = password;
     this.email = email;
     this.auth = auth;
-    authEncoded = createAuthEncoded();
+    this.identityToken = identityToken;
   }
 
-  public String toHeaderValue() {
-    return authEncoded;
+  public AuthConfig(String username, String password, String email, String auth) {
+    this(username, password, email, auth, null);
   }
 
-  private String createAuthEncoded() {
+  public String toHeaderValue(KitLogger logger) {
     JsonObject ret = new JsonObject();
-    putNonNull(ret, "username", username);
-    putNonNull(ret, "password", password);
-    putNonNull(ret, "email", email);
-    putNonNull(ret, "auth", auth);
+    if(StringUtils.isNotBlank(identityToken)) {
+      putNonNull(ret, "identityToken", identityToken);
+      if (StringUtils.isNotBlank(username)) {
+        logger.warn("Using identityToken, found username not blank : " + username);
+      }
+    } else {
+      putNonNull(ret, "username", username);
+      putNonNull(ret, "password", password);
+      putNonNull(ret, "email", email);
+      putNonNull(ret, "auth", auth);
+    }
+
     return encodeBase64ChunkedURLSafeString(ret.toString().getBytes(StandardCharsets.UTF_8));
   }
 
