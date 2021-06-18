@@ -16,13 +16,15 @@ package org.eclipse.jkube.kit.build.api.assembly;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
@@ -158,7 +160,7 @@ public class AssemblyConfigurationUtilsTest {
     // Given
     final BuildConfiguration buildConfig = BuildConfiguration.builder().build();
     // When
-    final String result = createDockerFileBuilder(null, buildConfig, null).content();
+    final String result = createDockerFileBuilder(buildConfig, null, null).content();
     // Then
     assertThat(result)
         .doesNotContain("COPY", "VOLUME")
@@ -179,7 +181,7 @@ public class AssemblyConfigurationUtilsTest {
         .cmd(Arguments.builder().execArgument("sh").execArgument("-c").execArgument("server").build())
         .build();
     // When
-    final String result = createDockerFileBuilder(null, buildConfig, null).content();
+    final String result = createDockerFileBuilder(buildConfig, null, null).content();
     // Then
     assertThat(result)
         .isEqualTo("FROM busybox\n" +
@@ -194,9 +196,8 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void createDockerFileBuilder_withAssembly_shouldReturnTransformedContent() {
+  public void createDockerFileBuilder_withAssemblyAndFiles_shouldReturnTransformedContent() {
     // Given
-    final JKubeConfiguration configuration = JKubeConfiguration.builder().project(JavaProject.builder().build()).build();
     final BuildConfiguration buildConfig = BuildConfiguration.builder()
         .putEnv("ENV_VAR", "VALUE")
         .label("LABEL", "LABEL_VALUE")
@@ -212,8 +213,11 @@ public class AssemblyConfigurationUtilsTest {
         .layer(Assembly.builder().id("layer-with-id").build())
         .layer(Assembly.builder().build())
         .build();
+    final Map<Assembly, List<AssemblyFileEntry>> layers = assemblyConfiguration.getLayers().stream().collect(
+        Collectors.toMap(Function.identity(), a ->Collections.singletonList(
+            new AssemblyFileEntry(new File(""), new File(""), null))));
     // When
-    final String result = createDockerFileBuilder(configuration, buildConfig, assemblyConfiguration).content();
+    final String result = createDockerFileBuilder(buildConfig, assemblyConfiguration, layers).content();
     // Then
     assertThat(result)
         .isEqualTo("FROM busybox\n" +
@@ -227,6 +231,33 @@ public class AssemblyConfigurationUtilsTest {
             "VOLUME [\"/deployments\"]\n" +
             "VOLUME [\"VOLUME\"]\n" +
             "CMD [\"sh\",\"-c\",\"server\"]\n" +
+            "USER 1000\n");
+  }
+
+  @Test
+  public void createDockerFileBuilder_withAssemblyAndFilesInSingleLayer_shouldReturnTransformedContent() {
+    // Given
+    final BuildConfiguration buildConfig = BuildConfiguration.builder()
+        .user("1000")
+        .maintainer("Alex")
+        .build();
+    final AssemblyConfiguration assemblyConfiguration = AssemblyConfiguration.builder()
+        .targetDir("/deployments")
+        .layer(Assembly.builder().id("layer-with-id").build())
+        .layer(new Assembly())
+        .build();
+    final Map<Assembly, List<AssemblyFileEntry>> layers = assemblyConfiguration.getLayers().stream().collect(
+        Collectors.toMap(Function.identity(), a ->Collections.singletonList(
+            new AssemblyFileEntry(new File(""), new File(""), null))));
+    layers.put(new Assembly(), Collections.emptyList());
+    // When
+    final String result = createDockerFileBuilder(buildConfig, assemblyConfiguration, layers).content();
+    // Then
+    assertThat(result)
+        .isEqualTo("FROM busybox\n" +
+            "MAINTAINER Alex\n" +
+            "COPY /layer-with-id/deployments /deployments/\n" +
+            "VOLUME [\"/deployments\"]\n" +
             "USER 1000\n");
   }
 }

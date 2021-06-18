@@ -112,7 +112,7 @@ public class AssemblyManager {
                 createDockerTarArchiveForDockerFile(buildConfig, assemblyConfig, configuration, buildDirs, log, archiveCustomizers);
             } else {
                 createAssemblyArchive(assemblyConfig, configuration, buildDirs, buildConfig.getCompression(), layers);
-                createDockerTarArchiveForGeneratorMode(configuration, buildConfig, buildDirs, archiveCustomizers, assemblyConfig);
+                createDockerTarArchiveForGeneratorMode(buildConfig, buildDirs, archiveCustomizers, assemblyConfig, layers);
             }
             archiveCustomizers.addAll(getDefaultCustomizers(configuration, assemblyConfig, finalCustomizer, layers));
             return createBuildTarBall(configuration, buildDirs, archiveCustomizers, assemblyConfig, buildConfig.getCompression());
@@ -396,9 +396,11 @@ public class AssemblyManager {
         });
     }
 
-    private void createDockerTarArchiveForGeneratorMode(JKubeConfiguration configuration, BuildConfiguration buildConfig, BuildDirs buildDirs, List<ArchiverCustomizer> archiveCustomizers, final AssemblyConfiguration assemblyConfig) throws IOException {
+    private void createDockerTarArchiveForGeneratorMode(BuildConfiguration buildConfig, BuildDirs buildDirs,
+        List<ArchiverCustomizer> archiveCustomizers, AssemblyConfiguration assemblyConfiguration,
+        Map<Assembly, List<AssemblyFileEntry>> layers) throws IOException {
         // Create custom docker file in output dir
-        DockerFileBuilder builder = createDockerFileBuilder(configuration, buildConfig, assemblyConfig);
+        DockerFileBuilder builder = createDockerFileBuilder(buildConfig, assemblyConfiguration, layers);
         builder.write(buildDirs.getOutputDirectory());
         // Add own Dockerfile
         final File dockerFile = new File(buildDirs.getOutputDirectory(), DOCKERFILE_NAME);
