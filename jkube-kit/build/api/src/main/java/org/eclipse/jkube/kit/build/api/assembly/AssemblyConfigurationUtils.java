@@ -15,7 +15,9 @@ package org.eclipse.jkube.kit.build.api.assembly;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,8 +25,8 @@ import javax.annotation.Nullable;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
@@ -71,8 +73,8 @@ class AssemblyConfigurationUtils {
   }
 
   @Nonnull
-  static DockerFileBuilder createDockerFileBuilder(
-      JKubeConfiguration configuration, BuildConfiguration buildConfig, AssemblyConfiguration assemblyConfig) {
+  static DockerFileBuilder createDockerFileBuilder(BuildConfiguration buildConfig, AssemblyConfiguration assemblyConfig,
+      Map<Assembly, List<AssemblyFileEntry>> layers) {
     DockerFileBuilder builder =
         new DockerFileBuilder()
             .baseImage(buildConfig.getFrom())
@@ -91,10 +93,13 @@ class AssemblyConfigurationUtils {
       builder.basedir(assemblyConfig.getTargetDir())
           .assemblyUser(assemblyConfig.getUser())
           .exportTargetDir(assemblyConfig.getExportTargetDir());
-      final List<Assembly> effectiveLayers = assemblyConfig.getProcessedLayers(configuration);
-      if (effectiveLayers.isEmpty()) {
+      if (layers.isEmpty()) {
         builder.add(assemblyConfig.getTargetDir(), "");
       }
+      final List<Assembly> effectiveLayers = layers.entrySet().stream()
+          .filter(e -> !e.getValue().isEmpty())
+          .map(Map.Entry::getKey)
+          .collect(Collectors.toList());
       for (Assembly layer: effectiveLayers) {
         if (StringUtils.isNotBlank(layer.getId())) {
           builder.add(StringUtils.prependIfMissing(layer.getId(), "/") + assemblyConfig.getTargetDir(), "");
