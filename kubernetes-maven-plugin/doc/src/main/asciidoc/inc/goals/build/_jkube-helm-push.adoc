@@ -1,6 +1,6 @@
 
 [[jkube:helm-push]]
-== *{goal-prefix}:helm*
+== *{goal-prefix}:helm-push*
 
 This goal is for pushing
 https://helm.sh/docs/topics/charts[Helm charts]
