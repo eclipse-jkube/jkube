@@ -14,6 +14,9 @@
 package org.eclipse.jkube.kit.common;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +24,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.assertNotNull;
 
 public class RegistryConfigTest {
 
@@ -44,5 +48,28 @@ public class RegistryConfigTest {
         .hasFieldOrPropertyWithValue("authConfig", null)
         .extracting(RegistryConfig::getSettings).asList().hasSize(1).extracting("id", "username")
         .containsExactly(tuple("server-1", "the-user"));
+  }
+
+  @Test
+  public void testGetRegistryConfig() {
+    // Given
+    List<RegistryServerConfiguration> registryServerConfigurationList = new ArrayList<>();
+    registryServerConfigurationList.add(RegistryServerConfiguration.builder()
+            .username("someuser")
+            .password("somepassword")
+            .id("quay.io")
+            .build());
+
+    // When
+    RegistryConfig registryConfig = RegistryConfig.getRegistryConfig("quay.io", registryServerConfigurationList, Collections.emptyMap(), true, "quay.io", s -> s);
+
+    // Then
+    assertNotNull(registryConfig);
+    assertThat(registryConfig.getRegistry()).isEqualTo("quay.io");
+    assertThat(registryConfig.getSettings())
+            .hasSize(1).element(0)
+            .hasFieldOrPropertyWithValue("password", "somepassword")
+            .hasFieldOrPropertyWithValue("username", "someuser")
+            .hasFieldOrPropertyWithValue("id", "quay.io");
   }
 }

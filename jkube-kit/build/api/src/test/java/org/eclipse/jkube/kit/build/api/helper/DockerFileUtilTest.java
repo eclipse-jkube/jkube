@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author roland
@@ -283,6 +285,23 @@ public class DockerFileUtilTest {
     public void testResolveDockerfileFilter() {
         assertEquals(BuildConfiguration.DEFAULT_FILTER, DockerFileUtil.resolveDockerfileFilter(null));
         assertEquals("@*@", DockerFileUtil.resolveDockerfileFilter("@*@"));
+    }
+
+    @Test
+    public void testCheckIfDockerfileModeAndImageConfigs() throws IOException {
+        // Given
+        File projectBaseDir = Files.createTempDirectory("jkube-test-project").toFile();
+        File dockerFile = new File(projectBaseDir, "Dockerfile");
+        boolean wasDockerFileCreated = dockerFile.createNewFile();
+        List<ImageConfiguration> imageConfigurationList = new ArrayList<>();
+
+        // When
+        DockerFileUtil.checkIfDockerfileModeAndImageConfigs(projectBaseDir, imageConfigurationList, "default-name");
+
+        // Then
+        assertTrue(wasDockerFileCreated);
+        assertEquals(1, imageConfigurationList.size());
+        assertEquals("default-name", imageConfigurationList.get(0).getName());
     }
 
     private File getDockerfilePath(String dir) {

@@ -15,15 +15,40 @@ package org.eclipse.jkube.kit.common;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import mockit.Mocked;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 public class JKubeConfigurationTest {
+
+  @Test
+  public void testGetJKubeConfiguration() {
+    // Given
+    Map<String, String> buildArgs = Collections.singletonMap("foo", "bar");
+    String sourceDir = "src/main/jkube";
+    String targetDir = "target/";
+    JavaProject javaProject = JavaProject.builder().baseDirectory(new File("/")).build();
+    RegistryConfig registryConfig = RegistryConfig.builder().registry("foo.io").build();
+
+    // When
+    JKubeConfiguration jKubeConfiguration = JKubeConfiguration.getJKubeConfiguration(javaProject, sourceDir, targetDir, buildArgs, registryConfig);
+
+    // Then
+    assertNotNull(jKubeConfiguration);
+    assertThat(jKubeConfiguration)
+            .hasFieldOrPropertyWithValue("sourceDirectory", sourceDir)
+            .hasFieldOrPropertyWithValue("outputDirectory", targetDir)
+            .extracting("buildArgs")
+            .hasFieldOrPropertyWithValue("foo", "bar");
+  }
 
   @Test
   public void getBaseDir_withJavaProject_shouldReturnJavaProjectBaseDirectory() {
