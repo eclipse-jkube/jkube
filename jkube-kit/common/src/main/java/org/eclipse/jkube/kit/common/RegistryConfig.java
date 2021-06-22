@@ -39,4 +39,15 @@ public class RegistryConfig implements Serializable {
   private Map authConfig;
   private transient UnaryOperator<String> passwordDecryptionMethod;
 
+  public static RegistryConfig getRegistryConfig(String specificRegistry, List<RegistryServerConfiguration> settings,
+                                                 Map authConfigAsMap, boolean skipExtendedAuth, String registry,
+                                                 UnaryOperator<String> passwordDecryptionMethod) {
+    return RegistryConfig.builder()
+            .settings(settings)
+            .authConfig(authConfigAsMap)
+            .skipExtendedAuth(skipExtendedAuth)
+            .registry(specificRegistry != null ? specificRegistry : registry)
+            .passwordDecryptionMethod(passwordDecryptionMethod).build();
+  }
+
 }

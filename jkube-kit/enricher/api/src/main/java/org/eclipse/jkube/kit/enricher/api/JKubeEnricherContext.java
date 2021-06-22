@@ -179,6 +179,17 @@ public class JKubeEnricherContext implements EnricherContext {
         return json.toString();
     }
 
+    public static JKubeEnricherContext.JKubeEnricherContextBuilder getEnricherContext(JavaProject javaProject, ProcessorConfig enricherConfig,
+                                                          List<ImageConfiguration> resolvedImages, ResourceConfig resources,
+                                                          KitLogger log) {
+        return JKubeEnricherContext.builder()
+                .project(javaProject)
+                .processorConfig(enricherConfig)
+                .images(resolvedImages)
+                .resources(resources)
+                .log(log);
+    }
+
     private String getConfigurationValue(final RegistryServerConfiguration server, final String key) {
         return Optional.ofNullable(server.getConfiguration())
             .filter(c -> c.containsKey(key))

@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
+import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 
 import java.util.HashMap;
@@ -48,6 +49,16 @@ public class LogDispatcher {
             handle.finish();
         }
         logHandles.clear();
+    }
+
+
+    public static LogDispatcher getLogDispatcher(Map<String, Object> pluginContext, ServiceHub hub, String logDispatcherContextKey) {
+        LogDispatcher dispatcher = (LogDispatcher) pluginContext.get(logDispatcherContextKey);
+        if (dispatcher == null) {
+            dispatcher = new LogDispatcher(hub.getDockerAccess());
+            pluginContext.put(logDispatcherContextKey, dispatcher);
+        }
+        return dispatcher;
     }
 
     // =======================================================================================

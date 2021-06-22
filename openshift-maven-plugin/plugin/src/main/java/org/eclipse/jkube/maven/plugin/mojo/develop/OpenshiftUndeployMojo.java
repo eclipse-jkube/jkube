@@ -64,7 +64,7 @@ public class OpenshiftUndeployMojo extends UndeployMojo {
     }
 
     @Override
-    protected RuntimeMode getRuntimeMode() {
+    public RuntimeMode getRuntimeMode() {
         return RuntimeMode.OPENSHIFT;
     }
 

@@ -32,7 +32,7 @@ public class OpenshiftPushMojo extends PushMojo {
   }
 
   @Override
-  public RuntimeMode getConfiguredRuntimeMode() {
+  public RuntimeMode getRuntimeMode() {
     return RuntimeMode.OPENSHIFT;
   }
 

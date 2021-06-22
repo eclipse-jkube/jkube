@@ -270,6 +270,17 @@ public class DockerFileUtil {
         return image.toBuilder().build(buildConfig).build();
     }
 
+    public static void checkIfDockerfileModeAndImageConfigs(File projectBaseDir, List<ImageConfiguration> resolvedImages, String defaultImageName) {
+        if (DockerFileUtil.isSimpleDockerFileMode(projectBaseDir)) {
+            File topDockerfile = DockerFileUtil.getTopLevelDockerfile(projectBaseDir);
+            if (resolvedImages.isEmpty()) {
+                resolvedImages.add(DockerFileUtil.createSimpleDockerfileConfig(topDockerfile, defaultImageName));
+            } else if (resolvedImages.size() == 1 && resolvedImages.get(0).getBuildConfiguration() == null) {
+                resolvedImages.set(0, DockerFileUtil.addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
+            }
+        }
+    }
+
     private static File getHomeDir() {
         String homeDir = System.getProperty("user.home");
         if (homeDir == null) {

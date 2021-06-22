@@ -61,4 +61,19 @@ public class BuildServiceConfig {
     public interface Attacher {
         void attach(String classifier, File destFile);
     }
+
+    public static BuildServiceConfig.BuildServiceConfigBuilder getBuildServiceConfigBuilder(BuildRecreateMode buildRecreateMode, JKubeBuildStrategy jKubeBuildStrategy,
+        boolean forcePull, ImagePullManager imagePullManager, String buildDirectory, BuildServiceConfig.Attacher buildServiceConfigAttacher,
+        Task<KubernetesListBuilder> enricherTask, ResourceConfig resourceConfig, File resourceDir) {
+        return BuildServiceConfig.builder()
+                .buildRecreateMode(buildRecreateMode)
+                .jKubeBuildStrategy(jKubeBuildStrategy)
+                .forcePull(forcePull)
+                .imagePullManager(imagePullManager)
+                .buildDirectory(buildDirectory)
+                .attacher(buildServiceConfigAttacher)
+                .resourceConfig(resourceConfig)
+                .resourceDir(resourceDir)
+                .enricherTask(enricherTask);
+    }
 }

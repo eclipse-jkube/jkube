@@ -53,4 +53,16 @@ public class GeneratorContext {
     public GeneratorMode getGeneratorMode() {
         return Optional.ofNullable(generatorMode).orElse(GeneratorMode.BUILD);
     }
+
+    public static  GeneratorContext.GeneratorContextBuilder generatorContextBuilder(ProcessorConfig generatorConfig, JavaProject javaProject
+        , KitLogger log, RuntimeMode runtimeMode, boolean useProjectClasspath, ArtifactResolverService artifactResolver, JKubeBuildStrategy jKubeBuildStrategy) {
+        return GeneratorContext.builder()
+                .config(generatorConfig)
+                .project(javaProject)
+                .logger(log)
+                .runtimeMode(runtimeMode)
+                .useProjectClasspath(useProjectClasspath)
+                .strategy(jKubeBuildStrategy)
+                .artifactResolver(artifactResolver);
+    }
 }

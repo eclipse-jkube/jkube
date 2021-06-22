@@ -56,7 +56,7 @@ public class OpenshiftWatchMojo extends WatchMojo {
     private File openshiftManifest;
 
     @Override
-    public RuntimeMode getConfiguredRuntimeMode() {
+    public RuntimeMode getRuntimeMode() {
         return RuntimeMode.OPENSHIFT;
     }
 

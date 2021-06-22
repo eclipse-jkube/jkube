@@ -26,7 +26,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * @since 16/03/16
  */
 @Mojo(name = "push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
-public class PushMojo extends AbstractDockerMojo {
+public class PushMojo extends AbstractContainerImageBuildMojo {
 
     @Parameter(property = "jkube.skip.push", defaultValue = "false")
     protected boolean skipPush;

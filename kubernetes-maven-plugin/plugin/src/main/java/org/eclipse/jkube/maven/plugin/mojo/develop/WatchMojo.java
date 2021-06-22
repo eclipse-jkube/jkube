@@ -20,8 +20,10 @@ import java.util.List;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
+import org.eclipse.jkube.kit.config.image.build.JKubeConfiguration;
+import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -32,7 +34,7 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
-import org.eclipse.jkube.maven.plugin.mojo.build.AbstractDockerMojo;
+import org.eclipse.jkube.maven.plugin.mojo.build.AbstractContainerImageBuildMojo;
 import org.eclipse.jkube.maven.plugin.watcher.WatcherManager;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
@@ -49,6 +51,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+import static org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher.getLogDispatcher;
+import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
 
 
@@ -61,7 +65,7 @@ import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERN
  */
 @Mojo(name = "watch", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
 @Execute(goal = "deploy")
-public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
+public class WatchMojo extends AbstractContainerImageBuildMojo implements ManifestProvider {
 
     /**
      * The generated kubernetes YAML file
@@ -87,7 +91,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     }
 
     @Override
-    protected void init() {
+    public void init() throws DependencyResolutionRequiredException {
         super.init();
         kubernetesClient = clusterAccess.createDefaultClient();
     }
@@ -112,7 +116,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
 
     private WatcherContext getWatcherContext() throws MojoExecutionException {
         try {
-            JKubeConfiguration buildContext = initJKubeConfiguration();
+            JKubeConfiguration buildContext = initJKubeConfiguration(MavenUtil.convertMavenProjectToJKubeProject(project, session));
             WatchContext watchContext = jkubeServiceHub.getDockerServiceHub() != null ? getWatchContext() : null;
 
             return WatcherContext.builder()
@@ -125,8 +129,6 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                     .useProjectClasspath(useProjectClasspath)
                     .jKubeServiceHub(jkubeServiceHub)
                     .build();
-        } catch (IOException exception) {
-            throw new MojoExecutionException(exception.getMessage());
         } catch (DependencyResolutionRequiredException dependencyException) {
             throw new MojoExecutionException("Instructed to use project classpath, but cannot. Continuing build if we can: " + dependencyException.getMessage());
         }
@@ -135,10 +137,10 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     @Override
     protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() throws DependencyResolutionRequiredException {
         return GeneratorContext.builder()
-            .config(extractGeneratorConfig())
+            .config(extractGeneratorConfig(profile, ResourceUtil.getFinalResourceDir(resourceDir, environment), enricher))
             .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
             .logger(log)
-            .runtimeMode(getConfiguredRuntimeMode())
+            .runtimeMode(getRuntimeMode())
             .useProjectClasspath(useProjectClasspath)
             .artifactResolver(jkubeServiceHub.getArtifactResolverService())
             .generatorMode(GeneratorMode.WATCH);
@@ -153,11 +155,12 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
         }
     }
 
+    @Override
     protected KitLogger createLogger(String prefix) {
         return new AnsiLogger(getLog(), useColor, verbose, !settings.getInteractiveMode(), getLogPrefix() + prefix);
     }
 
-    protected WatchContext getWatchContext() throws IOException, DependencyResolutionRequiredException {
+    protected WatchContext getWatchContext() throws DependencyResolutionRequiredException {
         final ServiceHub hub = jkubeServiceHub.getDockerServiceHub();
         return WatchContext.builder()
                 .watchInterval(watchInterval)
@@ -168,14 +171,14 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                 .keepRunning(keepRunning)
                 .removeVolumes(removeVolumes)
                 .containerNamePattern(containerNamePattern)
-                .buildTimestamp(getBuildTimestamp())
-                .gavLabel(getGavLabel())
-                .buildContext(initJKubeConfiguration())
+                .buildTimestamp(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP))
+                .gavLabel(new GavLabel(project.getGroupId(), project.getArtifactId(), project.getVersion()))
+                .buildContext(initJKubeConfiguration(MavenUtil.convertMavenProjectToJKubeProject(project, session)))
                 .follow(watchFollow)
                 .showLogs(watchShowLogs)
                 .serviceHubFactory(serviceHubFactory)
                 .hub(hub)
-                .dispatcher(getLogDispatcher(hub))
+                .dispatcher(getLogDispatcher(getPluginContext(), hub, CONTEXT_KEY_LOG_DISPATCHER))
                 .postGoalTask(() -> MavenUtil.callMavenPluginWithGoal(project, session, pluginManager, watchPostGoal, log))
                 .build();
     }

@@ -104,6 +104,7 @@ Usage:
 * Fix #513: openshift-maven-plugin: service.yml fragment with ports creates service with unnamed port mapping
 * Fix #231: IngressEnricher ignores IngressRules defined in XML config
 * Fix #523: period in image username omits registry in Deployment manifest
+* Fix #147: AbstractDockerMojo should extend from AbstractJKubeMojo
 
 ### 1.0.2 (2020-10-30)
 * Fix #429: Added quickstart for Micronaut framework

@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.common;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -69,4 +70,15 @@ public class JKubeConfiguration implements Serializable {
     return new File(absoluteSourceDir, path);
   }
 
+  public static JKubeConfiguration getJKubeConfiguration(JavaProject javaProject, String sourceDirectory, String outputDirectory,
+                                                         Map<String, String> buildArgs, RegistryConfig registryConfig) {
+    return JKubeConfiguration.builder()
+            .project(javaProject)
+            .sourceDirectory(sourceDirectory)
+            .outputDirectory(outputDirectory)
+            .reactorProjects(Collections.singletonList(javaProject))
+            .buildArgs(buildArgs)
+            .registryConfig(registryConfig)
+            .build();
+  }
 }

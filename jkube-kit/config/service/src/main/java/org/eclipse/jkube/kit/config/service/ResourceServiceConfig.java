@@ -43,4 +43,18 @@ public class ResourceServiceConfig {
   private ResourceService.ResourceFileProcessor resourceFilesProcessor;
   private boolean interpolateTemplateParameters;
 
+  public static ResourceServiceConfig getResourceServiceConfig(JavaProject javaProject, File resourceDir, File targetDir,
+                                                               ResourceFileType resourceFileType, ResourceConfig resources,
+                                                               ResourceService.ResourceFileProcessor resourceFileProcessor,
+                                                               boolean interpolateTemplateParameters) {
+    return ResourceServiceConfig.builder()
+            .project(javaProject)
+            .resourceDir(resourceDir)
+            .targetDir(targetDir)
+            .resourceFileType(resourceFileType)
+            .resourceConfig(resources)
+            .resourceFilesProcessor(resourceFileProcessor)
+            .interpolateTemplateParameters(interpolateTemplateParameters)
+            .build();
+  }
 }

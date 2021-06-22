@@ -22,6 +22,8 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
+import java.util.Properties;
+
 /**
  * Generates or copies the Kubernetes JSON file and attaches it to the build so its
  * installed and released to maven repositories like other build artifacts.
@@ -45,7 +47,22 @@ public class OpenshiftResourceMojo extends ResourceMojo {
     }
 
     @Override
-    protected RuntimeMode getRuntimeMode() {
+    public RuntimeMode getRuntimeMode() {
         return RuntimeMode.OPENSHIFT;
+    }
+
+    @Override
+    public void lateInit() {
+        super.lateInit();
+        Properties properties = project.getProperties();
+        if (!properties.contains(DOCKER_IMAGE_USER)) {
+            String namespaceToBeUsed = this.namespace != null && !this.namespace.isEmpty() ?
+                    this.namespace: clusterAccess.getNamespace();
+            log.info("Using docker image name of namespace: " + namespaceToBeUsed);
+            properties.setProperty(DOCKER_IMAGE_USER, namespaceToBeUsed);
+        }
+        if (!properties.contains(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE)) {
+            properties.setProperty(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, runtimeMode.toString());
+        }
     }
 }

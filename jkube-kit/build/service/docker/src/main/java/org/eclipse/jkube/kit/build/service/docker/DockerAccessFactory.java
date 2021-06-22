@@ -141,6 +141,21 @@ public class DockerAccessFactory {
                 .log(kitLogger)
                 .build();
         }
+
+        public static DockerAccessContext getDockerAccessContext(String dockerHost, String certPath, DockerMachineConfiguration machine,
+                                                                 int maxConnections, String minimalApiVersion, Properties projectProperties,
+                                                                 boolean skipMachine, KitLogger log) {
+            return DockerAccessFactory.DockerAccessContext.builder()
+                    .dockerHost(dockerHost)
+                    .certPath(certPath)
+                    .machine(machine)
+                    .maxConnections(maxConnections)
+                    .minimalApiVersion(minimalApiVersion)
+                    .projectProperties(projectProperties)
+                    .skipMachine(skipMachine)
+                    .log(log)
+                    .build();
+        }
     }
 
 }

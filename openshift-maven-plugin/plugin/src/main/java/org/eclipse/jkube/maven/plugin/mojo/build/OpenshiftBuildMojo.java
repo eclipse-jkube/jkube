@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -21,8 +22,10 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
+import org.eclipse.jkube.kit.config.service.EnricherManager;
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 import java.util.List;
@@ -79,10 +82,11 @@ public class OpenshiftBuildMojo extends BuildMojo {
     }
 
     @Override
-    public RuntimeMode getConfiguredRuntimeMode() {
+    public RuntimeMode getRuntimeMode() {
         return RuntimeMode.OPENSHIFT;
     }
 
+    @Override
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
         if (runtimeMode == RuntimeMode.OPENSHIFT) {
             log.info("Using [[B]]OpenShift[[B]] build with strategy [[B]]%s[[B]]", getJKubeBuildStrategy().getLabel());
@@ -112,11 +116,15 @@ public class OpenshiftBuildMojo extends BuildMojo {
     }
 
     @Override
-    protected JKubeBuildStrategy getJKubeBuildStrategy() {
+    public JKubeBuildStrategy getJKubeBuildStrategy() {
         if (buildStrategy != null) {
             return buildStrategy;
         }
         return JKubeBuildStrategy.s2i;
     }
 
+    @Override
+    public void enricherTask(KubernetesListBuilder kubernetesListBuilder, EnricherManager enricherManager) {
+        enricherManager.enrich(PlatformMode.openshift, kubernetesListBuilder);
+    }
 }
