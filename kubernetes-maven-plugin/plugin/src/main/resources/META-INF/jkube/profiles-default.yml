@@ -69,6 +69,8 @@
 
     # Value merge enrichers
     - jkube-container-env-java-options
+    # Value merge enrichers
+    - jkube-container-env-java-opts
 
     # Dependencies shouldn't be enriched anymore, therefore it's last in the list
     - jkube-dependency

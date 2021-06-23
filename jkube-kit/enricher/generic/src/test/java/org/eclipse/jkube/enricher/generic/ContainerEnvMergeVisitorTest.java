@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.enricher.generic.ContainerEnvJavaOptionsMergeTest.containerList;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class ContainerEnvJavaOptionsMergeVisitorTest {
+public class ContainerEnvMergeVisitorTest {
 
   @SuppressWarnings("unused")
   @Mocked
@@ -47,7 +47,8 @@ public class ContainerEnvJavaOptionsMergeVisitorTest {
   @Test
   public void noImageConfigurationsNoContainersShouldDoNothing() {
     // When
-    kubernetesListBuilder.accept(new ContainerEnvJavaOptionsMergeEnricher.ContainerEnvJavaOptionsMergeVisitor(Collections.emptyList()));
+    kubernetesListBuilder.accept(new AbstractContainerEnvMergeEnricher.
+            ContainerEnvMergeVisitor(Collections.emptyList(), ContainerEnvJavaOptionsMergeEnricher.ENV_KEY));
     // Then
     assertThat(kubernetesListBuilder.build().getItems()).isEmpty();
   }
@@ -55,8 +56,9 @@ public class ContainerEnvJavaOptionsMergeVisitorTest {
   @Test
   public void imageConfigurationsNoContainersShouldDoNothing() {
     // When
-    kubernetesListBuilder.accept(new ContainerEnvJavaOptionsMergeEnricher
-        .ContainerEnvJavaOptionsMergeVisitor(Collections.singletonList(imageConfiguration)));
+    kubernetesListBuilder.accept(new AbstractContainerEnvMergeEnricher.
+            ContainerEnvMergeVisitor(Collections.singletonList(imageConfiguration), 
+                    ContainerEnvJavaOptionsMergeEnricher.ENV_KEY));
     // Then
     assertThat(kubernetesListBuilder.build().getItems()).isEmpty();
   }
@@ -73,8 +75,9 @@ public class ContainerEnvJavaOptionsMergeVisitorTest {
         .withImage("the-image:latest")
         .build());
     // When
-    kubernetesListBuilder.accept(new ContainerEnvJavaOptionsMergeEnricher
-        .ContainerEnvJavaOptionsMergeVisitor(Collections.singletonList(imageConfiguration)));
+    kubernetesListBuilder.accept(new AbstractContainerEnvMergeEnricher.
+            ContainerEnvMergeVisitor(Collections.singletonList(imageConfiguration), 
+                    ContainerEnvJavaOptionsMergeEnricher.ENV_KEY));
     // Then
     assertThat(kubernetesListBuilder.build().getItems()).asList()
         .hasSize(1)
@@ -95,8 +98,9 @@ public class ContainerEnvJavaOptionsMergeVisitorTest {
         .withImage("the-image:latest")
         .build());
     // When
-    kubernetesListBuilder.accept(new ContainerEnvJavaOptionsMergeEnricher
-        .ContainerEnvJavaOptionsMergeVisitor(Collections.singletonList(imageConfiguration)));
+    kubernetesListBuilder.accept(new AbstractContainerEnvMergeEnricher.
+            ContainerEnvMergeVisitor(Collections.singletonList(imageConfiguration), 
+                    ContainerEnvJavaOptionsMergeEnricher.ENV_KEY));
     // Then
     assertThat(kubernetesListBuilder.build().getItems()).asList()
         .hasSize(1)
@@ -122,8 +126,9 @@ public class ContainerEnvJavaOptionsMergeVisitorTest {
         .addToEnv(new EnvVar("JAVA_OPTIONS", "-DnotMerged", null))
         .build());
     // When
-    kubernetesListBuilder.accept(new ContainerEnvJavaOptionsMergeEnricher
-        .ContainerEnvJavaOptionsMergeVisitor(Collections.singletonList(imageConfiguration)));
+    kubernetesListBuilder.accept(new AbstractContainerEnvMergeEnricher.
+            ContainerEnvMergeVisitor(Collections.singletonList(imageConfiguration), 
+                    ContainerEnvJavaOptionsMergeEnricher.ENV_KEY));
     // Then
     assertThat(containerList(kubernetesListBuilder)).asList()
         .hasSize(2)

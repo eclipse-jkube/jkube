@@ -105,4 +105,7 @@ org.eclipse.jkube.enricher.generic.IngressEnricher
 # Merge JAVA_OPTIONS environment variables from Image Build Configurations and enriched Containers
 org.eclipse.jkube.enricher.generic.ContainerEnvJavaOptionsMergeEnricher
 
+# Merge JAVA_OPTS environment variables from Image Build Configurations and enriched Containers
+org.eclipse.jkube.enricher.generic.ContainerEnvJavaOptsMergeEnricher
+
 org.eclipse.jkube.enricher.generic.ReplicaCountEnricher

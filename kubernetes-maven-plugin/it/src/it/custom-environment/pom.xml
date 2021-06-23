@@ -36,6 +36,7 @@
     <vertx.verticle>io.vertx.example.SimpleWebVerticle</vertx.verticle>
     <vertx-maven-plugin.version>1.0.18</vertx-maven-plugin.version>
     <jkube.enricher.jkube-container-env-java-options.disable>true</jkube.enricher.jkube-container-env-java-options.disable>
+    <jkube.enricher.jkube-container-env-java-opts.disable>true</jkube.enricher.jkube-container-env-java-opts.disable>
   </properties>
 
   <dependencyManagement>

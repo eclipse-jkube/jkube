@@ -51,6 +51,11 @@ This plugin comes with a set of default enrichers. In addition custom enrichers 
   environment (`env`) with `Container` `JAVA_OPTIONS` environment variable added
   by other enrichers, XML configuration or fragment.
 
+| <<jkube-container-env-java-opts>>
+| Merges `JAVA_OPTS` environment variable defined in <<config-image-build>>
+  environment (`env`) with `Container` `JAVA_OPTS` environment variable added
+  by other enrichers, XML configuration or fragment.
+
 | <<jkube-controller>>
 | Create default controller (replication controller, replica set or deployment https://kubernetes.io/docs/concepts/workloads/controllers/[Kubernetes doc]) if missing.
 
