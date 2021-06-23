@@ -19,8 +19,7 @@ import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.common.JsonFactory;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
@@ -49,17 +48,15 @@ public class RegistryAuthTest {
     private void check(RegistryAuth config) {
         // Since Base64.decodeBase64 handles URL-safe encoding, must explicitly check
         // the correct characters are used
-        assertEquals(
-                "eyJ1c2VybmFtZSI6InJvbGFuZCIsInBhc3N3b3JkIjoiIz5zZWNyZXRzPz8iLCJlbWFpbCI6InJvbGFuZEBqb2xva2lhLm9yZyJ9",
-                config.toHeaderValue()
-        );
+        assertThat(config.toHeaderValue()).
+          isEqualTo("eyJ1c2VybmFtZSI6InJvbGFuZCIsInBhc3N3b3JkIjoiIz5zZWNyZXRzPz8iLCJlbWFpbCI6InJvbGFuZEBqb2xva2lhLm9yZyJ9");
 
         String header = new String(Base64.getDecoder().decode(config.toHeaderValue()));
 
         JsonObject data = JsonFactory.newJsonObject(header);
-        assertEquals("roland",data.get("username").getAsString());
-        assertEquals("#>secrets??",data.get("password").getAsString());
-        assertEquals("roland@jolokia.org",data.get("email").getAsString());
-        assertFalse(data.has("auth"));
+        assertThat(data.get("username").getAsString()).isEqualTo("roland");
+        assertThat(data.get("password").getAsString()).isEqualTo("#>secrets??");
+        assertThat(data.get("email").getAsString()).isEqualTo("roland@jolokia.org");
+        assertThat(data.has("auth")).isFalse();
     }
 }

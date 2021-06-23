@@ -33,7 +33,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class AssemblyManagerTest {
 
@@ -171,7 +170,7 @@ public class AssemblyManagerTest {
   @Test
   public void testEnsureThatArtifactFileIsSetWithNullProjectArtifact() throws IOException {
     // Given
-    assertTrue(new File(targetDirectory, "foo-project-0.0.1.jar").createNewFile());
+    assertThat(new File(targetDirectory, "foo-project-0.0.1.jar").createNewFile());
     JavaProject project = JavaProject.builder()
         .buildDirectory(targetDirectory)
         .packaging("jar")

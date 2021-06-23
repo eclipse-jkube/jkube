@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
@@ -89,10 +89,10 @@ public class FromConfigRegistryAuthHandlerTest {
 
     private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
         JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())), JsonObject.class);
-        assertEquals(username, params.get("username").getAsString());
-        assertEquals(password, params.get("password").getAsString());
+        assertThat(params.get("username").getAsString()).isEqualTo(username);
+        assertThat(params.get("password").getAsString()).isEqualTo(password);
         if (email != null) {
-            assertEquals(email, params.get("email").getAsString());
+            assertThat(params.get("email").getAsString()).isEqualTo(email);
         }
     }
 

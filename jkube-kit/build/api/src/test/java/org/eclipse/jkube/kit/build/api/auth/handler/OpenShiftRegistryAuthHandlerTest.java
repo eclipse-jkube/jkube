@@ -34,9 +34,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
@@ -98,7 +96,7 @@ public class OpenShiftRegistryAuthHandlerTest {
             executeWithTempHomeDir(homeDir -> {
                 createOpenShiftConfig(homeDir, "openshift_simple_config.yaml");
                 AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, "roland", null, s->s);
-                assertNull(config);
+                assertThat(config).isNull();
             });
         } finally {
             System.getProperties().remove("docker.useOpenShiftAuth");
@@ -142,10 +140,10 @@ public class OpenShiftRegistryAuthHandlerTest {
 
     private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
         JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())), JsonObject.class);
-        assertEquals(username,params.get("username").getAsString());
-        assertEquals(password,params.get("password").getAsString());
+        assertThat(params.get("username").getAsString()).isEqualTo(username);
+        assertThat(params.get("password").getAsString()).isEqualTo(password);
         if (email != null) {
-            assertEquals(email, params.get("email").getAsString());
+            assertThat(params.get("email").getAsString()).isEqualTo(email);
         }
     }
 

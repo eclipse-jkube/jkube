@@ -30,11 +30,7 @@ import org.junit.Test;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AssemblyConfigurationUtilsTest {
 
@@ -50,9 +46,9 @@ public class AssemblyConfigurationUtilsTest {
     // When
     final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
-    assertEquals("maven", result.getName());
-    assertEquals("/maven", result.getTargetDir());
-    assertNull(result.getUser());
+    assertThat(result.getName()).isEqualTo("maven");
+    assertThat(result.getTargetDir()).isEqualTo("/maven");
+    assertThat(result.getUser()).isNull();
   }
 
   @Test
@@ -68,10 +64,10 @@ public class AssemblyConfigurationUtilsTest {
     // When
     final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
     // Then
-    assertNotNull(result);
-    assertEquals("ImageName", result.getName());
-    assertEquals("/ImageName", result.getTargetDir());
-    assertEquals("OtherUser", result.getUser());
+    assertThat(result).isNotNull();
+    assertThat(result.getName()).isEqualTo("ImageName");
+    assertThat(result.getTargetDir()).isEqualTo("/ImageName");
+    assertThat(result.getUser()).isEqualTo("OtherUser");
   }
 
 
@@ -80,8 +76,8 @@ public class AssemblyConfigurationUtilsTest {
     // When
     final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(null);
     // Then
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
+    assertThat(result).isNotNull();
+    assertThat(result.isEmpty());
   }
 
   @Test
@@ -101,9 +97,9 @@ public class AssemblyConfigurationUtilsTest {
     // When
     final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(configuration);
     // Then
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertEquals("1337", result.iterator().next().getDirectory().getName());
+    assertThat(result).isNotNull();
+    assertThat(result.isEmpty()).isFalse();
+    assertThat(result.iterator().next().getDirectory().getName()).isEqualTo("1337");
   }
 
 
@@ -113,8 +109,8 @@ public class AssemblyConfigurationUtilsTest {
     // When
     final List<AssemblyFile> result = getJKubeAssemblyFiles(null);
     // Then
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
+    assertThat(result).isNotNull();
+    assertThat(result.isEmpty());
   }
 
   @Test
@@ -134,9 +130,9 @@ public class AssemblyConfigurationUtilsTest {
     // When
     final List<AssemblyFile> result = getJKubeAssemblyFiles(configuration);
     // Then
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertEquals("1337", result.iterator().next().getSource().getName());
+    assertThat(result).isNotNull();
+    assertThat(result.isEmpty()).isFalse();
+    assertThat(result.iterator().next().getSource().getName()).isEqualTo("1337");
   }
 
 }

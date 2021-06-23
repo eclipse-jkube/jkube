@@ -24,10 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AssemblyConfigurationSourceTest {
 
@@ -51,11 +48,11 @@ public class AssemblyConfigurationSourceTest {
         try {
             AssemblyConfiguration.builder().permissionsString("blub").build();
         } catch (IllegalArgumentException exp) {
-            assertTrue(exp.getMessage().contains("blub"));
+            assertThat(exp.getMessage()).contains("blub");
         }
 
         AssemblyConfiguration config = AssemblyConfiguration.builder().permissionsString("ignore").build();
-        assertSame(AssemblyConfiguration.PermissionMode.ignore, config.getPermissions());
+        assertThat(config.getPermissions()).isEqualTo(AssemblyConfiguration.PermissionMode.ignore);
     }
 
     @Test
@@ -75,9 +72,9 @@ public class AssemblyConfigurationSourceTest {
         AssemblyConfigurationSource source = new AssemblyConfigurationSource(context,
                 new BuildDirs(image, context), assemblyConfig);
 
-        assertTrue(containsDir(image, source.getOutputDirectory()));
-        assertTrue(containsDir(image, source.getWorkingDirectory()));
-        assertTrue(containsDir(image, source.getTemporaryRootDirectory()));
+        assertThat(containsDir(image, source.getOutputDirectory()));
+        assertThat(containsDir(image, source.getWorkingDirectory()));
+        assertThat(containsDir(image, source.getTemporaryRootDirectory()));
     }
 
     private JKubeConfiguration buildBuildContext(String sourceDir, String outputDir) {
@@ -92,7 +89,7 @@ public class AssemblyConfigurationSourceTest {
         AssemblyConfigurationSource source =
                 new AssemblyConfigurationSource(context, new BuildDirs("image", context), assemblyConfig);
 
-        assertFalse("we must not ignore permissions when creating the archive", source.isIgnorePermissions());
+        assertThat(source.isIgnorePermissions()).isNotEqualTo("we must not ignore permissions when creating the archive");
 
         String outputDir = context.getOutputDirectory();
 
@@ -108,7 +105,7 @@ public class AssemblyConfigurationSourceTest {
     private void assertStartsWithDir(String outputDir, File path) {
         String expectedStartsWith = outputDir + File.separator;
         int length = expectedStartsWith.length();
-        assertEquals(expectedStartsWith, path.toString().substring(0, length));
+        assertThat(path.toString().substring(0, length)).isEqualTo(expectedStartsWith);
     }
 
     @Test
@@ -123,7 +120,7 @@ public class AssemblyConfigurationSourceTest {
                 .reactorProjects(Arrays.asList(project1, project2))
                 .build();
         AssemblyConfigurationSource source = new AssemblyConfigurationSource(buildContext,null,null);
-        assertEquals(2, source.getReactorProjects().size());
+        assertThat(source.getReactorProjects().size()).isEqualTo(2);
     }
 }
 

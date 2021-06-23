@@ -19,11 +19,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
 
 public class JKubeDockerfileInterpolatorTest {
     @Test
@@ -37,7 +34,7 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate(src, p, Collections.singletonMap("<expression>", "</expression>"));
 
         // Then
-        assertEquals("This is a test for long delimiters in context.", result);
+        assertThat(result).isEqualTo("This is a test for long delimiters in context.");
     }
 
     @Test
@@ -51,7 +48,7 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate(src, p, Collections.singletonMap("<expression>", "</expression>"));
 
         // Then
-        assertEquals("test for long delimiters in context.", result);
+        assertThat(result).isEqualTo("test for long delimiters in context.");
     }
 
     @Test
@@ -65,7 +62,7 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate(src, p, Collections.singletonMap("<expression>", "</expression>"));
 
         // Then
-        assertEquals("This is a test", result);
+        assertThat(result).isEqualTo("This is a test");
     }
 
     @Test
@@ -78,7 +75,7 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate(src, p, Collections.singletonMap("<expression>", "</expression>"));
 
         // Then
-        assertEquals("test", result);
+        assertThat(result).isEqualTo("test");
     }
 
     @Test
@@ -91,7 +88,7 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate("This is a test ${key}.", p, Collections.singletonMap("${", "}"));
 
         // Then
-        assertEquals("This is a test value.", result);
+        assertThat(result).isEqualTo("This is a test value.");
     }
 
     @Test
@@ -105,7 +102,7 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate("${key}-${key2}", p, Collections.singletonMap("${", "}"));
 
         // Then
-        assertEquals("value-value2", result);
+        assertThat(result).isEqualTo("value-value2");
     }
 
     @Test
@@ -118,7 +115,7 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate("This is a test ${key.", p, Collections.singletonMap("${", "}"));
 
         // Then
-        assertEquals("This is a test ${key.", result);
+        assertThat(result).isEqualTo("This is a test ${key.");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -157,7 +154,7 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate("this is a ${var}", properties, Collections.singletonMap("${", "}"));
 
         // Then
-        assertEquals("this is a testVar", result);
+        assertThat(result).isEqualTo("this is a testVar");
     }
 
     @Test
@@ -167,8 +164,8 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate("this is a ${env.HOME} ${env.PATH}", p, Collections.singletonMap("${env.", "}"));
 
         // When + Then
-        assertNotEquals("this is a ${HOME} ${PATH}", result);
-        assertNotEquals("this is a ${env.HOME} ${env.PATH}", result);
+        assertThat(result).isNotEqualTo("this is a ${HOME} ${PATH}");
+        assertThat(result).isNotEqualTo("this is a ${env.HOME} ${env.PATH}");
     }
 
     @Test
@@ -181,7 +178,7 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate("@{key} This is a test.", p, Collections.singletonMap("@{", "}"));
 
         // Then
-        assertEquals("value This is a test.", result);
+        assertThat(result).isEqualTo("value This is a test.");
     }
 
     @Test
@@ -190,7 +187,7 @@ public class JKubeDockerfileInterpolatorTest {
         String result = JKubeDockerfileInterpolator.interpolate(null, new Properties(), Collections.emptyMap());
 
         // Then
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -208,8 +205,8 @@ public class JKubeDockerfileInterpolatorTest {
         String result2 = JKubeDockerfileInterpolator.interpolate(EXPR2, p, Collections.singletonMap("${", "}"));
 
         // Then
-        assertEquals("pANDx", result1);
-        assertEquals("pzzANDx", result2);
+        assertThat(result1).isEqualTo("pANDx");
+        assertThat(result2).isEqualTo("pzzANDx");
     }
 
     @Test
@@ -223,8 +220,8 @@ public class JKubeDockerfileInterpolatorTest {
         p1.put("test2.label", "dominant");
 
         // When + Then
-        assertEquals("pANDx", JKubeDockerfileInterpolator.interpolate(EXPR, p1,Collections.singletonMap("${", "}")));
-        assertEquals("pdominantANDx", JKubeDockerfileInterpolator.interpolate(EXPR2, p1, Collections.singletonMap("${", "}")));
+        assertThat(JKubeDockerfileInterpolator.interpolate(EXPR, p1,Collections.singletonMap("${", "}"))).isEqualTo("pANDx");
+        assertThat(JKubeDockerfileInterpolator.interpolate(EXPR2, p1, Collections.singletonMap("${", "}"))).isEqualTo("pdominantANDx");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -256,7 +253,7 @@ public class JKubeDockerfileInterpolatorTest {
         Map<String, String> result = JKubeDockerfileInterpolator.getExpressionMarkersFromFilter(filter);
 
         // Then
-        assertEquals(Collections.singletonMap("${", "}"), result);
+        assertThat(result).isEqualTo(Collections.singletonMap("${", "}"));
     }
 
     @Test
@@ -268,7 +265,7 @@ public class JKubeDockerfileInterpolatorTest {
         Map<String, String> result = JKubeDockerfileInterpolator.getExpressionMarkersFromFilter(filter);
 
         // Then
-        assertEquals(Collections.singletonMap("@", "@"), result);
+        assertThat(result).isEqualTo(Collections.singletonMap("@", "@"));
     }
 
     @Test
@@ -280,7 +277,7 @@ public class JKubeDockerfileInterpolatorTest {
         Map<String, String> result = JKubeDockerfileInterpolator.getExpressionMarkersFromFilter(filter);
 
         // Then
-        assertTrue(result.isEmpty());
+        assertThat(result.isEmpty());
     }
 
     @Test
@@ -292,6 +289,6 @@ public class JKubeDockerfileInterpolatorTest {
         Map<String, String> result = JKubeDockerfileInterpolator.getExpressionMarkersFromFilter(filter);
 
         // Then
-        assertTrue(result.isEmpty());
+        assertThat(result.isEmpty());
     }
 }

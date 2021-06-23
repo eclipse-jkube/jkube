@@ -43,7 +43,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class AssemblyManagerCreateDockerTarArchiveTest {
 
@@ -338,7 +337,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
 
   private static void writeLineToFile(File file, String line) throws IOException {
     if (!file.exists()) {
-      assertTrue(file.createNewFile());
+      assertThat(file.createNewFile());
     }
     PrintWriter writer = new PrintWriter(file, StandardCharsets.UTF_8.name());
     writer.println(line);
@@ -363,7 +362,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
 
   private File createEmptyArtifact() throws IOException {
     File emptyArtifact = new File(targetDirectory, "test-0.1.0.jar");
-    assertTrue(emptyArtifact.createNewFile());
+    assertThat(emptyArtifact.createNewFile());
     return emptyArtifact;
   }
 }

@@ -29,7 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
@@ -60,7 +60,7 @@ public class SystemPropertyRegistryAuthHandlerTest {
         try {
             File tempDir = Files.createTempDirectory("d-m-p").toFile();
             System.setProperty("user.home", tempDir.getAbsolutePath());
-            assertEquals(handler.create(RegistryAuthConfig.Kind.PUSH, null, "blubberbla:1611", s->s), null);
+            assertThat(handler.create(RegistryAuthConfig.Kind.PUSH, null, "blubberbla:1611", s->s)).isNull();
         } finally {
             System.setProperty("user.home", userHome);
         }
@@ -101,10 +101,10 @@ public class SystemPropertyRegistryAuthHandlerTest {
 
     private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
         JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())), JsonObject.class);
-        assertEquals(username,params.get("username").getAsString());
-        assertEquals(password,params.get("password").getAsString());
+        assertThat(params.get("username").getAsString()).isEqualTo(username);
+        assertThat(params.get("password").getAsString()).isEqualTo(password);
         if (email != null) {
-            assertEquals(email, params.get("email").getAsString());
+            assertThat(params.get("email").getAsString()).isEqualTo(email);
         }
     }
 
