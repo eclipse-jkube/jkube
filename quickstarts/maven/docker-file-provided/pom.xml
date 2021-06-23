@@ -45,9 +45,9 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jkube</groupId>
+            <groupId>com.github.eclipse.jkube</groupId>
             <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>${jkube.version}</version>
+            <version>master-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -58,9 +58,9 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>org.eclipse.jkube</groupId>
+                <groupId>com.github.eclipse.jkube</groupId>
                 <artifactId>kubernetes-maven-plugin</artifactId>
-                <version>${jkube.version}</version>
+                <version>master-SNAPSHOT</version>
                 <configuration combine.children="append">
                     <enricher>
                         <config>

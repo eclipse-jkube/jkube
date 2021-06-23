@@ -76,9 +76,9 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.eclipse.jkube</groupId>
+        <groupId>com.github.eclipse.jkube</groupId>
         <artifactId>openshift-maven-plugin</artifactId>
-        <version>${jkube.version}</version>
+        <version>master-SNAPSHOT</version>
         <configuration>
           <images>
             <image>

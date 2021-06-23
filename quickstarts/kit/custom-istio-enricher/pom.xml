@@ -47,9 +47,9 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.eclipse.jkube</groupId>
+        <groupId>com.github.eclipse.jkube</groupId>
         <artifactId>jkube-kit-enricher-api</artifactId>
-        <version>${jkube.version}</version>
+        <version>master-SNAPSHOT</version>
       </dependency>
 
       <dependency>

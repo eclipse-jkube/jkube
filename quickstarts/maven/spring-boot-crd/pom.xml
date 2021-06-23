@@ -53,9 +53,9 @@
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jkube</groupId>
+      <groupId>com.github.eclipse.jkube</groupId>
       <artifactId>kubernetes-maven-plugin</artifactId>
-      <version>${jkube.version}</version>
+      <version>master-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
@@ -74,9 +74,9 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.eclipse.jkube</groupId>
+            <groupId>com.github.eclipse.jkube</groupId>
             <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>${jkube.version}</version>
+            <version>master-SNAPSHOT</version>
             <configuration>
               <resources>
                 <customResourceDefinitions>
@@ -93,9 +93,9 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.eclipse.jkube</groupId>
+            <groupId>com.github.eclipse.jkube</groupId>
             <artifactId>openshift-maven-plugin</artifactId>
-            <version>${jkube.version}</version>
+            <version>master-SNAPSHOT</version>
             <configuration>
               <resources>
                 <customResourceDefinitions>

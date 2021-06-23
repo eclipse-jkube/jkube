@@ -105,9 +105,9 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.eclipse.jkube</groupId>
+                        <groupId>com.github.eclipse.jkube</groupId>
                         <artifactId>kubernetes-maven-plugin</artifactId>
-                        <version>${jkube.version}</version>
+                        <version>master-SNAPSHOT</version>
                     </plugin>
                 </plugins>
             </build>
@@ -117,9 +117,9 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.eclipse.jkube</groupId>
+                        <groupId>com.github.eclipse.jkube</groupId>
                         <artifactId>kubernetes-maven-plugin</artifactId>
-                        <version>${jkube.version}</version>
+                        <version>master-SNAPSHOT</version>
                         <configuration>
                             <images>
                                 <image>

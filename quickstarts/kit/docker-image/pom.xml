@@ -35,9 +35,9 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.eclipse.jkube</groupId>
+      <groupId>com.github.eclipse.jkube</groupId>
       <artifactId>jkube-kit-config-service</artifactId>
-      <version>${jkube.version}</version>
+      <version>master-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <build>

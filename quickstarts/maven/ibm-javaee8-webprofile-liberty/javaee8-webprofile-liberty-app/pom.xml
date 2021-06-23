@@ -48,9 +48,9 @@
         </resources>
         <plugins>
             <plugin>
-                <groupId>org.eclipse.jkube</groupId>
+                <groupId>com.github.eclipse.jkube</groupId>
                 <artifactId>kubernetes-maven-plugin</artifactId>
-                <version>${jkube.version}</version>
+                <version>master-SNAPSHOT</version>
                 <configuration>
                     <namespace>${docker.user}</namespace>
                     <images>
