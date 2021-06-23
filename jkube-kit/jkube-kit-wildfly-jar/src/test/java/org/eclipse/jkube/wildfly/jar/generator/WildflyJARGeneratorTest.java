@@ -33,14 +33,15 @@ import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher;
-import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_DIST;
-import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_REPO;
-import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.PLUGIN_OPTIONS;
+import static org.eclipse.jkube.wildfly.jar.generator.WildflyGeneratorCommon.JBOSS_MAVEN_DIST;
+import static org.eclipse.jkube.wildfly.jar.generator.WildflyGeneratorCommon.JBOSS_MAVEN_REPO;
+import static org.eclipse.jkube.wildfly.jar.generator.WildflyGeneratorCommon.PLUGIN_OPTIONS;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -56,14 +57,32 @@ public class WildflyJARGeneratorTest {
 
     @Test
     public void notApplicable() throws IOException {
-        WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
+        Map<String, Object> options = new HashMap<>();
+        options.put("server", null);
+        WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext(options));
         assertFalse(generator.isApplicable((List<ImageConfiguration>) Collections.EMPTY_LIST));
+    }
+    
+    @Test
+    public void applicable() throws IOException {
+        WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext(Collections.emptyMap()));
+        assertTrue(generator.isApplicable((List<ImageConfiguration>) Collections.EMPTY_LIST));
+    }
+    
+    @Test
+    public void applicable2() throws IOException {
+        Map<String, Object> options = new HashMap<>();
+        Map<String, Object> serverOptions = new HashMap<>();
+        serverOptions.put("enabled", "false");
+        options.put("server", serverOptions);
+        WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext(options));
+        assertTrue(generator.isApplicable((List<ImageConfiguration>) Collections.EMPTY_LIST));
     }
 
     // To be revisited if we enable jolokia and prometheus.
     @Test
     public void getEnv() throws IOException {
-        WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
+        WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext(Collections.emptyMap()));
         Map<String, String> extraEnv = generator.getEnv(true);
         assertNotNull(extraEnv);
         assertEquals(4, extraEnv.size());
@@ -71,7 +90,7 @@ public class WildflyJARGeneratorTest {
     
     @Test
     public void getExtraOptions() throws IOException {
-        WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
+        WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext(Collections.emptyMap()));
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertNotNull(extraOptions);
         assertEquals(1, extraOptions.size());
@@ -97,13 +116,13 @@ public class WildflyJARGeneratorTest {
             assertNotNull(extraOptions);
             assertEquals(2, extraOptions.size());
             assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
-            assertEquals("-Dmaven.repo.local=/deployments/myrepo", extraOptions.get(1));
+            assertEquals("-Dmaven.repo.local=/deployments/server-maven-repo", extraOptions.get(1));
             List<AssemblyFileSet> files = generator.addAdditionalFiles();
             assertFalse(files.isEmpty());
             AssemblyFileSet set = files.get(files.size() - 1);
-            assertEquals(targetDir.toFile(), set.getDirectory());
+            assertEquals(repoDir.toFile(), set.getDirectory());
             assertEquals(1, set.getIncludes().size());
-            assertEquals("myrepo", set.getIncludes().get(0));
+            assertEquals("**", set.getIncludes().get(0));
         } finally {
             Files.delete(repoDir);
             Files.delete(targetDir);
@@ -129,13 +148,13 @@ public class WildflyJARGeneratorTest {
             assertNotNull(extraOptions);
             assertEquals(2, extraOptions.size());
             assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
-            assertEquals("-Dmaven.repo.local=/deployments/myrepo", extraOptions.get(1));
+            assertEquals("-Dmaven.repo.local=/deployments/server-maven-repo", extraOptions.get(1));
             List<AssemblyFileSet> files = generator.addAdditionalFiles();
             assertFalse(files.isEmpty());
             AssemblyFileSet set = files.get(files.size() - 1);
-            assertEquals(targetDir.toFile(), set.getDirectory());
+            assertEquals(repoDir.toFile(), set.getDirectory());
             assertEquals(1, set.getIncludes().size());
-            assertEquals("myrepo", set.getIncludes().get(0));
+            assertEquals("**", set.getIncludes().get(0));
         } finally {
             Files.delete(repoDir);
             Files.delete(targetDir);
@@ -160,7 +179,7 @@ public class WildflyJARGeneratorTest {
             assertNotNull(extraOptions);
             assertEquals(2, extraOptions.size());
             assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
-            assertEquals("-Dmaven.repo.local=/deployments/myrepo", extraOptions.get(1));
+            assertEquals("-Dmaven.repo.local=/deployments/server-maven-repo", extraOptions.get(1));
             Exception result = assertThrows(Exception.class, () -> {
                 generator.addAdditionalFiles();
                 fail("Test should have failed, no directory for maven repo");
@@ -228,7 +247,7 @@ public class WildflyJARGeneratorTest {
         assertNotNull(extraOptions);
         assertEquals(2, extraOptions.size());
         assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
-        assertEquals("-Dmaven.repo.local=/deployments/myrepo", extraOptions.get(1));
+        assertEquals("-Dmaven.repo.local=/deployments/server-maven-repo", extraOptions.get(1));
     }
     
     private GeneratorContext contextForSlimServer(JavaProject project, Map<String, Object> bootableJarconfig, Path dir) {
@@ -262,13 +281,16 @@ public class WildflyJARGeneratorTest {
         return context;
     }
 
-    private GeneratorContext createGeneratorContext() throws IOException {
+    private GeneratorContext createGeneratorContext(Map<String, Object> config) throws IOException {
+        Plugin plugin
+                = Plugin.builder().artifactId(WildflyJARHealthCheckEnricher.BOOTABLE_JAR_ARTIFACT_ID).
+                        groupId(WildflyJARHealthCheckEnricher.BOOTABLE_JAR_GROUP_ID).configuration(config).build();
+        List<Plugin> lst = new ArrayList<>();
+        lst.add(plugin);
         new Expectations() {{
+            project.getPlugins();
+            result = lst;
             context.getProject(); result = project;
-            String tempDir = Files.createTempDirectory("wildfly-jar-test-project").toFile().getAbsolutePath();
-            project.getBuildDirectory(); result = tempDir;
-            project.getOutputDirectory(); result = tempDir;
-            project.getPlugins(); result = Collections.EMPTY_LIST; minTimes = 0;
             project.getVersion(); result = "1.0.0"; minTimes = 0;
         }};
         return context;

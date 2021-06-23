@@ -1,0 +1,48 @@
+[[generator-wildfly]]
+=== Wildfly Generator
+
+The Wildfly generator detects an un-packaged  WildFly build operated from the WildFly bootable JAR Maven Plugin. 
+
+N.B.: The `jkube-healthcheck-wildfly-jar` enricher to configure the probes is applicable to this generator.
+
+[[generator-wildfly-from]]
+.WildFly S2i Base Images
+[cols="1,4,4,4"]
+|===
+| | Docker Build | S2I Build | ImageStream
+
+| *Community*
+| `quay.io/jfdenise/wildfly-s2i-v2`
+| `quay.io/jfdenise/wildfly-s2i-v2`
+| `jkube-wildfly`
+
+|===
+
+These images always refer to the latest tag.
+
+When a `fromMode` of `istag` is used to specify an `ImageStreamTag` and when no `from` is given, then as default the
+`ImageStreamTag` `jkube-wildfly` in the namespace `openshift` is chosen.
+By default, `fromMode = "docker"` which use the a plain Docker image reference for the S2I builder image.
+
+Beside the common configuration parameters described in the table <<generator-options-common, common generator options>>
+the following additional configuration options are recognized:
+
+[[generator-wildfly-options]]
+.WildFly Application configuration options
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *serverDirectoryName*
+| Directory name inside the project build directory that contains the provisioned WildFly server. By default the generator scans for a WildFly directory.
+| `jkube.generator.wildfly.serverDirectoryName`
+
+| *webPort*
+| Port to expose as service, which is supposed to be the port of a web application. Set this to 0 if you don't want to
+  expose a port.
+
+  Defaults to `8080`.
+| `jkube.generator.java-exec.webPort`
+|===
+
+The exposed ports are typically later on use by <<enrichers, Enrichers>> to create default Kubernetes or OpenShift services.

@@ -88,6 +88,7 @@
     - wildfly-swarm
     - thorntail-v2
     - wildfly-jar
+    - wildfly
     - openliberty
     - karaf
     - vertx
@@ -119,6 +120,7 @@
     - wildfly-swarm
     - thorntail-v2
     - wildfly-jar
+    - wildfly
     - karaf
     - vertx
     - java-exec

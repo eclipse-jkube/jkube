@@ -61,6 +61,7 @@
       <module>jkube-kit-quarkus</module>
       <module>jkube-kit-micronaut</module>
       <module>jkube-kit-openliberty</module>
+      <module>jkube-kit-wildfly</module>
       <module>jkube-kit-wildfly-jar</module>
   </modules>
 

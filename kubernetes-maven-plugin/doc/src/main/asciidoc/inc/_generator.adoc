@@ -54,6 +54,10 @@ All default generators examine the build information for certain aspects and gen
 | `wildfly-jar`
 | Generator for WildFly Bootable JAR applications
 
+| <<generator-wildfly,WildFly >>
+| `wildfly`
+| Generator for WildFly applications
+
 | <<generator-micronaut,Micronaut>>
 | `micronaut`
 | Generator for Micronaut based applications

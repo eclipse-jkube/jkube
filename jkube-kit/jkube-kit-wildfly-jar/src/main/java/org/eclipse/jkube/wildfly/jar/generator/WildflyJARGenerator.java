@@ -13,10 +13,6 @@
  */
 package org.eclipse.jkube.wildfly.jar.generator;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
@@ -25,39 +21,24 @@ import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher;
-import static org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher.BOOTABLE_JAR_ARTIFACT_ID;
-import static org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher.BOOTABLE_JAR_GROUP_ID;
 
 public class WildflyJARGenerator extends JavaExecGenerator {
-    static final String JBOSS_MAVEN_DIST = "jboss-maven-dist";
-    static final String JBOSS_MAVEN_REPO = "jboss-maven-repo";
-    static final String PLUGIN_OPTIONS = "plugin-options";
 
-    final Path localRepoCache;
+    private final WildflyGeneratorCommon common;
+
     public WildflyJARGenerator(GeneratorContext context) {
         super(context, "wildfly-jar");
-        JavaProject project = context.getProject();
-        Plugin plugin = JKubeProjectUtil.getPlugin(project, BOOTABLE_JAR_GROUP_ID, BOOTABLE_JAR_ARTIFACT_ID);
-        localRepoCache = Optional.ofNullable(plugin).
-                map(Plugin::getConfiguration).
-                map(c -> (Map<String, Object>) c.get(PLUGIN_OPTIONS)).
-                map(options -> options.containsKey(JBOSS_MAVEN_DIST) && options.containsKey(JBOSS_MAVEN_REPO) ? options : null).
-                map(options -> {
-                   String dist = (String) options.get(JBOSS_MAVEN_DIST);
-                   return dist == null || "true".equals(dist) ? (String) options.get(JBOSS_MAVEN_REPO) : null;
-                }).map(Paths::get).orElse(null);
+        common = new WildflyGeneratorCommon("/deployments", context);
     }
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddGeneratedImageConfiguration(configs)
                 && JKubeProjectUtil.hasPlugin(getProject(),
-                        WildflyJARHealthCheckEnricher.BOOTABLE_JAR_GROUP_ID, WildflyJARHealthCheckEnricher.BOOTABLE_JAR_ARTIFACT_ID);
+                        WildflyJARHealthCheckEnricher.BOOTABLE_JAR_GROUP_ID, WildflyJARHealthCheckEnricher.BOOTABLE_JAR_ARTIFACT_ID) 
+                && !common.isServerEnabled();
     }
 
     @Override
@@ -79,26 +60,7 @@ public class WildflyJARGenerator extends JavaExecGenerator {
     @Override
     public List<AssemblyFileSet> addAdditionalFiles() {
         List<AssemblyFileSet> set = super.addAdditionalFiles();
-        if (localRepoCache != null) {
-            Path parentDir;
-            Path repoDir = localRepoCache;
-            if (localRepoCache.isAbsolute()) {
-                parentDir = localRepoCache.getParent();
-            } else {
-                repoDir = getProject().getBaseDirectory().toPath().resolve(localRepoCache);
-                parentDir = repoDir.getParent();
-            }
-            if (Files.notExists(repoDir)) {
-               throw new RuntimeException("Error, WildFly bootable JAR generator can't retrieve "
-                       + "generated maven local cache, directory " + repoDir + " doesn't exist."); 
-            }
-            set.add(AssemblyFileSet.builder()
-                    .directory(parentDir.toFile())
-                    .include(localRepoCache.getFileName().toString())
-                    .outputDirectory(new File("."))
-                    .fileMode("0640")
-                    .build());
-        }
+        set.addAll(common.getAdditionalFiles());
         return set;
     }
 
@@ -106,9 +68,7 @@ public class WildflyJARGenerator extends JavaExecGenerator {
     protected List<String> getExtraJavaOptions() {
         List<String> properties = new ArrayList<>();
         properties.add("-Djava.net.preferIPv4Stack=true");
-        if (localRepoCache != null) {
-            properties.add("-Dmaven.repo.local=/deployments/" + localRepoCache.getFileName().toString());
-        }
+        properties.addAll(common.getOptions());
         return properties;
     }
 }
