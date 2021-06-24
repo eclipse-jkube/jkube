@@ -408,7 +408,7 @@ public class RunService {
                 throw new DockerAccessException("No container found for image/alias '%s', unable to link", link[0]);
             }
         }
-        return ret.size() != 0 ? ret : null;
+        return !ret.isEmpty() ? ret : null;
     }
 
     // visible for testing
