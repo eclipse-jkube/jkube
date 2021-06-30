@@ -138,7 +138,7 @@ public class JibBuildServiceTest {
     @Test
     public void testPushWithNoConfigurations(@Mocked JibServiceUtil jibServiceUtil) throws Exception {
         // When
-        new JibBuildService(serviceHub, logger).push(Collections.emptyList(), 1, null, false);
+        new JibBuildService(serviceHub).push(Collections.emptyList(), 1, null, false);
         // Then
         // @formatter:off
         new Verifications() {{
@@ -155,7 +155,7 @@ public class JibBuildServiceTest {
         final RegistryConfig registryConfig = RegistryConfig.builder()
             .build();
         // When
-        new JibBuildService(serviceHub, logger).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
+        new JibBuildService(serviceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
         // Then
         // @formatter:off
         new Verifications() {{
