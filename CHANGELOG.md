@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.4.0-SNAPSHOT
+* Fix #253: Refactor JKubeServiceHub's BuildService election mechanism via ServiceLoader
 * Fix #741: Private constructor added to Utility classes
 * Fix #725: Upgrade HttpClient from 4.5.10 to 4.5.13
 * Fix #653: `k8s:watch` port-forward websocket error due to wrong arguments in PortForwardService

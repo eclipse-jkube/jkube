@@ -30,6 +30,7 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.service.BuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
@@ -53,13 +54,14 @@ public class JibBuildService implements BuildService {
             "docker.io", "index.docker.io", "registry.hub.docker.com"
     );
     private static final String PUSH_REGISTRY = "jkube.docker.push.registry";
-    private final JKubeServiceHub jKubeServiceHub;
-    private final KitLogger log;
+    private JKubeServiceHub jKubeServiceHub;
+    private KitLogger log;
 
-    public JibBuildService(JKubeServiceHub jKubeServiceHub, KitLogger logger) {
+    public JibBuildService() { }
+
+    JibBuildService(JKubeServiceHub jKubeServiceHub) {
         Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(), "BuildServiceConfig is required");
-        this.jKubeServiceHub = jKubeServiceHub;
-        this.log = logger;
+        setJKubeServiceHub(jKubeServiceHub);
     }
 
     @Override
@@ -116,6 +118,17 @@ public class JibBuildService implements BuildService {
     @Override
     public void postProcess(BuildServiceConfig config) {
         // No post processing required
+    }
+
+    @Override
+    public boolean isApplicable(JKubeServiceHub jKubeServiceHub) {
+        return jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy() == JKubeBuildStrategy.jib;
+    }
+
+    @Override
+    public void setJKubeServiceHub(JKubeServiceHub jKubeServiceHub) {
+        this.jKubeServiceHub = jKubeServiceHub;
+        this.log = jKubeServiceHub.getLog();
     }
 
     static ImageConfiguration prependRegistry(ImageConfiguration imageConfiguration, String registry) {

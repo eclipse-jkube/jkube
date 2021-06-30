@@ -44,7 +44,6 @@ import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import mockit.Expectations;
 import mockit.Mocked;
-import mockit.Tested;
 import mockit.Verifications;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -192,7 +191,7 @@ public class OpenshiftBuildServiceTest {
             LOG.info("Current write timeout is : {}", client.getHttpClient().writeTimeoutMillis());
             LOG.info("Current read timeout is : {}", client.getHttpClient().readTimeoutMillis());
             LOG.info("Retry on failure : {}", client.getHttpClient().retryOnConnectionFailure());
-            OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
             service.build(image);
 
             // we should Foadd a better way to assert that a certain call has been made
@@ -221,7 +220,7 @@ public class OpenshiftBuildServiceTest {
             LOG.info("Current write timeout is : {}", client.getHttpClient().writeTimeoutMillis());
             LOG.info("Current read timeout is : {}", client.getHttpClient().readTimeoutMillis());
             LOG.info("Retry on failure : {}", client.getHttpClient().retryOnConnectionFailure());
-            OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
             service.build(image);
 
             // we should Foadd a better way to assert that a certain call has been made
@@ -249,7 +248,7 @@ public class OpenshiftBuildServiceTest {
                     false, false);
 
             DefaultOpenShiftClient client = (DefaultOpenShiftClient) mockServer.getOpenshiftClient();
-            OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
             service.build(image);
 
             assertTrue(mockServer.getMockServer().getRequestCount() > 8);
@@ -277,7 +276,7 @@ public class OpenshiftBuildServiceTest {
                 dockerConfig, true, 50, false, false);
 
             DefaultOpenShiftClient client = (DefaultOpenShiftClient) mockServer.getOpenshiftClient();
-            OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
             service.build(image);
 
             assertTrue(mockServer.getMockServer().getRequestCount() > 8);
@@ -304,7 +303,7 @@ public class OpenshiftBuildServiceTest {
                     false, false);
 
             DefaultOpenShiftClient client = (DefaultOpenShiftClient) mockServer.getOpenshiftClient();
-            OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
             service.build(image);
 
             assertTrue(mockServer.getMockServer().getRequestCount() > 8);
@@ -332,7 +331,7 @@ public class OpenshiftBuildServiceTest {
                     false, false);
 
             DefaultOpenShiftClient client = (DefaultOpenShiftClient) mockServer.getOpenshiftClient();
-            OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
             Map<String,String> fromExt = ImmutableMap.of("name", "app:1.2-1",
                     "kind", "ImageStreamTag",
                     "namespace", "my-project");
@@ -368,7 +367,7 @@ public class OpenshiftBuildServiceTest {
             LOG.info("Current write timeout is : {}", client.getHttpClient().writeTimeoutMillis());
             LOG.info("Current read timeout is : {}", client.getHttpClient().readTimeoutMillis());
             LOG.info("Retry on failure : {}", client.getHttpClient().retryOnConnectionFailure());
-            OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
             service.build(image);
 
             // we should Foadd a better way to assert that a certain call has been made
@@ -388,7 +387,7 @@ public class OpenshiftBuildServiceTest {
         // @formatter:off
 
         OpenShiftClient client = mockServer.getOpenshiftClient();
-        OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+        OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
         service.build(image);
     }
 
@@ -402,7 +401,7 @@ public class OpenshiftBuildServiceTest {
         // @formatter:off
 
         OpenShiftClient client = mockServer.getOpenshiftClient();
-        OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+        OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
         service.build(image);
     }
 
@@ -418,7 +417,7 @@ public class OpenshiftBuildServiceTest {
             WebServerEventCollector collector = createMockServer(config, true, 50, true, true);
 
             OpenShiftClient client = mockServer.getOpenshiftClient();
-            OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
             service.build(image);
 
             assertTrue(mockServer.getMockServer().getRequestCount() > 8);
@@ -438,7 +437,7 @@ public class OpenshiftBuildServiceTest {
             // @formatter:off
 
             OpenShiftClient client = mockServer.getOpenshiftClient();
-            final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            final OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
 
             ImageConfiguration imageWithEnv = image.toBuilder()
                     .build(image.getBuildConfiguration().toBuilder()
@@ -486,7 +485,7 @@ public class OpenshiftBuildServiceTest {
             // @formatter:off
 
             OpenShiftClient client = mockServer.getOpenshiftClient();
-            final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            final OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
 
             ImageConfiguration imageWithEnv = image.toBuilder()
                     .build(image.getBuildConfiguration().toBuilder()
@@ -542,7 +541,7 @@ public class OpenshiftBuildServiceTest {
             // @formatter:off
 
             OpenShiftClient client = mockServer.getOpenshiftClient();
-            final OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            final OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
 
             ImageConfiguration imageWithEnv = image.toBuilder()
                     .build(image.getBuildConfiguration().toBuilder()
@@ -579,7 +578,7 @@ public class OpenshiftBuildServiceTest {
             LOG.info("Current write timeout is : {}", client.getHttpClient().writeTimeoutMillis());
             LOG.info("Current read timeout is : {}", client.getHttpClient().readTimeoutMillis());
             LOG.info("Retry on failure : {}", client.getHttpClient().retryOnConnectionFailure());
-            OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
             service.build(image);
 
             // we should add a better way to assert that a certain call has been made
@@ -606,7 +605,7 @@ public class OpenshiftBuildServiceTest {
             LOG.info("Current write timeout is : {}", client.getHttpClient().writeTimeoutMillis());
             LOG.info("Current read timeout is : {}", client.getHttpClient().readTimeoutMillis());
             LOG.info("Retry on failure : {}", client.getHttpClient().retryOnConnectionFailure());
-            OpenshiftBuildService service = new OpenshiftBuildService(client, logger, jKubeServiceHub);
+            OpenshiftBuildService service = new OpenshiftBuildService(client, jKubeServiceHub);
             service.build(image);
 
             // we should add a better way to assert that a certain call has been made

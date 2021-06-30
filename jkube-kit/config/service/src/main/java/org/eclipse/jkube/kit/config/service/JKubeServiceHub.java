@@ -14,8 +14,10 @@
 package org.eclipse.jkube.kit.config.service;
 
 import java.io.Closeable;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ServiceLoader;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
@@ -30,11 +32,8 @@ import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
-import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
@@ -53,6 +52,7 @@ public class JKubeServiceHub implements Closeable {
     @Getter
     @Setter
     private RuntimeMode platformMode;
+    @Getter
     private KitLogger log;
     @Getter
     private ServiceHub dockerServiceHub;
@@ -166,30 +166,29 @@ public class JKubeServiceHub implements Closeable {
             }
             return new KubernetesUndeployService(this, log);
         });
-        buildService = new LazyBuilder<>(() -> {
-            BuildService ret;
-            if (JKubeBuildStrategy.jib == buildServiceConfig.getJKubeBuildStrategy()) {
-                return new JibBuildService(JKubeServiceHub.this, log);
-            }
-            // Creating platform-dependent services
-            if (platformMode == RuntimeMode.OPENSHIFT) {
-                validateIfConnectedToCluster();
-                if (!isOpenShift(client)) {
-                    throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
-                }
-                // OpenShift services
-                ret = new OpenshiftBuildService((OpenShiftClient) client, log, JKubeServiceHub.this);
-            } else {
-                // Kubernetes services
-                ret = new DockerBuildService(JKubeServiceHub.this);
-            }
-            return ret;
-        });
+        buildService = new LazyBuilder<>(this::resolveBuildService);
     }
 
     private void validateIfConnectedToCluster() {
         if (client == null) {
             throw new IllegalArgumentException("Connection to Cluster required. Please check if offline mode is set to false");
         }
+    }
+
+    private BuildService resolveBuildService() {
+        ServiceLoader<BuildService> buildServices = ServiceLoader.load(BuildService.class, Thread.currentThread().getContextClassLoader());
+        Iterator<BuildService> buildServiceIterator = buildServices.iterator();
+
+        BuildService selectedBuildService = null;
+        while (buildServiceIterator.hasNext()) {
+            BuildService b = buildServiceIterator.next();
+            if (b.isApplicable(JKubeServiceHub.this)) {
+                selectedBuildService = b;
+                selectedBuildService.setJKubeServiceHub(JKubeServiceHub.this);
+                break;
+            }
+        }
+
+        return selectedBuildService;
     }
 }

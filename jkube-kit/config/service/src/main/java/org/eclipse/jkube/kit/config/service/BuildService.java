@@ -48,4 +48,18 @@ public interface BuildService {
      */
     void postProcess(BuildServiceConfig config);
 
+    /**
+     * Check whether provided Build Service implementation is applicable in current context or not.
+     *
+     * @param jKubeServiceHub {@link JKubeServiceHub}
+     * @return boolean value specifying whether provided BuildService implementation should be used.
+     */
+    boolean isApplicable(JKubeServiceHub jKubeServiceHub);
+
+    /**
+     * Set {@link JKubeServiceHub}
+     *
+     * @param jKubeServiceHub {@link JKubeServiceHub}
+     */
+    void setJKubeServiceHub(JKubeServiceHub jKubeServiceHub);
 }
