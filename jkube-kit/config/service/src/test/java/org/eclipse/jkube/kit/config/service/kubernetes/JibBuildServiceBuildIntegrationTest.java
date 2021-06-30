@@ -82,9 +82,10 @@ public class JibBuildServiceBuildIntegrationTest {
     // @formatter:off
     new Expectations() {{
       hub.getConfiguration(); result = configuration;
+      hub.getLog(); result = log;
     }};
     // @formatter:on
-    jibBuildService = new JibBuildService(hub, log);
+    jibBuildService = new JibBuildService(hub);
   }
 
   @Test
