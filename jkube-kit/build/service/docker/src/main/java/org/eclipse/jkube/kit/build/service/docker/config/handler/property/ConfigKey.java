@@ -150,7 +150,7 @@ public enum ConfigKey {
     private final String key;
     private final ValueCombinePolicy valueCombinePolicy;
 
-    public static String DEFAULT_PREFIX = "docker";
+    private static final String DEFAULT_PREFIX = "docker";
 
     // Convert to camel case
     private String toVarName(String s) {
