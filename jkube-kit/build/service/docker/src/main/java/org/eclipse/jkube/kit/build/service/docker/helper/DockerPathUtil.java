@@ -27,6 +27,8 @@ import java.io.IOException;
  */
 public class DockerPathUtil {
 
+    private DockerPathUtil() { }
+
     /**
      * Resolves the supplied resource (a path or directory on the filesystem) relative the supplied {@code
      * baseDir}.  The returned {@code File} is guaranteed to be {@link File#isAbsolute() absolute}.  The returned file

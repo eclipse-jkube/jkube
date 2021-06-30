@@ -13,23 +13,18 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.validation.constraints.NotNull;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.validation.constraints.NotNull;
-
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.*;
 
 /**
  * Helper methods to compare the user configuration on entities
@@ -38,6 +33,8 @@ public class UserConfigurationCompare {
     private static final Logger LOG = LoggerFactory.getLogger(UserConfigurationCompare.class);
 
     protected static final Set<String> ignoredProperties = new HashSet<>(Collections.singletonList("status"));
+
+    private UserConfigurationCompare() { }
 
     /**
      * This method detects if the user has changed the configuration of an entity.

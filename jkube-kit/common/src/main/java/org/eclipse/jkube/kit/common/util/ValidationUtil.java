@@ -22,6 +22,9 @@ import java.util.Set;
 /**
  */
 public class ValidationUtil {
+
+    private ValidationUtil() { }
+
     public static String createValidationMessage(Set<ConstraintViolation<?>> constraintViolations) {
         if (constraintViolations.isEmpty()) {
             return "No Constraint Validations!";

@@ -18,4 +18,6 @@ public class SecretConstants {
     public static final String KIND = "Secret";
     public static final String DOCKER_CONFIG_TYPE = "kubernetes.io/dockercfg";
     public static final String DOCKER_DATA_KEY = ".dockercfg";
+
+    private SecretConstants() { }
 }

@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.4.0-SNAPSHOT
+* Fix #741: Private constructor added to Utility classes
 * Fix #725: Upgrade HttpClient from 4.5.10 to 4.5.13
 * Fix #704: NPE when using Service fragment with no port specified
 * Fix #705: JIB assembly works on Windows

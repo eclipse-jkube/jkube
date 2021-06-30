@@ -25,4 +25,6 @@ public class Constants {
     static final String VERTX_INFINIPAN = "vertx-infinispan";
 
     static final String CLUSTER_MANAGER_SPI = "META-INF/services/io.vertx.core.spi.cluster.ClusterManager";
+
+    private Constants() { }
 }
