@@ -13,15 +13,28 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import javassist.*;
-import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.jkube.kit.common.KitLogger;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.Modifier;
+import javassist.NotFoundException;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * @author roland

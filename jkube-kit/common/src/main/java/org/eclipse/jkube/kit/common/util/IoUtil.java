@@ -13,17 +13,21 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.eclipse.jkube.kit.common.KitLogger;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.URL;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  *
