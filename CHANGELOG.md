@@ -25,11 +25,12 @@ Usage:
 * Fix #704: NPE when using Service fragment with no port specified
 * Fix #705: JIB assembly works on Windows
 * Fix #714: feat: Helm support for Golang expressions
-* Port fabric8io/docker-maven-plugin#1318: Update ECR autorization token URL
-* Port fabric8io/docker-maven-plugin#1311: Use AWS SDK to fetch AWS credentials
+* Fix #718: Port fabric8io/docker-maven-plugin#1318: Update ECR authorization token URL
+* Fix #730: Port fabric8io/docker-maven-plugin#1311: Use AWS SDK to fetch AWS credentials
 * Fix #710: Support DockerImage as output for Openshift builds
 * Fix #548: Define property for skipping cluster autodetect/offline mode
-* Fix: Update Fabric8 Kubernetes Client to 5.4.0
+* Fix #701: Update Fabric8 Kubernetes Client to 5.4.0
+* Fix #425: Multi-layer support for Container Images
 
 ### 1.3.0 (2021-05-18)
 * Fix #497: Assembly descriptor removed but still in documentation

@@ -255,9 +255,11 @@ An extract of the plugin configuration is shown below:
       <build>
         <from>fabric8/java-centos-openjdk8-jre</from>
         <assembly>
-           <inline>
+          <layers>
+            <layer>
               <baseDirectory>/deployments</baseDirectory>
-           </inline>
+            </layer>
+          </layers>
         </assembly>
         <env>
           <JAVA_LIB_DIR>/deployments</JAVA_LIB_DIR>

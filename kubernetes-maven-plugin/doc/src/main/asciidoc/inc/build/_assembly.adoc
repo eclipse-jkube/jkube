@@ -17,8 +17,13 @@ can be added to the Docker image.
 | Directory under which the files and artifacts contained in the assembly will be copied within the container.
   The default value for this is `/<assembly name>`, so `/maven` if *name* is not set to a different value.
 
-| <<build-assembly-inline, *inline*>>
-| Inlined assembly descriptor as described in <<build-assembly-inline,Assembly - Inline>> below.
+| <<build-assembly-layer, *inline*>>
+| _Deprecated: Use layers instead_
+  Inlined assembly descriptor as described in <<build-assembly-layer,Assembly - Inline>> below.
+
+| <<build-assembly-layer, *layers*>>
+| Each of the layers that the assembly will contain as described in
+  <<build-assembly-layer, Assembly - Layer>> below.
 
 | *exportTargetDir*
 | Specification whether the `targetDir` should be exported as a volume. This value is `true` by default except in the
@@ -68,22 +73,44 @@ For example, the image `jboss/wildfly` use a "jboss" user under which all comman
 
 In the event you do not need to include any artifacts with the image, you may safely omit this element from the configuration.
 
-[[build-assembly-inline]]
-==== Assembly - Inline
+[[build-assembly-layer]]
+==== Assembly - Inline/Layer
 
 Inlined assembly description with a format very similar to
 https://maven.apache.org/plugins/maven-assembly-plugin/assembly.html[Maven Assembly Plugin].
 
-.Assembly - Inline (<<config-image, <image> >> : <<config-image-build, <build> >> : <<config-image-build-assembly, <assembly> >>)
+.Partial configuration example of an inline/layer element
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<assembly>
+  <!-- ... -->
+  <layers>
+    <layer>
+      <id>static-files</id>
+      <fileSets>
+        <fileSet>
+          <directory>src/static</directory>
+          <outputDirectory>static</outputDirectory>
+        </fileSet>
+      </fileSets>
+    </layer>
+  </layers>
+</assembly>
+----
+
+The `<layers>` element within the `<assembly>` element can have one or more
+`<layer>` elements with an XML structure that supports the following configuration options:
+
+.Assembly - Inline/Layer (<<config-image, <image> >> : <<config-image-build, <build> >> : <<config-image-build-assembly, <assembly> >>)
 [cols="1,5"]
 |===
 | Element | Description
 
 | *id*
-| Unique ID for the assembly.
+| Unique ID for the layer.
 
 | *files*
-a| List of files for the assembly.
+a| List of files for the layer.
 
 Each file has the following fields:
 
@@ -93,7 +120,7 @@ Each file has the following fields:
 * `fileMode`: Similar to a UNIX permission, sets the file mode of the file included.
 
 | *fileSets*
-a| List of filesets for the Assembly.
+a| List of filesets for the layer.
 
 Each fileset has the following fields:
 
@@ -114,7 +141,7 @@ FileSystem#getPathMatcher] `glob` syntax.
 * `directoryMode`: Similar to a UNIX permission, sets the directory mode of the directories included.
 
 | *baseDirectory*
-| Base directory from which to resolve the Assembly files and filesets.
+| Base directory from which to resolve the Assembly's layer files and filesets.
 
 |===
 
