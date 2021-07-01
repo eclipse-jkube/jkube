@@ -82,13 +82,11 @@ public class JavaExecGeneratorTest {
   }
 
   @Test
-  public void addAssemblyWithNoFatJarShouldAddDefaultFileSets() {
-    // Given
-    final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
+  public void createAssemblyWithNoFatJarShouldAddDefaultFileSets() {
     // When
-    new JavaExecGenerator(generatorContext).addAssembly(builder);
+    final AssemblyConfiguration result = new JavaExecGenerator(generatorContext).createAssembly();
     // Then
-    assertThat(builder.build())
+    assertThat(result)
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", false)
         .extracting(AssemblyConfiguration::getLayers).asList().hasSize(1)
         .first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
@@ -97,7 +95,7 @@ public class JavaExecGeneratorTest {
   }
 
   @Test
-  public void addAssemblyWithFatJarShouldAddDefaultFileSetsAndFatJar(
+  public void createAssemblyWithFatJarShouldAddDefaultFileSetsAndFatJar(
       @Mocked FatJarDetector fatJarDetector, @Mocked FatJarDetector.Result fjResult) {
     // Given
     // @formatter:off
@@ -108,11 +106,10 @@ public class JavaExecGeneratorTest {
       fatJarDetector.scan(); result = fjResult;
     }};
     // @formatter:on
-    final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
     // When
-    new JavaExecGenerator(generatorContext).addAssembly(builder);
+    final AssemblyConfiguration result = new JavaExecGenerator(generatorContext).createAssembly();
     // Then
-    assertThat(builder.build())
+    assertThat(result)
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
         .extracting(AssemblyConfiguration::getLayers).asList().hasSize(1)
         .first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))

@@ -32,6 +32,7 @@ Usage:
 * Fix #548: Define property for skipping cluster autodetect/offline mode
 * Fix #701: Update Fabric8 Kubernetes Client to 5.4.0
 * Fix #425: Multi-layer support for Container Images
+* Fix #751: QuarkusGenerator: Multi-layer images for the different Quarkus packaging modes
 
 ### 1.3.0 (2021-05-18)
 * Fix #497: Assembly descriptor removed but still in documentation

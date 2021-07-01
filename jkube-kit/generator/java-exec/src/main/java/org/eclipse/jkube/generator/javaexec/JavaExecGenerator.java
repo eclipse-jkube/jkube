@@ -38,11 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 
-
 /**
  * @author roland
  */
-
 public class JavaExecGenerator extends BaseGenerator {
 
     // Environment variable used for specifying a main class
@@ -173,16 +171,16 @@ public class JavaExecGenerator extends BaseGenerator {
 
     protected AssemblyConfiguration createAssembly() {
         final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
-        builder.targetDir(getConfig(Config.TARGET_DIR));
-        addAssembly(builder);
         builder.name("deployments");
+        builder.targetDir(getConfig(Config.TARGET_DIR));
+        builder.excludeFinalOutputArtifact(isFatJar());
+        builder.layer(createDefaultLayer());
         return builder.build();
     }
 
-    protected void addAssembly(AssemblyConfiguration.AssemblyConfigurationBuilder builder) {
+    private Assembly createDefaultLayer() {
         final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
         if (isFatJar()) {
-            builder.excludeFinalOutputArtifact(true);
             FatJarDetector.Result fatJar = detectFatJar();
             if (fatJar != null) {
                 fileSets.add(getOutputDirectoryFileSet(fatJar, getProject()));
@@ -191,17 +189,17 @@ public class JavaExecGenerator extends BaseGenerator {
             log.warn("No fat Jar detected, make sure your image assembly configuration contains all the required" +
                 " dependencies for your application to run.");
         }
-        builder.layer(Assembly.builder().fileSets(fileSets).build());
+        return Assembly.builder().fileSets(fileSets).build();
     }
 
-    public List<AssemblyFileSet> addAdditionalFiles() {
+    protected List<AssemblyFileSet> addAdditionalFiles() {
         List<AssemblyFileSet> fileSets = new ArrayList<>();
         fileSets.add(createFileSet("src/main/jkube-includes/bin","bin", "0755"));
         fileSets.add(createFileSet("src/main/jkube-includes",".", "0644"));
         return fileSets;
     }
 
-    public AssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JavaProject project) {
+    private static AssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JavaProject project) {
         final File buildDirectory = project.getBuildDirectory();
         return AssemblyFileSet.builder()
                 .directory(getRelativePath(project.getBaseDirectory(), buildDirectory))
@@ -211,7 +209,7 @@ public class JavaExecGenerator extends BaseGenerator {
                 .build();
     }
 
-    public AssemblyFileSet createFileSet(String sourceDir, String outputDir, String fileMode) {
+    protected static AssemblyFileSet createFileSet(String sourceDir, String outputDir, String fileMode) {
         return AssemblyFileSet.builder()
                 .directory(new File(sourceDir))
                 .outputDirectory(new File(outputDir))
@@ -239,7 +237,7 @@ public class JavaExecGenerator extends BaseGenerator {
         return answer;
     }
 
-    protected void addPortIfValid(List<String> list, String port) {
+    protected static void addPortIfValid(List<String> list, String port) {
         if (StringUtils.isNotBlank(port) && Integer.parseInt(port) > 0) {
             list.add(port);
         }
