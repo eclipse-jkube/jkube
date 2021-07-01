@@ -60,7 +60,7 @@ public class DebugService {
     private final PortForwardService portForwardService;
     private final ApplyService applyService;
     private String debugSuspendValue;
-    private String remoteDebugPort = DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT;
+    private String debugPortInContainer = DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT;
 
     public DebugService(KitLogger log, KubernetesClient kubernetesClient, PortForwardService portForwardService, ApplyService applyService) {
         this.log = log;
@@ -116,7 +116,7 @@ public class DebugService {
         if (firstSelector != null) {
             Map<String, String> envVars = initDebugEnvVarsMap(debugSuspend);
             String podName = waitForRunningPodWithEnvVar(namespace, firstSelector, envVars, podWaitLog);
-            portForwardService.startPortForward(podName, namespace, portToInt(remoteDebugPort, "remoteDebugPort"), portToInt(localDebugPort, "localDebugPort"));
+            portForwardService.startPortForward(podName, namespace, portToInt(debugPortInContainer, "containerDebugPort"), portToInt(localDebugPort, "localDebugPort"));
         }
     }
 
@@ -257,8 +257,8 @@ public class DebugService {
         if (ports == null) {
             ports = new ArrayList<>();
         }
-        if (!KubernetesHelper.containsPort(ports, remoteDebugPort)) {
-            ContainerPort port = KubernetesHelper.addPort(remoteDebugPort, "debug", log);
+        if (!KubernetesHelper.containsPort(ports, debugPortInContainer)) {
+            ContainerPort port = KubernetesHelper.addPort(debugPortInContainer, "debug", log);
             if (port != null) {
                 ports.add(port);
                 container.setPorts(ports);
@@ -274,7 +274,7 @@ public class DebugService {
         if (env == null) {
             env = new ArrayList<>();
         }
-        remoteDebugPort = KubernetesHelper.getEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_PORT, DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT);
+        debugPortInContainer = KubernetesHelper.getEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG_PORT, DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT);
         if (KubernetesHelper.setEnvVar(env, DebugConstants.ENV_VAR_JAVA_DEBUG, "true")) {
             container.setEnv(env);
             enabled = true;

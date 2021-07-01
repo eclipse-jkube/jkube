@@ -110,7 +110,7 @@ public class SpringBootWatcher extends BaseWatcher {
         }
     }
 
-    private String getPortForwardUrl(final Collection<HasMetadata> resources) {
+    String getPortForwardUrl(final Collection<HasMetadata> resources) {
         LabelSelector selector = KubernetesHelper.extractPodLabelSelector(resources);
         if (selector == null) {
             log.warn("Unable to determine a selector for application pods");
@@ -122,11 +122,11 @@ public class SpringBootWatcher extends BaseWatcher {
         SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(
             SpringBootUtil.getSpringBootVersion(getContext().getBuildContext().getProject()));
 
-        int port = IoUtil.getFreeRandomPort();
+        int localHostPort = IoUtil.getFreeRandomPort();
         int containerPort = propertyHelper.getServerPort(properties);
-        portForwardService.forwardPortAsync(selector, containerPort, port);
+        portForwardService.forwardPortAsync(selector, containerPort, localHostPort);
 
-        return createForwardUrl(propertyHelper, properties, port);
+        return createForwardUrl(propertyHelper, properties, localHostPort);
     }
 
     private String createForwardUrl(SpringBootConfigurationHelper propertyHelper, Properties properties, int localPort) {
