@@ -16,6 +16,7 @@ package org.eclipse.jkube.quarkus.generator;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -206,13 +207,24 @@ public class QuarkusGeneratorTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
+        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
         .extracting(AssemblyConfiguration::getLayers)
-        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
-        .extracting(Assembly::getFileSets)
-        .asList()
-        .hasSize(1)
-        .flatExtracting("includes")
-        .containsExactly("quarkus-run.jar", "*", "**/*");
+        .asList().hasSize(2)
+        .satisfies(layers -> assertThat(layers).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+            .hasFieldOrPropertyWithValue("id", "lib")
+            .extracting(Assembly::getFileSets)
+            .asList().singleElement()
+            .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
+            .extracting("includes").asList()
+            .containsExactly("lib"))
+        .satisfies(layers -> assertThat(layers).element(1).asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+            .hasFieldOrPropertyWithValue("id", "fast-jar")
+            .extracting(Assembly::getFileSets)
+            .asList().singleElement()
+            .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
+            .hasFieldOrPropertyWithValue("excludes", Arrays.asList("lib/**/*", "lib/*"))
+            .extracting("includes").asList()
+            .containsExactly("quarkus-run.jar", "*", "**/*"));
   }
 
   @Test
@@ -278,13 +290,23 @@ public class QuarkusGeneratorTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
+        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
         .extracting(AssemblyConfiguration::getLayers)
-        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
-        .extracting(Assembly::getFileSets)
-        .asList()
-        .hasSize(1)
-        .flatExtracting("includes")
-        .containsOnly("lib", "sample-legacy-runner.jar");
+        .asList().hasSize(2)
+        .satisfies(layers -> assertThat(layers).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+            .hasFieldOrPropertyWithValue("id", "lib")
+            .extracting(Assembly::getFileSets)
+            .asList()
+            .hasSize(1)
+            .flatExtracting("includes")
+            .containsExactly("lib"))
+        .satisfies(layers -> assertThat(layers).element(1).asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+            .hasFieldOrPropertyWithValue("id", "artifact")
+            .extracting(Assembly::getFileSets)
+            .asList()
+            .hasSize(1)
+            .flatExtracting("includes")
+            .containsExactly("sample-legacy-runner.jar"));
   }
 
   @Test
@@ -327,9 +349,11 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void assembly_withFastJarInTarget_shouldReturnAssemblyForQuarkusAppInImage() throws IOException {
+  public void assembly_withManualConfigAndFastJarAndLegacyInTarget_shouldReturnAssemblyForQuarkusAppInImage() throws IOException {
     // Given
+    projectProps.put("quarkus.package.type", "fast-jar");
     withFastJarInTarget();
+    withLegacyJarInTarget();
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
         .customize(new ArrayList<>(), false);
@@ -341,13 +365,38 @@ public class QuarkusGeneratorTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
+        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
         .extracting(AssemblyConfiguration::getLayers)
-        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
-        .extracting(Assembly::getFileSets)
-        .asList()
-        .hasSize(1)
-        .flatExtracting("includes")
-        .containsExactly("quarkus-run.jar", "*", "**/*");
+        .asList().hasSize(2)
+        .satisfies(layers -> assertThat(layers).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+            .hasFieldOrPropertyWithValue("id", "lib")
+            .extracting(Assembly::getFileSets)
+            .asList().singleElement()
+            .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
+            .extracting("includes").asList()
+            .containsExactly("lib"))
+        .satisfies(layers -> assertThat(layers).element(1).asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+            .hasFieldOrPropertyWithValue("id", "fast-jar")
+            .extracting(Assembly::getFileSets)
+            .asList().singleElement()
+            .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
+            .hasFieldOrPropertyWithValue("excludes", Arrays.asList("lib/**/*", "lib/*"))
+            .extracting("includes").asList()
+            .containsExactly("quarkus-run.jar", "*", "**/*"));
+  }
+
+  @Test
+  public void assembly_withManualFastJarConfigAndLegacyInTarget_shouldThrowException() throws IOException {
+    // Given
+    projectProps.put("quarkus.package.type", "fast-jar");
+    withLegacyJarInTarget();
+    final QuarkusGenerator qg = new QuarkusGenerator(ctx);
+    final List<ImageConfiguration> configs = Collections.emptyList();
+    // When
+    final IllegalStateException result = assertThrows(IllegalStateException.class, () ->
+        qg.customize(configs, false));
+    // Then
+    assertThat(result).hasMessageContaining("The quarkus-app directory required in Quarkus Fast Jar mode was not found");
   }
 
   private void assertBuildFrom (List<ImageConfiguration> resultImages, String baseImage) {

@@ -77,7 +77,7 @@ public class WildflyJARGenerator extends JavaExecGenerator {
     }
 
     @Override
-    public List<AssemblyFileSet> addAdditionalFiles() {
+    protected List<AssemblyFileSet> addAdditionalFiles() {
         List<AssemblyFileSet> set = super.addAdditionalFiles();
         if (localRepoCache != null) {
             Path parentDir;
@@ -90,7 +90,7 @@ public class WildflyJARGenerator extends JavaExecGenerator {
             }
             if (Files.notExists(repoDir)) {
                throw new RuntimeException("Error, WildFly bootable JAR generator can't retrieve "
-                       + "generated maven local cache, directory " + repoDir + " doesn't exist."); 
+                       + "generated maven local cache, directory " + repoDir + " doesn't exist.");
             }
             set.add(AssemblyFileSet.builder()
                     .directory(parentDir.toFile())
