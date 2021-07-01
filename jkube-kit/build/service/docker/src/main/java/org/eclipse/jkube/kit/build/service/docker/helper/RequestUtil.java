@@ -32,6 +32,8 @@ public class RequestUtil {
     public static final String HEADER_ACCEPT = "Accept";
     public static final String HEADER_ACCEPT_ALL = "*/*";
 
+    private RequestUtil() { }
+
     // -----------------------
     // Request related methods
     public static HttpUriRequest newGet(String url) {

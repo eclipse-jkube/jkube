@@ -94,6 +94,8 @@ public class VolumeBindingUtil {
      */
     private static final Pattern WINDOWS_DRIVE_PATTERN = Pattern.compile("^[A-Za-z]:\\\\.*");
 
+    private VolumeBindingUtil() { }
+
     /**
      * Resolves relative paths in the supplied {@code bindingString}, and returns a binding string that has relative
      * paths replaced with absolute paths.  If the supplied {@code bindingString} does not contain a relative path, it

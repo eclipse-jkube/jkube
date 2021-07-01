@@ -27,6 +27,8 @@ import java.io.IOException;
  */
 public class LocalSocketUtil {
 
+    private LocalSocketUtil() { }
+
     /**
      * Check whether we can connect to a local Unix socket
      *

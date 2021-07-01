@@ -39,6 +39,8 @@ public class UserConfigurationCompare {
 
     protected static final Set<String> ignoredProperties = new HashSet<>(Collections.singletonList("status"));
 
+    private UserConfigurationCompare() { }
+
     /**
      * This method detects if the user has changed the configuration of an entity.
      *

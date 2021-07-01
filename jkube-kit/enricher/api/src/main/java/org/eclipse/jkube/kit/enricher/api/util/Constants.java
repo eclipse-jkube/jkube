@@ -20,5 +20,7 @@ package org.eclipse.jkube.kit.enricher.api.util;
 public class Constants {
     public static final String RESOURCE_SOURCE_URL_ANNOTATION = "maven.jkube.io/source-url";
     public static final String RESOURCE_APP_CATALOG_ANNOTATION = "maven.jkube.io/app-catalog";
+
+    private Constants() { }
 }
 

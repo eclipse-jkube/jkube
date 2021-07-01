@@ -50,6 +50,8 @@ public class KeyStoreUtil {
         }
     }
 
+    private KeyStoreUtil() { }
+
     /**
      * Create a key stored holding certificates and secret keys from the given Docker key cert
      *

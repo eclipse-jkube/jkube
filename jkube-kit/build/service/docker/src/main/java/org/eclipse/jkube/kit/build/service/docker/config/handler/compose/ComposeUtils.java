@@ -23,6 +23,8 @@ import java.io.IOException;
  */
 class ComposeUtils {
 
+    private ComposeUtils() { }
+
     /**
      * Resolves a docker-compose file against the supplied base directory.  The returned {@code File} is guaranteed to
      * be {@link File#isAbsolute() absolute}.

@@ -42,6 +42,8 @@ import org.apache.commons.lang3.ArrayUtils;
  */
 public class ClassUtil {
 
+    private ClassUtil() { }
+
     public static Set<String> getResources(String resource) throws IOException {
         return getResources(resource, null);
     }

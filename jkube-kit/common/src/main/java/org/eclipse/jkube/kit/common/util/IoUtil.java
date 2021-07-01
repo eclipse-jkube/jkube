@@ -39,6 +39,8 @@ public class IoUtil {
 
     private static final Random RANDOM = new Random();
 
+    private IoUtil() { }
+
     /**
      * Download with showing the progress a given URL and store it in a file
      * @param log logger used to track progress
