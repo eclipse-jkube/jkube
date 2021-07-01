@@ -82,8 +82,8 @@ public class PortForwardServiceTest {
         OpenShiftClient client = mockServer.getOpenshiftClient();
         PortForwardService service = new PortForwardService(client, logger) {
             @Override
-            public LocalPortForward forwardPortAsync(String podName, String namespace, int remotePort, int localPort) {
-                return client.pods().inNamespace(namespace).withName(podName).portForward(localPort, remotePort);
+            public LocalPortForward forwardPortAsync(String podName, String namespace, int containerPort, int localPort) {
+                return client.pods().inNamespace(namespace).withName(podName).portForward(containerPort, localPort);
             }
         };
 

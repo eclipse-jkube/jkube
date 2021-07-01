@@ -56,8 +56,13 @@ public class PortForwardService {
     /**
      * Forwards a port to the newest pod matching the given selector.
      * If another pod is created, it forwards connections to the new pod once it's ready.
+     *
+     * @param podSelector Pod label selector
+     * @param containerPort port inside Pod container running inside Kubernetes Cluster
+     * @param localPort port at remote machine outside Kubernetes Cluster
+     * @return {@link Closeable} Closeable
      */
-    public Closeable forwardPortAsync(final LabelSelector podSelector, final int remotePort, final int localPort) {
+    public Closeable forwardPortAsync(final LabelSelector podSelector, final int containerPort, final int localPort) {
 
         final Lock monitor = new ReentrantLock(true);
         final Condition podChanged = monitor.newCondition();
@@ -90,7 +95,7 @@ public class PortForwardService {
 
                                 if (nextPod != null) {
                                     log.info("Starting port-forward to pod %s", KubernetesHelper.getName(nextPod));
-                                    currentPortForward = forwardPortAsync( KubernetesHelper.getName(nextPod), KubernetesHelper.getNamespace(nextPod), remotePort, localPort);
+                                    currentPortForward = forwardPortAsync(KubernetesHelper.getName(nextPod), KubernetesHelper.getNamespace(nextPod), containerPort, localPort);
                                 } else {
                                     log.info("Waiting for a pod to become ready before starting port-forward");
                                 }
@@ -215,13 +220,13 @@ public class PortForwardService {
     }
 
     // Visible for test
-    LocalPortForward forwardPortAsync(String podName, String namespace, int remotePort, int localPort) {
-        return kubernetes.pods().inNamespace(namespace).withName(podName).portForward(localPort, remotePort);
+    LocalPortForward forwardPortAsync(String podName, String namespace, int containerPort, int localPort) {
+        return kubernetes.pods().inNamespace(namespace).withName(podName).portForward(containerPort, localPort);
     }
 
-    void startPortForward(String pod, String namespace, int remotePort, int localPort) {
-        log.info("Starting port forwarding to port %s on pod %s", remotePort, pod);
-        LocalPortForward localPortForward = forwardPortAsync(pod, namespace, remotePort, localPort);
+    void startPortForward(String pod, String namespace, int containerPort, int localPort) {
+        log.info("Starting port forwarding to port %s on pod %s", localPort, pod);
+        LocalPortForward localPortForward = forwardPortAsync(pod, namespace, containerPort, localPort);
         log.info("Port Forwarding started");
         log.info("Now you can start a Remote debug session by using localhost and the debug port %s",
             localPort);

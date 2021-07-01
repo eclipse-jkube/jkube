@@ -23,6 +23,7 @@ Usage:
 ### 1.4.0-SNAPSHOT
 * Fix #741: Private constructor added to Utility classes
 * Fix #725: Upgrade HttpClient from 4.5.10 to 4.5.13
+* Fix #653: `k8s:watch` port-forward websocket error due to wrong arguments in PortForwardService
 * Fix #704: NPE when using Service fragment with no port specified
 * Fix #705: JIB assembly works on Windows
 * Fix #714: feat: Helm support for Golang expressions
