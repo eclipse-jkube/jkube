@@ -170,7 +170,7 @@ public class PatchService {
             return client.services()
                     .inNamespace(namespace)
                     .withName(newObj.getMetadata().getName())
-                    .edit(p -> entity.build());
+                    .patch(entity.build());
         };
     }
 
