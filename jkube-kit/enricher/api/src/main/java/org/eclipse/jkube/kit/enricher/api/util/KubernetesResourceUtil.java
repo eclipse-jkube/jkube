@@ -108,7 +108,7 @@ public class KubernetesResourceUtil {
             .withCronJobVersion(CRONJOB_VERSION)
             .withRbacVersioning(RBAC_VERSION);
 
-    public static final Set<Class<?>> SIMPLE_FIELD_TYPES = new HashSet<>();
+    private static final Set<Class<?>> SIMPLE_FIELD_TYPES = new HashSet<>();
 
     public static final String CONTAINER_NAME_REGEX = "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$";
 
