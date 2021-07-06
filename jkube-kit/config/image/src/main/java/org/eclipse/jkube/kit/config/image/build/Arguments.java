@@ -19,13 +19,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Singular;
+
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 
 @Getter
 @Setter
@@ -111,12 +112,7 @@ public class Arguments implements Serializable {
 
     public List<String> asStrings() {
         if (shell != null) {
-            String[] split = shell.split("(?<!" + Pattern.quote("\\") + ")\\s+");
-            String[] res = new String[split.length];
-            for (int i = 0; i < split.length; i++) {
-                res[i] = split[i].replaceAll("\\\\ "," ");
-            }
-            return Arrays.asList(res);
+            return Arrays.asList(EnvUtil.splitOnSpaceWithEscape(shell));
         }
         if (exec != null) {
             return Collections.unmodifiableList(exec);
