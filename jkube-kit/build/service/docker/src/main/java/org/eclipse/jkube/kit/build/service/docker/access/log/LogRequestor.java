@@ -93,6 +93,7 @@ public class LogRequestor extends Thread implements LogGetHandle {
     }
 
     // Fetch log asynchronously as stream and follow stream
+    @Override
     public void run() {
         try {
             callback.open();
