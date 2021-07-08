@@ -55,7 +55,7 @@ public class OpenShiftBuildServiceUtils {
 
   protected static File createBuildArchive(JKubeServiceHub jKubeServiceHub, ImageConfiguration imageConfig) throws JKubeServiceException {
     // Adding S2I artifacts such as environment variables in S2I mode
-    final ArchiverCustomizer customizer = createS2IArchiveCustomizer(jKubeServiceHub, imageConfig);
+    final ArchiverCustomizer customizer = createS2IArchiveCustomizer(jKubeServiceHub.getBuildServiceConfig(), imageConfig);
     try {
       return jKubeServiceHub.getDockerServiceHub().getArchiveService()
           .createDockerBuildArchive(imageConfig, jKubeServiceHub.getConfiguration(), customizer);
@@ -68,7 +68,7 @@ public class OpenShiftBuildServiceUtils {
    * Returns the applicable name for the S2I Build resource considering the provided {@link ImageName} and
    * {@link BuildServiceConfig}.
    */
-  protected static String computeS2IBuildName(BuildServiceConfig config, ImageName imageName) {
+  static String computeS2IBuildName(BuildServiceConfig config, ImageName imageName) {
     final StringBuilder s2IBuildName = new StringBuilder(resolveImageStreamName(imageName));
     if (!StringUtils.isEmpty(config.getS2iBuildNameSuffix())) {
       s2IBuildName.append(config.getS2iBuildNameSuffix());
@@ -79,11 +79,11 @@ public class OpenShiftBuildServiceUtils {
   }
 
   private static ArchiverCustomizer createS2IArchiveCustomizer(
-      JKubeServiceHub jKubeServiceHub, ImageConfiguration imageConfiguration) throws JKubeServiceException {
+      BuildServiceConfig buildServiceConfig, ImageConfiguration imageConfiguration) throws JKubeServiceException {
     try {
       if (imageConfiguration.getBuildConfiguration() != null && imageConfiguration.getBuildConfiguration().getEnv() != null) {
         String fileName = IoUtil.sanitizeFileName("s2i-env-" + imageConfiguration.getName());
-        final File environmentFile = new File(jKubeServiceHub.getBuildServiceConfig().getBuildDirectory(), fileName);
+        final File environmentFile = new File(buildServiceConfig.getBuildDirectory(), fileName);
 
         try (PrintWriter out = new PrintWriter(new FileWriter(environmentFile))) {
           for (Map.Entry<String, String> e : imageConfiguration.getBuildConfiguration().getEnv().entrySet()) {

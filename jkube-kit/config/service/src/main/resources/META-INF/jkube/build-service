@@ -1,0 +1,3 @@
+org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService,100
+org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService,200
+org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService,9999

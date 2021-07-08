@@ -56,18 +56,27 @@ public class JibBuildService implements BuildService {
     );
     private static final String PUSH_REGISTRY = "jkube.docker.push.registry";
 
-    @Override
-    public boolean isApplicable(JKubeServiceHub jKubeServiceHub) {
-        return jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy() == JKubeBuildStrategy.jib;
+    private final KitLogger log;
+    private final BuildServiceConfig buildServiceConfig;
+    private final JKubeConfiguration configuration;
+
+    public JibBuildService(JKubeServiceHub jKubeServiceHub) {
+        this.log = Objects.requireNonNull(jKubeServiceHub.getLog(), "Log is required");
+        this.buildServiceConfig = Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(),
+            "BuildServiceConfig is required");
+        this.configuration = Objects.requireNonNull(jKubeServiceHub.getConfiguration(),
+            "JKubeConfiguration is required");
     }
 
     @Override
-    public void build(JKubeServiceHub jKubeServiceHub, ImageConfiguration imageConfig) throws JKubeServiceException {
-        Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(), "BuildServiceConfig is required");
-        final KitLogger log = Objects.requireNonNull(jKubeServiceHub.getLog(), "Log is required");
+    public boolean isApplicable() {
+        return buildServiceConfig.getJKubeBuildStrategy() == JKubeBuildStrategy.jib;
+    }
+
+    @Override
+    public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
         try {
             log.info("[[B]]JIB[[B]] image build started");
-            final JKubeConfiguration configuration = jKubeServiceHub.getConfiguration();
             if (imageConfig.getBuildConfiguration().isDockerFileMode()) {
                 throw new JKubeServiceException("Dockerfile mode is not supported with JIB build strategy");
             }
@@ -97,8 +106,7 @@ public class JibBuildService implements BuildService {
     }
 
     @Override
-    public void push(JKubeServiceHub jKubeServiceHub, Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
-        final KitLogger log = Objects.requireNonNull(jKubeServiceHub.getLog(), "Log is required");
+    public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
         try {
             for (ImageConfiguration imageConfiguration : imageConfigs) {
                 prependRegistry(imageConfiguration, registryConfig.getRegistry());
@@ -106,7 +114,7 @@ public class JibBuildService implements BuildService {
                 JibServiceUtil.jibPush(
                     imageConfiguration,
                     getRegistryCredentials(registryConfig, true, imageConfiguration, log),
-                    getBuildTarArchive(imageConfiguration, jKubeServiceHub),
+                    getBuildTarArchive(imageConfiguration, configuration),
                     log
                 );
             }
@@ -116,7 +124,7 @@ public class JibBuildService implements BuildService {
     }
 
     @Override
-    public void postProcess(JKubeServiceHub jKubeServiceHub, BuildServiceConfig config) {
+    public void postProcess() {
         // No post processing required
     }
 
@@ -166,8 +174,8 @@ public class JibBuildService implements BuildService {
         return credentials;
     }
 
-    static File getBuildTarArchive(ImageConfiguration imageConfiguration, JKubeServiceHub jKubeServiceHub) {
-        BuildDirs buildDirs = new BuildDirs(imageConfiguration.getName(), jKubeServiceHub.getConfiguration());
+    static File getBuildTarArchive(ImageConfiguration imageConfiguration, JKubeConfiguration configuration) {
+        BuildDirs buildDirs = new BuildDirs(imageConfiguration.getName(), configuration);
         return new File(buildDirs.getTemporaryRootDirectory(), JKubeBuildTarArchiver.ARCHIVE_FILE_NAME + ArchiveCompression.none.getFileSuffix());
     }
 }

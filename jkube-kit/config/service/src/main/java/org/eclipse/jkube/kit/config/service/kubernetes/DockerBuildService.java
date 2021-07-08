@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Objects;
 
+import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -31,41 +33,51 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
  */
 public class DockerBuildService implements BuildService {
 
+    private final RuntimeMode runtimeMode;
+    private final BuildServiceConfig buildServiceConfig;
+    private final JKubeConfiguration jKubeConfiguration;
+    private final ServiceHub dockerServices;
+
+    public DockerBuildService(JKubeServiceHub jKubeServiceHub) {
+        this.runtimeMode = jKubeServiceHub.getRuntimeMode();
+        this.buildServiceConfig = Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(),
+            "BuildServiceConfig is required");
+        this.jKubeConfiguration = Objects.requireNonNull(jKubeServiceHub.getConfiguration(),
+            "JKubeConfiguration is required");
+        this.dockerServices = Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub(),
+            "Docker Service Hub is required");
+
+    }
+
     @Override
-    public void build(JKubeServiceHub jKubeServiceHub, ImageConfiguration imageConfig) throws JKubeServiceException {
-        Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub(), "dockerServiceHub");
-        Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(), "BuildServiceConfig is required");
+    public boolean isApplicable() {
+        return runtimeMode == RuntimeMode.KUBERNETES;
+    }
+
+    @Override
+    public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
         try {
-            jKubeServiceHub.getDockerServiceHub().getBuildService().buildImage(
-                imageConfig,
-                jKubeServiceHub.getBuildServiceConfig().getImagePullManager(),
-                jKubeServiceHub.getConfiguration());
+            dockerServices.getBuildService().buildImage(imageConfig, buildServiceConfig.getImagePullManager(), jKubeConfiguration);
 
             // Assume we always want to tag
-            jKubeServiceHub.getDockerServiceHub().getBuildService().tagImage(imageConfig.getName(), imageConfig);
+            dockerServices.getBuildService().tagImage(imageConfig.getName(), imageConfig);
         } catch (IOException ex) {
             throw new JKubeServiceException("Error while trying to build the image: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-    public void push(JKubeServiceHub jKubeServiceHub, Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
-        Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub(), "dockerServiceHub");
+    public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
         try {
-            jKubeServiceHub.getDockerServiceHub().getRegistryService()
-                    .pushImages(imageConfigs, retries, registryConfig, skipTag);
+            dockerServices.getRegistryService().pushImages(imageConfigs, retries, registryConfig, skipTag);
         } catch (IOException ex) {
             throw new JKubeServiceException("Error while trying to push the image: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-    public void postProcess(JKubeServiceHub jKubeServiceHub, BuildServiceConfig config) {
+    public void postProcess() {
         // No post processing required
     }
 
-    @Override
-    public boolean isApplicable(JKubeServiceHub jKubeServiceHub) {
-        return jKubeServiceHub.getRuntimeMode() == RuntimeMode.KUBERNETES;
-    }
 }

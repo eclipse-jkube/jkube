@@ -85,7 +85,7 @@ public class JibBuildServiceBuildIntegrationTest {
       hub.getLog(); result = log;
     }};
     // @formatter:on
-    jibBuildService = new JibBuildService();
+    jibBuildService = new JibBuildService(hub);
   }
 
   @Test
@@ -95,7 +95,7 @@ public class JibBuildServiceBuildIntegrationTest {
         .build(imageConfiguration.getBuild().toBuilder().dockerFile("Dockerfile").build())
         .build();
     // When
-    final JKubeServiceException result = assertThrows(JKubeServiceException.class, () -> jibBuildService.build(hub, ic));
+    final JKubeServiceException result = assertThrows(JKubeServiceException.class, () -> jibBuildService.build(ic));
     // Then
     assertThat(result).hasMessage("Error when building JIB image")
         .getCause().hasMessage("Dockerfile mode is not supported with JIB build strategy");
@@ -129,7 +129,7 @@ public class JibBuildServiceBuildIntegrationTest {
             .build())
         .build();
     // When
-    jibBuildService.build(hub, ic);
+    jibBuildService.build(ic);
     // Then
     assertDockerFile()
         .hasContent("FROM busybox\n" +
