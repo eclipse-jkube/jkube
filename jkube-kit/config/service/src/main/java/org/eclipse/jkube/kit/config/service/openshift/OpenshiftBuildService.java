@@ -96,14 +96,32 @@ public class OpenshiftBuildService implements BuildService {
     public static final String REQUESTS = "requests";
     public static final String LIMITS = "limits";
 
+    private final JKubeServiceHub jKubeServiceHub;
+    private final KitLogger log;
+    private final BuildServiceConfig buildServiceConfig;
+    private final JKubeConfiguration jKubeConfiguration;
     private OpenShiftClient client;
-    private KitLogger log;
-    private JKubeServiceHub jKubeServiceHub;
-    private BuildServiceConfig config;
+
+    public OpenshiftBuildService(JKubeServiceHub jKubeServiceHub) {
+        this.jKubeServiceHub = Objects.requireNonNull(jKubeServiceHub, "JKube Service Hub is required");
+        this.log = Objects.requireNonNull(jKubeServiceHub.getLog(), "Log is required");
+        this.buildServiceConfig = Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(),
+            "BuildServiceConfig is required");
+        this.jKubeConfiguration = Objects.requireNonNull(jKubeServiceHub.getConfiguration(),
+            "JKubeConfiguration is required");
+        Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub(), "Docker Service Hub is required");
+        Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub().getArchiveService(),
+            "Docker Archive Service is required");
+    }
 
     @Override
-    public void build(JKubeServiceHub jKubeServiceHub, ImageConfiguration imageConfig) throws JKubeServiceException {
-        init(jKubeServiceHub);
+    public boolean isApplicable() {
+        return jKubeServiceHub.getRuntimeMode() == RuntimeMode.OPENSHIFT;
+    }
+
+    @Override
+    public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
+        initClient();
         String buildName = null;
         try {
             final ImageConfiguration.ImageConfigurationBuilder applicableImageConfigBuilder = imageConfig.toBuilder();
@@ -120,16 +138,16 @@ public class OpenshiftBuildService implements BuildService {
             KubernetesListBuilder builder = new KubernetesListBuilder();
 
             // Check for buildconfig / imagestream / pullSecret and create them if necessary
-            String openshiftPullSecret = config.getOpenshiftPullSecret();
+            String openshiftPullSecret = buildServiceConfig.getOpenshiftPullSecret();
             final boolean usePullSecret = checkOrCreatePullSecret(client, builder, openshiftPullSecret, applicableImageConfig);
             if (usePullSecret) {
-                buildName = updateOrCreateBuildConfig(config, client, builder, applicableImageConfig, openshiftPullSecret);
+                buildName = updateOrCreateBuildConfig(buildServiceConfig, client, builder, applicableImageConfig, openshiftPullSecret);
             } else {
-                buildName = updateOrCreateBuildConfig(config, client, builder, applicableImageConfig, null);
+                buildName = updateOrCreateBuildConfig(buildServiceConfig, client, builder, applicableImageConfig, null);
             }
 
-            if (config.getBuildOutputKind() == null || IMAGE_STREAM_TAG.equals(config.getBuildOutputKind())) {
-                checkOrCreateImageStream(config, client, builder, resolveImageStreamName(imageName));
+            if (buildServiceConfig.getBuildOutputKind() == null || IMAGE_STREAM_TAG.equals(buildServiceConfig.getBuildOutputKind())) {
+                checkOrCreateImageStream(buildServiceConfig, client, builder, resolveImageStreamName(imageName));
 
                 applyBuild(buildName, dockerTar, builder);
 
@@ -154,7 +172,7 @@ public class OpenshiftBuildService implements BuildService {
 
     private void applyBuild(String buildName, File dockerTar, KubernetesListBuilder builder)
             throws Exception {
-        applyResourceObjects(config, client, builder);
+        applyResourceObjects(buildServiceConfig, client, builder);
 
         // Start the actual build
         Build build = startBuild(client, dockerTar, buildName);
@@ -164,26 +182,19 @@ public class OpenshiftBuildService implements BuildService {
     }
 
     @Override
-    public void push(JKubeServiceHub jKubeServiceHub, Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
-        init(jKubeServiceHub);
+    public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
         // Do nothing. Image is pushed as part of build phase
         log.warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
     }
 
     private File getImageStreamFile() {
-        return ResourceFileType.yaml.addExtensionIfMissing(new File(config.getBuildDirectory(),
-            String.format("%s-is", jKubeServiceHub.getConfiguration().getProject().getArtifactId())));
+        return ResourceFileType.yaml.addExtensionIfMissing(new File(buildServiceConfig.getBuildDirectory(),
+            String.format("%s-is", jKubeConfiguration.getProject().getArtifactId())));
     }
 
     @Override
-    public void postProcess(JKubeServiceHub jKubeServiceHub, BuildServiceConfig config) {
-        init(jKubeServiceHub);
-        config.attachArtifact("is", getImageStreamFile());
-    }
-
-    @Override
-    public boolean isApplicable(JKubeServiceHub jKubeServiceHub) {
-        return jKubeServiceHub.getRuntimeMode() == RuntimeMode.OPENSHIFT;
+    public void postProcess() {
+        buildServiceConfig.attachArtifact("is", getImageStreamFile());
     }
 
     protected String updateOrCreateBuildConfig(BuildServiceConfig config, OpenShiftClient client, KubernetesListBuilder builder, ImageConfiguration imageConfig, String openshiftPullSecret) {
@@ -214,6 +225,18 @@ public class OpenshiftBuildService implements BuildService {
         }
     }
 
+    private void initClient() {
+        ClusterAccess clusterAccess = jKubeServiceHub.getClusterAccess();
+        if (clusterAccess == null) {
+            clusterAccess = new ClusterAccess(log,
+                ClusterConfiguration.from(System.getProperties(), jKubeServiceHub.getConfiguration().getProject().getProperties()).build());
+        }
+        client = clusterAccess.createDefaultClient();
+        if (!isOpenShift(client)) {
+            throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
+        }
+    }
+
     private void validateSourceType(String buildName, BuildConfigSpec spec) {
         BuildSource source = spec.getSource();
         if (source != null) {
@@ -228,7 +251,7 @@ public class OpenshiftBuildService implements BuildService {
         BuildConfigSpecBuilder specBuilder = null;
 
         // Check for BuildConfig resource fragment
-        File buildConfigResourceFragment = KubernetesHelper.getResourceFragmentFromSource(config.getResourceDir(), config.getResourceConfig() != null ? config.getResourceConfig().getRemotes() : null, "buildconfig.yml", log);
+        File buildConfigResourceFragment = KubernetesHelper.getResourceFragmentFromSource(buildServiceConfig.getResourceDir(), buildServiceConfig.getResourceConfig() != null ? buildServiceConfig.getResourceConfig().getRemotes() : null, "buildconfig.yml", log);
         if (buildConfigResourceFragment != null) {
             BuildConfig buildConfigFragment = client.buildConfigs().load(buildConfigResourceFragment).get();
             specBuilder = new BuildConfigSpecBuilder(buildConfigFragment.getSpec());
@@ -292,20 +315,19 @@ public class OpenshiftBuildService implements BuildService {
 
     private boolean checkOrCreatePullSecret(OpenShiftClient client, KubernetesListBuilder builder, String pullSecretName, ImageConfiguration imageConfig)
             throws Exception {
-        JKubeConfiguration configuration = jKubeServiceHub.getConfiguration();
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
         String fromImage;
         if (buildConfig.isDockerFileMode()) {
-            fromImage = extractBaseFromDockerfile(configuration, buildConfig);
+            fromImage = extractBaseFromDockerfile(jKubeConfiguration, buildConfig);
         } else {
             fromImage = extractBaseFromConfiguration(buildConfig);
         }
 
-        String pullRegistry = EnvUtil.firstRegistryOf(new ImageName(fromImage).getRegistry(), configuration.getRegistryConfig().getRegistry(), configuration.getRegistryConfig().getRegistry());
+        String pullRegistry = EnvUtil.firstRegistryOf(new ImageName(fromImage).getRegistry(), jKubeConfiguration.getRegistryConfig().getRegistry(), jKubeConfiguration.getRegistryConfig().getRegistry());
 
         if (pullRegistry != null) {
-            RegistryConfig registryConfig = configuration.getRegistryConfig();
+            RegistryConfig registryConfig = jKubeConfiguration.getRegistryConfig();
             final AuthConfig authConfig = new AuthConfigFactory(log).createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
                     registryConfig.getSettings(), null, pullRegistry, registryConfig.getPasswordDecryptionMethod());
 
@@ -583,12 +605,12 @@ public class OpenshiftBuildService implements BuildService {
     // == Utility methods ==========================
     private Map<String, Map<String, Quantity>> getRequestsAndLimits() {
         Map<String, Map<String, Quantity>> keyToQuantityMap = new HashMap<>();
-        if (config.getResourceConfig() != null && config.getResourceConfig().getOpenshiftBuildConfig() != null) {
-            Map<String, Quantity> limits = KubernetesHelper.getQuantityFromString(config.getResourceConfig().getOpenshiftBuildConfig().getLimits());
+        if (buildServiceConfig.getResourceConfig() != null && buildServiceConfig.getResourceConfig().getOpenshiftBuildConfig() != null) {
+            Map<String, Quantity> limits = KubernetesHelper.getQuantityFromString(buildServiceConfig.getResourceConfig().getOpenshiftBuildConfig().getLimits());
             if (!limits.isEmpty()) {
                 keyToQuantityMap.put(LIMITS, limits);
             }
-            Map<String, Quantity> requests = KubernetesHelper.getQuantityFromString(config.getResourceConfig().getOpenshiftBuildConfig().getRequests());
+            Map<String, Quantity> requests = KubernetesHelper.getQuantityFromString(buildServiceConfig.getResourceConfig().getOpenshiftBuildConfig().getRequests());
             if (!requests.isEmpty()) {
                 keyToQuantityMap.put(REQUESTS, requests);
             }
@@ -596,23 +618,5 @@ public class OpenshiftBuildService implements BuildService {
         return keyToQuantityMap;
     }
 
-    private void init(JKubeServiceHub jKubeServiceHub) {
-        this.jKubeServiceHub = Objects.requireNonNull(jKubeServiceHub, "JKubeServiceHub");
-        this.log = Objects.requireNonNull(jKubeServiceHub.getLog(), "Log is required");
-        Objects.requireNonNull(jKubeServiceHub.getConfiguration(), "JKubeConfiguration");
-        Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub(), "dockerServiceHub");
-        this.config = Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(), "config");
-        if (client == null) {
-            ClusterAccess clusterAccess = jKubeServiceHub.getClusterAccess();
-            if (clusterAccess == null) {
-                clusterAccess = new ClusterAccess(log,
-                    ClusterConfiguration.from(System.getProperties(), jKubeServiceHub.getConfiguration().getProject().getProperties()).build());
-            }
-            client = clusterAccess.createDefaultClient();
-            if (!isOpenShift(client)) {
-                throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
-            }
-        }
-    }
 
 }

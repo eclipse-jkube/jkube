@@ -46,7 +46,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-
 public class JibBuildServiceTest {
     @Mocked
     private KitLogger logger;
@@ -57,7 +56,7 @@ public class JibBuildServiceTest {
     @Test
     public void isApplicable_withNoBuildStrategy_shouldReturnFalse() {
         // When
-        final boolean result = new JibBuildService().isApplicable(serviceHub);
+        final boolean result = new JibBuildService(serviceHub).isApplicable();
         // Then
         assertThat(result).isFalse();
     }
@@ -72,7 +71,7 @@ public class JibBuildServiceTest {
         }};
         // @formatter:on
         // When
-        final boolean result = new JibBuildService().isApplicable(serviceHub);
+        final boolean result = new JibBuildService(serviceHub).isApplicable();
         // Then
         assertThat(result).isTrue();
     }
@@ -120,9 +119,8 @@ public class JibBuildServiceTest {
         // Given
         File projectBaseDir = Files.createTempDirectory("test").toFile();
         ImageConfiguration imageConfiguration = getImageConfiguration();
-        setupServiceHubExpectations(projectBaseDir);
         // When
-        File tarArchive = JibBuildService.getBuildTarArchive(imageConfiguration, serviceHub);
+        File tarArchive = JibBuildService.getBuildTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir));
         // Then
         assertThat(tarArchive)
           .isNotNull()
@@ -137,9 +135,8 @@ public class JibBuildServiceTest {
         // Given
         File projectBaseDir = Files.createTempDirectory("test").toFile();
         ImageConfiguration imageConfiguration = getImageConfiguration();
-        setupServiceHubExpectations(projectBaseDir);
         // When
-        File tarArchive = JibBuildService.getAssemblyTarArchive(imageConfiguration, serviceHub.getConfiguration(), logger);
+        File tarArchive = JibBuildService.getAssemblyTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir), logger);
         // Then
         assertThat(tarArchive)
           .isNotNull()
@@ -162,7 +159,7 @@ public class JibBuildServiceTest {
     @Test
     public void testPushWithNoConfigurations(@Mocked JibServiceUtil jibServiceUtil) throws Exception {
         // When
-        new JibBuildService().push(serviceHub, Collections.emptyList(), 1, null, false);
+        new JibBuildService(serviceHub).push(Collections.emptyList(), 1, null, false);
         // Then
         // @formatter:off
         new Verifications() {{
@@ -179,7 +176,7 @@ public class JibBuildServiceTest {
         final RegistryConfig registryConfig = RegistryConfig.builder()
             .build();
         // When
-        new JibBuildService().push(serviceHub, Collections.singletonList(imageConfiguration), 1, registryConfig, false);
+        new JibBuildService(serviceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
         // Then
         // @formatter:off
         new Verifications() {{
@@ -200,18 +197,13 @@ public class JibBuildServiceTest {
                 .build();
     }
 
-    @java.lang.SuppressWarnings("squid:S00112")
-    private void setupServiceHubExpectations(File projectBaseDir) {
-        JKubeConfiguration jKubeConfiguration = JKubeConfiguration.builder()
+    private static JKubeConfiguration createJKubeConfiguration(File projectBaseDir) {
+        return JKubeConfiguration.builder()
                 .outputDirectory("target")
                 .project(JavaProject.builder()
                         .baseDirectory(projectBaseDir)
                         .build())
                 .build();
-        new Expectations() {{
-            serviceHub.getConfiguration();
-            result = jKubeConfiguration;
-        }};
     }
 
 

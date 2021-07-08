@@ -60,12 +60,11 @@ public class OpenShiftBuildServiceUtilsTest {
   @Mocked
   private JKubeBuildTarArchiver tarArchiver;
 
-  private String projectName;
   private ImageConfiguration imageConfiguration;
 
   @Before
   public void setUp() throws Exception {
-    projectName = "myapp";
+    final String projectName = "myapp";
     imageConfiguration = ImageConfiguration.builder()
         .name(projectName)
         .build(BuildConfiguration.builder()

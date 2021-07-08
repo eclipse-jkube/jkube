@@ -16,8 +16,8 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.lang.reflect.Constructor;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * A simple factory for creating services with no-arg constructors from a textual
@@ -41,20 +42,21 @@ import java.util.regex.Pattern;
  * The optional second numeric value is the order in which the services are returned.
  *
  * @author roland
- * @since 05.11.10
  */
 public final class PluginServiceFactory<C> {
 
-    private List<ClassLoader> additionalClassLoaders = new ArrayList<>();
+    private static final int DEFAULT_ORDER = 100;
+    // Matches comment lines and empty lines. these are skipped
+    private static final Pattern COMMENT_LINE_PATTERN = Pattern.compile("^(\\s*#.*|\\s*)$");
+    private final List<ClassLoader> additionalClassLoaders;
 
     // Parameters for service constructors
-    private C context;
+    private final C context;
 
     public PluginServiceFactory(C context, ClassLoader ... loaders) {
         this.context = context;
-        for (ClassLoader loader : loaders) {
-            addAdditionalClassLoader(loader);
-        }
+        this.additionalClassLoaders = new ArrayList<>();
+        Stream.of(loaders).forEach(this::addAdditionalClassLoader);
     }
 
     /**
@@ -77,11 +79,7 @@ public final class PluginServiceFactory<C> {
             for (String descriptor : descriptorPaths) {
                 readServiceDefinitions(serviceMap, descriptor);
             }
-            ArrayList<T> ret = new ArrayList<>();
-            for (T service : serviceMap.values()) {
-                ret.add(service);
-            }
-            return ret;
+            return new ArrayList<>(serviceMap.values());
         } finally {
             ServiceEntry.removeDefaultOrder();
         }
@@ -99,7 +97,7 @@ public final class PluginServiceFactory<C> {
 
     private <T> void readServiceDefinitionFromUrl(Map<ServiceEntry, T> extractorMap, String url) {
         String line = null;
-        try (LineNumberReader reader = new LineNumberReader(new InputStreamReader(new URL(url).openStream(), "UTF8"))) {
+        try (LineNumberReader reader = new LineNumberReader(new InputStreamReader(new URL(url).openStream(), StandardCharsets.UTF_8))) {
             line = reader.readLine();
             while (line != null) {
                 createOrRemoveService(extractorMap, line);
@@ -111,8 +109,6 @@ public final class PluginServiceFactory<C> {
         }
     }
 
-    // Matches comment lines and empty lines. these are skipped
-    private static Pattern COMMENT_LINE_PATTERN = Pattern.compile("^(\\s*#.*|\\s*)$");
 
     private synchronized  <T> void createOrRemoveService(Map<ServiceEntry, T> serviceMap, String line)
             throws ReflectiveOperationException {
@@ -136,12 +132,7 @@ public final class PluginServiceFactory<C> {
                 if (clazz == null) {
                     throw new ClassNotFoundException("Class " + entry.getClassName() + " could not be found");
                 }
-                Constructor<T> constructor = clazz.getConstructor(context.getClass());
-                if (constructor == null) {
-                    throw new IllegalArgumentException(
-                            "Internal Error: " + clazz + " does not have constructor (" + context.getClass() + ")");
-                }
-                T service = constructor.newInstance(context);
+                T service = clazz.getConstructor(context.getClass()).newInstance(context);
                 serviceMap.put(entry, service);
             }
         }
@@ -151,31 +142,21 @@ public final class PluginServiceFactory<C> {
         this.additionalClassLoaders.add(classLoader);
     }
 
-
-    // =============================================================================
-
     static class ServiceEntry implements Comparable<ServiceEntry> {
-        private String className;
-        private boolean remove;
+
+        private final String className;
+        private final boolean remove;
         private Integer order;
 
-        private static ThreadLocal<Integer> defaultOrderHolder = new ThreadLocal<Integer>() {
-
-            /**
-             * Initialise with start value for entries without an explicite order. 100 in this case.
-             *
-             * @return 100
-             */
-            @Override
-            protected Integer initialValue() {
-                return Integer.valueOf(100);
-            }
-        };
+        /**
+         * Initialise with start value for entries without an explicit order.
+         */
+        private static final ThreadLocal<Integer> DEFAULT_ORDER_HOLDER = ThreadLocal.withInitial(() -> DEFAULT_ORDER);
 
         /**
          * Parse an entry in the service definition. This should be the full qualified classname
          * of a service, optional prefixed with "<code>!</code>" in which case the service is removed
-         * from the defaul list. An order value can be appened after the classname with a comma for give a
+         * from the default list. An order value can be appended after the classname with a comma for give a
          * indication for the ordering of services. If not given, 100 is taken for the first entry, counting up.
          *
          * @param line line to parse
@@ -201,17 +182,17 @@ public final class PluginServiceFactory<C> {
         }
 
         private Integer nextDefaultOrder() {
-            Integer defaultOrder = defaultOrderHolder.get();
-            defaultOrderHolder.set(defaultOrder + 1);
+            Integer defaultOrder = DEFAULT_ORDER_HOLDER.get();
+            DEFAULT_ORDER_HOLDER.set(defaultOrder + 1);
             return defaultOrder;
         }
 
         private static void initDefaultOrder() {
-            defaultOrderHolder.set(100);
+            DEFAULT_ORDER_HOLDER.set(DEFAULT_ORDER);
         }
 
         private static void removeDefaultOrder() {
-            defaultOrderHolder.remove();
+            DEFAULT_ORDER_HOLDER.remove();
         }
 
         private String getClassName() {

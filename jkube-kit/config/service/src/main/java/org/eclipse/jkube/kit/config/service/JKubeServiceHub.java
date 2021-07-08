@@ -14,10 +14,8 @@
 package org.eclipse.jkube.kit.config.service;
 
 import java.io.Closeable;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.ServiceLoader;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Builder;
@@ -59,7 +57,7 @@ public class JKubeServiceHub implements Closeable {
     @Getter
     private KubernetesClient client;
     private LazyBuilder<ArtifactResolverService> artifactResolverService;
-    private LazyBuilder<BuildService> buildService;
+    private LazyBuilder<BuildServiceManager> buildServiceManager;
     private LazyBuilder<ResourceService> resourceService;
     private LazyBuilder<PortForwardService> portForwardService;
     private LazyBuilder<ApplyService> applyService;
@@ -110,7 +108,7 @@ public class JKubeServiceHub implements Closeable {
     }
 
     public BuildService getBuildService() {
-        return buildService.get();
+        return buildServiceManager.get().resolveBuildService();
     }
 
     public ResourceService getResourceService() {
@@ -164,7 +162,7 @@ public class JKubeServiceHub implements Closeable {
             }
             return new KubernetesUndeployService(this, log);
         });
-        buildService = new LazyBuilder<>(this::resolveBuildService);
+        buildServiceManager = new LazyBuilder<>(() -> new BuildServiceManager(this));
     }
 
     private void validateIfConnectedToCluster() {
@@ -173,21 +171,4 @@ public class JKubeServiceHub implements Closeable {
         }
     }
 
-    private BuildService resolveBuildService() {
-        ServiceLoader<BuildService> buildServices = ServiceLoader.load(BuildService.class, Thread.currentThread().getContextClassLoader());
-        Iterator<BuildService> buildServiceIterator = buildServices.iterator();
-
-        BuildService selectedBuildService = null;
-        // Order is not guaranteed
-        // TODO: scoring system should be used to select the valid BuildService (https://github.com/eclipse/jkube/issues/253#issuecomment-871418902)
-        while (buildServiceIterator.hasNext()) {
-            BuildService b = buildServiceIterator.next();
-            if (b.isApplicable(JKubeServiceHub.this)) {
-                selectedBuildService = b;
-                break;
-            }
-        }
-
-        return selectedBuildService;
-    }
 }
