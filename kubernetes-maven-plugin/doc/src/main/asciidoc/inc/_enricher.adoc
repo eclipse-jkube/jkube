@@ -213,6 +213,8 @@ include::enricher/_jkube_healthcheck_wildfly_jar.adoc[]
 
 include::enricher/_jkube_service_discovery.adoc[]
 
+include::enricher/_jkube_healthcheck_quarkus.adoc[]
+
 == Enricher API
 
 _How to write your own enrichers and install them._

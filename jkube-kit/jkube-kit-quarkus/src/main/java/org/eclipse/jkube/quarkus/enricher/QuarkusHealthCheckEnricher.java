@@ -22,9 +22,14 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 
-import static org.eclipse.jkube.kit.common.Configs.asInteger;
-import static org.eclipse.jkube.kit.common.util.FileUtil.stripPrefix;
+import java.util.function.Supplier;
 
+import static org.eclipse.jkube.kit.common.Configs.asInteger;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.createHealthCheckPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusVersion;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivelinessRootPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.shouldUseAbsoluteHealthPaths;
 
 /**
  * Enriches Quarkus containers with health checks if the quarkus-smallrye-health is present
@@ -32,7 +37,7 @@ import static org.eclipse.jkube.kit.common.util.FileUtil.stripPrefix;
 public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     private static final String READY_SUBPATH = "ready";
-    private static final String LIVE_SUBPATH = "live";
+    private static final String DEFAULT_HEALTH_PATH = "health";
 
     public QuarkusHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-quarkus");
@@ -47,7 +52,7 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         SUCCESS_THRESHOLD("successThreshold", "1"),
         LIVENESS_INITIAL_DELAY("livenessInitialDelay", null),
         READINESS_INTIAL_DELAY("readinessIntialDelay", null),
-        HEALTH_PATH("path", "health");
+        HEALTH_PATH("path", DEFAULT_HEALTH_PATH);
 
         @Getter
         protected String key;
@@ -58,23 +63,24 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
     @Override
     protected Probe getReadinessProbe() {
         return discoverQuarkusHealthCheck(asInteger(getConfig(Config.READINESS_INTIAL_DELAY, "5")),
-            READY_SUBPATH);
+                this::findQuarkusHealthPathFromPropertiesOrConfig);
     }
 
     @Override
     protected Probe getLivenessProbe() {
         return discoverQuarkusHealthCheck(asInteger(getConfig(Config.LIVENESS_INITIAL_DELAY, "10")),
-            LIVE_SUBPATH);
+                this::findQuarkusHeathLivenessPath);
     }
 
-    private Probe discoverQuarkusHealthCheck(int initialDelay, String subPath) {
+    private Probe discoverQuarkusHealthCheck(int initialDelay, Supplier<String> pathSupplier) {
         if (!getContext().hasDependency("io.quarkus", "quarkus-smallrye-health")) {
             return null;
         }
+
         return new ProbeBuilder()
             .withNewHttpGet()
               .withNewPort(asInteger(getConfig(Config.PORT)))
-              .withPath(String.format("/%s/%s", stripPrefix(getConfig(Config.HEALTH_PATH), "/"), subPath))
+              .withPath(pathSupplier.get())
               .withScheme(getConfig(Config.SCHEME))
             .endHttpGet()
             .withFailureThreshold(asInteger(getConfig(Config.FAILURE_THRESHOLD)))
@@ -83,4 +89,26 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
             .build();
     }
 
+    private String findQuarkusHealthPathFromPropertiesOrConfig() {
+        String defaultHealthPath = getConfig(Config.HEALTH_PATH);
+        if (!defaultHealthPath.equals(DEFAULT_HEALTH_PATH)) {
+            return createHealthCheckPath(defaultHealthPath, READY_SUBPATH);
+        }
+        return createHealthCheckPath(resolveCompleteQuarkusHealthRootPath(getContext().getProject()), READY_SUBPATH);
+    }
+
+    private String findQuarkusHeathLivenessPath() {
+        String defaultHealthPath = getConfig(Config.HEALTH_PATH);
+        String livelinessPath = resolveQuarkusLivelinessRootPath(getContext().getProject());
+        if (!defaultHealthPath.equals(DEFAULT_HEALTH_PATH)) {
+            return createHealthCheckPath(defaultHealthPath, livelinessPath);
+        }
+
+        String quarkusVersion = getQuarkusVersion(getContext().getProject()).orElse(null);
+        if (shouldUseAbsoluteHealthPaths(quarkusVersion, livelinessPath)) {
+            return livelinessPath;
+        }
+
+        return createHealthCheckPath(resolveCompleteQuarkusHealthRootPath(getContext().getProject()), livelinessPath);
+    }
 }
