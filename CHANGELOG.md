@@ -37,6 +37,7 @@ Usage:
 * Fix #425: Multi-layer support for Container Images
 * Fix #751: QuarkusGenerator: Multi-layer images for the different Quarkus packaging modes
 * Fix #756: Service re-apply error happening during `k8s:watch`
+* Fix #758: QuarkusHealthCheckEnricher: default health path value is outdated
 
 ### 1.3.0 (2021-05-18)
 * Fix #497: Assembly descriptor removed but still in documentation

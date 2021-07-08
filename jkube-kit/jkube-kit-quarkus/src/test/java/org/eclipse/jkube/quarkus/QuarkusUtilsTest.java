@@ -16,8 +16,11 @@ package org.eclipse.jkube.quarkus;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
+import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 
 import org.junit.Before;
@@ -27,8 +30,13 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.createHealthCheckPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusVersion;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.isQuarkusVersionAtLeast;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivelinessRootPath;
 
 public class QuarkusUtilsTest {
 
@@ -144,5 +152,167 @@ public class QuarkusUtilsTest {
     final Properties props = getQuarkusConfiguration(javaProject);
     // Then
     assertThat(props).isEmpty();
+  }
+
+  @Test
+  public void getQuarkusVersion_noDependency_shouldReturnEmpty() {
+    // Given
+    javaProject.setDependencies(Collections.emptyList());
+
+    // When
+    Optional<String> versionOptional = getQuarkusVersion(javaProject);
+
+    // Then
+    assertThat(versionOptional).isEmpty();
+  }
+
+  @Test
+  public void getQuarkusVersion_withQuarkusUniverseDepdendency_shouldReturnValidVersion() {
+    // Given
+    javaProject.setDependencies(quarkusDependencyWithVersion("2.0.1.Final"));
+
+    // When
+    Optional<String> versionOptional = getQuarkusVersion(javaProject);
+
+    // Then
+    assertThat(versionOptional)
+            .isPresent()
+            .get().isEqualTo("2.0.1.Final");
+  }
+
+  @Test
+  public void resolveCompleteQuarkusHealthRootPath_withHealthRootPathSet_shouldReturnValidPath() {
+    // Given
+    Properties properties = new Properties();
+    properties.setProperty("quarkus.http.non-application-root-path", "q");
+    properties.setProperty("quarkus.smallrye-health.root-path", "health");
+    properties.setProperty("quarkus.http.root-path", "/");
+    javaProject.setProperties(properties);
+
+    // When
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+
+    // Then
+    assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/q/health");
+  }
+
+  @Test
+  public void resolveCompleteQuarkusHealthRootPath_withHealthRootPathSetAbsolute_shouldReturnValidPath() {
+    // Given
+    Properties properties = new Properties();
+    properties.setProperty("quarkus.smallrye-health.root-path", "/health");
+    javaProject.setProperties(properties);
+    javaProject.setDependencies(quarkusDependencyWithVersion("1.13.7.Final"));
+
+    // When
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+
+    // Then
+    assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/health");
+  }
+
+  @Test
+  public void resolveCompleteQuarkusHealthRootPath_withOldQuarkusVersion_shouldReturnValidPath() {
+    // Given
+    Properties properties = new Properties();
+    properties.setProperty("quarkus.smallrye-health.root-path", "/health");
+    properties.setProperty("quarkus.http.root-path", "/root");
+    javaProject.setProperties(properties);
+    javaProject.setDependencies(quarkusDependencyWithVersion("1.10.5.Final"));
+
+    // When
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+
+    // Then
+    assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/root/health");
+  }
+
+  @Test
+  public void resolveCompleteQuarkusHealthRootPath_withPostPathResolutionChangesQuarkusVersion_shouldReturnAbsolutePath() {
+    // Given
+    Properties properties = new Properties();
+    properties.setProperty("quarkus.smallrye-health.root-path", "/health");
+    properties.setProperty("quarkus.http.root-path", "/root");
+    javaProject.setProperties(properties);
+    javaProject.setDependencies(quarkusDependencyWithVersion("1.13.7.Final"));
+
+    // When
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+
+    // Then
+    assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/health");
+  }
+
+  @Test
+  public void resolveCompleteQuarkusHealthRootPath_withQuarkus2_shouldReturnAbsoluteNonApplicationRootPath() {
+    // Given
+    Properties properties = new Properties();
+    properties.setProperty("quarkus.http.non-application-root-path", "/q");
+    properties.setProperty("quarkus.smallrye-health.root-path", "health");
+    javaProject.setProperties(properties);
+    javaProject.setDependencies(quarkusDependencyWithVersion("1.13.7.Final"));
+
+    // When
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+
+    // Then
+    assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/q/health");
+  }
+
+  @Test
+  public void resolveCompleteQuarkusHealthRootPath_withQuarkus2_shouldReturnCompleteHealthPath() {
+    // Given
+    Properties properties = new Properties();
+    properties.setProperty("quarkus.http.root-path", "/");
+    properties.setProperty("quarkus.http.non-application-root-path", "q");
+    properties.setProperty("quarkus.smallrye-health.root-path", "health");
+    javaProject.setProperties(properties);
+    javaProject.setDependencies(quarkusDependencyWithVersion("1.13.7.Final"));
+
+    // When
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+
+    // Then
+    assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/q/health");
+  }
+
+  @Test
+  public void resolveQuarkusLivelinessRootPath_withLivenessPathSet_shouldReturnValidPath() {
+    // Given
+    Properties properties = new Properties();
+    properties.setProperty("quarkus.smallrye-health.liveness-path", "liveness");
+    javaProject.setProperties(properties);
+
+    // When
+    String resolvedHealthPath = resolveQuarkusLivelinessRootPath(javaProject);
+
+    // Then
+    assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("liveness");
+  }
+
+  @Test
+  public void testIsQuarkusVersionAtLeast() {
+    // Given
+    javaProject.setDependencies(quarkusDependencyWithVersion("1.13.7.Final"));
+
+    // When + Then
+    assertThat(isQuarkusVersionAtLeast(javaProject, 1, 13)).isTrue();
+    assertThat(isQuarkusVersionAtLeast(javaProject, 2, 0)).isFalse();
+    assertThat(isQuarkusVersionAtLeast(javaProject, 1, 11)).isTrue();
+    assertThat(isQuarkusVersionAtLeast(javaProject, 1, 12)).isTrue();
+  }
+
+  @Test
+  public void testCreateHealthCheckPath() {
+    assertThat(createHealthCheckPath("/", "liveness")).isEqualTo("/liveness");
+    assertThat(createHealthCheckPath("/root", "liveness")).isEqualTo("/root/liveness");
+  }
+
+  private List<Dependency> quarkusDependencyWithVersion(String version) {
+    return Collections.singletonList(Dependency.builder()
+            .groupId("io.quarkus")
+            .artifactId("quarkus-universe-bom")
+            .version(version)
+            .build());
   }
 }
