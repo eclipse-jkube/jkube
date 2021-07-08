@@ -663,7 +663,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             // TODO need to refactor d-m-p to avoid this call
             EnvUtil.storeTimestamp(getBuildTimestampFile(), getBuildTimestamp());
 
-            jkubeServiceHub.getBuildService().build(imageConfig);
+            jkubeServiceHub.getBuildService().build(jkubeServiceHub, imageConfig);
 
         } catch (Exception ex) {
             throw new MojoExecutionException("Failed to execute the build", ex);

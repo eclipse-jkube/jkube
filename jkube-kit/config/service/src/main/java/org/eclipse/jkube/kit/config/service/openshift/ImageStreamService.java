@@ -254,6 +254,7 @@ public class ImageStreamService {
         }
 
     }
+
     protected static String resolveImageStreamName(ImageName name) {
         return name.getSimpleName().replace("/", "-");
     }

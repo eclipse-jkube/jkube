@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.openshift.client.OpenShiftClient;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,7 +34,6 @@ import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
-import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 
 import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
@@ -180,11 +178,12 @@ public class JKubeServiceHub implements Closeable {
         Iterator<BuildService> buildServiceIterator = buildServices.iterator();
 
         BuildService selectedBuildService = null;
+        // Order is not guaranteed
+        // TODO: scoring system should be used to select the valid BuildService (https://github.com/eclipse/jkube/issues/253#issuecomment-871418902)
         while (buildServiceIterator.hasNext()) {
             BuildService b = buildServiceIterator.next();
             if (b.isApplicable(JKubeServiceHub.this)) {
                 selectedBuildService = b;
-                selectedBuildService.setJKubeServiceHub(JKubeServiceHub.this);
                 break;
             }
         }

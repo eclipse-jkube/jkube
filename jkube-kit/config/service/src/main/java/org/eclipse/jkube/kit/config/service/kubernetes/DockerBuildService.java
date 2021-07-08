@@ -31,18 +31,10 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
  */
 public class DockerBuildService implements BuildService {
 
-    private JKubeServiceHub jKubeServiceHub;
-
-    public DockerBuildService() { }
-
-    DockerBuildService(JKubeServiceHub jKubeServiceHub) {
+    @Override
+    public void build(JKubeServiceHub jKubeServiceHub, ImageConfiguration imageConfig) throws JKubeServiceException {
         Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub(), "dockerServiceHub");
         Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(), "BuildServiceConfig is required");
-        this.jKubeServiceHub = jKubeServiceHub;
-    }
-
-    @Override
-    public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
         try {
             jKubeServiceHub.getDockerServiceHub().getBuildService().buildImage(
                 imageConfig,
@@ -57,7 +49,8 @@ public class DockerBuildService implements BuildService {
     }
 
     @Override
-    public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+    public void push(JKubeServiceHub jKubeServiceHub, Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+        Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub(), "dockerServiceHub");
         try {
             jKubeServiceHub.getDockerServiceHub().getRegistryService()
                     .pushImages(imageConfigs, retries, registryConfig, skipTag);
@@ -67,17 +60,12 @@ public class DockerBuildService implements BuildService {
     }
 
     @Override
-    public void postProcess(BuildServiceConfig config) {
+    public void postProcess(JKubeServiceHub jKubeServiceHub, BuildServiceConfig config) {
         // No post processing required
     }
 
     @Override
     public boolean isApplicable(JKubeServiceHub jKubeServiceHub) {
         return jKubeServiceHub.getRuntimeMode() == RuntimeMode.KUBERNETES;
-    }
-
-    @Override
-    public void setJKubeServiceHub(JKubeServiceHub jKubeServiceHub) {
-        this.jKubeServiceHub = jKubeServiceHub;
     }
 }

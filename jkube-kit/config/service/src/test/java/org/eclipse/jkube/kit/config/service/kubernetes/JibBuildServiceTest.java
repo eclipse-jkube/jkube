@@ -28,6 +28,7 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.service.jib.JibServiceUtil;
 import org.junit.Test;
@@ -52,6 +53,29 @@ public class JibBuildServiceTest {
 
     @Mocked
     private JKubeServiceHub serviceHub;
+
+    @Test
+    public void isApplicable_withNoBuildStrategy_shouldReturnFalse() {
+        // When
+        final boolean result = new JibBuildService().isApplicable(serviceHub);
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @Test
+    public void isApplicable_withJibBuildStrategy_shouldReturnTrue() {
+        // Given
+        // @formatter:off
+        new Expectations() {{
+            serviceHub.getBuildServiceConfig().getJKubeBuildStrategy(); result = JKubeBuildStrategy.jib;
+        }};
+        // @formatter:on
+        // When
+        final boolean result = new JibBuildService().isApplicable(serviceHub);
+        // Then
+        assertThat(result).isTrue();
+    }
 
     @Test
     @java.lang.SuppressWarnings("squid:S00112")
@@ -138,7 +162,7 @@ public class JibBuildServiceTest {
     @Test
     public void testPushWithNoConfigurations(@Mocked JibServiceUtil jibServiceUtil) throws Exception {
         // When
-        new JibBuildService(serviceHub).push(Collections.emptyList(), 1, null, false);
+        new JibBuildService().push(serviceHub, Collections.emptyList(), 1, null, false);
         // Then
         // @formatter:off
         new Verifications() {{
@@ -155,7 +179,7 @@ public class JibBuildServiceTest {
         final RegistryConfig registryConfig = RegistryConfig.builder()
             .build();
         // When
-        new JibBuildService(serviceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
+        new JibBuildService().push(serviceHub, Collections.singletonList(imageConfiguration), 1, registryConfig, false);
         // Then
         // @formatter:off
         new Verifications() {{

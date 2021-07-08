@@ -15,11 +15,16 @@ package org.eclipse.jkube.kit.build.api.helper;
 
 
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Test;
 
+import java.io.File;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
+import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDockerfile;
 
 public class BuildUtilTest {
 
@@ -53,5 +58,21 @@ public class BuildUtilTest {
     final String result = extractBaseFromConfiguration(buildConfiguration);
     // Then
     assertThat(result).isEqualTo("alpine:latest");
+  }
+
+  @Test
+  public void extractBaseFromDockerfile_withNonExistentDockerfile_shouldReturnNull() {
+    // Given
+    final JKubeConfiguration jKubeConfiguration = JKubeConfiguration.builder()
+        .sourceDirectory("src")
+        .project(JavaProject.builder()
+            .baseDirectory(new File("."))
+            .build()).build();
+    final BuildConfiguration buildConfiguration = BuildConfiguration.builder()
+        .dockerFileFile(new File("Dockerfile")).build();
+    // When
+    final String result = extractBaseFromDockerfile(jKubeConfiguration, buildConfiguration);
+    // Then
+    assertThat(result).isNull();
   }
 }

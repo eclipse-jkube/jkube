@@ -52,8 +52,7 @@ public class DockerBuildServiceTest {
                         .build()
                 ).build();
 
-        DockerBuildService service = new DockerBuildService(jKubeServiceHub);
-        service.build(image);
+        new DockerBuildService().build(jKubeServiceHub, image);
 
         new VerificationsInOrder() {{
             jKubeServiceHub.getDockerServiceHub().getBuildService()
