@@ -96,9 +96,11 @@ public class JKubeServiceHubTest {
             .build()
     ) {
       // Then
-      assertThat(jKubeServiceHub).isNotNull();
-      assertThat(jKubeServiceHub.getClient()).isNotNull();
-      assertThat(jKubeServiceHub.getRuntimeMode()).isEqualTo(RuntimeMode.KUBERNETES);
+      assertThat(jKubeServiceHub)
+          .isNotNull()
+          .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.KUBERNETES)
+          .extracting(JKubeServiceHub::getClient)
+          .isNotNull();
     }
   }
 
@@ -111,8 +113,9 @@ public class JKubeServiceHubTest {
     // When
     BuildService buildService = hub.getBuildService();
     // Then
-    assertThat(buildService).isNotNull();
-    assertThat(buildService).isInstanceOf(DockerBuildService.class);
+    assertThat(buildService)
+        .isNotNull()
+        .isInstanceOf(DockerBuildService.class);
   }
 
   @Test
@@ -129,8 +132,9 @@ public class JKubeServiceHubTest {
     // When
     BuildService buildService = hub.getBuildService();
     // Then
-    assertThat(buildService).isNotNull();
-    assertThat(buildService).isInstanceOf(OpenshiftBuildService.class);
+    assertThat(buildService)
+        .isNotNull()
+        .isInstanceOf(OpenshiftBuildService.class);
   }
 
   @Test
@@ -156,8 +160,9 @@ public class JKubeServiceHubTest {
     // When
     BuildService buildService = hub.getBuildService();
     // Then
-    assertThat(buildService).isNotNull();
-    assertThat(buildService).isInstanceOf(JibBuildService.class);
+    assertThat(buildService)
+        .isNotNull()
+        .isInstanceOf(JibBuildService.class);
   }
 
   @Test
@@ -169,8 +174,9 @@ public class JKubeServiceHubTest {
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
-    assertThat(result).isNotNull();
-    assertThat(result).isInstanceOf(KubernetesUndeployService.class);
+    assertThat(result)
+        .isNotNull()
+        .isInstanceOf(KubernetesUndeployService.class);
   }
 
   @Test
@@ -187,8 +193,9 @@ public class JKubeServiceHubTest {
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
-    assertThat(result).isNotNull();
-    assertThat(result).isInstanceOf(KubernetesUndeployService.class);
+    assertThat(result)
+        .isNotNull()
+        .isInstanceOf(KubernetesUndeployService.class);
   }
 
   @Test
@@ -205,8 +212,9 @@ public class JKubeServiceHubTest {
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
-    assertThat(result).isNotNull();
-    assertThat(result).isInstanceOf(OpenshiftUndeployService.class);
+    assertThat(result)
+        .isNotNull()
+        .isInstanceOf(OpenshiftUndeployService.class);
   }
 
   @Test
@@ -242,8 +250,9 @@ public class JKubeServiceHubTest {
     // Given + When
     try (final JKubeServiceHub jKubeServiceHub = commonInit().platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
       // Then
-      assertThat(jKubeServiceHub).isNotNull();
-      assertThat(jKubeServiceHub.getClient()).isNull();
+      assertThat(jKubeServiceHub)
+          .isNotNull()
+          .hasFieldOrPropertyWithValue("client", null);
     }
   }
 
@@ -252,7 +261,6 @@ public class JKubeServiceHubTest {
     // Given + When
     try (final JKubeServiceHub jKubeServiceHub = commonInit().platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
       // Then
-      assertThat(jKubeServiceHub).isNotNull();
       assertThrows(IllegalArgumentException.class, jKubeServiceHub::getApplyService);
     }
   }

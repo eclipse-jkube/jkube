@@ -49,23 +49,22 @@ import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImag
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.getBaseImage;
 
 public class JibBuildService implements BuildService {
+
     private static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
     private static final List<String> DEFAULT_DOCKER_REGISTRIES = Arrays.asList(
             "docker.io", "index.docker.io", "registry.hub.docker.com"
     );
     private static final String PUSH_REGISTRY = "jkube.docker.push.registry";
-    private JKubeServiceHub jKubeServiceHub;
-    private KitLogger log;
 
-    public JibBuildService() { }
-
-    JibBuildService(JKubeServiceHub jKubeServiceHub) {
-        Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(), "BuildServiceConfig is required");
-        setJKubeServiceHub(jKubeServiceHub);
+    @Override
+    public boolean isApplicable(JKubeServiceHub jKubeServiceHub) {
+        return jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy() == JKubeBuildStrategy.jib;
     }
 
     @Override
-    public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
+    public void build(JKubeServiceHub jKubeServiceHub, ImageConfiguration imageConfig) throws JKubeServiceException {
+        Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(), "BuildServiceConfig is required");
+        final KitLogger log = Objects.requireNonNull(jKubeServiceHub.getLog(), "Log is required");
         try {
             log.info("[[B]]JIB[[B]] image build started");
             final JKubeConfiguration configuration = jKubeServiceHub.getConfiguration();
@@ -98,7 +97,8 @@ public class JibBuildService implements BuildService {
     }
 
     @Override
-    public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+    public void push(JKubeServiceHub jKubeServiceHub, Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+        final KitLogger log = Objects.requireNonNull(jKubeServiceHub.getLog(), "Log is required");
         try {
             for (ImageConfiguration imageConfiguration : imageConfigs) {
                 prependRegistry(imageConfiguration, registryConfig.getRegistry());
@@ -116,19 +116,8 @@ public class JibBuildService implements BuildService {
     }
 
     @Override
-    public void postProcess(BuildServiceConfig config) {
+    public void postProcess(JKubeServiceHub jKubeServiceHub, BuildServiceConfig config) {
         // No post processing required
-    }
-
-    @Override
-    public boolean isApplicable(JKubeServiceHub jKubeServiceHub) {
-        return jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy() == JKubeBuildStrategy.jib;
-    }
-
-    @Override
-    public void setJKubeServiceHub(JKubeServiceHub jKubeServiceHub) {
-        this.jKubeServiceHub = jKubeServiceHub;
-        this.log = jKubeServiceHub.getLog();
     }
 
     static ImageConfiguration prependRegistry(ImageConfiguration imageConfiguration, String registry) {

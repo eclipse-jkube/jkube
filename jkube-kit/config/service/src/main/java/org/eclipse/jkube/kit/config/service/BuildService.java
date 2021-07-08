@@ -20,33 +20,8 @@ import java.util.Collection;
 
 /**
  * @author nicola
- * @since 17/02/2017
  */
 public interface BuildService {
-
-    /**
-     * Builds the given image using the specified configuration.
-     *
-     * @param imageConfig the image to build
-     */
-    void build(ImageConfiguration imageConfig) throws JKubeServiceException;
-
-
-    /**
-     * Pushes to given image to specified Registry
-     *
-     * @param imageConfigs image configurations to process
-     * @param retries number of retries
-     * @param registryConfig registry configuration
-     * @param skipTag boolean value whether skip tagging or not
-     */
-    void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException;
-
-    /**
-     * Post processing step called after all images has been build
-     * @param config build configuration
-     */
-    void postProcess(BuildServiceConfig config);
 
     /**
      * Check whether provided Build Service implementation is applicable in current context or not.
@@ -57,9 +32,29 @@ public interface BuildService {
     boolean isApplicable(JKubeServiceHub jKubeServiceHub);
 
     /**
-     * Set {@link JKubeServiceHub}
+     * Builds the given image using the specified configuration.
      *
      * @param jKubeServiceHub {@link JKubeServiceHub}
+     * @param imageConfig the image to build
      */
-    void setJKubeServiceHub(JKubeServiceHub jKubeServiceHub);
+    void build(JKubeServiceHub jKubeServiceHub, ImageConfiguration imageConfig) throws JKubeServiceException;
+
+    /**
+     * Pushes to given image to specified Registry
+     *
+     * @param jKubeServiceHub {@link JKubeServiceHub}
+     * @param imageConfigs image configurations to process
+     * @param retries number of retries
+     * @param registryConfig registry configuration
+     * @param skipTag boolean value whether skip tagging or not
+     */
+    void push(JKubeServiceHub jKubeServiceHub, Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException;
+
+    /**
+     * Post processing step called after all images has been build
+     * @param jKubeServiceHub {@link JKubeServiceHub}
+     * @param config build configuration
+     */
+    void postProcess(JKubeServiceHub jKubeServiceHub, BuildServiceConfig config);
+
 }

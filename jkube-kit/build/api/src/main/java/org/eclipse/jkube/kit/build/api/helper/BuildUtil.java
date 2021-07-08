@@ -14,9 +14,14 @@
 package org.eclipse.jkube.kit.build.api.helper;
 
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.IOException;
+import java.util.Optional;
 
 public class BuildUtil {
 
@@ -32,6 +37,21 @@ public class BuildUtil {
     fromImage = buildConfig.getFrom();
     if (fromImage == null && buildConfig.getAssembly() == null) {
       fromImage = AssemblyManager.DEFAULT_DATA_BASE_IMAGE;
+    }
+    return fromImage;
+  }
+
+  public static String extractBaseFromDockerfile(@Nonnull JKubeConfiguration configuration, @Nonnull BuildConfiguration buildConfig) {
+    String fromImage;
+    try {
+      File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(configuration.getSourceDirectory(),
+          Optional.ofNullable(configuration.getProject()).map(JavaProject::getBaseDirectory).map(File::toString).orElse(null));
+      fromImage = DockerFileUtil.extractBaseImages(
+          fullDockerFilePath, configuration.getProperties(), buildConfig.getFilter(), buildConfig.getArgs()).stream().findFirst().orElse(null);
+    } catch (IOException e) {
+      // Cant extract base image, so we wont try an auto pull. An error will occur later anyway when
+      // building the image, so we are passive here.
+      fromImage = null;
     }
     return fromImage;
   }

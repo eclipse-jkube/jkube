@@ -48,7 +48,7 @@ public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
 
         executeBuildGoal();
 
-        jkubeServiceHub.getBuildService().postProcess(jkubeServiceHub.getBuildServiceConfig());
+        jkubeServiceHub.getBuildService().postProcess(jkubeServiceHub, jkubeServiceHub.getBuildServiceConfig());
     }
 
 }

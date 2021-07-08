@@ -56,7 +56,7 @@ public class PushMojo extends AbstractDockerMojo {
         }
 
         try {
-            jkubeServiceHub.getBuildService().push(getResolvedImages(), retries, getRegistryConfig(pushRegistry), skipTag);
+            jkubeServiceHub.getBuildService().push(jkubeServiceHub, getResolvedImages(), retries, getRegistryConfig(pushRegistry), skipTag);
         } catch (Exception ex) {
             throw new MojoExecutionException(ex.getMessage(), ex);
         }
