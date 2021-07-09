@@ -25,6 +25,8 @@ import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 
+import org.apache.commons.io.FileUtils;
+
 public class JKubeBuildTarArchiver {
 
     public static final String ARCHIVE_FILE_NAME = "docker-build.";
