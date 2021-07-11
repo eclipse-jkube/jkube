@@ -54,7 +54,7 @@ public class Arguments implements Serializable {
      *     &lt;exec&gt;
      *       &lt;arg&gt;echo&lt;/arg&gt;
      *       &lt;arg&gt;Hello, world!&lt;/arg&gt;
-     *     &lt;exec&gt;
+     *     &lt;/exec&gt;
      *   &lt;/cmd&gt;
      * </pre>
      *
