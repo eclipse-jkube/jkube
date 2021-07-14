@@ -24,8 +24,7 @@ public class ArgumentsTest {
     @Test
     public void testShellArgWithSpaceEscape() {
       String[] testSubject = { "java", "-jar", "$HOME/name with space.jar" };
-      Arguments arg = (new Arguments()).builder().build();
-      arg.set("java -jar $HOME/name\\ with\\ space.jar");
-      assertThat(arg.asStrings()).isEqualTo(Arrays.asList(testSubject));
+      Arguments arg = Arguments.builder().shell("java -jar $HOME/name\\ with\\ space.jar").build();
+      assertThat(arg.asStrings()).containsExactly(testSubject);
     }
 }
