@@ -1,5 +1,11 @@
 .idea
-target
+.gradle
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 *.iml
 *.ipr
 *.iws

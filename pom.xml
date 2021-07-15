@@ -52,12 +52,19 @@
 
   <repositories>
     <repository>
-      <id>maven-central-plugin-snapshots</id>
-      <name>Maven Central Plugin Snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
+      <id>maven-central</id>
+      <url>https://repo1.maven.org/maven2/</url>
+    </repository>
+    <repository>
+      <id>repo.gradle.org</id>
+      <url>https://repo.gradle.org/gradle/libs-releases-local/</url>
+      <snapshots>
         <enabled>false</enabled>
-      </releases>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>ext.repo.gradle.org</id>
+      <url>https://repo.gradle.org/gradle/ext-releases-local/</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
@@ -76,6 +83,10 @@
     <jdk.version>1.8</jdk.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.citrus-core>2.6.2</version.citrus-core>
+    <version.commons-io>2.8.0</version.commons-io>
+    <version.gradle>6.1.1</version.gradle>
+    <version.groovy>2.4.7</version.groovy>
+    <version.guava>30.1.1-jre</version.guava>
     <version.hamcrest-library>1.3</version.hamcrest-library>
     <version.jackson>2.11.2</version.jackson>
     <version.jacoco>0.8.6</version.jacoco>
@@ -95,7 +106,9 @@
     <version.maven-resources-plugin>3.2.0</version.maven-resources-plugin>
     <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
     <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
+    <version.mockito>3.11.2</version.mockito>
     <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
+    <version.slf4j-api>1.7.25</version.slf4j-api>
     <version.license-maven-plugin>3.0</version.license-maven-plugin>
     <project.build.outputTimestamp>2020-11-08T11:04:00Z</project.build.outputTimestamp>
   </properties>
@@ -104,6 +117,7 @@
     <module>jkube-kit</module>
     <module>kubernetes-maven-plugin</module>
     <module>openshift-maven-plugin</module>
+    <module>gradle-plugin</module>
   </modules>
 
   <build>
@@ -136,6 +150,8 @@
               <exclude>.mvn/**/*</exclude>
               <exclude>mvnw</exclude>
               <exclude>mvnw.cmd</exclude>
+              <exclude>**/gradle/wrapper/**/*</exclude>
+              <exclude>**/gradlew.bat</exclude>
             </excludes>
           </configuration>
         </plugin>
