@@ -97,6 +97,15 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
         </dependency>
+        <!--
+            Using org.gradle.testfixtures.ProjectBuilder (gradle-tooling-api) is not possible
+            All gradle dependencies are required and gradle-all is no longer valid
+            It's unrealistic to add a dependency for each of the gradle subprojects
+         -->
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-process-services</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
