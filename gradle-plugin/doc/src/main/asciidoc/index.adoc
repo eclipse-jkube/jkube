@@ -1,0 +1,24 @@
+= org.eclipse.jkube/{plugin}
+:plugin: kubernetes-gradle-plugin
+:task-prefix: k8s
+:cluster: Kubernetes
+:revnumber: {version}
+:revdate: {localdate}
+:toc: macro
+:toclevels: 3
+:toc-title: {plugin}
+:doctype: book
+:icons: font
+:plugindir: ../../../../kubernetes
+
+ifndef::ebook-format[:leveloffset: 1]
+
+(C) 2021 The original authors.
+
+ifdef::basebackend-html[toc::[]]
+
+:numbered:
+
+include::inc/_introduction.adoc[]
+
+
