@@ -30,8 +30,6 @@
   <name>Kubernetes Maven Plugin :: Documentation</name>
 
   <properties>
-    <asciidoctor-maven-plugin.version>1.6.0</asciidoctor-maven-plugin.version>
-    <asciidoctorj.version>2.1.0</asciidoctorj.version>
     <plugin>kubernetes-maven-plugin</plugin>
     <goal-prefix>k8s</goal-prefix>
     <cluster>Kubernetes</cluster>
@@ -39,15 +37,10 @@
   </properties>
 
   <dependencies>
-
-    <!-- == asciidoctor ================================= -->
-
     <dependency>
       <groupId>org.asciidoctor</groupId>
       <artifactId>asciidoctorj</artifactId>
-      <version>${asciidoctorj.version}</version>
     </dependency>
-
   </dependencies>
 
 
@@ -99,7 +92,6 @@
         <plugin>
           <groupId>org.asciidoctor</groupId>
           <artifactId>asciidoctor-maven-plugin</artifactId>
-          <version>${asciidoctor-maven-plugin.version}</version>
           <configuration>
             <sourceDirectory>src/main/asciidoc</sourceDirectory>
             <outputDirectory>${outputHtmlDirectory}</outputDirectory>
