@@ -38,6 +38,11 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctorj</artifactId>
+        <version>${version.asciidoctorj}</version>
+      </dependency>
+      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${version.junit}</version>
