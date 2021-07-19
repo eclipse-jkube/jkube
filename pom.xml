@@ -82,6 +82,8 @@
   <properties>
     <jdk.version>1.8</jdk.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <version.asciidoctor-maven-plugin>1.6.0</version.asciidoctor-maven-plugin>
+    <version.asciidoctorj>2.1.0</version.asciidoctorj>
     <version.citrus-core>2.6.2</version.citrus-core>
     <version.commons-io>2.8.0</version.commons-io>
     <version.gradle>6.1.1</version.gradle>
@@ -194,6 +196,34 @@
           <groupId>org.projectlombok</groupId>
           <artifactId>lombok-maven-plugin</artifactId>
           <version>${version.lombok-maven-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.asciidoctor</groupId>
+          <artifactId>asciidoctor-maven-plugin</artifactId>
+          <version>${version.asciidoctor-maven-plugin}</version>
+          <configuration>
+            <sourceDirectory>src/main/asciidoc</sourceDirectory>
+            <attributes>
+              <icons>font</icons>
+              <pagenums/>
+              <version>${project.version}</version>
+              <idprefix/>
+              <idseparator>-</idseparator>
+              <allow-uri-read>true</allow-uri-read>
+            </attributes>
+            <logHandler>
+              <failIf>
+                <severity>DEBUG</severity>
+              </failIf>
+            </logHandler>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.eclipse.jkube</groupId>
+              <artifactId>kubernetes-maven-plugin-doc</artifactId>
+              <version>${project.version}</version>
+            </dependency>
+          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>
