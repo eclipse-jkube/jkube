@@ -1,0 +1,53 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version '1.5.0-SNAPSHOT'
+    id 'org.eclipse.jkube.openshift' version '1.5.0-SNAPSHOT'
+    id 'org.springframework.boot' version '2.5.2'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.quickstarts.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+
+kubernetes {
+    useColor = false
+    offline = false
+    access {
+        namespace = 'default'
+    }
+    enricher {
+        excludes = ['jkube-expose']
+    }
+    resources {
+        controllerName ='test'
+        configMap {
+            name = 'configMap-name'
+            entries = [
+                [name: 'test', value: 'value']
+            ]
+        }
+    }
+    images {
+        image2 { name = 'registry/image2:tag' }
+        image1 {
+            name = 'registry/image:tag'
+            build {
+                from = 'busybox'
+            }
+        }
+    }
+}
+
+openshift {
+    useColor = true
+    offline = true
+}
