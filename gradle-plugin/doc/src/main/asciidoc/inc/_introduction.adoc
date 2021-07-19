@@ -1,0 +1,11 @@
+
+[[introduction]]
+= Introduction
+
+The *{plugin}* brings your Gradle Java applications on to
+ifeval::["{task-prefix}" == "k8s"]
+http://kubernetes.io/[Kubernetes].
+endif::[]
+ifeval::["{task-prefix}" == "oc"]
+https://www.openshift.com/[OpenShift].
+endif::[]
