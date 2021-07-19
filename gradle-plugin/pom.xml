@@ -33,6 +33,7 @@
     <module>kubernetes</module>
     <module>openshift</module>
     <module>it</module>
+    <module>doc</module>
   </modules>
 
   <dependencyManagement>
@@ -46,6 +47,11 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${version.guava}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctorj</artifactId>
+        <version>${version.asciidoctor-maven-plugin}</version>
       </dependency>
 
       <dependency>
