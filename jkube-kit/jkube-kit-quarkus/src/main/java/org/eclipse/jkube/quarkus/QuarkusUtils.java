@@ -13,15 +13,18 @@
  */
 package org.eclipse.jkube.quarkus;
 
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-
 import java.io.File;
 import java.net.URLClassLoader;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+
+import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.stripPrefix;
 import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
@@ -31,21 +34,24 @@ import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlRe
 
 public class QuarkusUtils {
 
+  public static final String QUARKUS_GROUP_ID = "io.quarkus";
   private static final String QUARKUS_HTTP_PORT = "quarkus.http.port";
   private static final String QUARKUS_PACKAGE_RUNNER_SUFFIX = "quarkus.package.runner-suffix";
-  private static final String QUARKUS_UNIVERSE_BOM_GROUP_ID = "io.quarkus";
   private static final String QUARKUS_HTTP_ROOT_PATH = "quarkus.http.root-path";
   private static final String QUARKUS_HTTP_NON_APPLICATION_ROOT_PATH = "quarkus.http.non-application-root-path";
   private static final String QUARKUS_SMALLRYE_HEALTH_ROOT_PATH = "quarkus.smallrye-health.root-path";
+  private static final String QUARKUS_SMALLRYE_HEALTH_READINESS_PATH = "quarkus.smallrye-health.readiness-path";
   private static final String QUARKUS_SMALLRYE_HEALTH_LIVENESS_PATH = "quarkus.smallrye-health.liveness-path";
   private static final int QUARKUS_MAJOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE = 1;
   private static final int QUARKUS_MINOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE = 11;
   private static final int QUARKUS2_MAJOR_VERSION = 2;
   private static final int QUARKUS2_MINOR_VERSION = 0;
-  private static final String QUARKUS_DEFAULT_LIVENESS_SUBPATH = "live";
-  private static final String QUARKUS_DEFAULT_ROOT_PATH = "/";
-  private static final String QUARKUS_DEFAULT_HEALTH_PATH_BEFORE_2_0 = "health";
-  private static final String QUARKUS_DEFAULT_HEALTH_PATH_AFTER_2_0 = "q/health";
+  private static final String DEFAULT_ROOT_PATH = "/";
+  private static final String DEFAULT_NON_APPLICATION_ROOT_BEFORE_2_0 = "";
+  private static final String DEFAULT_NON_APPLICATION_ROOT_AFTER_2_0 = "q";
+  private static final String DEFAULT_HEALTH_ROOT_PATH = "health";
+  private static final String DEFAULT_READINESS_SUBPATH = "ready";
+  private static final String DEFAULT_LIVENESS_SUBPATH = "live";
 
   private QuarkusUtils() {}
 
@@ -104,89 +110,6 @@ public class QuarkusUtils {
     return project.getProperties();
   }
 
-  /**
-   * Get Quarkus version from checking quarkus-universe-bom artifactId in project dependencies
-   *
-   * @param javaProject {@link JavaProject} project for which version is queried
-   * @return an Optional String either containing quarkus version or empty optional
-   */
-  public static Optional<String> getQuarkusVersion(JavaProject javaProject) {
-    return Optional.ofNullable(JKubeProjectUtil.getAnyDependencyVersionWithGroupId(javaProject, QUARKUS_UNIVERSE_BOM_GROUP_ID));
-  }
-
-  /**
-   * Get Quarkus SmallRye Health root path by checking project properties
-   *
-   * @param javaProject {@link JavaProject} project for which health path is required
-   * @return a string containing fully qualified health root path
-   */
-  public static String resolveCompleteQuarkusHealthRootPath(JavaProject javaProject) {
-    String healthPath = resolveQuarkusHealthRootPath(javaProject);
-    Properties properties = getQuarkusConfiguration(javaProject);
-    String quarkusVersion = getQuarkusVersion(javaProject).orElse(null);
-    if (shouldUseAbsoluteHealthPaths(quarkusVersion, healthPath)) {
-      return healthPath;
-    }
-    return resolveCompleteQuarkusHealthRootPath(quarkusVersion, properties, healthPath);
-  }
-
-  /**
-   * Get Quarkus SmallRye Health liveliness path by checking project properties
-   *
-   * @param javaProject {@link JavaProject} project for which health liveliness path is required
-   * @return a string containing liveliness path(it may or may not be absolute path dependending on user configuration)
-   */
-  public static String resolveQuarkusLivelinessRootPath(JavaProject javaProject) {
-    Properties properties = getQuarkusConfiguration(javaProject);
-    Object livenessPath = properties.get(QUARKUS_SMALLRYE_HEALTH_LIVENESS_PATH);
-    return livenessPath != null ? livenessPath.toString() : QUARKUS_DEFAULT_LIVENESS_SUBPATH;
-  }
-
-  /**
-   * Check whether Quarkus version is at least provided version
-   *
-   * @param javaProject {@link JavaProject} Project for which version is being checked
-   * @param majorVersion minimum major version
-   * @param minorVersion minimum minor version
-   * @return a boolean value which satisfies given criteria
-   */
-  public static boolean isQuarkusVersionAtLeast(JavaProject javaProject, int majorVersion, int minorVersion) {
-    return getQuarkusVersion(javaProject)
-            .filter(s -> isQuarkusVersionAtLeast(majorVersion, minorVersion, s))
-            .isPresent();
-  }
-
-  /**
-   * Create final Health Check paths
-   *
-   * @param healthPath health path (usually configured via properties, defaults to health)
-   * @param subPath sub path for liveness/readiness endpoints
-   * @return string with full health check path
-   */
-  public static String createHealthCheckPath(String healthPath, String subPath) {
-    if (healthPath.equals("/")) {
-      return String.format("/%s", stripPrefix(subPath, "/"));
-    }
-    return String.format("/%s/%s", stripPrefix(healthPath, "/"), stripPrefix(subPath, "/"));
-  }
-
-  /**
-   * Since Quarkus 1.11.5.Final Quarkus considers leading slashes in health urls
-   * configured via properties. This method checks if Quarkus version is at least
-   * required version and returns a boolean value whether leading slash should
-   * be considered or not
-   *
-   * @param quarkusVersion Project quarkus version
-   * @param healthPath health path
-   * @return boolean value whether to use absolute health path or not.
-   */
-  public static boolean shouldUseAbsoluteHealthPaths(String quarkusVersion, String healthPath) {
-    if (isQuarkusVersionAtLeast(QUARKUS_MAJOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE, QUARKUS_MINOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE, quarkusVersion)) {
-      return isAbsolutePath(healthPath);
-    }
-    return false;
-  }
-
   private static Optional<String> getActiveProfile(JavaProject project) {
     return Optional.ofNullable(project)
         .map(JavaProject::getProperties)
@@ -194,63 +117,106 @@ public class QuarkusUtils {
         .map(Object::toString);
   }
 
-  private static String resolveQuarkusHealthRootPath(JavaProject javaProject) {
-    Properties properties = getQuarkusConfiguration(javaProject);
-    String quarkusVersion = getQuarkusVersion(javaProject).orElse(null);
-    Object healthPathObj = properties.get(QUARKUS_SMALLRYE_HEALTH_ROOT_PATH);
-    if (healthPathObj != null) {
-      return healthPathObj.toString();
-    }
-    return isQuarkusVersionAtLeast(QUARKUS2_MAJOR_VERSION, QUARKUS2_MINOR_VERSION, quarkusVersion) ?
-            QUARKUS_DEFAULT_HEALTH_PATH_AFTER_2_0 :
-            QUARKUS_DEFAULT_HEALTH_PATH_BEFORE_2_0;
+  /**
+   * Get Quarkus SmallRye Health readiness path from Quarkus configuration
+   *
+   * @param javaProject {@link JavaProject} project for which health readiness path is required
+   * @return a string containing the readiness path
+   */
+  public static String resolveQuarkusReadinessPath(JavaProject javaProject) {
+    return getQuarkusConfiguration(javaProject)
+        .getProperty(QUARKUS_SMALLRYE_HEALTH_READINESS_PATH, DEFAULT_READINESS_SUBPATH);
   }
 
-  private static String resolveCompleteQuarkusHealthRootPath(String quarkusVersion, Properties properties, String subPath) {
-    Object nonApplicationRootPath = properties.get(QUARKUS_HTTP_NON_APPLICATION_ROOT_PATH);
-    if (nonApplicationRootPath != null) {
-      return createCompleteHealthPathWithNonApplicationRootPath(quarkusVersion, properties, subPath, nonApplicationRootPath);
-    }
-    return createCompleteHealthPath(null, properties, subPath);
+  /**
+   * Get Quarkus SmallRye Health liveness path from Quarkus configuration
+   *
+   * @param javaProject {@link JavaProject} project for which health liveness path is required
+   * @return a string containing the liveness path
+   */
+  public static String resolveQuarkusLivenessPath(JavaProject javaProject) {
+    return getQuarkusConfiguration(javaProject)
+        .getProperty(QUARKUS_SMALLRYE_HEALTH_LIVENESS_PATH, DEFAULT_LIVENESS_SUBPATH);
   }
 
-  private static String createCompleteHealthPathWithNonApplicationRootPath(String quarkusVersion, Properties properties, String subPath, Object nonApplicationRootPath) {
-    if (shouldUseAbsoluteHealthPaths(quarkusVersion, nonApplicationRootPath.toString())) {
-      return String.format("/%s/%s", stripPrefix(nonApplicationRootPath.toString(), "/"), subPath);
-    }
-    return createCompleteHealthPath(nonApplicationRootPath.toString(), properties, subPath);
+  /**
+   * Since Quarkus 1.11.5.Final Quarkus considers leading slashes in configured application
+   * properties health paths as absolute urls.
+   * This method checks if Quarkus version is at least required version and returns a boolean value
+   * whether leading slash should be considered or not.
+   *
+   * @param quarkusVersion Quarkus version for the current Project
+   * @param healthPath health path
+   * @return boolean value whether to use absolute health path or not.
+   * @see <a href="https://quarkus.io/blog/path-resolution-in-quarkus/">https://quarkus.io/blog/path-resolution-in-quarkus/</a>
+   */
+  static boolean shouldUseAbsoluteHealthPaths(String quarkusVersion, String healthPath) {
+    return isVersionAtLeast(QUARKUS_MAJOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE,
+        QUARKUS_MINOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE, quarkusVersion)
+        && isAbsolutePath(healthPath);
   }
 
-  private static String createCompleteHealthPath(String nonApplicationRootPath, Properties properties, String subPath) {
-    Object applicationRootPathObj = properties.get(QUARKUS_HTTP_ROOT_PATH);
-    String applicationRootPath = applicationRootPathObj != null ? applicationRootPathObj.toString() : QUARKUS_DEFAULT_ROOT_PATH;
-
-    if (StringUtils.isNotBlank(nonApplicationRootPath)) {
-      return createHealthPathWithNonApplicationRootPath(applicationRootPath, nonApplicationRootPath, subPath);
+  /**
+   * Get Quarkus SmallRye Health root path by checking project properties
+   *
+   * @param javaProject {@link JavaProject} project for which health path is required
+   * @param subPath the applicable readiness/liveness subpath to append
+   * @return a string containing fully qualified health root path
+   */
+  public static String resolveCompleteQuarkusHealthRootPath(JavaProject javaProject, String subPath) {
+    final String quarkusVersion = findQuarkusVersion(javaProject);
+    final Properties quarkusProperties = getQuarkusConfiguration(javaProject);
+    final String healthRootPath = quarkusProperties.getProperty(QUARKUS_SMALLRYE_HEALTH_ROOT_PATH, DEFAULT_HEALTH_ROOT_PATH);
+    final String nonApplicationRootPath = resolveQuarkusNonApplicationRootPath(quarkusVersion, quarkusProperties);
+    final String rootPath = quarkusProperties.getProperty(QUARKUS_HTTP_ROOT_PATH, DEFAULT_ROOT_PATH);
+    String ret = "";
+    for (String component : new String[]{subPath, healthRootPath, nonApplicationRootPath, rootPath}) {
+      ret = concatPath(component, ret);
+      if (shouldUseAbsoluteHealthPaths(quarkusVersion, component)) {
+        return ret;
+      }
     }
-    return createHealthCheckPath(applicationRootPath, subPath);
+    return ret;
   }
 
-  private static String createHealthPathWithNonApplicationRootPath(String applicationRootPath, String nonApplicationRootPath, String subPath) {
-    if (applicationRootPath.equals("/")) {
-      return String.format("%s%s/%s", applicationRootPath, nonApplicationRootPath, subPath);
-    }
-    return String.format("/%s/%s/%s", stripPrefix(applicationRootPath, "/"), nonApplicationRootPath, subPath);
+  private static String resolveQuarkusNonApplicationRootPath(String quarkusVersion, Properties quarkusProperties) {
+    final String defaultValue = isVersionAtLeast(QUARKUS2_MAJOR_VERSION, QUARKUS2_MINOR_VERSION, quarkusVersion) ?
+        DEFAULT_NON_APPLICATION_ROOT_AFTER_2_0 : DEFAULT_NON_APPLICATION_ROOT_BEFORE_2_0;
+    return quarkusProperties.getProperty(QUARKUS_HTTP_NON_APPLICATION_ROOT_PATH, defaultValue);
   }
 
-  private static boolean isQuarkusVersionAtLeast(int majorVersion, int minorVersion, String quarkusVersion) {
-    if (StringUtils.isNotBlank(quarkusVersion)) {
-      String[] quarkusVersionParts = quarkusVersion.split("\\.");
-      int projectMajorVersion = Integer.parseInt(quarkusVersionParts[0]);
-      int projectMinorVersion = Integer.parseInt(quarkusVersionParts[1]);
+  public static String concatPath(String... paths) {
+    return "/" + Stream.of(paths)
+        .filter(StringUtils::isNotBlank)
+        .filter(path -> !"/".equals(path))
+        .map(path -> stripPrefix(path, "/"))
+        .collect(Collectors.joining("/"));
+  }
 
-      if (projectMajorVersion > majorVersion) {
+  static String findQuarkusVersion(JavaProject javaProject) {
+    return Optional.ofNullable(JKubeProjectUtil.getAnyDependencyVersionWithGroupId(javaProject, QUARKUS_GROUP_ID))
+        .orElse(null);
+  }
+
+  static boolean isVersionAtLeast(int majorVersion, int minorVersion, String version) {
+    if (StringUtils.isNotBlank(version) && version.contains(".")) {
+      final String[] versionParts = version.split("\\.");
+      final int parsedMajorVersion = parseInt(versionParts[0]);
+      if (parsedMajorVersion > majorVersion) {
         return true;
-      } else if (projectMajorVersion == majorVersion) {
-        return projectMinorVersion >= minorVersion;
+      } else if (parsedMajorVersion == majorVersion) {
+        return parseInt(versionParts[1]) >= minorVersion;
       }
     }
     return false;
+  }
+
+  private static int parseInt(String toParse) {
+    try {
+      return Integer.parseInt(toParse);
+    } catch (NumberFormatException ex) {
+      return -1;
+    }
   }
 
   private static boolean isAbsolutePath(String path) {

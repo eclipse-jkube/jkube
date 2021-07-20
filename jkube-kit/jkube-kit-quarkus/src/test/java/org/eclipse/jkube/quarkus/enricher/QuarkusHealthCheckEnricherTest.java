@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.quarkus.enricher;
 
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
@@ -20,6 +21,8 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import mockit.Expectations;
 import mockit.Mocked;
+import org.assertj.core.api.AbstractListAssert;
+import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -29,7 +32,9 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +52,7 @@ public class QuarkusHealthCheckEnricherTest {
   private ProcessorConfig processorConfig;
   private KubernetesListBuilder klb;
 
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   @Before
   public void setUp() {
     properties = new Properties();
@@ -70,27 +76,17 @@ public class QuarkusHealthCheckEnricherTest {
     new Expectations() {{
       context.getProperties(); result = properties;
       context.getConfiguration().getProcessorConfig(); result = processorConfig;
-      context.hasDependency("io.quarkus", "quarkus-smallrye-health"); result = true;
+      javaProject.getProperties(); result = properties; minTimes = 0;
+      javaProject.getOutputDirectory(); result = new File("/tmp/ignored"); minTimes = 0;
     }};
     // @formatter:on
   }
 
   @Test
-  public void createWithDefaultsInKubernetes() {
+  public void create_withCustomPath_shouldReturnCustomPath() {
     // Given
-    setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties("1.9.0.CR1", new Properties());
-    // When
-    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-    // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/ready"));
-  }
-
-  @Test
-  public void createWithCustomPathInKubernetes() {
-    // Given
+    withSmallryeDependency();
     properties.put("jkube.enricher.jkube-healthcheck-quarkus.path", "/my-custom-path");
-    setupJavaProjectWithOutputDirectory();
-    setupJavaProjectWithProperties(properties);
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
@@ -98,193 +94,197 @@ public class QuarkusHealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithDefaultQuarkusPost2_0PropertiesInKubernetes() {
+  public void create_withDefaultsAndQuarkus1_shouldReturnDefaults() {
     // Given
-    Properties properties = createHttpRootPathPropertiesWithValue("/", "q", "health", "liveness");
-    setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties("2.0.1.Final", properties);
-
+    withSmallryeDependency();
+    withQuarkus("1.9.0.CR1");
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-
-    // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/q/health/liveness", "HTTP", "/q/health/ready"));
-  }
-
-  @Test
-  public void createWithQuarkusPost2_0ChangedHttpRootPathInKubernetes() {
-    // Given
-    Properties properties = createHttpRootPathPropertiesWithValue("/root", "q", "health", "liveness");
-    setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties("2.0.1.Final", properties);
-
-    // When
-    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-
-    // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/root/q/health/liveness", "HTTP", "/root/q/health/ready"));
-  }
-
-  @Test
-  public void createWithQuarkusPost2_0AbsoluteNonApplicationRootPathInKubernetes() {
-    // Given
-    Properties properties = createHttpRootPathPropertiesWithValue("/root", "/q", "health", "liveness");
-    setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties("2.0.1.Final", properties);
-
-    // When
-    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-
-    // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/q/health/liveness", "HTTP", "/q/health/ready"));
-  }
-
-  @Test
-  public void createWithQuarkusPost2_0AbsoluteNonApplicationRootPathAndLivenessInKubernetes() {
-    // Given
-    Properties properties = createHttpRootPathPropertiesWithValue("/root", "/q", "health", "/liveness");
-    setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties("2.0.0.Final", properties);
-
-    // When
-    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-
-    // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/liveness", "HTTP", "/q/health/ready"));
-  }
-
-  @Test
-  public void createWithQuarkusPost2_0AbsoluteHealthPathInKubernetes() {
-    // Given
-    Properties properties = createHttpRootPathPropertiesWithValue("/root", "q", "/health", "liveness");
-    setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties("2.0.0.Final", properties);
-
-    // When
-    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-
-    // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/health/liveness", "HTTP", "/health/ready"));
-  }
-
-  @Test
-  public void createWithQuarkusPost2_0NonApplicationRootPathRemovedInKubernetes() {
-    // Given
-    Properties properties = createHttpRootPathPropertiesWithValue("/root", "/root", "health", "liveness");
-    setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties("2.0.0.Final", properties);
-
-    // When
-    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-
-    // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/root/health/liveness", "HTTP", "/root/health/ready"));
-  }
-
-  @Test
-  public void createWithQuarkusPre2_0InKubernetes() {
-    // Given
-    Properties properties = createHttpRootPathPropertiesWithValue("/", null, "/health", "live");
-    setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties("1.10.5.Final", properties);
-    // When
-    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-
     // Then
     assertLivenessReadinessProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/ready"));
   }
 
   @Test
-  public void createWithQuarkusPre2_0InKubernetesWithRootPathInProperties() {
+  public void create_withDefaultsAndQuarkus2_shouldReturnPrefixedDefaults() {
     // Given
-    Properties properties = createHttpRootPathPropertiesWithValue("/root", null, "/robot", "livenessapp");
-    setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties("1.10.5.Final", properties);
+    withSmallryeDependency();
+    withQuarkus("2.0.1.1.Final");
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/root/robot/livenessapp", "HTTP", "/root/robot/ready"));
+    assertLivenessReadinessProbes(klb, tuple("HTTP", "/q/health/live", "HTTP", "/q/health/ready"));
   }
 
   @Test
-  public void createWithQuarkusPost1_11InKubernetesWithAbsoluteNonApplicationRootPath() {
+  public void create_withQuarkus2AndApplicationProperties_shouldReturnCustomizedPaths() {
     // Given
-    Properties properties = createHttpRootPathPropertiesWithValue("/root", "/q", "health", "liveness");
-    setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties("1.13.7.Final", properties);
+    withSmallryeDependency();
+    withQuarkus("2.0.1.Final");
+    properties.put("quarkus.http.root-path", "/");
+    properties.put("quarkus.http.non-application-root-path", "not-app");
+    properties.put("quarkus.smallrye-health.root-path", "health");
+    properties.put("quarkus.smallrye-health.readiness-path", "im-ready");
+    properties.put("quarkus.smallrye-health.liveness-path", "im-alive");
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/q/health/liveness", "HTTP", "/q/health/ready"));
+    assertLivenessReadinessProbes(klb, tuple("HTTP", "/not-app/health/im-alive", "HTTP", "/not-app/health/im-ready"));
   }
 
   @Test
-  public void createWithNoQuarkusDependency() {
+  public void create_withQuarkus2AndCustomRootProperty_shouldReturnCustomizedPaths() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      context.hasDependency("io.quarkus", "quarkus-smallrye-health"); result = false;
-    }};
-    // @formatter:on
+    withSmallryeDependency();
+    withQuarkus("2.0.0.Final");
+    properties.put("quarkus.http.root-path", "/root");
+    properties.put("quarkus.http.non-application-root-path", "q");
+    properties.put("quarkus.smallrye-health.root-path", "health");
+    properties.put("quarkus.smallrye-health.liveness-path", "liveness");
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(klb.build().getItems())
-        .hasSize(1)
-        .extracting("spec", DeploymentSpec.class)
-        .extracting("template", PodTemplateSpec.class)
-        .extracting("spec", PodSpec.class)
-        .flatExtracting(PodSpec::getContainers)
+    assertLivenessReadinessProbes(klb, tuple("HTTP", "/root/q/health/liveness", "HTTP", "/root/q/health/ready"));
+  }
+
+  @Test
+  public void create_withQuarkus2AndAbsoluteNonApplicationRootPathProperty_shouldReturnCustomizedPaths() {
+    // Given
+    withSmallryeDependency();
+    withQuarkus("2.1.3.7.Final");
+    properties.put("quarkus.http.root-path", "/ignored-for-health");
+    properties.put("quarkus.http.non-application-root-path", "/absolute");
+    properties.put("quarkus.smallrye-health.root-path", "health");
+    properties.put("quarkus.smallrye-health.liveness-path", "liveness");
+    // When
+    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertLivenessReadinessProbes(klb, tuple("HTTP", "/absolute/health/liveness", "HTTP", "/absolute/health/ready"));
+  }
+
+  @Test
+  public void create_withQuarkus3AndAbsoluteLivenessPathProperty_shouldReturnAbsoluteCustomizedPaths() {
+    // Given
+    withSmallryeDependency();
+    withQuarkus("3.1337.3.Final");
+    properties.put("quarkus.smallrye-health.liveness-path", "/absolute/liveness");
+    // When
+    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertLivenessReadinessProbes(klb, tuple("HTTP", "/absolute/liveness", "HTTP", "/q/health/ready"));
+  }
+
+  @Test
+  public void create_withQuarkus3AndAbsoluteReadinessPathProperty_shouldReturnAbsoluteCustomizedPaths() {
+    // Given
+    withSmallryeDependency();
+    withQuarkus("3.1337.3.Final");
+    properties.put("quarkus.smallrye-health.readiness-path", "/absolute/readiness");
+    // When
+    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertLivenessReadinessProbes(klb, tuple("HTTP", "/q/health/live", "HTTP", "/absolute/readiness"));
+  }
+
+  @Test
+  public void create_withQuarkus1_0AndAbsoluteLivenessPathProperty_shouldIgnoreLeadingSlash() {
+    // Given
+    withSmallryeDependency();
+    withQuarkus("1.0.0.Final");
+    properties.put("quarkus.smallrye-health.liveness-path", "/absolute/liveness");
+    // When
+    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertLivenessReadinessProbes(klb, tuple("HTTP", "/health/absolute/liveness", "HTTP", "/health/ready"));
+  }
+
+  @Test
+  public void create_withQuarkus1_0AndAbsoluteReadinessPathProperty_shouldIgnoreLeadingSlash() {
+    // Given
+    withSmallryeDependency();
+    withQuarkus("1.0.0.Final");
+    properties.put("quarkus.smallrye-health.readiness-path", "/absolute/readiness");
+    // When
+    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertLivenessReadinessProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/absolute/readiness"));
+  }
+
+  @Test
+  public void create_withQuarkus2AndAbsoluteHealthPathProperty_shouldReturnCustomizedPaths() {
+    // Given
+    withSmallryeDependency();
+    withQuarkus("2.0.0.Final");
+    properties.put("quarkus.http.root-path", "/ignored-for-health");
+    properties.put("quarkus.http.non-application-root-path", "/ignored-for-health");
+    properties.put("quarkus.smallrye-health.root-path", "/absolute/health");
+    // When
+    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertLivenessReadinessProbes(klb, tuple("HTTP", "/absolute/health/live", "HTTP", "/absolute/health/ready"));
+  }
+
+  @Test
+  public void create_withQuarkus1_0AndAbsoluteHealthPathProperty_shouldIgnoreLeadingSlash() {
+    // Given
+    withSmallryeDependency();
+    withQuarkus("1.1.0.Final");
+    properties.put("quarkus.http.non-application-root-path", "/not-ignored");
+    properties.put("quarkus.smallrye-health.root-path", "/absolute");
+    // When
+    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertLivenessReadinessProbes(klb, tuple("HTTP", "/not-ignored/absolute/live", "HTTP", "/not-ignored/absolute/ready"));
+  }
+
+  @Test
+  public void create_withNoSmallrye_shouldNotAddProbes() {
+    // When
+    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertContainers(klb)
         .extracting(
             "livenessProbe", "readinessProbe")
         .containsExactly(tuple(null, null));
   }
 
+  private AbstractListAssert<?, List<? extends Container>, Container, ObjectAssert<Container>> assertContainers(
+      KubernetesListBuilder kubernetesListBuilder) {
+    return assertThat(kubernetesListBuilder.build().getItems())
+        .hasSize(1)
+        .extracting("spec", DeploymentSpec.class)
+        .extracting("template", PodTemplateSpec.class)
+        .extracting("spec", PodSpec.class)
+        .flatExtracting(PodSpec::getContainers);
+  }
+
   private void assertLivenessReadinessProbes(KubernetesListBuilder kubernetesListBuilder, Tuple... values) {
-    assertThat(kubernetesListBuilder.build().getItems())
-            .hasSize(1)
-            .extracting("spec", DeploymentSpec.class)
-            .extracting("template", PodTemplateSpec.class)
-            .extracting("spec", PodSpec.class)
-            .flatExtracting(PodSpec::getContainers)
+    assertContainers(kubernetesListBuilder)
             .extracting(
                     "livenessProbe.httpGet.scheme", "livenessProbe.httpGet.path",
                     "readinessProbe.httpGet.scheme", "readinessProbe.httpGet.path")
             .containsExactly(values);
   }
 
-  private Properties createHttpRootPathPropertiesWithValue(String rootPath, String nonApplicationRootPath, String healthRootPath, String livenessPath) {
-    Properties properties = new Properties();
-    properties.put("quarkus.http.root-path", rootPath);
-    if (nonApplicationRootPath != null) {
-      properties.put("quarkus.http.non-application-root-path", nonApplicationRootPath);
-    }
-    properties.put("quarkus.smallrye-health.root-path", healthRootPath);
-    properties.put("quarkus.smallrye-health.liveness-path", livenessPath);
-    return properties;
-  }
-
-  private void setupJavaProjectWithOutputDirectoryQuarkusVersionAndProperties(String version, Properties properties) {
-    setupJavaProjectWithOutputDirectory();
-    setupJavaProjectWithQuarkusVersion(version);
-    setupJavaProjectWithProperties(properties);
-  }
-
-  private void setupJavaProjectWithProperties(Properties mockProperties) {
-    new Expectations() {{
-      javaProject.getProperties();
-      result = mockProperties;
-    }};
-  }
-
-  private void setupJavaProjectWithQuarkusVersion(String quarkusVersion) {
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  private void withQuarkus(String version) {
+    // @formatter:off
     new Expectations() {{
       javaProject.getDependencies();
       result = Collections.singletonList(Dependency.builder()
               .groupId("io.quarkus")
               .artifactId("quarkus-universe-bom")
-              .version(quarkusVersion)
+              .version(version)
               .build());
     }};
+    // @formatter:on
   }
 
-  private void setupJavaProjectWithOutputDirectory() {
+  private void withSmallryeDependency() {
+    // @formatter:off
     new Expectations() {{
-      javaProject.getOutputDirectory().getAbsolutePath();
-      result = "/tmp/foo/target/classes";
+      context.hasDependency("io.quarkus", "quarkus-smallrye-health"); result = true;
     }};
+    // @formatter:on
   }
+
 }

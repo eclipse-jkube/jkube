@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.Dependency;
@@ -30,13 +29,13 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.createHealthCheckPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.findQuarkusVersion;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusVersion;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.isQuarkusVersionAtLeast;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.isVersionAtLeast;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivelinessRootPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivenessPath;
 
 public class QuarkusUtilsTest {
 
@@ -155,29 +154,23 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void getQuarkusVersion_noDependency_shouldReturnEmpty() {
+  public void findQuarkusVersion_noDependency_shouldReturnEmpty() {
     // Given
     javaProject.setDependencies(Collections.emptyList());
-
     // When
-    Optional<String> versionOptional = getQuarkusVersion(javaProject);
-
+    final String result = findQuarkusVersion(javaProject);
     // Then
-    assertThat(versionOptional).isEmpty();
+    assertThat(result).isNull();
   }
 
   @Test
-  public void getQuarkusVersion_withQuarkusUniverseDepdendency_shouldReturnValidVersion() {
+  public void findQuarkusVersion_withQuarkusUniverseDependency_shouldReturnValidVersion() {
     // Given
     javaProject.setDependencies(quarkusDependencyWithVersion("2.0.1.Final"));
-
     // When
-    Optional<String> versionOptional = getQuarkusVersion(javaProject);
-
+    final String result = findQuarkusVersion(javaProject);
     // Then
-    assertThat(versionOptional)
-            .isPresent()
-            .get().isEqualTo("2.0.1.Final");
+    assertThat(result).isEqualTo("2.0.1.Final");
   }
 
   @Test
@@ -190,7 +183,7 @@ public class QuarkusUtilsTest {
     javaProject.setProperties(properties);
 
     // When
-    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject, "");
 
     // Then
     assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/q/health");
@@ -205,7 +198,7 @@ public class QuarkusUtilsTest {
     javaProject.setDependencies(quarkusDependencyWithVersion("1.13.7.Final"));
 
     // When
-    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject, "");
 
     // Then
     assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/health");
@@ -221,7 +214,7 @@ public class QuarkusUtilsTest {
     javaProject.setDependencies(quarkusDependencyWithVersion("1.10.5.Final"));
 
     // When
-    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject, "");
 
     // Then
     assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/root/health");
@@ -237,7 +230,7 @@ public class QuarkusUtilsTest {
     javaProject.setDependencies(quarkusDependencyWithVersion("1.13.7.Final"));
 
     // When
-    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject, "");
 
     // Then
     assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/health");
@@ -253,7 +246,7 @@ public class QuarkusUtilsTest {
     javaProject.setDependencies(quarkusDependencyWithVersion("1.13.7.Final"));
 
     // When
-    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject, "");
 
     // Then
     assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/q/health");
@@ -270,42 +263,64 @@ public class QuarkusUtilsTest {
     javaProject.setDependencies(quarkusDependencyWithVersion("1.13.7.Final"));
 
     // When
-    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject);
+    String resolvedHealthPath = resolveCompleteQuarkusHealthRootPath(javaProject, "");
 
     // Then
     assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("/q/health");
   }
 
   @Test
-  public void resolveQuarkusLivelinessRootPath_withLivenessPathSet_shouldReturnValidPath() {
+  public void resolveQuarkusLivenessPath_withLivenessPathSet_shouldReturnValidPath() {
     // Given
     Properties properties = new Properties();
     properties.setProperty("quarkus.smallrye-health.liveness-path", "liveness");
     javaProject.setProperties(properties);
 
     // When
-    String resolvedHealthPath = resolveQuarkusLivelinessRootPath(javaProject);
+    String resolvedHealthPath = resolveQuarkusLivenessPath(javaProject);
 
     // Then
     assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("liveness");
   }
 
   @Test
-  public void testIsQuarkusVersionAtLeast() {
-    // Given
-    javaProject.setDependencies(quarkusDependencyWithVersion("1.13.7.Final"));
-
-    // When + Then
-    assertThat(isQuarkusVersionAtLeast(javaProject, 1, 13)).isTrue();
-    assertThat(isQuarkusVersionAtLeast(javaProject, 2, 0)).isFalse();
-    assertThat(isQuarkusVersionAtLeast(javaProject, 1, 11)).isTrue();
-    assertThat(isQuarkusVersionAtLeast(javaProject, 1, 12)).isTrue();
+  public void isVersionAtLeast_withLargerMajorVersion_shouldBeFalse() {
+    assertThat(isVersionAtLeast(2, 1, "1.13.7.Final")).isFalse();
   }
 
   @Test
-  public void testCreateHealthCheckPath() {
-    assertThat(createHealthCheckPath("/", "liveness")).isEqualTo("/liveness");
-    assertThat(createHealthCheckPath("/root", "liveness")).isEqualTo("/root/liveness");
+  public void isVersionAtLeast_withSameMajorAndLargerMinorVersion_shouldBeFalse() {
+    assertThat(isVersionAtLeast(1, 14, "1.13.7.Final")).isFalse();
+  }
+
+  @Test
+  public void isVersionAtLeast_withSameMajorAndMinorVersion_shouldBeTrue() {
+    assertThat(isVersionAtLeast(1, 13, "1.13.7.Final")).isTrue();
+  }
+
+  @Test
+  public void isVersionAtLeast_withSameMajorAndSmallerMinorVersion_shouldBeTrue() {
+    assertThat(isVersionAtLeast(1, 12, "1.13.7.Final")).isTrue();
+  }
+
+  @Test
+  public void isVersionAtLeast_withSmallerMajorMinorVersion_shouldBeTrue() {
+    assertThat(isVersionAtLeast(0, 12, "1.13.7.Final")).isTrue();
+  }
+
+  @Test
+  public void isVersionAtLeast_withSmallerMajorAndIncompleteVersion_shouldBeTrue() {
+    assertThat(isVersionAtLeast(0, 12, "1.Final")).isTrue();
+  }
+
+  @Test
+  public void concatPath_withEmptyRootAndPrefixed() {
+    assertThat(concatPath("/", "/liveness")).isEqualTo("/liveness");
+  }
+
+  @Test
+  public void concatPath_withRootAndFiltered() {
+    assertThat(concatPath("/root", null, "/", "q", "liveness")).isEqualTo("/root/q/liveness");
   }
 
   private List<Dependency> quarkusDependencyWithVersion(String version) {
