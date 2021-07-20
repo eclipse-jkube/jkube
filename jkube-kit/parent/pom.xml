@@ -71,7 +71,7 @@
     <version.slf4j-api>1.7.25</version.slf4j-api>
     <version.snakeyaml>1.28</version.snakeyaml>
     <version.validation-api>2.0.1.Final</version.validation-api>
-    <version.vertx-infinispan>3.4.2</version.vertx-infinispan>
+    <version.vertx-infinispan>4.1.2</version.vertx-infinispan>
     <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
 
     <!-- =======================================================  -->
