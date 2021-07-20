@@ -2,7 +2,7 @@
 ==== jkube-healthcheck-quarkus
 
 This enricher adds kubernetes readiness and liveness probes with Quarkus. This requires the following dependency
-has been enabled in your Quarkus project:
+to be added to your Quarkus project:
 
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
@@ -12,14 +12,15 @@ has been enabled in your Quarkus project:
 </dependency>
 ----
 
-The enricher will try to discover the settings from the `application.properties` / `application.yaml` configuration file. These properties are looked up for resolving health check URLs:
+The enricher will try to discover the settings from the `application.properties` / `application.yaml`
+configuration file. JKube uses the following properties to resolve the health check URLs:
 
 * `quarkus.http.root-path`: Quarkus Application root path.
-* `quarkus.http.non-application-root-path`: This flag got introduced in recent versions of Quarkus(2.x) for non application endpoints.
+* `quarkus.http.non-application-root-path`: This property got introduced in recent versions of Quarkus(2.x) for non application endpoints.
 * `quarkus.smallrye-health.root-path`: The location of the all-encompassing health endpoint.
 * `quarkus.smallrye-health.liveness-path`: The location of the liveness endpoint.
 
-**Note**: Please note that behavior of these properties seem to have changed since Quarkus 1.11.x versions(e.g for health and liveness paths leading slashes are now being considered). `{plugin}` would also check quarkus version along with value of these properties in order to resolve effective health endpoints.
+**Note**: Please note that behavior of these properties seem to have changed since Quarkus 1.11.x versions (e.g for health and liveness paths leading slashes are now being considered). `{plugin}` would also check quarkus version along with value of these properties in order to resolve effective health endpoints.
 
 You can read more about these flags in https://quarkus.io/guides/smallrye-health[Quarkus Documentation].
 
@@ -39,16 +40,6 @@ These values can be configured by the enricher in the `{plugin}` configuration a
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>{plugin}</artifactId>
         <version>{version}</version>
-        <executions>
-          <execution>
-            <id>jkube</id>
-            <goals>
-              <goal>resource</goal>
-              <goal>helm</goal>
-              <goal>build</goal>
-            </goals>
-          </execution>
-        </executions>
         <configuration>
           <enricher>
             <config>

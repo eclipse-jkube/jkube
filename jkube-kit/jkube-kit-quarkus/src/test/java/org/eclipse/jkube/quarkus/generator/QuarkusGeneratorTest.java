@@ -26,6 +26,7 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
@@ -90,6 +91,31 @@ public class QuarkusGeneratorTest {
       defaultImageLookup.getImageName("java.upstream.s2i"); result = "quarkus/s2i";
     }};
     // @formatter:on
+  }
+
+  @Test
+  public void isApplicable_withNoDependencies_shouldReturnFalse() {
+    // When
+    final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void isApplicable_withDependency_shouldReturnTrue() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
+          .groupId("io.quarkus")
+          .artifactId("quarkus-maven-plugin")
+          .build());
+    }};
+    // @formatter:on
+    // When
+    final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
+    // Then
+    assertThat(result).isTrue();
   }
 
   @Test
