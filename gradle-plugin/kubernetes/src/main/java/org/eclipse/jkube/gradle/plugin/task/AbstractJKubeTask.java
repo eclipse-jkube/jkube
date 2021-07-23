@@ -15,22 +15,25 @@ package org.eclipse.jkube.gradle.plugin.task;
 
 import java.util.Collections;
 
+import org.eclipse.jkube.gradle.plugin.GradleLogger;
 import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.Slf4jKitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 
 import static org.eclipse.jkube.gradle.plugin.KubernetesExtension.DEFAULT_OFFLINE;
 
 public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask {
+
+  private static final String DEFAULT_LOG_PREFIX = "k8s: ";
 
   private final KubernetesExtension kubernetesExtension;
   protected JavaProject javaProject;
@@ -45,10 +48,15 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
   @TaskAction
   public final void runTask() {
     javaProject = GradleUtil.convertGradleProject(getProject());
-    kitLogger = new Slf4jKitLogger(getLogger());
+    kitLogger = new GradleLogger(getLogger(), getLogPrefix());
     clusterAccess = new ClusterAccess(kitLogger, initClusterConfiguration());
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     run();
+  }
+
+  @Internal
+  protected String getLogPrefix() {
+    return DEFAULT_LOG_PREFIX;
   }
 
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
@@ -67,5 +75,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
     return ClusterConfiguration.from(kubernetesExtension.access,
         System.getProperties(), javaProject.getProperties()).build();
   }
+
 
 }
