@@ -40,7 +40,7 @@ public abstract class ExternalCommand {
 
     private int statusCode;
 
-    public ExternalCommand(KitLogger log) {
+    protected ExternalCommand(KitLogger log) {
         this.log = log;
     }
 
