@@ -24,8 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LazyBuilderTest {
 
@@ -41,8 +40,8 @@ public class LazyBuilderTest {
     // When
     final int result = IntStream.rangeClosed(1, 10).map(t -> lazyBuilder.get()).sum();
     // Then
-    assertThat(result, is(10));
-    assertThat(count.get(), is(1));
+    assertThat(result).isEqualTo(10);
+    assertThat(count.get()).isEqualTo(1);
   }
 
   @Test
@@ -66,8 +65,8 @@ public class LazyBuilderTest {
     final int result = IntStream.rangeClosed(1, 10).map(t -> lazyBuilder.get()).sum();
     cdl.countDown();
     // Then
-    assertThat(count.get(), is(2));
-    assertThat(result, is(10));
-    assertThat(concurrentResult.get(100, TimeUnit.MILLISECONDS), is(1));
+    assertThat(count.get()).isEqualTo(2);
+    assertThat(result).isEqualTo(10);
+    assertThat(concurrentResult.get(100, TimeUnit.MILLISECONDS)).isEqualTo(1);
   }
 }
