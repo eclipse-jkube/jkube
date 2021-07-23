@@ -28,6 +28,7 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
 
   @Override
   public void run() {
+    kitLogger.info("TODO: We need to implement this");
     throw new UnsupportedOperationException("To be implemented");
   }
 }
