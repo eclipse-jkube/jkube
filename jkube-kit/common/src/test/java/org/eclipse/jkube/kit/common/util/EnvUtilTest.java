@@ -13,6 +13,15 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.loadTimestamp;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -25,29 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.common.SystemMock;
-
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
+import org.eclipse.jkube.kit.common.SystemMock;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.loadTimestamp;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
 
 
 public class EnvUtilTest {
@@ -59,7 +51,7 @@ public class EnvUtilTest {
         // When
         String result1 = EnvUtil.convertTcpToHttpUrl(urlWithHttpsPort);
         // Then
-        assertEquals("https://0.0.0.0:2376", result1);
+        assertThat(result1).isEqualTo("https://0.0.0.0:2376");
     }
 
     @Test
@@ -69,7 +61,7 @@ public class EnvUtilTest {
         // When
         String result2 = EnvUtil.convertTcpToHttpUrl(urlWithHttpPort);
         // Then
-        assertEquals("http://0.0.0.0:2375", result2);
+        assertThat(result2).isEqualTo("http://0.0.0.0:2375");
     }
 
     @Test
@@ -79,12 +71,12 @@ public class EnvUtilTest {
         // When
         String result = EnvUtil.convertTcpToHttpUrl(url);
         // Then
-        assertEquals("https://127.0.0.1:32770", result);
+        assertThat(result).isEqualTo("https://127.0.0.1:32770");
     }
 
     @Test
     public void testExtractLargerVersionWhenBothNull(){
-        assertNull(EnvUtil.extractLargerVersion(null,null));
+        assertThat(EnvUtil.extractLargerVersion(null,null)).isNull();
     }
     @Test
     public void testExtractLargerVersionWhenBIsNull() {
@@ -93,7 +85,7 @@ public class EnvUtilTest {
         //When
         String result = EnvUtil.extractLargerVersion(versionA,null);
         //Then
-        assertEquals( versionA, result);
+        assertThat(versionA).isEqualTo(result);
     }
     @Test
     public void testExtractLargerVersionWhenAIsNull() {
@@ -102,7 +94,7 @@ public class EnvUtilTest {
         //When
         String result = EnvUtil.extractLargerVersion(null,versionB);
         //Then
-        assertEquals( versionB, result);
+        assertThat(versionB).isEqualTo(result);
     }
 
     @Test
@@ -111,7 +103,7 @@ public class EnvUtilTest {
         //When
         String result = EnvUtil.extractLargerVersion("4.0.0.1","4.0.0");
         //Then
-        assertEquals("4.0.0.1",result);
+        assertThat(result).isEqualTo("4.0.0.1");
     }
 
     @Test
@@ -122,7 +114,7 @@ public class EnvUtilTest {
         //When
         boolean result1 = EnvUtil.greaterOrEqualsVersion(versionA,versionB);
         //Then
-        assertTrue(result1);
+        assertThat(result1).isTrue();
     }
 
     @Test
@@ -132,7 +124,7 @@ public class EnvUtilTest {
         //When
         boolean result2 = EnvUtil.greaterOrEqualsVersion("4.0.2", versionA);
         //Then
-        assertTrue(result2);
+        assertThat(result2).isTrue();
     }
 
 
@@ -144,7 +136,7 @@ public class EnvUtilTest {
         //When
         boolean result3 = EnvUtil.greaterOrEqualsVersion(versionB,versionA);
         //Then
-        assertFalse(result3);
+        assertThat(result3).isFalse();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -157,7 +149,7 @@ public class EnvUtilTest {
         //When
         String result = EnvUtil.extractLargerVersion(versionA, versionB);
         //Then
-        fail();
+        fail("Exception should have thrown");
     }
 
     @Test
@@ -167,9 +159,9 @@ public class EnvUtilTest {
         // When
         List<String[]> result1 = EnvUtil.splitOnLastColon(list1);
         // Then
-        assertEquals(1, result1.size());
-        assertEquals(2,result1.get(0).length);
-        assertArrayEquals(new String[]{"element1", "element2"}, result1.get(0));
+        assertThat(result1).hasSize(1);
+        assertThat(result1.get(0)).hasSize(2);
+        assertThat(result1.get(0)).isEqualTo(new String[]{"element1", "element2"});
     }
 
     @Test
@@ -179,7 +171,7 @@ public class EnvUtilTest {
         // When
         List<String[]> result2 = EnvUtil.splitOnLastColon(list2);
         // Then
-        assertTrue(result2.isEmpty());
+        assertThat(result2).isEmpty();
     }
 
     @Test
@@ -192,7 +184,7 @@ public class EnvUtilTest {
         //When
         List<String>  result1 = EnvUtil.removeEmptyEntries(string1);
         //Then
-        assertArrayEquals( new String[]{"set", "set2"} ,result1.toArray());
+        assertThat(result1.toArray()).isEqualTo(new String[]{"set", "set2"});
     }
 
     @Test
@@ -203,7 +195,7 @@ public class EnvUtilTest {
         //When
         List<String>  result2 = EnvUtil.removeEmptyEntries(string2);
         //Then
-        assertTrue(result2.isEmpty());
+        assertThat(result2).isEmpty();
     }
 
 
@@ -214,8 +206,8 @@ public class EnvUtilTest {
         //When
         List<String> result1 = EnvUtil.splitAtCommasAndTrim(strings1);
         //Then
-        assertEquals(2,result1.size());
-        assertEquals("world", result1.get(1));
+        assertThat(result1.size()).isEqualTo(2);
+        assertThat(result1.get(1)).isEqualTo("world");
     }
 
     @Test
@@ -225,7 +217,7 @@ public class EnvUtilTest {
         //When
         List<String> result2 = EnvUtil.splitAtCommasAndTrim(strings2);
         //Then
-        assertTrue(result2.isEmpty());
+        assertThat(result2).isEmpty();
     }
 
     @Test
@@ -241,9 +233,9 @@ public class EnvUtilTest {
         //When
         List<String> result = EnvUtil.extractFromPropertiesAsList(string,properties);
         //Then
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertArrayEquals(new String[]{"valu", "value"}, result.toArray());
+        assertThat(result).isNotNull();
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.toArray()).isEqualTo(new String[]{"valu", "value"});
     }
 
     @Test
@@ -259,56 +251,64 @@ public class EnvUtilTest {
         //when
         Map<String, String> result = EnvUtil.extractFromPropertiesAsMap(prefix,properties);
         //Then
-        assertNotNull(result);
-        assertEquals(2 ,result.size());
-        assertEquals("value",result.get("name"));
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(2);
+        assertThat(result).containsEntry("name", "value");
     }
 
     @Test
     public void testFormatDurationTill() {
         long startTime = System.currentTimeMillis() - 200L;
-        assertTrue(EnvUtil.formatDurationTill(startTime).contains("milliseconds"));
+        assertThat(EnvUtil.formatDurationTill(startTime)).contains("milliseconds");
     }
 
     @Test
     public void testFormatDurationTillHoursMinutesAndSeconds() {
         long startTime = System.currentTimeMillis() - (60*60*1000 + 60*1000 + 1000);
         String formattedDuration = EnvUtil.formatDurationTill(startTime);
-        assertTrue(formattedDuration.contains("1 hour, 1 minute and 1 second"));
+        assertThat(formattedDuration).contains("1 hour, 1 minute and 1 second");
     }
 
     @Test
     public void testFirstRegistryOf() {
-        assertEquals("quay.io", firstRegistryOf("quay.io", "docker.io", "registry.access.redhat.io"));
-        assertEquals("registry.access.redhat.io", firstRegistryOf(null, null, "registry.access.redhat.io"));
+        assertThat(firstRegistryOf("quay.io", "docker.io", "registry.access.redhat.io")).isEqualTo("quay.io");
+        assertThat(firstRegistryOf(null, null, "registry.access.redhat.io")).isEqualTo("registry.access.redhat.io");
     }
 
     @Test
     public void testPrepareAbsolutePath() {
         assumeFalse(isWindows());
-        assertEquals("test-project/target/testDir/bar",EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "bar").getPath());
-        assertEquals("/home/redhat/jkube",EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "/home/redhat/jkube").getPath());
+        assertThat(EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "bar").getPath())
+                .isEqualTo("test-project/target/testDir/bar");
+        assertThat(EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "/home/redhat/jkube").getPath())
+                .isEqualTo("/home/redhat/jkube");
     }
 
     @Test
     public void testPrepareAbsolutePathWindows() {
         assumeTrue(isWindows());
-        assertEquals("test-project\\target\\testDir\\bar", EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "bar").getPath());
-        assertEquals("C:\\users\\redhat\\jkube", EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "C:\\users\\redhat\\jkube").getPath());
+        assertThat( EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "bar").getPath())
+                .isEqualTo("test-project\\target\\testDir\\bar");
+        assertThat(EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "C:\\users\\redhat\\jkube").getPath())
+                .isEqualTo("C:\\users\\redhat\\jkube");
     }
 
     @Test
     public void testPrepareAbsoluteSourceDirPath() {
         assumeFalse(isWindows());
-        assertEquals("test-project/target/testDir",EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "testDir").getPath());
-        assertEquals("/home/redhat/jkube",EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "/home/redhat/jkube").getPath());
+        assertThat(EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "testDir").getPath())
+                .isEqualTo("test-project/target/testDir");
+        assertThat(EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "/home/redhat/jkube").getPath())
+                .isEqualTo("/home/redhat/jkube");
     }
 
     @Test
     public void testPrepareAbsoluteSourceDirPathWindows() {
         assumeTrue(isWindows());
-        assertEquals("test-project\\target\\testDir", EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "testDir").getPath());
-        assertEquals("C:\\users\\redhat\\jkube", EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "C:\\users\\redhat\\jkube").getPath());
+        assertThat(EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "testDir").getPath())
+                .isEqualTo("test-project\\target\\testDir");
+        assertThat(EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "C:\\users\\redhat\\jkube").getPath())
+                .isEqualTo("C:\\users\\redhat\\jkube");
     }
 
     @Test
@@ -321,13 +321,13 @@ public class EnvUtilTest {
         //When
         String result = EnvUtil.stringJoin(list,separator);
         //Then
-        assertEquals("element1,element2",result);
+        assertThat(result).isEqualTo("element1,element2");
     }
 
     @Test
     public void testExtractMavenPropertyName() {
-        assertEquals("project.baseDir", EnvUtil.extractMavenPropertyName("${project.baseDir}"));
-        assertNull(EnvUtil.extractMavenPropertyName("roject.notbaseDi"));
+        assertThat(EnvUtil.extractMavenPropertyName("${project.baseDir}")).isEqualTo("project.baseDir");
+        assertThat(EnvUtil.extractMavenPropertyName("roject.notbaseDi")).isNull();
     }
 
     @Test
@@ -337,7 +337,7 @@ public class EnvUtilTest {
         //When
         String result2 = EnvUtil.fixupPath(test2);
         //Then
-        assertEquals("/etc/ip/",result2);
+        assertThat(result2).isEqualTo("/etc/ip/");
     }
 
     @Test
@@ -347,7 +347,7 @@ public class EnvUtilTest {
         //When
         String result1 = EnvUtil.fixupPath(test1);
         //Then
-        assertEquals("/c/.../",result1);
+        assertThat(result1).isEqualTo("/c/.../");
     }
 
     @Test
@@ -357,7 +357,7 @@ public class EnvUtilTest {
         //When
         String result1 = EnvUtil.ensureRegistryHttpUrl(url1);
         //Then
-        assertEquals("http://registor",result1);
+        assertThat(result1).isEqualTo("http://registor");
     }
 
     @Test
@@ -367,7 +367,7 @@ public class EnvUtilTest {
         //When
         String result2 = EnvUtil.ensureRegistryHttpUrl(url2);
         //Then
-        assertEquals("https://registerurl",result2);
+        assertThat(result2).isEqualTo("https://registerurl");
     }
 
     @Test
@@ -398,7 +398,7 @@ public class EnvUtilTest {
         // When
         final Date timestamp = loadTimestamp(file);
         // Then
-        assertThat(timestamp, equalTo(new Date(1445385600000L)));
+        assertThat(timestamp).isEqualTo(new Date(1445385600000L));
     }
 
     @Test
@@ -408,7 +408,7 @@ public class EnvUtilTest {
         //When
         boolean result= EnvUtil.isWindows();
         //Then
-        assertFalse(result);
+        assertThat(result).isFalse();
     }
 
     @Test
@@ -418,7 +418,7 @@ public class EnvUtilTest {
         //When
         boolean result= EnvUtil.isWindows();
         //Then
-        assertTrue(result);
+        assertThat(result).isTrue();
     }
 
     @Test
@@ -426,7 +426,7 @@ public class EnvUtilTest {
         System.setProperty("testProperty", "testPropertyValue");
         String propertyValue =
                 EnvUtil.getEnvVarOrSystemProperty("testProperty", "defaultValue");
-        assertEquals( "testPropertyValue", propertyValue);
+        assertThat(propertyValue).isEqualTo("testPropertyValue");
         System.clearProperty("testProperty");
     }
 
@@ -434,6 +434,6 @@ public class EnvUtilTest {
     public void testDefaultSystemPropertyRead() {
         String propertyValue =
                 EnvUtil.getEnvVarOrSystemProperty("testProperty", "defaultValue");
-        assertEquals( "defaultValue", propertyValue);
+        assertThat(propertyValue).isEqualTo("defaultValue");
     }
 }
