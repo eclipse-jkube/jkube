@@ -50,7 +50,7 @@ public class IngressEnricher extends BaseEnricher {
     @AllArgsConstructor
     public enum Config implements Configs.Config {
         HOST("host", null),
-        TARGET_APIVERSION("targetApiVersion", "extensions/v1beta1");
+        TARGET_API_VERSION("targetApiVersion", "extensions/v1beta1");
 
         @Getter
         protected String key;
@@ -87,7 +87,7 @@ public class IngressEnricher extends BaseEnricher {
         io.fabric8.kubernetes.api.model.networking.v1.Ingress ingress = NetworkingV1IngressGenerator.generate(listBuilder, serviceBuilder, getRouteDomain(resourceConfig), getConfig(Config.HOST), getIngressRuleXMLConfig(resourceConfig), getIngressTlsXMLConfig(resourceConfig), log);
         HasMetadata generatedIngress = ingress;
 
-        String targetIngressApiVersion = getConfig(Config.TARGET_APIVERSION);
+        String targetIngressApiVersion = getConfig(Config.TARGET_API_VERSION);
         if (targetIngressApiVersion.equalsIgnoreCase("extensions/v1beta1")) {
             generatedIngress = ExtensionsV1beta1IngressConverter.convert(ingress);
         }

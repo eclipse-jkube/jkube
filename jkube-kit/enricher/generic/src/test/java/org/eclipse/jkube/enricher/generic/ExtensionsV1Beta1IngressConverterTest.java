@@ -15,6 +15,7 @@ package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
 import org.junit.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -26,9 +27,22 @@ public class ExtensionsV1Beta1IngressConverterTest {
     }
 
     @Test
+    public void testConvertWithNullSpec() {
+        // Given
+        final io.fabric8.kubernetes.api.model.networking.v1.Ingress from = new IngressBuilder()
+            .withNewMetadata().withName("ingress").endMetadata().build();
+        // When
+        final Ingress result = ExtensionsV1beta1IngressConverter.convert(from);
+        // Then
+        assertThat(result)
+            .hasFieldOrPropertyWithValue("spec", null)
+            .hasFieldOrPropertyWithValue("metadata.name", "ingress");
+    }
+
+    @Test
     public void testConvert() {
         // Given
-        io.fabric8.kubernetes.api.model.networking.v1.Ingress networkV1Ingress = new io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder()
+        io.fabric8.kubernetes.api.model.networking.v1.Ingress networkV1Ingress = new IngressBuilder()
                 .withNewMetadata().withName("test-ing").endMetadata()
                 .withNewSpec()
                 .withIngressClassName("external-lb")
@@ -85,7 +99,7 @@ public class ExtensionsV1Beta1IngressConverterTest {
     @Test
     public void testConvertWithDefaultBackend() {
         // Given
-        io.fabric8.kubernetes.api.model.networking.v1.Ingress networkV1Ingress = new io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder()
+        io.fabric8.kubernetes.api.model.networking.v1.Ingress networkV1Ingress = new IngressBuilder()
                 .withNewMetadata().withName("test-jkube").endMetadata()
                 .withNewSpec()
                 .withNewDefaultBackend()
