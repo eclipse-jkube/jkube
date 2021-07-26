@@ -411,11 +411,13 @@ public class IngressEnricherTest {
         ingressEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
 
         // Then
-        List<HasMetadata> items = kubernetesListBuilder.buildItems();
-        assertThat(items.size()).isEqualTo(2);
-        assertThat(items.get(1)).isInstanceOf(io.fabric8.kubernetes.api.model.networking.v1.Ingress.class);
-        io.fabric8.kubernetes.api.model.networking.v1.Ingress ing = (io.fabric8.kubernetes.api.model.networking.v1.Ingress) items.get(1);
-        assertThat(ing.getSpec().getRules().get(0).getHost()).isEqualTo("test.192.168.39.25.nip.io");
+        assertThat(kubernetesListBuilder)
+            .extracting(KubernetesListBuilder::buildItems).asList()
+            .hasSize(2)
+            .element(1)
+            .extracting("spec.rules").asList()
+            .extracting("host")
+            .containsExactly("test.192.168.39.25.nip.io");
     }
 
     @Test
@@ -433,9 +435,11 @@ public class IngressEnricherTest {
         ingressEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
 
         // Then
-        List<HasMetadata> items = kubernetesListBuilder.buildItems();
-        assertThat(items.size()).isEqualTo(2);
-        assertThat(items.get(1)).isInstanceOf(io.fabric8.kubernetes.api.model.networking.v1.Ingress.class);
+        assertThat(kubernetesListBuilder)
+            .extracting(KubernetesListBuilder::buildItems).asList()
+            .hasSize(2)
+            .element(1)
+            .isInstanceOf(io.fabric8.kubernetes.api.model.networking.v1.Ingress.class);
     }
 
     private IngressBuilder initTestIngressFragment() {

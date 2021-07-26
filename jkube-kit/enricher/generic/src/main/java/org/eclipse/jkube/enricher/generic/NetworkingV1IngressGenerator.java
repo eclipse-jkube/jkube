@@ -67,7 +67,6 @@ public class NetworkingV1IngressGenerator {
                             .withMetadata(getIngressMetadata(serviceMetadata))
                             .withSpec(getIngressSpec(routeDomainPostfix, host, serviceName, servicePort, ingressRuleConfigs, ingressTlsConfigs))
                             .build();
-
                 }
             }
         }
