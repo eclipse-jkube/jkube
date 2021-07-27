@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.function.Consumer;
 
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
@@ -31,7 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class JKubeTarArchiverTest {
 
@@ -156,31 +155,44 @@ public class JKubeTarArchiverTest {
   }
 
   @Test
-  public void createTarArchiveEntry_whenUsedForDirectories_shouldCreateEntryWithZeroSize() {
+  public void createTarBallOfDirectory_defaultCompression_createsTarWithCorrectEntrySizeAndModeForDirectories() throws Exception {
     // Given
-    File tmpDir = new File(getClass().getResource("/jkubetararchiver-directory/").getFile());
-
+    final int defaultDirMode = Integer.parseInt("040755", 8); // 16877
+    final File outputFile = temporaryFolder.newFile("target.noExtension");
     // When
-    TarArchiveEntry tarArchiveEntry = JKubeTarArchiver.createTarArchiveEntry(Collections.emptyMap(), tmpDir, "/tmp/foo");
-
+    final File result = JKubeTarArchiver.createTarBallOfDirectory(outputFile, toCompress, ArchiveCompression.none);
     // Then
-    assertThat(tarArchiveEntry)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("size", 0L);
+    ArchiveAssertions.assertThat(result)
+        .isSameAs(outputFile)
+        .isNotEmpty()
+        .entries()
+        .filteredOn(TarArchiveEntry::isDirectory)
+        .hasSize(2)
+        .extracting("name", "size", "mode")
+        .containsExactlyInAnyOrder(
+            tuple("nested/", 0L, defaultDirMode),
+            tuple("nested/directory/", 0L, defaultDirMode)
+        );
   }
 
   @Test
-  public void createTarArchiveEntry_whenUsedForFiles_shouldCreateEntryWithNonZeroSize() {
+  public void createTarBallOfDirectory_defaultCompression_createsTarWithCorrectEntrySizeAndModeForFiles() throws Exception {
     // Given
-    File tmpFile = new File(getClass().getResource("/jkubetararchiver-directory/jkubetararchiver-non-empty-file.txt").getFile());
-
+    final int defaultFileMode = Integer.parseInt("0100644", 8); // 33188
+    final File outputFile = temporaryFolder.newFile("target.noExtension");
     // When
-    TarArchiveEntry tarArchiveEntry = JKubeTarArchiver.createTarArchiveEntry(Collections.singletonMap(tmpFile, "0644"), tmpFile, "/tmp/foo");
-
+    final File result = JKubeTarArchiver.createTarBallOfDirectory(outputFile, toCompress, ArchiveCompression.none);
     // Then
-    assertThat(tarArchiveEntry)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("size", 10L)
-            .hasFieldOrPropertyWithValue("mode", Integer.parseInt("0644", 8));
+    ArchiveAssertions.assertThat(result)
+        .isSameAs(outputFile)
+        .isNotEmpty()
+        .entries()
+        .filteredOn(TarArchiveEntry::isFile)
+        .hasSize(2)
+        .extracting("name", "size", "mode")
+        .containsExactlyInAnyOrder(
+            tuple("file.txt", 12L, defaultFileMode),
+            tuple("nested/directory/" + LONG_FILE_NAME, 19L, defaultFileMode)
+        );
   }
 }

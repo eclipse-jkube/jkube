@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -92,10 +93,8 @@ public class ArchiveAssertions extends AbstractFileAssert<ArchiveAssertions> {
     }
   }
 
-  public AbstractListAssert<ListAssert<String>, List<? extends String>, String, ObjectAssert<String>> fileTree()
-      throws IOException {
-    final List<String> archiveFileTree = new ArrayList<>();
-
+  private List<TarArchiveEntry> loadEntries() throws IOException {
+    final List<TarArchiveEntry> archiveEntries = new ArrayList<>();
     try (
         FileInputStream fis = new FileInputStream(actual);
         BufferedInputStream bis = new BufferedInputStream(fis);
@@ -103,9 +102,20 @@ public class ArchiveAssertions extends AbstractFileAssert<ArchiveAssertions> {
     ) {
       TarArchiveEntry entry;
       while ((entry = tis.getNextTarEntry()) != null) {
-        archiveFileTree.add(entry.getName());
+        archiveEntries.add(entry);
       }
     }
-    return org.assertj.core.api.Assertions.assertThat(archiveFileTree);
+    return archiveEntries;
+  }
+
+  public AbstractListAssert<ListAssert<TarArchiveEntry>, List<? extends TarArchiveEntry>, TarArchiveEntry, ObjectAssert<TarArchiveEntry>> entries()
+      throws IOException {
+    return org.assertj.core.api.Assertions.assertThat(loadEntries());
+  }
+
+  public AbstractListAssert<ListAssert<String>, List<? extends String>, String, ObjectAssert<String>> fileTree()
+      throws IOException {
+    return org.assertj.core.api.Assertions.assertThat(
+        loadEntries().stream().map(TarArchiveEntry::getName).collect(Collectors.toList()));
   }
 }
