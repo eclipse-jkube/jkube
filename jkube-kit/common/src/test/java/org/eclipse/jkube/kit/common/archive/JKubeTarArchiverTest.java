@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.function.Consumer;
 
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
@@ -29,6 +30,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class JKubeTarArchiverTest {
 
@@ -152,4 +155,32 @@ public class JKubeTarArchiverTest {
             "nested/directory/01234567890123456789012345678901234567890123456789012345678901234567890123456789012");
   }
 
+  @Test
+  public void createTarArchiveEntry_whenUsedForDirectories_shouldCreateEntryWithZeroSize() {
+    // Given
+    File tmpDir = new File(getClass().getResource("/jkubetararchiver-directory/").getFile());
+
+    // When
+    TarArchiveEntry tarArchiveEntry = JKubeTarArchiver.createTarArchiveEntry(Collections.emptyMap(), tmpDir, "/tmp/foo");
+
+    // Then
+    assertThat(tarArchiveEntry)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("size", 0L);
+  }
+
+  @Test
+  public void createTarArchiveEntry_whenUsedForFiles_shouldCreateEntryWithNonZeroSize() {
+    // Given
+    File tmpFile = new File(getClass().getResource("/jkubetararchiver-directory/jkubetararchiver-non-empty-file.txt").getFile());
+
+    // When
+    TarArchiveEntry tarArchiveEntry = JKubeTarArchiver.createTarArchiveEntry(Collections.singletonMap(tmpFile, "0644"), tmpFile, "/tmp/foo");
+
+    // Then
+    assertThat(tarArchiveEntry)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("size", 10L)
+            .hasFieldOrPropertyWithValue("mode", Integer.parseInt("0644", 8));
+  }
 }
