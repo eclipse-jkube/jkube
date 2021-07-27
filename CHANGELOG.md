@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.4.0-SNAPSHOT
+### 1.4.0 (2021-07-27)
 * Fix #253: Refactor JKubeServiceHub's BuildService election mechanism via ServiceLoader
 * Fix #425: Multi-layer support for Container Images
 * Fix #548: Define property for skipping cluster autodetect/offline mode
