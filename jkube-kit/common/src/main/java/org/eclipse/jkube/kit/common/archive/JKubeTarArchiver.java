@@ -74,13 +74,7 @@ public class JKubeTarArchiver {
         String relativeFilePath = inputDirectory.toURI().relativize(
             new File(currentFile.getAbsolutePath()).toURI()).getPath();
 
-        final TarArchiveEntry tarEntry = new TarArchiveEntry(currentFile, relativeFilePath);
-        tarEntry.setSize(currentFile.length());
-        if (fileModeMap.containsKey(currentFile)) {
-          tarEntry.setMode(Integer.parseInt(fileModeMap.get(currentFile), 8));
-        } else if (currentFile.isDirectory()) {
-          tarEntry.setMode(TarArchiveEntry.DEFAULT_DIR_MODE);
-        }
+        final TarArchiveEntry tarEntry = createTarArchiveEntry(fileModeMap, currentFile, relativeFilePath);
         Optional.ofNullable(tarArchiveEntryCustomizer).ifPresent(tac -> tac.accept(tarEntry));
         tarArchiveOutputStream.putArchiveEntry(tarEntry);
         if (currentFile.isFile()) {
@@ -92,5 +86,17 @@ public class JKubeTarArchiver {
     }
 
     return outputFile;
+  }
+
+  static TarArchiveEntry createTarArchiveEntry(Map<File, String> fileModeMap, File currentFile, String relativeFilePath) {
+    final TarArchiveEntry tarEntry = new TarArchiveEntry(currentFile, relativeFilePath);
+    tarEntry.setSize(currentFile.length());
+    if (fileModeMap.containsKey(currentFile)) {
+      tarEntry.setMode(Integer.parseInt(fileModeMap.get(currentFile), 8));
+    } else if (currentFile.isDirectory()) {
+      tarEntry.setSize(0L);
+      tarEntry.setMode(TarArchiveEntry.DEFAULT_DIR_MODE);
+    }
+    return tarEntry;
   }
 }
