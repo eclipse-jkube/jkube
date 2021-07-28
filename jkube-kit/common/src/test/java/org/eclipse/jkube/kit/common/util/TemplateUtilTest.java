@@ -22,9 +22,9 @@ public class TemplateUtilTest {
 
   @Test
   public void escapeYamlTemplateTest() {
-    assertThat(escapeYamlTemplate("abcd").equals("abcd"));
-    assertThat(escapeYamlTemplate("abc{de}f}").equals("abc{de}f}"));
-    assertThat(escapeYamlTemplate("abc{{de}f").equals("abc{{\"{{\"}}de}f"));
-    assertThat(escapeYamlTemplate("abc{{de}f}}").equals("abc{{\"{{\"}}de}f{{\"}}\"}}"));
+    assertThat(escapeYamlTemplate("abcd").isEqualTo("abcd"));
+    assertThat(escapeYamlTemplate("abc{de}f}").isEqualTo("abc{de}f}"));
+    assertThat(escapeYamlTemplate("abc{{de}f").isEqualTo("abc{{\"{{\"}}de}f"));
+    assertThat(escapeYamlTemplate("abc{{de}f}}").isEqualTo("abc{{\"{{\"}}de}f{{\"}}\"}}"));
   }
 }
