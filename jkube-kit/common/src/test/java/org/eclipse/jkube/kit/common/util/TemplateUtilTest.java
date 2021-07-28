@@ -16,16 +16,15 @@ package org.eclipse.jkube.kit.common.util;
 import org.junit.Test;
 
 import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TemplateUtilTest {
 
   @Test
   public void escapeYamlTemplateTest() {
-    assertThat(escapeYamlTemplate("abcd"), is("abcd"));
-    assertThat(escapeYamlTemplate("abc{de}f}"), is("abc{de}f}"));
-    assertThat(escapeYamlTemplate("abc{{de}f"), is("abc{{\"{{\"}}de}f"));
-    assertThat(escapeYamlTemplate("abc{{de}f}}"), is("abc{{\"{{\"}}de}f{{\"}}\"}}"));
+    assertThat(escapeYamlTemplate("abcd").equals("abcd"));
+    assertThat(escapeYamlTemplate("abc{de}f}").equals("abc{de}f}"));
+    assertThat(escapeYamlTemplate("abc{{de}f").equals("abc{{\"{{\"}}de}f"));
+    assertThat(escapeYamlTemplate("abc{{de}f}}").equals("abc{{\"{{\"}}de}f{{\"}}\"}}"));
   }
 }
