@@ -33,6 +33,7 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
@@ -72,17 +73,17 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
     ImageConfigResolver imageConfigResolver = new ImageConfigResolver();
     try {
       resolvedImages = initImageConfiguration(
-          kubernetesExtension.getApiVersion().getOrNull(),
-          getBuildTimestamp(null, null, javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP),
-          javaProject, kubernetesExtension.images, imageConfigResolver, kitLogger,
-          kubernetesExtension.getFilter().getOrNull(),
-          this::customizeConfig);
+        kubernetesExtension.getApiVersion().getOrNull(),
+        getBuildTimestamp(null, null, javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP),
+        javaProject, kubernetesExtension.images, imageConfigResolver, kitLogger,
+        kubernetesExtension.getFilter().getOrNull(),
+        this::customizeConfig);
       enricherManager = new DefaultEnricherManager(JKubeEnricherContext.builder()
         .project(javaProject)
-          .processorConfig(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG,
-              kubernetesExtension.getProfile().getOrNull(),
-              resolveResourceSourceDirectory(),
-              kubernetesExtension.enricher))
+        .processorConfig(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG,
+          kubernetesExtension.getProfile().getOrNull(),
+          resolveResourceSourceDirectory(),
+          kubernetesExtension.enricher))
         .images(resolvedImages)
         .resources(kubernetesExtension.resources)
         .log(kitLogger)
@@ -100,6 +101,9 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
 
   public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
     kitLogger.info("Running in %s mode", kubernetesExtension.getRuntimeMode().getLabel());
+    if (kubernetesExtension.getRuntimeMode() != RuntimeMode.OPENSHIFT) {
+      kitLogger.info("Building Docker image in Kubernetes mode");
+    }
     // TODO: Run Generators
     return configs;
   }
@@ -110,24 +114,24 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
 
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
     return JKubeServiceHub.builder()
-        .log(kitLogger)
-        .configuration(JKubeConfiguration.builder()
-            .project(javaProject)
-            .reactorProjects(Collections.singletonList(javaProject))
-            .sourceDirectory(kubernetesExtension.getBuildSourceDirectory().getOrElse("src/main/docker"))
-            .outputDirectory(kubernetesExtension.getBuildOutputDirectory().getOrElse("build/docker"))
-            .registryConfig(RegistryConfig.builder()
-                .settings(Collections.emptyList())
-                .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
-                .skipExtendedAuth(kubernetesExtension.getSkipExtendedAuth().getOrElse(false))
-                .passwordDecryptionMethod(s -> s)
-                .registry(
-                    kubernetesExtension.getPullRegistry().getOrElse(kubernetesExtension.getRegistry().getOrElse("docker.io")))
-                .build())
-            .build())
-        .clusterAccess(clusterAccess)
-        .offline(kubernetesExtension.getOfflineOrDefault())
-        .platformMode(kubernetesExtension.getRuntimeMode());
+      .log(kitLogger)
+      .configuration(JKubeConfiguration.builder()
+        .project(javaProject)
+        .reactorProjects(Collections.singletonList(javaProject))
+        .sourceDirectory(kubernetesExtension.getBuildSourceDirectory().getOrElse("src/main/docker"))
+        .outputDirectory(kubernetesExtension.getBuildOutputDirectory().getOrElse("build/docker"))
+        .registryConfig(RegistryConfig.builder()
+          .settings(Collections.emptyList())
+          .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
+          .skipExtendedAuth(kubernetesExtension.getSkipExtendedAuth().getOrElse(false))
+          .passwordDecryptionMethod(s -> s)
+          .registry(
+            kubernetesExtension.getPullRegistry().getOrElse(kubernetesExtension.getRegistry().getOrElse("docker.io")))
+          .build())
+        .build())
+      .clusterAccess(clusterAccess)
+      .offline(kubernetesExtension.getOfflineOrDefault())
+      .platformMode(kubernetesExtension.getRuntimeMode());
   }
 
   protected ClusterConfiguration initClusterConfiguration() {
