@@ -138,8 +138,6 @@ public abstract class KubernetesExtension {
 
   public abstract Property<String> getBuildOutputDirectory();
 
-  public abstract Property<String> getRegistry();
-
   public abstract Property<File> getResourceTargetDirectory();
 
   public abstract Property<File> getResourceSourceDirectory();
@@ -173,6 +171,12 @@ public abstract class KubernetesExtension {
   public abstract Property<File> getKubernetesManifest();
 
   public JKubeBuildStrategy buildStrategy;
+
+  public abstract Property<String> getSourceDirectory();
+
+  public abstract Property<String> getOutputDirectory();
+
+  public abstract Property<String> getRegistry();
 
   public ClusterConfiguration access;
 
