@@ -41,7 +41,9 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.computeS2IBuildName;
@@ -62,6 +64,9 @@ public class OpenShiftBuildServiceUtilsTest {
 
   private ImageConfiguration imageConfiguration;
 
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
   @Before
   public void setUp() throws Exception {
     final String projectName = "myapp";
@@ -78,6 +83,9 @@ public class OpenShiftBuildServiceUtilsTest {
   public void createBuildArchive_withIOExceptionOnCreateDockerBuildArchive_shouldThrowException() throws Exception {
     // Given
     //  @formatter:off
+    withBuildServiceConfig(BuildServiceConfig.builder()
+        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
+        .build());
     new Expectations() {{
       jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
          withInstanceOf(ImageConfiguration.class), withInstanceOf(JKubeConfiguration.class), withInstanceOf(ArchiverCustomizer.class));
@@ -106,6 +114,7 @@ public class OpenShiftBuildServiceUtilsTest {
     // Given
     final BuildServiceConfig buildServiceConfig = BuildServiceConfig.builder()
         .jKubeBuildStrategy(JKubeBuildStrategy.s2i)
+        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
         .build();
     final ImageName imageName = new ImageName("registry/name:tag");
     // When
@@ -120,6 +129,7 @@ public class OpenShiftBuildServiceUtilsTest {
     final BuildServiceConfig buildServiceConfig = BuildServiceConfig.builder()
         .jKubeBuildStrategy(JKubeBuildStrategy.s2i)
         .s2iBuildNameSuffix("-custom")
+        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
         .build();
     final ImageName imageName = new ImageName("registry/name:tag");
     // When
@@ -133,6 +143,7 @@ public class OpenShiftBuildServiceUtilsTest {
     // Given
     withBuildServiceConfig(BuildServiceConfig.builder()
         .jKubeBuildStrategy(JKubeBuildStrategy.jib)
+        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
         .build());
     // When
     final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
@@ -146,6 +157,7 @@ public class OpenShiftBuildServiceUtilsTest {
     // Given
     withBuildServiceConfig(BuildServiceConfig.builder()
         .jKubeBuildStrategy(JKubeBuildStrategy.s2i)
+        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
         .build());
     // When
     final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null);
@@ -162,6 +174,7 @@ public class OpenShiftBuildServiceUtilsTest {
     // Given
     withBuildServiceConfig(BuildServiceConfig.builder()
         .jKubeBuildStrategy(JKubeBuildStrategy.s2i)
+        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
         .build());
     // When
     final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
@@ -179,6 +192,7 @@ public class OpenShiftBuildServiceUtilsTest {
     // Given
     withBuildServiceConfig(BuildServiceConfig.builder()
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
+        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
         .build());
     // When
     final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null);
@@ -195,6 +209,7 @@ public class OpenShiftBuildServiceUtilsTest {
     // Given
     withBuildServiceConfig(BuildServiceConfig.builder()
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
+        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
         .build());
     // When
     final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
@@ -225,6 +240,7 @@ public class OpenShiftBuildServiceUtilsTest {
     final BuildServiceConfig buildServiceConfig = BuildServiceConfig.builder()
         .buildOutputKind("DockerImage")
         .openshiftPushSecret("my-push-secret")
+        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
         .build();
     // When
     final BuildOutput result = createBuildOutput(buildServiceConfig, new ImageName("my-app-image"));
@@ -238,6 +254,9 @@ public class OpenShiftBuildServiceUtilsTest {
 
   @Test
   public void checkTarPackage() throws Exception {
+    withBuildServiceConfig(BuildServiceConfig.builder()
+        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
+        .build());
     createBuildArchive(jKubeServiceHub, imageConfiguration);
 
     final List<ArchiverCustomizer> customizer = new ArrayList<>();
