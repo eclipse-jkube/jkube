@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
+import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyMode;
@@ -21,13 +22,21 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.addSimpleDockerfileConfig;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.createSimpleDockerfileConfig;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.getTopLevelDockerfile;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.isSimpleDockerFileMode;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
 
 /**
  * Utility class which helps in resolving, customizing, initializing and validating
@@ -171,6 +180,33 @@ public class ConfigHelper {
         }
     }
 
+    public static List<ImageConfiguration> initImageConfiguration(String apiVersion, Date buildTimeStamp, JavaProject javaProject, List<ImageConfiguration> images, ImageConfigResolver imageConfigResolver, KitLogger log, String filter, ConfigHelper.Customizer customizer) {
+        List<ImageConfiguration> resolvedImages;
+        ImageNameFormatter imageNameFormatter = new ImageNameFormatter(javaProject, buildTimeStamp);
+        // Resolve images
+        resolvedImages = ConfigHelper.resolveImages(
+                log,
+                images,                  // Unresolved images
+                (ImageConfiguration image) -> imageConfigResolver.resolve(image, javaProject),
+                filter,                   // A filter which image to process
+                customizer);                     // customizer (can be overwritten by a subclass)
+
+        // Check for simple Dockerfile mode
+        if (isSimpleDockerFileMode(javaProject.getBaseDirectory())) {
+            File topDockerfile = getTopLevelDockerfile(javaProject.getBaseDirectory());
+            String defaultImageName = imageNameFormatter.format(getValueFromProperties(javaProject.getProperties(),
+                    "jkube.image.name", "jkube.generator.name"));
+            if (resolvedImages.isEmpty()) {
+                resolvedImages.add(createSimpleDockerfileConfig(topDockerfile, defaultImageName));
+            } else if (resolvedImages.size() == 1 && resolvedImages.get(0).getBuildConfiguration() == null) {
+                resolvedImages.set(0, addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
+            }
+        }
+
+        // Initialize configuration and detect minimal API version
+        ConfigHelper.initAndValidate(resolvedImages, apiVersion, imageNameFormatter);
+        return resolvedImages;
+    }
 
     // =========================================================================
 

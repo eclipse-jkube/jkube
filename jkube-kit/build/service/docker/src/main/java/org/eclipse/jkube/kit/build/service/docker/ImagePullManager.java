@@ -19,6 +19,8 @@ import org.eclipse.jkube.kit.build.service.docker.helper.AutoPullMode;
 import org.eclipse.jkube.kit.common.JsonFactory;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 
+import java.util.Properties;
+
 /**
  * Simple interface for a ImagePullCache manager, to load and persist the cache.
  */
@@ -68,6 +70,9 @@ public class ImagePullManager {
         save(load().add(image));
     }
 
+    public static ImagePullManager createImagePullManager(String imagePullPolicy, String autoPull, Properties properties) {
+        return new ImagePullManager(createSessionCacheStore(properties), imagePullPolicy, autoPull);
+    }
 
     public interface CacheStore {
         String get(String key);
@@ -123,5 +128,19 @@ public class ImagePullManager {
         public String toString() {
             return cache.toString();
         }
+    }
+
+    private static ImagePullManager.CacheStore createSessionCacheStore(Properties properties) {
+        return new ImagePullManager.CacheStore() {
+            @Override
+            public String get(String key) {
+                return properties.getProperty(key);
+            }
+
+            @Override
+            public void put(String key, String value) {
+                properties.setProperty(key, value);
+            }
+        };
     }
 }
