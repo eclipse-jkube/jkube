@@ -37,6 +37,8 @@ public class SimpleIT {
             module(baseDir, "jkube-kit", "common"),
             module(baseDir, "jkube-kit", "config", "resource"),
             module(baseDir, "jkube-kit", "config", "service"),
+            module(baseDir, "jkube-kit", "config", "image"),
+            module(baseDir, "jkube-kit", "build", "service", "docker"),
             module(baseDir, "gradle-plugin", "kubernetes"),
             module(baseDir, "gradle-plugin", "openshift")
         ))

@@ -60,7 +60,7 @@ public class KubernetesApplyTaskTest {
     // Given
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
     // When
-    final UnsupportedOperationException result = assertThrows(UnsupportedOperationException.class, applyTask::runTask);
+    final UnsupportedOperationException result = assertThrows(UnsupportedOperationException.class, applyTask::run);
     // Then
     assertThat(result).hasMessageContaining("To be implemented");
   }
