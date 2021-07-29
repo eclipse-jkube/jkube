@@ -75,11 +75,11 @@ public class KubernetesBuildTaskTest {
     when(project.getName()).thenReturn("test-build-task");
     when(project.getVersion()).thenReturn("0.0.1-SNAPSHOT");
     extension.images = Collections.singletonList(ImageConfiguration.builder()
-        .name("foo/bar:latest")
-        .build(BuildConfiguration.builder()
-            .dockerFile("Dockerfile")
-            .build())
-        .build());
+      .name("foo/bar:latest")
+      .build(BuildConfiguration.builder()
+        .dockerFile("Dockerfile")
+        .build())
+      .build());
   }
 
   @After
@@ -96,8 +96,8 @@ public class KubernetesBuildTaskTest {
     buildTask.runTask();
     // Then
     assertThat(buildTask.resolvedImages)
-        .singleElement()
-        .hasFieldOrPropertyWithValue("name", "foo/bar:latest");
+      .singleElement()
+      .hasFieldOrPropertyWithValue("name", "foo/bar:latest");
   }
 
   @Test
