@@ -16,6 +16,7 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.Properties;
 import javax.validation.ConstraintViolationException;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
@@ -46,12 +48,11 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.ResourceServiceConfig;
+import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.kit.resource.service.DefaultResourceService;
-import org.eclipse.jkube.maven.plugin.enricher.DefaultEnricherManager;
-import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -340,7 +341,8 @@ public class ResourceMojo extends AbstractJKubeMojo {
                 .log(log);
 
         DefaultEnricherManager enricherManager = new DefaultEnricherManager(ctxBuilder.build(),
-            MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath));
+            MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath)
+                .orElse(Collections.emptyList()));
 
         return jkubeServiceHub.getResourceService().generateResources(getPlatformMode(), enricherManager, log);
     }

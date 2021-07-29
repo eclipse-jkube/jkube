@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -66,11 +67,10 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.maven.plugin.enricher.DefaultEnricherManager;
-import org.eclipse.jkube.maven.plugin.generator.GeneratorManager;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
@@ -685,7 +685,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                     }
                 })
                 .enricherTask(builder -> {
-                    DefaultEnricherManager enricherManager = new DefaultEnricherManager(getEnricherContext(), MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath));
+              DefaultEnricherManager enricherManager = new DefaultEnricherManager(getEnricherContext(),
+                  MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath)
+                      .orElse(Collections.emptyList()));
                     enricherManager.enrich(PlatformMode.kubernetes, builder);
                     enricherManager.enrich(PlatformMode.openshift, builder);
                 });
