@@ -49,6 +49,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
 
 
@@ -125,10 +126,10 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                     .useProjectClasspath(useProjectClasspath)
                     .jKubeServiceHub(jkubeServiceHub)
                     .build();
-        } catch (IOException exception) {
-            throw new MojoExecutionException(exception.getMessage());
         } catch (DependencyResolutionRequiredException dependencyException) {
             throw new MojoExecutionException("Instructed to use project classpath, but cannot. Continuing build if we can: " + dependencyException.getMessage());
+        } catch (IOException ioException) {
+            throw new MojoExecutionException(ioException.getMessage());
         }
     }
 
@@ -157,7 +158,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
         return new AnsiLogger(getLog(), useColor, verbose, !settings.getInteractiveMode(), getLogPrefix() + prefix);
     }
 
-    protected WatchContext getWatchContext() throws IOException, DependencyResolutionRequiredException {
+    protected WatchContext getWatchContext() throws DependencyResolutionRequiredException, IOException {
         final ServiceHub hub = jkubeServiceHub.getDockerServiceHub();
         return WatchContext.builder()
                 .watchInterval(watchInterval)
@@ -168,7 +169,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                 .keepRunning(keepRunning)
                 .removeVolumes(removeVolumes)
                 .containerNamePattern(containerNamePattern)
-                .buildTimestamp(getBuildTimestamp())
+                .buildTimestamp(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP))
                 .gavLabel(getGavLabel())
                 .buildContext(initJKubeConfiguration())
                 .follow(watchFollow)

@@ -22,12 +22,10 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.core.GavLabel;
@@ -48,7 +46,6 @@ import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfigurat
 import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
-import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
@@ -93,12 +90,9 @@ import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 import org.fusesource.jansi.Ansi;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.addSimpleDockerfileConfig;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.createSimpleDockerfileConfig;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.getTopLevelDockerfile;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.isSimpleDockerFileMode;
 import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
+import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
+import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestampFile;
 import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo.DEFAULT_LOG_PREFIX;
 
 public abstract class AbstractDockerMojo extends AbstractMojo
@@ -430,6 +424,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(useColor, logStdout, logDate);
                 DockerAccess access = null;
                 try {
+                    JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
                     // The 'real' images configuration to use (configured images + externally resolved images)
                     if (isDockerAccessRequired()) {
                         DockerAccessFactory.DockerAccessContext dockerAccessContext = getDockerAccessContext();
@@ -444,7 +439,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                         .buildServiceConfig(buildServiceConfigBuilder().build())
                         .offline(offline)
                         .build();
-                    this.minimalApiVersion = initImageConfiguration(getBuildTimestamp());
+                    resolvedImages = ConfigHelper.initImageConfiguration(apiVersion, getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), javaProject, images, imageConfigResolver, log, filter, this);
                     executeInternal();
                 } catch (IOException | DependencyResolutionRequiredException exp) {
                     logException(exp);
@@ -479,18 +474,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             .build();
     }
 
-    // Get the reference date for the build. By default this is picked up
-    // from an existing build date file. If this does not exist, the current date is used.
-    protected Date getReferenceDate() throws IOException {
-        Date referenceDate = EnvUtil.loadTimestamp(getBuildTimestampFile());
-        return referenceDate != null ? referenceDate : new Date();
-    }
-
-    // used for storing a timestamp
-    protected File getBuildTimestampFile() {
-        return new File(project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP);
-    }
-
     /**
      * Helper method to process an ImageConfiguration.
      *
@@ -515,20 +498,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             outputDir.mkdirs();
         }
         return outputDir;
-    }
-
-    /**
-     * Get the current build timestamp. this has either already been created by a previous
-     * call or a new current date is created
-     * @return timestamp to use
-     */
-    protected synchronized Date getBuildTimestamp() throws IOException {
-        Date now = (Date) getPluginContext().get(CONTEXT_KEY_BUILD_TIMESTAMP);
-        if (now == null) {
-            now = getReferenceDate();
-            getPluginContext().put(CONTEXT_KEY_BUILD_TIMESTAMP,now);
-        }
-        return now;
     }
 
     protected void processDmpPluginDescription(URL pluginDesc, File outputDir) throws IOException {
@@ -661,7 +630,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
         try {
             // TODO need to refactor d-m-p to avoid this call
-            EnvUtil.storeTimestamp(getBuildTimestampFile(), getBuildTimestamp());
+            EnvUtil.storeTimestamp(getBuildTimestampFile(project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP),
+                    getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP));
 
             jkubeServiceHub.getBuildService().build(imageConfig);
 
@@ -675,7 +645,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 .buildRecreateMode(BuildRecreateMode.fromParameter(buildRecreate))
                 .jKubeBuildStrategy(getJKubeBuildStrategy())
                 .forcePull(forcePull)
-                .imagePullManager(getImagePullManager(imagePullPolicy, autoPull))
+                .imagePullManager(ImagePullManager.createImagePullManager(imagePullPolicy, autoPull, project.getProperties()))
                 .buildDirectory(project.getBuild().getDirectory())
                 .resourceConfig(resources)
                 .resourceDir(resourceDir)
@@ -762,26 +732,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         }
     }
 
-    public ImagePullManager getImagePullManager(String imagePullPolicy, String autoPull) {
-        return new ImagePullManager(getSessionCacheStore(), imagePullPolicy, autoPull);
-    }
-
-    protected ImagePullManager.CacheStore getSessionCacheStore() {
-        return new ImagePullManager.CacheStore() {
-            @Override
-            public String get(String key) {
-                Properties userProperties = session.getUserProperties();
-                return userProperties.getProperty(key);
-            }
-
-            @Override
-            public void put(String key, String value) {
-                Properties userProperties = session.getUserProperties();
-                userProperties.setProperty(key, value);
-            }
-        };
-    }
-
     // check for a run-java.sh dependency an extract the script to target/ if found
     protected void executeBuildPlugins() {
         try {
@@ -795,40 +745,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         } catch (IOException e) {
             log.error("Cannot load dmp-plugins from %s", DMP_PLUGIN_DESCRIPTOR);
         }
-    }
-
-    // Resolve and customize image configuration
-    protected String initImageConfiguration(Date buildTimeStamp) throws DependencyResolutionRequiredException {
-        ImageNameFormatter imageNameFormatter = new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), buildTimeStamp);
-        // Resolve images
-        resolvedImages = ConfigHelper.resolveImages(
-                log,
-                images,                  // Unresolved images
-                (ImageConfiguration image) -> {
-                    try {
-                        return imageConfigResolver.resolve(image, MavenUtil.convertMavenProjectToJKubeProject(project, session));
-                    } catch (DependencyResolutionRequiredException exception) {
-                        log.warn("Instructed to use project classpath, but cannot.Continuing build if we can: ", exception);
-                    }
-                    return null;
-                },
-                filter,                   // A filter which image to process
-                this);                     // customizer (can be overwritten by a subclass)
-
-        // Check for simple Dockerfile mode
-        if (isSimpleDockerFileMode(project.getBasedir())) {
-            File topDockerfile = getTopLevelDockerfile(project.getBasedir());
-            String defaultImageName = imageNameFormatter.format(getValueFromProperties(project.getProperties(),
-                    "jkube.image.name", "jkube.generator.name"));
-            if (resolvedImages.isEmpty()) {
-                resolvedImages.add(createSimpleDockerfileConfig(topDockerfile, defaultImageName));
-            } else if (resolvedImages.size() == 1 && resolvedImages.get(0).getBuildConfiguration() == null) {
-                resolvedImages.set(0, addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
-            }
-        }
-
-        // Initialize configuration and detect minimal API version
-        return ConfigHelper.initAndValidate(resolvedImages, apiVersion, imageNameFormatter);
     }
 
     /**
