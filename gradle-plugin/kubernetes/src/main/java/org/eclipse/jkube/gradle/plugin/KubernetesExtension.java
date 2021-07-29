@@ -13,8 +13,11 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.image.build.RegistryAuthConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -74,6 +77,40 @@ public abstract class KubernetesExtension {
 
   public abstract Property<Boolean> getUseColor();
 
+  public abstract Property<Integer> getMaxConnections();
+
+  public abstract Property<String> getFilter();
+
+  public abstract Property<String> getApiVersion();
+
+  public abstract Property<JKubeBuildStrategy> getBuildStrategy();
+
+  public abstract Property<String> getBuildRecreate();
+
+  public abstract Property<String> getImagePullPolicy();
+
+  public abstract Property<String> getAutoPull();
+
+  public abstract Property<String> getDockerHost();
+
+  public abstract Property<String> getCertPath();
+
+  public abstract Property<String> getMinimalApiVersion();
+
+  public abstract Property<Boolean> getSkipMachine();
+
+  public abstract Property<Boolean> getForcePull();
+
+  public abstract Property<Boolean> getSkipExtendedAuth();
+
+  public abstract Property<String> getPullRegistry();
+
+  public abstract Property<String> getSourceDirectory();
+
+  public abstract Property<String> getOutputDirectory();
+
+  public abstract Property<String> getRegistry();
+
   public ClusterConfiguration access;
 
   public ResourceConfig resources;
@@ -81,6 +118,10 @@ public abstract class KubernetesExtension {
   public ProcessorConfig enricher;
 
   public List<ImageConfiguration> images;
+
+  public DockerMachineConfiguration machine;
+
+  public RegistryAuthConfiguration authConfig;
 
   public RuntimeMode getRuntimeMode() {
     return RuntimeMode.KUBERNETES;
@@ -100,6 +141,14 @@ public abstract class KubernetesExtension {
 
   public void images(Closure<?> closure) {
     images = namedListClosureTo(closure, ImageConfiguration.class);
+  }
+
+  public void machine(Closure<?> closure) {
+    machine = closureTo(closure, DockerMachineConfiguration.class);
+  }
+
+  public void authConfig(Closure<?> closure) {
+    authConfig = closureTo(closure, RegistryAuthConfiguration.class);
   }
 
 }

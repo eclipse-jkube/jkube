@@ -168,7 +168,11 @@ public class JKubeFileInterpolator {
 
     private static Map<String, String> getPropertyAsMap(Properties properties) {
         Map<String, String> propertyAsMap = new HashMap<>();
-        properties.forEach((k, v) -> propertyAsMap.put((String) k, (String) v));
+        properties.forEach((k, v) -> {
+            if (v instanceof String) {
+                propertyAsMap.put((String) k, (String) v);
+            }
+        });
         return propertyAsMap;
     }
 
