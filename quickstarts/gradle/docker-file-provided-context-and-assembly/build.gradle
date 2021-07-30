@@ -1,0 +1,34 @@
+plugins {
+    id 'org.springframework.boot' version '2.5.3'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.eclipse.jkube.kubernetes' version '1.5.0-SNAPSHOT'
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.gradle.sample.spring.boot'
+version = '1.5.0-SNAPSHOT'
+sourceCompatibility = '11'
+def contextDirPath = projectDir.getAbsolutePath() + '/src/main/assembly-dockerfile'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+
+kubernetes {
+    images {
+        image {
+            name = 'jkube/context-and-assembly'
+            build {
+                contextDir = contextDirPath
+                assembly {
+                    name = 'target'
+                }
+            }
+        }
+    }
+}
