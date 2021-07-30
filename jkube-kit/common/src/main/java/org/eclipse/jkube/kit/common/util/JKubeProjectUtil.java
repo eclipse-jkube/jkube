@@ -115,17 +115,44 @@ public class JKubeProjectUtil {
         return properties;
     }
 
+  /**
+   * Returns the output artifact for the Project.
+   *
+   * <p> This method infers the Project's artifact from the provided project build directory, GAV coordinates,
+   *  packaging, and configured build name.
+   *
+   * <p> If the inferred artifact file exists it is returned.
+   *
+   * <p> If the inferred artifact file doesn't exist, but an existent artifact file is provided in the configuration, it is
+   * returned instead.
+
+   * <p> In case no artifacts are found or configured, this method returns null.
+   *
+   * <p> TODO: https://github.com/eclipse/jkube/issues/817
+   * <br> This method prioritizes artifact inference instead of configuration. This is done to handle case of maven
+   * where value of artifact varies depending upon the maven phase in which goal was executed.
+   *
+   * @see <a href="https://github.com/eclipse/jkube/issues/817">#817</a>
+   *
+   * @param jkubeProject project for which to retrieve the output artifact.
+   * @return the final output artifact file or null if it doesn't exist.
+   */
   public static File getFinalOutputArtifact(JavaProject jkubeProject) {
-    final String nameOfFinalArtifact;
+    final String inferredArtifactName;
     if (jkubeProject.getBuildFinalName() == null) {
-      nameOfFinalArtifact = String.format("%s-%s.%s",
+      inferredArtifactName = String.format("%s-%s.%s",
           jkubeProject.getArtifactId(), jkubeProject.getVersion(), jkubeProject.getPackaging());
     } else {
-      nameOfFinalArtifact = String.format("%s.%s",
+      inferredArtifactName = String.format("%s.%s",
           jkubeProject.getBuildFinalName(), jkubeProject.getPackaging());
     }
-    final File finalArtifact = new File(jkubeProject.getBuildDirectory(), nameOfFinalArtifact);
-    return finalArtifact.exists() ? finalArtifact : null;
+    final File inferredArtifact = new File(jkubeProject.getBuildDirectory(), inferredArtifactName);
+    if (inferredArtifact.exists()) {
+      return inferredArtifact;
+    } else if (jkubeProject.getArtifact() != null && jkubeProject.getArtifact().exists()) {
+      return jkubeProject.getArtifact();
+    }
+    return null;
   }
 
     public static String createDefaultResourceName(String artifactId, String ... suffixes) {
