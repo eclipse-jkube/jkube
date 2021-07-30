@@ -33,7 +33,6 @@ import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 import org.eclipse.jkube.maven.plugin.mojo.build.AbstractDockerMojo;
-import org.eclipse.jkube.maven.plugin.watcher.WatcherManager;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -48,6 +47,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.eclipse.jkube.watcher.api.WatcherManager;
 
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;

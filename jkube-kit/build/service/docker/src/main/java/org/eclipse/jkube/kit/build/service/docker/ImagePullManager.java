@@ -32,7 +32,7 @@ public class ImagePullManager {
     // image pull policy
     private final ImagePullPolicy imagePullPolicy;
 
-    private CacheStore cacheStore;
+    private final CacheStore cacheStore;
 
     public ImagePullManager(CacheStore cacheStore, String imagePullPolicy, String autoPull) {
         this.cacheStore = cacheStore;
@@ -71,7 +71,7 @@ public class ImagePullManager {
     }
 
     public static ImagePullManager createImagePullManager(String imagePullPolicy, String autoPull, Properties properties) {
-        return new ImagePullManager(createSessionCacheStore(properties), imagePullPolicy, autoPull);
+      return new ImagePullManager(new PropertyCacheStore(properties), imagePullPolicy, autoPull);
     }
 
     public interface CacheStore {
@@ -103,13 +103,9 @@ public class ImagePullManager {
      * @author roland
      * @since 20/07/16
      */
-    class ImagePullCache {
+    public static class ImagePullCache {
 
-        private JsonObject cache;
-
-        public ImagePullCache() {
-            this(null);
-        }
+      private final JsonObject cache;
 
         public ImagePullCache(String json) {
             cache = json != null ? JsonFactory.newJsonObject(json) : new JsonObject();
@@ -130,17 +126,21 @@ public class ImagePullManager {
         }
     }
 
-    private static ImagePullManager.CacheStore createSessionCacheStore(Properties properties) {
-        return new ImagePullManager.CacheStore() {
-            @Override
-            public String get(String key) {
-                return properties.getProperty(key);
-            }
+    public static class PropertyCacheStore implements CacheStore {
+      private final Properties properties;
 
-            @Override
-            public void put(String key, String value) {
-                properties.setProperty(key, value);
-            }
-        };
+      public PropertyCacheStore(Properties properties) {
+        this.properties = properties;
+      }
+
+      @Override
+      public String get(String key) {
+        return properties.getProperty(key);
+      }
+
+      @Override
+      public void put(String key, String value) {
+        properties.setProperty(key, value);
+      }
     }
 }

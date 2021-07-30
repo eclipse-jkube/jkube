@@ -388,22 +388,24 @@ public class EnvUtil {
         return new File(new File(projectBaseDir, directory), path);
     }
 
-    // create a timestamp file holding time in epoch seconds
+    /**
+     * Create a timestamp file holding time in epoch seconds.
+     *
+     * @param tsFile the File to store the timestamp in.
+     * @param buildDate the Date of the timestamp.
+     * @throws IOException if the timestamp cannot be created.
+     */
     public static void storeTimestamp(File tsFile, Date buildDate) throws IOException {
-        try {
-            if (tsFile.exists()) {
-                tsFile.delete();
-            }
-            File dir = tsFile.getParentFile();
-            if (!dir.exists()) {
-                if (!dir.mkdirs()) {
-                    throw new IOException("Cannot create directory " + dir);
-                }
-            }
-            Files.write(tsFile.toPath(), Long.toString(buildDate.getTime()).getBytes(StandardCharsets.US_ASCII));
-        } catch (IOException e) {
-            throw new IOException("Cannot create " + tsFile + " for storing time " + buildDate.getTime(), e);
+      try {
+        Files.deleteIfExists(tsFile.toPath());
+        final File dir = tsFile.getParentFile();
+        if (!dir.exists() && !dir.mkdirs()) {
+          throw new IOException("Cannot create directory " + dir);
         }
+        Files.write(tsFile.toPath(), Long.toString(buildDate.getTime()).getBytes(StandardCharsets.US_ASCII));
+      } catch (IOException e) {
+        throw new IOException("Cannot create " + tsFile + " for storing time " + buildDate.getTime(), e);
+      }
     }
 
     public static Date loadTimestamp(File tsFile) throws IOException {
