@@ -13,7 +13,9 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -134,9 +136,25 @@ public class GradleUtilTest {
     // When
     final JavaProject result = convertGradleProject(project);
     // Then
-    assertThat(result.getArtifact())
-        .isNotNull()
-        .hasName("final-artifact.jar");
+    assertThat(result.getArtifact()).isNotNull().hasName("final-artifact.jar");
+  }
+
+  @Test
+  public void findArtifact_withMultipleExistentFiles_shouldReturnArtifactWithLargestSize() throws IOException {
+    // Given
+    final Configuration c = mock(Configuration.class, RETURNS_DEEP_STUBS);
+    File jar1 = folder.newFile("final-artifact.jar");
+    Files.write(jar1.toPath(), "FatJar".getBytes());
+    File jar2 = folder.newFile("final-artifact-plain.jar");
+    when(c.getAllDependencies().stream()).thenAnswer(i -> Stream.empty());
+    when(c.getOutgoing().getArtifacts().getFiles().getFiles()).thenReturn(Stream.of(
+        jar2, jar1
+    ).collect(Collectors.toSet()));
+    when(project.getConfigurations().stream()).thenAnswer(i -> Stream.of(c));
+    // When
+    final JavaProject result = convertGradleProject(project);
+    // Then
+    assertThat(result.getArtifact()).isNotNull().hasName("final-artifact.jar");
   }
 
   private static Function<String[], Configuration> configurationDependencyMock() {
