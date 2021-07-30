@@ -47,7 +47,7 @@ public class GradleUtil {
         .baseDirectory(gradleProject.getProjectDir())
 //        .documentationUrl(gradleProject.)
 //        .compileClassPathElements(gradleProject.)
-//        .packaging(gradleProject.)
+//        .packaging(gradleProject)
         .dependencies(extractDependencies(gradleProject))
 //        .dependenciesWithTransitive(gradleProject.getDependencies().)
 //        .localRepositoryBaseDirectory(gradleProject.)
@@ -101,9 +101,10 @@ public class GradleUtil {
         .map(PublishArtifactSet::getFiles)
         .map(FileCollection::getFiles)
         .flatMap(Set::stream)
+        .sorted((o1, o2) -> (int)(o2.length() - o1.length()))
         .distinct()
         .filter(File::exists)
-        .findAny().orElse(null);
+        .findFirst().orElse(null);
   }
 
 }
