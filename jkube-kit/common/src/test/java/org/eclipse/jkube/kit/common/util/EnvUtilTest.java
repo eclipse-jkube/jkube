@@ -13,6 +13,23 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+
+import org.eclipse.jkube.kit.common.SystemMock;
+
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
@@ -22,27 +39,10 @@ import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
-import org.eclipse.jkube.kit.common.SystemMock;
-import org.junit.Ignore;
-import org.junit.Test;
-
-
 public class EnvUtilTest {
+
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
     public void testConvertTcpToHttpsUrl() {
@@ -233,9 +233,9 @@ public class EnvUtilTest {
         //When
         List<String> result = EnvUtil.extractFromPropertiesAsList(string,properties);
         //Then
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(2);
-        assertThat(result.toArray()).isEqualTo(new String[]{"valu", "value"});
+        assertThat(result)
+            .hasSize(2)
+            .containsExactly("valu", "value");
     }
 
     @Test
@@ -251,9 +251,9 @@ public class EnvUtilTest {
         //when
         Map<String, String> result = EnvUtil.extractFromPropertiesAsMap(prefix,properties);
         //Then
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result).containsEntry("name", "value");
+        assertThat(result)
+            .hasSize(2)
+            .containsEntry("name", "value");
     }
 
     @Test
@@ -371,24 +371,16 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testStoreTimestamp(
-            @Mocked Files files, @Mocked File fileToStoreTimestamp, @Mocked File dir) throws IOException {
+    public void testStoreTimestamp() throws IOException {
         // Given
-        new Expectations() {{
-            fileToStoreTimestamp.exists() ;
-            result = false;
-            fileToStoreTimestamp.getParentFile();
-            result = dir;
-            dir.exists();
-            result = true;
-        }};
+        final File fileToStoreTimestamp = new File(temporaryFolder.getRoot(), UUID.randomUUID().toString());
         final Date date = new Date(1445385600000L);
         // When
         storeTimestamp(fileToStoreTimestamp, date);
         // Then
-        new Verifications() {{
-            files.write(withInstanceOf(Path.class), "1445385600000".getBytes(StandardCharsets.US_ASCII));
-        }};
+        assertThat(fileToStoreTimestamp)
+            .exists()
+            .hasContent("1445385600000");
     }
 
     @Test

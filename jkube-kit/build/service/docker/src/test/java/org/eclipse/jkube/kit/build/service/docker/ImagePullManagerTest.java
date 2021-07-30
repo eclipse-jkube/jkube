@@ -21,6 +21,7 @@ import java.util.Properties;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class ImagePullManagerTest {
+
   @Test
   public void testCreateImagePullManagerWithNotNullImagePullPolicy() {
     // Given + When
