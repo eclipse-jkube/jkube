@@ -134,7 +134,7 @@ public interface KitLogger {
     enum LogVerboseCategory {
         BUILD("build"), API("api");
 
-        final private String category;
+        private final String category;
 
         LogVerboseCategory(String category) {
             this.category = category;
