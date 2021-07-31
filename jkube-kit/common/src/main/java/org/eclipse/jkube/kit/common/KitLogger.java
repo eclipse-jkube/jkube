@@ -102,6 +102,7 @@ public interface KitLogger {
      */
     default void progressFinished() {}
 
+    @SuppressWarnings("java:S106")
     class StdoutLogger implements KitLogger {
         @Override
         public void debug(String format, Object... params) {
@@ -133,7 +134,7 @@ public interface KitLogger {
     enum LogVerboseCategory {
         BUILD("build"), API("api");
 
-        private String category;
+        final private String category;
 
         LogVerboseCategory(String category) {
             this.category = category;
