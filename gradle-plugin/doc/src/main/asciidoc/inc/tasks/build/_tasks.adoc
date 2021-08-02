@@ -1,0 +1,4 @@
+[[task-overview-build]]
+= Build Tasks
+
+include::_jkube-build.adoc[]
