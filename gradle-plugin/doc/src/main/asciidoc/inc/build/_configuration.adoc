@@ -1,0 +1,9 @@
+All build relevant configuration is contained in the `build` section
+of an image configuration. The following configuration options are supported:
+
+[[config-image-build]]
+.Build configuration (<<config-image, image>>)
+[cols="1,5"]
+|===
+| Element | Description
+|===
