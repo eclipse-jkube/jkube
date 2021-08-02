@@ -1,0 +1,23 @@
+[[image-name]]
+When specifying the image name in the configuration with the `name` field you can use several placeholders which are replaced during runtime by this plugin. In addition you can use regular Maven properties which are resolved by Maven itself.
+
+.Image Names
+[cols="1,5"]
+|===
+| Placeholder | Description
+
+| *%g*
+| The last part of the Maven group name, sanitized so that it can be used as username on GitHub. Only the part after the last dot is used. E.g. for a group id `org.eclipse.jkube` this placeholder would insert `jkube`
+
+| *%a*
+| A sanitized version of the artefact id so that it can be used as part of an Docker image name. I.e. it is converted to all lower case (as required by Docker)
+
+| *%v*
+| The project version.
+
+| *%l*
+| If the project version ends with `-SNAPSHOT` then this placeholder is `latest`, otherwise its the full version (same as `%v`)
+
+| *%t*
+| If the project version ends with `-SNAPSHOT` this placeholder resolves to `snapshot-<timestamp>` where timestamp has the date format `yyMMdd-HHmmss-SSSS` (eg `snapshot-`). This feature is especially useful during development in oder to avoid conflicts when images are to be updated which are still in use. You need to take care yourself of cleaning up old images afterwards, though.
+|===
