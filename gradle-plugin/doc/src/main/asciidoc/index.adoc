@@ -21,4 +21,8 @@ ifdef::basebackend-html[toc::[]]
 
 include::inc/_introduction.adoc[]
 
+include::inc/scenarios/_scenarios.adoc[]
+
+include::inc/tasks/_tasks.adoc[]
+
 
