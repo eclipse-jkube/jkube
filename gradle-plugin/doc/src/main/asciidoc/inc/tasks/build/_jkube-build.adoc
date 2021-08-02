@@ -1,0 +1,43 @@
+[[jkubeBuild]]
+== *{task-prefix}Build*
+
+This task is for building Docker images.
+
+[[build-kubernetes]]
+=== Kubernetes Build
+
+A normal Docker build is performed by default. The connection configuration to access the Docker daemon is described in <<access-configuration, Access Configuration>>.
+
+[[build-task-configuration]]
+=== Configuration (Groovy)
+
+The following sections describe the usual configuration, which is similar to the build configuration used in maven plugins.
+
+.Global configuration
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+|===
+
+=== Image Configuration
+
+The configuration how images should be created are defined in a dedicated `images` sections. These are specified for each image within the `images` element of the configuration with one `image` element per image to use.
+
+The `image` element can contain the following sub elements:
+
+include::../image/_configuration.adoc[]
+
+The `build` section is mandatory and is explained in <<build-configuration, below>>.
+
+include::../image/_naming.adoc[]
+
+[[build-configuration]]
+=== Build Configuration
+
+include::../../build/_overview.adoc[]
+
+include::../../build/_configuration.adoc[]
+
+[[build-assembly]]
+=== Assembly
