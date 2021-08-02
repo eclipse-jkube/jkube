@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,11 +28,9 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
-import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
@@ -67,12 +64,8 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenFilteringException;
 
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.addSimpleDockerfileConfig;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.createSimpleDockerfileConfig;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.getTopLevelDockerfile;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.isSimpleDockerFileMode;
 import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
+import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.common.util.ResourceMojoUtil.DEFAULT_RESOURCE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.ResourceMojoUtil.useDekorate;
 import static org.eclipse.jkube.maven.plugin.mojo.build.BuildMojo.CONTEXT_KEY_BUILD_TIMESTAMP;
@@ -358,66 +351,31 @@ public class ResourceMojo extends AbstractJKubeMojo {
     // ==================================================================================
 
     private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log)
-        throws MojoExecutionException, DependencyResolutionRequiredException {
-        List<ImageConfiguration> ret;
-        JavaProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
-        ret = ConfigHelper.resolveImages(
-            log,
-            images,
-            (ImageConfiguration image) -> imageConfigResolver.resolve(image, jkubeProject),
-            null,  // no filter on image name yet (TODO: Maybe add this, too ?)
-                (List<ImageConfiguration> configs) -> {
-                    try {
-                        GeneratorContext ctx = GeneratorContext.builder()
-                                .config(extractGeneratorConfig())
-                                .project(jkubeProject)
-                                .runtimeMode(getRuntimeMode())
-                                .logger(log)
-                                .strategy(JKubeBuildStrategy.docker)
-                                .useProjectClasspath(useProjectClasspath)
-                                .build();
-                        return GeneratorManager.generate(configs, ctx, true);
-                    } catch (Exception e) {
-                        throw new IllegalArgumentException("Cannot extract generator: " + e, e);
-                    }
-            });
-
-        Date now = getBuildReferenceDate();
-        ImageNameFormatter imageNameFormatter = new ImageNameFormatter(MavenUtil.convertMavenProjectToJKubeProject(project, session), now);
-        storeReferenceDateInPluginContext(now);
-        // Check for simple Dockerfile mode
-        if (isSimpleDockerFileMode(project.getBasedir())) {
-            File topDockerfile = getTopLevelDockerfile(project.getBasedir());
-            String defaultImageName = imageNameFormatter.format(getValueFromProperties(project.getProperties(),
-                    "jkube.image.name", "jkube.generator.name"));
-            if (ret.isEmpty()) {
-                ret.add(createSimpleDockerfileConfig(topDockerfile, defaultImageName));
-            } else if (ret.size() == 1 && ret.get(0).getBuildConfiguration() == null) {
-                ret.set(0, addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
+        throws DependencyResolutionRequiredException, IOException {
+      final JavaProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+      return ConfigHelper.initImageConfiguration(
+          null /* no minimal api version */,
+          getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(),
+              DOCKER_BUILD_TIMESTAMP),
+          jkubeProject,
+          images, imageConfigResolver,
+          log,
+          null, // no filter on image name yet (TODO: Maybe add this, too ?)
+          configs -> {
+            try {
+              GeneratorContext ctx = GeneratorContext.builder()
+                  .config(extractGeneratorConfig())
+                  .project(jkubeProject)
+                  .runtimeMode(getRuntimeMode())
+                  .logger(log)
+                  .strategy(JKubeBuildStrategy.docker)
+                  .useProjectClasspath(useProjectClasspath)
+                  .build();
+              return GeneratorManager.generate(configs, ctx, true);
+            } catch (Exception e) {
+              throw new IllegalArgumentException("Cannot extract generator: " + e, e);
             }
-        }
-        String minimalApiVersion = ConfigHelper.initAndValidate(ret, null /* no minimal api version */,
-          imageNameFormatter);
-        return ret;
-    }
-
-    private void storeReferenceDateInPluginContext(Date now) {
-        Map<String, Object> pluginContext = getPluginContext();
-        pluginContext.put(CONTEXT_KEY_BUILD_TIMESTAMP, now);
-    }
-
-    // get a reference date
-    private Date getBuildReferenceDate() throws MojoExecutionException {
-        // Pick up an existing build date created by k8s:build previously
-        File tsFile = new File(project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP);
-        if (!tsFile.exists()) {
-            return new Date();
-        }
-        try {
-            return EnvUtil.loadTimestamp(tsFile);
-        } catch (IOException e) {
-            throw new MojoExecutionException("Cannot read timestamp from " + tsFile, e);
-        }
+          });
     }
 
     private File[] mavenFilterFiles(File[] resourceFiles, File outDir) throws IOException {
