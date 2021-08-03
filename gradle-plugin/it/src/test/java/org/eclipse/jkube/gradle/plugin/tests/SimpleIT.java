@@ -30,7 +30,7 @@ public class SimpleIT {
   public void tasks_containsKubernetesAndOpenShiftTasks() throws Exception {
     final String baseDir = System.getProperty("itDir", "");
     final BuildResult result = GradleRunner.create()
-        .withGradleDistribution(new URI("https://services.gradle.org/distributions/gradle-6.8-bin.zip"))
+        .withGradleDistribution(new URI("https://services.gradle.org/distributions/gradle-6.9-bin.zip"))
         .withDebug(true)
         .withProjectDir(new File(baseDir).toPath().resolve("src").resolve("it").resolve("simple").toFile())
         .withPluginClasspath(Arrays.asList(
@@ -40,7 +40,7 @@ public class SimpleIT {
             module(baseDir, "gradle-plugin", "kubernetes"),
             module(baseDir, "gradle-plugin", "openshift")
         ))
-        .withArguments("tasks")
+        .withArguments("-PjKubeVersion=" + System.getProperty("jKubeVersion"), "tasks")
         .build();
     assertThat(result).extracting(BuildResult::getOutput).asString()
         .contains("Kubernetes tasks")
