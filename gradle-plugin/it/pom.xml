@@ -118,6 +118,10 @@
               <name>itDir</name>
               <value>${project.basedir}</value>
             </property>
+            <property>
+              <name>jKubeVersion</name>
+              <value>${project.version}</value>
+            </property>
           </systemProperties>
         </configuration>
       </plugin>
