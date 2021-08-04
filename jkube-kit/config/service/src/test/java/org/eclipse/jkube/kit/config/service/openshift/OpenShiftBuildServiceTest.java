@@ -16,11 +16,16 @@ package org.eclipse.jkube.kit.config.service.openshift;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.junit.Test;
 
 import java.util.Collections;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 @SuppressWarnings("unused")
 public class OpenShiftBuildServiceTest {
@@ -38,5 +43,24 @@ public class OpenShiftBuildServiceTest {
       jKubeServiceHub.getLog().warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping..."); times = 1;
     }};
     // @formatter:on
+  }
+
+  @Test
+  public void initClient_withNoOpenShift_shouldThrowException() {
+    // Given
+    //  @formatter:off
+    ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+      .name("foo/bar:latest")
+      .build(BuildConfiguration.builder()
+        .from("baseimage:latest")
+        .build())
+      .build();
+    // @formatter:on
+    OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
+
+    // When + Then
+    IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () -> openshiftBuildService.build(imageConfiguration));
+    assertThat(illegalStateException.getMessage())
+        .isEqualTo("OpenShift platform has been specified but OpenShift has not been detected!");
   }
 }
