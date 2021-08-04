@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -231,10 +232,11 @@ public class OpenshiftBuildService implements BuildService {
             clusterAccess = new ClusterAccess(log,
                 ClusterConfiguration.from(System.getProperties(), jKubeServiceHub.getConfiguration().getProject().getProperties()).build());
         }
-        client = clusterAccess.createDefaultClient();
-        if (!isOpenShift(client)) {
+        KubernetesClient k8sClient = clusterAccess.createDefaultClient();
+        if (!isOpenShift(k8sClient)) {
             throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
         }
+        client = (OpenShiftClient) k8sClient;
     }
 
     private void validateSourceType(String buildName, BuildConfigSpec spec) {
