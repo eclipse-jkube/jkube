@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import java.util.List;
+
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -24,8 +26,6 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import groovy.lang.Closure;
 import org.gradle.api.provider.Property;
-
-import java.util.List;
 
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.namedListClosureTo;
