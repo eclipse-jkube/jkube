@@ -34,47 +34,10 @@
 
     <dependencies>
       <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
+        <groupId>org.eclipse.jkube.openshift</groupId>
+        <artifactId>org.eclipse.jkube.openshift.gradle.plugin</artifactId>
+        <version>${jkube.kit.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-      </dependency>
-      <!-- provided -->
-      <dependency>
-        <groupId>org.codehaus.groovy</groupId>
-        <artifactId>groovy-all</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.gradle</groupId>
-        <artifactId>gradle-base-services</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.gradle</groupId>
-        <artifactId>gradle-core</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.gradle</groupId>
-        <artifactId>gradle-core-api</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.gradle</groupId>
-        <artifactId>gradle-logging</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.gradle</groupId>
-        <artifactId>gradle-plugins</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.gradle</groupId>
-        <artifactId>gradle-model-core</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-      </dependency>
-
       <!-- test -->
       <dependency>
         <groupId>junit</groupId>
@@ -91,11 +54,6 @@
       <dependency>
         <groupId>org.gradle</groupId>
         <artifactId>gradle-tooling-api</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.gradle</groupId>
-        <artifactId>gradle-native</artifactId>
-        <version>${version.gradle}</version>
       </dependency>
     </dependencies>
 
