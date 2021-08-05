@@ -19,6 +19,7 @@ dependencies {
 }
 
 kubernetes {
+    buildStrategy = 'jib'
     useColor = false
     offline = false
     access {

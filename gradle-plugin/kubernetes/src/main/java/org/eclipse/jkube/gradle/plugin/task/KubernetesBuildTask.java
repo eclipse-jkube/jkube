@@ -49,7 +49,7 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
   @Override
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
     JKubeServiceHub.JKubeServiceHubBuilder builder = super.initJKubeServiceHubBuilder();
-    if (dockerAccessRequired()) {
+    if (isDockerAccessRequired()) {
       DockerAccessFactory.DockerAccessContext dockerAccessContext = DockerAccessFactory.DockerAccessContext.builder()
           .log(kitLogger)
           .projectProperties(javaProject.getProperties())
@@ -71,7 +71,7 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
       builder.dockerServiceHub(serviceHubFactory.createServiceHub(access, kitLogger, logSpecFactory));
       builder.buildServiceConfig(BuildServiceConfig.builder()
           .buildRecreateMode(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreate().getOrElse("none")))
-          .jKubeBuildStrategy(kubernetesExtension.getBuildStrategy().getOrElse(JKubeBuildStrategy.docker))
+          .jKubeBuildStrategy(kubernetesExtension.getBuildStrategy())
           .forcePull(kubernetesExtension.getForcePull().getOrElse(false))
           .buildDirectory(javaProject.getBuildDirectory().getAbsolutePath())
           .imagePullManager(imagePullManager)
@@ -94,9 +94,8 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
     }
   }
 
-  protected boolean dockerAccessRequired() {
-    return !kubernetesExtension.getBuildStrategy()
-        .getOrElse(JKubeBuildStrategy.docker)
-        .equals(JKubeBuildStrategy.jib);
+  private boolean isDockerAccessRequired() {
+    return kubernetesExtension.getBuildStrategy() != JKubeBuildStrategy.jib;
   }
+
 }

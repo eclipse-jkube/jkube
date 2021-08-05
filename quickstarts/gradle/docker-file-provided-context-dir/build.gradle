@@ -8,7 +8,6 @@ plugins {
 group = 'org.eclipse.jkube.gradle.sample.spring.boot'
 version = '1.5.0-SNAPSHOT'
 sourceCompatibility = '11'
-def contextDirPath = projectDir.getAbsolutePath() + '/src/main/docker-context-dir'
 
 repositories {
     mavenCentral()
@@ -28,7 +27,7 @@ kubernetes {
         image {
             name = 'jkube/docker-file-provided-context-dir'
             build {
-                contextDir = contextDirPath
+                contextDir = file('src/main/docker-context-dir')
             }
         }
     }
