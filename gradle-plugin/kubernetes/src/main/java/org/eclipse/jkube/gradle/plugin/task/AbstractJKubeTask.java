@@ -60,7 +60,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
     javaProject = GradleUtil.convertGradleProject(getProject());
     kitLogger = new GradleLogger(getLogger(), getLogPrefix());
     clusterAccess = new ClusterAccess(kitLogger, initClusterConfiguration());
-    jKubeServiceHub = initJKubeServiceHub();
+    jKubeServiceHub = initJKubeServiceHubBuilder().build();
     ImageConfigResolver imageConfigResolver = new ImageConfigResolver();
     try {
       resolvedImages = initImageConfiguration(
@@ -95,8 +95,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
         .configuration(JKubeConfiguration.builder()
             .project(javaProject)
             .reactorProjects(Collections.singletonList(javaProject))
-            .sourceDirectory(kubernetesExtension.getSourceDirectory().getOrElse("src/main/docker"))
-            .outputDirectory(kubernetesExtension.getOutputDirectory().getOrElse("build/docker"))
+            .sourceDirectory(kubernetesExtension.getBuildSourceDirectory().getOrElse("src/main/docker"))
+            .outputDirectory(kubernetesExtension.getBuildOutputDirectory().getOrElse("build/docker"))
             .registryConfig(RegistryConfig.builder()
                 .settings(Collections.emptyList())
                 .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
@@ -114,10 +114,5 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
   protected ClusterConfiguration initClusterConfiguration() {
     return ClusterConfiguration.from(kubernetesExtension.access,
         System.getProperties(), javaProject.getProperties()).build();
-  }
-
-  // Exposed for testing
-  protected JKubeServiceHub initJKubeServiceHub() {
-    return initJKubeServiceHubBuilder().build();
   }
 }
