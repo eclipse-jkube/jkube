@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactor
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -83,6 +84,9 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
 
   @Override
   public void run() {
+    if (kubernetesExtension.getRuntimeMode() != RuntimeMode.OPENSHIFT) {
+      kitLogger.info("Building container image in Kubernetes mode");
+    }
     try {
       for (ImageConfiguration imageConfig : resolvedImages) {
         storeTimestamp(

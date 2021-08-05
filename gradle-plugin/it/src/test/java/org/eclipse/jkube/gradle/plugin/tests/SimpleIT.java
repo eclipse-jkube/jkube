@@ -14,37 +14,24 @@
 package org.eclipse.jkube.gradle.plugin.tests;
 
 import org.gradle.testkit.runner.BuildResult;
-import org.gradle.testkit.runner.GradleRunner;
+import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.File;
-import java.net.URI;
-import java.nio.file.Path;
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SimpleIT {
 
+  @Rule
+  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+
   @Test
-  public void tasks_containsKubernetesAndOpenShiftTasks() throws Exception {
-    final String baseDir = System.getProperty("itDir", "");
-    final BuildResult result = GradleRunner.create()
-        .withGradleDistribution(new URI("https://services.gradle.org/distributions/gradle-6.9-bin.zip"))
-        .withDebug(true)
-        .withProjectDir(new File(baseDir).toPath().resolve("src").resolve("it").resolve("simple").toFile())
-        .withPluginClasspath(Arrays.asList(
-            module(baseDir, "jkube-kit", "common"),
-            module(baseDir, "jkube-kit", "config", "resource"),
-            module(baseDir, "jkube-kit", "config", "service"),
-            module(baseDir, "jkube-kit", "config", "image"),
-            module(baseDir, "jkube-kit", "build", "service", "docker"),
-            module(baseDir, "gradle-plugin", "kubernetes"),
-            module(baseDir, "gradle-plugin", "openshift")
-        ))
-        .withArguments("-PjKubeVersion=" + System.getProperty("jKubeVersion"), "tasks")
-        .build();
+  public void tasks_containsKubernetesAndOpenShiftTasks() {
+    // When
+    final BuildResult result = gradleRunner.withITProject("simple").withArguments("tasks").build();
+    // Then
     assertThat(result).extracting(BuildResult::getOutput).asString()
+        .contains("Help tasks")
+        .contains("k8sConfigView - ")
         .contains("Kubernetes tasks")
         .contains("k8sApply - ")
         .contains("k8sBuild - ")
@@ -55,11 +42,4 @@ public class SimpleIT {
         .contains("ocResource - ");
   }
 
-  private static File module(String baseDir, String... subdirs) {
-    Path dir = new File(baseDir).getAbsoluteFile().toPath().getParent().getParent();
-    for (String subdir : subdirs) {
-      dir = dir.resolve(subdir);
-    }
-    return dir.resolve("target").resolve("classes").toFile();
-  }
 }
