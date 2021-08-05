@@ -49,6 +49,7 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
   @Override
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
     JKubeServiceHub.JKubeServiceHubBuilder builder = super.initJKubeServiceHubBuilder();
+    DockerAccess access = null;
     if (isDockerAccessRequired()) {
       DockerAccessFactory.DockerAccessContext dockerAccessContext = DockerAccessFactory.DockerAccessContext.builder()
           .log(kitLogger)
@@ -61,22 +62,22 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
           .skipMachine(kubernetesExtension.getSkipMachine().getOrElse(false))
           .build();
       DockerAccessFactory dockerAccessFactory = new DockerAccessFactory();
-      ImagePullManager imagePullManager = createImagePullManager(
-          kubernetesExtension.getImagePullPolicy().getOrElse("Always"),
-          kubernetesExtension.getAutoPull().getOrElse("true"),
-          javaProject.getProperties());
-      DockerAccess access = dockerAccessFactory.createDockerAccess(dockerAccessContext);
-      ServiceHubFactory serviceHubFactory = new ServiceHubFactory();
-      LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(true, true, null);
-      builder.dockerServiceHub(serviceHubFactory.createServiceHub(access, kitLogger, logSpecFactory));
-      builder.buildServiceConfig(BuildServiceConfig.builder()
-          .buildRecreateMode(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreate().getOrElse("none")))
-          .jKubeBuildStrategy(kubernetesExtension.getBuildStrategy())
-          .forcePull(kubernetesExtension.getForcePull().getOrElse(false))
-          .buildDirectory(javaProject.getBuildDirectory().getAbsolutePath())
-          .imagePullManager(imagePullManager)
-          .build());
+      access = dockerAccessFactory.createDockerAccess(dockerAccessContext);
     }
+    ServiceHubFactory serviceHubFactory = new ServiceHubFactory();
+    LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(true, true, null);
+    builder.dockerServiceHub(serviceHubFactory.createServiceHub(access, kitLogger, logSpecFactory));
+    ImagePullManager imagePullManager = createImagePullManager(
+      kubernetesExtension.getImagePullPolicy().getOrElse("Always"),
+      kubernetesExtension.getAutoPull().getOrElse("true"),
+      javaProject.getProperties());
+    builder.buildServiceConfig(BuildServiceConfig.builder()
+      .buildRecreateMode(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreate().getOrElse("none")))
+      .jKubeBuildStrategy(kubernetesExtension.getBuildStrategy())
+      .forcePull(kubernetesExtension.getForcePull().getOrElse(false))
+      .buildDirectory(javaProject.getBuildDirectory().getAbsolutePath())
+      .imagePullManager(imagePullManager)
+      .build());
     return builder;
   }
 
