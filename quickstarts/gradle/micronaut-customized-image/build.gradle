@@ -1,0 +1,66 @@
+plugins {
+    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("io.micronaut.application") version "1.5.4"
+    id("org.eclipse.jkube.kubernetes") version "1.5.0-SNAPSHOT"
+}
+
+version = "1.5.0-SNAPSHOT"
+group = "org.eclipse.jkube.quickstart.gradle.micronaut.custom"
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+micronaut {
+    runtime("netty")
+    processing {
+        incremental(true)
+        annotations("org.eclipse.jkube.quickstart.gradle.micronaut.custom.*")
+    }
+}
+
+dependencies {
+    implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut:micronaut-management")
+    implementation("io.micronaut:micronaut-runtime")
+    implementation("javax.annotation:javax.annotation-api")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    implementation("io.micronaut:micronaut-validation")
+}
+
+application {
+    mainClass.set("org.eclipse.jkube.quickstart.gradle.micronaut.custom.Application")
+}
+
+java {
+    sourceCompatibility = JavaVersion.toVersion("11")
+    targetCompatibility = JavaVersion.toVersion("11")
+}
+
+kubernetes {
+    images {
+        image {
+            name = "${project.group}/${project.name}:${project.version}"
+            build {
+                from = "quay.io/jkube/jkube-java-binary-s2i:0.0.9"
+                tags = ["latest", "${project.version}"]
+                env {
+                    JAVA_APP_JAR = "${project.name}-${project.version}-all.jar"
+                }
+                assembly {
+                    mode = "dir"
+                    targetDir = "/deployments"
+                    layers = [{
+                        id = "custom-assembly-for-micronaut"
+                        files = [{
+                            source = file("build/libs/${project.name}-${project.version}-all.jar")
+                            outputDirectory = "."
+                        }]
+                    }]
+                }
+                ports = ["8080"]
+            }
+        }
+    }
+}
