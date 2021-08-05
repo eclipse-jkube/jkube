@@ -8,7 +8,6 @@ plugins {
 group = 'org.eclipse.jkube.gradle.sample.spring.boot'
 version = '1.5.0-SNAPSHOT'
 sourceCompatibility = '11'
-def contextDirPath = projectDir.getAbsolutePath() + '/src/main/assembly-dockerfile'
 
 repositories {
     mavenCentral()
@@ -24,7 +23,7 @@ kubernetes {
         image {
             name = 'jkube/context-and-assembly'
             build {
-                contextDir = contextDirPath
+                contextDir = file('src/main/assembly-dockerfile')
                 assembly {
                     name = 'target'
                 }

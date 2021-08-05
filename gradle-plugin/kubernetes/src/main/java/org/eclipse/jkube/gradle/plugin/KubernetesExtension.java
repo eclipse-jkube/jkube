@@ -31,10 +31,12 @@ import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.namedListClosureTo;
 
 /**
- * <pre>{@code
+ * <pre>
+ * {@code
  * kubernetes {
  *     useColor = false
  *     offline = false
+ *     buildStrategy = 'jib'
  *     access {
  *         namespace = 'default'
  *     }
@@ -64,7 +66,8 @@ import static org.eclipse.jkube.gradle.plugin.GroovyUtil.namedListClosureTo;
  * openshift {
  *  useColor = true
  * }
- * }</pre>
+ * }
+ * </pre>
  *
  * Nested config
  */
@@ -82,8 +85,6 @@ public abstract class KubernetesExtension {
   public abstract Property<String> getFilter();
 
   public abstract Property<String> getApiVersion();
-
-  public abstract Property<JKubeBuildStrategy> getBuildStrategy();
 
   public abstract Property<String> getBuildRecreate();
 
@@ -105,11 +106,13 @@ public abstract class KubernetesExtension {
 
   public abstract Property<String> getPullRegistry();
 
-  public abstract Property<String> getSourceDirectory();
+  public abstract Property<String> getBuildSourceDirectory();
 
-  public abstract Property<String> getOutputDirectory();
+  public abstract Property<String> getBuildOutputDirectory();
 
   public abstract Property<String> getRegistry();
+
+  public JKubeBuildStrategy buildStrategy;
 
   public ClusterConfiguration access;
 
@@ -125,6 +128,10 @@ public abstract class KubernetesExtension {
 
   public RuntimeMode getRuntimeMode() {
     return RuntimeMode.KUBERNETES;
+  }
+
+  public JKubeBuildStrategy getBuildStrategy() {
+    return buildStrategy != null ? buildStrategy : JKubeBuildStrategy.docker;
   }
 
   public void access(Closure<?> closure) {
