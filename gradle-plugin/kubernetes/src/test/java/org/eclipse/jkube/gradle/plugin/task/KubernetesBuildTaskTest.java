@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
@@ -49,6 +50,7 @@ public class KubernetesBuildTaskTest {
   private MockedConstruction<DefaultTask> defaultTaskMockedConstruction;
   private MockedConstruction<DockerAccessFactory> dockerAccessFactoryMockedConstruction;
   private Project project;
+  private KubernetesExtension extension;
 
   @Before
   public void setUp() throws IOException {
@@ -60,7 +62,7 @@ public class KubernetesBuildTaskTest {
     dockerAccessFactoryMockedConstruction = mockConstruction(DockerAccessFactory.class, (mock, ctx) -> {
       when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class));
     });
-    final KubernetesExtension extension = new TestKubernetesExtension();
+    extension = new TestKubernetesExtension();
     when(project.getProjectDir()).thenReturn(temporaryFolder.getRoot());
     when(project.getBuildDir()).thenReturn(temporaryFolder.newFolder("build"));
     when(project.getConfigurations().stream()).thenAnswer(i -> Stream.empty());
@@ -94,5 +96,18 @@ public class KubernetesBuildTaskTest {
     assertThat(buildTask.resolvedImages)
         .singleElement()
         .hasFieldOrPropertyWithValue("name", "foo/bar:latest");
+  }
+
+  @Test
+  public void runTask_withImageConfigurationAndJibBuildStrategy_shouldGetBuildService() {
+    // Given
+    extension.buildStrategy = JKubeBuildStrategy.jib;
+    final KubernetesBuildTask buildTask = new KubernetesBuildTask(KubernetesExtension.class);
+    // When
+    buildTask.runTask();
+    // Then
+    assertThat(buildTask.resolvedImages)
+      .singleElement()
+      .hasFieldOrPropertyWithValue("name", "foo/bar:latest");
   }
 }
