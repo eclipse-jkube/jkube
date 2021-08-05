@@ -1,0 +1,49 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+
+kubernetes {
+    useColor = true
+    offline = true
+    buildStrategy = 'jib'
+    access {
+        namespace = 'default'
+    }
+    enricher {
+        excludes = ['jkube-expose']
+    }
+    resources {
+        controllerName = 'test'
+        configMap {
+            name = 'configMap-name'
+            entries = [
+                    [name: 'test', value: 'value']
+            ]
+        }
+    }
+    images {
+        image2 { name = 'registry/image2:tag' }
+        image1 {
+            name = 'registry/image:tag'
+            build {
+                contextDir = file('src/main/context-dir')
+                from = 'busybox'
+            }
+        }
+    }
+}

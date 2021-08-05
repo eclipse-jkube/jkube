@@ -28,7 +28,6 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import org.gradle.api.DefaultTask;
@@ -82,9 +81,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
 
   public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
     kitLogger.info("Running in %s mode", kubernetesExtension.getRuntimeMode().getLabel());
-    if (kubernetesExtension.getRuntimeMode() != RuntimeMode.OPENSHIFT) {
-      kitLogger.info("Building Docker image in Kubernetes mode");
-    }
     // TODO: Run Generators
     return configs;
   }
