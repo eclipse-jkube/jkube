@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 
