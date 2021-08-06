@@ -58,6 +58,20 @@ import static org.eclipse.jkube.gradle.plugin.GroovyUtil.namedListClosureTo;
  *             name = 'registry/image:tag'
  *             build {
  *                 from = 'busybox'
+ *                 assembly {
+ *                   layers = [
+ *                     {
+ *                       id = "custom-assembly-for-micronaut"
+ *                       files = [
+ *                         {
+ *                           source = file('.')
+ *                           outputDirectory = '.'
+ *                         },
+ *                         [source: file('other'), outputDirectory: file('output')]
+ *                       ]
+ *                     }
+ *                   ]
+ *                 }
  *             }
  *         }
  *     }
