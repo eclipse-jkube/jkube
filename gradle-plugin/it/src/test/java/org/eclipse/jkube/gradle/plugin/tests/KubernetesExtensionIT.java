@@ -40,7 +40,7 @@ public class KubernetesExtensionIT {
             "    - name: \"test\"\n" +
             "      value: \"value\"")
         .contains("enricher:\n  excludes:\n  - \"jkube-expose\"")
-        .contains("- name: \"registry/image2:tag\"")
+        .contains("- name: \"registry/extension-configuration:0.0.1-SNAPSHOT\"")
         .contains("- name: \"registry/image:tag\"")
         .contains("    from: \"busybox\"");
   }
