@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import groovy.lang.Closure;
+import groovy.lang.GString;
 import groovy.lang.Script;
 import groovy.util.ConfigObject;
 import groovy.util.ConfigSlurper;
@@ -79,6 +80,8 @@ public class GroovyUtil {
       return sanitize((ConfigObject) object);
     } else if (object instanceof Collection) {
       return ((Collection<Object>) object).stream().map(GroovyUtil::sanitize).collect(Collectors.toList());
+    } else if (object instanceof GString) {
+      return ((GString) object).toString();
     }
     return object;
   }
