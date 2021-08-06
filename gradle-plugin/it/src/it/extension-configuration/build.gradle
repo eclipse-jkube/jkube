@@ -37,7 +37,7 @@ kubernetes {
         }
     }
     images {
-        image2 { name = 'registry/image2:tag' }
+        image2 { name = "${'registry'}/${project.name}:${project.version}" }
         image1 {
             name = 'registry/image:tag'
             build {
