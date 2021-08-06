@@ -14,15 +14,19 @@
 package org.eclipse.jkube.gradle.plugin;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import groovy.util.ConfigObject;
 import groovy.util.ConfigSlurper;
+import org.gradle.api.internal.project.ProjectScript;
 
 public class GroovyUtil {
 
@@ -32,7 +36,7 @@ public class GroovyUtil {
 
   @SuppressWarnings("unchecked")
   public static <T> T closureTo(Closure<?> closure, Class<T> targetType) {
-    final ConfigObject result = sanitize(new ConfigSlurper().parse(new ClosureScript(closure)));
+    final ConfigObject result = sanitize(parse(closure));
     if (ConfigObject.class.isAssignableFrom(targetType)) {
       return (T)result;
     }
@@ -41,7 +45,7 @@ public class GroovyUtil {
 
   @SuppressWarnings("unchecked")
   public static <T> List<T> namedListClosureTo(Closure<?> closure, Class<T> targetListType) {
-    final ConfigObject co = new ConfigSlurper().parse(new ClosureScript(closure));
+    final ConfigObject co = parse(closure);
     final List<T> ret = new ArrayList<>();
     for (Object entry : co.entrySet()) {
       final Map.Entry<String, ?> e = (Map.Entry<String, ?>)entry;
@@ -62,13 +66,31 @@ public class GroovyUtil {
     final ConfigObject result = configObject.clone();
     for (Object entry : configObject.entrySet()) {
       final Map.Entry<String, ?> e = (Map.Entry<String, ?>)entry;
-      if (e.getValue() instanceof Closure) {
-        result.put(Objects.toString(e.getKey()), closureTo((Closure<?>)e.getValue(), ConfigObject.class));
-      } else {
-        result.put(Objects.toString(e.getKey()), e.getValue());
-      }
+      result.put(Objects.toString(e.getKey()), sanitize(e.getValue()));
     }
     return result;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Object sanitize(Object object) {
+    if (object instanceof Closure) {
+      return closureTo((Closure<?>) object, ConfigObject.class);
+    } else if (object instanceof ConfigObject) {
+      return sanitize((ConfigObject) object);
+    } else if (object instanceof Collection) {
+      return ((Collection<Object>) object).stream().map(GroovyUtil::sanitize).collect(Collectors.toList());
+    }
+    return object;
+  }
+
+  private static ConfigObject parse(Closure<?> closure) {
+    final ConfigSlurper slurper = new ConfigSlurper();
+    final Map<String, Object> binding = new HashMap<>();
+    if (closure.getThisObject() instanceof ProjectScript) {
+      binding.put("project", ((ProjectScript) closure.getThisObject()).getScriptTarget());
+    }
+    slurper.setBinding(binding);
+    return slurper.parse(new ClosureScript(closure));
   }
 
   private static final class ClosureScript extends Script {
@@ -80,7 +102,7 @@ public class GroovyUtil {
 
     @Override
     public Object run() {
-      final Closure<?> copy = closure.rehydrate(this, this, closure.getThisObject());
+      final Closure<?> copy = closure.rehydrate(this, closure.getOwner(), closure.getThisObject());
       copy.setResolveStrategy(Closure.DELEGATE_FIRST);
       copy.setDelegate(this);
       return copy.call();
