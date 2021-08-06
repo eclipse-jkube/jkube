@@ -13,7 +13,10 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import groovy.lang.Closure;
@@ -26,6 +29,18 @@ import static org.eclipse.jkube.gradle.plugin.GroovyUtil.namedListClosureTo;
 
 public class GroovyUtilTest {
 
+  /**
+   * <pre>
+   * {@code
+   * {
+   *   property = 'value'
+   *   nested = {
+   *     nestedProperty = 'nestedValue'
+   *   }
+   * }
+   * }
+   * </pre>
+   */
   @Test
   public void closureTo_withNestedClosure_shouldReturnStructuredClass() {
     // Given
@@ -42,6 +57,40 @@ public class GroovyUtilTest {
         .hasFieldOrPropertyWithValue("nestedProperty", "nestedValue");
   }
 
+  /**
+   * <pre>
+   * {array=['one','two',{nested='closure'}]}
+   * </pre>
+   */
+  @SuppressWarnings("unchecked")
+  @Test
+  public void closureTo_withNestedClosureCollection_shouldReturnMap() {
+    // Given
+    final Closure<?> closure = closure(this,
+        "array", Arrays.asList("one", "two", closure(this, "nested", "closure")));
+    // When
+    final Map<String, Object> result = closureTo(closure, Map.class);
+    // Then
+    assertThat(result).hasSize(1)
+        .extracting("array").asList().containsExactly("one", "two", Collections.singletonMap("nested", "closure"));
+  }
+
+  /**
+   * <pre>
+   * {@code
+   * {
+   *   element1 = {
+   *     property = 'value'
+   *     nestedProperty = 'nestedValue'
+   *   }
+   *   element2 = {
+   *     property = 'value2'
+   *     nestedProperty = 'nestedValue2'
+   *   }
+   * }
+   * }
+   * </pre>
+   */
   @Test
   public void namedListClosureTo_withNamedListNestedClosure_shouldReturnOrderedList() {
     // Given
@@ -76,10 +125,12 @@ public class GroovyUtilTest {
 
     };
   }
+
   static final class StructuredClass {
     public String property;
     public NestedStructuredClass nested;
   }
+
   static final class NestedStructuredClass {
     public String nestedProperty;
   }
