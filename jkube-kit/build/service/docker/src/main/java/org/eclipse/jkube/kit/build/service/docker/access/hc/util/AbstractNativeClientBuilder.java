@@ -34,7 +34,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
  * @author roland
  * @since 08/08/16
  */
-abstract public class AbstractNativeClientBuilder implements ClientBuilder {
+public abstract class AbstractNativeClientBuilder implements ClientBuilder {
 
     protected final Registry<ConnectionSocketFactory> registry;
     protected final String path;
