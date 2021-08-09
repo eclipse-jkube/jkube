@@ -1,5 +1,5 @@
 [[image-name]]
-When specifying the image name in the configuration with the `name` field you can use several placeholders which are replaced during runtime by this plugin. In addition you can use regular Maven properties which are resolved by Maven itself.
+When specifying the image name in the configuration with the `name` field you can use several placeholders which are replaced during runtime by this plugin. In addition you can use regular Gradle properties which are resolved by Gradle itself.
 
 .Image Names
 [cols="1,5"]
@@ -7,7 +7,7 @@ When specifying the image name in the configuration with the `name` field you ca
 | Placeholder | Description
 
 | *%g*
-| The last part of the Maven group name, sanitized so that it can be used as username on GitHub. Only the part after the last dot is used. E.g. for a group id `org.eclipse.jkube` this placeholder would insert `jkube`
+| The last part of the Gradle group name, sanitized so that it can be used as username on GitHub. Only the part after the last dot is used. E.g. for a group id `org.eclipse.jkube` this placeholder would insert `jkube`
 
 | *%a*
 | A sanitized version of the artefact id so that it can be used as part of an Docker image name. I.e. it is converted to all lower case (as required by Docker)

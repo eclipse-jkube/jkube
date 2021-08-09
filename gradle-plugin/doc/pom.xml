@@ -110,7 +110,7 @@
                     <toc>left</toc>
                     <linkcss>false</linkcss>
                     <plugin>${plugin}</plugin>
-                    <goal-prefix>${goal-prefix}</goal-prefix>
+                    <task-prefix>${task-prefix}</task-prefix>
                     <cluster>${cluster}</cluster>
                     <version>${project.version}</version>
                   </attributes>
