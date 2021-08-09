@@ -49,7 +49,7 @@ public class GradleUtil {
 //        .compileClassPathElements(gradleProject.)
 //        .packaging(gradleProject)
         .dependencies(extractDependencies(gradleProject))
-//        .dependenciesWithTransitive(gradleProject.getDependencies().)
+        .dependenciesWithTransitive(extractDependencies(gradleProject))
 //        .localRepositoryBaseDirectory(gradleProject.)
         .plugins(extractPlugins(gradleProject))
 //
