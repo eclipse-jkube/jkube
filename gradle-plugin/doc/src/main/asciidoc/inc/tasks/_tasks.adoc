@@ -4,12 +4,12 @@
 
 This plugin supports a rich set for providing a smooth Java developer experience. These tasks can be categorized in multiple groups:
 
-* <<tasks-build, Build tasks>> are all about creating and managing Kubernetes build artifacts like Docker images or S2I builds.
+* <<tasks-build, Build and Deployment tasks>> are all about creating and managing Kubernetes build artifacts like Docker images or S2I builds.
 
 * <<tasks-develop, Development tasks>> target help not only in developing resource descriptors to the development cluster but also to manage the lifecycle of the development cluster as well.
 
 [[tasks-build]]
-.Build Tasks
+.Build & Deployment Tasks
 [cols="1,3"]
 |===
 | Task | Description
@@ -26,3 +26,5 @@ This plugin supports a rich set for providing a smooth Java developer experience
 |===
 
 include::build/_tasks.adoc[]
+
+include::develop/_tasks.adoc[]
