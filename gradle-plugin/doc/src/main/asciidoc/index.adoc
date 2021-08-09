@@ -25,4 +25,10 @@ include::inc/scenarios/_scenarios.adoc[]
 
 include::inc/tasks/_tasks.adoc[]
 
+include::inc/_groovy-configuration.adoc[]
+
+include::inc/_registry.adoc[]
+
+include::inc/_authentication.adoc[]
+
 

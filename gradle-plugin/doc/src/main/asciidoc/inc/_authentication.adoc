@@ -1,0 +1,85 @@
+[[authentication]]
+= Registry Authentication
+
+When pulling (via the `autoPull` mode of `{task-prefix}Build`) or pushing image, it
+might be necessary to authenticate against a Docker registry.
+
+There are five different locations searched for credentials.  In order, these are:
+
+* Providing system properties `jkube.docker.username` and `jkube.docker.password` from the outside.
+* Using a `authConfig` section in the plugin configuration with `username` and `password` elements.
+* Using OpenShift configuration in `~/.config/kube`
+* Login into a registry with `docker login` (credentials in a credential helper or in `~/.docker/config.json`)
+
+Using the username and password directly in the `build.gradle` is not
+recommended since this is widely visible. This is the easiest and
+transparent way, though. Using an `authConfig` is straight forward:
+
+[source,groovy,subs="attributes+"]
+----
+kubernetes {
+    images {
+        image {
+            name = "consol/tomcat-7.0"
+        }
+    }
+    authConfig {
+        username = "jolokia"
+        password = "s!cr!t"
+    }
+}
+----
+
+The system property provided credentials are a good compromise when
+using CI servers like Jenkins. You simply provide the credentials from
+the outside:
+
+.Example
+[source, sh, subs="+attributes"]
+----
+gradle -Djkube.docker.username=jolokia -Djkube.docker.password=s!cr!t {task-prefix}Push
+----
+
+The most _secure_ way is to rely on docker's credential store or credential helper and read confidential information
+from an external credentials store, such as the native keychain of the operating system. Follow the instruction on
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store[the docker login documentation].
+
+As a final fallback, this plugin consults `$DOCKER_CONFIG/config.json` if `DOCKER_CONFIG` is set, or `~/.docker/config.json` if not, and reads credentials stored directly within this
+file. This unsafe behavior happened when connecting to a registry with the command `docker login` from the command line
+with older versions of docker (pre 1.13.0) or when docker is not configured to use a
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store[credential store].
+
+== Pull vs. Push Authentication
+
+The credentials lookup described above is valid for both push and
+pull operations. In order to narrow things down, credentials can be
+provided for pull or push operations alone:
+
+In an `authConfig` section a sub-section `pull` and/or `push`
+can be added. In the example below the credentials provider are only
+used for image push operations:
+
+.Example
+[source,groovy,subs="attributes+"]
+----
+kubernetes {
+    images {
+        image {
+            name = "consol/tomcat-7.0"
+        }
+    }
+    authConfig {
+        push {
+            username = "jolokia"
+            password = "secret"
+        }
+    }
+}
+----
+
+When the credentials are given on the command line as system
+properties, then the properties `jkube.docker.pull.username` /
+`jkube.docker.pull.password` and `jkube.docker.push.username` /
+`jkube.docker.push.password` are used for pull and push operations,
+respectively (when given). Either way, the standard lookup algorithm
+as described in the previous section is used as fallback.
