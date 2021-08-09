@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+    id("org.eclipse.jkube.kubernetes") version "1.5.0-SNAPSHOT"
+}
+
+version = "1.5.0-SNAPSHOT"
+group = "org.eclipse.jkube.quickstart.gradle.camelcdi"
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation "org.apache.camel:camel-core:3.11.1"
+    implementation "org.apache.camel:camel-cdi:3.11.1"
+    implementation "javax.enterprise:cdi-api:2.0.SP1"
+    implementation 'org.jboss.weld.se:weld-se:2.4.8.Final'
+    implementation 'org.jboss.weld:weld-core:2.4.8.Final'
+    implementation 'org.apache.deltaspike.cdictrl:deltaspike-cdictrl-weld:1.9.5'
+    implementation 'org.slf4j:slf4j-log4j12:2.0.0-alpha2'
+    implementation 'log4j:log4j:1.2.17'
+}
+
+task copyDependencies(type: Copy) {
+    from configurations.default
+    into file("build/dependencies")
+}
+build.dependsOn(copyDependencies)
+
+kubernetes {
+    images {
+        image {
+            name = "jkube/${project.name}:${project.version}"
+            alias = "camel-service"
+            build {
+                from = "quay.io/jkube/jkube-java-binary-s2i:0.0.9"
+                assembly {
+                    targetDir = "/deployments"
+                    layers = [{
+                        fileSets = [{
+                            directory = file("${project.rootDir}/build/dependencies")
+                       }]
+                    }]
+                }
+                env {
+                    JAVA_LIB_DIR = "/deployments/dependencies/*"
+                    JAVA_MAIN_CLASS = "org.apache.camel.cdi.Main"
+                }
+                labels {
+                    labelWithValue = "foo"
+                    version = "${project.version}"
+                    artifactId = "${project.name}"
+                }
+                ports = ["8787"]
+            }
+        }
+    }
+}
