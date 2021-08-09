@@ -1,43 +1,39 @@
 [[jkubeBuild]]
-== *{task-prefix}Build*
+=== *{task-prefix}Build*
 
 This task is for building Docker images.
 
 [[build-kubernetes]]
-=== Kubernetes Build
+==== Kubernetes Build
 
-A normal Docker build is performed by default. The connection configuration to access the Docker daemon is described in <<access-configuration, Access Configuration>>.
+A normal Docker build is performed by default. For Kubernetes builds the {plugin} uses the Docker remote API so the URL of your Docker Daemon must be specified. The URL can be specified by the dockerHost or machine configuration, or by the `DOCKER_HOST` environment variable.
 
-[[build-task-configuration]]
-=== Configuration (Groovy)
+The Docker remote API supports communication via SSL and authentication with certificates. The path to the certificates can be specified by the certPath or machine configuration, or by the `DOCKER_CERT_PATH` environment variable.
 
-The following sections describe the usual configuration, which is similar to the build configuration used in maven plugins.
+If you don't have access to docker daemon, you can change build strategy using `buildStrategy` option in groovy configuration like this:
 
-.Global configuration
-[cols="1,5,1"]
+.Example of overriding default build strategy
+[source,groovy,subs="attributes+"]
+----
+kubernetes {
+    buildStrategy = 'jib'
+}
+----
+
+These are the different options supported by `buildStrategy`:
+
+.JKube Build Strategies
+[cols="1,5"]
 |===
-| Element | Description | Property
+| *buildStrategy* | *Description*
+| `docker`
+| Docker build with a binary source
 
+| `jib`
+| Deamonless container image creation using https://github.com/GoogleContainerTools/jib[JIB] build
 |===
 
-=== Image Configuration
+{plugin} by default tries to build up an opinionated <<config-image, Image Configuration>> by inspecting `build.gradle`. You can also provide your own <<dockerfile-scenario, Dockerfile>> or provide Custom ImageConfiguration via <<groovy-scenario-image, Groovy DSL configuration>>.
 
-The configuration how images should be created are defined in a dedicated `images` sections. These are specified for each image within the `images` element of the configuration with one `image` element per image to use.
 
-The `image` element can contain the following sub elements:
 
-include::../image/_configuration.adoc[]
-
-The `build` section is mandatory and is explained in <<build-configuration, below>>.
-
-include::../image/_naming.adoc[]
-
-[[build-configuration]]
-=== Build Configuration
-
-include::../../build/_overview.adoc[]
-
-include::../../build/_configuration.adoc[]
-
-[[build-assembly]]
-=== Assembly
