@@ -1,0 +1,252 @@
+
+[[groovy-configuration]]
+= Groovy Configuration
+
+[[global-configuration]]
+== Global Configuration
+.Global configuration
+[cols="1,5,1"]
+|====
+| Element | Description | Property
+| *buildStrategy*
+a| Defines what build strategy to choose while building container image.
+Possible values are `docker` and `jib` out of which `docker` is default.
+
+ifeval::["{goal-prefix}" == "oc"]
+If the effective build mode is `openshift` an additional `s2i` option is available
+and selected by default.
+
+Available strategies for OpenShift are:
+
+* `s2i` for a https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#source-build[Source-to-Image build] with a binary source
+* `docker` for a https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#docker-build[Docker build] with a binary source
+
+endif::[]
+| `jkube.build.strategy`
+
+| *apiVersion*
+| Use this variable if you are using an older version of docker not compatible with the current default use to
+communicate with the server.
+| `jkube.docker.apiVersion`
+
+ | *authConfig*
+| Authentication information when pulling from or pushing to Docker registry. There is a dedicated section
+  <<authentication, Authentication>> for how to do security.
+|
+
+| *autoPull*
+a| Decide how to pull missing base images or images to start:
+
+* `on` : Automatic download any missing images (default)
+* `off` : Automatic pulling is switched off
+* `always` : Pull images always even when they already exist locally
+* `once` : For multi-module builds images are only checked once and pulled for the whole build.
+
+| `jkube.docker.autoPull`
+
+| *buildRecreate*
+a| If the effective build mode is `openshift` then this option decides how the OpenShift resource objects
+associated with the build should be treated when they already exist:
+
+* `buildConfig` or `bc` : Only the BuildConfig is recreated
+* `imageStream` or `is` : Only the ImageStream is recreated
+* `all` : Both, BuildConfig and ImageStream are recreated
+* `none` : Neither BuildConfig nor ImageStream is recreated
+
+The default is `none`. If you provide the property without value then `all` is assumed, so everything gets recreated.
+| `jkube.build.recreate`
+
+
+ifeval::["{goal-prefix}" == "oc"]
+|*forcePull*
+|
+Applicable only for OpenShift, S2I build strategy.
+
+While creating a BuildConfig, By default, if the builder image specified in the
+build configuration is available locally on the node, that image will be used.
+
+Using forcePull will override the local image and refresh it from the registry the image stream points to.
+
+|`jkube.build.forcePull`
+endif::[]
+
+| [[image-pull-policy]] *imagePullPolicy*
+a| Specify whether images should be pull when looking for base images while building or images for starting.
+This property can take the following values (case insensitive):
+
+* `IfNotPresent`: Automatic download any missing images (default)
+* `Never` : Automatic pulling is switched off always
+* `Always` : Pull images always even when they already exist locally.
+
+By default a progress meter is printed out on the console, which is omitted when using Maven in batch mode (option `-B`). A very simplified progress meter is provided when using no color output (i.e. with `-Djkube.useColor=false`).
+| `jkube.docker.imagePullPolicy`
+
+| *certPath*
+| Path to SSL certificate when SSL is used for communicating with the Docker daemon. These certificates are normally
+stored in `~/.docker/`. With this configuration the path can be set explicitly. If not set, the fallback is first
+taken from the environment variable `DOCKER_CERT_PATH` and then as last resort `~/.docker/`. The keys in this are
+expected with it standard names `ca.pem`, `cert.pem` and `key.pem`.
+Please refer to the https://docs.docker.com/articles/https[Docker documentation] for more information about SSL
+security with Docker.
+| `jkube.docker.certPath`
+
+| *dockerHost*
+a| The URL of the Docker Daemon. If this configuration option is not given, then the optional `<machine>` configuration
+section is consulted. The scheme of the URL can be either given directly as `http` or `https`
+depending on whether plain HTTP communication is enabled or SSL should
+be used. Alternatively the scheme could be `tcp` in which case the
+protocol is determined via the IANA assigned port: 2375 for `http`
+and 2376 for `https`. Finally, Unix sockets are supported by using
+the scheme `unix` together with the filesystem path to the unix socket.
+
+The discovery sequence used by the docker-maven-plugin to determine
+the URL is:
+
+. Value of *dockerHost* (`jkube.docker.host`)
+. The Docker host associated with the docker-machine named in `<machine>`, i.e. the `DOCKER_HOST` from `docker-machine env`.
+. The value of the environment variable `DOCKER_HOST`.
+. `unix:///var/run/docker.sock` if it is a readable socket.
+| `jkube.docker.host`
+
+| *filter*
+| In order to temporarily restrict the operation of plugin goals this configuration option can be used.
+Typically this will be set via the system property `jkube.image.filter` when Maven is called. The value can be a single
+image name (either its alias or full name) or it can be a comma separated list with multiple image names. Any name
+which doesn't refer an image in the configuration will be ignored.
+| `jkube.image.filter`
+
+| *machine*
+| Docker machine configuration.
+|
+
+| *maxConnections*
+| Number of parallel connections are allowed to be opened to the Docker Host. For parsing log output, a connection needs
+to be kept open (as well for the wait features), so don't put that number to low. Default is 100 which should be
+suitable for most of the cases.
+| `jkube.docker.maxConnections`
+
+| *access*
+| Group of configuration parameters to connect to Kubernetes/OpenShift cluster.
+|
+
+| *outputDirectory*
+| Default output directory to be used by this plugin.
+The default value is `target/docker` and is only used for the goal `{goal-prefix}:build`.
+| `jkube.build.target.dir`
+
+| *profile*
+| Profile to which contains enricher and generators configuration. See <<profiles,Profiles>> for details.
+| `jkube.profile`
+
+ifeval::["{goal-prefix}" == "oc"]
+| *pullSecret*
+| The name to use for naming pullSecret to be created to pull the base image in case pulling from a private registry
+which requires authentication for OpenShift.
+
+  The default value for pull registry will be picked from `jkube.docker.pull.registry`/`jkube.docker.registry`.
+| `jkube.build.pullSecret`
+endif::[]
+
+ifeval::["{goal-prefix}" == "oc"]
+| *pushSecret*
+| The name of pushSecret to be used to push the final image in case pushing from a
+protected registry which requires authentication.
+
+| `jkube.build.pushSecret`
+endif::[]
+
+
+ifeval::["{goal-prefix}" == "oc"]
+| *jkube.build.buildOutput.kind*
+|  Allow to specify in which registry to push the container image at the end of the build.
+If the output kind is ImageStreamTag, then the image will be pushed to the internal OpenShift registry.
+If the output is of type DockerImage, then the name of the output reference will be used as a Docker push specification.
+The default value is `ImageStreamTag`
+
+| `jkube.build.buildOutput.kind`
+endif::[]
+
+| *registry*
+| Specify globally a registry to use for pulling and pushing images. See <<registry,Registry handling>> for details.
+| `jkube.docker.registry`
+
+| *skip*
+| With this parameter the execution of this plugin can be skipped completely.
+| `jkube.skip`
+
+| *skipBuild*
+| If set not images will be build (which implies also _skip.tag_) with `{goal-prefix}:build`.
+| `jkube.skip.build`
+
+| *skipBuildPom*
+| If set the build step will be skipped for modules of type `pom`. If not set, then by default projects of type `pom`
+will be skipped if there are no image configurations contained.
+| `jkube.skip.build.pom`
+
+| *skipTag*
+| If set to `true` this plugin won't add any tags to images that have been built with `{goal-prefix}:build`.
+| `jkube.skip.tag`
+
+| *skipMachine*
+| Skip using docker machine in any case
+| `jkube.docker.skip.machine`
+
+| *sourceDirectory*
+| Default directory that contains the assembly descriptor(s) used by the plugin. The default value is `src/main/docker`.
+This option is only relevant for the `{goal-prefix}:build` goal.
+| `jkube.build.source.dir`
+
+| *verbose*
+| Boolean attribute for switching on verbose output like the build steps when doing a Docker build. Default is `false`.
+| `jkube.docker.verbose`
+
+| *logDate*
+| The date format to use when logging messages from Docker. Default is `DEFAULT` (`HH:mm:ss.SSS`)
+| `jkube.docker.logDate`
+
+| *logStdout*
+| Log to stdout regardless if log files are configured or not. Default is `false`.
+| `jkube.docker.logStdout`
+|====
+
+
+== Image Configuration
+
+The configuration how images should be created are defined in a dedicated `images` sections. These are specified for each image within the `images` element of the configuration with one `image` element per image to use.
+
+The `image` element can contain the following sub elements:
+
+include::image/_configuration.adoc[]
+
+The `build` section is mandatory and is explained in <<build-configuration, below>>.
+
+include::image/_naming.adoc[]
+
+[[build-configuration]]
+== Build Configuration
+
+include::build/_overview.adoc[]
+
+include::build/_configuration.adoc[]
+
+[[build-assembly]]
+== Assembly
+
+include::build/_assembly.adoc[]
+
+[[misc-env]]
+== Environment and Labels
+
+include::misc/_env.adoc[]
+
+[[misc-startup]]
+== Startup Arguments
+
+include::misc/_startup.adoc[]
+
+INFO:: Startup arguments are not used in S2I builds
+
+[[build-buildargs]]
+== Build Args
+
+include::build/_buildargs.adoc[]

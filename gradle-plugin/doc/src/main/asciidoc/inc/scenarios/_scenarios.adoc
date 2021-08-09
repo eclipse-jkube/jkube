@@ -4,4 +4,6 @@
 
 When working with {plugin}, in most cases you'll be using common scenarios. Here are some known scenarios:
 
+include::_groovy.adoc[]
+
 include::_dockerfile.adoc[]

@@ -39,6 +39,7 @@ java {
 }
 
 kubernetes {
+    buildStrategy = 'jib'
     images {
         image {
             name = "${project.group}/${project.name}:${project.version}"
