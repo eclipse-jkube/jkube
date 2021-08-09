@@ -18,15 +18,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.GStringImpl;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
-import static org.eclipse.jkube.gradle.plugin.GroovyUtil.namedListClosureTo;
+import static org.eclipse.jkube.gradle.plugin.GroovyUtil.invokeOrParseClosureList;
 
+@SuppressWarnings({ "unused", "serial" })
 public class GroovyUtilTest {
 
   /**
@@ -45,7 +48,7 @@ public class GroovyUtilTest {
   public void closureTo_withNestedClosure_shouldReturnStructuredClass() {
     // Given
     final Closure<?> closure = closure(this,
-        "property", "value",
+        "property", new GStringImpl(new Object[] { "lue" }, new String[] { "va" }),
         "nested", closure(this, "nestedProperty", "nestedValue"));
     // When
     final StructuredClass result = closureTo(closure, StructuredClass.class);
@@ -92,7 +95,7 @@ public class GroovyUtilTest {
    * </pre>
    */
   @Test
-  public void namedListClosureTo_withNamedListNestedClosure_shouldReturnOrderedList() {
+  public void invokeOrParseClosureList_namedClosureListTo_withNamedListNestedClosure_shouldReturnOrderedList() {
     // Given
     final Closure<?> element1 = closure(this, "property", "value",
         "nested", closure(this, "nestedProperty", "nestedValue"));
@@ -100,9 +103,10 @@ public class GroovyUtilTest {
         "nested", closure(this, "nestedProperty", "nestedValue2"));
     final Closure<?> closure = closure(this, "element1", element1, "element2", element2);
     // When
-    final List<StructuredClass> result = namedListClosureTo(closure, StructuredClass.class);
+    final Optional<List<StructuredClass>> result = invokeOrParseClosureList(closure, StructuredClass.class);
     // Then
-    assertThat(result).hasSize(2)
+    assertThat(result).isPresent().get().asList()
+        .hasSize(2)
         .extracting("property", "nested.nestedProperty")
         .containsExactly(
             tuple("value", "nestedValue"),
