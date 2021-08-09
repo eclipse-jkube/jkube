@@ -13,7 +13,9 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
@@ -28,7 +30,7 @@ import groovy.lang.Closure;
 import org.gradle.api.provider.Property;
 
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
-import static org.eclipse.jkube.gradle.plugin.GroovyUtil.namedListClosureTo;
+import static org.eclipse.jkube.gradle.plugin.GroovyUtil.invokeOrParseClosureList;
 
 /**
  * <pre>
@@ -160,8 +162,61 @@ public abstract class KubernetesExtension {
     enricher = closureTo(closure, ProcessorConfig.class);
   }
 
+  /**
+   * Provide support for image configurations as:
+   *
+   * <pre>
+   * {@code
+   * images {
+   *   image1 {...}
+   *   image2 {...}
+   * }
+   * }
+   * </pre>
+   *
+   * @param closure The closure to unmarshal containing a Map of ImageConfiguration
+   */
   public void images(Closure<?> closure) {
-    images = namedListClosureTo(closure, ImageConfiguration.class);
+    invokeOrParseClosureList(closure, ImageConfiguration.class).ifPresent(i -> this.images = i);
+  }
+
+  /**
+   * Provide support for image configurations as:
+   *
+   * <pre>
+   * {@code
+   * images ([
+   *   {...},
+   *   {...}
+   * ])
+   * }
+   * </pre>
+   *
+   * @param closures The list of closures to unmarshal with individual ImageConfiguration
+   */
+  public void images(List<Closure<?>> closures) {
+    images = closures.stream().map(c -> closureTo(c, ImageConfiguration.class)).collect(Collectors.toList());
+  }
+
+  /**
+   * Provide support for image configurations as:
+   *
+   * <pre>
+   * {@code
+   * images {
+   *   image {...}
+   *   image {...}
+   * }
+   * }
+   * </pre>
+   *
+   * @param closure The closure to unmarshal with an ImageConfiguration
+   */
+  public void image(Closure<?> closure) {
+    if (images == null) {
+      images = new ArrayList<>();
+    }
+    images.add(closureTo(closure, ImageConfiguration.class));
   }
 
   public void machine(Closure<?> closure) {

@@ -29,17 +29,20 @@ kubernetes {
         excludes = ['jkube-expose']
     }
     resources {
-        controllerName ='test'
+        controllerName = 'test'
         configMap {
             name = 'configMap-name'
             entries = [
-                [name: 'test', value: 'value']
+                    [name: 'test', value: 'value']
             ]
         }
     }
     images {
-        image2 { name = 'registry/image2:tag' }
-        image1 {
+        image {
+            name = 'registry/image2:tag'
+            build.from = 'busybox'
+        }
+        image {
             name = 'registry/image:tag'
             build {
                 from = 'busybox'
