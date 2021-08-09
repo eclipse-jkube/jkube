@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,9 +36,34 @@ public class GroovyUtil {
 
   private GroovyUtil() {}
 
+  /**
+   * Invokes the closure or returns a List with the parsed closure
+   *
+   * <p>
+   * If the invocation throws no Exception we assume that the closure updated the KubernetesExtension.
+   *
+   * <p>
+   * If the invocation throws an Exception, we assume that the content of the closure is a Map of closures to
+   * unmarshal
+   *
+   * @param closure The closure to evaluate.
+   * @param targetClass The target class of the List items.
+   * @param <T> the Type of the target class.
+   * @return an Optional with a List if the closure was parsed or empty if the closure was invoked successfully
+   */
+  public static <T> Optional<List<T>> invokeOrParseClosureList(Closure<?> closure, Class<T> targetClass) {
+    try {
+      closure.call();
+      return Optional.empty();
+    } catch (Exception ex) {
+      // Ignore
+    }
+    return Optional.of(namedClosureListTo(closure, targetClass));
+  }
+
   @SuppressWarnings("unchecked")
   public static <T> T closureTo(Closure<?> closure, Class<T> targetType) {
-    final ConfigObject result = sanitize(parse(closure));
+    final ConfigObject result = parse(closure);
     if (ConfigObject.class.isAssignableFrom(targetType)) {
       return (T)result;
     }
@@ -45,7 +71,7 @@ public class GroovyUtil {
   }
 
   @SuppressWarnings("unchecked")
-  public static <T> List<T> namedListClosureTo(Closure<?> closure, Class<T> targetListType) {
+  private static <T> List<T> namedClosureListTo(Closure<?> closure, Class<T> targetListType) {
     final ConfigObject co = parse(closure);
     final List<T> ret = new ArrayList<>();
     for (Object entry : co.entrySet()) {
@@ -93,7 +119,7 @@ public class GroovyUtil {
       binding.put("project", ((ProjectScript) closure.getThisObject()).getScriptTarget());
     }
     slurper.setBinding(binding);
-    return slurper.parse(new ClosureScript(closure));
+    return sanitize(slurper.parse(new ClosureScript(closure)));
   }
 
   private static final class ClosureScript extends Script {
