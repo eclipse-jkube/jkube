@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +49,6 @@ import org.codehaus.plexus.archiver.tar.TarLongFileMode;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
-import static org.eclipse.jkube.kit.common.util.ClassUtil.createClassLoader;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.greaterOrEqualsVersion;
 
 /**
@@ -76,15 +74,6 @@ public class MavenUtil {
             }
         }
         return false;
-    }
-
-    public static URLClassLoader getCompileClassLoader(MavenProject project) {
-        try {
-            List<String> classpathElements = project.getCompileClasspathElements();
-            return createClassLoader(classpathElements, project.getBuild().getOutputDirectory());
-        } catch (DependencyResolutionRequiredException e) {
-            throw new IllegalArgumentException("Cannot resolve artifact from compile classpath",e);
-        }
     }
 
     /**
@@ -214,27 +203,6 @@ public class MavenUtil {
         return null;
     }
 
-    /**
-     * Returns true if any of the given resources could be found on the given class loader
-     *
-     * @param project project object
-     * @param paths array of strings as path
-     * @return boolean value indicating whether that project has resource or not
-     */
-    public static boolean hasResource(MavenProject project, String... paths) {
-        URLClassLoader compileClassLoader = getCompileClassLoader(project);
-        for (String path : paths) {
-            try {
-                if (compileClassLoader.getResource(path) != null) {
-                    return true;
-                }
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-        return false;
-    }
-
     public static void createArchive(File sourceDir, File destinationFile, TarArchiver archiver) throws IOException {
         try {
             archiver.setCompression(TarArchiver.TarCompressionMethod.gzip);
@@ -325,18 +293,6 @@ public class MavenUtil {
             project = project.getParent();
         }
         return null;
-    }
-
-    public static Optional<List<String>> getCompileClasspathElementsIfRequested(MavenProject project, boolean useProjectClasspath) throws IOException {
-        if (!useProjectClasspath) {
-            return Optional.empty();
-        }
-
-        try {
-            return Optional.of(project.getCompileClasspathElements());
-        } catch (DependencyResolutionRequiredException e) {
-            throw new IOException("Cannot extract compile class path elements", e);
-        }
     }
 
     public static List<RegistryServerConfiguration> getRegistryServerFromMavenSettings(Settings settings) {

@@ -13,21 +13,19 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.apache.maven.project.MavenProject;
 
-public class ResourceMojoUtil {
+import org.eclipse.jkube.kit.common.JavaProject;
+
+public class DekorateUtil {
 
     public static final String DEFAULT_RESOURCE_LOCATION = "META-INF/jkube";
-    private static final String[] DEKORATE_CLASSES = new String[]{
-            "io.dekorate.annotation.Dekorate"
-    };
+    public static final String DEKORATE_GROUP = "io.dekorate";
 
-    private ResourceMojoUtil() {
+    private DekorateUtil() {
     }
 
-    public static boolean useDekorate(MavenProject project) {
-        return new ProjectClassLoaders(MavenUtil.getCompileClassLoader(project))
-                .isClassInCompileClasspath(true, DEKORATE_CLASSES);
+    public static boolean useDekorate(JavaProject project) {
+      return JKubeProjectUtil.hasDependencyWithGroupId(project, DEKORATE_GROUP);
     }
 
 }

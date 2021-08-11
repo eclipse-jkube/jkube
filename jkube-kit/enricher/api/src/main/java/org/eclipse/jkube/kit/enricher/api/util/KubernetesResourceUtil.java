@@ -43,6 +43,7 @@ import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+import org.eclipse.jkube.kit.config.resource.MappingConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
 
@@ -201,8 +202,8 @@ public class KubernetesResourceUtil {
 
     // ========================================================================================================
 
-    protected static final Map<String,String> FILENAME_TO_KIND_MAPPER = new HashMap<>();
-    protected static final Map<String,String> KIND_TO_FILENAME_MAPPER = new HashMap<>();
+    static final Map<String,String> FILENAME_TO_KIND_MAPPER = new HashMap<>();
+    static final Map<String,String> KIND_TO_FILENAME_MAPPER = new HashMap<>();
 
     static {
         initializeKindFilenameMapper();
@@ -216,6 +217,21 @@ public class KubernetesResourceUtil {
     protected static void remove(String kind, String filename) {
         FILENAME_TO_KIND_MAPPER.remove(filename);
         KIND_TO_FILENAME_MAPPER.remove(kind);
+    }
+
+    public static void updateKindFilenameMappings(List<MappingConfig> mappings) {
+        if (mappings != null) {
+            final Map<String, List<String>> mappingKindFilename = new HashMap<>();
+            for (MappingConfig mappingConfig : mappings) {
+                if (mappingConfig.isValid()) {
+                    mappingKindFilename.put(mappingConfig.getKind(), Arrays.asList(mappingConfig.getFilenamesAsArray()));
+                } else {
+                    throw new IllegalArgumentException(String.format("Invalid mapping for Kind %s and Filename Types %s",
+                      mappingConfig.getKind(), mappingConfig.getFilenameTypes()));
+                }
+            }
+            updateKindFilenameMapper(mappingKindFilename);
+        }
     }
 
     public static void updateKindFilenameMapper(final Map<String, List<String>> mappings) {

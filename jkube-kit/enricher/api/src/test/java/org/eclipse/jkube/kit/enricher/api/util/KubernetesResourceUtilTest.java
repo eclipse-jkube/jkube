@@ -26,6 +26,7 @@ import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -34,12 +35,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.FILENAME_TO_KIND_MAPPER;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.KIND_TO_FILENAME_MAPPER;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.getNameWithSuffix;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.initializeKindFilenameMapper;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -57,6 +63,13 @@ public class KubernetesResourceUtilTest {
         ClassLoader classLoader = KubernetesResourceUtil.class.getClassLoader();
         String filePath = URLDecoder.decode(Objects.requireNonNull(classLoader.getResource("jkube/simple-rc.yaml")).getFile(), "UTF-8");
         jkubeDir = new File(filePath).getParentFile();
+    }
+
+    @Before
+    public void setUp() {
+        FILENAME_TO_KIND_MAPPER.clear();
+        KIND_TO_FILENAME_MAPPER.clear();
+        initializeKindFilenameMapper();
     }
 
     @Test
@@ -298,6 +311,20 @@ public class KubernetesResourceUtilTest {
     @Test
     public void getNameWithSuffix_withUnknownMapping_shouldReturnCR() {
         assertEquals("name-cr", getNameWithSuffix("name", "VeryCustomKind"));
+    }
+
+    @Test
+    public void updateKindFilenameMappings_whenAddsCronTabMapping_updatesKindToFileNameMapper() {
+        // Given
+        Map<String, List<String>> mappings = new HashMap<>();
+        mappings.put("CronTab", Collections.singletonList("cr"));
+
+        // When
+        KubernetesResourceUtil.updateKindFilenameMapper(mappings);
+
+        // Then
+        assertThat(KIND_TO_FILENAME_MAPPER).containsKey("CronTab");
+        assertThat(FILENAME_TO_KIND_MAPPER).containsKey("cr");
     }
 
     private PodSpec getDefaultGeneratedPodSpec() {
