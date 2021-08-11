@@ -81,10 +81,12 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     // The JKube service hub
     protected JKubeServiceHub jkubeServiceHub;
 
+    protected JavaProject javaProject;
+
     protected void init() throws DependencyResolutionRequiredException {
         log = createLogger(null);
         clusterAccess = new ClusterAccess(log, initClusterConfiguration());
-        final JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         jkubeServiceHub = initJKubeServiceHubBuilder(javaProject).build();
     }
 

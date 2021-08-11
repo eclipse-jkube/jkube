@@ -15,11 +15,8 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.validation.ConstraintViolationException;
@@ -47,7 +44,6 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.ResourceServiceConfig;
 import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.kit.resource.service.DefaultResourceService;
 
@@ -66,8 +62,9 @@ import org.apache.maven.shared.filtering.MavenFilteringException;
 
 import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
-import static org.eclipse.jkube.kit.common.util.ResourceMojoUtil.DEFAULT_RESOURCE_LOCATION;
-import static org.eclipse.jkube.kit.common.util.ResourceMojoUtil.useDekorate;
+import static org.eclipse.jkube.kit.common.util.DekorateUtil.DEFAULT_RESOURCE_LOCATION;
+import static org.eclipse.jkube.kit.common.util.DekorateUtil.useDekorate;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.updateKindFilenameMappings;
 import static org.eclipse.jkube.maven.plugin.mojo.build.BuildMojo.CONTEXT_KEY_BUILD_TIMESTAMP;
 
 
@@ -205,17 +202,17 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     @Override
     public void executeInternal() throws MojoExecutionException, MojoFailureException {
-        if (useDekorate(project) && mergeWithDekorate) {
+        if (useDekorate(javaProject) && mergeWithDekorate) {
             log.info("Dekorate detected, merging JKube and Dekorate resources");
             System.setProperty("dekorate.input.dir", DEFAULT_RESOURCE_LOCATION);
             System.setProperty("dekorate.output.dir", DEFAULT_RESOURCE_LOCATION);
-        } else if (useDekorate(project)) {
+        } else if (useDekorate(javaProject)) {
             log.info("Dekorate detected, delegating resource build");
             System.setProperty("dekorate.output.dir", DEFAULT_RESOURCE_LOCATION);
             return;
         }
 
-        updateKindFilenameMappings();
+        updateKindFilenameMappings(mappings);
         try {
             lateInit();
             // Resolve the Docker image build configuration
@@ -265,21 +262,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     protected ResourceClassifier getResourceClassifier() {
         return ResourceClassifier.KUBERNETES;
-    }
-
-    private void updateKindFilenameMappings() {
-        if (mappings != null) {
-            final Map<String, List<String>> mappingKindFilename = new HashMap<>();
-            for (MappingConfig mappingConfig : this.mappings) {
-                if (mappingConfig.isValid()) {
-                    mappingKindFilename.put(mappingConfig.getKind(), Arrays.asList(mappingConfig.getFilenamesAsArray()));
-                } else {
-                    throw new IllegalArgumentException(String.format("Invalid mapping for Kind %s and Filename Types %s",
-                        mappingConfig.getKind(), mappingConfig.getFilenameTypes()));
-                }
-            }
-            KubernetesResourceUtil.updateKindFilenameMapper(mappingKindFilename);
-        }
     }
 
     private void validateIfRequired(File resourceDir, ResourceClassifier classifier)
@@ -334,8 +316,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
                 .log(log);
 
         DefaultEnricherManager enricherManager = new DefaultEnricherManager(ctxBuilder.build(),
-            MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath)
-                .orElse(Collections.emptyList()));
+          useProjectClasspath ? javaProject.getCompileClassPathElements() : Collections.emptyList());
 
         return jkubeServiceHub.getResourceService().generateResources(getPlatformMode(), enricherManager, log);
     }

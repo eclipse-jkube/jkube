@@ -389,6 +389,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(property = "jkube.offline", defaultValue = "false")
     protected boolean offline;
 
+    protected JavaProject javaProject;
+
     @Override
     public void contextualize(Context context) throws ContextException {
         plexusContainer = ((PlexusContainer) context.get(PlexusConstants.PLEXUS_KEY));
@@ -424,7 +426,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(useColor, logStdout, logDate);
                 DockerAccess access = null;
                 try {
-                    JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+                    javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
                     // The 'real' images configuration to use (configured images + externally resolved images)
                     if (isDockerAccessRequired()) {
                         DockerAccessFactory.DockerAccessContext dockerAccessContext = getDockerAccessContext();
@@ -462,7 +464,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected abstract void executeInternal() throws IOException, MojoExecutionException;
 
     protected JKubeConfiguration initJKubeConfiguration() throws DependencyResolutionRequiredException {
-        final JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         ConfigHelper.validateExternalPropertyActivation(javaProject, images);
         return JKubeConfiguration.builder()
             .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
@@ -656,8 +657,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 })
                 .enricherTask(builder -> {
               DefaultEnricherManager enricherManager = new DefaultEnricherManager(getEnricherContext(),
-                  MavenUtil.getCompileClasspathElementsIfRequested(project, useProjectClasspath)
-                      .orElse(Collections.emptyList()));
+                useProjectClasspath ? javaProject.getCompileClassPathElements() : Collections.emptyList());
                     enricherManager.enrich(PlatformMode.kubernetes, builder);
                     enricherManager.enrich(PlatformMode.openshift, builder);
                 });
