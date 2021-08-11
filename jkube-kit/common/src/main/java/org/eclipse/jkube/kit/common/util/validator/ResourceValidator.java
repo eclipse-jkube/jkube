@@ -87,8 +87,9 @@ public class ResourceValidator {
      * required.
      */
     private void setupIgnoreRules(ResourceClassifier target) {
-        ignoreValidationRules.add(new IgnorePortValidationRule(IgnorePortValidationRule.TYPE));
-        ignoreValidationRules.add(new IgnoreResourceMemoryLimitRule(IgnoreResourceMemoryLimitRule.TYPE));
+        ignoreValidationRules.add(new IgnorePortValidationRule(ValidationRule.TYPE));
+        ignoreValidationRules.add(new IgnoreResourceMemoryLimitRule(ValidationRule.TYPE));
+      }
     }
 
     /**
