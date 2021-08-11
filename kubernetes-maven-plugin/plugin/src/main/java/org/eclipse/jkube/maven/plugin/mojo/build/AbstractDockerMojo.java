@@ -589,7 +589,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     }
 
     protected boolean isDockerAccessRequired() {
-        return !getJKubeBuildStrategy().getLabel().equalsIgnoreCase("jib");// True in case of kubernetes maven plugin
+        return !getJKubeBuildStrategy().equals(JKubeBuildStrategy.jib);// True in case of kubernetes maven plugin
     }
 
     void executeBuildGoal() throws MojoExecutionException {
