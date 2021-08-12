@@ -21,11 +21,28 @@ kubernetes {
     useColor = true
     offline = true
     buildStrategy = 'jib'
+    resourceTargetDirectory = file('build/META-INF/jkube')
+    resourceSourceDirectory = file('src/main/jkube')
+    resourceEnvironment = 'dev'
+    useProjectClassPath = false
+    workDirectory = file("${project.getBuildDir()}/jkube")
+    skipResourceValidation = false
+    failOnValidation = false
+    profile = 'default'
+    namespace = 'default'
+    mergeWithDekorate = false
+    interpolateTemplateParameters = false
+    skip = false
+    resourceFileType = 'yaml'
     access {
         namespace = 'default'
     }
     enricher {
         excludes = ['jkube-expose']
+    }
+    generator {
+        includes = ['openliberty']
+        excludes = ['webapp']
     }
     resources {
         controllerName = 'test'
@@ -44,6 +61,12 @@ kubernetes {
                 contextDir = file('src/main/context-dir')
                 from = 'busybox'
             }
+        }
+    }
+    mappings {
+        mapping {
+            kind = 'Var'
+            filenameTypes = 'foo, bar'
         }
     }
 }
