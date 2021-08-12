@@ -89,8 +89,8 @@ public class ResourceValidator {
     private void setupIgnoreRules(ResourceClassifier target) {
         ignoreValidationRules.add(new IgnorePortValidationRule(ValidationRule.TYPE));
         ignoreValidationRules.add(new IgnoreResourceMemoryLimitRule(ValidationRule.TYPE));
-      }
     }
+
 
     /**
      * Validates the resource descriptors as per JSON schema. If any resource is invalid it throws @{@link ConstraintViolationException} with
