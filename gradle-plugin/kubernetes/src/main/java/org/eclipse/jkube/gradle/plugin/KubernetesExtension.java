@@ -19,7 +19,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.ResourceFileType;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
@@ -94,6 +96,8 @@ import static org.eclipse.jkube.gradle.plugin.GroovyUtil.invokeOrParseClosureLis
 @SuppressWarnings({"java:S1104", "java:S1845"})
 public abstract class KubernetesExtension {
 
+  private static final String DEFAULT_RESOURCE_SOURCE_DIR = "src/main/jkube";
+  private static final String DEFAULT_RESOURCE_TARGET_DIR = "META-INF/jkube";
   public static final boolean DEFAULT_OFFLINE = false;
 
   public abstract Property<Boolean> getOffline();
@@ -144,7 +148,7 @@ public abstract class KubernetesExtension {
 
   public abstract Property<Boolean> getSkipResourceValidation();
 
-  public abstract Property<Boolean> getFailOnValidation();
+  public abstract Property<Boolean> getFailOnValidationError();
 
   public abstract Property<String> getProfile();
 
@@ -286,6 +290,41 @@ public abstract class KubernetesExtension {
       mappings = new ArrayList<>();
     }
     mappings.add(closureTo(closure, MappingConfig.class));
+  }
+
+  public File getResourceSourceDirectoryOrDefault(JavaProject javaProject) {
+    return getResourceSourceDirectory().getOrElse(new File(javaProject.getBaseDirectory(), DEFAULT_RESOURCE_SOURCE_DIR));
+  }
+
+  public File getResourceTargetDirectoryOrDefault(JavaProject javaProject) {
+    return getResourceTargetDirectory().getOrElse(new File(javaProject.getBuildDirectory(), DEFAULT_RESOURCE_TARGET_DIR));
+  }
+
+  public boolean getUseProjectClassPathOrDefault() {
+    return getUseProjectClassPath().getOrElse(false);
+  }
+
+  public boolean getFailOnValidationErrorOrDefault() {
+    return getFailOnValidationError().getOrElse(false);
+  }
+
+  public boolean getMergeWithDekorateOrDefault() {
+    return getMergeWithDekorate().getOrElse(false);
+  }
+
+  public boolean getInterpolateTemplateParametersOrDefault() {
+    return getInterpolateTemplateParameters().getOrElse(true);
+  }
+
+  public boolean getSkipResourceValidationOrDefault() {
+    return getSkipResourceValidation().getOrElse(false);
+  }
+
+  public File getResourceDirectory(JavaProject javaProject) {
+    return ResourceUtil.getFinalResourceDir(
+      getResourceSourceDirectoryOrDefault(javaProject),
+      getResourceEnvironment().getOrNull()
+    );
   }
 
 }

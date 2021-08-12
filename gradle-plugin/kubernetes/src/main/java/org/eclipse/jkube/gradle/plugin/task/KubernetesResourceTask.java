@@ -16,9 +16,37 @@ package org.eclipse.jkube.gradle.plugin.task;
 import javax.inject.Inject;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
+import org.eclipse.jkube.kit.common.util.LazyBuilder;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.kit.config.service.ResourceServiceConfig;
+import org.eclipse.jkube.kit.resource.service.DefaultResourceService;
+
+import java.io.File;
 
 @SuppressWarnings("CdiInjectionPointsInspection")
 public class KubernetesResourceTask extends AbstractJKubeTask {
+
+  @Override
+  protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
+    JKubeServiceHub.JKubeServiceHubBuilder builder = super.initJKubeServiceHubBuilder();
+    File realResourceDir = kubernetesExtension.getResourceDirectory(javaProject);
+    ResourceConfig resourceConfig = kubernetesExtension.resources;
+    if (kubernetesExtension.getNamespace().getOrNull() != null) {
+      resourceConfig = ResourceConfig.toBuilder(resourceConfig).namespace(kubernetesExtension.getNamespace().getOrNull()).build();
+    }
+    final ResourceServiceConfig resourceServiceConfig = ResourceServiceConfig.builder()
+      .project(javaProject)
+      .resourceDir(realResourceDir)
+      .targetDir(kubernetesExtension.getResourceTargetDirectoryOrDefault(javaProject))
+      .resourceFileType(kubernetesExtension.getResourceFileType())
+      .resourceConfig(resourceConfig)
+      .interpolateTemplateParameters(kubernetesExtension.getInterpolateTemplateParametersOrDefault())
+      .build();
+    builder.resourceService(new LazyBuilder<>(() -> new DefaultResourceService(resourceServiceConfig)));
+
+    return builder;
+  }
 
   @Inject
   public KubernetesResourceTask(Class<? extends KubernetesExtension> extensionClass) {
