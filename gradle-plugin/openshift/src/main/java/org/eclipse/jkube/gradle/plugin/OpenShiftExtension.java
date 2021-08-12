@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 public abstract class OpenShiftExtension extends KubernetesExtension {
@@ -20,5 +21,10 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   @Override
   public RuntimeMode getRuntimeMode() {
     return RuntimeMode.OPENSHIFT;
+  }
+
+  @Override
+  public PlatformMode getPlatformMode() {
+    return PlatformMode.openshift;
   }
 }
