@@ -16,6 +16,8 @@ package org.eclipse.jkube.gradle.plugin;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 
+import java.io.File;
+
 public class TestKubernetesExtension extends KubernetesExtension {
 
   @Override
@@ -106,5 +108,65 @@ public class TestKubernetesExtension extends KubernetesExtension {
   @Override
   public Property<String> getRegistry() {
     return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<File> getResourceTargetDirectory() {
+    return new DefaultProperty<>(File.class);
+  }
+
+  @Override
+  public Property<File> getResourceSourceDirectory() {
+    return new DefaultProperty<>(File.class);
+  }
+
+  @Override
+  public Property<String> getResourceEnvironment() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<Boolean> getUseProjectClassPath() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<File> getWorkDirectory() {
+    return new DefaultProperty<>(File.class);
+  }
+
+  @Override
+  public Property<Boolean> getSkipResourceValidation() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getFailOnValidation() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<String> getProfile() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<String> getNamespace() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<Boolean> getMergeWithDekorate() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getInterpolateTemplateParameters() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getSkip() {
+    return new DefaultProperty<>(Boolean.class);
   }
 }
