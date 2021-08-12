@@ -141,7 +141,7 @@ public class TestKubernetesExtension extends KubernetesExtension {
   }
 
   @Override
-  public Property<Boolean> getFailOnValidation() {
+  public Property<Boolean> getFailOnValidationError() {
     return new DefaultProperty<>(Boolean.class);
   }
 

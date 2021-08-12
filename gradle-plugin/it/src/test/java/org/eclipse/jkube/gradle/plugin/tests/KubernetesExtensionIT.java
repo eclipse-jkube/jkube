@@ -54,7 +54,7 @@ public class KubernetesExtensionIT {
         .contains("resourceenvironment: \"dev\"")
         .contains("useprojectclasspath: false")
         .contains("skipresourcevalidation: false")
-        .contains("failonvalidation: false")
+        .contains("failonvalidationerror: false")
         .contains("profile: \"default\"")
         .contains("namespace: \"default\"")
         .contains("mergewithdekorate: false")

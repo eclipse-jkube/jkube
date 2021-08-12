@@ -27,7 +27,7 @@ kubernetes {
     useProjectClassPath = false
     workDirectory = file("${project.getBuildDir()}/jkube")
     skipResourceValidation = false
-    failOnValidation = false
+    failOnValidationError = false
     profile = 'default'
     namespace = 'default'
     mergeWithDekorate = false
