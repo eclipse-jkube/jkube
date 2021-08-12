@@ -40,8 +40,29 @@ public class KubernetesExtensionIT {
             "    - name: \"test\"\n" +
             "      value: \"value\"")
         .contains("enricher:\n  excludes:\n  - \"jkube-expose\"")
+        .contains("generator:\n  includes:\n  - \"openliberty\"\n  excludes:\n  - \"webapp\"")
         .contains("- name: \"registry/extension-configuration:0.0.1-SNAPSHOT\"")
         .contains("- name: \"registry/image:tag\"")
-        .contains("    from: \"busybox\"");
+        .contains("    from: \"busybox\"")
+        .contains("mappings:\n" +
+          "- kind: \"Var\"\n" +
+          "  filenameTypes: \"foo, bar\"\n" +
+          "  filenamesAsArray:\n" +
+          "  - \"foo\"\n" +
+          "  - \"bar\"\n" +
+          "  valid: true")
+        .contains("resourceenvironment: \"dev\"")
+        .contains("useprojectclasspath: false")
+        .contains("skipresourcevalidation: false")
+        .contains("failonvalidation: false")
+        .contains("profile: \"default\"")
+        .contains("namespace: \"default\"")
+        .contains("mergewithdekorate: false")
+        .contains("interpolatetemplateparameters: false")
+        .contains("skip: false")
+        .contains("resourceFileType: \"yaml\"")
+        .containsPattern("workdirectory:.*build/jkube")
+        .containsPattern("resourcetargetdirectory.*build/META-INF/jkube")
+        .containsPattern("resourcesourcedirectory.*src/main/jkube");
   }
 }
