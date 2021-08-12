@@ -13,15 +13,19 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
+import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.image.build.RegistryAuthConfiguration;
+import org.eclipse.jkube.kit.config.resource.MappingConfig;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -128,6 +132,30 @@ public abstract class KubernetesExtension {
 
   public abstract Property<String> getRegistry();
 
+  public abstract Property<File> getResourceTargetDirectory();
+
+  public abstract Property<File> getResourceSourceDirectory();
+
+  public abstract Property<String> getResourceEnvironment();
+
+  public abstract Property<Boolean> getUseProjectClassPath();
+
+  public abstract Property<File> getWorkDirectory();
+
+  public abstract Property<Boolean> getSkipResourceValidation();
+
+  public abstract Property<Boolean> getFailOnValidation();
+
+  public abstract Property<String> getProfile();
+
+  public abstract Property<String> getNamespace();
+
+  public abstract Property<Boolean> getMergeWithDekorate();
+
+  public abstract Property<Boolean> getInterpolateTemplateParameters();
+
+  public abstract Property<Boolean> getSkip();
+
   public JKubeBuildStrategy buildStrategy;
 
   public ClusterConfiguration access;
@@ -136,11 +164,17 @@ public abstract class KubernetesExtension {
 
   public ProcessorConfig enricher;
 
+  public ProcessorConfig generator;
+
   public List<ImageConfiguration> images;
 
   public DockerMachineConfiguration machine;
 
   public RegistryAuthConfiguration authConfig;
+
+  public List<MappingConfig> mappings;
+
+  public ResourceFileType resourceFileType;
 
   public RuntimeMode getRuntimeMode() {
     return RuntimeMode.KUBERNETES;
@@ -148,6 +182,14 @@ public abstract class KubernetesExtension {
 
   public JKubeBuildStrategy getBuildStrategy() {
     return buildStrategy != null ? buildStrategy : JKubeBuildStrategy.docker;
+  }
+
+  public PlatformMode getPlatformMode() {
+    return PlatformMode.kubernetes;
+  }
+
+  public ResourceFileType getResourceFileType() {
+    return resourceFileType != null ? resourceFileType : ResourceFileType.yaml;
   }
 
   public void access(Closure<?> closure) {
@@ -160,6 +202,10 @@ public abstract class KubernetesExtension {
 
   public void enricher(Closure<?> closure) {
     enricher = closureTo(closure, ProcessorConfig.class);
+  }
+
+  public void generator(Closure<?> closure) {
+    generator = closureTo(closure, ProcessorConfig.class);
   }
 
   /**
@@ -225,6 +271,21 @@ public abstract class KubernetesExtension {
 
   public void authConfig(Closure<?> closure) {
     authConfig = closureTo(closure, RegistryAuthConfiguration.class);
+  }
+
+  public void mappings(Closure<?> closure) {
+    invokeOrParseClosureList(closure, MappingConfig.class).ifPresent(i -> this.mappings = i);
+  }
+
+  public void mappings(List<Closure<?>> closures) {
+    mappings = closures.stream().map(c -> closureTo(c, MappingConfig.class)).collect(Collectors.toList());
+  }
+
+  public void mapping(Closure<?> closure) {
+    if (mappings == null) {
+      mappings = new ArrayList<>();
+    }
+    mappings.add(closureTo(closure, MappingConfig.class));
   }
 
 }
