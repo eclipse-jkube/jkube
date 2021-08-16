@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.gradle.api.provider.Property;
@@ -44,5 +45,9 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
       return getOpenShiftManifest().getOrElse(new File(javaProject.getBaseDirectory(), DEFAULT_OPENSHIFT_MANIFEST));
     }
     return getKubernetesManifestOrDefault(javaProject);
+  }
+
+  public ResourceClassifier getResourceClassifier() {
+    return ResourceClassifier.OPENSHIFT;
   }
 }

@@ -31,6 +31,9 @@ import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
+import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
@@ -50,6 +53,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
   protected JKubeServiceHub jKubeServiceHub;
   protected static final String DOCKER_BUILD_TIMESTAMP = "docker/build.timestamp";
   protected List<ImageConfiguration> resolvedImages;
+  protected DefaultEnricherManager enricherManager;
 
   protected AbstractJKubeTask(Class<? extends KubernetesExtension> extensionClass) {
     kubernetesExtension = getProject().getExtensions().getByType(extensionClass);
@@ -69,6 +73,13 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
           javaProject, kubernetesExtension.images, imageConfigResolver, kitLogger,
           kubernetesExtension.getFilter().getOrNull(),
           this::customizeConfig);
+      enricherManager = new DefaultEnricherManager(JKubeEnricherContext.builder()
+        .project(javaProject)
+        .processorConfig(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, kubernetesExtension.getProfile().getOrNull(), kubernetesExtension.getResourceDirectory(javaProject), kubernetesExtension.enricher))
+        .images(resolvedImages)
+        .resources(kubernetesExtension.resources)
+        .log(kitLogger)
+        .build());
     } catch (IOException exception) {
       kitLogger.error("Error in fetching Build timestamps: " + exception.getMessage());
     }
