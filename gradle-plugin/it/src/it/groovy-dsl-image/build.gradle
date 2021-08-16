@@ -1,0 +1,44 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+kubernetes {
+    offline = true
+    images {
+        image {
+            name = 'repository/groovy-dsl-image-test:latest'
+            build {
+                from = 'alpine'
+                env {
+                    JAVA_OPTIONS = '-Xmx256m'
+                }
+                labels {
+                    MAINTAINER = 'JKube testing team'
+                }
+                assembly {
+                    targetDir = '/deployments'
+                    layers = [{
+                        fileSets = [{
+                            directory = file('src/static')
+                            outputDirectory = file('static')
+                        }]
+                    }]
+                }
+                ports = ['8080']
+                entryPoint {
+                    shell = "java -jar /deployments/${project.name}-${project.version}.jar"
+                }
+            }
+        }
+    }
+}
