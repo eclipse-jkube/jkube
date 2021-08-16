@@ -56,4 +56,63 @@ kubernetes {
             }
         }
     }
+    resources {
+        labels {
+            all {
+                extraLabel = "quickstart-groovy-dsl-configuration"
+            }
+        }
+        controllerName = "${project.name}-controller"
+        replicas = "2"
+        volumes = [
+                {
+                    name = "scratch"
+                    type = "emptyDir"
+                    medium = "Memory"
+                    mounts = ["/var/scratch"]
+                },
+                {
+                    name = "downward-api-volume"
+                    type = "downwardAPI"
+                    items = [{
+                        path = "labels"
+                        fieldRef {
+                            fieldPath = "metadata.labels"
+                        }
+                    },
+                    {
+                        path = "annotations"
+                        fieldRef {
+                            fieldPath = "metadata.annotations"
+                        }
+                    }]
+                },
+                {
+                    name = "config-vol"
+                    type = "configMap"
+                    configMapName = "log-config"
+                    configMapItems = [{
+                        key = "log_level"
+                        path = "log_level"
+                    }]
+                }
+        ]
+        services = [{
+            name = "${project.name}-service-one"
+            headless = "false"
+            type = "NodePort"
+            ports = [{
+                protocol = "tcp"
+                port = "8787"
+                targetPort = "8787"
+            }]
+        }]
+        configMap {
+            name = "log-config"
+            entries = [{
+                name = "log_level"
+                value = "INFO"
+            }]
+        }
+    }
 }
