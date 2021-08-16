@@ -42,7 +42,7 @@ kubernetes {
     buildStrategy = 'jib'
     images {
         image {
-            name = "${project.group}/${project.name}:${project.version}"
+            name = "%g/%a:${project.version}"
             build {
                 from = "quay.io/jkube/jkube-java-binary-s2i:0.0.9"
                 tags = ["latest", "${project.version}"]
@@ -61,6 +61,13 @@ kubernetes {
                     }]
                 }
                 ports = ["8080"]
+            }
+        }
+    }
+    enricher {
+        config {
+            "jkube-service" {
+                type = "NodePort"
             }
         }
     }
