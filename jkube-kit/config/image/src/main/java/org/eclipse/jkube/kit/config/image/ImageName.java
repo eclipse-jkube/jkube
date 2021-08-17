@@ -266,9 +266,9 @@ public class ImageName {
         }
         if (!errors.isEmpty()) {
             StringBuilder buf = new StringBuilder();
-            buf.append(String.format("Given Docker name '%s' is invalid:\n", getFullName()));
+            buf.append(String.format("Given Docker name '%s' is invalid:%n", getFullName()));
             for (String error : errors) {
-                buf.append(String.format("   * %s\n",error));
+                buf.append(String.format("   * %s%n",error));
             }
             buf.append("See http://bit.ly/docker_image_fmt for more details");
             throw new IllegalArgumentException(buf.toString());
