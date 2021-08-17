@@ -25,7 +25,7 @@ public class TemplateUtil {
    * @return the escaped Yaml template
    */
   public static String escapeYamlTemplate(String template) {
-    StringBuffer answer = new StringBuffer();
+    StringBuilder answer = new StringBuilder();
     int count = 0;
     char last = 0;
     for (int i = 0, size = template.length(); i < size; i++) {
