@@ -92,6 +92,7 @@ public class ResourceValidator {
     }
 
 
+
     /**
      * Validates the resource descriptors as per JSON schema. If any resource is invalid it throws @{@link ConstraintViolationException} with
      * all violated constraints
