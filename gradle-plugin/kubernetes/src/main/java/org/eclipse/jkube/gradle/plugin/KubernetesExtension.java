@@ -204,6 +204,10 @@ public abstract class KubernetesExtension {
     return buildStrategy != null ? buildStrategy : JKubeBuildStrategy.docker;
   }
 
+  public boolean isDockerAccessRequired() {
+    return getBuildStrategy() != JKubeBuildStrategy.jib;
+  }
+
   public PlatformMode getPlatformMode() {
     return PlatformMode.kubernetes;
   }
