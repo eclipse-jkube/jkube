@@ -22,7 +22,6 @@ import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -52,7 +51,7 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
     JKubeServiceHub.JKubeServiceHubBuilder builder = super.initJKubeServiceHubBuilder();
     DockerAccess access = null;
-    if (isDockerAccessRequired()) {
+    if (kubernetesExtension.isDockerAccessRequired()) {
       DockerAccessFactory.DockerAccessContext dockerAccessContext = DockerAccessFactory.DockerAccessContext.builder()
         .log(kitLogger)
         .projectProperties(javaProject.getProperties())
@@ -73,11 +72,7 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
       kubernetesExtension.getImagePullPolicy().getOrElse("Always"),
       kubernetesExtension.getAutoPull().getOrElse("true"),
       javaProject.getProperties());
-    builder.buildServiceConfig(BuildServiceConfig.builder()
-      .buildRecreateMode(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreate().getOrElse("none")))
-      .jKubeBuildStrategy(kubernetesExtension.getBuildStrategy())
-      .forcePull(kubernetesExtension.getForcePull().getOrElse(false))
-      .buildDirectory(javaProject.getBuildDirectory().getAbsolutePath())
+    builder.buildServiceConfig(buildServiceConfigBuilder()
       .imagePullManager(imagePullManager)
       .enricherTask(e -> {
         enricherManager.enrich(PlatformMode.kubernetes, e);
@@ -104,7 +99,11 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
     }
   }
 
-  private boolean isDockerAccessRequired() {
-    return kubernetesExtension.getBuildStrategy() != JKubeBuildStrategy.jib;
+  protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
+    return BuildServiceConfig.builder()
+      .buildRecreateMode(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreate().getOrElse("none")))
+      .jKubeBuildStrategy(kubernetesExtension.getBuildStrategy())
+      .forcePull(kubernetesExtension.getForcePull().getOrElse(false))
+      .buildDirectory(javaProject.getBuildDirectory().getAbsolutePath());
   }
 }

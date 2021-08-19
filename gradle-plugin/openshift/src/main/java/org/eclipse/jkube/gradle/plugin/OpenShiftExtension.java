@@ -18,6 +18,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.gradle.api.provider.Property;
@@ -27,8 +28,19 @@ import java.nio.file.Paths;
 
 public abstract class OpenShiftExtension extends KubernetesExtension {
   public static final String DEFAULT_OPENSHIFT_MANIFEST = Paths.get("META-INF","jkube","openshift.yml").toString();
+  public static final String DEFAULT_LOG_PREFIX = "oc: ";
 
   public abstract Property<File> getOpenShiftManifest();
+
+  public abstract Property<String> getOpenshiftPullSecret();
+
+  public abstract Property<String> getS2iBuildNameSuffix();
+
+  public abstract Property<Boolean> getS2iImageStreamLookupPolicyLocal();
+
+  public abstract Property<String> getBuildOutputKind();
+
+  public abstract Property<String> getOpenshiftPushSecret();
 
   @Override
   public RuntimeMode getRuntimeMode() {
@@ -51,5 +63,15 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
       return getOpenShiftManifest().getOrElse(new File(javaProject.getBaseDirectory(), DEFAULT_OPENSHIFT_MANIFEST));
     }
     return getKubernetesManifestOrDefault(javaProject);
+  }
+
+  @Override
+  public JKubeBuildStrategy getBuildStrategy() {
+    return buildStrategy != null ? buildStrategy : JKubeBuildStrategy.s2i;
+  }
+
+  @Override
+  public boolean isDockerAccessRequired() {
+    return false;
   }
 }
