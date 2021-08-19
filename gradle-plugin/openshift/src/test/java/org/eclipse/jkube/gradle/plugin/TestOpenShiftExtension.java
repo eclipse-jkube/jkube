@@ -13,15 +13,12 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 
 import java.io.File;
 
-public class TestKubernetesExtension extends KubernetesExtension {
+public class TestOpenShiftExtension extends OpenShiftExtension {
 
   @Override
   public Property<Boolean> getOffline() {
@@ -204,7 +201,32 @@ public class TestKubernetesExtension extends KubernetesExtension {
   }
 
   @Override
-  public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient, JavaProject javaProject) {
-    return getKubernetesManifestOrDefault(javaProject);
+  public Property<File> getOpenShiftManifest() {
+    return new DefaultProperty<>(File.class);
+  }
+
+  @Override
+  public Property<String> getOpenshiftPullSecret() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<String> getS2iBuildNameSuffix() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<Boolean> getS2iImageStreamLookupPolicyLocal() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<String> getBuildOutputKind() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<String> getOpenshiftPushSecret() {
+    return new DefaultProperty<>(String.class);
   }
 }
