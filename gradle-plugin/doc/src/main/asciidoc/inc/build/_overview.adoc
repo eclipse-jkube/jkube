@@ -102,7 +102,7 @@ For replacing other data in other files targeted for the Docker image, please us
 The following example replaces all properties in the format `@property@` within the Dockerfile.
 [source,groovy,indent=0,subs="verbatim,quotes,attributes"]
 ----
-kubernetes {
+{pluginExtension} {
     images {
         image {
             name = 'user/demo'

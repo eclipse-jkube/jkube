@@ -21,7 +21,7 @@ Here is an example of providing Groovy DSL configuration for a simple image:
 .Example for providing image using Groovy DSL configuration
 [source,groovy,subs="attributes+"]
 ----
-kubernetes {
+{pluginExtension} {
     images {
         image {
             name = "jkube/${project.name}:${project.version}" //<1>
@@ -83,7 +83,7 @@ This configuration would copy a jar file located in `build/libs/` to  `/deployme
 .Example for copying a file to image using Groovy DSL configuration:
 [source,groovy,subs="attributes+"]
 ----
-kubernetes {
+{pluginExtension} {
     images {
         image {
             name = "${project.group}/${project.name}:${project.version}"
@@ -112,7 +112,7 @@ This example would copy `build/dependencies` directory to `/deployments` directo
 .Example for copying a directory to image using Groovy DSL configuration:
 [source,groovy,subs="attributes+"]
 ----
-kubernetes {
+{pluginExtension} {
     images {
         image {
             name = "${project.group}/${project.name}:${project.version}"
