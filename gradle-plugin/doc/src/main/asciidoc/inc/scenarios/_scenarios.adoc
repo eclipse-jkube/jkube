@@ -9,3 +9,9 @@ include::_groovy.adoc[]
 include::_dockerfile.adoc[]
 
 include::_fragments.adoc[]
+
+ifeval::["{task-prefix}" == "oc"]
+
+include::_openshift.adoc[]
+
+endif::[]
