@@ -8,6 +8,7 @@
 [cols="1,5,1"]
 |====
 | Element | Description | Property
+
 | *apiVersion*
 | Use this variable if you are using an older version of docker not compatible with the current default use to
 communicate with the server.
@@ -190,7 +191,7 @@ suitable for most of the cases.
 
 | *outputDirectory*
 | Default output directory to be used by this plugin.
-The default value is `build/docker` and is only used for the task `{task-prefix}Build`.
+The default value is `build/docker` and is only used for the goal `{task-prefix}Build`.
 | `jkube.build.target.dir`
 
 | *offline*
@@ -204,7 +205,7 @@ The default value is `build/docker` and is only used for the task `{task-prefix}
 | `jkube.profile`
 
 ifeval::["{task-prefix}" == "oc"]
-| *pullSecret*
+| *openshiftPullSecret*
 | The name to use for naming pullSecret to be created to pull the base image in case pulling from a private registry
 which requires authentication for OpenShift.
 
@@ -213,11 +214,33 @@ which requires authentication for OpenShift.
 endif::[]
 
 ifeval::["{task-prefix}" == "oc"]
-| *pushSecret*
+| *openshiftPushSecret*
 | The name of pushSecret to be used to push the final image in case pushing from a
 protected registry which requires authentication.
 
 | `jkube.build.pushSecret`
+
+| *s2iImageStreamLookupPolicyLocal*
+| Allow the ImageStream used in the S2I binary build to be used in standard Kubernetes resources such as Deployment or StatefulSet.
+
+Defaults to `true`
+| `jkube.s2i.imageStreamLookupPolicyLocal`
+
+| *s2iBuildNameSuffix*
+|  The S2I binary builder BuildConfig name suffix appended to the image name to avoid clashing with the underlying BuildConfig for the Jenkins pipeline
+
+Defaults to `-s2i`
+| `jkube.s2i.buildNameSuffix`
+endif::[]
+
+ifeval::["{task-prefix}" == "oc"]
+| *buildOutputKind*
+|  Allow to specify in which registry to push the container image at the end of the build.
+If the output kind is ImageStreamTag, then the image will be pushed to the internal OpenShift registry.
+If the output is of type DockerImage, then the name of the output reference will be used as a Docker push specification.
+The default value is `ImageStreamTag`
+
+| `jkube.build.buildOutput.kind`
 endif::[]
 
 | *registry*
@@ -238,6 +261,10 @@ endif::[]
 | If set not images will be build (which implies also _skip.tag_) with `{task-prefix}Build`.
 | `jkube.skip.build`
 
+| *skipTag*
+| If set to `true` this plugin won't add any tags to images that have been built with `{task-prefix}Build`.
+| `jkube.skip.tag`
+
 | *skipMachine*
 | Skip using docker machine in any case
 | `jkube.docker.skip.machine`
@@ -252,7 +279,7 @@ for some reason but you still want to continue the deployment.
 | *resourceTargetDirectory*
 | The generated Kubernetes manifests target directory.
 
-  Defaults to `${basedir}/build/META-INF/jkube`.
+  Defaults to `${basedir}/build/classes/java/main/META-INF/jkube`.
 | `jkube.targetDir`
 
 | *useProjectClassPath*
@@ -260,6 +287,11 @@ for some reason but you still want to continue the deployment.
 
   Defaults to `false`.
 | `jkube.useProjectClassPath`
+
+| *buildSourceDirectory*
+| Default directory that contains the assembly descriptor(s) used by the plugin. The default value is `src/main/docker`.
+This option is only relevant for the `{task-prefix}Build` goal.
+| `jkube.build.source.dir`
 
 | *verbose*
 | Boolean attribute for switching on verbose output like the build steps when doing a Docker build. Default is `false`.
