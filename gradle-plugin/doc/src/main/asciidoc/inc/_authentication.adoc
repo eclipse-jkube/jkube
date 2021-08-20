@@ -17,7 +17,7 @@ transparent way, though. Using an `authConfig` is straight forward:
 
 [source,groovy,subs="attributes+"]
 ----
-kubernetes {
+{pluginExtension} {
     images {
         image {
             name = "consol/tomcat-7.0"
@@ -62,7 +62,7 @@ used for image push operations:
 .Example
 [source,groovy,subs="attributes+"]
 ----
-kubernetes {
+{pluginExtension} {
     images {
         image {
             name = "consol/tomcat-7.0"

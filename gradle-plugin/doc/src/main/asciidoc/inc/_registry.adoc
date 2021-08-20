@@ -48,7 +48,7 @@ control, separate registries for _pull_ and _push_ can be specified.
 .Example
 [source,groovy,subs="attributes+"]
 ----
-kubernetes {
+{pluginExtension} {
     registry = "docker.jolokia.org:443"
     images {
         image1 {

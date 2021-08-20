@@ -33,6 +33,7 @@
       <plugin>kubernetes-gradle-plugin</plugin>
       <task-prefix>k8s</task-prefix>
       <cluster>Kubernetes</cluster>
+      <pluginExtension>kubernetes</pluginExtension>
     </properties>
 
     <dependencies>
@@ -113,6 +114,7 @@
                     <task-prefix>${task-prefix}</task-prefix>
                     <cluster>${cluster}</cluster>
                     <version>${project.version}</version>
+                    <pluginExtension>${pluginExtension}</pluginExtension>
                   </attributes>
                 </configuration>
               </execution>
