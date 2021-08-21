@@ -93,7 +93,7 @@ public class FromConfigRegistryAuthHandlerTest {
       
         
         //expectedException.expectMessage(containsString("password"));
-        assertThat(exception.getMessage()).contains("password"));    //assertThat from assertJ used for in place of containsString of hamcrest #task2
+        assertThat(exception.getMessage()).contains("password");    //assertThat from assertJ used for in place of containsString of hamcrest #task2
        
         
         handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s);
