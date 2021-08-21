@@ -89,7 +89,7 @@ public class FromConfigRegistryAuthHandlerTest {
 
         //expectedException.expect(IllegalArgumentException.class);
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
-        () -> throwsIllegalArgumentException("Throw an Illegal Argument Exception"));          //expectedexception implementation substituted with assertThrows #task1
+        () -> throw new IllegalArgumentException("Throw an Illegal Argument Exception"));          //expectedexception implementation substituted with assertThrows #task1
       
         
         //expectedException.expectMessage(containsString("password"));
