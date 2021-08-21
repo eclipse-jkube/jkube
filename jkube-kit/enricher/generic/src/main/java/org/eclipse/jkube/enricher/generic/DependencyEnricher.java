@@ -32,7 +32,8 @@ import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,9 +56,9 @@ public class DependencyEnricher extends BaseEnricher {
     private static final String DEPENDENCY_KUBERNETES_TEMPLATE_YAML = "META-INF/jkube/k8s-template.yml";
     private static final String DEPENDENCY_OPENSHIFT_YAML = "META-INF/jkube/openshift.yml";
 
-    private Set<URL> kubernetesDependencyArtifacts = new HashSet<>();
-    private Set<URL> kubernetesTemplateDependencyArtifacts = new HashSet<>();
-    private Set<URL> openshiftDependencyArtifacts = new HashSet<>();
+    private Set<URI> kubernetesDependencyArtifacts = new HashSet<URI>();
+    private Set<URI> kubernetesTemplateDependencyArtifacts = new HashSet<URI>();
+    private Set<URI> openshiftDependencyArtifacts = new HashSet<URI>();
 
     @AllArgsConstructor
     private enum Config implements Configs.Config {
@@ -71,7 +72,7 @@ public class DependencyEnricher extends BaseEnricher {
         protected String defaultValue;
     }
 
-    public DependencyEnricher(JKubeEnricherContext buildContext) {
+    public DependencyEnricher(JKubeEnricherContext buildContext) throws URISyntaxException {
         super(buildContext, "jkube-dependency");
 
         addArtifactsWithYaml(kubernetesDependencyArtifacts, DEPENDENCY_KUBERNETES_YAML);
@@ -80,16 +81,16 @@ public class DependencyEnricher extends BaseEnricher {
 
     }
 
-    private void addArtifactsWithYaml(Set<URL> artifactSet, String dependencyYaml) {
+    private void addArtifactsWithYaml(Set<URI> artifactSet, String dependencyYaml) throws URISyntaxException {
         final List<Dependency> artifacts = getContext().getDependencies(isIncludeTransitive());
 
         for (Dependency artifact : artifacts) {
             if ("compile".equals(artifact.getScope()) && "jar".equals(artifact.getType())) {
                 File file = artifact.getFile();
                 try {
-                    URL url = new URL("jar:" + file.toURI().toURL() + "!/" + dependencyYaml);
-                    artifactSet.add(url);
-                } catch (MalformedURLException e) {
+                    URI uri = new URI("jar:" + file.toURI() + "!/" + dependencyYaml);
+                    artifactSet.add(uri);
+                } catch (URISyntaxException e) {
                     getLog().debug("Failed to create URL for %s: %s", file, e);
                 }
             }
@@ -105,7 +106,8 @@ public class DependencyEnricher extends BaseEnricher {
             if (resources != null) {
                 while (resources.hasMoreElements()) {
                     URL url = resources.nextElement();
-                    artifactSet.add(url);
+                    URI uri = url.toURI();
+                    artifactSet.add(uri);
                 }
             }
         }
@@ -200,25 +202,25 @@ public class DependencyEnricher extends BaseEnricher {
         }
     }
 
-    private void processArtifactSetResources(Set<URL> artifactSet, Function<List<HasMetadata>, Void> function) {
-        for (URL url : artifactSet) {
+    private void processArtifactSetResources(Set<URI> artifactSet, Function<List<HasMetadata>, Void> function) {
+        for (URI uri : artifactSet) {
             try {
-                log.debug("Processing Kubernetes YAML in at: %s", url);
-                KubernetesList resources = new ObjectMapper(new YAMLFactory()).readValue(url, KubernetesList.class);
+                log.debug("Processing Kubernetes YAML in at: %s", uri);
+                KubernetesList resources = new ObjectMapper(new YAMLFactory()).readValue(uri.toURL(), KubernetesList.class);
                 List<HasMetadata> items = resources.getItems();
                 if (items.isEmpty() && Objects.equals("Template", resources.getKind())) {
-                    Template template = new ObjectMapper(new YAMLFactory()).readValue(url, Template.class);
+                    Template template = new ObjectMapper(new YAMLFactory()).readValue(uri.toURL(), Template.class);
                     if (template != null) {
                         items.add(template);
                     }
                 }
                 for (HasMetadata item : items) {
-                    KubernetesResourceUtil.setSourceUrlAnnotationIfNotSet(item, url.toString());
+                    KubernetesResourceUtil.setSourceUrlAnnotationIfNotSet(item, uri.toString());
                     log.debug("  found %s  %s", KubernetesHelper.getKind(item), KubernetesHelper.getName(item));
                 }
                 function.apply(items);
             } catch (IOException e) {
-                getLog().debug("Skipping %s: %s", url, e);
+                getLog().debug("Skipping %s: %s", uri, e);
             }
         }
     }
