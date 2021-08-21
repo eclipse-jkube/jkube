@@ -65,7 +65,7 @@ public class DependencyEnricherTest {
         assertTrue(checkUniqueResources(aResourceList.getItems()));
     }
 
-    private KubernetesList enrichResources(KubernetesListBuilder aBuilder) {
+    private KubernetesList enrichResources(KubernetesListBuilder aBuilder) throws URISyntaxException {
         DependencyEnricher enricher = new DependencyEnricher(context);
         enricher.create(PlatformMode.kubernetes, aBuilder);
         enricher.enrich(PlatformMode.kubernetes, aBuilder);
