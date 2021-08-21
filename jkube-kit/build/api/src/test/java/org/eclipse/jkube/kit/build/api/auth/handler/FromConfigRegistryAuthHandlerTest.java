@@ -88,7 +88,9 @@ public class FromConfigRegistryAuthHandlerTest {
             RegistryAuthConfig.builder().putDefaultConfig(RegistryAuth.USERNAME, "admin").build(), log);
 
         //expectedException.expect(IllegalArgumentException.class);
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> throw IllegalArgumentException("Throw an Illegal Argument Exception"));          
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class);
+        
+        //() -> throw IllegalArgumentException("Throw an Illegal Argument Exception"));          
         //expectedexception implementation substituted with assertThrows #task1
       
         
