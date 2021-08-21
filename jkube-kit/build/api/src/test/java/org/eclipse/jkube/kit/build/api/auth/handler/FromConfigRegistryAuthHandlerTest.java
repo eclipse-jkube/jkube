@@ -30,6 +30,11 @@ import org.junit.rules.ExpectedException;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 
+
+
+import static org.assertj.core.api.Assertions.assertThat;  /*assertj assertThat import*/
+import static org.junit.jupiter.api.Assertions.assertThrows;   /*assertThrows import*/
+
 /**
  * @author roland
  * @since 23.10.18
@@ -39,8 +44,8 @@ public class FromConfigRegistryAuthHandlerTest {
     @Mocked
     private KitLogger log;
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+    /*@Rule
+    public ExpectedException expectedException = ExpectedException.none();*/      //removed expectedException @Rule
 
     @Test
     public void testFromPluginConfiguration() throws IOException {
@@ -82,8 +87,15 @@ public class FromConfigRegistryAuthHandlerTest {
         FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(
             RegistryAuthConfig.builder().putDefaultConfig(RegistryAuth.USERNAME, "admin").build(), log);
 
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(containsString("password"));
+        //expectedException.expect(IllegalArgumentException.class);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+        () -> throwsIllegalArgumentException("Throw an Illegal Argument Exception"));          //expectedexception implementation substituted with assertThrows #task1
+      
+        
+        //expectedException.expectMessage(containsString("password"));
+        assertThat(exception.getMessage(),containsString("password"));    //assertThat from assertJ used for in place of containsString of hamcrest #task2
+       
+        
         handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s);
     }
 
