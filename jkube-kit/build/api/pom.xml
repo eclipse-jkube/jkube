@@ -31,6 +31,14 @@
 
   <dependencies>
 
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>5.7.0</version>
+        <scope>test</scope>
+    </dependency>
+      
+      
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-config-image</artifactId>
