@@ -56,9 +56,9 @@ public class DependencyEnricher extends BaseEnricher {
     private static final String DEPENDENCY_KUBERNETES_TEMPLATE_YAML = "META-INF/jkube/k8s-template.yml";
     private static final String DEPENDENCY_OPENSHIFT_YAML = "META-INF/jkube/openshift.yml";
 
-    private Set<URI> kubernetesDependencyArtifacts = new HashSet<URI>();
-    private Set<URI> kubernetesTemplateDependencyArtifacts = new HashSet<URI>();
-    private Set<URI> openshiftDependencyArtifacts = new HashSet<URI>();
+    private Set<URI> kubernetesDependencyArtifacts = new HashSet<>();
+    private Set<URI> kubernetesTemplateDependencyArtifacts = new HashSet<>();
+    private Set<URI> openshiftDependencyArtifacts = new HashSet<>();
 
     @AllArgsConstructor
     private enum Config implements Configs.Config {
