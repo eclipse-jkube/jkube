@@ -16,6 +16,7 @@ package org.eclipse.jkube.gradle.plugin.task;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.eclipse.jkube.gradle.plugin.GradleLogger;
 import org.eclipse.jkube.gradle.plugin.GradleUtil;
@@ -83,6 +84,10 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
     kitLogger.info("Running in %s mode", kubernetesExtension.getRuntimeMode().getLabel());
     // TODO: Run Generators
     return configs;
+  }
+
+  public KitLogger createLogger(String prefix) {
+    return new GradleLogger(getLogger(), getLogPrefix() + Optional.ofNullable(prefix).map(" "::concat).orElse(""));
   }
 
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
