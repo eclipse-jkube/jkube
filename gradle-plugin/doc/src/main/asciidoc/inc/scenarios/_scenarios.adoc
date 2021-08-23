@@ -7,3 +7,5 @@ When working with {plugin}, in most cases you'll be using common scenarios. Here
 include::_groovy.adoc[]
 
 include::_dockerfile.adoc[]
+
+include::_fragments.adoc[]
