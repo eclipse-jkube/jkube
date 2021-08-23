@@ -1,0 +1,46 @@
+[[kubernetes-resource-fragments]]
+== Kubernetes Resource Fragments
+
+You can also use an external configuration in form of YAML resource descriptors which are located in the  `src/main/jkube` directory. Each resource gets its own file, which contains a skeleton of a resource descriptor. The plugin will pick up the resource, enrich it and then combine all to a single `kubernetes.yml` and `openshift.yml` file. Within these descriptor files you are can freely use any Kubernetes feature.
+
+Let's have a look at an example from
+https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/external-resources[quickstarts/gradle/external-resources].
+This is a plain Spring Boot application, whose images are auto generated like in case of no configuration.
+The resource fragments are in `src/main/jkube`.
+
+.Example fragment "deployment.yml"
+[source,yaml,indent=0,subs="verbatim,quotes,attributes"]
+----
+  spec:
+    replicas: 1
+    template:
+      spec:
+        volumes:
+          - name: config
+            gitRepo:
+              repository: 'https://github.com/jstrachan/sample-springboot-config.git'
+              revision: 667ee4db6bc842b127825351e5c9bae5a4fb2147
+              directory: .
+        containers:
+          - volumeMounts:
+              - name: config
+                mountPath: /app/config
+            env:
+              - name: KUBERNETES_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: metadata.namespace
+        serviceAccount: ribbon
+----
+
+As you can see, there is no `metadata` section as would be expected for Kubernetes resources because it will be automatically added by the `{plugin}`. The object's `Kind`, if not given, is automatically derived from the
+filename. In this case, the `{plugin}` will create a `Deployment` because the file is called `deployment.yml`. Similar mappings between file names and resource type exist for each supported resource kind, the
+complete list of which (along with associated abbreviations) can be found in the <<appendix-kind-mapping, Kind Filename Mapping>>.
+
+Additionally, if you name your fragment using a name prefix followed by a dash and the mapped file name, the plugin will automatically use that name for your resource. So, for example, if you name your deployment fragment
+`myapp-deployment.yml`, the plugin will name your resource `myapp`. In the absence of such provided name for your resource, a name will be automatically derived from your project's metadata (in particular, its project `name` as specified in your `build.gradle`).
+
+No image is also referenced in this example because the plugin also fills in the image details based on the configured image you are building with (either from a generator or from a dedicated image plugin configuration, as seen before).
+
+Enrichment of resource fragments can be fine-tuned by using profile sub-directories. For more details see <<profiles, Profiles>>.

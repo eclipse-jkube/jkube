@@ -42,9 +42,7 @@ a| Mode how the how the assembled files should be collected:
 * `tgz` : Transfer via compressed tar archive
 * `zip` : Transfer via ZIP archive
 
-The archive formats have the advantage that file permission can be preserved better (since the copying is independent
-from the underlying files systems), but might triggers internal bugs from the Maven assembler (as it has been reported
-in https://github.com/fabric8io/docker-maven-plugin/issues/171[#171])
+The archive formats have the advantage that file permission can be preserved better (since the copying is independent from the underlying files systems)
 
 | *permissions*
 a| Permission of the files to add:
