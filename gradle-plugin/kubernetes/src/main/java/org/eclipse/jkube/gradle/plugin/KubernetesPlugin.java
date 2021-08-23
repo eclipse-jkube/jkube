@@ -21,6 +21,7 @@ import java.util.Map;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesConfigViewTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 
 import org.gradle.api.Project;
@@ -45,6 +46,7 @@ public class KubernetesPlugin extends AbstractJKubePlugin<KubernetesExtension> {
     register(project, "k8sBuild", KubernetesBuildTask.class);
     register(project, "k8sResource", KubernetesResourceTask.class);
     register(project, "k8sApply", KubernetesApplyTask.class);
+    register(project, "k8sLog", KubernetesLogTask.class);
   }
 
 }
