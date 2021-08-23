@@ -1,2 +1,4 @@
 [[task-overview-develop]]
 == Development Tasks
+
+include::_jkube-log.adoc[]
