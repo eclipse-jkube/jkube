@@ -31,8 +31,6 @@
 
   <dependencies>
 
-   
-      
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-config-image</artifactId>
