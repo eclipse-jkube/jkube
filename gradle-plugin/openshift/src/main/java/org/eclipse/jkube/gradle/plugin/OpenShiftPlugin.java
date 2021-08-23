@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.eclipse.jkube.gradle.plugin.task.KubernetesApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 
 import org.gradle.api.Project;
@@ -43,6 +44,7 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
     register(project, "ocBuild", KubernetesBuildTask.class);
     register(project, "ocResource", KubernetesResourceTask.class);
     register(project, "ocApply", KubernetesApplyTask.class);
+    register(project, "ocLog", KubernetesLogTask.class);
   }
 
 }

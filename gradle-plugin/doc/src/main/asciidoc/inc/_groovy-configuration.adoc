@@ -8,22 +8,6 @@
 [cols="1,5,1"]
 |====
 | Element | Description | Property
-| *buildStrategy*
-a| Defines what build strategy to choose while building container image.
-Possible values are `docker` and `jib` out of which `docker` is default.
-
-ifeval::["{goal-prefix}" == "oc"]
-If the effective build mode is `openshift` an additional `s2i` option is available
-and selected by default.
-
-Available strategies for OpenShift are:
-
-* `s2i` for a https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#source-build[Source-to-Image build] with a binary source
-* `docker` for a https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#docker-build[Docker build] with a binary source
-
-endif::[]
-| `jkube.build.strategy`
-
 | *apiVersion*
 | Use this variable if you are using an older version of docker not compatible with the current default use to
 communicate with the server.
@@ -32,6 +16,10 @@ communicate with the server.
  | *authConfig*
 | Authentication information when pulling from or pushing to Docker registry. There is a dedicated section
   <<authentication, Authentication>> for how to do security.
+|
+
+| *access*
+| Group of configuration parameters to connect to Kubernetes/OpenShift cluster.
 |
 
 | *autoPull*
@@ -56,30 +44,21 @@ associated with the build should be treated when they already exist:
 The default is `none`. If you provide the property without value then `all` is assumed, so everything gets recreated.
 | `jkube.build.recreate`
 
+| *buildStrategy*
+a| Defines what build strategy to choose while building container image.
+Possible values are `docker` and `jib` out of which `docker` is default.
 
-ifeval::["{goal-prefix}" == "oc"]
-|*forcePull*
-|
-Applicable only for OpenShift, S2I build strategy.
+ifeval::["{task-prefix}" == "oc"]
+If the effective build mode is `openshift` an additional `s2i` option is available
+and selected by default.
 
-While creating a BuildConfig, By default, if the builder image specified in the
-build configuration is available locally on the node, that image will be used.
+Available strategies for OpenShift are:
 
-Using forcePull will override the local image and refresh it from the registry the image stream points to.
+* `s2i` for a https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#source-build[Source-to-Image build] with a binary source
+* `docker` for a https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#docker-build[Docker build] with a binary source
 
-|`jkube.build.forcePull`
 endif::[]
-
-| [[image-pull-policy]] *imagePullPolicy*
-a| Specify whether images should be pull when looking for base images while building or images for starting.
-This property can take the following values (case insensitive):
-
-* `IfNotPresent`: Automatic download any missing images (default)
-* `Never` : Automatic pulling is switched off always
-* `Always` : Pull images always even when they already exist locally.
-
-By default a progress meter is printed out on the console, which is omitted when using Maven in batch mode (option `-B`). A very simplified progress meter is provided when using no color output (i.e. with `-Djkube.useColor=false`).
-| `jkube.docker.imagePullPolicy`
+| `jkube.build.strategy`
 
 | *certPath*
 | Path to SSL certificate when SSL is used for communicating with the Docker daemon. These certificates are normally
@@ -115,6 +94,57 @@ image name (either its alias or full name) or it can be a comma separated list w
 which doesn't refer an image in the configuration will be ignored.
 | `jkube.image.filter`
 
+
+ifeval::["{task-prefix}" == "oc"]
+|*forcePull*
+|
+Applicable only for OpenShift, S2I build strategy.
+
+While creating a BuildConfig, By default, if the builder image specified in the
+build configuration is available locally on the node, that image will be used.
+
+Using forcePull will override the local image and refresh it from the registry the image stream points to.
+
+|`jkube.build.forcePull`
+endif::[]
+
+| [[image-pull-policy]] *imagePullPolicy*
+a| Specify whether images should be pull when looking for base images while building or images for starting.
+This property can take the following values (case insensitive):
+
+* `IfNotPresent`: Automatic download any missing images (default)
+* `Never` : Automatic pulling is switched off always
+* `Always` : Pull images always even when they already exist locally.
+
+By default a progress meter is printed out on the console, which is omitted when using Maven in batch mode (option `-B`). A very simplified progress meter is provided when using no color output (i.e. with `-Djkube.useColor=false`).
+| `jkube.docker.imagePullPolicy`
+
+| *logFollow*
+| Get follow logs for your application inside Kubernetes.
+
+  Defaults to `true`.
+| `jkube.log.follow`
+
+ifeval::["{task-prefix}" == "k8s"]
+| *kubernetesManifest*
+| The generated kubernetes YAML file.
+
+  Defaults to `${basedir}/build/META-INF/jkube/kubernetes.yml`.
+| `jkube.kubernetesManifest`
+endif::[]
+
+| *logContainerName*
+| Get logs of some specific container inside your application Deployment.
+
+  Defaults to `null`.
+| `jkube.log.container`
+
+| *logPodName*
+| Get logs of some specific pod inside your application Deployment.
+
+  Defaults to `null`.
+| `jkube.log.pod`
+
 | *machine*
 | Docker machine configuration.
 |
@@ -124,10 +154,6 @@ which doesn't refer an image in the configuration will be ignored.
 to be kept open (as well for the wait features), so don't put that number to low. Default is 100 which should be
 suitable for most of the cases.
 | `jkube.docker.maxConnections`
-
-| *access*
-| Group of configuration parameters to connect to Kubernetes/OpenShift cluster.
-|
 
 | *outputDirectory*
 | Default output directory to be used by this plugin.
@@ -199,14 +225,6 @@ This option is only relevant for the `{goal-prefix}:build` goal.
 | *verbose*
 | Boolean attribute for switching on verbose output like the build steps when doing a Docker build. Default is `false`.
 | `jkube.docker.verbose`
-
-| *logDate*
-| The date format to use when logging messages from Docker. Default is `DEFAULT` (`HH:mm:ss.SSS`)
-| `jkube.docker.logDate`
-
-| *logStdout*
-| Log to stdout regardless if log files are configured or not. Default is `false`.
-| `jkube.docker.logStdout`
 |====
 
 
