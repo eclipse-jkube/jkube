@@ -87,13 +87,26 @@ the URL is:
 . `unix:///var/run/docker.sock` if it is a readable socket.
 | `jkube.docker.host`
 
+| *resourceEnvironment*
+| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the
+default one, plugin will look at `src/main/jkube/dev`.
+
+  Defaults to `null`.
+| `jkube.environment`
+
 | *filter*
-| In order to temporarily restrict the operation of plugin goals this configuration option can be used.
-Typically this will be set via the system property `jkube.image.filter` when Maven is called. The value can be a single
+| In order to temporarily restrict the operation of plugin tasks this configuration option can be used.
+Typically this will be set via the system property `jkube.image.filter` when Gradle is called. The value can be a single
 image name (either its alias or full name) or it can be a comma separated list with multiple image names. Any name
 which doesn't refer an image in the configuration will be ignored.
 | `jkube.image.filter`
 
+| *failOnValidationError*
+| If value is set to `true` then any validation error will block the plugin execution. A warning will be printed
+otherwise.
+
+  Default is `false`.
+| `jkube.failOnValidationError`
 
 ifeval::["{task-prefix}" == "oc"]
 |*forcePull*
@@ -119,11 +132,19 @@ This property can take the following values (case insensitive):
 By default a progress meter is printed out on the console, which is omitted when using Maven in batch mode (option `-B`). A very simplified progress meter is provided when using no color output (i.e. with `-Djkube.useColor=false`).
 | `jkube.docker.imagePullPolicy`
 
-| *logFollow*
-| Get follow logs for your application inside Kubernetes.
+| *interpolateTemplateParameters*
+| Interpolate parameter values from `*template.yml` fragments in the generated resource list (`kubernetes.yml`).
+
+  This is useful when using JKube in combination with Helm.
+
+  Placeholders for variables defined in template files can be used in the different resource fragments. Helm generated
+  charts will contain these placeholders/parameters.
+
+  For `resource` task, these placeholders are replaced in the
+  aggregated resource list YAML file (not in the individual generated resources) if this option is enabled.
 
   Defaults to `true`.
-| `jkube.log.follow`
+| `jkube.interpolateTemplateParameters`
 
 ifeval::["{task-prefix}" == "k8s"]
 | *kubernetesManifest*
@@ -132,6 +153,12 @@ ifeval::["{task-prefix}" == "k8s"]
   Defaults to `${basedir}/build/META-INF/jkube/kubernetes.yml`.
 | `jkube.kubernetesManifest`
 endif::[]
+
+| *logFollow*
+| Get follow logs for your application inside Kubernetes.
+
+  Defaults to `true`.
+| `jkube.log.follow`
 
 | *logContainerName*
 | Get logs of some specific container inside your application Deployment.
@@ -155,16 +182,28 @@ to be kept open (as well for the wait features), so don't put that number to low
 suitable for most of the cases.
 | `jkube.docker.maxConnections`
 
+| *mergeWithDekorate*
+| When resource generation is delegated to Dekorate, should JKube resources be merged with Dekorate generated ones.
+
+  Defaults to `false`.
+| `jkube.mergeWithDekorate`
+
 | *outputDirectory*
 | Default output directory to be used by this plugin.
-The default value is `target/docker` and is only used for the goal `{goal-prefix}:build`.
+The default value is `build/docker` and is only used for the task `{task-prefix}Build`.
 | `jkube.build.target.dir`
+
+| *offline*
+| Whether to try detecting Kubernetes Cluster or stay offline.
+
+  Defaults to `false`.
+| `jkube.offline`
 
 | *profile*
 | Profile to which contains enricher and generators configuration. See <<profiles,Profiles>> for details.
 | `jkube.profile`
 
-ifeval::["{goal-prefix}" == "oc"]
+ifeval::["{task-prefix}" == "oc"]
 | *pullSecret*
 | The name to use for naming pullSecret to be created to pull the base image in case pulling from a private registry
 which requires authentication for OpenShift.
@@ -173,7 +212,7 @@ which requires authentication for OpenShift.
 | `jkube.build.pullSecret`
 endif::[]
 
-ifeval::["{goal-prefix}" == "oc"]
+ifeval::["{task-prefix}" == "oc"]
 | *pushSecret*
 | The name of pushSecret to be used to push the final image in case pushing from a
 protected registry which requires authentication.
@@ -181,50 +220,54 @@ protected registry which requires authentication.
 | `jkube.build.pushSecret`
 endif::[]
 
-
-ifeval::["{goal-prefix}" == "oc"]
-| *jkube.build.buildOutput.kind*
-|  Allow to specify in which registry to push the container image at the end of the build.
-If the output kind is ImageStreamTag, then the image will be pushed to the internal OpenShift registry.
-If the output is of type DockerImage, then the name of the output reference will be used as a Docker push specification.
-The default value is `ImageStreamTag`
-
-| `jkube.build.buildOutput.kind`
-endif::[]
-
 | *registry*
 | Specify globally a registry to use for pulling and pushing images. See <<registry,Registry handling>> for details.
 | `jkube.docker.registry`
+
+| *resourceSourceDirectory*
+| Folder where to find project specific files.
+
+  Defaults to `${project.rootDir}/src/main/jkube`.
+| `jkube.resourceDir`
 
 | *skip*
 | With this parameter the execution of this plugin can be skipped completely.
 | `jkube.skip`
 
 | *skipBuild*
-| If set not images will be build (which implies also _skip.tag_) with `{goal-prefix}:build`.
+| If set not images will be build (which implies also _skip.tag_) with `{task-prefix}Build`.
 | `jkube.skip.build`
-
-| *skipBuildPom*
-| If set the build step will be skipped for modules of type `pom`. If not set, then by default projects of type `pom`
-will be skipped if there are no image configurations contained.
-| `jkube.skip.build.pom`
-
-| *skipTag*
-| If set to `true` this plugin won't add any tags to images that have been built with `{goal-prefix}:build`.
-| `jkube.skip.tag`
 
 | *skipMachine*
 | Skip using docker machine in any case
 | `jkube.docker.skip.machine`
 
-| *sourceDirectory*
-| Default directory that contains the assembly descriptor(s) used by the plugin. The default value is `src/main/docker`.
-This option is only relevant for the `{goal-prefix}:build` goal.
-| `jkube.build.source.dir`
+| *skipResourceValidation*
+| If value is set to `true` then resource validation is skipped. This may be useful if resource validation is failing
+for some reason but you still want to continue the deployment.
+
+  Default is `false`.
+| `jkube.skipResourceValidation`
+
+| *resourceTargetDirectory*
+| The generated Kubernetes manifests target directory.
+
+  Defaults to `${basedir}/build/META-INF/jkube`.
+| `jkube.targetDir`
+
+| *useProjectClassPath*
+| Should we use the project's compile time classpath to scan for additional enrichers/generators.
+
+  Defaults to `false`.
+| `jkube.useProjectClassPath`
 
 | *verbose*
 | Boolean attribute for switching on verbose output like the build steps when doing a Docker build. Default is `false`.
 | `jkube.docker.verbose`
+
+| *workDirectory*
+| The JKube working directory. Defaults to `${project.build.directory}/jkube`.
+| `jkube.workDir`
 |====
 
 
@@ -268,3 +311,384 @@ INFO:: Startup arguments are not used in S2I builds
 == Build Args
 
 include::build/_buildargs.adoc[]
+
+[[kuberetes-resource-configuration]]
+== Kubernetes Resources Configuration
+This section includes groovy DSL configuration options you can use to tweak generated Kubernetes manifests.
+
+[[labels-annotation-configuration]]
+=== Labels/Annotations
+
+.Label and annotation configuration
+[cols="1,6"]
+|===
+| Element | Description
+
+| *all*
+| All entries specified in the `all` sections are applied to all resource objects created.
+ifeval::["{task-prefix}" == "oc"]
+  This also implies build object like image stream and build configs which are created implicitly for an <<build-openshift, {cluster} build>>.
+endif::[]
+
+| *deployment*
+| Labels and annotations applied to `Deployment` (for Kubernetes).
+ifeval::["{task-prefix}" == "oc"]
+   And `DeploymentConfig` (for OpenShift) objects.
+endif::[]
+
+
+| *pod*
+| Labels and annotations applied pod specification as used in `ReplicationController`,  `ReplicaSets`, `Deployments` and `DeploymentConfigs` objects.
+
+
+| *replicaSet*
+| Labels and annotations applied to `ReplicaSet` and `ReplicationController` objects.
+
+| *service*
+| Labels and annotations applied to `Service` objects.
+
+| *ingress*
+| Labels and annotations applied to `Ingress` objects.
+
+| *serviceAccount*
+| Labels and annotations applied to `ServiceAccount` objects.
+|===
+
+[[controller-resource-groovy-configuration]]
+=== Controllers
+
+A Controller resource is a Kubernetes resource which manages Pods created for your application. It can be one of these options:
+
+* https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/[ReplicationController]
+* https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/[ReplicaSet]
+* https://kubernetes.io/docs/concepts/workloads/controllers/deployment/[Deployment]
+* https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/[StatefulSet]
+* https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+* https://kubernetes.io/docs/concepts/workloads/controllers/job/[Job]
+ifeval::["{task-prefix}" == "oc"]
+* https://docs.openshift.com/container-platform/4.7/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are[DeploymentConfig]
+endif::[]
+
+Here are the fields available in `resources` Groovy DSL configuration that would work with {task-prefix}Resource:
+
+.resources fields for configuring generated controllers
+[cols="1,5"]
+|===
+| Element | Description
+
+| `env`
+| Environment variables which will be added to containers in Pod template spec.
+
+| <<volume-groovy-configuration, `volumes`>>
+| Configuration element for adding volume mounts to containers in Pod template spec
+
+| `controllerName`
+| Name of the controller resource(i.e. `Deployment`, `ReplicaSet`, `StatefulSet` etc) generated
+
+| <<probe-groovy-configuration, `liveness`>>
+| Configuration element for adding a liveness probe
+
+| <<probe-groovy-configuration, `readiness`>>
+| Configuration element for adding readiness probe
+
+| `containerPrivileged`
+| Run container in privileged mode. Sets `privileged: true` in generated Controller's PodTemplateSpec
+
+| `imagePullPolicy`
+| How images should be pulled (maps to ImagePullPolicy).
+
+| `replicas`
+| Number of replicas to create
+
+| `serviceAccount`
+| ServiceAccount name which will be used by pods created by controller resources(e.g. `Deployment`, `ReplicaSet` etc)
+|===
+
+[[probe-groovy-configuration]]
+==== Probe Groovy DSL Configuration
+Probe configuration is used for configuring https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes[liveness and readiness probes] for containers. Both `liveness` and `readiness` probes the following options:
+
+.Groovy DSL Probe configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `initialDelaySeconds`
+| Initial delay in seconds before the probe is started.
+
+| `timeoutSeconds`
+| Timeout in seconds how long the probe might take.
+
+| `exec`
+| Command to execute for probing.
+
+| `getUrl`
+| Probe URL for HTTP Probe. Configures HTTP probe fields like `host`, `scheme`, `path` etc by parsing URL. For example, a `getUrl = "http://:8080/health"` would result in probe generated with fields set like this:
+
+  host: ""
+
+  path: /health
+
+  port: 8080
+
+  scheme: HTTP
+
+Host name with empty value defaults to Pod IP. You probably want to set "Host" in httpHeaders instead.
+
+| `tcpPort`
+| TCP port to probe.
+
+| `failureThreshold`
+| When a probe fails, Kubernetes will try failureThreshold times before giving up
+
+| `successThreshold`
+|  Minimum consecutive successes for the probe to be considered successful after having failed.
+
+|  `httpHeaders`
+| Custom headers to set in the request.
+
+| `periodSeconds`
+| How often in seconds to perform the probe. Defaults to 10 seconds. Minimum value is 1.
+|===
+
+[[volume-groovy-configuration]]
+==== Volume Groovy DSL Configuration
+`volumes` field contains a list of `volume` configurations. Different configurations are supported in order to support different https://kubernetes.io/docs/concepts/storage/volumes/[Volumes in Kubernetes].
+
+Here are the options supported by a single `volume` :
+
+.Groovy DSL `volume` configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `type`
+| type of Volume
+
+| `name`
+| name of volume to be mounted
+
+| `mounts`
+| List of mount paths of this volume.
+
+| `path`
+| Path for volume
+
+| `medium`
+| medium ,applicable for Volume type `emptyDir`
+
+| `repository`
+| repository ,applicable for Volume type `gitRepo`
+
+| `revision`
+| revision ,applicable for Volume type `gitRepo`
+
+| `secretName`
+| Secret name ,applicable for Volume type `secret`
+
+| `server`
+| Server name, applicable for Volume type `nfsPath`
+
+| `readOnly`
+| Whether it's read only or not
+
+| `pdName`
+| pdName, applicable for Volume type `gcePdName`
+
+| `fsType`
+| File system type for Volume
+
+| `partition`
+| partition, applicable for Volume type `gcePdName`
+
+| `endpoints`
+| endpoints, applicable for Volume type `glusterFsPath`
+
+| `claimRef`
+| Claim Reference, applicable for Volume type `persistentVolumeClaim`
+
+| `volumeId`
+| volume id
+
+| `diskName`
+| disk name, applicable for Volume type `azureDisk`
+
+| `diskUri`
+| disk uri, applicable for Volume type `azureDisk`
+
+| `kind`
+| kind, applicable for Volume type `azureDisk`
+
+| `cachingMode`
+| caching mode, applicable for Volume type `azureDisk`
+
+| `hostPathType`
+| Host Path type
+
+| `shareName`
+| Share name,  applicable for Volume type `azureFile`
+
+| `user`
+| User name
+
+| `secretFile`
+| Secret File, applicable for Volume type `cephfs`
+
+| `secretRef`
+| Secret reference, applicable for Volume type `cephfs`
+
+| `lun`
+| LUN(Logical Unit Number)
+
+| `targetWwns`
+| target WWNs, applicable for Volume type `fc`
+
+| `datasetName`
+| data set name, applicable for Volume type `flocker`
+
+| `portals`
+| list of portals, applicable for Volume type `iscsi`
+
+| `targetPortal`
+| target portal, applicable for Volume type `iscsi`
+
+| `registry`
+| registry, applicable for Volume type `quobyte`
+
+| `volume`
+| volume, applicable for Volume type `quobyte`
+
+| `group`
+| group, applicable for Volume type `quobyte`
+
+| `iqn`
+| IQN, applicable for Volume type `iscsi`
+
+| `monitors`
+| list of monitors, applicable for Volume type `rbd`
+
+| `pool`
+| pool, applicable for Volume type `rbd`
+
+| `keyring`
+| keyring, applicable for Volume type `rbd`
+
+| `image`
+| image, applicable for Volume type `rbd`
+
+| `gateway`
+| gateway, applicable for Volume type `scaleIO`
+
+| `system`
+| system, applicable for Volume type `scaleIO`
+
+| `protectionDomain`
+| protection domain, applicable for Volume type `scaleIO`
+
+| `storagePool`
+| storage pool, applicable for Volume type `scaleIO`
+
+| `volumeName`
+| volume name, applicable for Volume type `scaleIO` and `storageOS`
+
+| `configMapName`
+| ConfigMap name, applicable for Volume type `configMap`
+
+| `configMapItems`
+| List of ConfigMap items, applicable for Volume type `configMap`
+
+| `items`
+| List of items, applicable for Volume type `downwardAPI`
+|===
+
+[[ingress-groovy-configuration]]
+=== Ingress
+Here are the supported options while providing `ingress` in Groovy configuration
+
+.`ingress` configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| <<ingress-rule-groovy-configuration, `ingressRules`>>
+| IngressRule configuration
+
+| <<ingress-tls-configuration, `ingressTlsConfigs`>>
+| Ingress TLS configuration
+|===
+
+[[ingress-rule-groovy-configuration]]
+==== IngressRule Groovy Configuration
+Here are the supported options while providing `ingressRules` in Groovy configuration
+
+.`ingressRule` configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `host`
+| Host name
+
+| <<ingress-rule-path-configuration, `paths`>>
+| IngressRule path configuration
+|===
+
+[[ingress-rule-path-configuration]]
+==== IngressRule Path Groovy Configuration
+Here are the supported options while providing `paths` in Groovy DSL configuration
+
+.IngressRule `path` Groovy DSL configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `pathType`
+| type of Path
+
+| `path`
+| path
+
+| `serviceName`
+| Service name
+
+| `servicePort`
+| Service port
+
+| <<ingress-rule-path-resource-groovy-configuration,`resource`>>
+| Resource reference in Ingress backend
+|===
+
+[[ingress-rule-path-resource-groovy-configuration]]
+==== IngressRule Path Resource Groovy Configuration
+Here are the supported options while providing `resource` in IngressRule's path Groovy configuration
+
+.IngressRule Path `resource` Groovy configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `name`
+| Resource name
+
+| `kind`
+| Resource kind
+
+| `apiGroup`
+| Resource's apiGroup
+|===
+
+[[ingress-tls-configuration]]
+==== IngressRule Path Resource Groovy Configuration
+Here are the supported options while providing `ingressTlsConfigs` in IngressRule's path Groovy configuration
+
+.IngressTls `ingressTlsConfig` Groovy configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `secretName`
+| Secret name
+
+| `hosts`
+| a list of string `host` objects
+|===

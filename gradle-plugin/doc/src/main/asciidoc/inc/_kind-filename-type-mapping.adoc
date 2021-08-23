@@ -1,0 +1,29 @@
+[[kind-filename-mapping]]
+= Kind/Filename Mapping
+
+[[appendix-kind-mapping]]
+== Default Kind/Filename Mapping
+include::{plugindir}/src/main/resources/META-INF/jkube/kind-filename-type-mapping-default.adoc[]
+
+[[custom-kind-mapping]]
+== Custom Kind/Filename Mapping
+
+You can add your custom `Kind/Filename` mappings.
+To do it you have two approaches:
+
+* Setting an environment variable or system property called `jkube.mapping` pointing out to a `.properties` files with pairs `<kind>=>filename1>, <filename2>`
+By default if no environment variable nor system property is set, scan for a file located at classpath `/META-INF/jkube.kind-filename-type-mapping-default.properties`.
+
+* By embedding in task configuration the mapping:
+
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+kubernetes {
+    mappings {
+        mapping {
+            kind = "Var"
+            filenameTypes = "foo, bar"
+        }
+    }
+}
+----
