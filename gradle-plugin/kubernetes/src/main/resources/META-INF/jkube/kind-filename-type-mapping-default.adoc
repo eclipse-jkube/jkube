@@ -1,0 +1,120 @@
+// =========================================================
+// Mapping file for K8s/OpenShift resource kind to filename extension.
+//
+// I.e for fragments the resource kind is inferred from the filename type"
+// myapp-deployment.yml maps to a Kubernetes Deployment
+//
+// Some hints for the format of this file which is used for documentation
+// and during runtime:
+// * There should be a exactly new line between rows
+// * 1 Kind can be mapped to N Filename types, given as comma separated list
+// * Columns should be ordered alphabetical by type (for better reading)
+// * Last filename type in the csv list must be the canonical one (full kind in all lowercase)
+|===
+|Kind |Filename Type
+
+|BuildConfig
+|`bc`, `buildconfig`
+
+|ClusterRole
+|`cr`, `crole`, `clusterrole`
+
+|ConfigMap
+|`cm`, `configmap`
+
+|ClusterRoleBinding
+|`crb`, `clusterrb`, `clusterrolebinding`
+
+|CronJob
+|`cj`, `cronjob`
+
+|CustomResourceDefinition
+|`crd`, `customerresourcedefinition`
+
+|DaemonSet
+|`ds`, `daemonset`
+
+|Deployment
+|`deployment`
+
+|DeploymentConfig
+|`dc`, `deploymentconfig`
+
+|ImageStream
+|`is`, `imagestream`
+
+|ImageStreamTag
+|`istag`, `imagestreamtag`
+
+|Ingress
+|`ingress`
+
+|Job
+|`job`
+
+|LimitRange
+|`lr`, `limitrange`
+
+|Namespace
+|`ns`, `namespace`
+
+|NetworkPolicy
+|`np`, `networkpolicy`
+
+|OAuthClient
+|`oauthclient`
+
+|PolicyBinding
+|`pb`, `policybinding`
+
+|PersistentVolume
+|`pv`, `persistentvolume`
+
+|PersistentVolumeClaim
+|`pvc`, `persistentvolumeclaim`
+
+|Project
+|`project`
+
+|ProjectRequest
+|`pr`, `projectrequest`
+
+|ReplicaSet
+|`rs`, `replicaset`
+
+|ReplicationController
+|`rc`, `replicationcontroller`
+
+|ResourceQuota
+|`rq`, `resourcequota`
+
+|Role
+|`role`
+
+|RoleBinding
+|`rb`, `rolebinding`
+
+|RoleBindingRestriction
+|`rbr`, `rolebindingrestriction`
+
+|Route
+|`route`
+
+|Secret
+|`secret`
+
+|Service
+|`svc`, `service`
+
+|ServiceAccount
+|`sa`, `serviceaccount`
+
+|StatefulSet
+|`statefulset`
+
+|Template
+|`template`
+
+|Pod
+|`pd`, `pod`
+|===
