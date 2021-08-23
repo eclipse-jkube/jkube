@@ -1,0 +1,40 @@
+
+[[jkube:log]]
+=== *{task-prefix}Log*
+
+This goal tails the log of the app that you deployed via the <<jkube:deploy, {task-prefix}Apply>> goal
+
+[source, sh, subs="+attributes"]
+----
+gradle {task-prefix}Log
+----
+
+You can then terminate the output by hitting `Ctrl+C`
+
+If you wish to get the log of the app and then terminate immediately then try:
+
+[source, sh, subs="+attributes"]
+----
+gradle {task-prefix}Log -Djkube.log.follow=false
+----
+
+This lets you pipe the output into grep or some other tool
+
+[source, sh, subs="+attributes"]
+----
+gradle {task-prefix}Log -Djkube.log.follow=false | grep Exception
+----
+
+If your app is running in multiple pods you can configure the pod name to log via the `jkube.log.pod` property, otherwise it defaults to the latest pod:
+
+[source, sh, subs="+attributes"]
+----
+gradle {task-prefix}Log -Djkube.log.pod=foo
+----
+
+If your pod has multiple containers you can configure the container name to log via the `jkube.log.container` property, otherwise it defaults to the first container:
+
+[source, sh, subs="+attributes"]
+----
+gradle {task-prefix}Log -Djkube.log.container=foo
+----

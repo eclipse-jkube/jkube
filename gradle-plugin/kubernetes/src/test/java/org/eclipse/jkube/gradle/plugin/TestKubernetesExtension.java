@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 
@@ -168,5 +172,30 @@ public class TestKubernetesExtension extends KubernetesExtension {
   @Override
   public Property<Boolean> getSkip() {
     return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getLogFollow() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<String> getLogContainerName() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<String> getLogPodName() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<File> getKubernetesManifest() {
+    return new DefaultProperty<>(File.class);
+  }
+
+  @Override
+  public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient, JavaProject javaProject) {
+    return new File(javaProject.getBaseDirectory(), DEFAULT_KUBERNETES_MANIFEST);
   }
 }

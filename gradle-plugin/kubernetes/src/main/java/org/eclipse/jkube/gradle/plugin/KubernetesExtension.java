@@ -18,10 +18,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
@@ -99,6 +102,7 @@ public abstract class KubernetesExtension {
   private static final String DEFAULT_RESOURCE_SOURCE_DIR = "src/main/jkube";
   private static final String DEFAULT_RESOURCE_TARGET_DIR = "META-INF/jkube";
   public static final boolean DEFAULT_OFFLINE = false;
+  public static final String DEFAULT_KUBERNETES_MANIFEST = "build/META-INF/jkube/kubernetes.yml";
 
   public abstract Property<Boolean> getOffline();
 
@@ -159,6 +163,14 @@ public abstract class KubernetesExtension {
   public abstract Property<Boolean> getInterpolateTemplateParameters();
 
   public abstract Property<Boolean> getSkip();
+
+  public abstract Property<Boolean> getLogFollow();
+
+  public abstract Property<String> getLogContainerName();
+
+  public abstract Property<String> getLogPodName();
+
+  public abstract Property<File> getKubernetesManifest();
 
   public JKubeBuildStrategy buildStrategy;
 
@@ -327,4 +339,19 @@ public abstract class KubernetesExtension {
     );
   }
 
+  public boolean getLogFollowOrDefault() {
+    return getLogFollow().getOrElse(true);
+  }
+
+  public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient, JavaProject javaProject) {
+    if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
+      kitLogger.warn("OpenShift cluster detected, using Kubernetes manifests");
+      kitLogger.warn("Switch to openshift-gradle-plugin in case there are any problems");
+    }
+    return getKubernetesManifestOrDefault(javaProject);
+  }
+
+  public File getKubernetesManifestOrDefault(JavaProject javaProject) {
+    return getKubernetesManifest().getOrElse(new File(javaProject.getBaseDirectory(), DEFAULT_KUBERNETES_MANIFEST));
+  }
 }
