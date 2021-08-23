@@ -2,3 +2,5 @@
 == Build And Deployment Tasks
 
 include::_jkube-build.adoc[]
+
+include::_jkube-resource.adoc[]
