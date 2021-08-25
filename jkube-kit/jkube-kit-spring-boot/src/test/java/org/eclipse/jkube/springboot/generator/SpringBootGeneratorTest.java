@@ -68,7 +68,6 @@ public class SpringBootGeneratorTest {
             String tempDir = Files.createTempDirectory("springboot-test-project").toFile().getAbsolutePath();
 
             // TODO: Prepare more relastic test setup
-            project.getBuildDirectory(); result = tempDir;
             project.getOutputDirectory(); result = tempDir;
             project.getPlugins(); result = Collections.EMPTY_LIST; minTimes = 0;
             project.getVersion(); result = "1.0.0"; minTimes = 0;

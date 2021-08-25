@@ -266,7 +266,6 @@ public class WildflyJARGeneratorTest {
         new Expectations() {{
             context.getProject(); result = project;
             String tempDir = Files.createTempDirectory("wildfly-jar-test-project").toFile().getAbsolutePath();
-            project.getBuildDirectory(); result = tempDir;
             project.getOutputDirectory(); result = tempDir;
             project.getPlugins(); result = Collections.EMPTY_LIST; minTimes = 0;
             project.getVersion(); result = "1.0.0"; minTimes = 0;

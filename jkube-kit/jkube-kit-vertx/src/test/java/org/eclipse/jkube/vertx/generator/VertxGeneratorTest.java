@@ -113,7 +113,6 @@ public class VertxGeneratorTest {
     // Given
     // @formatter:off
     new Expectations() {{
-      project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
       project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
     }};
     // @formatter:on
@@ -128,8 +127,6 @@ public class VertxGeneratorTest {
     // Given
     // @formatter:off
     new Expectations() {{
-      project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
-      project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
       project.getDependencies(); result = Arrays.asList(dropwizard, core);
     }};
     // @formatter:on
@@ -148,7 +145,6 @@ public class VertxGeneratorTest {
       // Given
       // @formatter:off
       new Expectations() {{
-        project.getBuildDirectory(); result = new File("target/tmp").getAbsolutePath();
         project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
         project.getDependencies(); result = Arrays.asList(infinispan, core);
       }};

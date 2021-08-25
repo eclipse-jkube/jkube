@@ -58,7 +58,6 @@ public class OpenLibertyGeneratorTest {
       project.getBaseDirectory(); result = "basedirectory"; minTimes = 0;
 
       String tempDir = Files.createTempDirectory("openliberty-test-project").toFile().getAbsolutePath();
-      project.getBuildDirectory(); result = tempDir;
       project.getOutputDirectory(); result = tempDir; minTimes = 0;
       project.getVersion(); result = "1.0.0"; minTimes = 0;
     }};

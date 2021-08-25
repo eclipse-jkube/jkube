@@ -85,6 +85,24 @@ public class JavaProject implements Serializable {
    * @return The build directory for the project.
    */
   private File buildDirectory;
+
+  /**
+   * Directory where build packages or artifacts (jar/war/ear) are output.
+   * This can be <code>target</code> in case of Maven and <code>build/libs</code> in case of Gradle.
+   *
+   * <p>
+   * This directory is used by generators and other build related tools to locate the
+   * files and packages to be included in the Container Image.
+   *
+   * <p>
+   * Please note that it's different from buildDirectory or outputDirectory which may point to directory
+   * used by build tool or generated classes.
+   *
+   * @param buildPackageDirectory directory where the project artifacts and packages are output
+   * @return the directory where the project artifacts and packages are output
+   */
+  private File buildPackageDirectory;
+
   /**
    * Project configuration properties to be used in generators and enrichers
    *
@@ -212,7 +230,7 @@ public class JavaProject implements Serializable {
   @Builder
   public JavaProject(
       String name, String groupId, String artifactId, String version,
-      File outputDirectory, File baseDirectory, File buildDirectory,
+      File outputDirectory, File baseDirectory, File buildDirectory, File buildPackageDirectory,
       Properties properties, @Singular List<String> compileClassPathElements, @Singular List<Dependency> dependencies,
       List<Dependency> dependenciesWithTransitive, @Singular List<Plugin> plugins,
       String site, String description, String organizationName, String documentationUrl,
@@ -243,6 +261,7 @@ public class JavaProject implements Serializable {
     this.issueManagementUrl = issueManagementUrl;
     this.scmUrl = scmUrl;
     this.scmTag = scmTag;
+    this.buildPackageDirectory = buildPackageDirectory;
   }
 }
 
