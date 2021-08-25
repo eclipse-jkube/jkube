@@ -100,7 +100,7 @@ public class JavaExecGeneratorTest {
     // Given
     // @formatter:off
     new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = new File("");
+      generatorContext.getProject().getBuildPackageDirectory(); result = new File("");
       generatorContext.getProject().getBaseDirectory(); result = new File("");
       fjResult.getArchiveFile(); result = new File("fat.jar");
       fatJarDetector.scan(); result = fjResult;

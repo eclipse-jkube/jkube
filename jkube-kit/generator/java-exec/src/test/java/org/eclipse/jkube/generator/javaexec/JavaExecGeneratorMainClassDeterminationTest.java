@@ -63,7 +63,6 @@ public class JavaExecGeneratorMainClassDeterminationTest {
         // @formatter:off
         new Expectations() {{
             project.getVersion(); result = "1.33.7-SNAPSHOT";
-            project.getBuildDirectory(); result = "/the/directory";
             project.getOutputDirectory(); result = "/the/output/directory";
         }};
         // @formatter:on

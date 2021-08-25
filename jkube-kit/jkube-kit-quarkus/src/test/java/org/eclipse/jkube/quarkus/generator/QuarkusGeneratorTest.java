@@ -80,7 +80,7 @@ public class QuarkusGeneratorTest {
     new Expectations() {{
       project.getVersion(); result = "0.0.1-SNAPSHOT"; minTimes = 0;
       project.getBaseDirectory(); result = baseDir; minTimes = 0;
-      project.getBuildDirectory(); result = baseDir.getAbsolutePath();
+      project.getBuildDirectory(); result = baseDir.getAbsolutePath(); minTimes = 0;
       project.getProperties(); result = projectProps;
       project.getCompileClassPathElements(); result = Collections.emptyList(); minTimes = 0;
       project.getOutputDirectory(); result = baseDir;

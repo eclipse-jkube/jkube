@@ -62,7 +62,7 @@ public class JavaExecGenerator extends BaseGenerator {
 
     protected JavaExecGenerator(GeneratorContext context, String name) {
         super(context, name, new FromSelector.Default(context, "java"));
-        fatJarDetector = new FatJarDetector(getProject().getBuildDirectory());
+        fatJarDetector = new FatJarDetector(getProject().getBuildPackageDirectory());
         mainClassDetector = new MainClassDetector(getConfig(Config.MAIN_CLASS),
                 getProject().getOutputDirectory(), context.getLogger());
     }
@@ -200,7 +200,7 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     private static AssemblyFileSet getOutputDirectoryFileSet(FatJarDetector.Result fatJar, JavaProject project) {
-        final File buildDirectory = project.getBuildDirectory();
+        final File buildDirectory = project.getBuildPackageDirectory();
         return AssemblyFileSet.builder()
                 .directory(getRelativePath(project.getBaseDirectory(), buildDirectory))
                 .include(getRelativePath(buildDirectory, fatJar.getArchiveFile()).getPath())

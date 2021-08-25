@@ -358,7 +358,8 @@ public class MavenUtil {
             .ifPresent(mavenBuild -> builder
                 .outputDirectory(new File(mavenBuild.getOutputDirectory()))
                 .buildFinalName(mavenBuild.getFinalName())
-                .buildDirectory(new File(mavenBuild.getDirectory())));
+                .buildDirectory(new File(mavenBuild.getDirectory()))
+                .buildPackageDirectory(new File(mavenBuild.getDirectory())));
 
         if (mavenProject.getIssueManagement() != null) {
             builder.issueManagementSystem(mavenProject.getIssueManagement().getSystem());
