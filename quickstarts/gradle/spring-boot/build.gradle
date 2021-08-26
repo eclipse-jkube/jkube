@@ -19,7 +19,6 @@ dependencies {
 }
 
 kubernetes {
-    buildStrategy = 'jib'
     useColor = false
     offline = false
     access {
@@ -28,6 +27,14 @@ kubernetes {
     enricher {
         excludes = ['jkube-expose']
     }
+    generator {
+        includes = ['spring-boot']
+        config {
+            'spring-boot' {
+                color = 'always'
+            }
+        }
+    }
     resources {
         controllerName = 'test'
         configMap {
@@ -35,18 +42,6 @@ kubernetes {
             entries = [
                     [name: 'test', value: 'value']
             ]
-        }
-    }
-    images {
-        image {
-            name = 'registry/image2:tag'
-            build.from = 'busybox'
-        }
-        image {
-            name = 'registry/image:tag'
-            build {
-                from = 'busybox'
-            }
         }
     }
 }
