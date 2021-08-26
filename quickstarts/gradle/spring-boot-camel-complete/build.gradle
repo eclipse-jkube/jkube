@@ -1,0 +1,42 @@
+plugins {
+    id 'org.springframework.boot' version '2.5.4'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.eclipse.jkube.kubernetes' version '1.5.0-SNAPSHOT'
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.quickstarts.gradle'
+version = '1.5.0-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.apache.camel.springboot:camel-spring-boot-starter-generator:3.11.1'
+    implementation 'org.apache.camel.springboot:camel-servlet-starter:3.11.1'
+    implementation 'org.apache.camel.springboot:camel-jackson-starter:3.11.1'
+    implementation 'org.apache.camel.springboot:camel-spring-boot-starter-generator:3.11.1'
+    implementation 'org.apache.camel.springboot:camel-timer-starter:3.11.1'
+    implementation 'org.apache.camel.springboot:camel-file-starter:3.11.1'
+    implementation 'org.apache.camel.springboot:camel-rest-starter:3.11.1'
+    implementation 'org.apache.camel:camel-bean:3.11.1'
+    implementation 'org.apache.camel:camel-direct:3.11.1'
+    implementation 'javax.activation:javax.activation-api:1.2.0'
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    implementation 'com.sun.xml.bind:jaxb-core:3.0.2'
+    implementation 'com.sun.xml.bind:jaxb-impl:3.0.2'
+}
+
+kubernetes {
+    enricher {
+        config {
+            'jkube-service' {
+                type = 'NodePort'
+            }
+        }
+    }
+}
