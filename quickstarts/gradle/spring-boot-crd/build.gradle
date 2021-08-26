@@ -1,0 +1,32 @@
+plugins {
+    id 'org.springframework.boot' version '2.5.4'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.eclipse.jkube.kubernetes' version '1.5.0-SNAPSHOT'
+    id 'org.eclipse.jkube.openshift' version '1.5.0-SNAPSHOT'
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.quickstart.gradle.springboot.crd'
+version = '1.5.0-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'io.fabric8:kubernetes-client:5.7.0'
+}
+
+kubernetes {
+    enricher {
+        config {
+            'jkube-service' {
+                type = 'NodePort'
+            }
+        }
+    }
+}
