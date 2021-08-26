@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.JKubeFileInterpolator;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.yaml.snakeyaml.Yaml;
@@ -107,7 +108,7 @@ public class DockerFileUtil {
         try (BufferedReader reader = new BufferedReader(new FileReader(dockerFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String lineInterpolated = JKubeDockerfileInterpolator.interpolate(line, properties, filter);
+                String lineInterpolated = JKubeFileInterpolator.interpolate(line, properties, filter);
                 String[] lineParts = lineInterpolated.split("\\s+");
                 if (lineParts.length > 0 && lineParts[0].equalsIgnoreCase(keyword)) {
                     ret.add(lineParts);
@@ -127,14 +128,7 @@ public class DockerFileUtil {
      * @throws IOException if there's a problem while performin IO operations.
      */
     public static String interpolate(File dockerFile, Properties properties, String filter) throws IOException {
-        StringBuilder ret = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(dockerFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                ret.append(JKubeDockerfileInterpolator.interpolate(line, properties, resolveDockerfileFilter(filter))).append(System.lineSeparator());
-            }
-        }
-        return ret.toString();
+      return JKubeFileInterpolator.interpolate(dockerFile, properties, filter);
     }
 
     private static Reader getFileReaderFromDir(File file) {

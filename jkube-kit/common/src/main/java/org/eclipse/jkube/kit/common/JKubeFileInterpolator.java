@@ -11,17 +11,42 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.api.helper;
+package org.eclipse.jkube.kit.common;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class JKubeDockerfileInterpolator {
+public class JKubeFileInterpolator {
+    public static final String DEFAULT_FILTER = "${*}";
 
-    private JKubeDockerfileInterpolator() { }
+    private JKubeFileInterpolator() { }
+
+    /**
+     * Interpolate a docker file with the given properties and filter
+     *
+     * @param file file to interpolate.
+     * @param properties properties to interpolate in the provided dockerFile.
+     * @param filter filter for parsing properties from Dockerfile
+     * @return The interpolated contents of the file.
+     * @throws IOException if there's a problem while performin IO operations.
+     */
+    public static String interpolate(File file, Properties properties, String filter) throws IOException {
+        StringBuilder ret = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                ret.append(JKubeFileInterpolator.interpolate(line, properties, filter != null ? filter : DEFAULT_FILTER)).append(System.lineSeparator());
+            }
+        }
+        return ret.toString();
+    }
 
     /**
      * Replace properties in a string
@@ -43,11 +68,11 @@ public class JKubeDockerfileInterpolator {
      * @param expressionMarkers additional markers to use for parameterized expressions
      * @return string with properties parameters replaced
      */
-    public static String interpolate(String line, Properties properties, Map<String, String> expressionMarkers) {
+    static String interpolate(String line, Properties properties, Map<String, String> expressionMarkers) {
         return checkForPropertiesInLine(line, properties, expressionMarkers);
     }
 
-    protected static Map<String, String> getExpressionMarkersFromFilter(String filter) {
+    static Map<String, String> getExpressionMarkersFromFilter(String filter) {
         Map<String, String> expressionMarkers = new HashMap<>();
         if (filter != null && !filter.isEmpty() && !filter.equalsIgnoreCase("false")) {
             if (filter.length() == 1) { // Filter is single character: @, # etc
