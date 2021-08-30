@@ -13,22 +13,17 @@
  */
 package org.eclipse.jkube.quickstart.micronaut.custom;
 
-import javax.validation.constraints.Size;
-
-import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.http.client.annotation.Client;
 import reactor.core.publisher.Mono;
+// import reactor.core.publisher.FluxOnErrorResume;
 
-@Controller
-public class Resource {
+@Client("/")
+public interface SimpleClient {
 
   @Get
-  public Mono<String> get() {
-    return Mono.just("Hello from Micronaut deployed with JKube!");
-  }
+  public String get();
 
   @Get(uri = "hello/{name}")
-  public Mono<String> get(@Size(min = 3) String name) {
-    return Mono.just(String.format("Hello %s!", name));
-  }
+  public String hello(String name);
 }
