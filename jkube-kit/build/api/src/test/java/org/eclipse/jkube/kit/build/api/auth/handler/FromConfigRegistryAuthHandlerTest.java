@@ -23,17 +23,13 @@ import org.eclipse.jkube.kit.build.api.auth.RegistryAuth;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
 import mockit.Mocked;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
-import static org.hamcrest.CoreMatchers.containsString;
+
 import static org.junit.Assert.assertEquals;
 
-
-
-import static org.assertj.core.api.Assertions.assertThat;  /*assertj assertThat import*/
-import static org.junit.Assert.assertThrows;   /*assertThrows import*/
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 /**
  * @author roland
@@ -85,7 +81,7 @@ public class FromConfigRegistryAuthHandlerTest {
         FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(
             RegistryAuthConfig.builder().putDefaultConfig(RegistryAuth.USERNAME, "admin").build(), log);
         
-        IllegalArgumentException exception= assertThrows(IllegalArgumentException.class,() -> {handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s); });             
+        IllegalArgumentException exception= assertThrows(IllegalArgumentException.class, () -> handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s));             
         assertThat(exception.getMessage()).contains("password");   
         
         handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s);
