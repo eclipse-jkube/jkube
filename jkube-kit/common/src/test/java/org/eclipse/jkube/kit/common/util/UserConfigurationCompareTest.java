@@ -100,6 +100,17 @@ public class UserConfigurationCompareTest {
     }
 
     @Test
+    public void testConfigEqualWhenObjectMetaAndString() {
+        //Given
+        Object entity1 = "Hello";
+        Object entity2 = new ObjectMetaBuilder().withName("test1").withAnnotations(Collections.singletonMap("foo", "bar")).build();
+        //When
+        boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
+        //Then
+        assertFalse(result);
+    }
+
+    @Test
     public void testConfigEqualWhenCollectionWhenFalse(){
         //Given
         ArrayList<String> testList = new ArrayList<>();
