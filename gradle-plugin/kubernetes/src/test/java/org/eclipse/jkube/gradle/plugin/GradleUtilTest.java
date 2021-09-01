@@ -50,11 +50,12 @@ public class GradleUtilTest {
   private Project project;
 
   @Before
-  public void setUp() {
+  public void setUp() throws IOException {
     project = mock(Project.class, RETURNS_DEEP_STUBS);
     when(project.getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getProperties()).thenReturn(Collections.emptyMap());
+    when(project.getBuildDir()).thenReturn(folder.newFolder("build"));
   }
 
   @Test

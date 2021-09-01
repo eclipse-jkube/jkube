@@ -33,7 +33,7 @@ public class GroovyDSLImageIT {
     final BuildResult result = gradleRunner.withITProject("groovy-dsl-image").withArguments("k8sResource").build();
 
     // Then
-    File actualKubernetesYaml = new File("src/it/groovy-dsl-image/build/META-INF/jkube/kubernetes.yml");
+    File actualKubernetesYaml = new File("src/it/groovy-dsl-image/build/classes/java/main/META-INF/jkube/kubernetes.yml");
     String actualKubernetesYamlStr = new String(Files.readAllBytes(actualKubernetesYaml.toPath()));
     assertThat(result).extracting(BuildResult::getOutput).asString()
       .contains("Running in Kubernetes mode")

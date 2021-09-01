@@ -33,7 +33,7 @@ public class DockerfileSimpleIT {
     final BuildResult result = gradleRunner.withITProject("dockerfile-simple").withArguments("k8sResource").build();
 
     // Then
-    File actualKubernetesYaml = new File("src/it/dockerfile-simple/build/META-INF/jkube/kubernetes.yml");
+    File actualKubernetesYaml = new File("src/it/dockerfile-simple/build/classes/java/main/META-INF/jkube/kubernetes.yml");
     String actualKubernetesYamlStr = new String(Files.readAllBytes(actualKubernetesYaml.toPath()));
     assertThat(result).extracting(BuildResult::getOutput).asString()
       .contains("Running in Kubernetes mode")

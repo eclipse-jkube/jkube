@@ -14,6 +14,7 @@
 package org.eclipse.jkube.gradle.plugin;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -100,10 +101,10 @@ import static org.eclipse.jkube.gradle.plugin.GroovyUtil.invokeOrParseClosureLis
 @SuppressWarnings({"java:S1104", "java:S1845"})
 public abstract class KubernetesExtension {
 
-  private static final String DEFAULT_RESOURCE_SOURCE_DIR = "src/main/jkube";
-  private static final String DEFAULT_RESOURCE_TARGET_DIR = "META-INF/jkube";
-  public static final boolean DEFAULT_OFFLINE = false;
-  public static final String DEFAULT_KUBERNETES_MANIFEST = "build/META-INF/jkube/kubernetes.yml";
+  private static final String DEFAULT_RESOURCE_SOURCE_DIR = Paths.get("src","main", "jkube").toString();
+  private static final String DEFAULT_RESOURCE_TARGET_DIR = Paths.get("META-INF","jkube").toString();
+  private static final boolean DEFAULT_OFFLINE = false;
+  private static final String DEFAULT_KUBERNETES_MANIFEST = Paths.get("META-INF","jkube","kubernetes.yml").toString();
 
   public abstract Property<Boolean> getOffline();
 
@@ -310,7 +311,11 @@ public abstract class KubernetesExtension {
   }
 
   public File getResourceTargetDirectoryOrDefault(JavaProject javaProject) {
-    return getResourceTargetDirectory().getOrElse(new File(javaProject.getBuildDirectory(), DEFAULT_RESOURCE_TARGET_DIR));
+    return getResourceTargetDirectory().getOrElse(new File(javaProject.getOutputDirectory(), DEFAULT_RESOURCE_TARGET_DIR));
+  }
+
+  public boolean getOfflineOrDefault() {
+    return getOffline().getOrElse(DEFAULT_OFFLINE);
   }
 
   public boolean getUseProjectClassPathOrDefault() {
@@ -353,7 +358,7 @@ public abstract class KubernetesExtension {
   }
 
   public File getKubernetesManifestOrDefault(JavaProject javaProject) {
-    return getKubernetesManifest().getOrElse(new File(javaProject.getBaseDirectory(), DEFAULT_KUBERNETES_MANIFEST));
+    return getKubernetesManifest().getOrElse(new File(javaProject.getOutputDirectory(), DEFAULT_KUBERNETES_MANIFEST));
   }
 
   public ResourceClassifier getResourceClassifier() {
