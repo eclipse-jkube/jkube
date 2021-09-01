@@ -27,7 +27,6 @@ import org.mockito.MockedConstruction;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -73,6 +72,6 @@ public class KubernetesResourceTaskTest {
     resourceTask.runTask();
 
     // Then
-    assertThat(new File(temporaryFolder.getRoot(), "build/META-INF/jkube/kubernetes.yml")).exists();
+    assertThat(new File(temporaryFolder.getRoot(), "build/classes/java/main/META-INF/jkube/kubernetes.yml")).exists();
   }
 }
