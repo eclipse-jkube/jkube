@@ -56,12 +56,10 @@ public class UserConfigurationCompare {
             return true;
         } else if (entity1 == null || entity2 == null) {
             return false;
-        } else if (entity1 instanceof Map) {
-            return configEqualMap((Map) entity1, castTo(Map.class, entity2));
-        } else if (entity2 instanceof Map) {
-            return configEqualMap((Map) entity1, castTo(Map.class, entity2));
-        } else if (entity2 instanceof ObjectMeta) {
-            return configEqualObjectMeta((ObjectMeta) entity1, castTo(ObjectMeta.class, entity2));
+        } else if ((entity1 instanceof Map) || (entity2 instanceof Map)) {
+            return configEqualMap(castTo(Map.class, entity1), castTo(Map.class, entity2));
+        } else if ((entity1 instanceof ObjectMeta) || (entity2 instanceof ObjectMeta)) {
+            return configEqualObjectMeta(castTo(ObjectMeta.class, entity1), castTo(ObjectMeta.class, entity2));
         } else if (entity1 instanceof Collection && entity2 instanceof Collection) {
             return collectionsEqual((Collection) entity1, (Collection) entity2);
         } else {
