@@ -31,8 +31,12 @@ import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.SourceSet;
 
 public class GradleUtil {
+
+  private static final String DEFAULT_CLASSES_DIR = "classes/java/main";
 
   private GradleUtil() {}
 
@@ -56,10 +60,9 @@ public class GradleUtil {
 //        .site(gradleProject.)
 //        .organizationName(gradleProject.)
 //
-        .outputDirectory(gradleProject.getBuildDir())
+        .outputDirectory(getOutputClassesDirectory(gradleProject))
 //        .buildFinalName(gradleProject.)
         .buildDirectory(gradleProject.getBuildDir())
-//
 //        .issueManagementSystem(gradleProject.)
 //        .issueManagementUrl(gradleProject.)
 //
@@ -67,6 +70,18 @@ public class GradleUtil {
 //        .scmUrl(gradleProject.)
         .artifact(findArtifact(gradleProject))
         .build();
+  }
+
+  private static File getOutputClassesDirectory(Project gradleProject) {
+    if (gradleProject.getConvention().getPlugin(JavaPluginConvention.class) != null &&
+        gradleProject.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets() != null) {
+      return gradleProject.getConvention()
+        .getPlugin(JavaPluginConvention.class).getSourceSets()
+        .getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+        .getJava()
+        .getOutputDir();
+    }
+    return new File(gradleProject.getBuildDir(), DEFAULT_CLASSES_DIR);
   }
 
   private static Properties extractProperties(Project gradleProject) {

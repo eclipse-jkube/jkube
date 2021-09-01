@@ -38,7 +38,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 
-import static org.eclipse.jkube.gradle.plugin.KubernetesExtension.DEFAULT_OFFLINE;
 import static org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper.initImageConfiguration;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 
@@ -119,7 +118,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
                 .build())
             .build())
         .clusterAccess(clusterAccess)
-        .offline(kubernetesExtension.getOffline().getOrElse(DEFAULT_OFFLINE))
+        .offline(kubernetesExtension.getOfflineOrDefault())
         .platformMode(kubernetesExtension.getRuntimeMode());
   }
 
