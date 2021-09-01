@@ -88,7 +88,6 @@ public class UserConfigurationCompareTest {
         assertFalse(result);
     }
 
-
     @Test
     public void testConfigEqualWhenObjectMetaIsTrue() {
         //Given
@@ -98,6 +97,17 @@ public class UserConfigurationCompareTest {
         boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
         //Then
         assertTrue(result);
+    }
+
+    @Test
+    public void testConfigEqualWhenObjectMetaAndString() {
+        //Given
+        Object entity1 = "Hello";
+        Object entity2 = new ObjectMetaBuilder().withName("test1").withAnnotations(Collections.singletonMap("foo", "bar")).build();
+        //When
+        boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
+        //Then
+        assertFalse(result);
     }
 
     @Test
