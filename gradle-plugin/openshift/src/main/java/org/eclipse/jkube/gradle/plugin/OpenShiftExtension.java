@@ -23,9 +23,10 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.gradle.api.provider.Property;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 public abstract class OpenShiftExtension extends KubernetesExtension {
-  public static final String DEFAULT_OPENSHIFT_MANIFEST = "build/META-INF/jkube/openshift.yml";
+  public static final String DEFAULT_OPENSHIFT_MANIFEST = Paths.get("META-INF","jkube","openshift.yml").toString();
 
   public abstract Property<File> getOpenShiftManifest();
 
@@ -47,6 +48,7 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
     return getKubernetesManifestOrDefault(javaProject);
   }
 
+  @Override
   public ResourceClassifier getResourceClassifier() {
     return ResourceClassifier.OPENSHIFT;
   }
