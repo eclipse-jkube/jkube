@@ -51,6 +51,18 @@ public class UserConfigurationCompareTest {
     }
 
     @Test
+    public void testConfigEqualWhenMapAndString() {
+        //Given
+        Object entity1 = Collections.EMPTY_MAP;
+        Object entity2 = "Hello";
+
+        //When
+        boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
+        //Then
+        assertFalse(result);
+    }
+
+    @Test
     public void testConfigEqualWhenMapAndEqual() {
         //Given
         Map<String, String> entity1 = new HashMap();
@@ -75,7 +87,6 @@ public class UserConfigurationCompareTest {
         //Then
         assertFalse(result);
     }
-
 
     @Test
     public void testConfigEqualWhenObjectMetaIsTrue() {
