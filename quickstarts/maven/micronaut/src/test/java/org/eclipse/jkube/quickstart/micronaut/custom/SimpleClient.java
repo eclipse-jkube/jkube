@@ -15,7 +15,6 @@ package org.eclipse.jkube.quickstart.micronaut.custom;
 
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.client.annotation.Client;
-import reactor.core.publisher.Mono;
 
 @Client("/")
 public interface SimpleClient {
