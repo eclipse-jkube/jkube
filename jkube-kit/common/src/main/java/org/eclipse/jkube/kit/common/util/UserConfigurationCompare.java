@@ -177,12 +177,15 @@ public class UserConfigurationCompare {
                 configEqualMap(entity1.getAnnotations(), entity2.getAnnotations());
     }
 
-    protected static <T> T castTo(Class<T> clazz, Object entity) {
+    private static <T> T castTo(Class<T> clazz, Object entity) {
         if (clazz.isInstance(entity)) {
             return clazz.cast(entity);
         } else {
             if (entity != null) {
-                LOG.warn("Invalid class " + entity.getClass().getName() + " when expecting " + clazz.getName() + " for instance: " + entity);
+                LOG.warn("Invalid class {} when expecting {} for instance: {}",
+                        entity.getClass().getName(),
+                        clazz.getName(),
+                        entity);
             }
             return null;
         }
