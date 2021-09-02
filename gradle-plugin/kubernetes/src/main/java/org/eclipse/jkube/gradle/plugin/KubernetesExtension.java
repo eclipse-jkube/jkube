@@ -179,6 +179,8 @@ public abstract class KubernetesExtension {
 
   public abstract Property<Boolean> getRollingUpgrades();
 
+  public abstract Property<Boolean> getRollingUpgradePreserveScale();
+
   public abstract Property<Boolean> getFailOnNoKubernetesJson();
 
   public abstract Property<Boolean> getServicesOnly();
@@ -198,6 +200,10 @@ public abstract class KubernetesExtension {
   public abstract Property<String> getOutputDirectory();
 
   public abstract Property<String> getRegistry();
+
+  public abstract Property<Boolean> getProcessTemplatesLocally();
+
+  public abstract Property<Boolean> getIgnoreRunningOAuthClients();
 
   public ClusterConfiguration access;
 
@@ -239,6 +245,10 @@ public abstract class KubernetesExtension {
 
   public ResourceFileType getResourceFileType() {
     return resourceFileType != null ? resourceFileType : ResourceFileType.yaml;
+  }
+
+  public boolean isSupportOAuthClients() {
+    return false;
   }
 
   public void access(Closure<?> closure) {
@@ -420,5 +430,17 @@ public abstract class KubernetesExtension {
 
   public boolean getSkipOrDefault() {
     return getSkip().getOrElse(false);
+  }
+
+  public boolean getIgnoreRunningOAuthClientsOrDefault() {
+    return getIgnoreRunningOAuthClients().getOrElse(true);
+  }
+
+  public boolean getProcessTemplatesLocallyOrDefault() {
+    return getProcessTemplatesLocally().getOrElse(true);
+  }
+
+  public boolean getRollingUpgradePreserveScaleOrDefault() {
+    return getRollingUpgradePreserveScale().getOrElse(false);
   }
 }
