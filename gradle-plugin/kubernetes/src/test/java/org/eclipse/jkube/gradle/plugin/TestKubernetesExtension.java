@@ -114,6 +114,16 @@ public class TestKubernetesExtension extends KubernetesExtension {
   }
 
   @Override
+  public Property<Boolean> getProcessTemplatesLocally() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getIgnoreRunningOAuthClients() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
   public Property<File> getResourceTargetDirectory() {
     return new DefaultProperty<>(File.class);
   }
@@ -225,6 +235,11 @@ public class TestKubernetesExtension extends KubernetesExtension {
 
   @Override
   public Property<Boolean> getRollingUpgrades() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getRollingUpgradePreserveScale() {
     return new DefaultProperty<>(Boolean.class);
   }
 
