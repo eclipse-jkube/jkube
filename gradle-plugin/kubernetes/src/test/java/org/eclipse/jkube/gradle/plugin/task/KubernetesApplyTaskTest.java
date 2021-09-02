@@ -66,12 +66,15 @@ public class KubernetesApplyTaskTest {
   }
 
   @Test
-  public void runTask_withImplementationPending_shouldThrowException() {
+  public void runTask_withNoKubernetesCluster_shouldThrowException() {
     // Given
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
+
     // When
-    final UnsupportedOperationException result = assertThrows(UnsupportedOperationException.class, applyTask::runTask);
+    IllegalArgumentException illegalStateException = assertThrows(IllegalArgumentException.class, applyTask::runTask);
+
     // Then
-    assertThat(result).hasMessageContaining("To be implemented");
+    assertThat(illegalStateException.getMessage())
+      .isEqualTo("Connection to Cluster required. Please check if offline mode is set to false");
   }
 }
