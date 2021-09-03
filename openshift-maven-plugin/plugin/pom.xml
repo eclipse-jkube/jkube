@@ -34,10 +34,6 @@
     <name>OpenShift Maven Plugin :: Plugin</name>
     <description>OpenShift Maven Plugin</description>
 
-    <properties>
-        <jkube.kit.version>${project.version}</jkube.kit.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

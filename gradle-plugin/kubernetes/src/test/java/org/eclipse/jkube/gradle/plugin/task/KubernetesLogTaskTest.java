@@ -19,6 +19,7 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,13 +41,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class KubernetesLogTaskTest {
-  private Project project;
-  private Logger logger;
-
-  private MockedConstruction<DefaultTask> defaultTaskMockedConstruction;
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+  private MockedConstruction<DefaultTask> defaultTaskMockedConstruction;
+  private Project project;
+  private Logger logger;
 
   @Before
   public void setUp() throws IOException {
@@ -63,6 +64,7 @@ public class KubernetesLogTaskTest {
     when(project.getBuildDir()).thenReturn(temporaryFolder.newFolder("build"));
     KubernetesExtension extension = new TestKubernetesExtension();
     when(project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(mock(JavaPluginConvention.class));
   }
 
   @Test

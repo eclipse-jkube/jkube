@@ -13,20 +13,18 @@
  */
 import org.eclipse.jkube.maven.it.Verify
 
-import static org.junit.Assert.assertNotNull
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat
 
-[ "kubernetes"   ].each {
+["kubernetes"].each {
   Verify.verifyResourceDescriptors(
-          new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml",it)),
-          new File(basedir, sprintf("/expected/%s.yml",it)))
+          new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml", it)),
+          new File(basedir, sprintf("/expected/%s.yml", it)))
 }
 
 Map selector = Verify.readWithPath(
-        new File(basedir,"/target/classes/META-INF/jkube/kubernetes/jkube-maven-sample-xml-probe-config-deployment.yml"),
+        new File(basedir, "/target/classes/META-INF/jkube/kubernetes/jkube-maven-sample-xml-probe-config-deployment.yml"),
         "spec.selector.matchLabels")
 
-assertNotNull(selector)
-assertNull(selector.get("version"))
+assertThat(selector).isNotNull().extracting("version").isNull()
 
 true

@@ -41,15 +41,15 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   }
 
   @Override
+  public ResourceClassifier getResourceClassifier() {
+    return ResourceClassifier.OPENSHIFT;
+  }
+
+  @Override
   public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient, JavaProject javaProject) {
     if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
       return getOpenShiftManifest().getOrElse(new File(javaProject.getBaseDirectory(), DEFAULT_OPENSHIFT_MANIFEST));
     }
     return getKubernetesManifestOrDefault(javaProject);
-  }
-
-  @Override
-  public ResourceClassifier getResourceClassifier() {
-    return ResourceClassifier.OPENSHIFT;
   }
 }

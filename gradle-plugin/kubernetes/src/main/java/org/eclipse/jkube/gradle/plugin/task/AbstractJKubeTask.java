@@ -13,7 +13,10 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +29,7 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -44,6 +48,7 @@ import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildT
 public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask {
 
   private static final String DEFAULT_LOG_PREFIX = "k8s: ";
+  private static final Path DEFAULT_RESOURCE_SOURCE_DIR = Paths.get("src", "main", "jkube");
 
   protected final KubernetesExtension kubernetesExtension;
   protected JavaProject javaProject;
@@ -74,7 +79,10 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
           this::customizeConfig);
       enricherManager = new DefaultEnricherManager(JKubeEnricherContext.builder()
         .project(javaProject)
-        .processorConfig(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, kubernetesExtension.getProfile().getOrNull(), kubernetesExtension.getResourceDirectory(javaProject), kubernetesExtension.enricher))
+          .processorConfig(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG,
+              kubernetesExtension.getProfile().getOrNull(),
+              resolveResourceSourceDirectory(),
+              kubernetesExtension.enricher))
         .images(resolvedImages)
         .resources(kubernetesExtension.resources)
         .log(kitLogger)
@@ -125,5 +133,11 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
   protected ClusterConfiguration initClusterConfiguration() {
     return ClusterConfiguration.from(kubernetesExtension.access,
         System.getProperties(), javaProject.getProperties()).build();
+  }
+
+  protected final File resolveResourceSourceDirectory() {
+    return ResourceUtil.getFinalResourceDir(kubernetesExtension.getResourceSourceDirectory()
+        .getOrElse(javaProject.getBaseDirectory().toPath().resolve(DEFAULT_RESOURCE_SOURCE_DIR).toFile()),
+        kubernetesExtension.getResourceEnvironment().getOrNull());
   }
 }
