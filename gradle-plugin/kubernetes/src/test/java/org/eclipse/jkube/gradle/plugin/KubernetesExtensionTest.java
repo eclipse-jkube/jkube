@@ -103,4 +103,5 @@ public class KubernetesExtensionTest {
     assertThat(extension.images).singleElement()
         .hasFieldOrPropertyWithValue("name", "closure/image:name");
   }
+
 }

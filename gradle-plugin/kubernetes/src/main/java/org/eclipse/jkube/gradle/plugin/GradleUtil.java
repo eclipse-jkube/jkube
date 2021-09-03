@@ -14,6 +14,8 @@
 package org.eclipse.jkube.gradle.plugin;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -26,6 +28,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 
 import org.gradle.api.Project;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.DependencySet;
@@ -33,10 +36,11 @@ import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 
 public class GradleUtil {
 
-  private static final String DEFAULT_CLASSES_DIR = "classes/java/main";
+  private static final Path DEFAULT_CLASSES_DIR = Paths.get("classes", "java", "main");
 
   private GradleUtil() {}
 
@@ -60,7 +64,7 @@ public class GradleUtil {
 //        .site(gradleProject.)
 //        .organizationName(gradleProject.)
 //
-        .outputDirectory(getOutputClassesDirectory(gradleProject))
+        .outputDirectory(findClassesOutputDirectory(gradleProject))
 //        .buildFinalName(gradleProject.)
         .buildDirectory(gradleProject.getBuildDir())
 //        .issueManagementSystem(gradleProject.)
@@ -70,18 +74,6 @@ public class GradleUtil {
 //        .scmUrl(gradleProject.)
         .artifact(findArtifact(gradleProject))
         .build();
-  }
-
-  private static File getOutputClassesDirectory(Project gradleProject) {
-    if (gradleProject.getConvention().getPlugin(JavaPluginConvention.class) != null &&
-        gradleProject.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets() != null) {
-      return gradleProject.getConvention()
-        .getPlugin(JavaPluginConvention.class).getSourceSets()
-        .getByName(SourceSet.MAIN_SOURCE_SET_NAME)
-        .getJava()
-        .getOutputDir();
-    }
-    return new File(gradleProject.getBuildDir(), DEFAULT_CLASSES_DIR);
   }
 
   private static Properties extractProperties(Project gradleProject) {
@@ -107,6 +99,19 @@ public class GradleUtil {
         .map(d -> Plugin.builder().groupId(d.getGroup()).artifactId(d.getName()).version(d.getVersion()).build())
         .distinct()
         .collect(Collectors.toList());
+  }
+
+  private static File findClassesOutputDirectory(Project gradleProject) {
+    try {
+      final SourceSetContainer sourceSetContainer = gradleProject.getConvention().getPlugin(JavaPluginConvention.class)
+          .getSourceSets();
+      if (sourceSetContainer != null) {
+        return sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getJava().getOutputDir();
+      }
+    } catch (IllegalStateException | UnknownDomainObjectException ex) {
+      // No matching SourceSet was found
+    }
+    return gradleProject.getBuildDir().toPath().resolve(DEFAULT_CLASSES_DIR).toFile();
   }
 
   private static File findArtifact(Project gradleProject) {

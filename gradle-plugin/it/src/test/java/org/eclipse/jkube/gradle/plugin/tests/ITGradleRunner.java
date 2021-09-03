@@ -19,6 +19,7 @@ import org.junit.rules.ExternalResource;
 
 import java.io.File;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -53,6 +54,18 @@ public class ITGradleRunner extends ExternalResource {
     System.arraycopy(originalArguments, 0, arguments, 1, originalArguments.length);
     gradleRunner = gradleRunner.withArguments(arguments);
     return this;
+  }
+
+  public File resolveFile(String... relativePaths) {
+    Path path = gradleRunner.getProjectDir().toPath();
+    for (String rp : relativePaths) {
+      path = path.resolve(rp);
+    }
+    return path.toFile();
+  }
+
+  public File resolveDefaultKubernetesResourceFile() {
+    return resolveFile("build", "classes", "java", "main", "META-INF", "jkube", "kubernetes.yml");
   }
 
   public BuildResult build() {
