@@ -1,0 +1,70 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      jkube.io/git-url: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      expose: "true"
+      app: dockerfile-simple
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: dockerfile-simple
+  spec:
+    ports:
+    - name: glrpc
+      port: 9080
+      protocol: TCP
+      targetPort: 9080
+    selector:
+      app: dockerfile-simple
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.io/git-url: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: dockerfile-simple
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: dockerfile-simple
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: dockerfile-simple
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+    template:
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: gradle/dockerfile-simple:latest
+          imagePullPolicy: IfNotPresent
+          name: gradle-dockerfile-simple
+          ports:
+          - containerPort: 9080
+            name: glrpc
+            protocol: TCP
+          securityContext:
+            privileged: false

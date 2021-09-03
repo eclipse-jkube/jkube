@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class KubernetesLogTask extends AbstractJKubeTask {
+
   @Inject
   public KubernetesLogTask(Class<? extends KubernetesExtension> extensionClass) {
     super(extensionClass);

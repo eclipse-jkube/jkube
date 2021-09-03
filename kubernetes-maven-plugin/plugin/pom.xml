@@ -34,58 +34,47 @@
     <name>Kubernetes Maven Plugin :: Plugin</name>
     <description>Kubernetes Maven Plugin</description>
 
-    <properties>
-        <jkube.kit.version>${project.version}</jkube.kit.version>
-    </properties>
-
     <dependencies>
 
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-config-service</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-config-service</artifactId>
+      </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-common-maven</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-common-maven</artifactId>
+      </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-enricher-generic</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-enricher-generic</artifactId>
+      </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-enricher-specific</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-enricher-specific</artifactId>
+      </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-resource-service</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-resource-service</artifactId>
+      </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-resource-helm</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-resource-helm</artifactId>
+      </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-generator-java-exec</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-generator-java-exec</artifactId>
+      </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-generator-karaf</artifactId>
-            <version>${jkube.kit.version}</version>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-generator-karaf</artifactId>
+        <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
@@ -145,13 +134,11 @@
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-profiles</artifactId>
-            <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-watcher-standard</artifactId>
-            <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>

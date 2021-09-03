@@ -26,9 +26,11 @@ import java.util.stream.Stream;
 import org.eclipse.jkube.kit.common.JavaProject;
 
 import org.gradle.api.Project;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,14 +50,17 @@ public class GradleUtilTest {
   public TemporaryFolder folder = new TemporaryFolder();
 
   private Project project;
+  private JavaPluginConvention javaPlugin;
 
   @Before
   public void setUp() throws IOException {
     project = mock(Project.class, RETURNS_DEEP_STUBS);
+    javaPlugin = mock(JavaPluginConvention.class, RETURNS_DEEP_STUBS);
     when(project.getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getProperties()).thenReturn(Collections.emptyMap());
     when(project.getBuildDir()).thenReturn(folder.newFolder("build"));
+    when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(javaPlugin);
   }
 
   @Test
@@ -123,6 +128,38 @@ public class GradleUtilTest {
             tuple("org.springframework.boot", "org.springframework.boot.gradle.plugin", "1.33.7"),
             tuple("org.eclipse.jkube.kubernetes", "org.eclipse.jkube.kubernetes.gradle.plugin", "1.0.0")
         );
+  }
+
+  @Test
+  public void findClassesOutputDirectory_withNotFoundSourceSet_shouldReturnDefault() {
+    // Given
+    when(javaPlugin.getSourceSets().getByName("main")).thenThrow(new UnknownDomainObjectException("Not found"));
+    // When
+    final JavaProject result = convertGradleProject(project);
+    // Then
+    assertThat(result.getOutputDirectory())
+        .isEqualTo(folder.getRoot().toPath().resolve("build").resolve("classes").resolve("java").resolve("main").toFile());
+  }
+
+  @Test
+  public void findClassesOutputDirectory_withValidSourceSet_shouldReturnFromSourceSet() {
+    // Given
+    when(javaPlugin.getSourceSets().getByName("main").getJava().getOutputDir()).thenReturn(new File("classes"));
+    // When
+    final JavaProject result = convertGradleProject(project);
+    // Then
+    assertThat(result.getOutputDirectory()).isEqualTo(new File("classes"));
+  }
+
+  @Test
+  public void findClassesOutputDirectory_withNoSourceSets_shouldReturnDefault() {
+    // Given
+    when(javaPlugin.getSourceSets()).thenReturn(null);
+    // When
+    final JavaProject result = convertGradleProject(project);
+    // Then
+    assertThat(result.getOutputDirectory())
+        .isEqualTo(folder.getRoot().toPath().resolve("build").resolve("classes").resolve("java").resolve("main").toFile());
   }
 
   @Test
