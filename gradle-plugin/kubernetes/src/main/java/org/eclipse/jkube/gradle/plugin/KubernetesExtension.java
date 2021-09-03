@@ -14,6 +14,7 @@
 package org.eclipse.jkube.gradle.plugin;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.ResourceFileType;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
@@ -101,10 +101,8 @@ import static org.eclipse.jkube.gradle.plugin.GroovyUtil.invokeOrParseClosureLis
 @SuppressWarnings({"java:S1104", "java:S1845"})
 public abstract class KubernetesExtension {
 
-  private static final String DEFAULT_RESOURCE_SOURCE_DIR = Paths.get("src","main", "jkube").toString();
-  private static final String DEFAULT_RESOURCE_TARGET_DIR = Paths.get("META-INF","jkube").toString();
   private static final boolean DEFAULT_OFFLINE = false;
-  private static final String DEFAULT_KUBERNETES_MANIFEST = Paths.get("META-INF","jkube","kubernetes.yml").toString();
+  private static final Path DEFAULT_KUBERNETES_MANIFEST = Paths.get("META-INF", "jkube", "kubernetes.yml");
 
   public abstract Property<Boolean> getOffline();
 
@@ -204,6 +202,10 @@ public abstract class KubernetesExtension {
 
   public PlatformMode getPlatformMode() {
     return PlatformMode.kubernetes;
+  }
+
+  public ResourceClassifier getResourceClassifier() {
+    return ResourceClassifier.KUBERNETES;
   }
 
   public ResourceFileType getResourceFileType() {
@@ -306,14 +308,6 @@ public abstract class KubernetesExtension {
     mappings.add(closureTo(closure, MappingConfig.class));
   }
 
-  public File getResourceSourceDirectoryOrDefault(JavaProject javaProject) {
-    return getResourceSourceDirectory().getOrElse(new File(javaProject.getBaseDirectory(), DEFAULT_RESOURCE_SOURCE_DIR));
-  }
-
-  public File getResourceTargetDirectoryOrDefault(JavaProject javaProject) {
-    return getResourceTargetDirectory().getOrElse(new File(javaProject.getOutputDirectory(), DEFAULT_RESOURCE_TARGET_DIR));
-  }
-
   public boolean getOfflineOrDefault() {
     return getOffline().getOrElse(DEFAULT_OFFLINE);
   }
@@ -338,13 +332,6 @@ public abstract class KubernetesExtension {
     return getSkipResourceValidation().getOrElse(false);
   }
 
-  public File getResourceDirectory(JavaProject javaProject) {
-    return ResourceUtil.getFinalResourceDir(
-      getResourceSourceDirectoryOrDefault(javaProject),
-      getResourceEnvironment().getOrNull()
-    );
-  }
-
   public boolean getLogFollowOrDefault() {
     return getLogFollow().getOrElse(true);
   }
@@ -358,11 +345,8 @@ public abstract class KubernetesExtension {
   }
 
   public File getKubernetesManifestOrDefault(JavaProject javaProject) {
-    return getKubernetesManifest().getOrElse(new File(javaProject.getOutputDirectory(), DEFAULT_KUBERNETES_MANIFEST));
-  }
-
-  public ResourceClassifier getResourceClassifier() {
-    return ResourceClassifier.KUBERNETES;
+    return getKubernetesManifest()
+        .getOrElse(javaProject.getOutputDirectory().toPath().resolve(DEFAULT_KUBERNETES_MANIFEST).toFile());
   }
 
   public boolean getSkipOrDefault() {

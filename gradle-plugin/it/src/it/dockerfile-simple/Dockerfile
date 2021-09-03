@@ -13,4 +13,4 @@
 #
 
 FROM busybox:latest
-EXPOSE 8080
+EXPOSE 9080

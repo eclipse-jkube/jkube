@@ -18,6 +18,7 @@ dependencies {
 }
 
 kubernetes {
+    skip = false
     useColor = true
     offline = true
     buildStrategy = 'jib'
@@ -32,7 +33,6 @@ kubernetes {
     namespace = 'default'
     mergeWithDekorate = false
     interpolateTemplateParameters = false
-    skip = false
     resourceFileType = 'yaml'
     access {
         namespace = 'default'
@@ -41,7 +41,7 @@ kubernetes {
         excludes = ['jkube-expose']
     }
     generator {
-        includes = ['openliberty']
+        includes = ['openliberty', 'spring-boot']
         excludes = ['webapp']
     }
     resources {

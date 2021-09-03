@@ -13,11 +13,15 @@
  */
 package org.eclipse.jkube.gradle.plugin.tests;
 
+import net.minidev.json.parser.ParseException;
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class KubernetesExtensionIT {
 
@@ -25,44 +29,15 @@ public class KubernetesExtensionIT {
   public final ITGradleRunner gradleRunner = new ITGradleRunner();
 
   @Test
-  public void k8sConfigView_containsAFullyDeserializedConfiguration() {
+  public void k8sConfigView_containsAFullyDeserializedConfiguration() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner
         .withITProject("extension-configuration").withArguments("k8sConfigView", "--stacktrace").build();
     // Then
-    assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("offline: true")
-        .contains("buildStrategy: \"jib\"")
-        .contains("controllerName: \"test\"")
-        .contains("  configMap:\n" +
-            "    name: \"configMap-name\"\n" +
-            "    entries:\n" +
-            "    - name: \"test\"\n" +
-            "      value: \"value\"")
-        .contains("enricher:\n  excludes:\n  - \"jkube-expose\"")
-        .contains("generator:\n  includes:\n  - \"openliberty\"\n  excludes:\n  - \"webapp\"")
-        .contains("- name: \"registry/extension-configuration:0.0.1-SNAPSHOT\"")
-        .contains("- name: \"registry/image:tag\"")
-        .contains("    from: \"busybox\"")
-        .contains("mappings:\n" +
-          "- kind: \"Var\"\n" +
-          "  filenameTypes: \"foo, bar\"\n" +
-          "  filenamesAsArray:\n" +
-          "  - \"foo\"\n" +
-          "  - \"bar\"\n" +
-          "  valid: true")
-        .contains("resourceenvironment: \"dev\"")
-        .contains("useprojectclasspath: false")
-        .contains("skipresourcevalidation: false")
-        .contains("failonvalidationerror: false")
-        .contains("profile: \"default\"")
-        .contains("namespace: \"default\"")
-        .contains("mergewithdekorate: false")
-        .contains("interpolatetemplateparameters: false")
-        .contains("skip: false")
-        .contains("resourceFileType: \"yaml\"")
-        .containsPattern("workdirectory:.*build/jkube")
-        .containsPattern("resourcetargetdirectory.*build/META-INF/jkube")
-        .containsPattern("resourcesourcedirectory.*src/main/jkube");
+    final String output = result.getOutput();
+    ResourceVerify.verifyResourceDescriptors(
+        output.substring(output.indexOf("---"), output.indexOf("BUILD SUCCESSFUL in")),
+        FileUtils.readFileToString(gradleRunner.resolveFile("expected", "expected-config.yml"), StandardCharsets.UTF_8),
+        false);
   }
 }

@@ -35,10 +35,12 @@ public class SimpleIT {
         .contains("Kubernetes tasks")
         .contains("k8sApply - ")
         .contains("k8sBuild - ")
+        .contains("k8sLog - ")
         .contains("k8sResource - ")
         .contains("Openshift tasks")
         .contains("ocApply - ")
         .contains("ocBuild - ")
+        .contains("ocLog - ")
         .contains("ocResource - ");
   }
 
