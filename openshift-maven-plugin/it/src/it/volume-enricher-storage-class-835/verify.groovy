@@ -13,9 +13,6 @@
  */
 import org.eclipse.jkube.maven.it.Verify
 
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertFalse;
-
 [ "openshift"   ].each {
   Verify.verifyResourceDescriptors(
           new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml",it)),

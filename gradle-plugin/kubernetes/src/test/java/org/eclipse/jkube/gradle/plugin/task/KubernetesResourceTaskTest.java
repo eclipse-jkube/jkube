@@ -18,6 +18,7 @@ import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,8 +26,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.MockedConstruction;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -36,12 +37,12 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 public class KubernetesResourceTaskTest {
-  private MockedConstruction<DefaultTask> defaultTaskMockedConstruction;
-  private Project project;
-  private KubernetesExtension extension;
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+  private MockedConstruction<DefaultTask> defaultTaskMockedConstruction;
+  private Project project;
 
   @Before
   public void setUp() throws IOException {
@@ -50,12 +51,12 @@ public class KubernetesResourceTaskTest {
       when(mock.getProject()).thenReturn(project);
       when(mock.getLogger()).thenReturn(mock(Logger.class));
     });
-    extension = new TestKubernetesExtension();
-    when(project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
-    when(project.getConfigurations().stream()).thenAnswer(i -> Stream.empty());
-    when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getProjectDir()).thenReturn(temporaryFolder.getRoot());
     when(project.getBuildDir()).thenReturn(temporaryFolder.newFolder("build"));
+    when(project.getConfigurations().stream()).thenAnswer(i -> Stream.empty());
+    when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
+    when(project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(new TestKubernetesExtension());
+    when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(mock(JavaPluginConvention.class));
   }
 
   @After
@@ -67,11 +68,14 @@ public class KubernetesResourceTaskTest {
   public void runTask_withImageConfiguration_shouldGenerateResources() {
     // Given
     KubernetesResourceTask resourceTask = new KubernetesResourceTask(KubernetesExtension.class);
-
     // When
     resourceTask.runTask();
-
     // Then
-    assertThat(new File(temporaryFolder.getRoot(), "build/classes/java/main/META-INF/jkube/kubernetes.yml")).exists();
+    assertThat(temporaryFolder.getRoot().toPath()
+        .resolve(Paths.get("build", "classes", "java", "main", "META-INF", "jkube", "kubernetes.yml")))
+            .exists()
+            .hasContent("---\n" +
+                "apiVersion: v1\n" +
+                "kind: List\n");
   }
 }

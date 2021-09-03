@@ -48,6 +48,15 @@
         <artifactId>assertj-core</artifactId>
       </dependency>
       <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-common-test</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>com.consol.citrus</groupId>
+        <artifactId>citrus-core</artifactId>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>org.gradle</groupId>
         <artifactId>gradle-test-kit</artifactId>
       </dependency>

@@ -12,7 +12,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 import org.eclipse.jkube.maven.it.Verify
-import static org.junit.Assert.*;
 
 [ "xml-config", "zero-config-host-enricher-config", "zero-config-no-host", "zero-config-networkv1-host-enricher-config","zero-config-networkv1-enricher-config"  ].each {
   Verify.verifyResourceDescriptors(

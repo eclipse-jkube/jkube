@@ -29,6 +29,10 @@
   <name>Kubernetes Maven Plugin :: Parent</name>
   <description>Maven plugin for getting your Java apps on to Kubernetes</description>
 
+  <properties>
+    <jkube.kit.version>${project.version}</jkube.kit.version>
+  </properties>
+
   <modules>
     <module>plugin</module>
     <module>it</module>
@@ -38,75 +42,17 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-parent</artifactId>
+        <version>${jkube.kit.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
         <groupId>org.asciidoctor</groupId>
         <artifactId>asciidoctorj</artifactId>
         <version>${version.asciidoctorj}</version>
       </dependency>
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${version.junit}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.hamcrest</groupId>
-          <artifactId>hamcrest-all</artifactId>
-          <version>${version.hamcrest-library}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.assertj</groupId>
-        <artifactId>assertj-core</artifactId>
-        <version>${version.assertj-core}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.jmockit</groupId>
-          <artifactId>jmockit</artifactId>
-          <version>${version.jmockit}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.consol.citrus</groupId>
-        <artifactId>citrus-core</artifactId>
-        <version>${version.citrus-core}</version>
-        <scope>test</scope>
-        <exclusions>
-            <exclusion>
-                <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy-xml</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy-json</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy-jsr223</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-            </exclusion>
-        </exclusions>
-      </dependency>
-
     </dependencies>
   </dependencyManagement>
 

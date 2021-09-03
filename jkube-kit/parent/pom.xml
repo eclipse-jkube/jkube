@@ -50,6 +50,7 @@
     <version.jgit>5.11.0.202103091610-r</version.jgit>
     <version.jnr-unixsocket>0.12</version.jnr-unixsocket>
     <version.json-path-assert>2.2.0</version.json-path-assert>
+    <version.json-smart>2.2.1</version.json-smart> <!-- Transitive dependency from com.consol.citrus:citrus-core -->
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.1.1</version.JUnitParams>
     <version.kubernetes-client>5.4.0</version.kubernetes-client>
@@ -188,6 +189,12 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-watcher-standard</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-generator-api</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -207,6 +214,12 @@
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-enricher-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-enricher-generic</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -288,6 +301,50 @@
       </dependency>
 
       <!-- == libs ====================================== -->
+      <dependency>
+        <groupId>com.consol.citrus</groupId>
+        <artifactId>citrus-core</artifactId>
+        <version>${version.citrus-core}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-xml</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-jsr223</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework.ws</groupId>
+            <artifactId>spring-xml</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
@@ -402,6 +459,12 @@
               <artifactId>j2objc-annotations</artifactId>
             </exclusion>
           </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>net.minidev</groupId>
+        <artifactId>json-smart</artifactId>
+        <version>${version.json-smart}</version>
       </dependency>
 
       <dependency>
@@ -654,6 +717,13 @@
         <groupId>org.jmockit</groupId>
         <artifactId>jmockit</artifactId>
         <version>${version.jmockit}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${version.mockito}</version>
         <scope>test</scope>
       </dependency>
 

@@ -12,7 +12,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 import org.eclipse.jkube.maven.it.Verify
-import static org.junit.Assert.*;
 
 [ "openshift"   ].each {
   Verify.verifyResourceDescriptors(

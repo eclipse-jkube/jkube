@@ -23,6 +23,7 @@ import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,8 +57,8 @@ public class KubernetesApplyTaskTest {
     when(project.getBuildDir()).thenReturn(temporaryFolder.newFolder("build"));
     when(project.getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
-    when(project.getProperties()).thenReturn(Collections.emptyMap());
     when(project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(new TestKubernetesExtension());
+    when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(mock(JavaPluginConvention.class));
   }
 
   @After
