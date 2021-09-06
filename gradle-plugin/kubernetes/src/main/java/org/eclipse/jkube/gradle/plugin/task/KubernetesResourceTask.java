@@ -24,15 +24,18 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.ResourceServiceConfig;
 import org.eclipse.jkube.kit.resource.service.DefaultResourceService;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.common.util.validator.ResourceValidator;
 
+import java.io.FileWriter;
 import java.io.IOException;
 
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.DEFAULT_RESOURCE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.useDekorate;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.updateKindFilenameMappings;
+import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.interpolate;
 
 @SuppressWarnings("CdiInjectionPointsInspection")
 public class KubernetesResourceTask extends AbstractJKubeTask {
@@ -58,6 +61,8 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
         .resourceFileType(kubernetesExtension.getResourceFileTypeOrDefault())
         .resourceConfig(resourceConfig)
         .interpolateTemplateParameters(kubernetesExtension.getInterpolateTemplateParametersOrDefault())
+        .resourceFilesProcessor(
+            resourceFiles -> gradleFilterFiles(resourceFiles, kubernetesExtension.getWorkDirectoryOrDefault()))
         .build();
     builder.resourceService(new LazyBuilder<>(() -> new DefaultResourceService(resourceServiceConfig)));
 
@@ -112,5 +117,26 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
         kitLogger.warn("Failed to validate resources: %s", e.getMessage());
       }
     }
+  }
+
+  private File[] gradleFilterFiles(File[] resourceFiles, File outDir) throws IOException {
+    if (resourceFiles == null) {
+      return new File[0];
+    }
+    if (!outDir.exists() && !outDir.mkdirs()) {
+      throw new IOException("Cannot create working dir " + outDir);
+    }
+    File[] ret = new File[resourceFiles.length];
+    int i = 0;
+    for (File resource : resourceFiles) {
+      File targetFile = new File(outDir, resource.getName());
+      String resourceFragmentInterpolated = interpolate(resource, kubernetesExtension.javaProject.getProperties(),
+          kubernetesExtension.getFilter().getOrNull());
+      try (BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile))) {
+        writer.write(resourceFragmentInterpolated);
+      }
+      ret[i++] = targetFile;
+    }
+    return ret;
   }
 }
