@@ -2,7 +2,7 @@
 [[jkube:log]]
 === *{task-prefix}Log*
 
-This goal tails the log of the app that you deployed via the <<jkube:deploy, {task-prefix}Apply>> goal
+This task tails the log of the app that you deployed via the <<jkube:deploy, {task-prefix}Apply>> task
 
 [source, sh, subs="+attributes"]
 ----

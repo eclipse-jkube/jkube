@@ -36,12 +36,12 @@ public class OpenShiftBuildTask extends KubernetesBuildTask {
   @Override
   protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
     return super.buildServiceConfigBuilder()
-      .openshiftPullSecret(asOpenShiftExtension().getOpenshiftPullSecret().getOrElse("pullsecret-jkube"))
-      .s2iBuildNameSuffix(asOpenShiftExtension().getS2iBuildNameSuffix().getOrElse("-s2i"))
-      .s2iImageStreamLookupPolicyLocal(asOpenShiftExtension().getS2iImageStreamLookupPolicyLocal().getOrElse(true))
+      .openshiftPullSecret(asOpenShiftExtension().getOpenshiftPullSecretOrDefault())
+      .s2iBuildNameSuffix(asOpenShiftExtension().getS2iBuildNameSuffixOrDefault())
+      .s2iImageStreamLookupPolicyLocal(asOpenShiftExtension().getS2iImageStreamLookupPolicyLocalOrDefault())
       .openshiftPushSecret(asOpenShiftExtension().getOpenshiftPushSecret().getOrNull())
       .resourceConfig(asOpenShiftExtension().resources)
-      .buildOutputKind(asOpenShiftExtension().getBuildOutputKind().getOrElse("ImageStreamTag"));
+      .buildOutputKind(asOpenShiftExtension().getBuildOutputKindOrDefault());
   }
 
   private OpenShiftExtension asOpenShiftExtension() {

@@ -30,17 +30,18 @@ public class SimpleIT {
     final BuildResult result = gradleRunner.withITProject("simple").withArguments("tasks").build();
     // Then
     assertThat(result).extracting(BuildResult::getOutput).asString()
-      .contains("Help tasks")
-      .contains("k8sConfigView - ")
-      .contains("Kubernetes tasks")
-      .contains("k8sApply - ")
-      .contains("k8sBuild - ")
-      .contains("k8sLog - ")
-      .contains("k8sResource - ")
-      .contains("Openshift tasks")
-      .contains("ocApply - ")
-      .contains("ocBuild - ")
-      .contains("ocLog - ")
-      .contains("ocResource - ");
+        .contains("Help tasks")
+        .contains("k8sConfigView - ")
+        .contains("Kubernetes tasks")
+        .contains("k8sApply - ")
+        .contains("k8sBuild - ")
+        .contains("k8sLog - ")
+        .contains("k8sResource - ")
+        .contains("Openshift tasks")
+        .contains("ocApply - ")
+        .contains("ocBuild - ")
+        .contains("ocLog - ")
+        .contains("ocResource - ");
   }
+
 }

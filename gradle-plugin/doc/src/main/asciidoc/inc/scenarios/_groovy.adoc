@@ -247,7 +247,7 @@ See <<controller-resource-groovy-configuration, Kubernetes Controller Configurat
 [[ingress-generation]]
 === Ingress Generation
 
-Once you've enabled `jkube.createExternalUrls` property, you should be able to generate an opinionated ingress during {task-prefix}Resource goal. You can also configure it as per your needs using Groovy DSL configuration or by providing your own resource fragments.
+Once you've enabled `jkube.createExternalUrls` property, you should be able to generate an opinionated ingress during {task-prefix}Resource task. You can also configure it as per your needs using Groovy DSL configuration or by providing your own resource fragments.
 
 Here is an example of configuring Ingress using Groovy DSL configuration:
 
