@@ -207,4 +207,54 @@ public class TestKubernetesExtension extends KubernetesExtension {
   public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient, JavaProject javaProject) {
     return getKubernetesManifestOrDefault(javaProject);
   }
+
+  @Override
+  public Property<Boolean> getRecreate() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getSkipApply() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getCreateNewResources() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getRollingUpgrades() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getFailOnNoKubernetesJson() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getServicesOnly() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getIgnoreServices() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getDeletePodsOnReplicationControllerUpdate() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<File> getJsonLogDir() {
+    return new DefaultProperty<>(File.class);
+  }
+
+  @Override
+  public Property<Integer> getServiceUrlWaitTimeSeconds() {
+    return new DefaultProperty<>(Integer.class);
+  }
 }

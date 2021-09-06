@@ -14,6 +14,16 @@ namespace: "default"
 mergewithdekorate: false
 interpolatetemplateparameters: false
 resourceFileType: "yaml"
+recreate: false
+skipapply: true
+createnewresources: false
+rollingupgrades: false
+failonnokubernetesjson: false
+servicesonly: false
+ignoreservices: false
+deletepodsonreplicationcontrollerupdate: false
+jsonlogdir: "@endsWith('extension-configuration/build/jkube/applyJson')@"
+serviceurlwaittimeseconds: 10
 access:
   namespace: "default"
 enricher:
