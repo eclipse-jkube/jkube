@@ -31,6 +31,7 @@ public class SpringBootConfigurationHelper {
     public static final String SPRING_BOOT_ARTIFACT_ID = "spring-boot";
     public static final String SPRING_BOOT_DEVTOOLS_ARTIFACT_ID = "spring-boot-devtools";
     public static final String SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID = "spring-boot-maven-plugin";
+    public static final String SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID = "org.springframework.boot.gradle.plugin";
     public static final String DEV_TOOLS_REMOTE_SECRET = "spring.devtools.remote.secret";
     public static final String DEV_TOOLS_REMOTE_SECRET_ENV = "SPRING_DEVTOOLS_REMOTE_SECRET";
 

@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.gradle.plugin.GradleLogger;
 import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
@@ -34,6 +36,7 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
@@ -105,7 +108,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
       kitLogger.info("Building Docker image in Kubernetes mode");
     }
     // TODO: Run Generators
-    return configs;
+    return GeneratorManager.generate(configs, generatorContextBuilder().build(), false);
   }
 
   public KitLogger createLogger(String prefix) {
@@ -143,5 +146,23 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
     return ResourceUtil.getFinalResourceDir(kubernetesExtension.getResourceSourceDirectory()
         .getOrElse(javaProject.getBaseDirectory().toPath().resolve(DEFAULT_RESOURCE_SOURCE_DIR).toFile()),
         kubernetesExtension.getResourceEnvironment().getOrNull());
+  }
+
+  protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() {
+    return GeneratorContext.builder()
+      .config(extractGeneratorConfig())
+      .project(javaProject)
+      .logger(kitLogger)
+      .runtimeMode(kubernetesExtension.getRuntimeMode())
+      .useProjectClasspath(kubernetesExtension.getUseProjectClassPath().getOrElse(false))
+      .artifactResolver(jKubeServiceHub.getArtifactResolverService());
+  }
+
+  protected ProcessorConfig extractGeneratorConfig() {
+    try {
+      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfile().getOrNull(), kubernetesExtension.getResourceTargetDirectory().getOrNull(), kubernetesExtension.generator);
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
+    }
   }
 }
