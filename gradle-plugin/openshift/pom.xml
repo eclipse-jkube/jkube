@@ -80,6 +80,10 @@
             <artifactId>gradle-model-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-platform-jvm</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
