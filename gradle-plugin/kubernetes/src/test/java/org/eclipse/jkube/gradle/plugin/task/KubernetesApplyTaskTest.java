@@ -14,7 +14,6 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.stream.Stream;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
@@ -71,7 +70,7 @@ public class KubernetesApplyTaskTest {
     // Given
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
     // When
-    final UnsupportedOperationException result = assertThrows(UnsupportedOperationException.class, applyTask::run);
+    final UnsupportedOperationException result = assertThrows(UnsupportedOperationException.class, applyTask::runTask);
     // Then
     assertThat(result).hasMessageContaining("To be implemented");
   }

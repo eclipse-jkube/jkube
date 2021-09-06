@@ -191,7 +191,7 @@ suitable for most of the cases.
 
 | *outputDirectory*
 | Default output directory to be used by this plugin.
-The default value is `build/docker` and is only used for the goal `{task-prefix}Build`.
+The default value is `build/docker` and is only used for the task `{task-prefix}Build`.
 | `jkube.build.target.dir`
 
 | *offline*
@@ -290,7 +290,7 @@ for some reason but you still want to continue the deployment.
 
 | *buildSourceDirectory*
 | Default directory that contains the assembly descriptor(s) used by the plugin. The default value is `src/main/docker`.
-This option is only relevant for the `{task-prefix}Build` goal.
+This option is only relevant for the `{task-prefix}Build` task.
 | `jkube.build.source.dir`
 
 | *verbose*
