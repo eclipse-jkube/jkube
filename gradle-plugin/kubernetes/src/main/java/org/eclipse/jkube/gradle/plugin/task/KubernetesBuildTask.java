@@ -53,15 +53,15 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
     DockerAccess access = null;
     if (kubernetesExtension.isDockerAccessRequired()) {
       DockerAccessFactory.DockerAccessContext dockerAccessContext = DockerAccessFactory.DockerAccessContext.builder()
-        .log(kitLogger)
-        .projectProperties(javaProject.getProperties())
-        .maxConnections(kubernetesExtension.getMaxConnections().getOrElse(DEFAULT_MAX_CONNECTIONS))
-        .dockerHost(kubernetesExtension.getDockerHost().getOrNull())
-        .certPath(kubernetesExtension.getCertPath().getOrNull())
-        .machine(kubernetesExtension.machine)
-        .minimalApiVersion(kubernetesExtension.getMinimalApiVersion().getOrNull())
-        .skipMachine(kubernetesExtension.getSkipMachine().getOrElse(false))
-        .build();
+          .log(kitLogger)
+          .projectProperties(javaProject.getProperties())
+          .maxConnections(kubernetesExtension.getMaxConnections().getOrElse(DEFAULT_MAX_CONNECTIONS))
+          .dockerHost(kubernetesExtension.getDockerHost().getOrNull())
+          .certPath(kubernetesExtension.getCertPath().getOrNull())
+          .machine(kubernetesExtension.machine)
+          .minimalApiVersion(kubernetesExtension.getMinimalApiVersion().getOrNull())
+          .skipMachine(kubernetesExtension.getSkipMachine().getOrElse(false))
+          .build();
       DockerAccessFactory dockerAccessFactory = new DockerAccessFactory();
       access = dockerAccessFactory.createDockerAccess(dockerAccessContext);
     }
@@ -90,8 +90,8 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
     try {
       for (ImageConfiguration imageConfig : resolvedImages) {
         storeTimestamp(
-          getBuildTimestampFile(javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP),
-          getBuildTimestamp(null, null, javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP));
+            getBuildTimestampFile(javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP),
+            getBuildTimestamp(null, null, javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP));
         jKubeServiceHub.getBuildService().build(imageConfig);
       }
     } catch (JKubeServiceException | IOException e) {
