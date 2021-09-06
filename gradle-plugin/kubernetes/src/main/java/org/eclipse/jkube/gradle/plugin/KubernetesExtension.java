@@ -103,6 +103,7 @@ public abstract class KubernetesExtension {
 
   private static final boolean DEFAULT_OFFLINE = false;
   private static final Path DEFAULT_KUBERNETES_MANIFEST = Paths.get("META-INF", "jkube", "kubernetes.yml");
+  private static final Path DEFAULT_JSON_LOG_DIR = Paths.get("jkube","applyJson");
 
   public abstract Property<Boolean> getOffline();
 
@@ -169,6 +170,26 @@ public abstract class KubernetesExtension {
   public abstract Property<String> getLogPodName();
 
   public abstract Property<File> getKubernetesManifest();
+
+  public abstract Property<Boolean> getRecreate();
+
+  public abstract Property<Boolean> getSkipApply();
+
+  public abstract Property<Boolean> getCreateNewResources();
+
+  public abstract Property<Boolean> getRollingUpgrades();
+
+  public abstract Property<Boolean> getFailOnNoKubernetesJson();
+
+  public abstract Property<Boolean> getServicesOnly();
+
+  public abstract Property<Boolean> getIgnoreServices();
+
+  public abstract Property<Boolean> getDeletePodsOnReplicationControllerUpdate();
+
+  public abstract Property<File> getJsonLogDir();
+
+  public abstract Property<Integer> getServiceUrlWaitTimeSeconds();
 
   public JKubeBuildStrategy buildStrategy;
 
@@ -350,6 +371,46 @@ public abstract class KubernetesExtension {
       kitLogger.warn("Switch to openshift-gradle-plugin in case there are any problems");
     }
     return getKubernetesManifestOrDefault(javaProject);
+  }
+
+  public boolean getRecreateOrDefault() {
+    return getRecreate().getOrElse(false);
+  }
+
+  public boolean getSkipApplyOrDefault() {
+    return getSkipApply().getOrElse(false);
+  }
+
+  public boolean getFailOnNoKubernetesJsonOrDefault() {
+    return getFailOnNoKubernetesJson().getOrElse(false);
+  }
+
+  public boolean getCreateNewResourcesOrDefault() {
+    return getCreateNewResources().getOrElse(true);
+  }
+
+  public boolean getServicesOnlyOrDefault() {
+    return getServicesOnly().getOrElse(false);
+  }
+
+  public boolean getIgnoreServicesOrDefault() {
+    return getIgnoreServices().getOrElse(false);
+  }
+
+  public File getJsonLogDirOrDefault(JavaProject javaProject) {
+    return getJsonLogDir().getOrElse(javaProject.getBuildDirectory().toPath().resolve(DEFAULT_JSON_LOG_DIR).toFile());
+  }
+
+  public boolean getDeletePodsOnReplicationControllerUpdateOrDefault() {
+    return getDeletePodsOnReplicationControllerUpdate().getOrElse(true);
+  }
+
+  public boolean getRollingUpgradesOrDefault() {
+    return getRollingUpgrades().getOrElse(false);
+  }
+
+  public Integer getServiceUrlWaitTimeSecondsOrDefault() {
+    return getServiceUrlWaitTimeSeconds().getOrElse(5);
   }
 
   public File getKubernetesManifestOrDefault(JavaProject javaProject) {
