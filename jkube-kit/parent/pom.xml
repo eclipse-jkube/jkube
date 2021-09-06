@@ -38,7 +38,7 @@
     <version.asciidoctorj>1.5.4</version.asciidoctorj>
     <version.bouncycastle.bcpkix>1.61</version.bouncycastle.bcpkix>
     <version.commons-codec>1.15</version.commons-codec>
-    <version.commons-compress>1.19</version.commons-compress>
+    <version.commons-compress>1.21</version.commons-compress>
     <version.commons-io>2.8.0</version.commons-io>
     <version.commons-lang3>3.11</version.commons-lang3>
     <version.commons-text>1.9</version.commons-text>
@@ -49,7 +49,7 @@
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
     <version.jansi>2.3.3</version.jansi>
     <version.javassist>3.20.0-GA</version.javassist>
-    <version.jgit>5.11.0.202103091610-r</version.jgit>
+    <version.jgit>5.12.0.202106070339-r</version.jgit>
     <version.jnr-unixsocket>0.12</version.jnr-unixsocket>
     <version.json-path-assert>2.2.0</version.json-path-assert>
     <version.jsr305>3.0.2</version.jsr305>
