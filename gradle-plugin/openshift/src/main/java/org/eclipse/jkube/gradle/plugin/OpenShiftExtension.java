@@ -29,6 +29,9 @@ import java.nio.file.Paths;
 public abstract class OpenShiftExtension extends KubernetesExtension {
   public static final String DEFAULT_OPENSHIFT_MANIFEST = Paths.get("META-INF","jkube","openshift.yml").toString();
   public static final String DEFAULT_LOG_PREFIX = "oc: ";
+  private static final String DEFAULT_OPENSHIFT_PULLSECRET = "pullsecret-jkube";
+  private static final String DEFAULT_S2I_BUILDNAME_SUFFIX = "-s2i";
+  public static final String DEFAULT_BUILD_OUTPUT_KIND = "ImageStreamTag";
 
   public abstract Property<File> getOpenShiftManifest();
 
@@ -73,5 +76,21 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   @Override
   public boolean isDockerAccessRequired() {
     return false;
+  }
+
+  public String getOpenshiftPullSecretOrDefault() {
+    return getOpenshiftPullSecret().getOrElse(DEFAULT_OPENSHIFT_PULLSECRET);
+  }
+
+  public String getS2iBuildNameSuffixOrDefault() {
+    return getS2iBuildNameSuffix().getOrElse(DEFAULT_S2I_BUILDNAME_SUFFIX);
+  }
+
+  public boolean getS2iImageStreamLookupPolicyLocalOrDefault() {
+    return getS2iImageStreamLookupPolicyLocal().getOrElse(true);
+  }
+
+  public String getBuildOutputKindOrDefault() {
+    return getBuildOutputKind().getOrElse(DEFAULT_BUILD_OUTPUT_KIND);
   }
 }
