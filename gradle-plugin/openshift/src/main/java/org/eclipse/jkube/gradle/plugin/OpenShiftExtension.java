@@ -45,6 +45,10 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
 
   public abstract Property<String> getOpenshiftPushSecret();
 
+  public abstract Property<Boolean> getProcessTemplatesLocally();
+
+  public abstract Property<Boolean> getIgnoreRunningOAuthClients();
+
   @Override
   public RuntimeMode getRuntimeMode() {
     return RuntimeMode.OPENSHIFT;
@@ -92,5 +96,13 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
 
   public String getBuildOutputKindOrDefault() {
     return getBuildOutputKind().getOrElse(DEFAULT_BUILD_OUTPUT_KIND);
+  }
+
+  public boolean getIgnoreRunningOAuthClientsOrDefault() {
+    return getIgnoreRunningOAuthClients().getOrElse(true);
+  }
+
+  public boolean getProcessTemplatesLocallyOrDefault() {
+    return getProcessTemplatesLocally().getOrElse(false);
   }
 }

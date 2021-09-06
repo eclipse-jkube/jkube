@@ -191,6 +191,56 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   }
 
   @Override
+  public Property<Boolean> getRecreate() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getSkipApply() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getCreateNewResources() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getRollingUpgrades() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getFailOnNoKubernetesJson() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getServicesOnly() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getIgnoreServices() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getDeletePodsOnReplicationControllerUpdate() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<File> getJsonLogDir() {
+    return new DefaultProperty<>(File.class);
+  }
+
+  @Override
+  public Property<Integer> getServiceUrlWaitTimeSeconds() {
+    return new DefaultProperty<>(Integer.class);
+  }
+
+  @Override
   public Property<String> getSourceDirectory() {
     return new DefaultProperty<>(String.class);
   }
@@ -228,5 +278,15 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   @Override
   public Property<String> getOpenshiftPushSecret() {
     return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<Boolean> getProcessTemplatesLocally() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getIgnoreRunningOAuthClients() {
+    return new DefaultProperty<>(Boolean.class);
   }
 }

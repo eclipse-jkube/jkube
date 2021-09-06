@@ -34,6 +34,16 @@ kubernetes {
     mergeWithDekorate = false
     interpolateTemplateParameters = false
     resourceFileType = 'yaml'
+    recreate = false
+    skipApply = true
+    createNewResources = false
+    rollingUpgrades = false
+    failOnNoKubernetesJson = false
+    servicesOnly = false
+    ignoreServices = false
+    deletePodsOnReplicationControllerUpdate = false
+    jsonLogDir = file("${project.getBuildDir()}/jkube/applyJson")
+    serviceUrlWaitTimeSeconds = 10
     access {
         namespace = 'default'
     }
