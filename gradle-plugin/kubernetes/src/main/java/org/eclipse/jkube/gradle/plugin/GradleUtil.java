@@ -45,7 +45,8 @@ public class GradleUtil {
   private GradleUtil() {}
 
   public static JavaProject convertGradleProject(Project gradleProject) {
-    return JavaProject.builder()
+    File artifact = findArtifact(gradleProject);
+    JavaProject.JavaProjectBuilder builder = JavaProject.builder()
         .properties(extractProperties(gradleProject))
         .name(gradleProject.getName())
         .description(gradleProject.getDescription())
@@ -72,8 +73,12 @@ public class GradleUtil {
 //
 //        .scmTag(gradleProject.)
 //        .scmUrl(gradleProject.)
-        .artifact(findArtifact(gradleProject))
-        .build();
+        .artifact(artifact);
+
+    if (artifact != null) {
+      builder.buildPackageDirectory(artifact.getParentFile());
+    }
+    return builder.build();
   }
 
   private static Properties extractProperties(Project gradleProject) {
