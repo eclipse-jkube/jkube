@@ -21,6 +21,7 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.junit.Before;
@@ -51,7 +52,7 @@ public class OpenShiftPluginTest {
     verify(project.getTasks(), times(1))
         .register("ocBuild", OpenShiftBuildTask.class, OpenShiftExtension.class);
     verify(project.getTasks(), times(1))
-        .register("ocResource", KubernetesResourceTask.class, OpenShiftExtension.class);
+        .register("ocResource", OpenShiftResourceTask.class, OpenShiftExtension.class);
     verify(project.getTasks(), times(1))
         .register("ocApply", KubernetesApplyTask.class, OpenShiftExtension.class);
   }

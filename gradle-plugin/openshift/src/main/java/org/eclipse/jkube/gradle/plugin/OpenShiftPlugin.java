@@ -23,6 +23,7 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 
@@ -42,7 +43,7 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
   @Override
   protected void jKubeApply(Project project) {
     register(project, "ocBuild", OpenShiftBuildTask.class);
-    register(project, "ocResource", KubernetesResourceTask.class);
+    register(project, "ocResource", OpenShiftResourceTask.class);
     register(project, "ocApply", KubernetesApplyTask.class);
     register(project, "ocLog", KubernetesLogTask.class);
   }
