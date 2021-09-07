@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.kit.resource.service;
 
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.listResourceFragments;
+import static org.eclipse.jkube.kit.resource.service.TemplateUtil.interpolateTemplateVariables;
+import static org.eclipse.jkube.kit.resource.service.WriteUtil.writeResourcesIndividualAndComposite;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,10 +42,6 @@ import org.eclipse.jkube.kit.profile.ProfileUtil;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.listResourceFragments;
-import static org.eclipse.jkube.kit.resource.service.TemplateUtil.interpolateTemplateVariables;
-import static org.eclipse.jkube.kit.resource.service.WriteUtil.writeResourcesIndividualAndComposite;
 
 public class DefaultResourceService implements ResourceService {
 

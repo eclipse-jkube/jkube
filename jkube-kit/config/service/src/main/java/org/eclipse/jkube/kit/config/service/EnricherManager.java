@@ -13,9 +13,10 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 
 public interface EnricherManager {
 

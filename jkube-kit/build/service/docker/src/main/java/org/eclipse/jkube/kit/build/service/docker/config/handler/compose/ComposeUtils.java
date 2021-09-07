@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.compose;
 
-import org.eclipse.jkube.kit.build.service.docker.helper.DockerPathUtil;
-
 import java.io.File;
 import java.io.IOException;
+
+import org.eclipse.jkube.kit.build.service.docker.helper.DockerPathUtil;
 
 /**
  * Path-resolution methods

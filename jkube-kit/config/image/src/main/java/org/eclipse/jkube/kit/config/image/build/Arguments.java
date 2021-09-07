@@ -20,13 +20,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Singular;
-
-import org.eclipse.jkube.kit.common.util.EnvUtil;
 
 @Getter
 @Setter

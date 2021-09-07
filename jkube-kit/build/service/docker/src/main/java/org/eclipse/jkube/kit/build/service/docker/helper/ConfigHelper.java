@@ -13,14 +13,11 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyMode;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.addSimpleDockerfileConfig;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.createSimpleDockerfileConfig;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.getTopLevelDockerfile;
+import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.isSimpleDockerFileMode;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,11 +29,14 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.addSimpleDockerfileConfig;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.createSimpleDockerfileConfig;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.getTopLevelDockerfile;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.isSimpleDockerFileMode;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
+import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
+import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyMode;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * Utility class which helps in resolving, customizing, initializing and validating

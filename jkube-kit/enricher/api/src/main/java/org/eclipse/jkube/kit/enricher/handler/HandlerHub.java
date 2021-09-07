@@ -14,12 +14,12 @@
 package org.eclipse.jkube.kit.enricher.handler;
 
 
-import org.eclipse.jkube.kit.common.util.LazyBuilder;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+
+import org.eclipse.jkube.kit.common.util.LazyBuilder;
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 
 /**
  * @author roland

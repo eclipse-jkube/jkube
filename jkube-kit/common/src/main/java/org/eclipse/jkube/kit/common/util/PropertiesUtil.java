@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import io.fabric8.kubernetes.client.utils.Utils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -23,6 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+
+import io.fabric8.kubernetes.client.utils.Utils;
 
 public class PropertiesUtil {
 

@@ -18,6 +18,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.eclipse.jkube.kit.common.KitLogger;
+
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.DnsResolver;

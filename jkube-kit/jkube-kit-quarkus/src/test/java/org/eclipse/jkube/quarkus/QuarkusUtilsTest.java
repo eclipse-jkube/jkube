@@ -13,6 +13,16 @@
  */
 package org.eclipse.jkube.quarkus;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.findQuarkusVersion;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.isVersionAtLeast;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivenessPath;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,16 +36,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.findQuarkusVersion;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.isVersionAtLeast;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivenessPath;
 
 public class QuarkusUtilsTest {
 

@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.quarkus;
 
+import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
@@ -20,9 +23,6 @@ import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.quarkus.generator.QuarkusAssemblies;
-
-import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
 
 public enum QuarkusMode {
 

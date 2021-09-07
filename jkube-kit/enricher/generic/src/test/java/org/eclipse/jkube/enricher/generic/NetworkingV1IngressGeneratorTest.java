@@ -13,6 +13,16 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
+import java.util.Collections;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
+import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
+import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
+import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
+
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -20,16 +30,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
-import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
-import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
-import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
 import org.junit.Test;
-
-import java.util.Collections;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class NetworkingV1IngressGeneratorTest {
     @Mocked

@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,10 +26,6 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 // Required if using any of the ObjectMappers provided by KubernetesDeserializer (yamlMapper, jsonMapper)
 @JsonDeserialize(

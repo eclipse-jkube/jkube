@@ -13,11 +13,11 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.wait;
 
+import java.util.regex.Pattern;
+
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogCallback;
 import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
 import org.eclipse.jkube.kit.common.KitLogger;
-
-import java.util.regex.Pattern;
 
 class LogMatchCallback implements LogCallback {
 

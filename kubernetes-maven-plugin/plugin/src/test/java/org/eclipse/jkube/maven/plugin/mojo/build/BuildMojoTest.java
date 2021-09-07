@@ -13,18 +13,19 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import org.apache.maven.project.MavenProject;
-import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import org.apache.maven.project.MavenProject;
+import org.junit.Before;
+import org.junit.Test;
 
 public class BuildMojoTest {
     @Mocked

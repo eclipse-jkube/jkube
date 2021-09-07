@@ -14,10 +14,7 @@
 package org.eclipse.jkube.kit.config.resource;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
@@ -30,7 +27,11 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.eclipse.jkube.kit.common.Configs;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.junit.Test;
 
 @SuppressWarnings("unused")
 public class ProcessorConfigTest {

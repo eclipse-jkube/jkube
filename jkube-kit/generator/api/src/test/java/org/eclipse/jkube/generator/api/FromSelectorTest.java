@@ -13,21 +13,22 @@
  */
 package org.eclipse.jkube.generator.api;
 
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.docker;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.s2i;
+import static org.eclipse.jkube.kit.config.resource.RuntimeMode.OPENSHIFT;
+import static org.junit.Assert.assertEquals;
+
 import java.util.Map;
 
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.s2i;
-import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.docker;
-import static org.eclipse.jkube.kit.config.resource.RuntimeMode.OPENSHIFT;
-import static org.junit.Assert.assertEquals;
 
 public class FromSelectorTest {
 

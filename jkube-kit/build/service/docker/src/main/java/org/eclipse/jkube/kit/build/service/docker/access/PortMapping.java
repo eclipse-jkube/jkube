@@ -13,11 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import org.eclipse.jkube.kit.build.api.model.Container;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,6 +26,12 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.eclipse.jkube.kit.build.api.model.Container;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 
 /**

@@ -13,12 +13,13 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 /**
  * Enriches wildfly-swarm containers with health checks if the monitoring fraction is present.

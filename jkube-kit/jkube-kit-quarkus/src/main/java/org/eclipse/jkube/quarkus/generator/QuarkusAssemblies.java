@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
+import static org.eclipse.jkube.quarkus.QuarkusUtils.findSingleFileThatEndsWith;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
+
 import java.io.File;
 import java.util.Properties;
 
@@ -22,10 +26,6 @@ import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-
-import static org.eclipse.jkube.quarkus.QuarkusUtils.findSingleFileThatEndsWith;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
 
 public class QuarkusAssemblies {
 

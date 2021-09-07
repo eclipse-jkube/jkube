@@ -13,18 +13,20 @@
  */
 package org.eclipse.jkube.kit.common.util.validator;
 
-import mockit.Mocked;
-import org.assertj.core.api.Condition;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.ResourceClassifier;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+
+import java.nio.file.Paths;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.nio.file.Paths;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.ResourceClassifier;
+
+import mockit.Mocked;
+import org.assertj.core.api.Condition;
+import org.junit.Test;
 
 public class ResourceValidatorTest {
 

@@ -13,6 +13,13 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.openshift.api.model.Template;
 import lombok.AllArgsConstructor;
@@ -22,13 +29,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Configuration for a helm chart

@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.watcher.standard;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.PipedInputStream;
@@ -26,8 +28,8 @@ import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.build.service.docker.watch.CopyFilesTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.ExecTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
 import mockit.Expectations;
@@ -39,8 +41,6 @@ import okhttp3.Response;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class DockerImageWatcherTest {

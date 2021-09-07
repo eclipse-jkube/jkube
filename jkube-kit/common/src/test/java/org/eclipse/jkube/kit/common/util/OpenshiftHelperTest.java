@@ -13,6 +13,17 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
@@ -21,21 +32,9 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
-
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 public class OpenshiftHelperTest {
 

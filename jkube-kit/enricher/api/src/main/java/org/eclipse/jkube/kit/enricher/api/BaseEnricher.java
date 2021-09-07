@@ -13,19 +13,6 @@
  */
 package org.eclipse.jkube.kit.enricher.api;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.openshift.api.model.DeploymentConfig;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.PrefixedLogger;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,6 +21,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.PrefixedLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.openshift.api.model.DeploymentConfig;
 
 /**
  * @author roland

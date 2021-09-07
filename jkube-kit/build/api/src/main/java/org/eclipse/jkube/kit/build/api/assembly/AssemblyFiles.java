@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.kit.build.api.assembly;
 
-import org.eclipse.jkube.kit.common.AssemblyFileEntry;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 
 /**
  * Collection of assembly files which need to be monitored for checking when

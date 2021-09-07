@@ -13,17 +13,17 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import mockit.Expectations;
-import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
-import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-
-import mockit.Mocked;
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+
+import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Test;
 
 public class ImageConfigurationTest {
 

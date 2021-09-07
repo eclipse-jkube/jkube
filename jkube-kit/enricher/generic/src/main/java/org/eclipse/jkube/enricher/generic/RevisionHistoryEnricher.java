@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 /**
  * This enricher adds the 'revisionHistoryLimit' property to deployment spec of RCs / RSs for Kubernetes/OpenShift

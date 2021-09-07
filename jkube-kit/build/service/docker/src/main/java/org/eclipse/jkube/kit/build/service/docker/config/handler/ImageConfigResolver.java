@@ -13,12 +13,15 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * Manager holding all config handlers for external configuration

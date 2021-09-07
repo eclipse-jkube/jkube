@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
+import java.util.Arrays;
+
 import org.eclipse.jkube.kit.build.api.model.ContainerDetails;
 import org.eclipse.jkube.kit.build.api.model.ExecDetails;
-
-import java.util.Arrays;
 
 
 /**

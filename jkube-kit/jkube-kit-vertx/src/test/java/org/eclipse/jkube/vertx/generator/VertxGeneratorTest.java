@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -20,21 +23,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.Dependency;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.Plugin;
+
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.common.Plugin;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>

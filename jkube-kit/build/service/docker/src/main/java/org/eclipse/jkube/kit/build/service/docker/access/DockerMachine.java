@@ -13,15 +13,15 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
-import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.EnvCommand;
-import org.eclipse.jkube.kit.common.ExternalCommand;
-import org.eclipse.jkube.kit.common.KitLogger;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
+import org.eclipse.jkube.kit.build.service.docker.helper.EnvCommand;
+import org.eclipse.jkube.kit.common.ExternalCommand;
+import org.eclipse.jkube.kit.common.KitLogger;
 
 /**
  * launch docker-machine to obtain environment settings

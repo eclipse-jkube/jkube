@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.thorntail.v2.enricher;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Properties;
@@ -32,9 +35,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 public class ThorntailV2HealthCheckEnricherTest {
 

@@ -19,6 +19,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.util.ClassUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lombok.AccessLevel;
@@ -28,19 +42,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.Dependency;
-import org.eclipse.jkube.kit.common.Plugin;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.ClassUtil;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.apache.commons.lang3.StringUtils;
 
 /**

@@ -13,18 +13,18 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import org.eclipse.jkube.kit.common.AssemblyFileEntry;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.api.assembly.AssemblyFiles;
-import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.common.KitLogger;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyFiles;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 /**
  * @author roland

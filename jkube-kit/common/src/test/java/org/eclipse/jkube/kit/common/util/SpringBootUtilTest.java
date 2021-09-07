@@ -13,14 +13,9 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import org.apache.commons.io.FileUtils;
-import org.eclipse.jkube.kit.common.Dependency;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,9 +25,15 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import org.apache.commons.io.FileUtils;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class SpringBootUtilTest {
     @Rule

@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -25,8 +27,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
@@ -39,9 +39,9 @@ import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.io.FileUtils;
-
-import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
+import org.apache.commons.lang3.StringUtils;
 public class HelmService {
 
   private static final String YAML_EXTENSION = ".yaml";

@@ -13,6 +13,14 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.computeS2IBuildName;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildArchive;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildOutput;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildStrategy;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.getBuildConfigSpec;
+import static org.junit.Assert.assertThrows;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,12 +28,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import io.fabric8.openshift.api.model.BuildConfig;
-import io.fabric8.openshift.api.model.BuildConfigBuilder;
-import io.fabric8.openshift.api.model.BuildConfigSpec;
-import io.fabric8.openshift.api.model.BuildConfigSpecBuilder;
-import io.fabric8.openshift.api.model.BuildOutput;
-import io.fabric8.openshift.api.model.BuildStrategy;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -37,6 +39,12 @@ import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
+import io.fabric8.openshift.api.model.BuildConfig;
+import io.fabric8.openshift.api.model.BuildConfigBuilder;
+import io.fabric8.openshift.api.model.BuildConfigSpec;
+import io.fabric8.openshift.api.model.BuildConfigSpecBuilder;
+import io.fabric8.openshift.api.model.BuildOutput;
+import io.fabric8.openshift.api.model.BuildStrategy;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
@@ -44,14 +52,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.computeS2IBuildName;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildArchive;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildOutput;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildStrategy;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.getBuildConfigSpec;
-import static org.junit.Assert.assertThrows;
 
 @SuppressWarnings("ConstantConditions")
 public class OpenShiftBuildServiceUtilsTest {

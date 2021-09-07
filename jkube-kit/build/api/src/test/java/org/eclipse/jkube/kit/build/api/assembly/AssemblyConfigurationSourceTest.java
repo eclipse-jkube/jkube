@@ -13,21 +13,22 @@
  */
 package org.eclipse.jkube.kit.build.api.assembly;
 
-import java.io.File;
-import java.util.Arrays;
-
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.util.Arrays;
+
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class AssemblyConfigurationSourceTest {
 

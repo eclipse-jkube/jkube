@@ -13,16 +13,17 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import org.eclipse.jkube.kit.config.image.ImageName;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
+
+import org.eclipse.jkube.kit.config.image.ImageName;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 public final class UrlBuilder {
 

@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.TypedLocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.extensions.HTTPIngressPath;
@@ -29,9 +32,6 @@ import io.fabric8.kubernetes.api.model.extensions.IngressSpec;
 import io.fabric8.kubernetes.api.model.extensions.IngressSpecBuilder;
 import io.fabric8.kubernetes.api.model.extensions.IngressTLS;
 import io.fabric8.kubernetes.api.model.extensions.IngressTLSBuilder;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ExtensionsV1beta1IngressConverter {
     private ExtensionsV1beta1IngressConverter() { }

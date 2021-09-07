@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.enricher.api;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Collections;
 
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -26,8 +28,6 @@ import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DefaultEnricherManagerTest {
 

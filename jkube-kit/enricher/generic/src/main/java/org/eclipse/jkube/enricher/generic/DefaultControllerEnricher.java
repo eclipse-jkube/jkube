@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.eclipse.jkube.enricher.generic.ControllerViaPluginConfigurationEnricher.POD_CONTROLLER_KINDS;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -36,8 +38,6 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import static org.eclipse.jkube.enricher.generic.ControllerViaPluginConfigurationEnricher.POD_CONTROLLER_KINDS;
 
 /**
  * Enrich with controller if not already present.

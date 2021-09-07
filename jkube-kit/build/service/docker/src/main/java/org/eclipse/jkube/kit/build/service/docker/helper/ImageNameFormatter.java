@@ -13,13 +13,14 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import com.google.common.base.Strings;
-import org.eclipse.jkube.kit.common.JavaProject;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.eclipse.jkube.kit.common.JavaProject;
+
+import com.google.common.base.Strings;
 
 /**
  * Replace placeholders in an image name with certain properties found in the

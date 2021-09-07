@@ -13,11 +13,12 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
+import static org.junit.Assert.assertEquals;
+
 import org.eclipse.jkube.kit.common.KitLogger;
+
 import org.fusesource.jansi.Ansi;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author roland

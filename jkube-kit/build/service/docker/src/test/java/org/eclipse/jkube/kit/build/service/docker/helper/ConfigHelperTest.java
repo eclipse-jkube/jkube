@@ -13,14 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.junit.Test;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,7 +22,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Test;
 
 public class ConfigHelperTest {
   @Mocked

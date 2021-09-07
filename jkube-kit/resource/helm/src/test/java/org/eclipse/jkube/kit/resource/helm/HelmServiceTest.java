@@ -13,24 +13,24 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
-
 import java.util.Arrays;
 import java.util.Collections;
+
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class HelmServiceTest {
 

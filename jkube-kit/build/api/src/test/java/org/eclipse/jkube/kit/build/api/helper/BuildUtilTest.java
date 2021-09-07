@@ -14,17 +14,18 @@
 package org.eclipse.jkube.kit.build.api.helper;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
+import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDockerfile;
+
+import java.io.File;
+
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
 import org.junit.Test;
-
-import java.io.File;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
-import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDockerfile;
 
 public class BuildUtilTest {
 

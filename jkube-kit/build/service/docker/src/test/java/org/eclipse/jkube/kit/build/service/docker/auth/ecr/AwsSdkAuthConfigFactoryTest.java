@@ -13,17 +13,18 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.junit.Before;
-import org.junit.Test;
-
 import static java.util.UUID.randomUUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.common.KitLogger;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Before;
+import org.junit.Test;
 
 public class AwsSdkAuthConfigFactoryTest {
     @Mocked

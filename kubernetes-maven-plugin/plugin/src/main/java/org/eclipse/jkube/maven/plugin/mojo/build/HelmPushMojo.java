@@ -15,10 +15,10 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.io.IOException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;

@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 
 /**
  * @author roland

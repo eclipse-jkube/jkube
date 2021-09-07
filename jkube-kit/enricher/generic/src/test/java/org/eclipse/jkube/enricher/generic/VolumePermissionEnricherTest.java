@@ -13,6 +13,18 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -24,22 +36,10 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplate;
 import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.TreeMap;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class VolumePermissionEnricherTest {
 

@@ -21,17 +21,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerConnectionDetector;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerMachine;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.DockerAccessWithHcClient;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 public class DockerAccessFactory {
 

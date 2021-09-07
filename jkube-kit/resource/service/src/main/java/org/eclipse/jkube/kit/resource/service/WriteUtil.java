@@ -13,22 +13,23 @@
  */
 package org.eclipse.jkube.kit.resource.service;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.openshift.api.model.Template;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.ResourceFileType;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTemplate;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTemplate;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.ResourceFileType;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.openshift.api.model.Template;
+import org.apache.commons.lang3.StringUtils;
 
 class WriteUtil {
 

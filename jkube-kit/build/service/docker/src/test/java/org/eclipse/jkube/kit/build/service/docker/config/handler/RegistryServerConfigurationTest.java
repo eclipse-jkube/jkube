@@ -13,8 +13,9 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler;
 
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.AbstractMap;
 import java.util.Collections;
@@ -22,9 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+
+import org.junit.Test;
 
 public class RegistryServerConfigurationTest {
     @Test

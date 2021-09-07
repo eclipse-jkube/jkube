@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.springboot.watcher;
 
+import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -52,8 +54,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
 
 public class SpringBootWatcher extends BaseWatcher {
 

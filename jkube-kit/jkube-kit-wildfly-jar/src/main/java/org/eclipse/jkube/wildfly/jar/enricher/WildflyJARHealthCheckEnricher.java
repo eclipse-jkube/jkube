@@ -13,25 +13,26 @@
  */
 package org.eclipse.jkube.wildfly.jar.enricher;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
-
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.Plugin;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
 
 /**
  * Enriches wildfly-jar containers with health checks if the bootable JAR has

@@ -13,6 +13,21 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.handler.DeploymentHandler;
+import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
+import org.eclipse.jkube.kit.enricher.handler.StatefulSetHandler;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
@@ -25,20 +40,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetFluent;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.kit.enricher.handler.DeploymentHandler;
-import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
-import org.eclipse.jkube.kit.enricher.handler.StatefulSetHandler;
-
-import java.util.Collections;
-import java.util.List;
 
 public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
     protected static final String[] POD_CONTROLLER_KINDS =

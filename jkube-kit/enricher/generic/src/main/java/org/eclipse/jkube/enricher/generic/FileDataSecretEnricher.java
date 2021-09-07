@@ -13,14 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
-import org.eclipse.jkube.kit.common.util.Base64Util;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -28,6 +20,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
+import org.eclipse.jkube.kit.common.util.Base64Util;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 
 public class FileDataSecretEnricher extends BaseEnricher {
 

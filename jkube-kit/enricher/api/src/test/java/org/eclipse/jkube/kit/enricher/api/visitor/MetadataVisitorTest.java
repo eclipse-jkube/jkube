@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.enricher.api.visitor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
+
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
@@ -36,9 +39,6 @@ import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.MapEntry.entry;
 
 public class MetadataVisitorTest {
 

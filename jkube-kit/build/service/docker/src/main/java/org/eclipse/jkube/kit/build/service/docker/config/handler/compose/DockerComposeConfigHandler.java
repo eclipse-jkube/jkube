@@ -13,14 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.compose;
 
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandlerException;
-import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.yaml.snakeyaml.Yaml;
+import static org.eclipse.jkube.kit.build.service.docker.config.handler.compose.ComposeUtils.resolveAbsolutely;
+import static org.eclipse.jkube.kit.build.service.docker.config.handler.compose.ComposeUtils.resolveComposeFileAbsolutely;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,8 +23,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.compose.ComposeUtils.resolveAbsolutely;
-import static org.eclipse.jkube.kit.build.service.docker.config.handler.compose.ComposeUtils.resolveComposeFileAbsolutely;
+import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandler;
+import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigHandlerException;
+import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
+import org.yaml.snakeyaml.Yaml;
 
 
 /**

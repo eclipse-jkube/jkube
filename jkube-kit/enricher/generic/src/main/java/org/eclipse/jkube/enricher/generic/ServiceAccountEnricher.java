@@ -13,22 +13,23 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ServiceAccount;
-import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 
 public class ServiceAccountEnricher extends BaseEnricher {
     public ServiceAccountEnricher(JKubeEnricherContext enricherContext) {

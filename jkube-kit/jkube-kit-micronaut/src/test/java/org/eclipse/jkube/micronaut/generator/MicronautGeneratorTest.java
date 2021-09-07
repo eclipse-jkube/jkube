@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.micronaut.generator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -25,8 +27,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class MicronautGeneratorTest {

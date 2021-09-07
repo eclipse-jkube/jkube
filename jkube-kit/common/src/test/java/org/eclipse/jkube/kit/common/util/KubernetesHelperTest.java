@@ -13,6 +13,13 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,8 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.fabric8.kubernetes.api.model.HTTPHeader;
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -34,6 +39,7 @@ import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -61,13 +67,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 public class KubernetesHelperTest {
 

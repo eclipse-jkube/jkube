@@ -14,12 +14,14 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.io.File;
+
+import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
+
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.eclipse.jkube.kit.resource.helm.HelmConfig;
-import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 @Mojo(name = "helm-push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class OpenshiftHelmPushMojo extends HelmPushMojo {

@@ -13,33 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import org.eclipse.jkube.kit.build.api.model.ExecDetails;
-import org.eclipse.jkube.kit.build.api.model.Container;
-import org.eclipse.jkube.kit.build.api.model.ContainerDetails;
-import org.eclipse.jkube.kit.build.api.model.Network;
-import org.eclipse.jkube.kit.build.api.model.NetworkCreateConfig;
-import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.service.docker.access.ContainerCreateConfig;
-import org.eclipse.jkube.kit.build.service.docker.access.ContainerHostConfig;
-import org.eclipse.jkube.kit.build.service.docker.access.ContainerNetworkingConfig;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
-import org.eclipse.jkube.kit.build.service.docker.access.ExecException;
-import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
-import org.eclipse.jkube.kit.config.image.NetworkConfig;
-import org.eclipse.jkube.kit.config.image.RestartPolicy;
-import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
-import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.VolumeConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
-import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
-import org.eclipse.jkube.kit.build.service.docker.wait.WaitTimeoutException;
-import org.eclipse.jkube.kit.build.service.docker.wait.WaitUtil;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
+import static org.eclipse.jkube.kit.build.service.docker.helper.VolumeBindingUtil.resolveRelativeVolumeBindings;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -55,7 +29,33 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-import static org.eclipse.jkube.kit.build.service.docker.helper.VolumeBindingUtil.resolveRelativeVolumeBindings;
+import org.eclipse.jkube.kit.build.api.model.Container;
+import org.eclipse.jkube.kit.build.api.model.ContainerDetails;
+import org.eclipse.jkube.kit.build.api.model.ExecDetails;
+import org.eclipse.jkube.kit.build.api.model.Network;
+import org.eclipse.jkube.kit.build.api.model.NetworkCreateConfig;
+import org.eclipse.jkube.kit.build.core.GavLabel;
+import org.eclipse.jkube.kit.build.service.docker.access.ContainerCreateConfig;
+import org.eclipse.jkube.kit.build.service.docker.access.ContainerHostConfig;
+import org.eclipse.jkube.kit.build.service.docker.access.ContainerNetworkingConfig;
+import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
+import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
+import org.eclipse.jkube.kit.build.service.docker.access.ExecException;
+import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
+import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
+import org.eclipse.jkube.kit.build.service.docker.config.VolumeConfiguration;
+import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
+import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
+import org.eclipse.jkube.kit.build.service.docker.wait.WaitTimeoutException;
+import org.eclipse.jkube.kit.build.service.docker.wait.WaitUtil;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.NetworkConfig;
+import org.eclipse.jkube.kit.config.image.RestartPolicy;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
 
 
 /**

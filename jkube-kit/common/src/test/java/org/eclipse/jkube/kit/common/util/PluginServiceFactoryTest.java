@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
 /**
  * @author roland

@@ -13,6 +13,18 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static junit.framework.TestCase.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -20,21 +32,10 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static junit.framework.TestCase.assertEquals;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author yuwzho

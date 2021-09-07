@@ -13,10 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
-import org.eclipse.jkube.kit.build.service.docker.helper.LocalSocketUtil;
-import org.eclipse.jkube.kit.build.service.docker.helper.SuffixFileFilter;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,6 +20,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import org.eclipse.jkube.kit.build.service.docker.helper.LocalSocketUtil;
+import org.eclipse.jkube.kit.build.service.docker.helper.SuffixFileFilter;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 
 /**
  * Detector for determining the Docker access mechanism

@@ -23,8 +23,6 @@ import java.util.Properties;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
 
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -33,6 +31,8 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Test label generation.

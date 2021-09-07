@@ -13,22 +13,23 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.EnricherContext;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Enriches containers with health check probes.

@@ -13,16 +13,17 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
 
 public class AsciiDocParserTest {
 

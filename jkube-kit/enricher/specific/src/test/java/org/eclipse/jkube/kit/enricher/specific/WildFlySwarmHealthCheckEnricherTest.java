@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -28,9 +31,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 public class WildFlySwarmHealthCheckEnricherTest {
 

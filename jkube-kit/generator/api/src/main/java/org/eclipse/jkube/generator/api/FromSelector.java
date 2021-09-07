@@ -13,15 +13,15 @@
  */
 package org.eclipse.jkube.generator.api;
 
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.kind;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.name;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.namespace;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-
-import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.kind;
-import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.name;
-import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.SourceStrategy.namespace;
 
 
 /**

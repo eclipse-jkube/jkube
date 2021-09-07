@@ -13,9 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.chunked;
 
-import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.KitLogger;
+
+import com.google.gson.JsonObject;
 
 public class PullOrPushResponseJsonHandler implements EntityStreamReaderUtil.JsonEntityResponseHandler {
 

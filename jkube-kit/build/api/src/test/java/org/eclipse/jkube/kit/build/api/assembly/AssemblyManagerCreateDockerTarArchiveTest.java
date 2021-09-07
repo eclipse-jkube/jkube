@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.build.api.assembly;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,12 +29,12 @@ import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 
 import mockit.Mocked;
 import org.assertj.core.api.AbstractFileAssert;
@@ -42,9 +45,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class AssemblyManagerCreateDockerTarArchiveTest {
 

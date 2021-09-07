@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.io.File;
+import java.io.Serializable;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -20,10 +24,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
-
-import java.io.File;
-import java.io.Serializable;
-import java.util.List;
 
 @SuppressWarnings("JavaDoc")
 @Builder(toBuilder = true)

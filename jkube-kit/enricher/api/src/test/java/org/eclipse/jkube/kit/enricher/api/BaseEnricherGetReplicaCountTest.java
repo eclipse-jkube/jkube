@@ -13,16 +13,16 @@
  */
 package org.eclipse.jkube.kit.enricher.api;
 
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.enricher.api.BaseEnricher.getReplicaCount;
+
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.enricher.api.BaseEnricher.getReplicaCount;
 
 public class BaseEnricherGetReplicaCountTest {
 

@@ -13,11 +13,11 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.util.HashMap;
+
 import io.fabric8.kubernetes.api.builder.BaseFluent;
 import io.fabric8.kubernetes.api.builder.VisitableBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-
-import java.util.HashMap;
 
 public class GenericCustomResourceBuilder extends BaseFluent<GenericCustomResourceBuilder>
   implements VisitableBuilder<GenericCustomResource, GenericCustomResourceBuilder> {

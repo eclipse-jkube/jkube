@@ -13,6 +13,15 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Collections;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
+import org.eclipse.jkube.kit.config.service.PatchService;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
@@ -23,18 +32,10 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
-import org.eclipse.jkube.kit.config.service.PatchService;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 
 public class PatchServiceTest {
     @Mocked

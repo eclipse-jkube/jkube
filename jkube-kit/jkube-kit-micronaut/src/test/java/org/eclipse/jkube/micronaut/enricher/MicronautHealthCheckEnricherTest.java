@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.micronaut.enricher;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
@@ -37,8 +39,6 @@ import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class MicronautHealthCheckEnricherTest {

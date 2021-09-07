@@ -13,19 +13,20 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
-import mockit.Mocked;
-import mockit.Verifications;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+
+import java.util.Collections;
+
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+
+import mockit.Mocked;
+import mockit.Verifications;
 import org.junit.Test;
-
-import java.util.Collections;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
 @SuppressWarnings("unused")
 public class OpenShiftBuildServiceTest {

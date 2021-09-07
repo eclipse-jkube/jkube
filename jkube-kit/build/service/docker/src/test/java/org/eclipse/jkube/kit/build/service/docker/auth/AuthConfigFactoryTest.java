@@ -13,6 +13,28 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth;
 
+import static java.util.UUID.randomUUID;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.SystemMock;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -24,30 +46,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
-import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
-import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.common.SystemMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.UUID.randomUUID;
-import static org.apache.http.HttpStatus.SC_NOT_FOUND;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 public class AuthConfigFactoryTest {
     public static final String ECR_NAME = "123456789012.dkr.ecr.bla.amazonaws.com";

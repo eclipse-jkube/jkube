@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.generator.javaexec;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,9 +32,6 @@ import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class JavaExecGeneratorTest {

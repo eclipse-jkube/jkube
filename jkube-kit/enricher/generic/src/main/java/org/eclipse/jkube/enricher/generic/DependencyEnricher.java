@@ -13,23 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.openshift.api.model.Template;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.Dependency;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -44,6 +27,24 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.openshift.api.model.Template;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * Enricher for embedding dependency descriptors to single package.

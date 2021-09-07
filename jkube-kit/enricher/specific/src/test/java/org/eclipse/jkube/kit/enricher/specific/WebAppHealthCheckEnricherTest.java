@@ -13,7 +13,8 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
-import io.fabric8.kubernetes.api.model.Probe;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -21,11 +22,11 @@ import java.util.function.BiFunction;
 
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
+import io.fabric8.kubernetes.api.model.Probe;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class WebAppHealthCheckEnricherTest {
 

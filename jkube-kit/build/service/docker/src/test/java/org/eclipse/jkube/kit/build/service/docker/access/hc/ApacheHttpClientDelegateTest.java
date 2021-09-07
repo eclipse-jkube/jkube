@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.hc;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -29,8 +31,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings({"rawtypes", "unused"})
 public class ApacheHttpClientDelegateTest {

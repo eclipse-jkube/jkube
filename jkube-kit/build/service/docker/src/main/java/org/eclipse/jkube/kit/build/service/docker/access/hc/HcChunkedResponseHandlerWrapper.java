@@ -13,13 +13,14 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.hc;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ResponseHandler;
-import org.eclipse.jkube.kit.build.service.docker.access.chunked.EntityStreamReaderUtil;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Stream;
+
+import org.eclipse.jkube.kit.build.service.docker.access.chunked.EntityStreamReaderUtil;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ResponseHandler;
 
 class HcChunkedResponseHandlerWrapper implements ResponseHandler<Object> {
 

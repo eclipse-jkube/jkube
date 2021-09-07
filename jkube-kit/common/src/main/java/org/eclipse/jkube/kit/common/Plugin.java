@@ -13,16 +13,16 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Model class that represents a Maven compatible plugin.

@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.common.util;
 
 import org.eclipse.jkube.kit.common.KitLogger;
+
 import org.slf4j.Logger;
 
 @SuppressWarnings("squid:S2629")

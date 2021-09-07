@@ -14,10 +14,10 @@
 package org.eclipse.jkube.kit.build.api.assembly;
 
 
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-
 import java.io.File;
+
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 
 /**
  * Helper object grouping together all working and output

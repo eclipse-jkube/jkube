@@ -13,11 +13,12 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Test;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import org.junit.Test;
 
 public class DekorateUtilTest {
   @Test

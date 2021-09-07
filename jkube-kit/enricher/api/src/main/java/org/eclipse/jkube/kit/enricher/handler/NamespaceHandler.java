@@ -13,11 +13,12 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceStatusBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 public class NamespaceHandler {
 

@@ -13,26 +13,27 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Expectations;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.Assert.assertThrows;
+
+import java.util.Properties;
+
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
+
+import io.fabric8.openshift.client.OpenShiftClient;
+import mockit.Expectations;
+import mockit.Mocked;
 import org.junit.Test;
-
-import java.util.Properties;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertThrows;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class JKubeServiceHubTest {

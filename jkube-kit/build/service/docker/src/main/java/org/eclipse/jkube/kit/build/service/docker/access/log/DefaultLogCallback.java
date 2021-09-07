@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
-import com.google.common.io.Files;
-import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
+
+import com.google.common.io.Files;
 
 /**
  * @author roland

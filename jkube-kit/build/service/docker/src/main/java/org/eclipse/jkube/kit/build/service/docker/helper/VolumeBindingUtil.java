@@ -14,14 +14,14 @@
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
 
-import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
+import static org.eclipse.jkube.kit.build.service.docker.helper.DockerPathUtil.resolveAbsolutely;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.eclipse.jkube.kit.build.service.docker.helper.DockerPathUtil.resolveAbsolutely;
+import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
 
 
 /**

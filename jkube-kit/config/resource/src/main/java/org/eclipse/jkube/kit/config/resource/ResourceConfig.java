@@ -13,16 +13,16 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author roland

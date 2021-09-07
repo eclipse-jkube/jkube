@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
-import org.junit.Test;
-
 import static org.eclipse.jkube.kit.config.image.build.CleanupMode.NONE;
 import static org.eclipse.jkube.kit.config.image.build.CleanupMode.REMOVE;
 import static org.eclipse.jkube.kit.config.image.build.CleanupMode.TRY_TO_REMOVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import org.junit.Test;
 
 /**
  * @author roland

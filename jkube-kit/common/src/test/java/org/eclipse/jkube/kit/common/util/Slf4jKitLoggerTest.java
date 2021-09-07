@@ -14,15 +14,16 @@
 package org.eclipse.jkube.kit.common.util;
 
 
+import static org.junit.Assert.assertTrue;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
-
-import static org.junit.Assert.assertTrue;
 
 public class Slf4jKitLoggerTest {
 

@@ -13,26 +13,27 @@
  */
 package org.eclipse.jkube.kit.enricher.api.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.PodTemplateSpec;
-import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
-import org.eclipse.jkube.kit.common.KitLogger;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author roland

@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
-import org.eclipse.jkube.kit.config.resource.OpenShiftAnnotations;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
+import org.eclipse.jkube.kit.config.resource.OpenShiftAnnotations;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+
+import org.junit.Test;
 
 public class GitEnricherTest {
 

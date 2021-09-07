@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
 import org.junit.Test;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class ExtensionsV1Beta1IngressConverterTest {
     @Test

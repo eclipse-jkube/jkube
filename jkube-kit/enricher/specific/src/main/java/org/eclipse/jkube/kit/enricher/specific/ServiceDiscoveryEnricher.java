@@ -13,29 +13,31 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
-import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServicePort;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServicePort;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 public class ServiceDiscoveryEnricher extends BaseEnricher {
     private static final String ENRICHER_NAME = "jkube-service-discovery";

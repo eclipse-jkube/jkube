@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Properties;
 import java.util.function.Consumer;
 
@@ -28,8 +30,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DeploymentConfigEnricherTest {
 

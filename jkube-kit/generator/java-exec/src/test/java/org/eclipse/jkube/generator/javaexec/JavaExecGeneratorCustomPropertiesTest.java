@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.generator.javaexec;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,8 +29,6 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class JavaExecGeneratorCustomPropertiesTest {

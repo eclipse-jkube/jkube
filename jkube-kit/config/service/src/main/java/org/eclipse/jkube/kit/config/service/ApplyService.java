@@ -13,6 +13,15 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getKind;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateLabels;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateMetadata;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -80,15 +89,6 @@ import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getKind;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateLabels;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateMetadata;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
 
 /**
  * Applies DTOs to the current Kubernetes master

@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.generator.webapp;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,10 +37,6 @@ import mockit.Mocked;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class WebAppGeneratorTest {
 

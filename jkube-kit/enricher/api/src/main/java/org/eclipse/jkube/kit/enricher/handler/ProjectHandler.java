@@ -13,11 +13,12 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 public class ProjectHandler {
     public Project getProject(String namespace) {

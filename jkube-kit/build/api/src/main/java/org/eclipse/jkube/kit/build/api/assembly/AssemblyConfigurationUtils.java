@@ -28,9 +28,9 @@ import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 
 class AssemblyConfigurationUtils {
 

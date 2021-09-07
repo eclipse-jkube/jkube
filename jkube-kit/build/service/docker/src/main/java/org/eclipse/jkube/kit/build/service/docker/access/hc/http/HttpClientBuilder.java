@@ -21,6 +21,7 @@ import javax.net.ssl.SSLContext;
 
 import org.eclipse.jkube.kit.build.service.docker.access.KeyStoreUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.util.ClientBuilder;
+
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;

@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.kit.build.api.helper;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Optional;
+
+import javax.annotation.Nonnull;
+
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.IOException;
-import java.util.Optional;
 
 public class BuildUtil {
 

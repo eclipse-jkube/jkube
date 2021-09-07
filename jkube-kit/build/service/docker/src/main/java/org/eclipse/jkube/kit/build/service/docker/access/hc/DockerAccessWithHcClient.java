@@ -13,6 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.hc;
 
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
+import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
+import static java.net.HttpURLConnection.HTTP_OK;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,9 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.model.Container;
 import org.eclipse.jkube.kit.build.api.model.ContainerDetails;
 import org.eclipse.jkube.kit.build.api.model.ContainersListElement;
@@ -38,7 +43,6 @@ import org.eclipse.jkube.kit.build.api.model.Network;
 import org.eclipse.jkube.kit.build.api.model.NetworkCreateConfig;
 import org.eclipse.jkube.kit.build.api.model.NetworksListElement;
 import org.eclipse.jkube.kit.build.api.model.VolumeCreateConfig;
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.ContainerCreateConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
@@ -58,10 +62,14 @@ import org.eclipse.jkube.kit.build.service.docker.access.log.LogRequestor;
 import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
 import org.eclipse.jkube.kit.common.JsonFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -69,13 +77,6 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-
-import static java.net.HttpURLConnection.HTTP_CREATED;
-import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
-import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
-import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
-import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
  * Implementation using <a href="http://hc.apache.org/">Apache HttpComponents</a>

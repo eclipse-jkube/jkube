@@ -13,17 +13,17 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.jkube.kit.common.util.MapUtil.getFlattenedMap;
+import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.eclipse.jkube.kit.common.util.MapUtil.getFlattenedMap;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author roland

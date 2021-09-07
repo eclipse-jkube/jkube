@@ -13,28 +13,29 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
+
 import java.io.Closeable;
 import java.util.Objects;
 import java.util.Optional;
+
+import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
+import org.eclipse.jkube.kit.common.service.MigrateService;
+import org.eclipse.jkube.kit.common.util.LazyBuilder;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
+import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.common.service.MigrateService;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
-import org.eclipse.jkube.kit.common.util.LazyBuilder;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
-import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
-
-import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
 
 /**
  * @author nicola

@@ -26,6 +26,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpRequest;
 import org.apache.http.NameValuePair;

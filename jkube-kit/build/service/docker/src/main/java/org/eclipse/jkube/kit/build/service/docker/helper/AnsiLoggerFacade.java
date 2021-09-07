@@ -13,15 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.apache.commons.lang3.StringUtils;
-import org.fusesource.jansi.Ansi;
-import org.fusesource.jansi.AnsiConsole;
-
+import static org.fusesource.jansi.Ansi.ansi;
 import static org.fusesource.jansi.Ansi.Color.BLACK;
 import static org.fusesource.jansi.Ansi.Color.BLUE;
 import static org.fusesource.jansi.Ansi.Color.CYAN;
@@ -31,7 +23,16 @@ import static org.fusesource.jansi.Ansi.Color.MAGENTA;
 import static org.fusesource.jansi.Ansi.Color.RED;
 import static org.fusesource.jansi.Ansi.Color.WHITE;
 import static org.fusesource.jansi.Ansi.Color.YELLOW;
-import static org.fusesource.jansi.Ansi.ansi;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+
+import org.apache.commons.lang3.StringUtils;
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.AnsiConsole;
 
 /**
  * Simple log handler for printing used during the maven build

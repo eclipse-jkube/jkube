@@ -32,13 +32,13 @@ import org.eclipse.jkube.kit.build.service.docker.watch.ExecTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchException;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
 

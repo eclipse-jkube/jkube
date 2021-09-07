@@ -13,21 +13,22 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
+
+import java.util.Map;
+
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Map;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
 
 /**
  * @author kameshs

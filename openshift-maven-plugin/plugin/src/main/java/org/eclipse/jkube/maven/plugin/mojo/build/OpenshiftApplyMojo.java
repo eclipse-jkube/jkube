@@ -13,15 +13,15 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.maven.plugins.annotations.Parameter;
+import java.io.File;
+
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-
-import java.io.File;
 
 /**
  * Base class for goals which deploy the generated artifacts into the OpenShift cluster

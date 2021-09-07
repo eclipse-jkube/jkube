@@ -13,6 +13,13 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -23,20 +30,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 
-import mockit.Verifications;
-import org.apache.maven.plugin.BuildPluginManager;
-import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.PluginConfigurationException;
-import org.apache.maven.plugin.PluginManagerException;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.Verifications;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -49,19 +50,18 @@ import org.apache.maven.model.DistributionManagement;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Site;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.apache.maven.plugin.BuildPluginManager;
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.PluginConfigurationException;
+import org.apache.maven.plugin.PluginManagerException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class MavenUtilTest {
   @Rule

@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
 
 public class LazyBuilderTest {
 

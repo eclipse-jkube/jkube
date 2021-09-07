@@ -13,14 +13,16 @@
  */
 package org.eclipse.jkube.wildfly.jar.generator;
 
-import java.io.File;
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Test;
+import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_DIST;
+import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_REPO;
+import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.PLUGIN_OPTIONS;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,19 +31,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher;
-import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_DIST;
-import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_REPO;
-import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.PLUGIN_OPTIONS;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Test;
 
 /**
  * @author roland

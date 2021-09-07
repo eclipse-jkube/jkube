@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.watcher.standard;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -36,10 +40,6 @@ import mockit.Mocked;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
 
 @SuppressWarnings("unused")
 public class PodExecutorTest {

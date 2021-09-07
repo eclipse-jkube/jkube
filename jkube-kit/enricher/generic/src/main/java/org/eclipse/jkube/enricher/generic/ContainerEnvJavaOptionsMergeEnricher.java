@@ -13,11 +13,11 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.eclipse.jkube.kit.common.Configs.asBoolean;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -29,8 +29,8 @@ import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-
-import static org.eclipse.jkube.kit.common.Configs.asBoolean;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * Enricher to merge <code>JAVA_OPTIONS</code> environment variables defined in {@link BuildConfiguration#getEnv()}

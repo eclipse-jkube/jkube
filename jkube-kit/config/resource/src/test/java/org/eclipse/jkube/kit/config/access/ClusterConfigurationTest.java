@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.kit.config.access;
 
-import io.fabric8.kubernetes.client.Config;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import io.fabric8.kubernetes.client.Config;
+import org.junit.Test;
 
 public class ClusterConfigurationTest {
 

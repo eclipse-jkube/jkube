@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.watcher.standard;
 
-import io.fabric8.kubernetes.client.dsl.ExecListener;
-import okhttp3.Response;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+
+import io.fabric8.kubernetes.client.dsl.ExecListener;
+import okhttp3.Response;
 
 public class ExecListenerLatch implements ExecListener {
 

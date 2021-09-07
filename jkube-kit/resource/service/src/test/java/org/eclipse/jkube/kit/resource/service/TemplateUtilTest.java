@@ -13,6 +13,12 @@
  */
 package org.eclipse.jkube.kit.resource.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTemplate;
+import static org.eclipse.jkube.kit.resource.service.TemplateUtil.interpolateTemplateVariables;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 
@@ -26,12 +32,6 @@ import mockit.Verifications;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTemplate;
-import static org.eclipse.jkube.kit.resource.service.TemplateUtil.interpolateTemplateVariables;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
 
 @SuppressWarnings({"AccessStaticViaInstance", "ConstantConditions"})
 public class TemplateUtilTest {

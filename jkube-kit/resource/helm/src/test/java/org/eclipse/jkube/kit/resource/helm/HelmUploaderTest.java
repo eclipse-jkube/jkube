@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -28,9 +31,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
 public class HelmUploaderTest {
 

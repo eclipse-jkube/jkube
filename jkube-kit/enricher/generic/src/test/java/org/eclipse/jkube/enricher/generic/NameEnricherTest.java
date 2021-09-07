@@ -13,6 +13,14 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Properties;
+
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -20,20 +28,12 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.assertj.core.api.Condition;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Properties;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class NameEnricherTest {
 

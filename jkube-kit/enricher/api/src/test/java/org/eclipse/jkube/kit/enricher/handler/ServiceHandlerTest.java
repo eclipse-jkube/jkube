@@ -13,18 +13,19 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.Service;
-import org.eclipse.jkube.kit.config.resource.ServiceConfig;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.jkube.kit.config.resource.ServiceConfig;
+
+import io.fabric8.kubernetes.api.model.Service;
+import org.junit.Test;
 
 public class ServiceHandlerTest {
 

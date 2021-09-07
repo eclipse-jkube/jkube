@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.micronaut.generator;
 
+import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
+import static org.eclipse.jkube.micronaut.MicronautUtils.extractPort;
+import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,10 +24,6 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-
-import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
-import static org.eclipse.jkube.micronaut.MicronautUtils.extractPort;
-import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
 
 public class MicronautGenerator extends JavaExecGenerator {
 

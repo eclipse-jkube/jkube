@@ -14,13 +14,6 @@
 package org.eclipse.jkube.kit.common.util;
 
 
-import java.net.URL;
-import java.util.List;
-import java.util.Properties;
-
-import com.fasterxml.jackson.databind.JsonMappingException;
-import org.junit.Test;
-
 import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlString;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.splitYamlResource;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -30,6 +23,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
+
+import java.net.URL;
+import java.util.List;
+import java.util.Properties;
+
+import com.fasterxml.jackson.databind.JsonMappingException;
+import org.junit.Test;
 
 public class YamlUtilTest {
 

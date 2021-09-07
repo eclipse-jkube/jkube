@@ -13,6 +13,12 @@
  */
 package org.eclipse.jkube.quarkus;
 
+import static org.eclipse.jkube.kit.common.util.FileUtil.stripPrefix;
+import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
+import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
+
 import java.io.File;
 import java.net.URLClassLoader;
 import java.util.Optional;
@@ -25,12 +31,6 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import org.apache.commons.lang3.StringUtils;
-
-import static org.eclipse.jkube.kit.common.util.FileUtil.stripPrefix;
-import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
-import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
 
 public class QuarkusUtils {
 

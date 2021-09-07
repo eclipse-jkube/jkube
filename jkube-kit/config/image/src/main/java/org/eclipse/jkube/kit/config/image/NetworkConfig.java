@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.config.image;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * Network config encapsulating network specific configuration

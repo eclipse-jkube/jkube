@@ -13,18 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.ByteStreams;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
-import org.eclipse.jkube.kit.build.service.docker.access.UrlBuilder;
-import org.eclipse.jkube.kit.build.service.docker.helper.RequestUtil;
-import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.CloseableHttpClient;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +20,19 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
+import org.eclipse.jkube.kit.build.service.docker.access.UrlBuilder;
+import org.eclipse.jkube.kit.build.service.docker.helper.RequestUtil;
+import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.ByteStreams;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
 
 /**
  * Extractor for parsing the response of a log request

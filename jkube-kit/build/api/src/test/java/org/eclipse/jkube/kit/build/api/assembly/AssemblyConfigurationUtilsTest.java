@@ -13,6 +13,12 @@
  */
 package org.eclipse.jkube.kit.build.api.assembly;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.createDockerFileBuilder;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -31,12 +37,6 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import mockit.Expectations;
 import mockit.Injectable;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.createDockerFileBuilder;
-import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
-import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
-import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
 
 public class AssemblyConfigurationUtilsTest {
 

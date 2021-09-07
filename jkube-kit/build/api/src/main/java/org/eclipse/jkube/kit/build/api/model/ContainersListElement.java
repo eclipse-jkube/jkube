@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.api.model;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 public class ContainersListElement implements Container {
 

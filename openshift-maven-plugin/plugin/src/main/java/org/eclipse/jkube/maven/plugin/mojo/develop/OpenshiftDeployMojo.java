@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import java.io.File;
+
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
-
-import java.io.File;
 
 /**
  * This goal forks the install goal then applies the generated kubernetes resources to the current cluster.

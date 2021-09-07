@@ -21,12 +21,13 @@ import java.io.Reader;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthHandler;
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 /**
  * @author roland

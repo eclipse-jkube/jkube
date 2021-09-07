@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
+
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Optional;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
-
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 
 /**
  * Utility methods to access spring-boot resources.

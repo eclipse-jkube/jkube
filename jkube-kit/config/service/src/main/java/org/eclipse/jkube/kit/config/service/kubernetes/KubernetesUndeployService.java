@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.loadResources;
+import static org.eclipse.jkube.kit.config.service.ApplyService.getK8sListWithNamespaceFirst;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,11 +40,6 @@ import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.loadResources;
-import static org.eclipse.jkube.kit.config.service.ApplyService.getK8sListWithNamespaceFirst;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
 
 public class KubernetesUndeployService implements UndeployService {
 

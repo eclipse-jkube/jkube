@@ -15,12 +15,12 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 /**
  * Generates or copies the Kubernetes JSON file and attaches it to the build so its

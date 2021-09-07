@@ -13,17 +13,11 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.api.model.ServiceSpec;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
@@ -36,10 +30,17 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.ServiceSpec;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Enricher which generates an Ingress for each exposed Service

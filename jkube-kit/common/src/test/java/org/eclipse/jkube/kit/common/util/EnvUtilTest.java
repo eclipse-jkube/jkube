@@ -13,6 +13,15 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.loadTimestamp;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,15 +38,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.loadTimestamp;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
 
 public class EnvUtilTest {
 

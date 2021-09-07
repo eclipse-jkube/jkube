@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.enricher.api.visitor;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -71,8 +73,6 @@ import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.ImageStreamFluent;
 import io.fabric8.openshift.api.model.ImageStreamFluentImpl;
 import lombok.AllArgsConstructor;
-
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
 
 /**
  * Visitor which adds labels and annotations

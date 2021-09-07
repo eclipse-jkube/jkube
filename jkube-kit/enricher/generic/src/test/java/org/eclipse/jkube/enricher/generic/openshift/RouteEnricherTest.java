@@ -13,27 +13,26 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.Properties;
+
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Properties;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
 public class RouteEnricherTest {

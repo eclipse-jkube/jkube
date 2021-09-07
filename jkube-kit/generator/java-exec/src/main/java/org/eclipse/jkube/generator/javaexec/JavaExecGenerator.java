@@ -13,30 +13,31 @@
  */
 package org.eclipse.jkube.generator.javaexec;
 
+import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.Assembly;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
-import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
-import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author roland

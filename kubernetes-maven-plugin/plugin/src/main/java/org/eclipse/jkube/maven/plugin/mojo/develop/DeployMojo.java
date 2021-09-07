@@ -14,6 +14,7 @@
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo;
+
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;

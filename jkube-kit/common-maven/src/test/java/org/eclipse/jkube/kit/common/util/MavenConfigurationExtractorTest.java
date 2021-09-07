@@ -13,17 +13,18 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.maven.model.Plugin;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 
 public class MavenConfigurationExtractorTest {

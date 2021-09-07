@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.build.api.auth;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Singular;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Singular;
 
 /**
  * @author roland

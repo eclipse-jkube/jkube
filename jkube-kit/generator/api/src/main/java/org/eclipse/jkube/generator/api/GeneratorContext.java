@@ -13,20 +13,21 @@
  */
 package org.eclipse.jkube.generator.api;
 
+import java.util.Optional;
+
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-
-import java.util.Optional;
 
 /**
  * @author roland

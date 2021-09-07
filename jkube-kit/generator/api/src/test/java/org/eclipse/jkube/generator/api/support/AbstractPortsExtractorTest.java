@@ -13,20 +13,21 @@
  */
 package org.eclipse.jkube.generator.api.support;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.Map;
 
 import org.eclipse.jkube.generator.api.PortsExtractor;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
+
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class AbstractPortsExtractorTest {
 

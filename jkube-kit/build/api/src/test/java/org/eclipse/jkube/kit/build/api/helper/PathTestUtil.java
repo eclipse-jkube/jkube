@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.api.helper;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * Utility methods and constants for path-related tests

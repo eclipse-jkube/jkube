@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
+import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
+import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestampFile;
+import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo.DEFAULT_LOG_PREFIX;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,32 +35,32 @@ import java.util.Optional;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
-import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
-import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
-import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.image.build.RegistryAuthConfiguration;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -65,9 +70,10 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
-import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.profile.ProfileUtil;
+import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
@@ -86,14 +92,8 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
-import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 import org.fusesource.jansi.Ansi;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
-
-import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
-import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
-import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestampFile;
-import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo.DEFAULT_LOG_PREFIX;
 
 public abstract class AbstractDockerMojo extends AbstractMojo
     implements ConfigHelper.Customizer, Contextualizable, KitLoggerProvider {

@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.micronaut;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
+
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
@@ -22,10 +26,6 @@ import java.util.Properties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
 
 @RunWith(Parameterized.class)
 public class MicronautUtilsGetMicronautConfigurationTest {

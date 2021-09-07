@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
@@ -30,8 +32,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("unused")
 public class UndeployMojoTest {

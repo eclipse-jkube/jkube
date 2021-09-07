@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -26,9 +29,6 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
 public class AssemblyConfigurationTest {
 

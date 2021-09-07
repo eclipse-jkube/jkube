@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.springboot.generator;
 
+import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
+import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID;
+import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID;
+import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.COLOR;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,27 +36,23 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import com.google.common.base.Strings;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
-import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID;
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID;
-import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.COLOR;
+import com.google.common.base.Strings;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author roland

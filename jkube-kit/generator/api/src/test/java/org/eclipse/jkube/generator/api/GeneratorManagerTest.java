@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.generator.api;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,8 +27,6 @@ import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class GeneratorManagerTest {
 

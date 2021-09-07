@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -29,8 +31,6 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class FileDataSecretEnricherTest {
 

@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.springboot.enricher;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
@@ -21,23 +25,20 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeMap;
 
-import io.fabric8.kubernetes.api.model.Probe;
+import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
+
+import io.fabric8.kubernetes.api.model.Probe;
 import mockit.Expectations;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * Check various configurations for spring-boot health checks

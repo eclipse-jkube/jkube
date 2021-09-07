@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.hc;
 
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -21,16 +25,13 @@ import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.util.ClientBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
+
 import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
 import org.junit.Before;
 import org.junit.Test;
-
-import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 public class DockerAccessWithHcClientTest {
 

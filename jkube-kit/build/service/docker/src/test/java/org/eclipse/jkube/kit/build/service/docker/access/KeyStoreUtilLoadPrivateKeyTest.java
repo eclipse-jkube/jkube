@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
+import static org.eclipse.jkube.kit.build.service.docker.access.KeyStoreUtilTest.getFile;
+import static org.junit.Assert.assertNotNull;
+
 import java.security.PrivateKey;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import static org.eclipse.jkube.kit.build.service.docker.access.KeyStoreUtilTest.*;
-import static org.junit.Assert.assertNotNull;
 
 @RunWith(Parameterized.class)
 public class KeyStoreUtilLoadPrivateKeyTest {

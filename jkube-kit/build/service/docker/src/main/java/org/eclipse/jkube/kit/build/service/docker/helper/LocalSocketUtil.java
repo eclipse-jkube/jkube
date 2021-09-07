@@ -13,11 +13,11 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import jnr.unixsocket.UnixSocketAddress;
-import jnr.unixsocket.UnixSocketChannel;
-
 import java.io.File;
 import java.io.IOException;
+
+import jnr.unixsocket.UnixSocketAddress;
+import jnr.unixsocket.UnixSocketChannel;
 
 /**
  * Utilities around socket connections

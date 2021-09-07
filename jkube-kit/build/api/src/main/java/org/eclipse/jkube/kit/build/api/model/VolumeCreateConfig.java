@@ -13,10 +13,11 @@
  */
 package org.eclipse.jkube.kit.build.api.model;
 
-import com.google.gson.JsonObject;
+import java.util.Map;
+
 import org.eclipse.jkube.kit.common.JsonFactory;
 
-import java.util.Map;
+import com.google.gson.JsonObject;
 
 
 public class VolumeCreateConfig

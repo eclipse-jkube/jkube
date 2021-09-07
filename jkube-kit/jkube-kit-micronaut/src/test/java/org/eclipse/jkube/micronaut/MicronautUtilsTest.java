@@ -13,17 +13,17 @@
  */
 package org.eclipse.jkube.micronaut;
 
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Properties;
-
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.micronaut.MicronautUtils.extractPort;
 import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
 import static org.eclipse.jkube.micronaut.MicronautUtils.isHealthEnabled;
+
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Properties;
+
+import org.junit.Test;
 
 public class MicronautUtilsTest {
 

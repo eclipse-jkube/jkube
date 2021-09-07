@@ -13,6 +13,13 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
+import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
+import static org.eclipse.jkube.kit.common.util.DekorateUtil.DEFAULT_RESOURCE_LOCATION;
+import static org.eclipse.jkube.kit.common.util.DekorateUtil.useDekorate;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.updateKindFilenameMappings;
+import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractDockerMojo.CONTEXT_KEY_BUILD_TIMESTAMP;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -59,13 +66,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenFilteringException;
-
-import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
-import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
-import static org.eclipse.jkube.kit.common.util.DekorateUtil.DEFAULT_RESOURCE_LOCATION;
-import static org.eclipse.jkube.kit.common.util.DekorateUtil.useDekorate;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.updateKindFilenameMappings;
-import static org.eclipse.jkube.maven.plugin.mojo.build.BuildMojo.CONTEXT_KEY_BUILD_TIMESTAMP;
 
 
 /**

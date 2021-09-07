@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.generator.webapp;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,24 +22,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.apache.commons.io.FilenameUtils;
-import org.eclipse.jkube.kit.common.Assembly;
-import org.eclipse.jkube.kit.common.AssemblyFile;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.support.BaseGenerator;
 import org.eclipse.jkube.generator.webapp.handler.CustomAppServerHandler;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * A generator for WAR apps

@@ -13,25 +13,13 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
-import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
-import io.fabric8.openshift.api.model.ImageStream;
-import io.fabric8.openshift.api.model.ImageStreamBuilder;
-import io.fabric8.openshift.api.model.NamedTagEventList;
-import io.fabric8.openshift.api.model.TagEvent;
-import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.ImageName;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Assert;
-import org.junit.Test;
-import org.yaml.snakeyaml.Yaml;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,9 +28,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageName;
+
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
+import io.fabric8.openshift.api.model.ImageStream;
+import io.fabric8.openshift.api.model.ImageStreamBuilder;
+import io.fabric8.openshift.api.model.NamedTagEventList;
+import io.fabric8.openshift.api.model.TagEvent;
+import io.fabric8.openshift.client.OpenShiftClient;
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Assert;
+import org.junit.Test;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author roland

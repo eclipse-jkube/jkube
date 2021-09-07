@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.generator.api.support;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,7 +26,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.PortsExtractor;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -32,8 +33,7 @@ import org.eclipse.jkube.kit.common.PrefixedLogger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class AbstractPortsExtractor implements PortsExtractor {
 

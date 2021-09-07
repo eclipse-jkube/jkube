@@ -32,13 +32,13 @@ import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class AssemblyFileSetUtils {

@@ -14,6 +14,11 @@
 package org.eclipse.jkube.kit.config.access;
 
 
+import java.net.UnknownHostException;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -21,10 +26,6 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftAPIGroups;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-
-import java.net.UnknownHostException;
 
 /**
  * @author roland

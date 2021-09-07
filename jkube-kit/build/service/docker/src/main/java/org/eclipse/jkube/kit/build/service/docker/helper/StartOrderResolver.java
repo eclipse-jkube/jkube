@@ -13,16 +13,16 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import org.eclipse.jkube.kit.build.service.docker.QueryService;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.eclipse.jkube.kit.build.service.docker.QueryService;
+import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * @author roland

@@ -13,13 +13,14 @@
  */
 package org.eclipse.jkube.kit.common.archive;
 
-import org.apache.commons.lang3.StringUtils;
+import java.io.File;
+import java.util.Objects;
+
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 
-import java.io.File;
-import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 
 public class AssemblyFileUtils {
 

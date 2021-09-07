@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -21,8 +23,6 @@ import java.security.KeyStore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Stas Sukhanov

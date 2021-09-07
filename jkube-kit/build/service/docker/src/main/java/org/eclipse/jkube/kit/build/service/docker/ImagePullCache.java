@@ -13,8 +13,9 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.common.JsonFactory;
+
+import com.google.gson.JsonObject;
 
 /**
  * Simple interface for a ImagePullCache manager, to load and persist the cache.

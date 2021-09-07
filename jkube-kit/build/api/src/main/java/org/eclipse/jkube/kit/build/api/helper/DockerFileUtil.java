@@ -13,15 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.api.helper;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.JKubeFileInterpolator;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,6 +31,15 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.eclipse.jkube.kit.common.JKubeFileInterpolator;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * Utility class for dealing with dockerfiles

@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.kit.common.archive;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.resolveSourceDirectory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -32,10 +36,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
-import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.resolveSourceDirectory;
 
 public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
 

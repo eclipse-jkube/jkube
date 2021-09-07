@@ -16,9 +16,8 @@ package org.eclipse.jkube.kit.config.service;
 import java.io.Closeable;
 import java.util.Collections;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import mockit.Verifications;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.service.portforward.PortForwardTask;
 
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -26,11 +25,12 @@ import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodListBuilder;
 import io.fabric8.kubernetes.api.model.WatchEvent;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.LocalPortForward;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.config.service.portforward.PortForwardTask;
+import mockit.Verifications;
 import org.junit.Rule;
 import org.junit.Test;
 

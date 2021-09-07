@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.micronaut;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
+import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
+
 import java.net.URLClassLoader;
 import java.util.Properties;
 import java.util.function.Supplier;
-
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
-import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
 
 public class MicronautUtils {
 

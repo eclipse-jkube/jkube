@@ -21,17 +21,17 @@ import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
-import lombok.AccessLevel;
-import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.Singular;
+import org.apache.commons.lang3.StringUtils;
 
 @SuppressWarnings("JavaDoc")
 @Builder(toBuilder = true)

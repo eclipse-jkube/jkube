@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.kit.common.archive;
 
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
-
 import java.io.IOException;
 import java.io.OutputStream;
+
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 
 /**
  * Enumeration for determine the compression mode when creating docker

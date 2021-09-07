@@ -13,11 +13,11 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.wait;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogGetHandle;
 import org.eclipse.jkube.kit.common.KitLogger;
-
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author roland

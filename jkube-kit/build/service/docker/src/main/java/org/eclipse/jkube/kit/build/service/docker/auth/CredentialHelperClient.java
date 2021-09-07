@@ -17,12 +17,13 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.common.ExternalCommand;
 import org.eclipse.jkube.kit.common.JsonFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+
+import com.google.gson.JsonObject;
 
 public class CredentialHelperClient {
 

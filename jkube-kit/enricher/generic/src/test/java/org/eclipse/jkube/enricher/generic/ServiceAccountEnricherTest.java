@@ -13,19 +13,20 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ServiceAccount;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class ServiceAccountEnricherTest {
     @Mocked

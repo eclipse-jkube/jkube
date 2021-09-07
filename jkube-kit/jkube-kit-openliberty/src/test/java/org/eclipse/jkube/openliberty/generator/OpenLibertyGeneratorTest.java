@@ -13,6 +13,16 @@
  */
 package org.eclipse.jkube.openliberty.generator;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.notNullValue;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
@@ -29,16 +39,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.notNullValue;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "unused", "unchecked"})
 public class OpenLibertyGeneratorTest {

@@ -13,6 +13,18 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -21,17 +33,6 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 public class ImageChangeTriggerEnricher extends BaseEnricher {
     private static final String ENRICHER_NAME = "jkube-openshift-imageChangeTrigger";

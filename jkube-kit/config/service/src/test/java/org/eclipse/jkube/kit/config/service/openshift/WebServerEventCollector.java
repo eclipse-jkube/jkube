@@ -13,17 +13,17 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
-import io.fabric8.mockwebserver.utils.ResponseProvider;
-import okhttp3.Headers;
-import okhttp3.mockwebserver.RecordedRequest;
-import org.junit.Assert;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import io.fabric8.mockwebserver.utils.ResponseProvider;
+import okhttp3.Headers;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.junit.Assert;
 
 /**
  * A utility class to record http request events.

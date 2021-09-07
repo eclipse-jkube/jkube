@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.kit.enricher.api.util;
 
+import java.util.List;
+
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.Enricher;
-
-import java.util.List;
 
 public class Misc {
 

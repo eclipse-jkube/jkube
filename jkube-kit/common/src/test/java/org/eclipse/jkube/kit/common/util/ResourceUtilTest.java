@@ -13,6 +13,20 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.GenericCustomResource;
+import org.eclipse.jkube.kit.common.ResourceFileType;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -24,20 +38,7 @@ import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.openshift.api.model.Template;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
-import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author roland

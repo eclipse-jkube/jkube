@@ -13,11 +13,12 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.util.Properties;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.util.Properties;
+
+import org.junit.Test;
 
 public class ThorntailUtilTest {
 

@@ -13,6 +13,12 @@
  */
 package org.eclipse.jkube.vertx.enricher;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,12 +39,6 @@ import io.fabric8.kubernetes.api.model.Probe;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>

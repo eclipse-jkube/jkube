@@ -13,10 +13,11 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
+import java.io.File;
+
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 
-import java.io.File;
+import io.fabric8.kubernetes.client.KubernetesClient;
 
 public class OpenShift {
 

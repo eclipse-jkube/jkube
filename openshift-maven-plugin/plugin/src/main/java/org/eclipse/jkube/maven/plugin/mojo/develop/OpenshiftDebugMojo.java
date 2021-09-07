@@ -13,14 +13,15 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import java.io.File;
+
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
-
-import java.io.File;
 
 /**
  * Ensures that the current app has debug enabled, then opens the debug port so that you can debug the latest pod

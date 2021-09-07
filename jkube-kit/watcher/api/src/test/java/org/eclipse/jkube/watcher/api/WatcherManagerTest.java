@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.watcher.api;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -29,8 +31,6 @@ import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class WatcherManagerTest {
 

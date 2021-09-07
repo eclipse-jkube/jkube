@@ -13,6 +13,18 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.builder.Visitable;
@@ -33,17 +45,6 @@ import io.fabric8.openshift.api.model.ImageChangeTrigger;
 import io.fabric8.openshift.api.model.ImageChangeTriggerBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * This adds a `image.openshift.io/triggers` tag to all kubernetes resources in order to make them run on OpenShift when using ImageStreams.

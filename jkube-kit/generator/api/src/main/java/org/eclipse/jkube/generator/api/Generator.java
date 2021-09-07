@@ -15,8 +15,8 @@ package org.eclipse.jkube.generator.api;
 
 import java.util.List;
 
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Named;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * Generator which can create {@link ImageConfiguration} on the fly by examining the build pom.xml

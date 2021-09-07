@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.kit.common;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -22,6 +20,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class JKubeFileInterpolator {
     public static final String DEFAULT_FILTER = "${*}";

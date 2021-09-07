@@ -13,14 +13,15 @@
  */
 package org.eclipse.jkube.kit.build.api.auth;
 
-import java.util.Base64;
-
-import com.google.gson.JsonObject;
-import org.eclipse.jkube.kit.common.JsonFactory;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+
+import java.util.Base64;
+
+import org.eclipse.jkube.kit.common.JsonFactory;
+
+import com.google.gson.JsonObject;
+import org.junit.Test;
 
 /**
  * @author roland

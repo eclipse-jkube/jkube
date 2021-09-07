@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 
 import org.eclipse.jkube.kit.build.service.docker.access.hc.http.HttpRequestException;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.util.ClientBuilder;
+
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;

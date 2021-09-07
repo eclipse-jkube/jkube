@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.watcher.api;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import java.util.Collection;
+import java.util.List;
+
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 
-import java.util.Collection;
-import java.util.List;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 
 /**
  * Manager responsible for finding and calling watchers

@@ -13,23 +13,24 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
-import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+
+import io.fabric8.openshift.client.OpenShiftClient;
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 @SuppressWarnings({"unused", "java:S3599", "java:S1171"})
 public class OpenshiftUndeployMojoTest {

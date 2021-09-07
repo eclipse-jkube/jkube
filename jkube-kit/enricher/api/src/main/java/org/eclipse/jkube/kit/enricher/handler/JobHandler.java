@@ -13,6 +13,12 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -21,11 +27,6 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpecBuilder;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-
-import java.util.List;
 
 /**
  * Handler for Jobs

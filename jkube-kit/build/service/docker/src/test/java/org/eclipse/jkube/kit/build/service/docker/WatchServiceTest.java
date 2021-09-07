@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,9 +30,6 @@ import org.eclipse.jkube.kit.config.image.WatchMode;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class WatchServiceTest {
     @Mocked

@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
+import java.util.Map;
+
+import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
-import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-
-import java.util.Map;
 
 public class VertxPortsExtractor extends AbstractPortsExtractor {
 

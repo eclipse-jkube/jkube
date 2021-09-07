@@ -13,25 +13,9 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
-import com.google.cloud.tools.jib.api.Credential;
-import mockit.Expectations;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
-import mockit.Verifications;
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.RegistryConfig;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.eclipse.jkube.kit.service.jib.JibServiceUtil;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,9 +26,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.kit.service.jib.JibServiceUtil;
+
+import com.google.cloud.tools.jib.api.Credential;
+import mockit.Expectations;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.Mocked;
+import mockit.Verifications;
+import org.junit.Test;
 
 public class JibBuildServiceTest {
     @Mocked

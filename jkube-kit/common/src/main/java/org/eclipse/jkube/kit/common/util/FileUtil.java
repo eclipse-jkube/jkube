@@ -13,11 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.KitLogger;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +32,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import org.eclipse.jkube.kit.common.KitLogger;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * File related methods which cannot be found elsewhere

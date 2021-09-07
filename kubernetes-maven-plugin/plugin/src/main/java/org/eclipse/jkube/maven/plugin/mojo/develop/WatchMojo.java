@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
+import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -22,18 +25,19 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 import org.eclipse.jkube.maven.plugin.mojo.build.AbstractDockerMojo;
 import org.eclipse.jkube.watcher.api.WatcherContext;
+import org.eclipse.jkube.watcher.api.WatcherManager;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -47,10 +51,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.eclipse.jkube.watcher.api.WatcherManager;
-
-import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
-import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
 
 
 // TODO: Similar to the DebugMojo the WatchMojo should scale down any deployment to 1 replica (or ensure that its running only with one replica)

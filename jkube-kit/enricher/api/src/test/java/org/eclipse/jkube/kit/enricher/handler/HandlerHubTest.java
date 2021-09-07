@@ -13,11 +13,7 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,7 +21,12 @@ import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
 public class HandlerHubTest {

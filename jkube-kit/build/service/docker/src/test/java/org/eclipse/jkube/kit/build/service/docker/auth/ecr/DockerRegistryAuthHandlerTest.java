@@ -13,6 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
+import static java.util.Collections.singletonMap;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,26 +28,20 @@ import java.nio.file.Files;
 import java.util.Base64;
 import java.util.Map;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.DockerRegistryAuthHandler;
 import org.eclipse.jkube.kit.common.JsonFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import mockit.Mocked;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import static java.util.Collections.singletonMap;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author roland

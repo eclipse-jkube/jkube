@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import org.eclipse.jkube.kit.common.ExternalCommand;
-import org.eclipse.jkube.kit.common.KitLogger;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.eclipse.jkube.kit.common.ExternalCommand;
+import org.eclipse.jkube.kit.common.KitLogger;
 
 /**
  * Command for extracting the environment information emitted by e.g. 'docker-machine env' as

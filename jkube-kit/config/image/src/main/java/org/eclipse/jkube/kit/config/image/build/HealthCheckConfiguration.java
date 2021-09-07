@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
+import java.io.Serializable;
+import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.util.Optional;
 
 /**
  * Build configuration for health checks.

@@ -13,6 +13,20 @@
  */
 package org.eclipse.jkube.quarkus.enricher;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
@@ -24,21 +38,8 @@ import mockit.Mocked;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.groups.Tuple;
-import org.eclipse.jkube.kit.common.Dependency;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 public class QuarkusHealthCheckEnricherTest {
 

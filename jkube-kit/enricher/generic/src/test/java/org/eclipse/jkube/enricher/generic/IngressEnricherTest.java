@@ -13,12 +13,13 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.eclipse.jkube.kit.enricher.api.BaseEnricher.CREATE_EXTERNAL_URLS;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.IngressConfig;
@@ -30,9 +31,11 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -45,12 +48,8 @@ import io.fabric8.kubernetes.api.model.extensions.IngressTLSBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.eclipse.jkube.kit.enricher.api.BaseEnricher.CREATE_EXTERNAL_URLS;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class IngressEnricherTest {

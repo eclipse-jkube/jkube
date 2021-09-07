@@ -13,15 +13,22 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
-import io.fabric8.openshift.api.model.BuildConfig;
-import io.fabric8.openshift.api.model.BuildConfigSpec;
-import io.fabric8.openshift.api.model.BuildOutput;
-import io.fabric8.openshift.api.model.BuildOutputBuilder;
-import io.fabric8.openshift.api.model.BuildStrategy;
-import io.fabric8.openshift.api.model.BuildStrategyBuilder;
-import org.apache.commons.lang3.StringUtils;
+import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDockerfile;
+import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamName;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.DEFAULT_BUILD_OUTPUT_KIND;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.DEFAULT_S2I_BUILD_SUFFIX;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.DOCKER_IMAGE;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.IMAGE_STREAM_TAG;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.common.util.IoUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -33,21 +40,15 @@ import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDockerfile;
-import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamName;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.DEFAULT_BUILD_OUTPUT_KIND;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.DEFAULT_S2I_BUILD_SUFFIX;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.DOCKER_IMAGE;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.IMAGE_STREAM_TAG;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
+import io.fabric8.openshift.api.model.BuildConfig;
+import io.fabric8.openshift.api.model.BuildConfigSpec;
+import io.fabric8.openshift.api.model.BuildOutput;
+import io.fabric8.openshift.api.model.BuildOutputBuilder;
+import io.fabric8.openshift.api.model.BuildStrategy;
+import io.fabric8.openshift.api.model.BuildStrategyBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 public class OpenShiftBuildServiceUtils {
 

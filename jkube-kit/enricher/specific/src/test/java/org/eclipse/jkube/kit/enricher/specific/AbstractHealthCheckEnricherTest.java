@@ -13,26 +13,29 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
-import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.EnricherContext;
-import mockit.Mocked;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.*;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.Probe;
+import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import mockit.Mocked;
+import org.junit.Test;
 
 /**
  * Tests that the enrichment is performed on the right containers.

@@ -13,22 +13,23 @@
  */
 package org.eclipse.jkube.kit.build.api.auth.handler;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.util.Base64;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuth;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import mockit.Mocked;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author roland

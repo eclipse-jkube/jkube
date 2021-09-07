@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
+import java.io.File;
+import java.util.List;
+
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.model.Container;
 import org.eclipse.jkube.kit.build.api.model.ContainerDetails;
@@ -25,9 +28,6 @@ import org.eclipse.jkube.kit.build.service.docker.access.log.LogGetHandle;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpec;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * Access to the <a href="http://docs.docker.io/en/latest/reference/api/docker_remote_api/">Docker API</a> which

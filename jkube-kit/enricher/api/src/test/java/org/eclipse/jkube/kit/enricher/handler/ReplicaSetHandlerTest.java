@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,11 +34,6 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 
 public class ReplicaSetHandlerTest {
 

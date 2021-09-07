@@ -13,6 +13,19 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.eclipse.jkube.kit.common.DebugConstants.ENV_VAR_JAVA_DEBUG;
+import static org.eclipse.jkube.kit.common.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT;
+import static org.eclipse.jkube.kit.common.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -30,18 +43,6 @@ import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.eclipse.jkube.kit.common.DebugConstants.ENV_VAR_JAVA_DEBUG;
-import static org.eclipse.jkube.kit.common.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT;
-import static org.eclipse.jkube.kit.common.DebugConstants.ENV_VAR_JAVA_DEBUG_PORT_DEFAULT;
 
 
 /**

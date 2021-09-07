@@ -13,26 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth;
 
-import com.google.common.net.UrlEscapers;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
-import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.service.docker.auth.ecr.EcrExtendedAuth;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -46,6 +26,28 @@ import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
+import org.eclipse.jkube.kit.build.service.docker.auth.ecr.EcrExtendedAuth;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+
+import com.google.common.net.UrlEscapers;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 /**
  * Factory for creating docker specific authentication configuration

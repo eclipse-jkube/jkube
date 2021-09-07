@@ -13,6 +13,14 @@
  */
 package org.eclipse.jkube.kit.build.api.assembly;
 
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.createDockerFileBuilder;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
+import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.getAssemblyFileOutputDirectory;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.resolveSourceFile;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -29,7 +37,8 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
+import javax.annotation.Nonnull;
+
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -37,6 +46,7 @@ import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.AssemblyMode;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
@@ -46,17 +56,8 @@ import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 
-import javax.annotation.Nonnull;
-
-import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.createDockerFileBuilder;
-import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
-import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
-import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
-import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
-import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.getAssemblyFileOutputDirectory;
-import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.resolveSourceFile;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Tool for creating a docker image tar ball including a Dockerfile for building

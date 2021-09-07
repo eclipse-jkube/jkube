@@ -13,15 +13,15 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.util.Properties;
-
-import org.junit.Test;
-
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.util.Properties;
+
+import org.junit.Test;
 
 /**
  * Checking the behaviour of utility methods.

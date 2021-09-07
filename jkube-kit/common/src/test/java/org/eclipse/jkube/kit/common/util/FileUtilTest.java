@@ -13,14 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativeFilePath;
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
@@ -33,6 +25,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class FileUtilTest {
 

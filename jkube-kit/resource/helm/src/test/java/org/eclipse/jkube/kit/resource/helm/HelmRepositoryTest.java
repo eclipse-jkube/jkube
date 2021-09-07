@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.eclipse.jkube.kit.resource.helm.HelmRepository.HelmRepoType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class HelmRepositoryTest {
 

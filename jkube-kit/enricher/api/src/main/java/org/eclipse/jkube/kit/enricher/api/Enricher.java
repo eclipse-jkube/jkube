@@ -13,9 +13,10 @@
  */
 package org.eclipse.jkube.kit.enricher.api;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.common.Named;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 
 /**
  * Interface describing enrichers which add to kubernetes descriptors

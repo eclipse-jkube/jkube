@@ -14,7 +14,8 @@
 package org.eclipse.jkube.kit.build.service.docker.config.handler.property;
 
 
-import org.eclipse.jkube.kit.common.util.EnvUtil;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.extractFromPropertiesAsList;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.extractFromPropertiesAsMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +23,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.function.Function;
 
-import static org.eclipse.jkube.kit.common.util.EnvUtil.extractFromPropertiesAsList;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.extractFromPropertiesAsMap;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 
 /**
  * Helper to extract values from a set of Properties, potentially mixing it up with XML-based configuration based on the

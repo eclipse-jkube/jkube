@@ -13,7 +13,9 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Test;
+import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,9 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 /**
  * @author roland

@@ -13,21 +13,22 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Tested;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Test;
-
-import java.util.Date;
-import java.util.Properties;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
+
+import java.util.Date;
+import java.util.Properties;
+
+import org.eclipse.jkube.kit.common.JavaProject;
+
+import mockit.Expectations;
+import mockit.Injectable;
+import mockit.Tested;
+import org.junit.Test;
 
 /**
  * @author roland

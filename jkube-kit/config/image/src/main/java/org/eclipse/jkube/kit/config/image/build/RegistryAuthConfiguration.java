@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.io.Serializable;
 import java.util.Map;
 import java.util.TreeMap;
+
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @NoArgsConstructor
 @Setter

@@ -13,15 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.compose;
 
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.LogConfiguration;
-import org.eclipse.jkube.kit.config.image.NetworkConfig;
-import org.eclipse.jkube.kit.config.image.RestartPolicy;
-import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
-import org.eclipse.jkube.kit.config.image.UlimitConfig;
-import org.eclipse.jkube.kit.build.service.docker.helper.VolumeBindingUtil;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +20,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.eclipse.jkube.kit.build.service.docker.helper.VolumeBindingUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.LogConfiguration;
+import org.eclipse.jkube.kit.config.image.NetworkConfig;
+import org.eclipse.jkube.kit.config.image.RestartPolicy;
+import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
+import org.eclipse.jkube.kit.config.image.UlimitConfig;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
 
 
 class DockerComposeServiceWrapper {

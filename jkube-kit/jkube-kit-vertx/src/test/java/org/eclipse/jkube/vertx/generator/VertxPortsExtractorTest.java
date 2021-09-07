@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
+import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
+import static org.junit.Assert.assertEquals;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,11 +23,9 @@ import java.util.Map;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
+
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
-import static org.junit.Assert.assertEquals;
 
 public class VertxPortsExtractorTest {
   @Mocked

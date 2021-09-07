@@ -13,12 +13,11 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
-import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+
+import java.util.Properties;
+
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.GenericCustomResourceBuilder;
 import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
@@ -26,13 +25,15 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
+import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder;
+import mockit.Expectations;
+import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Properties;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class DefaultMetadataEnricherTest {

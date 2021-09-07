@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.enricher.generic.ContainerEnvJavaOptionsMergeTest.containerList;
+
 import java.util.Collections;
 
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -26,9 +29,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.enricher.generic.ContainerEnvJavaOptionsMergeTest.containerList;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class ContainerEnvJavaOptionsMergeVisitorTest {

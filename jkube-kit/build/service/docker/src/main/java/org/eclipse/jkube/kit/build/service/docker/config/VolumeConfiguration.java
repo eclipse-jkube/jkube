@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config;
 
+import java.io.Serializable;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.util.Map;
 
 /**
  *  Volume Configuration for Volumes to be created prior to container start

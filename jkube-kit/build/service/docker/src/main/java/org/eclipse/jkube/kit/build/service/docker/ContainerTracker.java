@@ -13,12 +13,19 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jkube.kit.build.core.GavLabel;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WaitConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * Tracker class for tracking started containers so that they can be shut down at the end when

@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.generator.javaexec;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -21,17 +23,16 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.jkube.generator.api.FromSelector;
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.generator.api.FromSelector;
-import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author roland

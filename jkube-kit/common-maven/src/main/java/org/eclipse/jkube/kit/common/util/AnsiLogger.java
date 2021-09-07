@@ -13,6 +13,17 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.fusesource.jansi.Ansi.ansi;
+import static org.fusesource.jansi.Ansi.Color.BLACK;
+import static org.fusesource.jansi.Ansi.Color.BLUE;
+import static org.fusesource.jansi.Ansi.Color.CYAN;
+import static org.fusesource.jansi.Ansi.Color.DEFAULT;
+import static org.fusesource.jansi.Ansi.Color.GREEN;
+import static org.fusesource.jansi.Ansi.Color.MAGENTA;
+import static org.fusesource.jansi.Ansi.Color.RED;
+import static org.fusesource.jansi.Ansi.Color.WHITE;
+import static org.fusesource.jansi.Ansi.Color.YELLOW;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,13 +33,11 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.jkube.kit.common.KitLogger;
+
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
-
-import static org.fusesource.jansi.Ansi.Color.*;
-import static org.fusesource.jansi.Ansi.ansi;
 
 /**
  * Simple log handler for printing used during the maven build

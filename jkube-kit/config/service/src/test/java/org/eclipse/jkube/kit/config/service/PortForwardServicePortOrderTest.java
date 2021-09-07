@@ -13,10 +13,11 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import org.eclipse.jkube.kit.common.KitLogger;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.Test;
 
 public class PortForwardServicePortOrderTest {

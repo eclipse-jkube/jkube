@@ -13,9 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
-import com.google.gson.JsonObject;
-import org.eclipse.jkube.kit.config.image.NetworkConfig;
 import org.eclipse.jkube.kit.common.JsonFactory;
+import org.eclipse.jkube.kit.config.image.NetworkConfig;
+
+import com.google.gson.JsonObject;
 
 
 public class ContainerNetworkingConfig {

@@ -13,14 +13,8 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.ExecAction;
-import io.fabric8.kubernetes.api.model.HTTPGetAction;
-import io.fabric8.kubernetes.api.model.HTTPHeader;
-import io.fabric8.kubernetes.api.model.IntOrString;
-import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.TCPSocketAction;
-import org.eclipse.jkube.kit.common.util.CommandLine;
-import org.eclipse.jkube.kit.config.resource.ProbeConfig;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.convertMapToHTTPHeaderList;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -29,8 +23,15 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.convertMapToHTTPHeaderList;
+import org.eclipse.jkube.kit.common.util.CommandLine;
+import org.eclipse.jkube.kit.config.resource.ProbeConfig;
+
+import io.fabric8.kubernetes.api.model.ExecAction;
+import io.fabric8.kubernetes.api.model.HTTPGetAction;
+import io.fabric8.kubernetes.api.model.HTTPHeader;
+import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.Probe;
+import io.fabric8.kubernetes.api.model.TCPSocketAction;
 
 
 /**

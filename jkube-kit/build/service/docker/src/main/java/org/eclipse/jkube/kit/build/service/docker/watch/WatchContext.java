@@ -22,9 +22,9 @@ import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,8 +32,6 @@ import mockit.Mocked;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
 public class DefaultServiceEnricherAddMissingPartsTest {

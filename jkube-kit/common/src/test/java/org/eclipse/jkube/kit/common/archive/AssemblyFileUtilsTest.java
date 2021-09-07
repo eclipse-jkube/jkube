@@ -13,21 +13,24 @@
  */
 package org.eclipse.jkube.kit.common.archive;
 
-import org.eclipse.jkube.kit.common.Assembly;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.common.AssemblyFile;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.getAssemblyFileOutputDirectory;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.io.IOException;
 
-import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.getAssemblyFileOutputDirectory;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFile;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class AssemblyFileUtilsTest {
 

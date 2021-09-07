@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -29,8 +31,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("unused")
 public class PrometheusEnricherTest {

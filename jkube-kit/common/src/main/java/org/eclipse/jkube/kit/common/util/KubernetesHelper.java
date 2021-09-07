@@ -14,6 +14,9 @@
 package org.eclipse.jkube.kit.common.util;
 
 
+import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimGroup;
+import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimVersion;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +43,6 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.HTTPHeader;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
@@ -52,6 +54,7 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.Context;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.api.model.IntOrString;
@@ -98,9 +101,6 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimGroup;
-import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimVersion;
 
 /**
  * @author roland

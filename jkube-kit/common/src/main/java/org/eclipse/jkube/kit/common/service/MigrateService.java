@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.common.service;
 
+import static org.eclipse.jkube.kit.common.util.XMLUtil.stream;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -22,17 +24,15 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.XMLUtil;
 
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import static org.eclipse.jkube.kit.common.util.XMLUtil.stream;
 
 public class MigrateService {
   private static final String POM_XML = "pom.xml";

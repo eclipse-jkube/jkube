@@ -13,7 +13,10 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import java.util.Collections;
+import java.util.Optional;
+
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
@@ -21,7 +24,12 @@ import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -30,14 +38,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.utils.logging.MessageUtils;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
-
-import java.util.Collections;
-import java.util.Optional;
 
 public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLoggerProvider {
 

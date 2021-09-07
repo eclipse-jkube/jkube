@@ -13,11 +13,10 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
+import static org.eclipse.jkube.kit.config.resource.RuntimeMode.KUBERNETES;
+
+import java.util.List;
+
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
@@ -25,9 +24,11 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
-import java.util.List;
-
-import static org.eclipse.jkube.kit.config.resource.RuntimeMode.KUBERNETES;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
  * Builds the docker images configured for this project via a Docker or S2I binary build.

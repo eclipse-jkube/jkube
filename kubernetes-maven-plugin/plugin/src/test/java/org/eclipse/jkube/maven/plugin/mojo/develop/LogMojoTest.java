@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
 
-import mockit.Verifications;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.ApplyService;
@@ -29,6 +28,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.Verifications;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.junit.After;

@@ -13,12 +13,16 @@
  */
 package org.eclipse.jkube.kit.config.access;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.net.UnknownHostException;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
@@ -26,10 +30,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class ClusterAccessTest {
 

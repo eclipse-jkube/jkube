@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.generator.javaexec;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -20,11 +25,6 @@ import java.nio.file.Paths;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotNull;
 
 public class FatJarDetectorTest {
 

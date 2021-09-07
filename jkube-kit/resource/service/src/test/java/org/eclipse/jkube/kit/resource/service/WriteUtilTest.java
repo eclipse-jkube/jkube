@@ -13,16 +13,19 @@
  */
 package org.eclipse.jkube.kit.resource.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+
 import java.io.File;
 import java.io.IOException;
 
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -31,9 +34,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
 @SuppressWarnings({"ConstantConditions", "AccessStaticViaInstance"})
 public class WriteUtilTest {

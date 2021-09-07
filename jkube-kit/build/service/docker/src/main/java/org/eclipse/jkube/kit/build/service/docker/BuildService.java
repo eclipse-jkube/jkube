@@ -13,34 +13,33 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
+import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.LinkedList;
 
-import com.google.gson.JsonObject;
-
-import com.google.common.collect.ImmutableMap;
-
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.CleanupMode;
 
-import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
 
 public class BuildService {
 

@@ -13,16 +13,17 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Enriches Karaf containers with health check probes.

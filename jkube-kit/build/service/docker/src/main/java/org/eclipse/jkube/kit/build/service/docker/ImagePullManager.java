@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import com.google.gson.JsonObject;
+import java.util.Properties;
 
 import org.eclipse.jkube.kit.build.service.docker.helper.AutoPullMode;
 import org.eclipse.jkube.kit.common.JsonFactory;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 
-import java.util.Properties;
+import com.google.gson.JsonObject;
 
 /**
  * Simple interface for a ImagePullCache manager, to load and persist the cache.

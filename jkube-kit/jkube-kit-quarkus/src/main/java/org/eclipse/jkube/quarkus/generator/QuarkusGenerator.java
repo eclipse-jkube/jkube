@@ -13,6 +13,12 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
+import static org.eclipse.jkube.quarkus.QuarkusUtils.QUARKUS_GROUP_ID;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.findSingleFileThatEndsWith;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,12 +39,6 @@ import org.eclipse.jkube.quarkus.QuarkusMode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-
-import static org.eclipse.jkube.quarkus.QuarkusUtils.QUARKUS_GROUP_ID;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.findSingleFileThatEndsWith;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
 
 public class QuarkusGenerator extends JavaExecGenerator {
 

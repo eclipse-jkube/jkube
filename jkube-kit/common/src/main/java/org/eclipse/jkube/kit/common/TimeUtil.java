@@ -13,11 +13,11 @@
  */
 package org.eclipse.jkube.kit.common;
 
-import java.util.concurrent.TimeUnit;
-
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author roland

@@ -13,26 +13,27 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static java.util.stream.Collectors.toList;
+import static org.eclipse.jkube.kit.config.resource.PlatformMode.kubernetes;
+import static org.eclipse.jkube.kit.config.resource.PlatformMode.openshift;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Before;
 import org.junit.Test;
-
-import static java.util.stream.Collectors.*;
-
-import static org.eclipse.jkube.kit.config.resource.PlatformMode.*;
-import static org.junit.Assert.*;
 
 public class ReplicaCountEnricherTest {
 

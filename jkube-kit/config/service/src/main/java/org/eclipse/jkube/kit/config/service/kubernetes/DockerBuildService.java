@@ -19,8 +19,8 @@ import java.util.Objects;
 
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;

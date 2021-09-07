@@ -13,23 +13,21 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
-
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.validation.constraints.Null;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
 
 public class ServiceDiscoveryEnricherTest {
 

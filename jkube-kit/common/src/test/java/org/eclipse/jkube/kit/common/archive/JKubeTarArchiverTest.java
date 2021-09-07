@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.common.archive;
 
+import static org.assertj.core.api.Assertions.tuple;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,8 +31,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.tuple;
 
 public class JKubeTarArchiverTest {
 

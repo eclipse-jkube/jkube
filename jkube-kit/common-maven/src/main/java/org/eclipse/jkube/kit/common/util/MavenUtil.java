@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.eclipse.jkube.kit.common.util.EnvUtil.greaterOrEqualsVersion;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,9 +28,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
 
-import org.apache.maven.plugin.BuildPluginManager;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
@@ -41,6 +42,7 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.DistributionManagement;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Site;
+import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -48,8 +50,6 @@ import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.codehaus.plexus.archiver.tar.TarLongFileMode;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-
-import static org.eclipse.jkube.kit.common.util.EnvUtil.greaterOrEqualsVersion;
 
 /**
  * @author roland

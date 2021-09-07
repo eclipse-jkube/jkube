@@ -13,25 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.TreeMap;
-
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.isJson;
@@ -40,6 +21,26 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.TreeMap;
+
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Test;
 
 /**
  * @author roland

@@ -13,12 +13,14 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Properties;
 
-import org.assertj.core.api.Condition;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
@@ -37,13 +39,11 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.AbstractFileAssert;
+import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
 @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
 public class JibBuildServiceBuildIntegrationTest {

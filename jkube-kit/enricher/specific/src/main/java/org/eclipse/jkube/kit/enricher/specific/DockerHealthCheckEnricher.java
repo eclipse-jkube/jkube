@@ -13,18 +13,19 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
-import com.google.common.base.Objects;
-import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.ExecAction;
-import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import static org.eclipse.jkube.kit.enricher.api.util.GoTimeUtil.durationSeconds;
+
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
-import static org.eclipse.jkube.kit.enricher.api.util.GoTimeUtil.durationSeconds;
+import com.google.common.base.Objects;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.ExecAction;
+import io.fabric8.kubernetes.api.model.Probe;
+import io.fabric8.kubernetes.api.model.ProbeBuilder;
 
 /**
  * Enrich a container with probes when health checks are defined in the {@code ImageConfiguration} of the docker maven plugin.

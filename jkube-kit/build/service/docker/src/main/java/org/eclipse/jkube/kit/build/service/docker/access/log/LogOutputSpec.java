@@ -13,16 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
-import org.fusesource.jansi.Ansi;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-
+import static org.fusesource.jansi.Ansi.ansi;
 import static org.fusesource.jansi.Ansi.Color.BLACK;
 import static org.fusesource.jansi.Ansi.Color.BLUE;
 import static org.fusesource.jansi.Ansi.Color.CYAN;
@@ -30,7 +21,17 @@ import static org.fusesource.jansi.Ansi.Color.GREEN;
 import static org.fusesource.jansi.Ansi.Color.MAGENTA;
 import static org.fusesource.jansi.Ansi.Color.RED;
 import static org.fusesource.jansi.Ansi.Color.YELLOW;
-import static org.fusesource.jansi.Ansi.ansi;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+
+import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
+
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import org.fusesource.jansi.Ansi;
 
 @Getter
 @EqualsAndHashCode

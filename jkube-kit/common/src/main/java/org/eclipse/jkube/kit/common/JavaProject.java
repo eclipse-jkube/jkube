@@ -13,17 +13,17 @@
  */
 package org.eclipse.jkube.kit.common;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.Singular;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.Singular;
 
 /**
  * Model class that represents a Java Project to be processed by JKube

@@ -13,15 +13,15 @@
  */
 package org.eclipse.jkube.kit.enricher.api.util;
 
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.assertj.core.api.Assertions;
+import org.junit.Test;
 
 public class GoTimeUtilTest {
 

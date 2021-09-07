@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -34,9 +37,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
 public class HelmPushMojoTest {
 

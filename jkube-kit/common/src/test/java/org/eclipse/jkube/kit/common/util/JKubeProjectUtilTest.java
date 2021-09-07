@@ -14,19 +14,20 @@
 package org.eclipse.jkube.kit.common.util;
 
 
-import mockit.Expectations;
-import mockit.Mocked;
-import org.eclipse.jkube.kit.common.Dependency;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class JKubeProjectUtilTest {

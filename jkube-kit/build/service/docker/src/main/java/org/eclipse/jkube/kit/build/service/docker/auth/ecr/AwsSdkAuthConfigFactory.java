@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.common.KitLogger;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.common.KitLogger;
 
 public class AwsSdkAuthConfigFactory {
 

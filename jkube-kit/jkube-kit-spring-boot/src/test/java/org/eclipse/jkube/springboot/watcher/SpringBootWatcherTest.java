@@ -13,20 +13,7 @@
  */
 package org.eclipse.jkube.springboot.watcher;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.SpringBootUtil;
-import org.eclipse.jkube.kit.config.service.PortForwardService;
-import org.eclipse.jkube.watcher.api.WatcherContext;
-import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -34,7 +21,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.assertTrue;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.common.util.SpringBootUtil;
+import org.eclipse.jkube.kit.config.service.PortForwardService;
+import org.eclipse.jkube.watcher.api.WatcherContext;
+
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.Verifications;
+import org.junit.Test;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "AccessStaticViaInstance", "unused"})
 public class SpringBootWatcherTest {

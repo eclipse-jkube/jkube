@@ -13,8 +13,9 @@
  */
 package org.eclipse.jkube.kit.enricher.api.model;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+
+import io.fabric8.kubernetes.api.model.HasMetadata;
 
 
 /**

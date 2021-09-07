@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.generator.webapp;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -20,12 +23,10 @@ import java.util.Collections;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author kameshs

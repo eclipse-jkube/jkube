@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.watcher.standard;
 
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
 
 public class ExecListenerLatchTest {
 

@@ -22,9 +22,9 @@ import java.util.Properties;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 
 public interface EnricherContext {
 

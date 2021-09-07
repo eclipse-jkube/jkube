@@ -13,6 +13,17 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.jkube.kit.common.util.GitUtil;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
+import org.eclipse.jkube.kit.config.resource.OpenShiftAnnotations;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
@@ -23,18 +34,8 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import org.eclipse.jkube.kit.common.util.GitUtil;
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
-import org.eclipse.jkube.kit.config.resource.OpenShiftAnnotations;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Enricher for adding build metadata:

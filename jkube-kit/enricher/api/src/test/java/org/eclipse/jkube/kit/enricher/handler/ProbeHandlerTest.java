@@ -13,18 +13,19 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.IntOrString;
-import io.fabric8.kubernetes.api.model.Probe;
-import org.eclipse.jkube.kit.config.resource.ProbeConfig;
-import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.jkube.kit.config.resource.ProbeConfig;
+
+import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.Probe;
+import org.junit.Test;
 
 public class ProbeHandlerTest {
     Probe probe;

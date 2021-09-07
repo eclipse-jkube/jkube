@@ -13,11 +13,11 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
-
 import java.io.File;
 import java.util.Objects;
+
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
 
 /**
  * Allows retrieving artifacts using Maven.

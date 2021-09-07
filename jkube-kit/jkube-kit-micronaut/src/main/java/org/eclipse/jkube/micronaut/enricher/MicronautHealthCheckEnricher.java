@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.micronaut.enricher;
 
+import static org.eclipse.jkube.kit.common.Configs.asInteger;
+import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
+import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
+import static org.eclipse.jkube.micronaut.MicronautUtils.isHealthEnabled;
+
 import java.util.Collections;
 
 import org.eclipse.jkube.kit.common.Configs;
@@ -25,11 +30,6 @@ import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import static org.eclipse.jkube.kit.common.Configs.asInteger;
-import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
-import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
-import static org.eclipse.jkube.micronaut.MicronautUtils.isHealthEnabled;
 
 public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
 

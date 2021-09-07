@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.api.helper;
 
-import org.apache.commons.io.FileUtils;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,9 +32,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+
+import org.apache.commons.io.FileUtils;
+import org.junit.Test;
 
 /**
  * @author roland

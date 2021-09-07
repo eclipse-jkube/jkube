@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.service.jib;
 
+import static com.google.cloud.tools.jib.api.LayerConfiguration.DEFAULT_FILE_PERMISSIONS_PROVIDER;
+import static org.fusesource.jansi.Ansi.ansi;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -30,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
@@ -59,11 +64,6 @@ import com.google.cloud.tools.jib.event.events.ProgressEvent;
 import com.google.cloud.tools.jib.event.progress.ProgressEventHandler;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.annotation.Nonnull;
-
-import static com.google.cloud.tools.jib.api.LayerConfiguration.DEFAULT_FILE_PERMISSIONS_PROVIDER;
-import static org.fusesource.jansi.Ansi.ansi;
 
 public class JibServiceUtil {
     /**

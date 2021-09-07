@@ -13,16 +13,17 @@
  */
 package org.eclipse.jkube.kit.enricher.api;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Collections;
 import java.util.Map;
 
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Test;
 
 /**
  * @author roland

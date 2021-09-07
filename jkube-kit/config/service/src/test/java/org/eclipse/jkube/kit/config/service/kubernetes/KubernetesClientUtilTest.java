@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.doDeleteAndWait;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Test;
-
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.doDeleteAndWait;
 
 public class KubernetesClientUtilTest {
 

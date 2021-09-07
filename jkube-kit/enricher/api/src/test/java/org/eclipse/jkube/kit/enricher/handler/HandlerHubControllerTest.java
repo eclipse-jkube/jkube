@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
 import java.util.Properties;
 
@@ -20,8 +22,6 @@ import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class HandlerHubControllerTest {
 

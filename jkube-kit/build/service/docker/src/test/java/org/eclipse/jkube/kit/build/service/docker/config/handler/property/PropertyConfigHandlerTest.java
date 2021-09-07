@@ -13,6 +13,14 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.property;
 
+import static org.eclipse.jkube.kit.config.image.build.BuildConfiguration.DEFAULT_CLEANUP;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -36,16 +42,11 @@ import org.eclipse.jkube.kit.config.image.UlimitConfig;
 import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.CleanupMode;
+
+import mockit.Expectations;
+import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.eclipse.jkube.kit.config.image.build.BuildConfiguration.DEFAULT_CLEANUP;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author roland

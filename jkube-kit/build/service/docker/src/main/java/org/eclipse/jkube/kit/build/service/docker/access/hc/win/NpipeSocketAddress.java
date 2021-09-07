@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.hc.win;
 
+import java.io.File;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import java.io.File;
 
 class NpipeSocketAddress extends java.net.SocketAddress {
 

@@ -13,12 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import com.google.common.collect.ImmutableSet;
-import org.eclipse.jkube.kit.build.api.model.Container;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageName;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -27,6 +21,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import org.eclipse.jkube.kit.build.api.model.Container;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author marcus

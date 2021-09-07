@@ -13,6 +13,15 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.bzip2;
+import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
+import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.none;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,15 +34,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.bzip2;
-import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
-import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.none;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * @author roland

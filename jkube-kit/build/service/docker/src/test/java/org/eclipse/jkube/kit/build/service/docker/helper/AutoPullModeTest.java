@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import org.junit.Test;
-
 import static org.eclipse.jkube.kit.build.service.docker.helper.AutoPullMode.ALWAYS;
 import static org.eclipse.jkube.kit.build.service.docker.helper.AutoPullMode.OFF;
 import static org.eclipse.jkube.kit.build.service.docker.helper.AutoPullMode.ON;
 import static org.eclipse.jkube.kit.build.service.docker.helper.AutoPullMode.fromString;
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 
 /**

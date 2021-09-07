@@ -13,30 +13,29 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ReplicationController;
-import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
-import io.fabric8.kubernetes.api.model.ReplicationControllerSpecBuilder;
-import io.fabric8.openshift.api.model.DeploymentConfig;
-import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
-import mockit.Expectations;
-import mockit.Verifications;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.service.portforward.PortForwardPodWatcher;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationController;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationControllerSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
@@ -44,14 +43,15 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.openshift.api.model.DeploymentConfig;
+import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
+import mockit.Expectations;
 import mockit.Mocked;
+import mockit.Verifications;
 import org.assertj.core.groups.Tuple;
-import org.eclipse.jkube.kit.config.service.portforward.PortForwardPodWatcher;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 @SuppressWarnings("unused")
 public class DebugServiceTest {

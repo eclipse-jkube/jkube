@@ -13,6 +13,17 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Collections;
+import java.util.Properties;
+
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -20,20 +31,9 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import mockit.Expectations;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Collections;
-import java.util.Properties;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DefaultControllerEnricherCreateTest {
 

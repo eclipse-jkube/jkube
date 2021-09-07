@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -20,6 +24,7 @@ import java.util.Date;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
+
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
@@ -30,10 +35,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Test exchange of local stored credentials for temporary ecr credentials

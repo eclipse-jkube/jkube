@@ -13,6 +13,12 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -21,11 +27,6 @@ import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpecBuilder;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-
-import java.util.List;
 
 /**
  * Created by matthew on 26/10/16.

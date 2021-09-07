@@ -13,15 +13,15 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
 public class TemplateUtilTest {

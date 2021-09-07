@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.build.service.docker.access.hc.unix;
 
 import org.eclipse.jkube.kit.build.service.docker.access.hc.util.AbstractNativeClientBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
+
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 
 public class UnixSocketClientBuilder extends AbstractNativeClientBuilder {

@@ -13,6 +13,17 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
+
+import java.util.Map;
+import java.util.Objects;
+
+import org.eclipse.jkube.enricher.generic.DefaultControllerEnricher;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.EnricherConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -26,17 +37,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
 import io.fabric8.openshift.api.model.DeploymentStrategy;
 import io.fabric8.openshift.api.model.DeploymentStrategyBuilder;
-import org.eclipse.jkube.enricher.generic.DefaultControllerEnricher;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.EnricherConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Map;
-import java.util.Objects;
-
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
 
 
 public class DeploymentConfigEnricher extends BaseEnricher {

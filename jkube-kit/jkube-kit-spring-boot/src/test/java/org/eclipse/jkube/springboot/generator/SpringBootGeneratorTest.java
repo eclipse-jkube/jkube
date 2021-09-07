@@ -13,12 +13,10 @@
  */
 package org.eclipse.jkube.springboot.generator;
 
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,10 +25,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Test;
 
 /**
  * @author roland

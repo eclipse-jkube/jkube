@@ -13,19 +13,20 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import java.io.File;
+
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
-import java.io.File;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * Class to hold configuration parameters for the building service.

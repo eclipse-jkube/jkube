@@ -13,6 +13,15 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_OPENSHIFT_MANIFEST;
+
+import java.io.File;
+
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugins.annotations.Execute;
@@ -20,14 +29,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
-
-import java.io.File;
-
-import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_OPENSHIFT_MANIFEST;
 
 
 // TODO: Similar to the DebugMojo the WatchMojo should scale down any deployment to 1 replica (or ensure that its running only with one replica)

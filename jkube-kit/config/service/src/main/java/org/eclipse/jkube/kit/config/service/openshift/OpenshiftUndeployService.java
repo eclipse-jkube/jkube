@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
+import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.asOpenShiftClient;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -35,8 +37,6 @@ import io.fabric8.openshift.api.model.DeploymentTriggerPolicy;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.apache.commons.lang3.StringUtils;
-
-import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.asOpenShiftClient;
 
 public class OpenshiftUndeployService extends KubernetesUndeployService {
 

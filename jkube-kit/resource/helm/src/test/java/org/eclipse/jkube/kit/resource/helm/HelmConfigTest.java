@@ -13,13 +13,15 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,9 +29,6 @@ import io.fabric8.openshift.api.model.Template;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 public class HelmConfigTest {
 

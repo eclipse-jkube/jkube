@@ -13,6 +13,15 @@
  */
 package org.eclipse.jkube.kit.common.archive;
 
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.calculateFilePermissions;
+import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.isSelfPath;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+
 import java.io.File;
 import java.util.List;
 
@@ -23,15 +32,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.calculateFilePermissions;
-import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.isSelfPath;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 
 public class AssemblyFileSetUtilsTest {
 

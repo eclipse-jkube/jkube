@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import java.io.File;
+
+import org.eclipse.jkube.kit.config.service.PodLogService;
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.eclipse.jkube.kit.config.service.PodLogService;
-import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
-
-import java.io.File;
 
 /**
  * This goal tails the log of the most recent pod for the app that was deployed via <code>oc:deploy</code>

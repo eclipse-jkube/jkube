@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.enricher.api.util;
 
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.FILENAME_PATTERN;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -34,7 +36,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
@@ -43,6 +44,7 @@ import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.MappingConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
@@ -71,13 +73,11 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Build;
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.FILENAME_PATTERN;
 
 /**
  * Utility class for handling Kubernetes resource descriptors

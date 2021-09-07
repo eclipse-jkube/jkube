@@ -13,6 +13,22 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.eclipse.jkube.enricher.generic.IngressEnricher.getIngressMetadata;
+import static org.eclipse.jkube.enricher.generic.IngressEnricher.getServicePort;
+import static org.eclipse.jkube.enricher.generic.IngressEnricher.hasIngress;
+import static org.eclipse.jkube.enricher.generic.IngressEnricher.resolveIngressHost;
+import static org.eclipse.jkube.enricher.generic.IngressEnricher.shouldCreateExternalURLForService;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isExposedService;
+
+import java.util.List;
+import java.util.Objects;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
+import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
+import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
+import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
+
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -33,21 +49,6 @@ import io.fabric8.kubernetes.api.model.networking.v1.IngressTLS;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressTLSBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.ServiceBackendPortBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
-import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
-import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
-import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
-
-import java.util.List;
-import java.util.Objects;
-
-import static org.eclipse.jkube.enricher.generic.IngressEnricher.getIngressMetadata;
-import static org.eclipse.jkube.enricher.generic.IngressEnricher.getServicePort;
-import static org.eclipse.jkube.enricher.generic.IngressEnricher.hasIngress;
-import static org.eclipse.jkube.enricher.generic.IngressEnricher.resolveIngressHost;
-import static org.eclipse.jkube.enricher.generic.IngressEnricher.shouldCreateExternalURLForService;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isExposedService;
 
 public class NetworkingV1IngressGenerator {
     private NetworkingV1IngressGenerator() { }

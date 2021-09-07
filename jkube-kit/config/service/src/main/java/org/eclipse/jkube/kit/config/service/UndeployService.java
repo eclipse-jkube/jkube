@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-
 import java.io.File;
 import java.io.IOException;
+
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 public interface UndeployService {
 

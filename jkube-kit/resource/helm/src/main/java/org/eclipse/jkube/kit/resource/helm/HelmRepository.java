@@ -13,17 +13,17 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.util.Optional;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor

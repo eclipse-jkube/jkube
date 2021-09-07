@@ -13,7 +13,16 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.wait;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.eclipse.jkube.kit.config.image.WaitConfiguration;
+
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
@@ -24,14 +33,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContextBuilder;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Check whether a given URL is available

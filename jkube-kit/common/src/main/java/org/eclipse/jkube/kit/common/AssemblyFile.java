@@ -13,15 +13,15 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.io.File;
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.io.File;
-import java.io.Serializable;
 
 @SuppressWarnings("JavaDoc")
 @Builder

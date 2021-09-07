@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
@@ -24,6 +26,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,13 +40,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-
-import javax.annotation.Nonnull;
-
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 
 /**
  * @author roland

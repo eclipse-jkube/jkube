@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,8 +22,6 @@ import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class GenericCustomResourceEqualsHashCodeTest {
 

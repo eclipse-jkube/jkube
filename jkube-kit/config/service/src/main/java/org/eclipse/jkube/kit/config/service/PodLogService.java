@@ -13,6 +13,25 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.withSelector;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.deleteEntities;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.deleteOpenShiftEntities;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusDescription;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusMessagePostfix;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.resizeApp;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -30,25 +49,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.withSelector;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.deleteEntities;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.deleteOpenShiftEntities;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusDescription;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusMessagePostfix;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.resizeApp;
 
 /**
  * Prints to the console the output of the pods.

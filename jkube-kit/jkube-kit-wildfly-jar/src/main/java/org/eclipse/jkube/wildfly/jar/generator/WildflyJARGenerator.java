@@ -13,25 +13,26 @@
  */
 package org.eclipse.jkube.wildfly.jar.generator;
 
+import static org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher.BOOTABLE_JAR_ARTIFACT_ID;
+import static org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher.BOOTABLE_JAR_GROUP_ID;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher;
-import static org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher.BOOTABLE_JAR_ARTIFACT_ID;
-import static org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher.BOOTABLE_JAR_GROUP_ID;
 
 public class WildflyJARGenerator extends JavaExecGenerator {
     static final String JBOSS_MAVEN_DIST = "jboss-maven-dist";

@@ -13,12 +13,16 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isExposedService;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeMetadata;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeSimpleFields;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeLabel;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.openshift.api.model.RouteSpec;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
@@ -28,6 +32,7 @@ import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -37,15 +42,10 @@ import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.api.model.RoutePort;
+import io.fabric8.openshift.api.model.RouteSpec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isExposedService;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeMetadata;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeSimpleFields;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeLabel;
 
 /**
  * Enricher which generates a Route for each exposed Service

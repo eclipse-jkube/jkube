@@ -13,8 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.apache.commons.lang3.StringUtils;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
@@ -27,7 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
+import org.eclipse.jkube.kit.common.KitLogger;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A helper class for running external processes

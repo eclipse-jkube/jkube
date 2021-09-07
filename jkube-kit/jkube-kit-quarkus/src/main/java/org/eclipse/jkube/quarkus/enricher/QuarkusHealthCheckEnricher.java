@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.quarkus.enricher;
 
+import static org.eclipse.jkube.kit.common.Configs.asInteger;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.QUARKUS_GROUP_ID;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
+
 import java.util.function.Function;
 
 import org.eclipse.jkube.kit.common.Configs;
@@ -26,11 +31,6 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-
-import static org.eclipse.jkube.kit.common.Configs.asInteger;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.QUARKUS_GROUP_ID;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
 
 /**
  * Enriches Quarkus containers with health checks if the quarkus-smallrye-health is present

@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,9 +34,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class HelmServiceIT {
 

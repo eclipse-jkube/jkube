@@ -14,13 +14,13 @@
 package org.eclipse.jkube.kit.common.util;
 
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class MapUtil {
 

@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.kit.config.service.portforward;
 
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.LocalPortForward;
 import io.fabric8.kubernetes.client.Watch;
 import lombok.AllArgsConstructor;
-import org.eclipse.jkube.kit.common.KitLogger;
-
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @AllArgsConstructor
 public class PortForwardTask implements Runnable, AutoCloseable {

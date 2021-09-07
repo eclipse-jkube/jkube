@@ -29,14 +29,15 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.Named;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.Named;
-
-import javax.annotation.Nonnull;
 
 /**
  * Configuration for enrichers and generators

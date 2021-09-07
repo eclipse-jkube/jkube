@@ -13,6 +13,22 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.config.image.ImageName;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -26,22 +42,7 @@ import io.fabric8.openshift.api.model.NamedTagEventList;
 import io.fabric8.openshift.api.model.TagEvent;
 import io.fabric8.openshift.api.model.TagReference;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.config.image.ImageName;
 import org.apache.commons.lang3.StringUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * Handler object for managing image streams

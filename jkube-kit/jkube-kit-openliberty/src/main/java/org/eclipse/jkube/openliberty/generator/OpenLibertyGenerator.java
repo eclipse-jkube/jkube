@@ -13,16 +13,16 @@
  */
 package org.eclipse.jkube.openliberty.generator;
 
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.javaexec.FatJarDetector;
-import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.javaexec.FatJarDetector;
+import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 public class OpenLibertyGenerator extends JavaExecGenerator {
 

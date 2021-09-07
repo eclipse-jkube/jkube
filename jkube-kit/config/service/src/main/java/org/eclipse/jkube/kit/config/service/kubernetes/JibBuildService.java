@@ -13,29 +13,8 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
-import com.google.cloud.tools.jib.api.Credential;
-import com.google.cloud.tools.jib.api.JibContainerBuilder;
-import com.google.cloud.tools.jib.api.TarImage;
-import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
-import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
-import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
-import org.eclipse.jkube.kit.common.Assembly;
-import org.eclipse.jkube.kit.common.AssemblyFileEntry;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.common.RegistryConfig;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.service.BuildService;
-import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
-import org.eclipse.jkube.kit.config.service.JKubeServiceException;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.eclipse.jkube.kit.service.jib.JibServiceUtil;
+import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
+import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.getBaseImage;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,8 +24,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
-import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.getBaseImage;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
+import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
+import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.service.BuildService;
+import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.kit.service.jib.JibServiceUtil;
+
+import com.google.cloud.tools.jib.api.Credential;
+import com.google.cloud.tools.jib.api.JibContainerBuilder;
+import com.google.cloud.tools.jib.api.TarImage;
 
 public class JibBuildService implements BuildService {
 

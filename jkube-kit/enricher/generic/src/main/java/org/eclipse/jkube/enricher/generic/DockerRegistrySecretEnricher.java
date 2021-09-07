@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 public class DockerRegistrySecretEnricher extends SecretEnricher {
     private static final String ANNOTATION_KEY = "maven.jkube.io/dockerServerId";

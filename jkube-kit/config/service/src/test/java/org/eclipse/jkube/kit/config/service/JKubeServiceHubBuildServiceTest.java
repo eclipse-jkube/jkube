@@ -13,10 +13,11 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Arrays;
 import java.util.Collection;
 
-import mockit.Mocked;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -27,11 +28,10 @@ import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 
+import mockit.Mocked;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class JKubeServiceHubBuildServiceTest {

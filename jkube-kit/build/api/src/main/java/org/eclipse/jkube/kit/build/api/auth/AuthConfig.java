@@ -13,18 +13,19 @@
  */
 package org.eclipse.jkube.kit.build.api.auth;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.UnaryOperator;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+
 import com.google.gson.JsonObject;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.KitLogger;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.UnaryOperator;
 
 /**
  * Configuration object holding auth information for

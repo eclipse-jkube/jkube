@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
@@ -24,8 +26,6 @@ import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import mockit.Mocked;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author dgaur

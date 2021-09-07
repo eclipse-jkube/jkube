@@ -13,10 +13,7 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.net.Authenticator;
@@ -25,7 +22,10 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.util.Collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class HelmRepoTypeTest {
 

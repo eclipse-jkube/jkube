@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -30,16 +30,15 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import mockit.Expectations;
 import mockit.Mocked;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.internal.runners.statements.ExpectException;
 import org.junit.rules.TemporaryFolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplyMojoTest {
 

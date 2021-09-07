@@ -16,9 +16,9 @@ package org.eclipse.jkube.kit.build.api.assembly;
 import java.io.File;
 import java.util.List;
 
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 
 /**
  * @author roland

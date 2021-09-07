@@ -13,16 +13,17 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.common.KitLogger;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 public class CredentialHelperClientTest {
     private final Gson gson = new Gson();

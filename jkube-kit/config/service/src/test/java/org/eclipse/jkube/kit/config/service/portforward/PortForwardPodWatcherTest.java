@@ -13,6 +13,15 @@
  */
 package org.eclipse.jkube.kit.config.service.portforward;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -23,16 +32,8 @@ import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodStatusBuilder;
 import io.fabric8.kubernetes.client.Watcher;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class PortForwardPodWatcherTest {
 

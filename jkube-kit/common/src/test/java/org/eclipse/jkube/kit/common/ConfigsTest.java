@@ -13,16 +13,16 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.util.Properties;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class ConfigsTest {
 

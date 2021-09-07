@@ -13,19 +13,20 @@
  */
 package org.eclipse.jkube.kit.config.access;
 
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.ConfigBuilder;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Stream;
 
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+
+import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.ConfigBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.apache.commons.lang3.StringUtils;
 
 @Builder(toBuilder = true)

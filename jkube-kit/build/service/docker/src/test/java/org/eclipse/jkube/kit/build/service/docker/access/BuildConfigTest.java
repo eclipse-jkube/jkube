@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.jkube.kit.common.JsonFactory;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import org.junit.Test;
 
 /**
  * @author roland

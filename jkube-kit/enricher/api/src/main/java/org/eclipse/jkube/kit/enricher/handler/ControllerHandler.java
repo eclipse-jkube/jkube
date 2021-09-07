@@ -13,13 +13,14 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import java.util.List;
+
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
-import java.util.List;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 
 public interface ControllerHandler<T extends HasMetadata> {
 

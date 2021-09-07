@@ -13,11 +13,12 @@
  */
 package org.eclipse.jkube.generator.api;
 
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import java.util.Properties;
 
 import javax.annotation.Nonnull;
-import java.util.Properties;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
 public class GeneratorConfig {
 

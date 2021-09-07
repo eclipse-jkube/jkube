@@ -13,6 +13,18 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Collections;
+
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -22,22 +34,11 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Collections;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author nicola

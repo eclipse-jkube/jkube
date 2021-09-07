@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Test;
 
 public class IngressConfigTest {
   /**

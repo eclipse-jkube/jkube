@@ -13,6 +13,21 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.extractContainerName;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -40,21 +55,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigFluent;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecFluent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.extractContainerName;
 
 /**
  * Merge in image configuration like the image name into ReplicaSet and ReplicationController's

@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.config.service.openshift;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;

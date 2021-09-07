@@ -13,15 +13,7 @@
  */
 package org.eclipse.jkube.vertx.enricher;
 
-import io.fabric8.kubernetes.api.model.HTTPHeader;
-import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.ProbeFluent;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
+import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.hasDependencyWithGroupId;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +24,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.hasDependencyWithGroupId;
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
+
+import io.fabric8.kubernetes.api.model.HTTPHeader;
+import io.fabric8.kubernetes.api.model.Probe;
+import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import io.fabric8.kubernetes.api.model.ProbeFluent;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 
 /**

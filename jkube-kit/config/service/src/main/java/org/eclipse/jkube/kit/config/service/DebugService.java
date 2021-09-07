@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.extractPodLabelSelector;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.withSelector;
+import static org.eclipse.jkube.kit.common.util.PodHelper.firstContainerHasEnvVars;
+
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,11 +52,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
-
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.extractPodLabelSelector;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.withSelector;
-import static org.eclipse.jkube.kit.common.util.PodHelper.firstContainerHasEnvVars;
 
 public class DebugService {
     public static final String DEBUG_ENV_VARS_UPDATE_MESSAGE = "Updating %s %s with Debug variables in containers";

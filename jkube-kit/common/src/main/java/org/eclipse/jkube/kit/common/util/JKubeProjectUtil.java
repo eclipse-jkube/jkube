@@ -13,11 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.Dependency;
-import org.eclipse.jkube.kit.common.Plugin;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
@@ -26,6 +21,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
+
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class JKubeProjectUtil {
 

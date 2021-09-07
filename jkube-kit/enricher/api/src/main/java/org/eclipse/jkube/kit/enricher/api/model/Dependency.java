@@ -14,9 +14,9 @@
 package org.eclipse.jkube.kit.enricher.api.model;
 
 
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-
 import java.io.File;
+
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 
 public class Dependency {
 

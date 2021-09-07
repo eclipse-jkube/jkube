@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.generator.javaexec;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,10 +24,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
@@ -33,9 +36,6 @@ import mockit.Injectable;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * Checking how the JavaExecGenerator checks the need to set a main class as environment variable JAVA_MAIN_CLASS

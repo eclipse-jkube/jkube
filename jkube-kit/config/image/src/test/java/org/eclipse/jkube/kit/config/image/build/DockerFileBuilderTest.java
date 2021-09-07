@@ -13,6 +13,13 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -26,13 +33,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.hamcrest.Matchers.hasEntry;
 
 public class DockerFileBuilderTest {
 

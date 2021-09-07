@@ -13,25 +13,26 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.PodTemplateSpec;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.config.resource.VolumeConfig;
-import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.VolumeConfig;
+
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import mockit.Mocked;
+import org.junit.Before;
+import org.junit.Test;
 
 public class PodTemplateHandlerTest {
 

@@ -13,6 +13,13 @@
  */
 package org.eclipse.jkube.kit.config.service.portforward;
 
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.isPodReady;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.isPodRunning;
+import static org.eclipse.jkube.kit.common.util.PodHelper.firstContainerHasEnvVars;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusDescription;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusMessagePostfix;
+
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,13 +29,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
-
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.isPodReady;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.isPodRunning;
-import static org.eclipse.jkube.kit.common.util.PodHelper.firstContainerHasEnvVars;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusDescription;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusMessagePostfix;
 
 public class PortForwardPodWatcher implements Watcher<Pod> {
   private final KitLogger log;

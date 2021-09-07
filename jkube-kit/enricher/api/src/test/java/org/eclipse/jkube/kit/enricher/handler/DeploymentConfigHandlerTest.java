@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -30,9 +33,6 @@ import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
 public class DeploymentConfigHandlerTest {
 

@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.jkube.kit.build.service.docker.helper.FormatParameterReplacer;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.LogConfiguration;
 import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.FormatParameterReplacer;
-
-import java.util.HashMap;
-import java.util.Map;
 
 
 /**

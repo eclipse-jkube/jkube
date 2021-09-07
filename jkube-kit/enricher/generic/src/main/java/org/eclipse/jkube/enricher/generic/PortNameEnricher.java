@@ -13,13 +13,7 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.apache.commons.lang3.StringUtils;
+import static io.fabric8.ianaservicehelper.Helper.serviceNames;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -27,7 +21,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static io.fabric8.ianaservicehelper.Helper.serviceNames;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Use a given set of well known ports and, if not found, create container ports with names with

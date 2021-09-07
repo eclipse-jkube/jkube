@@ -13,6 +13,21 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.VolumeConfig;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.fabric8.kubernetes.api.model.Container;
@@ -26,21 +41,7 @@ import io.fabric8.kubernetes.api.model.SecurityContext;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.config.resource.VolumeConfig;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
 /**
  * @author roland

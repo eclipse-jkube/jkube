@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.common.assertj;
 
+import static org.assertj.core.error.ShouldBeEqualIgnoringCase.shouldBeEqual;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,8 +33,6 @@ import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.error.ShouldBeEmpty;
 import org.assertj.core.internal.Failures;
-
-import static org.assertj.core.error.ShouldBeEqualIgnoringCase.shouldBeEqual;
 
 public class ArchiveAssertions extends AbstractFileAssert<ArchiveAssertions> {
 

@@ -19,25 +19,25 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.model.Container;
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.ExecException;
 import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.LogConfiguration;
 import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WaitConfiguration;
-import org.eclipse.jkube.kit.common.KitLogger;
 
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 @Builder
 @AllArgsConstructor

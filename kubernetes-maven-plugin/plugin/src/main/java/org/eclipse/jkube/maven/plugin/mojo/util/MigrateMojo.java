@@ -13,12 +13,13 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.util;
 
+import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo;
 
 @Mojo(name = "migrate", requiresDependencyResolution = ResolutionScope.RUNTIME, defaultPhase = LifecyclePhase.INSTALL)
 public class MigrateMojo extends AbstractJKubeMojo {

@@ -15,8 +15,9 @@ package org.eclipse.jkube.kit.profile;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A profile is a named configuration with enricher and generator configs.

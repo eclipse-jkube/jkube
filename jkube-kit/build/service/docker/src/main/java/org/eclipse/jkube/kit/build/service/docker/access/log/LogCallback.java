@@ -13,9 +13,9 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
-import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
-
 import java.io.IOException;
+
+import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
 
 /**
  * Interface called for each log line received from the docker host when asynchronous

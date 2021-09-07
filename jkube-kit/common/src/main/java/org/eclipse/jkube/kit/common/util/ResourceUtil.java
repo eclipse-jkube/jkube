@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.eclipse.jkube.kit.common.GenericCustomResource;
+import org.eclipse.jkube.kit.common.ResourceFileType;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,8 +41,6 @@ import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
-import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.apache.commons.lang3.StringUtils;
 
 /**

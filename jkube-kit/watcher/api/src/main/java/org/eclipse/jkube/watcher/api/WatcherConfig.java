@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.watcher.api;
 
+import java.util.Properties;
+
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-
-import java.util.Properties;
 
 
 /**

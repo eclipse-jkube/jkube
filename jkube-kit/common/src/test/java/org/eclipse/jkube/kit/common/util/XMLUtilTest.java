@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import static org.eclipse.jkube.kit.common.util.XMLUtil.stream;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,11 +32,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import static org.eclipse.jkube.kit.common.util.XMLUtil.stream;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class XMLUtilTest {
     @Rule

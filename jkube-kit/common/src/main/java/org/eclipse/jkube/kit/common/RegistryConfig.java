@@ -13,16 +13,16 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.function.UnaryOperator;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.function.UnaryOperator;
 
 @Builder
 @AllArgsConstructor

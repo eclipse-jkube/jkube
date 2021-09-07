@@ -13,17 +13,18 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class ProjectClassLoadersTest {
     @Rule

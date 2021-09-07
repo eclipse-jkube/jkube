@@ -13,9 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.archive;
 
-import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,7 +21,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+
+import org.junit.Before;
+import org.junit.Test;
 
 public class AssemblyFileSetUtilsExcludesTest {
 

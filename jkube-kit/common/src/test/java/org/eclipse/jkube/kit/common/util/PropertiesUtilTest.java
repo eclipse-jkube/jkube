@@ -13,16 +13,16 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.util.Map;
-import java.util.Properties;
-
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
+
+import java.util.Map;
+import java.util.Properties;
+
+import org.junit.Test;
 
 public class PropertiesUtilTest {
 

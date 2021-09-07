@@ -15,9 +15,10 @@ package org.eclipse.jkube.kit.enricher.api.util;
 
 import java.util.List;
 
+import org.eclipse.jkube.kit.common.KitLogger;
+
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
-import org.eclipse.jkube.kit.common.KitLogger;
 
 /**
  * @author roland

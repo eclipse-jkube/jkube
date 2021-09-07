@@ -13,6 +13,33 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
+import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -29,44 +56,17 @@ import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.ImageStreamStatusBuilder;
 import io.fabric8.openshift.api.model.NamedTagEventListBuilder;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
-import org.apache.commons.io.FileUtils;
-import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
-import org.eclipse.jkube.kit.common.RegistryConfig;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
-import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
-import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import mockit.Expectations;
 import mockit.Mocked;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 
 public class OpenshiftBuildServiceIntegrationTest {
 
