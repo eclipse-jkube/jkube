@@ -68,6 +68,10 @@ public class ITGradleRunner extends ExternalResource {
     return resolveFile("build", "classes", "java", "main", "META-INF", "jkube", "kubernetes.yml");
   }
 
+  public File resolveDefaultOpenShiftResourceFile() {
+    return resolveFile("build", "classes", "java", "main", "META-INF", "jkube", "openshift.yml");
+  }
+
   public BuildResult build() {
     return gradleRunner.build();
   }
