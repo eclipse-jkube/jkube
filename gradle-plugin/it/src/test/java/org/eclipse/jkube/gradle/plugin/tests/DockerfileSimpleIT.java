@@ -42,4 +42,21 @@ public class DockerfileSimpleIT {
       .contains("Using first mentioned service port")
       .contains("validating");
   }
+
+  @Test
+  public void ocResource_whenRun_generatesOpenShiftManifests() throws IOException, ParseException {
+    // When
+    final BuildResult result = gradleRunner.withITProject("dockerfile-simple").withArguments("ocResource").build();
+    // Then
+    ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
+      gradleRunner.resolveFile("expected", "openshift.yml"));
+    assertThat(result).extracting(BuildResult::getOutput).asString()
+      .contains("Running in OpenShift mode")
+      .contains("Using resource templates from")
+      .contains("Adding a default Deployment")
+      .contains("Converting Deployment to DeploymentConfig")
+      .contains("Adding revision history limit to 2")
+      .contains("Using first mentioned service port")
+      .contains("validating");
+  }
 }
