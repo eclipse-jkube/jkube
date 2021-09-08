@@ -54,6 +54,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
 
     @AllArgsConstructor
     enum Config implements Configs.Config {
+        IMAGE_NAME("imageName", "busybox"),
         PERMISSION("permission", "777"),
         DEFAULT_STORAGE_CLASS("defaultStorageClass", null);
 
@@ -112,7 +113,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 Map<String, String> mountPoints = extractMountPoints(podSpec);
                 return new ContainerBuilder()
                         .withName(ENRICHER_NAME)
-                        .withImage("busybox")
+                        .withImage(getConfig(Config.IMAGE_NAME))
                         .withImagePullPolicy("IfNotPresent")
                         .withCommand(createChmodCommandArray(mountPoints))
                         .withVolumeMounts(createMounts(mountPoints))

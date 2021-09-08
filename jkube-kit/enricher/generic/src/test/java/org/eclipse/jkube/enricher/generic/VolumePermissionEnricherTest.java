@@ -54,8 +54,10 @@ public class VolumePermissionEnricherTest {
         private final String permission;
         private final String initContainerName;
         private final String[] volumeNames;
+        private final String imageName;
 
-        private TestConfig(String permission, String initContainerName, String... volumeNames) {
+        private TestConfig(String imageName,String permission, String initContainerName, String... volumeNames) {
+            this.imageName=imageName;
             this.permission = permission;
             this.initContainerName = initContainerName;
             this.volumeNames = volumeNames;
@@ -91,9 +93,10 @@ public class VolumePermissionEnricherTest {
     @Test
     public void testAdapt() {
         final TestConfig[] data = new TestConfig[]{
-            new TestConfig(null, null),
-            new TestConfig(null, VolumePermissionEnricher.ENRICHER_NAME, "volumeA"),
-            new TestConfig(null, VolumePermissionEnricher.ENRICHER_NAME, "volumeA", "volumeB")
+            new TestConfig("busybox",null, null),
+            new TestConfig("busybox1",null, null),
+            new TestConfig("busybox",null, VolumePermissionEnricher.ENRICHER_NAME, "volumeA"),
+            new TestConfig("busybox",null, VolumePermissionEnricher.ENRICHER_NAME, "volumeA", "volumeB")
         };
 
         for (final TestConfig tc : data) {
@@ -133,6 +136,7 @@ public class VolumePermissionEnricherTest {
 
             JsonObject jo = ja.get(0).getAsJsonObject();
             assertEquals(tc.initContainerName, jo.get("name").getAsString());
+            assertEquals(tc.imageName, jo.get("image").getAsString());
             String permission = StringUtils.isBlank(tc.permission) ? "777" : tc.permission;
             JsonArray chmodCmd = new JsonArray();
             chmodCmd.add("chmod");
