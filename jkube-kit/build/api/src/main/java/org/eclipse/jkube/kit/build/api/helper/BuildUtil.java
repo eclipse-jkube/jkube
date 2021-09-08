@@ -49,7 +49,7 @@ public class BuildUtil {
       fromImage = DockerFileUtil.extractBaseImages(
           fullDockerFilePath, configuration.getProperties(), buildConfig.getFilter(), buildConfig.getArgs()).stream().findFirst().orElse(null);
     } catch (IOException e) {
-      // Cant extract base image, so we wont try an auto pull. An error will occur later anyway when
+      // Can't extract base image, so we won't try an auto pull. An error will occur later anyway when
       // building the image, so we are passive here.
       fromImage = null;
     }
