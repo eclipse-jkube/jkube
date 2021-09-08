@@ -32,7 +32,8 @@ public class KubernetesExtensionIT {
   public void k8sConfigView_containsAFullyDeserializedConfiguration() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner
-        .withITProject("extension-configuration").withArguments("k8sConfigView", "--stacktrace").build();
+        .withITProject("extension-configuration")
+        .withArguments("k8sConfigView", "--stacktrace").build();
     // Then
     final String output = result.getOutput();
     ResourceVerify.verifyResourceDescriptors(

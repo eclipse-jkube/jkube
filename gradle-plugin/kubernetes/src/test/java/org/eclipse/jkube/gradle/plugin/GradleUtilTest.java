@@ -30,6 +30,7 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.junit.Before;
 import org.junit.Rule;
@@ -144,7 +145,8 @@ public class GradleUtilTest {
   @Test
   public void findClassesOutputDirectory_withValidSourceSet_shouldReturnFromSourceSet() {
     // Given
-    when(javaPlugin.getSourceSets().getByName("main").getJava().getOutputDir()).thenReturn(new File("classes"));
+    when(javaPlugin.getSourceSets().getByName("main").getJava().getDestinationDirectory().getAsFile())
+        .thenReturn(new DefaultProvider<>(() -> new File("classes")));
     // When
     final JavaProject result = convertGradleProject(project);
     // Then
