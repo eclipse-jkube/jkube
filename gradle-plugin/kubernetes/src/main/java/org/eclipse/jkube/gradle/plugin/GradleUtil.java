@@ -111,7 +111,8 @@ public class GradleUtil {
       final SourceSetContainer sourceSetContainer = gradleProject.getConvention().getPlugin(JavaPluginConvention.class)
           .getSourceSets();
       if (sourceSetContainer != null) {
-        return sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getJava().getOutputDir();
+        return sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getJava().getDestinationDirectory()
+            .getAsFile().getOrNull();
       }
     } catch (IllegalStateException | UnknownDomainObjectException ex) {
       // No matching SourceSet was found
