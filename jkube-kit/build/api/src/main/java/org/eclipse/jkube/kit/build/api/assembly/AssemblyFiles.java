@@ -41,7 +41,7 @@ public class AssemblyFiles {
     }
 
     /**
-     * Add a entry to the list of assembly files which possible should be monitored
+     * Add an entry to the list of assembly files which possible should be monitored
      *
      * @param assemblyFileEntry to monitor.
      */

@@ -86,7 +86,7 @@ public class AssemblyManager {
     }
 
     /**
-     * Create an docker tar archive from the given configuration which can be send to the Docker host for
+     * Create a docker tar archive from the given configuration which can be sent to the Docker host for
      * creating the image.
      *
      * @param imageName Name of the image to create (used for creating build directories)

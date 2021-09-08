@@ -40,7 +40,7 @@ public class AssemblyConfigurationSourceTest {
     @Before
     public void setup() throws Exception {
         buildDirectory = temporaryFolder.newFolder("build");
-        // set 'ignorePermissions' to something other then default
+        // set 'ignorePermissions' to something other than default
         this.assemblyConfig = AssemblyConfiguration.builder()
                 .permissionsString("keep")
                 .build();

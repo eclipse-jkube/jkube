@@ -40,7 +40,7 @@ public interface Container {
     boolean isRunning();
 
     /**
-     * IP Adress of the container if provided
+     * IP Address of the container if provided
      *
      * @return the IP address of the container or <code>null</code> if not provided.
      */
@@ -48,7 +48,7 @@ public interface Container {
 
     /**
      * Return IP Addresses of custom networks, mapped to the network name as the key.
-     * @return The mapping of network names to IP addresses, or null it none provided.
+     * @return The mapping of network names to IP addresses, or null if none provided.
      */
     Map<String, String> getCustomNetworkIpAddresses();
 

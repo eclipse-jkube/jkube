@@ -61,7 +61,7 @@ public class DockerFileUtil {
      * @param filter string representing filter parameters for properties in dockerfile
      * @param argsFromBuildConfig Docker Build args received from Build Configuration
      * @return LinkedList of base images name or empty collection if none is found.
-     * @throws IOException if there's a problem while performin IO operations.
+     * @throws IOException if there's a problem while performing IO operations.
      */
     public static List<String> extractBaseImages(File dockerFile, Properties properties, String filter, Map<String, String> argsFromBuildConfig) throws IOException {
         List<String[]> fromLines = extractLines(dockerFile, "FROM", properties, resolveDockerfileFilter(filter));
@@ -125,7 +125,7 @@ public class DockerFileUtil {
      * @param properties properties to interpolate in the provided dockerFile.
      * @param filter filter for parsing properties from Dockerfile
      * @return The interpolated contents of the file.
-     * @throws IOException if there's a problem while performin IO operations.
+     * @throws IOException if there's a problem while performing IO operations.
      */
     public static String interpolate(File dockerFile, Properties properties, String filter) throws IOException {
       return JKubeFileInterpolator.interpolate(dockerFile, properties, filter);
@@ -136,7 +136,7 @@ public class DockerFileUtil {
             try {
                 return new FileReader(file);
             } catch (FileNotFoundException e) {
-                // Shouldnt happen. Nevertheless ...
+                // Shouldn't happen. Nevertheless ...
                 throw new IllegalStateException("Cannot find " + file,e);
             }
         } else {

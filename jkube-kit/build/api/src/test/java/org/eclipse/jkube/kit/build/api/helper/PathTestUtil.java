@@ -50,7 +50,7 @@ public class PathTestUtil {
     }
 
     /**
-     * Joins the supplied strings, optionally prefixing and postfixing the returned string.
+     * Joins the supplied strings, optionally prefix and postfix the returned string.
      *
      * @param joinWith the string used to join the strings
      * @param prefix prefix the returned string with {@code joinWith}

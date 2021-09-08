@@ -31,7 +31,7 @@ public class BuildDirs {
     private final JKubeConfiguration params;
 
     /**
-     * Constructor building up the the output directories
+     * Constructor building up the output directories
      *
      * @param imageName image name for the image to build
      * @param params mojo params holding base and global output dir
