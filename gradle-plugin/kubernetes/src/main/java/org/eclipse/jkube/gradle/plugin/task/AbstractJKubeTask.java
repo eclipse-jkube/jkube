@@ -49,7 +49,7 @@ import org.gradle.api.tasks.TaskAction;
 import static org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper.initImageConfiguration;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 
-public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask {
+public abstract class AbstractJKubeTask extends DefaultTask implements KubernetesJKubeTask {
 
   private static final String DEFAULT_LOG_PREFIX = "k8s: ";
   private static final Path DEFAULT_RESOURCE_SOURCE_DIR = Paths.get("src", "main", "jkube");
@@ -95,6 +95,12 @@ public abstract class AbstractJKubeTask extends DefaultTask implements JKubeTask
       kitLogger.error("Error in fetching Build timestamps: " + exception.getMessage());
     }
     run();
+  }
+
+  @Internal
+  @Override
+  public KubernetesExtension getExtension() {
+    return kubernetesExtension;
   }
 
   @Internal
