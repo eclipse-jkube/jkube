@@ -138,7 +138,7 @@ public class IoUtil {
     private static int PROGRESS_LENGTH = 50;
 
     private static String getProgressBar(long bytesRead, long length) {
-        StringBuffer ret = new StringBuffer("[");
+        StringBuilder ret = new StringBuilder("[");
         if (length > - 1) {
             int bucketSize = (int) ((double)length / PROGRESS_LENGTH + 0.5D);
             int index = (int) ((double)bytesRead / bucketSize + 0.5D);
