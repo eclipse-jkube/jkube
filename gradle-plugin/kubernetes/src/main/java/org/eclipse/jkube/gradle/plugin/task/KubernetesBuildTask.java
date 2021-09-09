@@ -28,6 +28,7 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.gradle.api.GradleException;
 
 import java.io.IOException;
 
@@ -96,6 +97,7 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
       }
     } catch (JKubeServiceException | IOException e) {
       kitLogger.error(e.getMessage());
+      throw new GradleException(e.getMessage(), e);
     }
   }
 
