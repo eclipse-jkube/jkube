@@ -13,14 +13,17 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import org.assertj.core.api.AssertionsForInterfaceTypes;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.stream.Stream;
+
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
-import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
+import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
+
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
@@ -32,23 +35,22 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.MockedConstruction;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.stream.Stream;
-
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OpenShiftBuildTaskTest {
+
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  private OpenShiftBuildTask openShiftBuildTask;
   private MockedConstruction<DefaultTask> defaultTaskMockedConstruction;
+  private MockedConstruction<OpenshiftBuildService> openshiftBuildServiceMockedConstruction;
   private Project project;
   private OpenShiftExtension extension;
 
@@ -59,15 +61,15 @@ public class OpenShiftBuildTaskTest {
       when(mock.getProject()).thenReturn(project);
       when(mock.getLogger()).thenReturn(mock(Logger.class));
     });
+    openshiftBuildServiceMockedConstruction = mockConstruction(OpenshiftBuildService.class,
+        (mock, ctx) -> when(mock.isApplicable()).thenReturn(true));
     extension = new TestOpenShiftExtension();
-    extension.access =  ClusterConfiguration.builder().username("invalid").password("invalid").build();
-    when(project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     when(project.getProjectDir()).thenReturn(temporaryFolder.getRoot());
     when(project.getBuildDir()).thenReturn(temporaryFolder.newFolder("build"));
     when(project.getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
+    when(project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(mock(JavaPluginConvention.class));
-    openShiftBuildTask = new OpenShiftBuildTask(OpenShiftExtension.class);
     extension.images = Collections.singletonList(ImageConfiguration.builder()
       .name("foo/bar:latest")
       .build(BuildConfiguration.builder()
@@ -76,37 +78,27 @@ public class OpenShiftBuildTaskTest {
       .build());
   }
 
-  @Test
-  public void testGetLogPrefix() {
-    assertThat(openShiftBuildTask.getLogPrefix()).isEqualTo("oc: ");
-  }
-
-  @Test
-  public void runTask_withImageConfiguration_shouldThrowExceptionWhenNoOpenShift() {
-    // Given
-    final OpenShiftBuildTask openShiftBuildTask = new OpenShiftBuildTask(OpenShiftExtension.class);
-    // When
-    KubernetesClientException kubernetesClientException = assertThrows(KubernetesClientException.class, openShiftBuildTask::runTask);
-    // Then
-    assertThat(kubernetesClientException.getMessage())
-      .isEqualTo("An error has occurred.");
-  }
-
-  @Test
-  public void runTask_withImageConfigurationAndJibBuildStrategy_shouldGetBuildService() {
-    // Given
-    extension.buildStrategy = JKubeBuildStrategy.jib;
-    final OpenShiftBuildTask openShiftBuildTask = new OpenShiftBuildTask(OpenShiftExtension.class);
-    // When
-    openShiftBuildTask.runTask();
-    // Then
-    AssertionsForInterfaceTypes.assertThat(openShiftBuildTask.resolvedImages)
-      .singleElement()
-      .hasFieldOrPropertyWithValue("name", "foo/bar:latest");
-  }
-
   @After
   public void tearDown() {
+    openshiftBuildServiceMockedConstruction.close();
     defaultTaskMockedConstruction.close();
   }
+
+  @Test
+  public void getLogPrefix_withDefaults_shouldReturnOc() {
+    assertThat(new OpenShiftBuildTask(OpenShiftExtension.class).getLogPrefix()).isEqualTo("oc: ");
+  }
+
+  @Test
+  public void runTask_withImageConfiguration_shouldRunBuild() throws JKubeServiceException {
+    // Given
+    final OpenShiftBuildTask buildTask = new OpenShiftBuildTask(OpenShiftExtension.class);
+    // When
+    buildTask.runTask();
+    // Then
+    assertThat(buildTask.jKubeServiceHub.getBuildService()).isNotNull()
+        .isInstanceOf(OpenshiftBuildService.class);
+    verify(buildTask.jKubeServiceHub.getBuildService(), times(1)).build(any());
+  }
+
 }
