@@ -19,7 +19,8 @@ import org.gradle.api.tasks.Internal;
 
 import javax.inject.Inject;
 
-public class OpenShiftBuildTask extends KubernetesBuildTask {
+public class OpenShiftBuildTask extends KubernetesBuildTask implements OpenShiftJKubeTask {
+
   @Inject
   public OpenShiftBuildTask(Class<? extends OpenShiftExtension> extensionClass) {
     super(extensionClass);
@@ -36,15 +37,11 @@ public class OpenShiftBuildTask extends KubernetesBuildTask {
   @Override
   protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
     return super.buildServiceConfigBuilder()
-      .openshiftPullSecret(asOpenShiftExtension().getOpenshiftPullSecretOrDefault())
-      .s2iBuildNameSuffix(asOpenShiftExtension().getS2iBuildNameSuffixOrDefault())
-      .s2iImageStreamLookupPolicyLocal(asOpenShiftExtension().getS2iImageStreamLookupPolicyLocalOrDefault())
-      .openshiftPushSecret(asOpenShiftExtension().getOpenshiftPushSecret().getOrNull())
-      .resourceConfig(asOpenShiftExtension().resources)
-      .buildOutputKind(asOpenShiftExtension().getBuildOutputKindOrDefault());
-  }
-
-  private OpenShiftExtension asOpenShiftExtension() {
-    return (OpenShiftExtension) kubernetesExtension;
+        .openshiftPullSecret(getOpenShiftExtension().getOpenshiftPullSecretOrDefault())
+        .s2iBuildNameSuffix(getOpenShiftExtension().getS2iBuildNameSuffixOrDefault())
+        .s2iImageStreamLookupPolicyLocal(getOpenShiftExtension().getS2iImageStreamLookupPolicyLocalOrDefault())
+        .openshiftPushSecret(getOpenShiftExtension().getOpenshiftPushSecret().getOrNull())
+        .resourceConfig(getOpenShiftExtension().resources)
+        .buildOutputKind(getOpenShiftExtension().getBuildOutputKindOrDefault());
   }
 }
