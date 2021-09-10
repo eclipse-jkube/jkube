@@ -116,8 +116,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     } else {
       kitLogger.info("Building container image in Kubernetes mode");
     }
-    // TODO: Run Generators
-    return GeneratorManager.generate(configs, generatorContextBuilder().build(), false);
+    return GeneratorManager.generate(configs, initGeneratorContextBuilder().build(), false);
   }
 
   public KitLogger createLogger(String prefix) {
@@ -146,6 +145,16 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         .platformMode(kubernetesExtension.getRuntimeMode());
   }
 
+  protected GeneratorContext.GeneratorContextBuilder initGeneratorContextBuilder() {
+    return GeneratorContext.builder()
+        .config(extractGeneratorConfig())
+        .project(javaProject)
+        .logger(kitLogger)
+        .runtimeMode(kubernetesExtension.getRuntimeMode())
+        .useProjectClasspath(kubernetesExtension.getUseProjectClassPath().getOrElse(false))
+        .artifactResolver(jKubeServiceHub.getArtifactResolverService());
+  }
+
   protected ClusterConfiguration initClusterConfiguration() {
     return ClusterConfiguration.from(kubernetesExtension.access,
         System.getProperties(), javaProject.getProperties()).build();
@@ -157,15 +166,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         kubernetesExtension.getResourceEnvironment().getOrNull());
   }
 
-  protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() {
-    return GeneratorContext.builder()
-      .config(extractGeneratorConfig())
-      .project(javaProject)
-      .logger(kitLogger)
-      .runtimeMode(kubernetesExtension.getRuntimeMode())
-      .useProjectClasspath(kubernetesExtension.getUseProjectClassPath().getOrElse(false))
-      .artifactResolver(jKubeServiceHub.getArtifactResolverService());
-  }
 
   protected ProcessorConfig extractGeneratorConfig() {
     try {
