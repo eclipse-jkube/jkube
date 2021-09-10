@@ -19,6 +19,6 @@ configuration field `openshiftPullSecret = '12819530-ocp42-exposed-env-pull-secr
 `openshift` section in your `build.gradle`.
 
 ```shell script
-$ gradle ocBuild
+$ gradle clean build ocBuild
 ```
 
