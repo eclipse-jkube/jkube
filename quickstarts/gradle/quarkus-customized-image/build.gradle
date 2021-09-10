@@ -38,12 +38,12 @@ openshift {
     openshiftPullSecret = "12819530-ocp42-exposed-env-pull-secret-pull-secret"
     images {
         image {
-            name = "%g/%a"
+            name = "%a"
             build {
                 from = "registry.redhat.io/openjdk/openjdk-11-rhel8:1.2-3.1587486933"
                 tags = ["latest", "${project.version}"]
                 env {
-                    JAVA_APP_JAR = "${project.name}-${project.version}-runner.jar"
+                    JAVA_APP_JAR = "quarkus-run.jar"
                     JAVA_OPTIONS = "-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
                 }
                 assembly {
