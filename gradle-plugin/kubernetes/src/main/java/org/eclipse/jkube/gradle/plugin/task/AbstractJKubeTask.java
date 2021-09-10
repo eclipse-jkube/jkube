@@ -108,10 +108,13 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     return DEFAULT_LOG_PREFIX;
   }
 
-  public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
+  private List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
     kitLogger.info("Running in %s mode", kubernetesExtension.getRuntimeMode().getLabel());
-    if (kubernetesExtension.getRuntimeMode() != RuntimeMode.OPENSHIFT) {
-      kitLogger.info("Building Docker image in Kubernetes mode");
+    if (kubernetesExtension.getRuntimeMode() == RuntimeMode.OPENSHIFT) {
+      kitLogger.info("Using [[B]]OpenShift[[B]] build with strategy [[B]]%s[[B]]",
+          kubernetesExtension.getBuildStrategy().getLabel());
+    } else {
+      kitLogger.info("Building container image in Kubernetes mode");
     }
     // TODO: Run Generators
     return GeneratorManager.generate(configs, generatorContextBuilder().build(), false);
