@@ -56,9 +56,10 @@ public abstract class AbstractJKubePlugin<E extends KubernetesExtension> impleme
       for (TaskProvider<? extends JKubeTask> taskProvider : registeredTasks) {
         taskProvider.configure(task -> {
           task.setGroup(name);
-          Stream.of("compile", "java", "jar")
+          Stream.of("build", "compile", "java", "jar")
               .map(taskByName(evaluatedProject))
               .filter(Objects::nonNull)
+              // Cannot remove warning (object spread)
               .forEach(t -> task.mustRunAfter(t));
           precedence.getOrDefault(task.getName(), Collections.emptyList())
               .forEach(taskDepClass -> task.mustRunAfter(evaluatedProject.getTasks().withType(taskDepClass)));
