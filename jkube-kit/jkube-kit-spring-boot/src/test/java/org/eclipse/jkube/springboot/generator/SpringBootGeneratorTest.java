@@ -13,24 +13,22 @@
  */
 package org.eclipse.jkube.springboot.generator;
 
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.common.Plugin;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID;
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID;
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -38,64 +36,91 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-/**
- * @author roland
- */
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class SpringBootGeneratorTest {
 
-    @Mocked
-    private GeneratorContext context;
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Mocked
-    private JavaProject project;
+  @Mocked
+  private GeneratorContext context;
 
-    @Test
-    public void notApplicable() throws IOException {
-        SpringBootGenerator generator = new SpringBootGenerator(createGeneratorContext(Collections.emptyList()));
-        assertFalse(generator.isApplicable((List<ImageConfiguration>) Collections.EMPTY_LIST));
-    }
+  @Mocked
+  private JavaProject project;
 
-    @Test
-    public void javaOptions() throws IOException {
-        SpringBootGenerator generator = new SpringBootGenerator(createGeneratorContext(Collections.emptyList()));
-        List<String> extraOpts = generator.getExtraJavaOptions();
-        assertNotNull(extraOpts);
-        assertEquals(0, extraOpts.size());
+  private SpringBootGenerator springBootGenerator;
 
-        List<ImageConfiguration> configs = generator.customize(new ArrayList<>(), true);
-        assertEquals(1, configs.size());
-        Map<String, String> env = configs.get(0).getBuildConfiguration().getEnv();
-        assertNull(env.get("JAVA_OPTIONS"));
-    }
+  @Before
+  public void setUp() throws Exception {
+    // @formatter:off
+    new Expectations() {{
+      context.getProject(); result = project;
+      project.getOutputDirectory(); result = temporaryFolder.newFolder("springboot-test-project").getAbsolutePath();
+      project.getPlugins(); result = Collections.emptyList(); minTimes = 0;
+      project.getVersion(); result = "1.0.0"; minTimes = 0;
+    }};
+    // @formatter:on
+    springBootGenerator = new SpringBootGenerator(context);
+  }
 
-    @Test
-    public void applicableWithSpringBootMavenPlugin() throws IOException {
-        SpringBootGenerator generator = new SpringBootGenerator(createGeneratorContext(Collections.singletonList(Plugin.builder()
-          .groupId(SPRING_BOOT_GROUP_ID)
-          .artifactId(SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID)
-          .build())));
-        assertTrue(generator.isApplicable((List<ImageConfiguration>) Collections.EMPTY_LIST));
-    }
+  @Test
+  public void isApplicable_withNoImageConfigurations_shouldReturnFalse() {
+    // When
+    final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
+    // Then
+    assertFalse(result);
+  }
 
-    @Test
-    public void applicableWithSpringBootGradlePlugin() throws IOException {
-        SpringBootGenerator generator = new SpringBootGenerator(createGeneratorContext(Collections.singletonList(Plugin.builder()
-          .groupId(SPRING_BOOT_GROUP_ID)
-          .artifactId(SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID)
-          .build())));
-        assertTrue(generator.isApplicable((List<ImageConfiguration>) Collections.EMPTY_LIST));
-    }
+  @Test
+  public void isApplicable_withNoImageConfigurationsAndMavenPlugin_shouldReturnTrue() {
+    // Given
+    withPlugins(Collections.singletonList(Plugin.builder()
+        .groupId("org.springframework.boot")
+        .artifactId("spring-boot-maven-plugin")
+        .build()));
+    // When
+    final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
+    // Then
+    assertTrue(result);
+  }
 
-    private GeneratorContext createGeneratorContext(List<Plugin> plugins) throws IOException {
-        new Expectations() {{
-            context.getProject(); result = project;
-            String tempDir = Files.createTempDirectory("springboot-test-project").toFile().getAbsolutePath();
+  @Test
+  public void isApplicable_withNoImageConfigurationsAndGradlePlugin_shouldReturnTrue() {
+    // Given
+    withPlugins(Collections.singletonList(Plugin.builder()
+        .groupId("org.springframework.boot")
+        .artifactId("org.springframework.boot.gradle.plugin")
+        .build()));
+    // When
+    final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
+    // Then
+    assertTrue(result);
+  }
 
-            // TODO: Prepare more relastic test setup
-            project.getOutputDirectory(); result = tempDir;
-            project.getPlugins(); result = plugins; minTimes = 0;
-            project.getVersion(); result = "1.0.0"; minTimes = 0;
-        }};
-        return context;
-    }
+  @Test
+  public void getExtraJavaOptions_withDefaults_shouldBeEmpty() {
+    // When
+    final List<String> result = springBootGenerator.getExtraJavaOptions();
+    // Then
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  public void customize_withEmptyList_shouldReturnAddedImage() {
+    // When
+    final List<ImageConfiguration> configs = springBootGenerator.customize(new ArrayList<>(), true);
+    // Then
+    assertEquals(1, configs.size());
+    Map<String, String> env = configs.get(0).getBuildConfiguration().getEnv();
+    assertNull(env.get("JAVA_OPTIONS"));
+  }
+
+  private void withPlugins(List<Plugin> plugins) {
+    // @formatter:off
+    new Expectations() {{
+      project.getPlugins(); result = plugins;
+    }};
+    // @formatter:on
+  }
 }
