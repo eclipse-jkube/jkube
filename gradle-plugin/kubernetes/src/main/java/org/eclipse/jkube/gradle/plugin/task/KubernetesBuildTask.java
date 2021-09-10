@@ -85,9 +85,6 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
 
   @Override
   public void run() {
-    if (kubernetesExtension.getRuntimeMode() != RuntimeMode.OPENSHIFT) {
-      kitLogger.info("Building container image in Kubernetes mode");
-    }
     try {
       for (ImageConfiguration imageConfig : resolvedImages) {
         storeTimestamp(
