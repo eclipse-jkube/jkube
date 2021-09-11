@@ -39,6 +39,16 @@ If your pod has multiple containers you can configure the container name to log 
 mvn {goal-prefix}:log -Djkube.log.container=foo
 ----
 
+.Example XML configuration for log goal
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+<plugin>
+  <configuration>
+    <logFollow>true</logFollow>
+    <logContainer>container</logContainer>
+    <logPod>pod</logPod>
+  </configuration>
+</plugin>
+
 [[Supported-Properties-Log]]
 === Supported Properties for Log goal
 

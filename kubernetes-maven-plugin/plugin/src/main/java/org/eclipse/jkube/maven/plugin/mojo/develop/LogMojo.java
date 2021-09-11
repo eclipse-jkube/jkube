@@ -34,11 +34,11 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 public class LogMojo extends ApplyMojo {
 
   @Parameter(property = "jkube.log.follow", defaultValue = "true")
-  private boolean logFollow;
+  protected boolean logFollow;
   @Parameter(property = "jkube.log.container")
-  private String logContainerName;
+  protected String logContainerName;
   @Parameter(property = "jkube.log.pod")
-  private String logPodName;
+  protected String logPodName;
 
   @Override
   protected void applyEntities(final KubernetesClient kubernetes, String fileName, final Collection<HasMetadata> entities) {
