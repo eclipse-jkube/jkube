@@ -70,7 +70,7 @@ public class OpenshiftHelper {
             String json = "{\"kind\": \"List\", \"apiVersion\": \"" + DEFAULT_API_VERSION + "\",\n" +
                     "  \"items\": " + ResourceUtil.toJson(objects) + " }";
 
-            // lets make a few passes in case there's expressions in values
+            // let's make a few passes in case there's expressions in values
             for (int i = 0; i < 5; i++) {
                 for (Parameter parameter : parameters) {
                     String name = parameter.getName();
@@ -128,7 +128,7 @@ public class OpenshiftHelper {
         combineParameters(parameters, template.getParameters());
         String name = KubernetesHelper.getName(template);
         if (StringUtils.isNotBlank(name)) {
-            // lets merge all the jkube annotations using the template id qualifier as a postfix
+            // let's merge all the jkube annotations using the template id qualifier as a postfix
             Map<String, String> annotations = KubernetesHelper.getOrCreateAnnotations(firstTemplate);
             Map<String, String> otherAnnotations = KubernetesHelper.getOrCreateAnnotations(template);
             Set<Map.Entry<String, String>> entries = otherAnnotations.entrySet();

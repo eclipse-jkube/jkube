@@ -52,7 +52,7 @@ public class AsciiDocParser {
      * Between line breaks, both columns representing the kind (first column) and filename (second column).
      * Notice that one-line columns definition @code{|Cell in column 1, row 1|Cell in column 1, row 1} is not supported.
      *
-     * This method returns an @code{IllegalArgumentException} if does not contain two columns.
+     * This method returns an {@link IllegalArgumentException} if it does not contain two columns.
      *
      * @param table definition in AsciiDoc format.
      * @return A serialization of all columns.

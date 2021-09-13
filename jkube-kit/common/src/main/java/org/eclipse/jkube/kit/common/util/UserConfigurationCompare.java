@@ -123,7 +123,7 @@ public class UserConfigurationCompare {
      * @return returns boolean value indicating equality or not.
      */
     protected static boolean configEqualKubernetesDTO(@NotNull Object entity1, @NotNull Object entity2, @NotNull Class<?> clazz) {
-        // lets iterate through the objects making sure we've not
+        // let's iterate through the objects making sure we've not
         BeanInfo beanInfo = null;
         try {
             beanInfo = Introspector.getBeanInfo(clazz);

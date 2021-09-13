@@ -169,7 +169,7 @@ public class ProcessUtil {
         List<File> pathDirectories = new ArrayList<>();
         String pathText = System.getenv("PATH");
         if( isWindows() && pathText==null ) {
-            // On windows, the PATH env var is case insensitive, force to upper case.
+            // On Windows, the PATH env var is case-insensitive, force to upper case.
             for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
                 if( entry.getKey().equalsIgnoreCase("PATH") ) {
                     pathText = entry.getValue();

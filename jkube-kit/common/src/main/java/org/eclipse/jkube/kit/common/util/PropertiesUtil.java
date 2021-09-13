@@ -47,11 +47,11 @@ public class PropertiesUtil {
   }
 
   /**
-   * Return first Non Null set property from a set of provided properties
+   * Return first Non-Null set property from a set of provided properties
    *
    * @param properties {@link Properties} in a given project
    * @param keys an array of property key values to find
-   * @return a string which is first non null value found for the provided list
+   * @return a string which is first non-null value found for the provided list
    */
   public static String getValueFromProperties(Properties properties, String... keys) {
     for (String property : keys) {
