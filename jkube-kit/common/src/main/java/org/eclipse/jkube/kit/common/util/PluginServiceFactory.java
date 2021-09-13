@@ -70,7 +70,7 @@ public final class PluginServiceFactory<C> {
      *        Normally, default service should be given as first parameter so that custom
      *        descriptors have a chance to remove a default service.
      * @param <T> type of the service objects to create
-     * @return a ordered list of created services or an empty list.
+     * @return an ordered list of created services or an empty list.
      */
     public <T> List<T> createServiceObjects(String... descriptorPaths) {
         try {
@@ -116,8 +116,8 @@ public final class PluginServiceFactory<C> {
             ServiceEntry entry = new ServiceEntry(line);
             if (entry.isRemove()) {
                 // Removing is a bit complex since we need to find out
-                // the proper key since the order is part of equals/hash
-                // so we cant fetch/remove it directly
+                // the proper key since the order is part of equals/hash,
+                // so we can't fetch/remove it directly
                 Set<ServiceEntry> toRemove = new HashSet<>();
                 for (ServiceEntry key : serviceMap.keySet()) {
                     if (key.getClassName().equals(entry.getClassName())) {
@@ -156,7 +156,7 @@ public final class PluginServiceFactory<C> {
         /**
          * Parse an entry in the service definition. This should be the full qualified classname
          * of a service, optional prefixed with "<code>!</code>" in which case the service is removed
-         * from the default list. An order value can be appended after the classname with a comma for give a
+         * from the default list. An order value can be appended after the classname with a comma for give an
          * indication for the ordering of services. If not given, 100 is taken for the first entry, counting up.
          *
          * @param line line to parse

@@ -46,7 +46,7 @@ import com.networknt.schema.ValidationMessage;
 
 /**
  * Validates Kubernetes/OpenShift resource descriptors using JSON schema validation method.
- * For OpenShift it adds some some exceptions from JSON schema constraints and ignores some validation errors.
+ * For OpenShift, it adds some exceptions from JSON schema constraints and ignores some validation errors.
  */
 
 public class ResourceValidator {

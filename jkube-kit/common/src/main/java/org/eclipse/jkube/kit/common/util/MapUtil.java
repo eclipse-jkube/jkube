@@ -29,7 +29,7 @@ public class MapUtil {
     /**
      * Add all values of a map to another map, but only if not already existing.
      * @param map target map
-     * @param toMerge the values to ad
+     * @param toMerge the values to add
      */
     public static void mergeIfAbsent(Map<String, String> map, Map<String, String> toMerge) {
         for (Map.Entry<String, String> entry : toMerge.entrySet()) {
@@ -61,7 +61,7 @@ public class MapUtil {
     }
 
     /**
-     * Copies all of the elements i.e., the mappings, from toPut map into ret, if toPut isn't null.
+     * Copies all the elements i.e., the mappings, from toPut map into ret, if toPut isn't null.
      * @param ret target hash map
      * @param toPut source hash map
      */

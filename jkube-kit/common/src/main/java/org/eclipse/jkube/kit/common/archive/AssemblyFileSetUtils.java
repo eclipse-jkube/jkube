@@ -178,7 +178,7 @@ public class AssemblyFileSetUtils {
   }
 
   /**
-   * Functional filter that will filter {@link AssemblyFileEntry#getSource()} files that match any of the exclude
+   * Functional filter that will filter {@link AssemblyFileEntry#getSource()} files that match any of the excluded
    * paths provided in {@link AssemblyFileSet#getExcludes()} using {@link PathMatcher} glob syntax.
    *
    * @param sourceDirectory the source directory to relativize files prior to applying th path matcher

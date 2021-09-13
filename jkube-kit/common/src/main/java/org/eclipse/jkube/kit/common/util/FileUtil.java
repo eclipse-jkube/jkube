@@ -156,7 +156,7 @@ public class FileUtil {
     /**
      * <b>Adapted from https://github.com/sonatype/plexus-utils/blob/5ba6cfcca911200b5b9d2b313bb939e6d7cbbac6/src/main/java/org/codehaus/plexus/util/PathTool.java#L302</b>
      *
-     * <p>This method can calculate the relative path between two pathes on a file system.
+     * <p>This method can calculate the relative path between two paths on a file system.
      * <br>
      * <pre>{@code
      * getRelativeFilePath( null, null )                                   = ""
