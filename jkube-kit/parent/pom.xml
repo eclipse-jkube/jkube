@@ -75,7 +75,7 @@
     <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
 
     <!-- =======================================================  -->
-    <version.image.jkube-images>0.0.9</version.image.jkube-images>
+    <version.image.jkube-images>0.0.10</version.image.jkube-images>
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
     <version.image.java.upstream.docker>${version.image.jkube-images}</version.image.java.upstream.docker>
