@@ -95,7 +95,6 @@ public class ImageChangeTriggerEnricher extends BaseEnricher {
                                     .withNewFrom()
                                     .withKind("ImageStreamTag")
                                     .withName(image.getSimpleName() + ":" + tag)
-                                    .withNamespace(image.getUser())
                                     .endFrom()
                                     .withContainerNames(containerName)
                                     .endImageChangeParams()
