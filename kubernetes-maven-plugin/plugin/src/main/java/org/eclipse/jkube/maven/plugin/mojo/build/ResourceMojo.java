@@ -78,7 +78,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     // Filename for holding the build timestamp
     public static final String DOCKER_BUILD_TIMESTAMP = "docker/build.timestamp";
 
-    private static final String DOCKER_IMAGE_USER = "docker.image.user";
+    private static final String DOCKER_IMAGE_USER = "jkube.image.user";
     /**
      * The generated kubernetes and openshift manifests
      */
@@ -89,7 +89,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     private MavenFileFilter mavenFileFilter;
 
     @Component
-    private ImageConfigResolver imageConfigResolver;
+    protected ImageConfigResolver imageConfigResolver;
 
     /**
      * Folder where to find project specific files
@@ -118,7 +118,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     // Skip resource descriptors validation
     @Parameter(property = "jkube.skipResourceValidation", defaultValue = "false")
-    private Boolean skipResourceValidation;
+    protected Boolean skipResourceValidation;
 
     // Determine if the plugin should stop when a validation error is encountered
     @Parameter(property = "jkube.failOnValidationError", defaultValue = "false")
@@ -126,7 +126,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     // Reusing image configuration from d-m-p
     @Parameter
-    private List<ImageConfiguration> images;
+    protected List<ImageConfiguration> images;
 
     /**
      * Profile to use. A profile contains the enrichers and generators to
@@ -158,7 +158,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     private boolean useReplicaSet = true;
 
     // The image configuration after resolving and customization
-    private List<ImageConfiguration> resolvedImages;
+    protected List<ImageConfiguration> resolvedImages;
 
     // Mapping for kind filenames
     @Parameter
@@ -168,7 +168,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
      * Namespace to use when accessing Kubernetes or OpenShift
      */
     @Parameter(property = "jkube.namespace")
-    private String namespace;
+    protected String namespace;
 
     @Parameter(property = "jkube.skip.resource", defaultValue = "false")
     protected boolean skipResource;
@@ -188,7 +188,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     private Boolean interpolateTemplateParameters;
 
     @Component
-    private MavenProjectHelper projectHelper;
+    protected MavenProjectHelper projectHelper;
 
     // resourceDir when environment has been applied
     private File realResourceDir;
