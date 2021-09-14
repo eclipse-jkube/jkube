@@ -115,7 +115,7 @@
     <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
     <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
 
-    <jib-core.version>0.16.0</jib-core.version>
+    <jib-core.version>0.20.0</jib-core.version>
   </properties>
 
   <dependencyManagement>
@@ -260,6 +260,10 @@
             <artifactId>jackson-dataformat-yaml</artifactId>
           </exclusion>
           <exclusion>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>io.sundr</groupId>
             <artifactId>builder-annotations</artifactId>
           </exclusion>
@@ -282,6 +286,12 @@
         <groupId>io.fabric8</groupId>
         <artifactId>openshift-client</artifactId>
         <version>${version.openshift-client}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -313,6 +323,12 @@
             <artifactId>snakeyaml</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jsr310</artifactId>
+        <version>${version.jackson}</version>
       </dependency>
 
       <dependency>

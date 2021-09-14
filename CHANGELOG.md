@@ -24,6 +24,7 @@ Usage:
 * Fix #815: `java.lang.ClassCastException` during `oc:build` when OpenShift not present
 * Fix #716: Update Spring Boot Quickstarts to latest version
 * Fix #907: Bump JKube base images to 0.0.10
+* Fix #832: Bump jib-core to 0.20.0
 
 ### 1.4.0 (2021-07-27)
 * Fix #253: Refactor JKubeServiceHub's BuildService election mechanism via ServiceLoader
