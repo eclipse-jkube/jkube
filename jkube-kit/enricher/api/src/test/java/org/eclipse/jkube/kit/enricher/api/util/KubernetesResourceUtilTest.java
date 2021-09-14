@@ -176,6 +176,21 @@ public class KubernetesResourceUtilTest {
     }
 
     @Test
+    public void containerName_withPeriodsInImageUser_shouldRemovePeriodsFromContainerName() {
+        // Given
+        ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+          .name("org.eclipse.jkube.testing/test-image")
+          .build();
+        GroupArtifactVersion gav = new GroupArtifactVersion("org.eclipse.jkube.testing", "test-image", "1.0.0");
+
+        // When
+        String containerName = KubernetesResourceUtil.extractContainerName(gav, imageConfiguration);
+
+        // Then
+        assertEquals("orgeclipsejkubetesting-test-image", containerName);
+    }
+
+    @Test
     public void readWholeDir() throws IOException {
         ResourceVersioning v = new ResourceVersioning()
                 .withCoreVersion("v2")

@@ -391,22 +391,20 @@ public class KubernetesResourceUtil {
 
     public static String extractContainerName(GroupArtifactVersion groupArtifactVersion, ImageConfiguration imageConfig) {
         String alias = imageConfig.getAlias();
-        return alias != null ? alias : extractImageUser(imageConfig.getName(), groupArtifactVersion.getGroupId()) + "-" + groupArtifactVersion.getArtifactId();
+        String containerName =  alias != null ? alias : extractImageUser(imageConfig.getName(), groupArtifactVersion.getGroupId()) + "-" + groupArtifactVersion.getArtifactId();
+        if (!containerName.matches(CONTAINER_NAME_REGEX)) {
+            return sanitizeName(containerName);
+        }
+        return containerName;
     }
 
     private static String extractImageUser(String image, String groupId) {
         ImageName name = new ImageName(image);
         String imageUser = name.getUser();
-        String projectGroupId = groupId;
         if(imageUser != null) {
             return imageUser;
         } else {
-            if(projectGroupId == null || projectGroupId.matches(CONTAINER_NAME_REGEX)) {
-                return projectGroupId;
-            }
-            else {
-                return projectGroupId.replaceAll("[^a-zA-Z0-9-]", "").replaceFirst("^-*(.*?)-*$","$1");
-            }
+            return groupId;
         }
     }
 
@@ -951,5 +949,9 @@ public class KubernetesResourceUtil {
     public static boolean isExposedService(ObjectMeta objectMeta) {
         return containsLabelInMetadata(objectMeta, EXPOSE_LABEL, "true") ||
                 containsLabelInMetadata(objectMeta, JKubeAnnotations.SERVICE_EXPOSE_URL.value(), "true");
+    }
+
+    private static String sanitizeName(String name) {
+        return name.replaceAll("[^a-zA-Z0-9-]", "").replaceFirst("^-*(.*?)-*$","$1");
     }
 }

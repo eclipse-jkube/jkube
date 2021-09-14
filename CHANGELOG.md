@@ -23,9 +23,11 @@ Usage:
 ### 1.5.0-SNAPSHOT
 * Fix #815: `java.lang.ClassCastException` during `oc:build` when OpenShift not present
 * Fix #716: Update Spring Boot Quickstarts to latest version
-* Fix #904: DeploymentConfig ImageChange trigger seems to be wrong for custom images
 * Fix #907: Bump JKube base images to 0.0.10
 * Fix #832: Bump jib-core to 0.20.0
+* Fix #904: DeploymentConfig ImageChange trigger seems to be wrong for custom images
+* Fix #904: `%g` should be resolved to namespace in OpenShift Maven Plugin
+* Fix #908: OpenShift-Maven-Plugin doesn't remove periods from container name
 
 ### 1.4.0 (2021-07-27)
 * Fix #253: Refactor JKubeServiceHub's BuildService election mechanism via ServiceLoader
