@@ -64,7 +64,6 @@ import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -174,25 +173,22 @@ public class DockerAccessWithHcClient implements DockerAccess {
 
     private ResponseHandler<Object> createExecResponseHandler(LogOutputSpec outputSpec) {
         final LogCallback callback = new DefaultLogCallback(outputSpec);
-        return new ResponseHandler<Object>() {
-            @Override
-            public Object handleResponse(HttpResponse response) throws IOException {
-                try (InputStream stream = response.getEntity().getContent()) {
-                    LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream));
-                    String line;
-                    try {
-                        callback.open();
-                        while ( (line = reader.readLine()) != null) {
-                            callback.log(1, new Timestamp(), line);
-                        }
-                    } catch (LogCallback.DoneException e) {
-                        // Ok, we stop here ...
-                    } finally {
-                        callback.close();
+        return response -> {
+            try (InputStream stream = response.getEntity().getContent();
+                 LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream))) {
+                String line;
+                try {
+                    callback.open();
+                    while ( (line = reader.readLine()) != null) {
+                        callback.log(1, new Timestamp(), line);
                     }
+                } catch (LogCallback.DoneException e) {
+                    // Ok, we stop here ...
+                } finally {
+                    callback.close();
                 }
-                return null;
             }
+            return null;
         };
     }
 
@@ -466,15 +462,12 @@ public class DockerAccessWithHcClient implements DockerAccess {
     }
 
     private ResponseHandler<Object> getImageResponseHandler(final String filename, final ArchiveCompression compression) {
-        return new ResponseHandler<Object>() {
-            @Override
-            public Object handleResponse(HttpResponse response) throws IOException {
-                try (InputStream stream = response.getEntity().getContent();
-                     OutputStream out = compression.wrapOutputStream(new FileOutputStream(filename))) {
-                    IOUtils.copy(stream, out, 65536);
-                }
-                return null;
+        return response -> {
+            try (InputStream stream = response.getEntity().getContent();
+                 OutputStream out = compression.wrapOutputStream(new FileOutputStream(filename))) {
+                IOUtils.copy(stream, out, 65536);
             }
+            return null;
         };
     }
 
