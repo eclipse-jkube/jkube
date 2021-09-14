@@ -84,6 +84,14 @@
             <artifactId>eclipse-jkube-sample-custom-enricher-istio</artifactId>
             <version>${project.version}</version>
           </dependency>
+          <!-- TODO: Remove this dependency -->
+          <!-- This is a temporary workaround until we find the underlying cause of why this dependency -->
+          <!-- is not added to the maven execution classpath -->
+          <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.12.4</version>
+          </dependency>
         </dependencies>
       </plugin>
 

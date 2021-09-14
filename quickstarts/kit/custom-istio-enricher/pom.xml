@@ -27,15 +27,17 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.3.5.RELEASE</version>
+    <version>2.5.4</version>
   </parent>
 
   <name>Eclipse JKube :: Quickstarts :: Kit :: Custom Istio Enricher Parent</name>
   <description>Eclipse JKube Kit example to build and use a Custom Enricher in a SpringBoot Application. It will demonstrate how you can extend Eclipse JKube Kit's Enricher API to make your own enricher and use it to enrich or generate manifests as per your requirements.</description>
 
   <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <commons-codec.version>1.10</commons-codec.version>
     <istio-client.version>1.7.5-Beta2</istio-client.version>
   </properties>
 
@@ -48,16 +50,11 @@
     <dependencies>
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-kit-enricher-api</artifactId>
+        <artifactId>jkube-kit-parent</artifactId>
         <version>${jkube.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
-
-      <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>${commons-codec.version}</version>
-      </dependency>
-
       <dependency>
         <groupId>me.snowdrop</groupId>
         <artifactId>istio-client</artifactId>
