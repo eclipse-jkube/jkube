@@ -1,0 +1,10 @@
+
+[[jkube:apply]]
+=== *{task-prefix}Apply*
+
+This task applies the resources created with <<jkube:resource>> to a connected {cluster} cluster.
+
+[source, sh, subs="+attributes"]
+----
+gradle {task-prefix}Apply
+----
