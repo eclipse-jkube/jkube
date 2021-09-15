@@ -2,3 +2,5 @@
 == Development Tasks
 
 include::_jkube-log.adoc[]
+
+include::_jkube-undeploy.adoc[]

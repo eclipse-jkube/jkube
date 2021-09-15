@@ -37,11 +37,13 @@ public class SimpleIT {
         .contains("k8sBuild - ")
         .contains("k8sLog - ")
         .contains("k8sResource - ")
+        .contains("k8sUndeploy - ")
         .contains("Openshift tasks")
         .contains("ocApply - ")
         .contains("ocBuild - ")
         .contains("ocLog - ")
-        .contains("ocResource - ");
+        .contains("ocResource - ")
+        .contains("ocUndeploy - ");
   }
 
 }

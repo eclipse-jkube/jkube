@@ -24,6 +24,7 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesConfigViewTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 
+import org.eclipse.jkube.gradle.plugin.task.KubernetesUndeployTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 
@@ -47,6 +48,7 @@ public class KubernetesPlugin extends AbstractJKubePlugin<KubernetesExtension> {
     register(project, "k8sResource", KubernetesResourceTask.class);
     register(project, "k8sApply", KubernetesApplyTask.class);
     register(project, "k8sLog", KubernetesLogTask.class);
+    register(project, "k8sUndeploy", KubernetesUndeployTask.class);
   }
 
 }
