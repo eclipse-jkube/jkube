@@ -30,6 +30,12 @@ import java.util.Map;
  */
 public class ImageNameFormatter implements ConfigHelper.NameFormatter {
 
+    /**
+     * Property to lookup for image user which overwrites the calculated default (group).
+     * Used with format modifier %g
+     */
+    public static final String DOCKER_IMAGE_USER = "jkube.image.user";
+
 
     private final FormatParameterReplacer formatParamReplacer;
 
@@ -85,12 +91,6 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
 
 
     private static class DefaultUserLookup extends AbstractLookup {
-
-        /**
-         * Property to lookup for image user which overwrites the calculated default (group).
-         * Used with format modifier %g
-         */
-        private static final String DOCKER_IMAGE_USER = "jkube.image.user";
 
         private DefaultUserLookup(JavaProject project) {
             super(project);
