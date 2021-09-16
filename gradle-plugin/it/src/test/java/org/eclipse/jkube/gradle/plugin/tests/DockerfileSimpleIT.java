@@ -30,7 +30,8 @@ public class DockerfileSimpleIT {
   @Test
   public void k8sResource_whenRun_generatesK8sManifests() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject("dockerfile-simple").withArguments("k8sResource").build();
+    final BuildResult result = gradleRunner.withITProject("dockerfile-simple").withArguments("k8sResource", "--stacktrace")
+        .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
         gradleRunner.resolveFile("expected", "kubernetes.yml"));
