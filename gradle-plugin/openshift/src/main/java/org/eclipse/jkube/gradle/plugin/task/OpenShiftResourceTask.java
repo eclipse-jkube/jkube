@@ -14,14 +14,18 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
+import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import javax.inject.Inject;
+import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 
-public class OpenShiftResourceTask extends KubernetesResourceTask {
-  private static final String DOCKER_IMAGE_USER = "docker.image.user";
+import static org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter.DOCKER_IMAGE_USER;
 
+public class OpenShiftResourceTask extends KubernetesResourceTask {
   @Inject
   public OpenShiftResourceTask(Class<? extends OpenShiftExtension> extensionClass) {
     super(extensionClass);
@@ -30,7 +34,7 @@ public class OpenShiftResourceTask extends KubernetesResourceTask {
   }
 
   @Override
-  public void run() {
+  public List<ImageConfiguration> resolveImages(ImageConfigResolver imageConfigResolver) throws IOException {
     RuntimeMode runtimeMode = kubernetesExtension.getRuntimeMode();
     Properties properties = javaProject.getProperties();
     if (!properties.contains(DOCKER_IMAGE_USER)) {
@@ -41,7 +45,6 @@ public class OpenShiftResourceTask extends KubernetesResourceTask {
     if (!properties.contains(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE)) {
       properties.setProperty(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, runtimeMode.toString());
     }
-
-    super.run();
+    return super.resolveImages(imageConfigResolver);
   }
 }
