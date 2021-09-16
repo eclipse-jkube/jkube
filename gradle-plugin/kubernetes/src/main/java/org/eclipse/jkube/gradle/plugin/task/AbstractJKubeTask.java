@@ -75,12 +75,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     ImageConfigResolver imageConfigResolver = new ImageConfigResolver();
     try {
-      resolvedImages = initImageConfiguration(
-          kubernetesExtension.getApiVersion().getOrNull(),
-          getBuildTimestamp(null, null, javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP),
-          javaProject, kubernetesExtension.images, imageConfigResolver, kitLogger,
-          kubernetesExtension.getFilter().getOrNull(),
-          this::customizeConfig);
+      resolvedImages = resolveImages(imageConfigResolver);
+
       enricherManager = new DefaultEnricherManager(JKubeEnricherContext.builder()
         .project(javaProject)
           .processorConfig(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG,
@@ -173,5 +169,14 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     } catch (IOException e) {
       throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
     }
+  }
+
+  protected List<ImageConfiguration> resolveImages(ImageConfigResolver imageConfigResolver) throws IOException {
+    return initImageConfiguration(
+      kubernetesExtension.getApiVersion().getOrNull(),
+      getBuildTimestamp(null, null, javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP),
+      javaProject, kubernetesExtension.images, imageConfigResolver, kitLogger,
+      kubernetesExtension.getFilter().getOrNull(),
+      this::customizeConfig);
   }
 }
