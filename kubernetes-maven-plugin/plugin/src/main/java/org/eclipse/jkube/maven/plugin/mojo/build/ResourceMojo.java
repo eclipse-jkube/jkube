@@ -60,6 +60,7 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenFilteringException;
 
+import static org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter.DOCKER_IMAGE_USER;
 import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.DEFAULT_RESOURCE_LOCATION;
@@ -78,7 +79,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     // Filename for holding the build timestamp
     public static final String DOCKER_BUILD_TIMESTAMP = "docker/build.timestamp";
 
-    private static final String DOCKER_IMAGE_USER = "jkube.image.user";
     /**
      * The generated kubernetes and openshift manifests
      */
