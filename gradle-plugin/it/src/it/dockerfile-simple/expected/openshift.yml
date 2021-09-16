@@ -76,7 +76,6 @@ items:
         from:
           kind: ImageStreamTag
           name: dockerfile-simple:latest
-          namespace: gradle
       type: ImageChange
 - apiVersion: route.openshift.io/v1
   kind: Route
