@@ -15,3 +15,7 @@ repositories {
 kubernetes {
     offline = true
 }
+
+openshift {
+    offline = true
+}
