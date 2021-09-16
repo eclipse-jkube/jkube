@@ -27,7 +27,7 @@ public class SimpleIT {
   @Test
   public void tasks_containsKubernetesAndOpenShiftTasks() {
     // When
-    final BuildResult result = gradleRunner.withITProject("simple").withArguments("tasks").build();
+    final BuildResult result = gradleRunner.withITProject("simple").withArguments("tasks", "--stacktrace").build();
     // Then
     assertThat(result).extracting(BuildResult::getOutput).asString()
         .contains("Help tasks")

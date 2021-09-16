@@ -38,7 +38,7 @@ kubernetes {
     resources {
         controllerName = 'test'
         configMap {
-            name = 'configMap-name'
+            name = 'config-map-name'
             entries = [
                     [name: 'test', value: 'value']
             ]
