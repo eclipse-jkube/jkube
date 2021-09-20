@@ -48,5 +48,4 @@ kubernetes {
 
 openshift {
     useColor = true
-    offline = true
 }
