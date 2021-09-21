@@ -45,6 +45,8 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
 
   public abstract Property<String> getOpenshiftPushSecret();
 
+  public abstract Property<File> getImageStreamManifest();
+
   @Override
   public RuntimeMode getRuntimeMode() {
     return RuntimeMode.OPENSHIFT;
@@ -63,7 +65,7 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   @Override
   public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient, JavaProject javaProject) {
     if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
-      return getOpenShiftManifest().getOrElse(javaProject.getOutputDirectory().toPath().resolve(DEFAULT_OPENSHIFT_MANIFEST).toFile());
+      return getOpenShiftManifestOrDefault(javaProject);
     }
     return getKubernetesManifestOrDefault(javaProject);
   }
@@ -102,5 +104,13 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   @Override
   public boolean isSupportOAuthClients() {
     return true;
+  }
+
+  public File getOpenShiftManifestOrDefault(JavaProject javaProject) {
+    return getOpenShiftManifest().getOrElse(javaProject.getOutputDirectory().toPath().resolve(DEFAULT_OPENSHIFT_MANIFEST).toFile());
+  }
+
+  public File getImageStreamManifestOrDefault(JavaProject javaProject) {
+    return getImageStreamManifest().getOrElse(javaProject.getBuildDirectory().toPath().resolve(Paths.get(javaProject.getArtifactId() + "-is.yml")).toFile());
   }
 }
