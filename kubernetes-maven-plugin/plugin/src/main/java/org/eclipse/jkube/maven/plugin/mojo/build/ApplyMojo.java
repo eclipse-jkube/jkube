@@ -86,7 +86,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
     private boolean servicesOnly;
 
     /**
-     * Do we want to ignore services. This is particularly useful when in recreate mode
+     * Do we want to ignore services? This is particularly useful when in recreate mode
      * to let you easily recreate all the ReplicationControllers and Pods but leave any service
      * definitions alone to avoid changing the portalIP addresses and breaking existing pods using
      * the service.
@@ -107,7 +107,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
     private boolean deletePodsOnReplicationControllerUpdate;
 
     /**
-     * Do we want to ignore OAuthClients which are already running?. OAuthClients are shared across namespaces
+     * Do we want to ignore OAuthClients which are already running?. OAuthClients are shared across namespaces,
      * so we should not try to update or create/delete global oauth clients
      */
     @Parameter(property = "jkube.deploy.ignoreRunningOAuthClients", defaultValue = "true")
@@ -214,7 +214,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
     }
 
     /**
-     * Lets disable OpenShift-only features if we are not running on OpenShift
+     * Let's disable OpenShift-only features if we are not running on OpenShift
      */
     protected void disableOpenShiftFeatures(ApplyService applyService) {
         // TODO we could check if the Templates service is running and if so we could still support templates?

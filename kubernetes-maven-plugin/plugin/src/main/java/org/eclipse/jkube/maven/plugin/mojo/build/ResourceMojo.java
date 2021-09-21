@@ -140,8 +140,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     private String profile;
 
     /**
-     * Enricher specific configuration configuration given through
-     * to the various enrichers.
+     * Enricher specific configuration passed on to the discovered Enrichers.
      */
 
     @Parameter
