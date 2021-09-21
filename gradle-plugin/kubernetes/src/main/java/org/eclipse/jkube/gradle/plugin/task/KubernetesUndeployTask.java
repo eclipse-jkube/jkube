@@ -20,6 +20,8 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class KubernetesUndeployTask extends AbstractJKubeTask {
@@ -43,7 +45,7 @@ public class KubernetesUndeployTask extends AbstractJKubeTask {
       final String fallbackNamespace = Optional.ofNullable(kubernetesExtension.resources)
         .map(ResourceConfig::getNamespace).orElse(clusterAccess.getNamespace());
       jKubeServiceHub.getUndeployService()
-        .undeploy(fallbackNamespace, environmentResourceDir, resources, findResources());
+        .undeploy(fallbackNamespace, environmentResourceDir, resources, findManifestsToUndeploy().toArray(new File[0]));
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
     }
@@ -51,5 +53,11 @@ public class KubernetesUndeployTask extends AbstractJKubeTask {
 
   protected File findResources() {
     return kubernetesExtension.getKubernetesManifestOrDefault(javaProject);
+  }
+
+  protected List<File> findManifestsToUndeploy() {
+    final List<File> ret = new ArrayList<>();
+    ret.add(findResources());
+    return ret;
   }
 }
