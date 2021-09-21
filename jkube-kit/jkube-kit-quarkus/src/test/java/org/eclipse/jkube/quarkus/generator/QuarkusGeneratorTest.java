@@ -102,7 +102,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void isApplicable_withDependency_shouldReturnTrue() {
+  public void isApplicable_withQuarkusGroupIdPlugin_shouldReturnTrue() {
     // Given
     // @formatter:off
     new Expectations() {{
@@ -110,6 +110,23 @@ public class QuarkusGeneratorTest {
           .groupId("io.quarkus")
           .artifactId("quarkus-maven-plugin")
           .build());
+    }};
+    // @formatter:on
+    // When
+    final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void isApplicable_withQuarkusPlatformGroupIdPlugin_shouldReturnTrue() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
+        .groupId("io.quarkus.platform")
+        .artifactId("quarkus-maven-plugin")
+        .build());
     }};
     // @formatter:on
     // When

@@ -35,6 +35,7 @@ import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlRe
 public class QuarkusUtils {
 
   public static final String QUARKUS_GROUP_ID = "io.quarkus";
+  public static final String QUARKUS_PLATFORM_GROUP_ID = "io.quarkus.platform";
   private static final String QUARKUS_HTTP_PORT = "quarkus.http.port";
   private static final String QUARKUS_PACKAGE_RUNNER_SUFFIX = "quarkus.package.runner-suffix";
   private static final String QUARKUS_HTTP_ROOT_PATH = "quarkus.http.root-path";
@@ -137,6 +138,11 @@ public class QuarkusUtils {
   public static String resolveQuarkusLivenessPath(JavaProject javaProject) {
     return getQuarkusConfiguration(javaProject)
         .getProperty(QUARKUS_SMALLRYE_HEALTH_LIVENESS_PATH, DEFAULT_LIVENESS_SUBPATH);
+  }
+
+  public static boolean hasQuarkusPlugin(JavaProject javaProject) {
+    return JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_GROUP_ID, "quarkus-maven-plugin") ||
+           JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_PLATFORM_GROUP_ID, "quarkus-maven-plugin");
   }
 
   /**

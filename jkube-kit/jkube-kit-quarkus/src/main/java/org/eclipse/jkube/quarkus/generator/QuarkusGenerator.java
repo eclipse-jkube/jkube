@@ -34,10 +34,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
-import static org.eclipse.jkube.quarkus.QuarkusUtils.QUARKUS_GROUP_ID;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.findSingleFileThatEndsWith;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.hasQuarkusPlugin;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
 
 public class QuarkusGenerator extends JavaExecGenerator {
@@ -66,8 +66,7 @@ public class QuarkusGenerator extends JavaExecGenerator {
 
   @Override
   public boolean isApplicable(List<ImageConfiguration> configs) {
-    return shouldAddGeneratedImageConfiguration(configs)
-        && JKubeProjectUtil.hasPlugin(getProject(), QUARKUS_GROUP_ID, "quarkus-maven-plugin");
+    return shouldAddGeneratedImageConfiguration(configs) && hasQuarkusPlugin(getProject());
   }
 
   @Override
