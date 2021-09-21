@@ -17,9 +17,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import org.eclipse.jkube.gradle.plugin.task.KubernetesApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 import org.gradle.api.Project;
@@ -54,7 +54,7 @@ public class OpenShiftPluginTest {
     verify(project.getTasks(), times(1))
         .register("ocResource", OpenShiftResourceTask.class, OpenShiftExtension.class);
     verify(project.getTasks(), times(1))
-        .register("ocApply", KubernetesApplyTask.class, OpenShiftExtension.class);
+        .register("ocApply", OpenShiftApplyTask.class, OpenShiftExtension.class);
   }
 
   @Test
