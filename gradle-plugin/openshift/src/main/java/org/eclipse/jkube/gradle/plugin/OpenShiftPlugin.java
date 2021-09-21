@@ -25,6 +25,7 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesUndeployTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftUndeployTask;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -49,7 +50,7 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
     register(project, "ocResource", OpenShiftResourceTask.class);
     register(project, "ocApply", OpenShiftApplyTask.class);
     register(project, "ocLog", KubernetesLogTask.class);
-    register(project, "ocUndeploy", KubernetesUndeployTask.class);
+    register(project, "ocUndeploy", OpenShiftUndeployTask.class);
   }
 
 }
