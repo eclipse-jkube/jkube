@@ -247,11 +247,9 @@ public class FileUtil {
     }
 
     public static void createDirectory(File directory) throws IOException {
+      FileUtils.forceMkdir(directory);
         if (!directory.exists()) {
-            boolean isCreated = directory.mkdirs();
-            if (!isCreated) {
-                throw new IOException("Failed to create directory: " + directory.getAbsolutePath());
-            }
+          throw new IOException("Failed to create directory: " + directory.getAbsolutePath());
         }
     }
 }
