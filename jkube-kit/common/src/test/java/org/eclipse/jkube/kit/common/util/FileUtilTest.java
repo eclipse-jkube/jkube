@@ -89,6 +89,15 @@ public class FileUtilTest {
     assertTrue(newDirectory.exists());
   }
 
+  // https://github.com/eclipse/jkube/issues/895
+  @Test
+  public void createDirectory_withTrailingSlash_shouldNotFail() throws IOException {
+    final File toCreate = new File(folder.getRoot().toPath().resolve("first").resolve("second").toFile(),
+        File.separator);
+    FileUtil.createDirectory(toCreate);
+    assertTrue(toCreate.exists());
+  }
+
   @Test
   public void testListFilesRecursively() throws IOException {
     prepareDirectory();

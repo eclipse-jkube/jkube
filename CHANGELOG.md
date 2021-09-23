@@ -29,6 +29,7 @@ Usage:
 * Fix #904: `%g` should be resolved to namespace in OpenShift Maven Plugin
 * Fix #908: OpenShift-Maven-Plugin doesn't remove periods from container name
 * Fix #923: QuakusGenerator not applicable when using `io.quarkus.platform` groupId
+* Fix #895: FileUtil#createDirectory works for files with trailing separator (`/`)
 
 ### 1.4.0 (2021-07-27)
 * Fix #253: Refactor JKubeServiceHub's BuildService election mechanism via ServiceLoader
