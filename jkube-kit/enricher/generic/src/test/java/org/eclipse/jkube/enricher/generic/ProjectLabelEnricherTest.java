@@ -41,228 +41,158 @@ import mockit.Mocked;
  */
 public class ProjectLabelEnricherTest {
 
-    @Mocked
-    private JKubeEnricherContext context;
+  @Mocked
+  private JKubeEnricherContext context;
 
-    @Before
-    public void setupExpectations() {
-        new Expectations() {{
-            context.getGav();
-            result = new GroupArtifactVersion("groupId", "artifactId", "version");
-        }};
-    }
-    
-    @Test
-    public void testCustomAppName() {
+  private Properties properties;
+  private ProjectLabelEnricher projectLabelEnricher;
 
-    	// Setup
-    	final String APP =  "my-custom-app-name";
-    	final Properties properties = new Properties();
-        properties.setProperty("jkube.enricher.jkube-project-label.app", APP);
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); result = properties;
-        }};
-        // @formatter:on
+  @Before
+  public void setupExpectations() {
+    projectLabelEnricher = new ProjectLabelEnricher(context);
+    properties = new Properties();
+    // @formatter:off
+    new Expectations() {{
+      context.getProperties(); result = properties;
+      context.getGav();
+      result = new GroupArtifactVersion("groupId", "artifactId", "version");
+    }};
+    // @formatter:on
+  }
 
-    	ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
+  @Test
+  public void testCustomAppName() {
+    // Setup
+    properties.setProperty("jkube.enricher.jkube-project-label.app", "my-custom-app-name");
 
-        KubernetesListBuilder builder = createListWithDeploymentConfig();
-        projectEnricher.enrich(PlatformMode.kubernetes, builder);
-        KubernetesList list = builder.build();
+    KubernetesListBuilder builder = createListWithDeploymentConfig();
+    projectLabelEnricher.enrich(PlatformMode.kubernetes, builder);
+    KubernetesList list = builder.build();
 
-        Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
+    Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
 
-        assertNotNull(labels);
-        assertEquals("groupId", labels.get("group"));
-        assertEquals(APP, labels.get("app"));
-        assertEquals("version", labels.get("version"));
-        assertNull(labels.get("project"));
+    assertNotNull(labels);
+    assertEquals("groupId", labels.get("group"));
+    assertEquals("my-custom-app-name", labels.get("app"));
+    assertEquals("version", labels.get("version"));
+    assertNull(labels.get("project"));
 
-        builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
-        projectEnricher.create(PlatformMode.kubernetes, builder);
+    builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
+    projectLabelEnricher.create(PlatformMode.kubernetes, builder);
 
-        Deployment deployment = (Deployment)builder.buildFirstItem();
-        Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
-        assertEquals("groupId", selectors.get("group"));
-        assertEquals(APP, selectors.get("app"));
-        assertNull(selectors.get("version"));
-        assertNull(selectors.get("project"));
-    }
-    
-    @Test
-    public void testEmptyCustomAppName() {
+    Deployment deployment = (Deployment) builder.buildFirstItem();
+    Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
+    assertEquals("groupId", selectors.get("group"));
+    assertEquals("my-custom-app-name", selectors.get("app"));
+    assertNull(selectors.get("version"));
+    assertNull(selectors.get("project"));
+  }
 
-    	// Setup
-    	final String APP =  "";
-    	final Properties properties = new Properties();
-        properties.setProperty("jkube.enricher.jkube-project-label.app", APP);
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); result = properties;
-        }};
-        // @formatter:on
+  @Test
+  public void testEmptyCustomAppName() {
+    // Setup
+    properties.setProperty("jkube.enricher.jkube-project-label.app", "");
 
-    	ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
+    KubernetesListBuilder builder = createListWithDeploymentConfig();
+    projectLabelEnricher.enrich(PlatformMode.kubernetes, builder);
+    KubernetesList list = builder.build();
 
-        KubernetesListBuilder builder = createListWithDeploymentConfig();
-        projectEnricher.enrich(PlatformMode.kubernetes, builder);
-        KubernetesList list = builder.build();
+    Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
 
-        Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
+    assertNotNull(labels);
+    assertEquals("groupId", labels.get("group"));
+    assertEquals("", labels.get("app"));
+    assertEquals("version", labels.get("version"));
+    assertNull(labels.get("project"));
 
-        assertNotNull(labels);
-        assertEquals("groupId", labels.get("group"));
-        assertEquals(APP, labels.get("app"));
-        assertEquals("version", labels.get("version"));
-        assertNull(labels.get("project"));
+    builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
+    projectLabelEnricher.create(PlatformMode.kubernetes, builder);
 
-        builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
-        projectEnricher.create(PlatformMode.kubernetes, builder);
+    Deployment deployment = (Deployment) builder.buildFirstItem();
+    Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
+    assertEquals("groupId", selectors.get("group"));
+    assertEquals("", selectors.get("app"));
+    assertNull(selectors.get("version"));
+    assertNull(selectors.get("project"));
+  }
 
-        Deployment deployment = (Deployment)builder.buildFirstItem();
-        Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
-        assertEquals("groupId", selectors.get("group"));
-        assertEquals(APP, selectors.get("app"));
-        assertNull(selectors.get("version"));
-        assertNull(selectors.get("project"));
-    }
-    
-    @Test
-    public void testDefaultAppName() {
-    	ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
+  @Test
+  public void testDefaultAppName() {
+    KubernetesListBuilder builder = createListWithDeploymentConfig();
+    projectLabelEnricher.enrich(PlatformMode.kubernetes, builder);
+    KubernetesList list = builder.build();
 
-        KubernetesListBuilder builder = createListWithDeploymentConfig();
-        projectEnricher.enrich(PlatformMode.kubernetes, builder);
-        KubernetesList list = builder.build();
+    Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
 
-        Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
+    assertNotNull(labels);
+    assertEquals("groupId", labels.get("group"));
+    assertEquals("artifactId", labels.get("app"));
+    assertEquals("version", labels.get("version"));
+    assertNull(labels.get("project"));
 
-        assertNotNull(labels);
-        assertEquals("groupId", labels.get("group"));
-        assertEquals("artifactId", labels.get("app"));
-        assertEquals("version", labels.get("version"));
-        assertNull(labels.get("project"));
+    builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
+    projectLabelEnricher.create(PlatformMode.kubernetes, builder);
 
-        builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
-        projectEnricher.create(PlatformMode.kubernetes, builder);
+    Deployment deployment = (Deployment) builder.buildFirstItem();
+    Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
+    assertEquals("groupId", selectors.get("group"));
+    assertEquals("artifactId", selectors.get("app"));
+    assertNull(selectors.get("version"));
+    assertNull(selectors.get("project"));
+  }
 
-        Deployment deployment = (Deployment)builder.buildFirstItem();
-        Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
-        assertEquals("groupId", selectors.get("group"));
-        assertEquals("artifactId", selectors.get("app"));
-        assertNull(selectors.get("version"));
-        assertNull(selectors.get("project"));
-    }
+  @Test
+  public void testEnrichCustomProvider() {
+    properties.setProperty("jkube.enricher.jkube-project-label.provider", "my-custom-provider");
+    KubernetesListBuilder builder = createListWithDeploymentConfig();
 
-    @Test
-    public void testCustomProvider() {
+    projectLabelEnricher.enrich(PlatformMode.kubernetes, builder);
 
-        // Setup
-        final String PROVIDER =  "my-custom-provider";
-        final Properties properties = new Properties();
-        properties.setProperty("jkube.enricher.jkube-project-label.provider", PROVIDER);
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); result = properties;
-        }};
-        // @formatter:on
+    Map<String, String> labels = builder.build().getItems().get(0).getMetadata().getLabels();
+    assertNotNull(labels);
+    assertEquals("my-custom-provider", labels.get("provider"));
+  }
 
-        ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
+  @Test
+  public void testCreateCustomProvider() {
+    properties.setProperty("jkube.enricher.jkube-project-label.provider", "my-custom-provider");
+    KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
 
-        KubernetesListBuilder builder = createListWithDeploymentConfig();
-        projectEnricher.enrich(PlatformMode.kubernetes, builder);
-        KubernetesList list = builder.build();
+    projectLabelEnricher.create(PlatformMode.kubernetes, builder);
 
-        Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
+    Deployment deployment = (Deployment) builder.buildFirstItem();
+    Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
+    assertEquals("my-custom-provider", selectors.get("provider"));
+  }
 
-        assertNotNull(labels);
-        assertEquals("groupId", labels.get("group"));
-        assertEquals(PROVIDER, labels.get("provider"));
-        assertEquals("version", labels.get("version"));
-        assertNull(labels.get("project"));
+  @Test
+  public void testEnrichDefaultProvider() {
+    KubernetesListBuilder builder = createListWithDeploymentConfig();
 
-        builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
-        projectEnricher.create(PlatformMode.kubernetes, builder);
+    projectLabelEnricher.enrich(PlatformMode.kubernetes, builder);
 
-        Deployment deployment = (Deployment)builder.buildFirstItem();
-        Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
-        assertEquals("groupId", selectors.get("group"));
-        assertEquals(PROVIDER, selectors.get("provider"));
-        assertNull(selectors.get("version"));
-        assertNull(selectors.get("project"));
-    }
+    Map<String, String> labels = builder.build().getItems().get(0).getMetadata().getLabels();
+    assertNotNull(labels);
+    assertEquals("jkube", labels.get("provider"));
 
-    @Test
-    public void testEmptyCustomProvider() {
+  }
 
-        // Setup
-        final String PROVIDER =  "";
-        final Properties properties = new Properties();
-        properties.setProperty("jkube.enricher.jkube-project-label.provider", PROVIDER);
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); result = properties;
-        }};
-        // @formatter:on
+  @Test
+  public void testCreateDefaultProvider() {
+    KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
 
-        ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
+    projectLabelEnricher.create(PlatformMode.kubernetes, builder);
 
-        KubernetesListBuilder builder = createListWithDeploymentConfig();
-        projectEnricher.enrich(PlatformMode.kubernetes, builder);
-        KubernetesList list = builder.build();
+    Deployment deployment = (Deployment) builder.buildFirstItem();
+    Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
+    assertEquals("jkube", selectors.get("provider"));
+  }
 
-        Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
-
-        assertNotNull(labels);
-        assertEquals("groupId", labels.get("group"));
-        assertEquals(PROVIDER, labels.get("provider"));
-        assertEquals("version", labels.get("version"));
-        assertNull(labels.get("project"));
-
-        builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
-        projectEnricher.create(PlatformMode.kubernetes, builder);
-
-        Deployment deployment = (Deployment)builder.buildFirstItem();
-        Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
-        assertEquals("groupId", selectors.get("group"));
-        assertEquals(PROVIDER, selectors.get("provider"));
-        assertNull(selectors.get("version"));
-        assertNull(selectors.get("project"));
-    }
-
-    @Test
-    public void testDefaultProvider() {
-        ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
-
-        KubernetesListBuilder builder = createListWithDeploymentConfig();
-        projectEnricher.enrich(PlatformMode.kubernetes, builder);
-        KubernetesList list = builder.build();
-
-        Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
-
-        assertNotNull(labels);
-        assertEquals("groupId", labels.get("group"));
-        assertEquals("jkube", labels.get("provider"));
-        assertEquals("version", labels.get("version"));
-        assertNull(labels.get("project"));
-
-        builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
-        projectEnricher.create(PlatformMode.kubernetes, builder);
-
-        Deployment deployment = (Deployment)builder.buildFirstItem();
-        Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
-        assertEquals("groupId", selectors.get("group"));
-        assertEquals("jkube", selectors.get("provider"));
-        assertNull(selectors.get("version"));
-        assertNull(selectors.get("project"));
-    }
-
-    private KubernetesListBuilder createListWithDeploymentConfig() {
-        return new KubernetesListBuilder().addToItems(new DeploymentConfigBuilder()
-            .withNewMetadata().endMetadata()
-            .withNewSpec().endSpec()
-            .build());
-    }
+  private KubernetesListBuilder createListWithDeploymentConfig() {
+    return new KubernetesListBuilder().addToItems(new DeploymentConfigBuilder()
+        .withNewMetadata().endMetadata()
+        .withNewSpec().endSpec()
+        .build());
+  }
 
 }
