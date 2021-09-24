@@ -24,6 +24,10 @@ ignoreservices: false
 deletepodsonreplicationcontrollerupdate: false
 jsonlogdir: "@endsWith('extension-configuration/build/jkube/applyJson')@"
 serviceurlwaittimeseconds: 10
+skippush: true
+skiptag: true
+pushregistry: quay.io
+pushretries: 5
 access:
   namespace: "default"
 enricher:
