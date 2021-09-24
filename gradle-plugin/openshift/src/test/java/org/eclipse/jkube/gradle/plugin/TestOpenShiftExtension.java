@@ -246,6 +246,26 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   }
 
   @Override
+  public Property<Boolean> getSkipPush() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<String> getPushRegistry() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<Boolean> getSkipTag() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Integer> getPushRetries() {
+    return new DefaultProperty<>(Integer.class);
+  }
+
+  @Override
   public Property<String> getSourceDirectory() {
     return new DefaultProperty<>(String.class);
   }

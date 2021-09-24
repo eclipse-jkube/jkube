@@ -44,6 +44,10 @@ kubernetes {
     deletePodsOnReplicationControllerUpdate = false
     jsonLogDir = file("${project.getBuildDir()}/jkube/applyJson")
     serviceUrlWaitTimeSeconds = 10
+    skipPush = true
+    skipTag = true
+    pushRegistry = 'quay.io'
+    pushRetries = 5
     access {
         namespace = 'default'
     }

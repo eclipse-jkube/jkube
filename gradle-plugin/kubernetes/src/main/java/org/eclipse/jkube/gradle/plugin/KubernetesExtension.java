@@ -193,6 +193,14 @@ public abstract class KubernetesExtension {
 
   public abstract Property<Integer> getServiceUrlWaitTimeSeconds();
 
+  public abstract Property<Boolean> getSkipPush();
+
+  public abstract Property<String> getPushRegistry();
+
+  public abstract Property<Boolean> getSkipTag();
+
+  public abstract Property<Integer> getPushRetries();
+
   public JKubeBuildStrategy buildStrategy;
 
   public abstract Property<String> getSourceDirectory();
@@ -442,5 +450,21 @@ public abstract class KubernetesExtension {
 
   public boolean getRollingUpgradePreserveScaleOrDefault() {
     return getRollingUpgradePreserveScale().getOrElse(false);
+  }
+
+  public boolean getSkipPushOrDefault() {
+    return getSkipPush().getOrElse(false);
+  }
+
+  public boolean getSkipTagOrDefault() {
+    return getSkipTag().getOrElse(false);
+  }
+
+  public Integer getPushRetriesOrDefault() {
+    return getPushRetries().getOrElse(0);
+  }
+
+  public boolean getSkipExtendedAuthOrDefault() {
+    return getSkipExtendedAuth().getOrElse(false);
   }
 }
