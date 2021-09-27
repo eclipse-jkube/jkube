@@ -93,7 +93,8 @@ public class KubernetesPluginTest {
     final Map<String, Collection<Class<? extends Task>>> result = new KubernetesPlugin().getTaskPrecedence();
     // Then
     assertThat(result)
-        .hasSize(1)
-        .containsEntry("k8sApply", Collections.singletonList(KubernetesResourceTask.class));
+        .hasSize(2)
+        .containsEntry("k8sApply", Collections.singletonList(KubernetesResourceTask.class))
+        .containsEntry("k8sPush", Collections.singletonList(KubernetesBuildTask.class));
   }
 }
