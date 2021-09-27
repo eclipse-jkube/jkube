@@ -43,7 +43,7 @@ public class OpenshiftWatchMojo extends WatchMojo {
 
     /**
      * OpenShift build mode when an OpenShift build is performed.
-     * Can be either "s2i" for an s2i binary build mode or "docker" for a binary
+     * Can be either "s2i" for an S2I binary build mode or "docker" for a binary
      * docker mode.
      */
     @Parameter(property = "jkube.build.strategy")
