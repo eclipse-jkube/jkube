@@ -272,6 +272,11 @@ Defaults to `false`.
 | `jkube.deploy.processTemplatesLocally`
 endif::[]
 
+| *pushRegistry*
+| The registry to use when pushing the image. See <<registry,Registry Handling>> for
+more details.
+| `jkube.docker.push.registry`
+
 | *recreate*
 | Update resources by deleting them first and then creating them again.
 
@@ -281,6 +286,12 @@ Defaults to `false`.
 | *registry*
 | Specify globally a registry to use for pulling and pushing images. See <<registry,Registry handling>> for details.
 | `jkube.docker.registry`
+
+| *pushRetries*
+| How often should a push be retried before giving up. This useful for flaky registries which tend to return 500 error codes from time to time.
+
+Defaults to 0.
+| `jkube.docker.push.retries`
 
 | *resourceEnvironment*
 | Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the
@@ -353,12 +364,24 @@ Defaults to `false`.
 | Skip using docker machine in any case
 | `jkube.docker.skip.machine`
 
+| *skipPush*
+| If set to true the plugin won’t push any images that have been built.
+
+Defaults to `false`.
+| `jkube.skip.push`
+
 | *skipResourceValidation*
 | If value is set to `true` then resource validation is skipped. This may be useful if resource validation is failing
 for some reason but you still want to continue the deployment.
 
   Default is `false`.
 | `jkube.skipResourceValidation`
+
+| *skipTag*
+| If set to true this plugin won’t push any tags
+
+Defaults to `false`.
+| `jkube.skip.tag`
 
 | *useProjectClassPath*
 | Should we use the project's compile time classpath to scan for additional enrichers/generators.
