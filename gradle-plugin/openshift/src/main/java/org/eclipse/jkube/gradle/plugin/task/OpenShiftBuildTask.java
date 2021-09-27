@@ -14,6 +14,7 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.gradle.api.tasks.Internal;
 
@@ -42,6 +43,10 @@ public class OpenShiftBuildTask extends KubernetesBuildTask implements OpenShift
         .s2iImageStreamLookupPolicyLocal(getOpenShiftExtension().getS2iImageStreamLookupPolicyLocalOrDefault())
         .openshiftPushSecret(getOpenShiftExtension().getOpenshiftPushSecret().getOrNull())
         .resourceConfig(getOpenShiftExtension().resources)
-        .buildOutputKind(getOpenShiftExtension().getBuildOutputKindOrDefault());
+        .buildOutputKind(getOpenShiftExtension().getBuildOutputKindOrDefault())
+        .enricherTask(e -> {
+          enricherManager.enrich(PlatformMode.kubernetes, e);
+          enricherManager.enrich(PlatformMode.openshift, e);
+        });
   }
 }
