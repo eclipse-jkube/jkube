@@ -59,7 +59,7 @@ public class OpenshiftBuildMojo extends BuildMojo {
     protected boolean s2iImageStreamLookupPolicyLocal = true;
 
     /**
-     * Allow to specify in which registry to push the container image at the end of the build.
+     * Allow specifying in which registry to push the container image at the end of the build.
      * If the output kind is ImageStreamTag, then the image will be pushed to the internal OpenShift registry.
      * If the output is of type DockerImage, then the name of the output reference will be used as a Docker push specification.
      */
