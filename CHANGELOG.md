@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.5.0-SNAPSHOT
+* Fix #823: Converting `StringBuffer` to `StringBuilder` in `jkube/jkube-kit/common/src/main/java/org/eclipse/jkube/kit/common/util/IoUtil.java` and `jkube/jkube-kit/common/src/main/java/org/eclipse/jkube/kit/common/util/TemplateUtil.java`
 * Fix #815: `java.lang.ClassCastException` during `oc:build` when OpenShift not present
 * Fix #716: Update Spring Boot Quickstarts to latest version
 * Fix #907: Bump JKube base images to 0.0.10
