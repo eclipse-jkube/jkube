@@ -16,15 +16,7 @@ package org.eclipse.jkube.gradle.plugin.task;
 import javax.inject.Inject;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
-import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
-import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
-import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -32,8 +24,6 @@ import org.gradle.api.GradleException;
 
 import java.io.IOException;
 
-import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
-import static org.eclipse.jkube.kit.build.service.docker.ImagePullManager.createImagePullManager;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestampFile;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
@@ -50,37 +40,8 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
 
   @Override
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
-    JKubeServiceHub.JKubeServiceHubBuilder builder = super.initJKubeServiceHubBuilder();
-    DockerAccess access = null;
-    if (kubernetesExtension.isDockerAccessRequired()) {
-      DockerAccessFactory.DockerAccessContext dockerAccessContext = DockerAccessFactory.DockerAccessContext.builder()
-          .log(kitLogger)
-          .projectProperties(javaProject.getProperties())
-          .maxConnections(kubernetesExtension.getMaxConnections().getOrElse(DEFAULT_MAX_CONNECTIONS))
-          .dockerHost(kubernetesExtension.getDockerHost().getOrNull())
-          .certPath(kubernetesExtension.getCertPath().getOrNull())
-          .machine(kubernetesExtension.machine)
-          .minimalApiVersion(kubernetesExtension.getMinimalApiVersion().getOrNull())
-          .skipMachine(kubernetesExtension.getSkipMachine().getOrElse(false))
-          .build();
-      DockerAccessFactory dockerAccessFactory = new DockerAccessFactory();
-      access = dockerAccessFactory.createDockerAccess(dockerAccessContext);
-    }
-    ServiceHubFactory serviceHubFactory = new ServiceHubFactory();
-    LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(true, true, null);
-    builder.dockerServiceHub(serviceHubFactory.createServiceHub(access, kitLogger, logSpecFactory));
-    ImagePullManager imagePullManager = createImagePullManager(
-      kubernetesExtension.getImagePullPolicy().getOrElse("Always"),
-      kubernetesExtension.getAutoPull().getOrElse("true"),
-      javaProject.getProperties());
-    builder.buildServiceConfig(buildServiceConfigBuilder()
-      .imagePullManager(imagePullManager)
-      .enricherTask(e -> {
-        enricherManager.enrich(PlatformMode.kubernetes, e);
-        enricherManager.enrich(PlatformMode.openshift, e);
-      })
-      .build());
-    return builder;
+    return TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(super.initJKubeServiceHubBuilder(), kubernetesExtension, javaProject, kitLogger)
+      .buildServiceConfig(buildServiceConfigBuilder().build());
   }
 
   @Override
@@ -99,10 +60,6 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
   }
 
   protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
-    return BuildServiceConfig.builder()
-      .buildRecreateMode(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreate().getOrElse("none")))
-      .jKubeBuildStrategy(kubernetesExtension.getBuildStrategy())
-      .forcePull(kubernetesExtension.getForcePull().getOrElse(false))
-      .buildDirectory(javaProject.getBuildDirectory().getAbsolutePath());
+    return TaskUtil.buildServiceConfigBuilder(kubernetesExtension, javaProject);
   }
 }
