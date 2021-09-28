@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import java.io.File;
+
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
-
-import java.io.File;
 
 public class TestOpenShiftExtension extends OpenShiftExtension {
 

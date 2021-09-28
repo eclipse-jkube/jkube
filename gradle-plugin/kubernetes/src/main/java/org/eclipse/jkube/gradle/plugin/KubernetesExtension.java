@@ -20,11 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
@@ -38,7 +37,10 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import groovy.lang.Closure;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.gradle.api.provider.Property;
+
+import javax.inject.Inject;
 
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.invokeOrParseClosureList;
@@ -104,6 +106,8 @@ public abstract class KubernetesExtension {
   private static final boolean DEFAULT_OFFLINE = false;
   private static final Path DEFAULT_KUBERNETES_MANIFEST = Paths.get("META-INF", "jkube", "kubernetes.yml");
   private static final Path DEFAULT_JSON_LOG_DIR = Paths.get("jkube","applyJson");
+
+  public transient JavaProject javaProject;
 
   public abstract Property<Boolean> getOffline();
 
@@ -383,12 +387,12 @@ public abstract class KubernetesExtension {
     return getLogFollow().getOrElse(true);
   }
 
-  public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient, JavaProject javaProject) {
+  public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient) {
     if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
       kitLogger.warn("OpenShift cluster detected, using Kubernetes manifests");
       kitLogger.warn("Switch to openshift-gradle-plugin in case there are any problems");
     }
-    return getKubernetesManifestOrDefault(javaProject);
+    return getKubernetesManifestOrDefault();
   }
 
   public boolean getRecreateOrDefault() {
@@ -415,7 +419,7 @@ public abstract class KubernetesExtension {
     return getIgnoreServices().getOrElse(false);
   }
 
-  public File getJsonLogDirOrDefault(JavaProject javaProject) {
+  public File getJsonLogDirOrDefault() {
     return getJsonLogDir().getOrElse(javaProject.getBuildDirectory().toPath().resolve(DEFAULT_JSON_LOG_DIR).toFile());
   }
 
@@ -431,7 +435,7 @@ public abstract class KubernetesExtension {
     return getServiceUrlWaitTimeSeconds().getOrElse(5);
   }
 
-  public File getKubernetesManifestOrDefault(JavaProject javaProject) {
+  public File getKubernetesManifestOrDefault() {
     return getKubernetesManifest()
         .getOrElse(javaProject.getOutputDirectory().toPath().resolve(DEFAULT_KUBERNETES_MANIFEST).toFile());
   }

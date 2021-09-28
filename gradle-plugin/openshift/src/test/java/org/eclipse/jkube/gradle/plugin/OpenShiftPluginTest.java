@@ -19,10 +19,10 @@ import java.util.Map;
 
 import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
-
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
+
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.junit.Before;

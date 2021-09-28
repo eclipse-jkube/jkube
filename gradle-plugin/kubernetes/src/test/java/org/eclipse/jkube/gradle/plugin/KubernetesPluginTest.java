@@ -63,6 +63,7 @@ public class KubernetesPluginTest {
     verify(project.getTasks(), times(1))
         .register("k8sApply", KubernetesApplyTask.class, KubernetesExtension.class);
   }
+
   @SuppressWarnings("unchecked")
   @Test
   public void apply_withValidProject_shouldConfigureTasks() {
