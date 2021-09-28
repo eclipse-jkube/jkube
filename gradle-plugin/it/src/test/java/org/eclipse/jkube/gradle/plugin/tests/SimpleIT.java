@@ -44,6 +44,7 @@ public class SimpleIT {
         .contains("ocBuild - ")
         .contains("ocLog - ")
         .contains("ocResource - ")
+        .contains("ocPush")
         .contains("ocUndeploy - ");
   }
 
