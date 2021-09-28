@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
@@ -38,9 +39,8 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import groovy.lang.Closure;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.codehaus.plexus.util.StringUtils;
 import org.gradle.api.provider.Property;
-
-import javax.inject.Inject;
 
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.invokeOrParseClosureList;
@@ -360,11 +360,11 @@ public abstract class KubernetesExtension {
   }
 
   public boolean getOfflineOrDefault() {
-    return getOffline().getOrElse(DEFAULT_OFFLINE);
+    return getOrDefaultBoolean("jkube.offline", this::getOffline, DEFAULT_OFFLINE);
   }
 
   public boolean getUseProjectClassPathOrDefault() {
-    return getUseProjectClassPath().getOrElse(false);
+    return getOrDefaultBoolean("jkube.useProjectClasspath", this::getUseProjectClassPath, false);
   }
 
   public boolean getFailOnValidationErrorOrDefault() {
@@ -470,5 +470,13 @@ public abstract class KubernetesExtension {
 
   public boolean getSkipExtendedAuthOrDefault() {
     return getSkipExtendedAuth().getOrElse(false);
+  }
+
+  boolean getOrDefaultBoolean(String property, Supplier<Property<Boolean>> dslGetter, boolean defaultValue) {
+    final String propValue = javaProject.getProperties().getProperty(property);
+    if (StringUtils.isNotBlank(propValue)) {
+      return Boolean.parseBoolean(propValue);
+    }
+    return dslGetter.get().getOrElse(defaultValue);
   }
 }
