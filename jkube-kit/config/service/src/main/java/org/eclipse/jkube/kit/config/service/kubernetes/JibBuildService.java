@@ -100,7 +100,9 @@ public class JibBuildService implements BuildService {
             JibServiceUtil.buildContainer(containerBuilder,
                     TarImage.at(dockerTarArchive.toPath()).named(imageConfig.getName()), log);
             log.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
-        } catch (Exception ex) {
+        } catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		} catch (Exception ex) {
             throw new JKubeServiceException("Error when building JIB image", ex);
         }
     }
