@@ -75,6 +75,8 @@ public class KubernetesConfigViewTask extends AbstractJKubeTask {
   }
 
   private static boolean isPublicField(Field field) {
-    return Modifier.isPublic(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()) && !field.isSynthetic();
+    return Modifier.isPublic(field.getModifiers())
+        && !Modifier.isStatic(field.getModifiers()) && !field.isSynthetic()
+        && !Modifier.isTransient(field.getModifiers());
   }
 }

@@ -36,7 +36,7 @@ public class KubernetesLogTask extends AbstractJKubeTask {
   @Override
   public void run() {
     try (KubernetesClient kubernetes = jKubeServiceHub.getClient()) {
-      final File manifest = kubernetesExtension.getManifest(kitLogger, kubernetes, javaProject);
+      final File manifest = kubernetesExtension.getManifest(kitLogger, kubernetes);
       List<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
 
       new PodLogService(podLogServiceContextBuilder().build()).tailAppPodsLogs(

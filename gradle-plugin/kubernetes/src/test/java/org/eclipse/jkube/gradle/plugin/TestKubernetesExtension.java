@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jkube.kit.common.JavaProject;
+import java.io.File;
+
 import org.eclipse.jkube.kit.common.KitLogger;
+
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
-
-import java.io.File;
 
 public class TestKubernetesExtension extends KubernetesExtension {
 
@@ -214,8 +214,8 @@ public class TestKubernetesExtension extends KubernetesExtension {
   }
 
   @Override
-  public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient, JavaProject javaProject) {
-    return getKubernetesManifestOrDefault(javaProject);
+  public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient) {
+    return getKubernetesManifestOrDefault();
   }
 
   @Override
