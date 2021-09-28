@@ -13,10 +13,11 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
+import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
@@ -63,7 +64,8 @@ public class OpenShiftPluginTest {
     final Map<String, Collection<Class<? extends Task>>> result = new OpenShiftPlugin().getTaskPrecedence();
     // Then
     assertThat(result)
-        .hasSize(1)
-        .containsEntry("ocApply", Collections.singletonList(KubernetesResourceTask.class));
+        .hasSize(2)
+        .containsEntry("ocApply", Arrays.asList(KubernetesResourceTask.class, OpenShiftResourceTask.class))
+        .containsEntry("ocPush", Arrays.asList(KubernetesBuildTask.class, OpenShiftBuildTask.class));
   }
 }
