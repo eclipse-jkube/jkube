@@ -13,30 +13,17 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
+import java.io.IOException;
+
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.junit.After;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.MockedConstruction;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.matches;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,33 +31,14 @@ import static org.mockito.Mockito.when;
 public class KubernetesConfigViewTaskTest {
 
   @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  public TaskEnvironment taskEnvironment = new TaskEnvironment();
 
-  private MockedConstruction<DefaultTask> defaultTaskMockedConstruction;
-  private Project project;
-  private Logger logger;
   private KubernetesExtension extension;
 
   @Before
   public void setUp() throws IOException {
-    project = mock(Project.class, RETURNS_DEEP_STUBS);
-    logger = mock(Logger.class);
     extension = new TestKubernetesExtension();
-    defaultTaskMockedConstruction = mockConstruction(DefaultTask.class, (mock, ctx) -> {
-      when(mock.getProject()).thenReturn(project);
-      when(mock.getLogger()).thenReturn(logger);
-    });
-    when(project.getProjectDir()).thenReturn(temporaryFolder.getRoot());
-    when(project.getBuildDir()).thenReturn(temporaryFolder.newFolder("build"));
-    when(project.getConfigurations().stream()).thenAnswer(i -> Stream.empty());
-    when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
-    when(project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
-    when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(mock(JavaPluginConvention.class));
-  }
-
-  @After
-  public void tearDown() {
-    defaultTaskMockedConstruction.close();
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
   }
 
   @Test
@@ -82,7 +50,7 @@ public class KubernetesConfigViewTaskTest {
     // When
     configViewTask.runTask();
     // Then
-    verify(logger, times(1))
+    verify(taskEnvironment.logger, times(1))
         .lifecycle(matches("k8s: \n---\noffline: true\nbuildStrategy: \"s2i\""));
   }
 }

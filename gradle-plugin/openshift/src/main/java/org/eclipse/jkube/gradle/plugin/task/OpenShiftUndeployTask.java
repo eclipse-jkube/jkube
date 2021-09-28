@@ -29,13 +29,13 @@ public class OpenShiftUndeployTask extends KubernetesUndeployTask implements Ope
 
   @Override
   protected File findResources() {
-    return getOpenShiftExtension().getOpenShiftManifestOrDefault(javaProject);
+    return getOpenShiftExtension().getOpenShiftManifestOrDefault();
   }
 
   @Override
   protected List<File> findManifestsToUndeploy() {
     final List<File> ret = super.findManifestsToUndeploy();
-    ret.add(getOpenShiftExtension().getImageStreamManifestOrDefault(javaProject));
+    ret.add(getOpenShiftExtension().getImageStreamManifestOrDefault());
     return ret;
   }
 }
