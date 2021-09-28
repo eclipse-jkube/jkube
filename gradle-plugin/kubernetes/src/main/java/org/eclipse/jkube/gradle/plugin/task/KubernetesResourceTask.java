@@ -55,7 +55,7 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
       resourceConfig = ResourceConfig.toBuilder(resourceConfig).namespace(kubernetesExtension.getNamespace().getOrNull()).build();
     }
     final ResourceServiceConfig resourceServiceConfig = ResourceServiceConfig.builder()
-        .project(javaProject)
+        .project(kubernetesExtension.javaProject)
         .resourceDir(resolveResourceSourceDirectory())
         .targetDir(resolveResourceTargetDirectory())
         .resourceFileType(kubernetesExtension.getResourceFileType())
@@ -69,11 +69,12 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
 
   @Override
   public void run() {
-    if (useDekorate(javaProject) && Boolean.TRUE.equals(kubernetesExtension.getMergeWithDekorateOrDefault())) {
+    if (useDekorate(kubernetesExtension.javaProject)
+        && Boolean.TRUE.equals(kubernetesExtension.getMergeWithDekorateOrDefault())) {
       kitLogger.info("Dekorate detected, merging JKube and Dekorate resources");
       System.setProperty("dekorate.input.dir", DEFAULT_RESOURCE_LOCATION);
       System.setProperty("dekorate.output.dir", DEFAULT_RESOURCE_LOCATION);
-    } else if (useDekorate(javaProject)) {
+    } else if (useDekorate(kubernetesExtension.javaProject)) {
       kitLogger.info("Dekorate detected, delegating resource build");
       System.setProperty("dekorate.output.dir", DEFAULT_RESOURCE_LOCATION);
       return;
@@ -118,7 +119,7 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
 
   private File resolveResourceTargetDirectory() {
     return kubernetesExtension.getResourceTargetDirectory()
-        .getOrElse(javaProject.getOutputDirectory().toPath().resolve(DEFAULT_RESOURCE_TARGET_DIR).toFile());
+        .getOrElse(kubernetesExtension.javaProject.getOutputDirectory().toPath().resolve(DEFAULT_RESOURCE_TARGET_DIR).toFile());
   }
 
 }

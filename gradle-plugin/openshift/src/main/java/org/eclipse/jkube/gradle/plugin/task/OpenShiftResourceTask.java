@@ -36,7 +36,7 @@ public class OpenShiftResourceTask extends KubernetesResourceTask {
   @Override
   public List<ImageConfiguration> resolveImages(ImageConfigResolver imageConfigResolver) throws IOException {
     RuntimeMode runtimeMode = kubernetesExtension.getRuntimeMode();
-    Properties properties = javaProject.getProperties();
+    final Properties properties = kubernetesExtension.javaProject.getProperties();
     if (!properties.contains(DOCKER_IMAGE_USER)) {
       String namespaceToBeUsed = kubernetesExtension.getNamespace().getOrElse(clusterAccess.getNamespace());
       kitLogger.info("Using docker image name of namespace: " + namespaceToBeUsed);

@@ -40,7 +40,8 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
 
   @Override
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
-    return TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(super.initJKubeServiceHubBuilder(), kubernetesExtension, javaProject, kitLogger)
+    return TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(
+        super.initJKubeServiceHubBuilder(), kubernetesExtension, kitLogger)
       .buildServiceConfig(buildServiceConfigBuilder().build());
   }
 
@@ -49,8 +50,10 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
     try {
       for (ImageConfiguration imageConfig : resolvedImages) {
         storeTimestamp(
-            getBuildTimestampFile(javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP),
-            getBuildTimestamp(null, null, javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP));
+            getBuildTimestampFile(kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
+                DOCKER_BUILD_TIMESTAMP),
+            getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
+                DOCKER_BUILD_TIMESTAMP));
         jKubeServiceHub.getBuildService().build(imageConfig);
       }
     } catch (JKubeServiceException | IOException e) {
@@ -60,6 +63,6 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
   }
 
   protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
-    return TaskUtil.buildServiceConfigBuilder(kubernetesExtension, javaProject);
+    return TaskUtil.buildServiceConfigBuilder(kubernetesExtension);
   }
 }

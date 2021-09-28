@@ -48,7 +48,7 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
     try (KubernetesClient kubernetes = jKubeServiceHub.getClient()) {
       applyService = jKubeServiceHub.getApplyService();
 
-      final File manifest = kubernetesExtension.getManifest(kitLogger, kubernetes, javaProject);
+      final File manifest = kubernetesExtension.getManifest(kitLogger, kubernetes);
       if (!manifest.exists() || !manifest.isFile()) {
         if (kubernetesExtension.getFailOnNoKubernetesJsonOrDefault()) {
           throw new IllegalStateException("No such generated manifest file: " + manifest);
@@ -88,8 +88,8 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
     applyService.setAllowCreate(kubernetesExtension.getCreateNewResourcesOrDefault());
     applyService.setServicesOnlyMode(kubernetesExtension.getServicesOnlyOrDefault());
     applyService.setIgnoreServiceMode(kubernetesExtension.getIgnoreServicesOrDefault());
-    applyService.setLogJsonDir(kubernetesExtension.getJsonLogDirOrDefault(javaProject));
-    applyService.setBasedir(javaProject.getBaseDirectory());
+    applyService.setLogJsonDir(kubernetesExtension.getJsonLogDirOrDefault());
+    applyService.setBasedir(kubernetesExtension.javaProject.getBaseDirectory());
     applyService.setSupportOAuthClients(kubernetesExtension.isSupportOAuthClients());
     applyService.setIgnoreRunningOAuthClients(kubernetesExtension.getIgnoreRunningOAuthClientsOrDefault());
     applyService.setProcessTemplatesLocally(kubernetesExtension.getProcessTemplatesLocallyOrDefault());

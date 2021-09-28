@@ -13,21 +13,23 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jkube.kit.common.JavaProject;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.gradle.api.provider.Property;
 
-import java.io.File;
-import java.nio.file.Paths;
-
 public abstract class OpenShiftExtension extends KubernetesExtension {
-  public static final String DEFAULT_OPENSHIFT_MANIFEST = Paths.get("META-INF","jkube","openshift.yml").toString();
+
+  public static final Path DEFAULT_OPENSHIFT_MANIFEST = Paths.get("META-INF","jkube","openshift.yml");
   public static final String DEFAULT_LOG_PREFIX = "oc: ";
   private static final String DEFAULT_OPENSHIFT_PULLSECRET = "pullsecret-jkube";
   private static final String DEFAULT_S2I_BUILDNAME_SUFFIX = "-s2i";
@@ -63,11 +65,11 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   }
 
   @Override
-  public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient, JavaProject javaProject) {
+  public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient) {
     if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
-      return getOpenShiftManifestOrDefault(javaProject);
+      return getOpenShiftManifestOrDefault();
     }
-    return getKubernetesManifestOrDefault(javaProject);
+    return getKubernetesManifestOrDefault();
   }
 
   @Override
@@ -106,11 +108,13 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
     return true;
   }
 
-  public File getOpenShiftManifestOrDefault(JavaProject javaProject) {
-    return getOpenShiftManifest().getOrElse(javaProject.getOutputDirectory().toPath().resolve(DEFAULT_OPENSHIFT_MANIFEST).toFile());
+  public File getOpenShiftManifestOrDefault() {
+    return getOpenShiftManifest()
+        .getOrElse(javaProject.getOutputDirectory().toPath().resolve(DEFAULT_OPENSHIFT_MANIFEST).toFile());
   }
 
-  public File getImageStreamManifestOrDefault(JavaProject javaProject) {
-    return getImageStreamManifest().getOrElse(javaProject.getBuildDirectory().toPath().resolve(Paths.get(javaProject.getArtifactId() + "-is.yml")).toFile());
+  public File getImageStreamManifestOrDefault() {
+    return getImageStreamManifest().getOrElse(
+        javaProject.getBuildDirectory().toPath().resolve(Paths.get(javaProject.getArtifactId() + "-is.yml")).toFile());
   }
 }

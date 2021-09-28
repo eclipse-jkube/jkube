@@ -32,7 +32,8 @@ public class KubernetesPushTask extends AbstractJKubeTask {
 
   @Override
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
-    return TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(super.initJKubeServiceHubBuilder(), kubernetesExtension, javaProject, kitLogger)
+    return TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(
+        super.initJKubeServiceHubBuilder(), kubernetesExtension, kitLogger)
       .buildServiceConfig(buildServiceConfigBuilder().build());
   }
 
@@ -59,6 +60,6 @@ public class KubernetesPushTask extends AbstractJKubeTask {
   }
 
   protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
-    return TaskUtil.buildServiceConfigBuilder(kubernetesExtension, javaProject);
+    return TaskUtil.buildServiceConfigBuilder(kubernetesExtension);
   }
 }

@@ -37,21 +37,20 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 public class TaskUtilTest {
-  private JavaProject javaProject;
   private KubernetesExtension extension;
   private KitLogger kitLogger;
 
   @Before
   public void setUp() {
-    javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
     extension = new TestKubernetesExtension();
+    extension.javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
     kitLogger = mock(KitLogger.class, RETURNS_DEEP_STUBS);
   }
 
   @Test
   public void buildServiceConfigBuilder_shouldInitializeBuildServiceConfigWithDefaults() {
     // When
-    BuildServiceConfig buildServiceConfig = TaskUtil.buildServiceConfigBuilder(extension, javaProject).build();
+    BuildServiceConfig buildServiceConfig = TaskUtil.buildServiceConfigBuilder(extension).build();
 
     // Then
     assertThat(buildServiceConfig)
@@ -74,10 +73,11 @@ public class TaskUtilTest {
       @Override
       public Property<Boolean> getForcePull() { return new DefaultProperty<>(Boolean.class).value(true); }
     };
-    when(javaProject.getBuildDirectory().getAbsolutePath()).thenReturn("/tmp/foo");
+    extension.javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+    when(extension.javaProject.getBuildDirectory().getAbsolutePath()).thenReturn("/tmp/foo");
 
     // When
-    BuildServiceConfig buildServiceConfig = TaskUtil.buildServiceConfigBuilder(extension, javaProject).build();
+    BuildServiceConfig buildServiceConfig = TaskUtil.buildServiceConfigBuilder(extension).build();
 
     // Then
     assertThat(buildServiceConfig)
@@ -98,7 +98,8 @@ public class TaskUtilTest {
         .platformMode(RuntimeMode.KUBERNETES);
 
       // When
-      JKubeServiceHub jKubeServiceHub = TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(builder, extension, javaProject, kitLogger).build();
+      JKubeServiceHub jKubeServiceHub = TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(builder, extension, kitLogger)
+          .build();
 
       // Then
       assertThat(jKubeServiceHub)
