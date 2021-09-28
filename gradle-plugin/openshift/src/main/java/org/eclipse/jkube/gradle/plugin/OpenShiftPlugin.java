@@ -13,17 +13,19 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesConfigViewTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
-import org.eclipse.jkube.gradle.plugin.task.KubernetesUndeployTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftPushTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftUndeployTask;
 
@@ -39,7 +41,8 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
   @Override
   public Map<String, Collection<Class<? extends Task>>> getTaskPrecedence() {
     final Map<String, Collection<Class<? extends Task>>> ret = new HashMap<>();
-    ret.put("ocApply", Collections.singletonList(KubernetesResourceTask.class));
+    ret.put("ocApply", Arrays.asList(KubernetesResourceTask.class, OpenShiftResourceTask.class));
+    ret.put("ocPush", Arrays.asList(KubernetesBuildTask.class, OpenShiftBuildTask.class));
     return ret;
   }
 
@@ -47,6 +50,7 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
   protected void jKubeApply(Project project) {
     register(project, "ocConfigView", KubernetesConfigViewTask.class);
     register(project, "ocBuild", OpenShiftBuildTask.class);
+    register(project, "ocPush", OpenShiftPushTask.class);
     register(project, "ocResource", OpenShiftResourceTask.class);
     register(project, "ocApply", OpenShiftApplyTask.class);
     register(project, "ocLog", KubernetesLogTask.class);
