@@ -167,7 +167,9 @@ public class PortForwardService {
             try {
                 forwarderThread.interrupt();
                 forwarderThread.join(15000);
-            } catch (Exception e) {}
+            } catch (InterruptedException e){
+				Thread.currentThread().interrupt();
+			}
         };
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
