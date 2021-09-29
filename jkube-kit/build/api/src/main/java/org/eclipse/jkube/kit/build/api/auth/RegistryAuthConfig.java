@@ -91,7 +91,7 @@ public class RegistryAuthConfig {
 
     public enum Kind {
         PUSH,
-        PULL;
+        PULL
     }
 
     public static class RegistryAuthConfigBuilder {
