@@ -51,7 +51,7 @@ import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildT
 public abstract class AbstractJKubeTask extends DefaultTask implements KubernetesJKubeTask {
 
   private static final String DEFAULT_LOG_PREFIX = "k8s: ";
-  private static final Path DEFAULT_RESOURCE_SOURCE_DIR = Paths.get("src", "main", "jkube");
+
 
   protected final KubernetesExtension kubernetesExtension;
   protected KitLogger kitLogger;
@@ -78,7 +78,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
       enricherManager = new DefaultEnricherManager(JKubeEnricherContext.builder()
           .project(kubernetesExtension.javaProject)
           .processorConfig(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG,
-              kubernetesExtension.getProfile().getOrNull(),
+              kubernetesExtension.getProfileOrDefault(),
               resolveResourceSourceDirectory(),
               kubernetesExtension.enricher))
         .images(resolvedImages)
@@ -106,7 +106,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     kitLogger.info("Running in %s mode", kubernetesExtension.getRuntimeMode().getLabel());
     if (kubernetesExtension.getRuntimeMode() == RuntimeMode.OPENSHIFT) {
       kitLogger.info("Using [[B]]OpenShift[[B]] build with strategy [[B]]%s[[B]]",
-          kubernetesExtension.getBuildStrategy().getLabel());
+          kubernetesExtension.getBuildStrategyOrDefault().getLabel());
     } else {
       kitLogger.info("Building container image in Kubernetes mode");
     }
@@ -123,15 +123,14 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         .configuration(JKubeConfiguration.builder()
             .project(kubernetesExtension.javaProject)
             .reactorProjects(Collections.singletonList(kubernetesExtension.javaProject))
-            .sourceDirectory(kubernetesExtension.getBuildSourceDirectory().getOrElse("src/main/docker"))
-            .outputDirectory(kubernetesExtension.getBuildOutputDirectory().getOrElse("build/docker"))
+            .sourceDirectory(kubernetesExtension.getBuildSourceDirectoryOrDefault())
+            .outputDirectory(kubernetesExtension.getBuildOutputDirectoryOrDefault())
             .registryConfig(RegistryConfig.builder()
                 .settings(Collections.emptyList())
                 .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
                 .skipExtendedAuth(kubernetesExtension.getSkipExtendedAuth().getOrElse(false))
                 .passwordDecryptionMethod(s -> s)
-                .registry(
-                    kubernetesExtension.getPullRegistry().getOrElse(kubernetesExtension.getRegistry().getOrElse("docker.io")))
+                .registry(kubernetesExtension.getPullRegistryOrDefault())
                 .build())
             .build())
         .clusterAccess(clusterAccess)
@@ -145,7 +144,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         .project(kubernetesExtension.javaProject)
         .logger(kitLogger)
         .runtimeMode(kubernetesExtension.getRuntimeMode())
-        .useProjectClasspath(kubernetesExtension.getUseProjectClassPath().getOrElse(false))
+        .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault())
         .artifactResolver(jKubeServiceHub.getArtifactResolverService());
   }
 
@@ -155,15 +154,14 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
   protected final File resolveResourceSourceDirectory() {
-    return ResourceUtil.getFinalResourceDir(kubernetesExtension.getResourceSourceDirectory()
-        .getOrElse(kubernetesExtension.javaProject.getBaseDirectory().toPath().resolve(DEFAULT_RESOURCE_SOURCE_DIR).toFile()),
-        kubernetesExtension.getResourceEnvironment().getOrNull());
+    return ResourceUtil.getFinalResourceDir(kubernetesExtension.getResourceSourceDirectoryOrDefault(),
+        kubernetesExtension.getResourceEnvironmentOrDefault());
   }
 
 
   protected ProcessorConfig extractGeneratorConfig() {
     try {
-      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfile().getOrNull(), kubernetesExtension.getResourceTargetDirectory().getOrNull(), kubernetesExtension.generator);
+      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfileOrDefault(), kubernetesExtension.getResourceTargetDirectoryOrDefault(), kubernetesExtension.generator);
     } catch (IOException e) {
       throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
     }
@@ -171,7 +169,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected List<ImageConfiguration> resolveImages(ImageConfigResolver imageConfigResolver) throws IOException {
     return initImageConfiguration(
-      kubernetesExtension.getApiVersion().getOrNull(),
+      kubernetesExtension.getApiVersionOrDefault(),
         getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
             DOCKER_BUILD_TIMESTAMP),
         kubernetesExtension.javaProject, kubernetesExtension.images, imageConfigResolver, kitLogger,

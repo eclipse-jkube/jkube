@@ -83,24 +83,24 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   }
 
   public String getOpenshiftPullSecretOrDefault() {
-    return getOpenshiftPullSecret().getOrElse(DEFAULT_OPENSHIFT_PULLSECRET);
+    return getOrDefaultString("jkube.build.pullSecret", this::getOpenshiftPullSecret, DEFAULT_OPENSHIFT_PULLSECRET);
   }
 
   public String getS2iBuildNameSuffixOrDefault() {
-    return getS2iBuildNameSuffix().getOrElse(DEFAULT_S2I_BUILDNAME_SUFFIX);
+    return getOrDefaultString("jkube.s2i.buildNameSuffix", this::getS2iBuildNameSuffix, DEFAULT_S2I_BUILDNAME_SUFFIX);
   }
 
   public boolean getS2iImageStreamLookupPolicyLocalOrDefault() {
-    return getS2iImageStreamLookupPolicyLocal().getOrElse(true);
+    return getOrDefaultBoolean("jkube.s2i.imageStreamLookupPolicyLocal", this::getS2iImageStreamLookupPolicyLocal, true);
   }
 
   public String getBuildOutputKindOrDefault() {
-    return getBuildOutputKind().getOrElse(DEFAULT_BUILD_OUTPUT_KIND);
+    return getOrDefaultString("jkube.build.buildOutput.kind", this::getBuildOutputKind, DEFAULT_BUILD_OUTPUT_KIND);
   }
 
   @Override
   public boolean getProcessTemplatesLocallyOrDefault() {
-    return getProcessTemplatesLocally().getOrElse(false);
+    return getOrDefaultBoolean("jkube.deploy.processTemplatesLocally", this::getProcessTemplatesLocally, false);
   }
 
   @Override
@@ -109,12 +109,10 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   }
 
   public File getOpenShiftManifestOrDefault() {
-    return getOpenShiftManifest()
-        .getOrElse(javaProject.getOutputDirectory().toPath().resolve(DEFAULT_OPENSHIFT_MANIFEST).toFile());
+    return getOrDefaultFile("jkube.openshiftManifest", this::getOpenShiftManifest, javaProject.getOutputDirectory().toPath().resolve(DEFAULT_OPENSHIFT_MANIFEST).toFile());
   }
 
   public File getImageStreamManifestOrDefault() {
-    return getImageStreamManifest().getOrElse(
-        javaProject.getBuildDirectory().toPath().resolve(Paths.get(javaProject.getArtifactId() + "-is.yml")).toFile());
+    return getOrDefaultFile("jkube.openshiftImageStreamManifest", this::getImageStreamManifest, javaProject.getBuildDirectory().toPath().resolve(Paths.get(javaProject.getArtifactId() + "-is.yml")).toFile());
   }
 }
