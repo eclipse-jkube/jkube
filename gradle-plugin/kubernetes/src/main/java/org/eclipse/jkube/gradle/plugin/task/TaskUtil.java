@@ -24,7 +24,6 @@ import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
 import static org.eclipse.jkube.kit.build.service.docker.ImagePullManager.createImagePullManager;
 
 public class TaskUtil {
@@ -35,14 +34,14 @@ public class TaskUtil {
       KubernetesExtension kubernetesExtension) {
 
     final ImagePullManager imagePullManager = createImagePullManager(
-        kubernetesExtension.getImagePullPolicy().getOrElse("Always"),
-        kubernetesExtension.getAutoPull().getOrElse("true"),
+        kubernetesExtension.getImagePullPolicyOrDefault(),
+        kubernetesExtension.getAutoPullOrDefault(),
         kubernetesExtension.javaProject.getProperties());
     return BuildServiceConfig.builder()
         .imagePullManager(imagePullManager)
-        .buildRecreateMode(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreate().getOrElse("none")))
-        .jKubeBuildStrategy(kubernetesExtension.getBuildStrategy())
-        .forcePull(kubernetesExtension.getForcePull().getOrElse(false))
+        .buildRecreateMode(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreateOrDefault()))
+        .jKubeBuildStrategy(kubernetesExtension.getBuildStrategyOrDefault())
+        .forcePull(kubernetesExtension.getForcePullOrDefault())
         .buildDirectory(kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath());
   }
 
@@ -53,12 +52,12 @@ public class TaskUtil {
       DockerAccessFactory.DockerAccessContext dockerAccessContext = DockerAccessFactory.DockerAccessContext.builder()
           .log(kitLogger)
           .projectProperties(kubernetesExtension.javaProject.getProperties())
-          .maxConnections(kubernetesExtension.getMaxConnections().getOrElse(DEFAULT_MAX_CONNECTIONS))
-          .dockerHost(kubernetesExtension.getDockerHost().getOrNull())
-          .certPath(kubernetesExtension.getCertPath().getOrNull())
+          .maxConnections(kubernetesExtension.getMaxConnectionsOrDefault())
+          .dockerHost(kubernetesExtension.getDockerHostOrDefault())
+          .certPath(kubernetesExtension.getCertPathOrDefault())
           .machine(kubernetesExtension.machine)
           .minimalApiVersion(kubernetesExtension.getMinimalApiVersion().getOrNull())
-          .skipMachine(kubernetesExtension.getSkipMachine().getOrElse(false))
+          .skipMachine(kubernetesExtension.getSkipMachineOrDefault())
           .build();
       DockerAccessFactory dockerAccessFactory = new DockerAccessFactory();
       access = dockerAccessFactory.createDockerAccess(dockerAccessContext);
