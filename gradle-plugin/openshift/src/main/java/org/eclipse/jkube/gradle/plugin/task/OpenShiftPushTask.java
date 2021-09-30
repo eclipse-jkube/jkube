@@ -13,12 +13,11 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
-import org.gradle.api.tasks.Internal;
-
 import javax.inject.Inject;
 
-public class OpenShiftPushTask extends KubernetesPushTask {
+import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
+
+public class OpenShiftPushTask extends KubernetesPushTask implements OpenShiftJKubeTask {
   @Inject
   public OpenShiftPushTask(Class<? extends OpenShiftExtension> extensionClass) {
     super(extensionClass);
@@ -26,9 +25,4 @@ public class OpenShiftPushTask extends KubernetesPushTask {
       "Uploads the built Docker images to a Docker registry");
   }
 
-  @Override
-  @Internal
-  protected String getLogPrefix() {
-    return OpenShiftExtension.DEFAULT_LOG_PREFIX;
-  }
 }

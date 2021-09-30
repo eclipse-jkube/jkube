@@ -19,7 +19,6 @@ dependencies {
 }
 
 kubernetes {
-    useColor = false
     offline = false
     access {
         namespace = 'default'
@@ -44,8 +43,4 @@ kubernetes {
             ]
         }
     }
-}
-
-openshift {
-    useColor = true
 }

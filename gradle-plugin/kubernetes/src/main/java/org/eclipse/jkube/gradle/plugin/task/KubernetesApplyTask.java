@@ -67,7 +67,8 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
 
       // Apply rest of the entities present in manifest
       applyEntities(manifest.getName(), entities);
-      kitLogger.info("HINT: Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShift() ? "oc" : "kubectl");
+      kitLogger.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up",
+          clusterAccess.isOpenShift() ? "oc" : "kubectl");
     } catch (KubernetesClientException e) {
       KubernetesResourceUtil.handleKubernetesClientException(e, kitLogger);
     } catch (IOException ioException) {

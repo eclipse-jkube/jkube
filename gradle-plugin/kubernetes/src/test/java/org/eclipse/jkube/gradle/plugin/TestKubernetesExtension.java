@@ -28,6 +28,7 @@ import static org.mockito.Mockito.mock;
 public class TestKubernetesExtension extends KubernetesExtension {
 
   public Boolean isOffline;
+  public Boolean isUseColor;
   public String buildRecreate;
   public Boolean isForcePull;
   public Boolean isFailOnNoKubernetesJson;
@@ -43,7 +44,7 @@ public class TestKubernetesExtension extends KubernetesExtension {
 
   @Override
   public Property<Boolean> getUseColor() {
-    return new DefaultProperty<>(Boolean.class);
+    return new DefaultProperty<>(Boolean.class).value(isUseColor);
   }
 
   @Override

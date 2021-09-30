@@ -366,6 +366,10 @@ public abstract class KubernetesExtension {
     return getOrDefaultBoolean("jkube.offline", this::getOffline, DEFAULT_OFFLINE);
   }
 
+  public boolean getUseColorOrDefault() {
+    return getOrDefaultBoolean("jkube.useColor", this::getUseColor, true);
+  }
+
   public boolean getUseProjectClassPathOrDefault() {
     return getOrDefaultBoolean("jkube.useProjectClasspath", this::getUseProjectClassPath, false);
   }
@@ -472,10 +476,6 @@ public abstract class KubernetesExtension {
 
   public boolean getSkipExtendedAuthOrDefault() {
     return getOrDefaultBoolean("jkube.docker.skip.extendedAuth", this::getSkipExtendedAuth, false);
-  }
-
-  public boolean getUseColorOrDefault() {
-    return getOrDefaultBoolean("jkube.useColor", this::getUseColor, true);
   }
 
   public Integer getMaxConnectionsOrDefault() {

@@ -13,9 +13,9 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
-
 import javax.inject.Inject;
+
+import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 
 public class OpenShiftApplyTask extends KubernetesApplyTask implements OpenShiftJKubeTask {
 
@@ -25,4 +25,5 @@ public class OpenShiftApplyTask extends KubernetesApplyTask implements OpenShift
     setDescription(
       "Task which deploys the generated artifacts into the OpenShift cluster");
   }
+
 }
