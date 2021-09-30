@@ -14,9 +14,16 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
+import org.gradle.api.tasks.Internal;
 
 public interface KubernetesJKubeTask extends JKubeTask {
 
+  String DEFAULT_LOG_PREFIX = "k8s: ";
+
   KubernetesExtension getExtension();
 
+  @Internal
+  default String getLogPrefix() {
+    return DEFAULT_LOG_PREFIX;
+  }
 }

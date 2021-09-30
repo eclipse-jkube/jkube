@@ -30,7 +30,6 @@ import org.gradle.api.provider.Property;
 public abstract class OpenShiftExtension extends KubernetesExtension {
 
   public static final Path DEFAULT_OPENSHIFT_MANIFEST = Paths.get("META-INF","jkube","openshift.yml");
-  public static final String DEFAULT_LOG_PREFIX = "oc: ";
   private static final String DEFAULT_OPENSHIFT_PULLSECRET = "pullsecret-jkube";
   private static final String DEFAULT_S2I_BUILDNAME_SUFFIX = "-s2i";
   public static final String DEFAULT_BUILD_OUTPUT_KIND = "ImageStreamTag";
