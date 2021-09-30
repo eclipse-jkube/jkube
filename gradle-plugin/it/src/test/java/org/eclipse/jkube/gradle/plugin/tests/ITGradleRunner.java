@@ -49,9 +49,10 @@ public class ITGradleRunner extends ExternalResource {
   }
 
   public ITGradleRunner withArguments(String... originalArguments) {
-    final String[] arguments = new String[originalArguments.length + 1];
+    final String[] arguments = new String[originalArguments.length + 2];
     arguments[0] = "-PjKubeVersion=" + System.getProperty("jKubeVersion");
-    System.arraycopy(originalArguments, 0, arguments, 1, originalArguments.length);
+    arguments[1] = "--console=plain";
+    System.arraycopy(originalArguments, 0, arguments, 2, originalArguments.length);
     gradleRunner = gradleRunner.withArguments(arguments);
     return this;
   }
