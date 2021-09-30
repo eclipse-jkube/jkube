@@ -76,10 +76,44 @@ public class GradleUtilTest {
     final JavaProject result = convertGradleProject(project);
     // Then
     assertThat(result.getProperties())
-        .hasSize(2)
+        .isNotEmpty()
         .hasFieldOrPropertyWithValue("object.field1", 1)
         .hasFieldOrPropertyWithValue("property.1", null)
         .hasEntrySatisfying("property.1", e -> assertThat(e).isEqualTo("test"));
+  }
+
+  @Test
+  public void extractProperties_shouldContainSystemProperties() {
+    // Given
+    System.setProperty("foo.property", "somevalue");
+    when(project.getProperties()).thenReturn(Collections.emptyMap());
+
+    // When
+    final JavaProject result = convertGradleProject(project);
+
+    // Then
+    assertThat(result.getProperties())
+      .hasFieldOrPropertyWithValue("foo.property", null)
+      .hasEntrySatisfying("foo.property", e -> assertThat(e).isEqualTo("somevalue"));
+    System.clearProperty("foo.property");
+  }
+
+  @Test
+  public void extractProperties_whenBothSystemAndGradlePropertyProvided_thenSystemPropertyShouldHaveMorePrecedence() {
+    // Given
+    final Map<String, Object> gradleProperties = new HashMap<>();
+    gradleProperties.put("foo.property", "gradlevalue");
+    System.setProperty("foo.property", "systemvalue");
+    when(project.getProperties()).thenAnswer(i -> gradleProperties);
+
+    // When
+    final JavaProject result = convertGradleProject(project);
+
+    // Then
+    assertThat(result.getProperties())
+      .hasFieldOrPropertyWithValue("foo.property", null)
+      .hasEntrySatisfying("foo.property", e -> assertThat(e).isEqualTo("systemvalue"));
+    System.clearProperty("foo.property");
   }
 
   @Test
