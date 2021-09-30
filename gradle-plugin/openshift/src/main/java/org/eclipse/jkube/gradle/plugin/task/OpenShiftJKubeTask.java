@@ -18,9 +18,16 @@ import org.gradle.api.tasks.Internal;
 
 public interface OpenShiftJKubeTask extends KubernetesJKubeTask {
 
+  String DEFAULT_LOG_PREFIX = "oc: ";
+
   @Internal
   default OpenShiftExtension getOpenShiftExtension() {
     return (OpenShiftExtension) getExtension();
   }
 
+  @Internal
+  @Override
+  default String getLogPrefix() {
+    return DEFAULT_LOG_PREFIX;
+  }
 }

@@ -13,12 +13,11 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
+import javax.inject.Inject;
+
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
-import org.gradle.api.tasks.Internal;
-
-import javax.inject.Inject;
 
 public class OpenShiftBuildTask extends KubernetesBuildTask implements OpenShiftJKubeTask {
 
@@ -27,12 +26,6 @@ public class OpenShiftBuildTask extends KubernetesBuildTask implements OpenShift
     super(extensionClass);
     setDescription(
       "Builds the container images configured for this project via a Docker, S2I binary build or any of the other available build strategies.");
-  }
-
-  @Override
-  @Internal
-  protected String getLogPrefix() {
-    return OpenShiftExtension.DEFAULT_LOG_PREFIX;
   }
 
   @Override

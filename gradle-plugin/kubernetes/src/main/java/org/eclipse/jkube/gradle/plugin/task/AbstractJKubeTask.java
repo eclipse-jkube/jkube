@@ -33,13 +33,13 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 
@@ -47,9 +47,6 @@ import static org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper.ini
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 
 public abstract class AbstractJKubeTask extends DefaultTask implements KubernetesJKubeTask {
-
-  private static final String DEFAULT_LOG_PREFIX = "k8s: ";
-
 
   protected final KubernetesExtension kubernetesExtension;
   protected KitLogger kitLogger;
@@ -66,7 +63,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   @TaskAction
   public final void runTask() {
     kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
-    kitLogger = new GradleLogger(getLogger(), getLogPrefix());
+    kitLogger = createLogger(null);
     clusterAccess = new ClusterAccess(kitLogger, initClusterConfiguration());
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     ImageConfigResolver imageConfigResolver = new ImageConfigResolver();
@@ -95,24 +92,15 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     return kubernetesExtension;
   }
 
-  @Internal
-  protected String getLogPrefix() {
-    return DEFAULT_LOG_PREFIX;
-  }
-
   private List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
-    kitLogger.info("Running in %s mode", kubernetesExtension.getRuntimeMode().getLabel());
-    if (kubernetesExtension.getRuntimeMode() == RuntimeMode.OPENSHIFT) {
-      kitLogger.info("Using [[B]]OpenShift[[B]] build with strategy [[B]]%s[[B]]",
-          kubernetesExtension.getBuildStrategyOrDefault().getLabel());
-    } else {
-      kitLogger.info("Building container image in Kubernetes mode");
-    }
+    kitLogger.info("Running in [[B]]%s[[B]] mode", kubernetesExtension.getRuntimeMode().getLabel());
     return GeneratorManager.generate(configs, initGeneratorContextBuilder().build(), false);
   }
 
-  public KitLogger createLogger(String prefix) {
-    return new GradleLogger(getLogger(), getLogPrefix() + Optional.ofNullable(prefix).map(" "::concat).orElse(""));
+  protected final KitLogger createLogger(String prefix) {
+    final boolean ansiEnabled = kubernetesExtension.getUseColorOrDefault()
+        && getProject().getGradle().getStartParameter().getConsoleOutput() != ConsoleOutput.Plain;
+    return new GradleLogger(getLogger(), ansiEnabled, getLogPrefix() + Optional.ofNullable(prefix).map(" "::concat).orElse(""));
   }
 
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
