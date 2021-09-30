@@ -41,7 +41,7 @@ public class KubernetesLogTask extends AbstractJKubeTask {
 
       new PodLogService(podLogServiceContextBuilder().build()).tailAppPodsLogs(
         kubernetes,
-        kubernetesExtension.getNamespace().getOrNull(),
+        kubernetesExtension.getNamespaceOrDefault(),
         entities,
         false,
         null,
@@ -57,8 +57,8 @@ public class KubernetesLogTask extends AbstractJKubeTask {
   protected PodLogService.PodLogServiceContext.PodLogServiceContextBuilder podLogServiceContextBuilder() {
     return PodLogService.PodLogServiceContext.builder()
       .log(kitLogger)
-      .logContainerName(kubernetesExtension.getLogContainerName().getOrNull())
-      .podName(kubernetesExtension.getLogPodName().getOrNull())
+      .logContainerName(kubernetesExtension.getLogContainerNameOrDefault())
+      .podName(kubernetesExtension.getLogPodNameOrDefault())
       .newPodLog(createLogger("[NEW]"))
       .oldPodLog(createLogger("[OLD]"));
   }
