@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -82,11 +83,12 @@ public class GradleUtil {
   }
 
   private static Properties extractProperties(Project gradleProject) {
-    return gradleProject.getProperties().entrySet().stream().filter(e -> Objects.nonNull(e.getValue()))
-        .reduce(new Properties(), (acc, e) -> {
-          acc.put(e.getKey(), e.getValue());
-          return acc;
-        }, (acc, e) -> acc);
+    return Stream.concat(gradleProject.getProperties().entrySet().stream(), System.getProperties().entrySet().stream())
+      .filter(e -> Objects.nonNull(e.getValue()))
+      .reduce(new Properties(), (acc, e) -> {
+        acc.put(e.getKey(), e.getValue());
+        return acc;
+      }, (acc, e) -> acc);
   }
 
   private static List<Dependency> extractDependencies(Project gradleProject) {
@@ -132,5 +134,4 @@ public class GradleUtil {
         .filter(File::exists)
         .findFirst().orElse(null);
   }
-
 }
