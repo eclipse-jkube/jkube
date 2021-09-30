@@ -29,8 +29,6 @@ import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.common.util.validator.ResourceValidator;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.DEFAULT_RESOURCE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.useDekorate;
@@ -39,7 +37,6 @@ import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.upd
 @SuppressWarnings("CdiInjectionPointsInspection")
 public class KubernetesResourceTask extends AbstractJKubeTask {
 
-  private static final Path DEFAULT_RESOURCE_TARGET_DIR = Paths.get("META-INF", "jkube");
 
   @Inject
   public KubernetesResourceTask(Class<? extends KubernetesExtension> extensionClass) {
@@ -51,14 +48,14 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
     JKubeServiceHub.JKubeServiceHubBuilder builder = super.initJKubeServiceHubBuilder();
     ResourceConfig resourceConfig = kubernetesExtension.resources;
-    if (kubernetesExtension.getNamespace().getOrNull() != null) {
-      resourceConfig = ResourceConfig.toBuilder(resourceConfig).namespace(kubernetesExtension.getNamespace().getOrNull()).build();
+    if (kubernetesExtension.getNamespaceOrDefault() != null) {
+      resourceConfig = ResourceConfig.toBuilder(resourceConfig).namespace(kubernetesExtension.getNamespaceOrDefault()).build();
     }
     final ResourceServiceConfig resourceServiceConfig = ResourceServiceConfig.builder()
         .project(kubernetesExtension.javaProject)
         .resourceDir(resolveResourceSourceDirectory())
-        .targetDir(resolveResourceTargetDirectory())
-        .resourceFileType(kubernetesExtension.getResourceFileType())
+        .targetDir(kubernetesExtension.getResourceTargetDirectoryOrDefault())
+        .resourceFileType(kubernetesExtension.getResourceFileTypeOrDefault())
         .resourceConfig(resourceConfig)
         .interpolateTemplateParameters(kubernetesExtension.getInterpolateTemplateParametersOrDefault())
         .build();
@@ -86,7 +83,7 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
       if (Boolean.FALSE.equals(kubernetesExtension.getSkipOrDefault())) {
         ResourceClassifier resourceClassifier = kubernetesExtension.getResourceClassifier();
         KubernetesList resourceList =  jKubeServiceHub.getResourceService().generateResources(kubernetesExtension.getPlatformMode(), enricherManager, kitLogger);
-        final File resourceClassifierDir = new File(resolveResourceTargetDirectory(), resourceClassifier.getValue());
+        final File resourceClassifierDir = new File(kubernetesExtension.getResourceTargetDirectoryOrDefault(), resourceClassifier.getValue());
         jKubeServiceHub.getResourceService().writeResources(resourceList, resourceClassifier, kitLogger);
         validateIfRequired(resourceClassifierDir, resourceClassifier);
       }
@@ -116,10 +113,4 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
       }
     }
   }
-
-  private File resolveResourceTargetDirectory() {
-    return kubernetesExtension.getResourceTargetDirectory()
-        .getOrElse(kubernetesExtension.javaProject.getOutputDirectory().toPath().resolve(DEFAULT_RESOURCE_TARGET_DIR).toFile());
-  }
-
 }

@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 import static org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter.DOCKER_IMAGE_USER;
@@ -38,7 +39,7 @@ public class OpenShiftResourceTask extends KubernetesResourceTask {
     RuntimeMode runtimeMode = kubernetesExtension.getRuntimeMode();
     final Properties properties = kubernetesExtension.javaProject.getProperties();
     if (!properties.contains(DOCKER_IMAGE_USER)) {
-      String namespaceToBeUsed = kubernetesExtension.getNamespace().getOrElse(clusterAccess.getNamespace());
+      String namespaceToBeUsed = Optional.ofNullable(kubernetesExtension.getNamespaceOrDefault()).orElse(clusterAccess.getNamespace());
       kitLogger.info("Using docker image name of namespace: " + namespaceToBeUsed);
       properties.setProperty(DOCKER_IMAGE_USER, namespaceToBeUsed);
     }

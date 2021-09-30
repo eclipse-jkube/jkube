@@ -44,6 +44,7 @@ import org.gradle.api.provider.Property;
 
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.invokeOrParseClosureList;
+import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
 
 /**
  * <pre>
@@ -106,6 +107,9 @@ public abstract class KubernetesExtension {
   private static final boolean DEFAULT_OFFLINE = false;
   private static final Path DEFAULT_KUBERNETES_MANIFEST = Paths.get("META-INF", "jkube", "kubernetes.yml");
   private static final Path DEFAULT_JSON_LOG_DIR = Paths.get("jkube","applyJson");
+  private static final Path DEFAULT_RESOURCE_SOURCE_DIR = Paths.get("src", "main", "jkube");
+  private static final Path DEFAULT_RESOURCE_TARGET_DIR = Paths.get("META-INF", "jkube");
+  private static final String DEFAULT_WORK_DIR = "jkube";
 
   public transient JavaProject javaProject;
 
@@ -244,7 +248,7 @@ public abstract class KubernetesExtension {
   }
 
   public boolean isDockerAccessRequired() {
-    return getBuildStrategy() != JKubeBuildStrategy.jib;
+    return getBuildStrategyOrDefault() != JKubeBuildStrategy.jib;
   }
 
   public PlatformMode getPlatformMode() {
@@ -368,23 +372,23 @@ public abstract class KubernetesExtension {
   }
 
   public boolean getFailOnValidationErrorOrDefault() {
-    return getFailOnValidationError().getOrElse(false);
+    return getOrDefaultBoolean("jkube.failOnValidationError", this::getFailOnValidationError, false);
   }
 
   public boolean getMergeWithDekorateOrDefault() {
-    return getMergeWithDekorate().getOrElse(false);
+    return getOrDefaultBoolean("jkube.mergeWithDekorate", this::getMergeWithDekorate, false);
   }
 
   public boolean getInterpolateTemplateParametersOrDefault() {
-    return getInterpolateTemplateParameters().getOrElse(true);
+    return getOrDefaultBoolean("jkube.interpolateTemplateParameters", this::getInterpolateTemplateParameters, true);
   }
 
   public boolean getSkipResourceValidationOrDefault() {
-    return getSkipResourceValidation().getOrElse(false);
+    return getOrDefaultBoolean("jkube.skipResourceValidation", this::getSkipResourceValidation, false);
   }
 
   public boolean getLogFollowOrDefault() {
-    return getLogFollow().getOrElse(true);
+    return getOrDefaultBoolean("jkube.log.follow", this::getLogFollow, true);
   }
 
   public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient) {
@@ -396,86 +400,217 @@ public abstract class KubernetesExtension {
   }
 
   public boolean getRecreateOrDefault() {
-    return getRecreate().getOrElse(false);
+    return getOrDefaultBoolean("jkube.recreate", this::getRecreate, false);
   }
 
   public boolean getSkipApplyOrDefault() {
-    return getSkipApply().getOrElse(false);
+    return getOrDefaultBoolean("jkube.skip.apply", this::getSkipApply, false);
   }
 
   public boolean getFailOnNoKubernetesJsonOrDefault() {
-    return getFailOnNoKubernetesJson().getOrElse(false);
+    return getOrDefaultBoolean("jkube.deploy.failOnNoKubernetesJson", this::getFailOnNoKubernetesJson, false);
   }
 
   public boolean getCreateNewResourcesOrDefault() {
-    return getCreateNewResources().getOrElse(true);
+    return getOrDefaultBoolean("jkube.deploy.create", this::getCreateNewResources, true);
   }
 
   public boolean getServicesOnlyOrDefault() {
-    return getServicesOnly().getOrElse(false);
+    return getOrDefaultBoolean("jkube.deploy.servicesOnly", this::getServicesOnly, false);
   }
 
   public boolean getIgnoreServicesOrDefault() {
-    return getIgnoreServices().getOrElse(false);
+    return getOrDefaultBoolean("jkube.deploy.ignoreServices", this::getIgnoreServices, false);
   }
 
   public File getJsonLogDirOrDefault() {
-    return getJsonLogDir().getOrElse(javaProject.getBuildDirectory().toPath().resolve(DEFAULT_JSON_LOG_DIR).toFile());
+    return getOrDefaultFile("jkube.deploy.jsonLogDir", this::getJsonLogDir, javaProject.getBuildDirectory().toPath().resolve(DEFAULT_JSON_LOG_DIR).toFile());
   }
 
   public boolean getDeletePodsOnReplicationControllerUpdateOrDefault() {
-    return getDeletePodsOnReplicationControllerUpdate().getOrElse(true);
+    return getOrDefaultBoolean("jkube.deploy.deletePods", this::getDeletePodsOnReplicationControllerUpdate, true);
   }
 
   public boolean getRollingUpgradesOrDefault() {
-    return getRollingUpgrades().getOrElse(false);
+    return getOrDefaultBoolean("jkube.rolling", this::getRollingUpgrades, false);
   }
 
   public Integer getServiceUrlWaitTimeSecondsOrDefault() {
-    return getServiceUrlWaitTimeSeconds().getOrElse(5);
+    return getOrDefaultInteger("jkube.serviceUrl.waitSeconds", this::getServiceUrlWaitTimeSeconds, 5);
   }
 
   public File getKubernetesManifestOrDefault() {
-    return getKubernetesManifest()
-        .getOrElse(javaProject.getOutputDirectory().toPath().resolve(DEFAULT_KUBERNETES_MANIFEST).toFile());
+    return getOrDefaultFile("jkube.kubernetesManifest", this::getKubernetesManifest, javaProject.getOutputDirectory().toPath().resolve(DEFAULT_KUBERNETES_MANIFEST).toFile());
   }
 
   public boolean getSkipOrDefault() {
-    return getSkip().getOrElse(false);
+    return getOrDefaultBoolean("jkube.skip", this::getSkip, false);
   }
 
   public boolean getIgnoreRunningOAuthClientsOrDefault() {
-    return getIgnoreRunningOAuthClients().getOrElse(true);
+    return getOrDefaultBoolean("jkube.deploy.ignoreRunningOAuthClients", this::getIgnoreRunningOAuthClients, true);
   }
 
   public boolean getProcessTemplatesLocallyOrDefault() {
-    return getProcessTemplatesLocally().getOrElse(true);
+    return getOrDefaultBoolean("jkube.deploy.processTemplatesLocally", this::getProcessTemplatesLocally, true);
   }
 
   public boolean getRollingUpgradePreserveScaleOrDefault() {
-    return getRollingUpgradePreserveScale().getOrElse(false);
+    return getOrDefaultBoolean("jkube.rolling.preserveScale", this::getRollingUpgradePreserveScale, false);
   }
 
   public boolean getSkipPushOrDefault() {
-    return getSkipPush().getOrElse(false);
+    return getOrDefaultBoolean("jkube.skip.push", this::getSkipPush, false);
   }
 
   public boolean getSkipTagOrDefault() {
-    return getSkipTag().getOrElse(false);
+    return getOrDefaultBoolean("jkube.skip.tag", this::getSkipTag, false);
   }
 
   public Integer getPushRetriesOrDefault() {
-    return getPushRetries().getOrElse(0);
+    return getOrDefaultInteger("jkube.docker.push.retries", this::getPushRetries, 0);
   }
 
   public boolean getSkipExtendedAuthOrDefault() {
-    return getSkipExtendedAuth().getOrElse(false);
+    return getOrDefaultBoolean("jkube.docker.skip.extendedAuth", this::getSkipExtendedAuth, false);
   }
 
-  boolean getOrDefaultBoolean(String property, Supplier<Property<Boolean>> dslGetter, boolean defaultValue) {
+  public boolean getUseColorOrDefault() {
+    return getOrDefaultBoolean("jkube.useColor", this::getUseColor, true);
+  }
+
+  public Integer getMaxConnectionsOrDefault() {
+    return getOrDefaultInteger("jkube.docker.maxConnections", this::getMaxConnections, DEFAULT_MAX_CONNECTIONS);
+  }
+
+  public String getFilterOrDefault() {
+    return getOrDefaultString("jkube.image.filter", this::getFilter, null);
+  }
+
+  public String getApiVersionOrDefault() {
+    return getOrDefaultString("jkube.docker.apiVersion", this::getApiVersion, null);
+  }
+
+  public String getImagePullPolicyOrDefault() {
+    return getOrDefaultString("jkube.docker.imagePullPolicy", this::getImagePullPolicy, null);
+  }
+
+  public String getAutoPullOrDefault() {
+    return getOrDefaultString("jkube.docker.autoPull", this::getAutoPull, null);
+  }
+
+  public String getDockerHostOrDefault() {
+    return getOrDefaultString("jkube.docker.host", this::getDockerHost, null);
+  }
+
+  public String getCertPathOrDefault() {
+    return getOrDefaultString("jkube.docker.certPath", this::getCertPath, null);
+  }
+
+  public boolean getSkipMachineOrDefault() {
+    return getOrDefaultBoolean("jkube.docker.skip.machine", this::getSkipMachine, false);
+  }
+
+  public boolean getForcePullOrDefault() {
+    return getOrDefaultBoolean("jkube.build.forcePull", this::getForcePull, false);
+  }
+
+  public String getRegistryOrDefault() {
+    return getOrDefaultString("jkube.docker.registry", this::getRegistry, "docker.io");
+  }
+
+  public String getBuildRecreateOrDefault() {
+    return getOrDefaultString("jkube.build.recreate", this::getBuildRecreate, "none");
+  }
+
+  public String getPullRegistryOrDefault() {
+    return getOrDefaultString("jkube.docker.pull.registry", this::getPullRegistry, getRegistryOrDefault());
+  }
+
+  public String getBuildSourceDirectoryOrDefault() {
+    return getOrDefaultString("jkube.build.source.dir", this::getBuildSourceDirectory, "src/main/docker");
+  }
+
+  public String getBuildOutputDirectoryOrDefault() {
+    return getOrDefaultString("jkube.build.target.dir", this::getBuildOutputDirectory, "build/docker");
+  }
+
+  public File getResourceSourceDirectoryOrDefault() {
+    return getOrDefaultFile("jkube.resourceDir", this::getResourceSourceDirectory, javaProject.getBaseDirectory().toPath().resolve(DEFAULT_RESOURCE_SOURCE_DIR).toFile());
+  }
+
+  public File getResourceTargetDirectoryOrDefault() {
+    return getOrDefaultFile("jkube.targetDir", this::getResourceTargetDirectory, javaProject.getOutputDirectory().toPath().resolve(DEFAULT_RESOURCE_TARGET_DIR).toFile());
+  }
+
+  public String getResourceEnvironmentOrDefault() {
+    return getOrDefaultString("jkube.environment", this::getResourceEnvironment, null);
+  }
+
+  public File getWorkDirectoryOrDefault() {
+    return getOrDefaultFile("jkube.workDir", this::getWorkDirectory, javaProject.getBuildDirectory().toPath().resolve(DEFAULT_WORK_DIR).toFile());
+  }
+
+  public String getProfileOrDefault() {
+    return getOrDefaultString("jkube.profile", this::getProfile, null);
+  }
+
+  public String getNamespaceOrDefault() {
+    return getOrDefaultString("jkube.namespace", this::getNamespace, null);
+  }
+
+  public String getLogPodNameOrDefault() {
+    return getOrDefaultString("jkube.log.pod", this::getLogPodName, null);
+  }
+
+  public String getLogContainerNameOrDefault() {
+    return getOrDefaultString("jkube.log.container", this::getLogContainerName, null);
+  }
+
+  public JKubeBuildStrategy getBuildStrategyOrDefault() {
+    final String propValue = javaProject.getProperties().getProperty("jkube.build.strategy");
+    if (StringUtils.isNotBlank(propValue)) {
+      return JKubeBuildStrategy.valueOf(propValue);
+    }
+    return getBuildStrategy();
+  }
+
+  public ResourceFileType getResourceFileTypeOrDefault() {
+    final String propValue = javaProject.getProperties().getProperty("jkube.resourceType");
+    if (StringUtils.isNotBlank(propValue)) {
+      return ResourceFileType.valueOf(propValue);
+    }
+    return getResourceFileType();
+  }
+
+  protected boolean getOrDefaultBoolean(String property, Supplier<Property<Boolean>> dslGetter, boolean defaultValue) {
     final String propValue = javaProject.getProperties().getProperty(property);
     if (StringUtils.isNotBlank(propValue)) {
       return Boolean.parseBoolean(propValue);
+    }
+    return dslGetter.get().getOrElse(defaultValue);
+  }
+
+  protected File getOrDefaultFile(String property, Supplier<Property<File>> dslGetter, File defaultValue) {
+    final String propValue = javaProject.getProperties().getProperty(property);
+    if (StringUtils.isNotBlank(propValue)) {
+      return javaProject.getBaseDirectory().toPath().resolve(propValue).toFile();
+    }
+    return dslGetter.get().getOrElse(defaultValue);
+  }
+
+  protected Integer getOrDefaultInteger(String property, Supplier<Property<Integer>> dslGetter, Integer defaultValue) {
+    final String propValue = javaProject.getProperties().getProperty(property);
+    if (StringUtils.isNotBlank(propValue)) {
+      return Integer.parseInt(propValue);
+    }
+    return dslGetter.get().getOrElse(defaultValue);
+  }
+
+  protected String getOrDefaultString(String property, Supplier<Property<String>> dslGetter, String defaultValue) {
+    final String propValue = javaProject.getProperties().getProperty(property);
+    if (StringUtils.isNotBlank(propValue)) {
+      return propValue;
     }
     return dslGetter.get().getOrElse(defaultValue);
   }
