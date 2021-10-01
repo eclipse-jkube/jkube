@@ -22,8 +22,6 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.provider.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -43,19 +41,13 @@ public class OpenShiftPushTaskTest {
   public TaskEnvironment taskEnvironment = new TaskEnvironment();
 
   private MockedConstruction<OpenshiftBuildService> openshiftBuildServiceMockedConstruction;
-  private boolean isSkipPush;
-  private OpenShiftExtension extension;
+  private TestOpenShiftExtension extension;
 
   @Before
   public void setUp() {
     openshiftBuildServiceMockedConstruction = mockConstruction(OpenshiftBuildService.class,
         (mock, ctx) -> when(mock.isApplicable()).thenReturn(true));
-    extension = new TestOpenShiftExtension() {
-      @Override
-      public Property<Boolean> getSkipPush() {
-        return new DefaultProperty<>(Boolean.class).value(isSkipPush);
-      }
-    };
+    extension = new TestOpenShiftExtension();
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     extension.images = Collections.singletonList(ImageConfiguration.builder()
       .name("foo/bar:latest")
@@ -85,7 +77,7 @@ public class OpenShiftPushTaskTest {
   @Test
   public void run_withSkipPush_shouldNotPushImage() {
     // Given
-    isSkipPush = true;
+    extension.isSkipPush = true;
     final OpenShiftPushTask openShiftPushTask = new OpenShiftPushTask(OpenShiftExtension.class);
     // When
     openShiftPushTask.runTask();

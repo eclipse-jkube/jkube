@@ -14,9 +14,7 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
@@ -25,24 +23,16 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.provider.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -56,7 +46,7 @@ public class OpenShiftUndeployTaskTest {
 
   private MockedConstruction<OpenshiftUndeployService> openshiftUndeployServiceMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
-  private boolean isOffline;
+  private TestOpenShiftExtension extension;
 
   @Before
   public void setUp() {
@@ -66,13 +56,7 @@ public class OpenShiftUndeployTaskTest {
       when(openShiftClient.isAdaptable(OpenShiftClient.class)).thenReturn(true);
     });
     openshiftUndeployServiceMockedConstruction = mockConstruction(OpenshiftUndeployService.class);
-    isOffline = false;
-    final OpenShiftExtension extension = new TestOpenShiftExtension() {
-      @Override
-      public Property<Boolean> getOffline() {
-        return new DefaultProperty<>(Boolean.class).value(isOffline);
-      }
-    };
+    extension = new TestOpenShiftExtension();
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     when(taskEnvironment.project.getName()).thenReturn("test-project");
   }
@@ -86,7 +70,7 @@ public class OpenShiftUndeployTaskTest {
   @Test
   public void runTask_withOffline_shouldThrowException() {
     // Given
-    isOffline = true;
+    extension.isOffline = true;
     final OpenShiftUndeployTask undeployTask = new OpenShiftUndeployTask(OpenShiftExtension.class);
 
     // When

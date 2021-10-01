@@ -15,14 +15,28 @@ package org.eclipse.jkube.gradle.plugin;
 
 import java.io.File;
 
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+
 public class TestOpenShiftExtension extends OpenShiftExtension {
+
+  public Boolean isOffline;
+  public String buildRecreate;
+  public Boolean isForcePull;
+  public Boolean isFailOnNoKubernetesJson;
+  public Boolean isSkipPush;
+
+  public TestOpenShiftExtension() {
+    javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+  }
 
   @Override
   public Property<Boolean> getOffline() {
-    return new DefaultProperty<>(Boolean.class).value(true);
+    return new DefaultProperty<>(Boolean.class).value(isOffline);
   }
 
   @Override
@@ -47,7 +61,7 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
 
   @Override
   public Property<String> getBuildRecreate() {
-    return new DefaultProperty<>(String.class);
+    return new DefaultProperty<>(String.class).value(buildRecreate);
   }
 
   @Override
@@ -82,7 +96,7 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
 
   @Override
   public Property<Boolean> getForcePull() {
-    return new DefaultProperty<>(Boolean.class);
+    return new DefaultProperty<>(Boolean.class).value(isForcePull);
   }
 
   @Override
@@ -108,6 +122,16 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   @Override
   public Property<String> getRegistry() {
     return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<Boolean> getProcessTemplatesLocally() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getIgnoreRunningOAuthClients() {
+    return new DefaultProperty<>(Boolean.class);
   }
 
   @Override
@@ -191,6 +215,16 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   }
 
   @Override
+  public Property<String> getSourceDirectory() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<String> getOutputDirectory() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
   public Property<Boolean> getRecreate() {
     return new DefaultProperty<>(Boolean.class);
   }
@@ -217,7 +251,7 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
 
   @Override
   public Property<Boolean> getFailOnNoKubernetesJson() {
-    return new DefaultProperty<>(Boolean.class);
+    return new DefaultProperty<>(Boolean.class).value(isFailOnNoKubernetesJson);
   }
 
   @Override
@@ -247,7 +281,7 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
 
   @Override
   public Property<Boolean> getSkipPush() {
-    return new DefaultProperty<>(Boolean.class);
+    return new DefaultProperty<>(Boolean.class).value(isSkipPush);
   }
 
   @Override
@@ -263,16 +297,6 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   @Override
   public Property<Integer> getPushRetries() {
     return new DefaultProperty<>(Integer.class);
-  }
-
-  @Override
-  public Property<String> getSourceDirectory() {
-    return new DefaultProperty<>(String.class);
-  }
-
-  @Override
-  public Property<String> getOutputDirectory() {
-    return new DefaultProperty<>(String.class);
   }
 
   @Override
@@ -308,15 +332,5 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   @Override
   public Property<File> getImageStreamManifest() {
     return new DefaultProperty<>(File.class);
-  }
-
-  @Override
-  public Property<Boolean> getProcessTemplatesLocally() {
-    return new DefaultProperty<>(Boolean.class);
-  }
-
-  @Override
-  public Property<Boolean> getIgnoreRunningOAuthClients() {
-    return new DefaultProperty<>(Boolean.class);
   }
 }

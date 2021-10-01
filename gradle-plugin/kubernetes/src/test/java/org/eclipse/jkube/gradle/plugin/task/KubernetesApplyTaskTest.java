@@ -25,8 +25,6 @@ import org.eclipse.jkube.kit.config.service.ApplyService;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jgit.util.FileUtils;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.provider.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,8 +48,7 @@ public class KubernetesApplyTaskTest {
 
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedConstruction<ApplyService> applyServiceMockedConstruction;
-  private boolean isOffline;
-  private boolean isFailOnUnknownKubernetesJson;
+  private TestKubernetesExtension extension;
 
   @Before
   public void setUp() throws IOException {
@@ -61,20 +58,9 @@ public class KubernetesApplyTaskTest {
       when(mock.createDefaultClient()).thenReturn(kubernetesClient);
     });
     applyServiceMockedConstruction = mockConstruction(ApplyService.class);
-    isOffline = false;
-    isFailOnUnknownKubernetesJson = false;
-    final KubernetesExtension extension = new TestKubernetesExtension() {
-      @Override
-      public Property<Boolean> getOffline() {
-        return new DefaultProperty<>(Boolean.class).value(isOffline);
-      }
-
-      @Override
-      public Property<Boolean> getFailOnNoKubernetesJson() {
-        return new DefaultProperty<>(Boolean.class).value(isFailOnUnknownKubernetesJson);
-      }
-    };
+    extension = new TestKubernetesExtension();
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    extension.isFailOnNoKubernetesJson = false;
   }
 
   @After
@@ -86,7 +72,7 @@ public class KubernetesApplyTaskTest {
   @Test
   public void runTask_withOffline_shouldThrowException() {
     // Given
-    isOffline = true;
+    extension.isOffline = true;
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
 
     // When
@@ -100,7 +86,7 @@ public class KubernetesApplyTaskTest {
   @Test
   public void runTask_withNoManifest_shouldThrowException() {
     // Given
-    isFailOnUnknownKubernetesJson = true;
+    extension.isFailOnNoKubernetesJson = true;
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
     // When
     final IllegalStateException result = assertThrows(IllegalStateException.class, applyTask::runTask);

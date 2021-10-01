@@ -24,8 +24,6 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.provider.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,7 +47,7 @@ public class KubernetesUndeployTaskTest {
 
   private MockedConstruction<KubernetesUndeployService> kubernetesUndeployServiceMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
-  private boolean isOffline;
+  private TestKubernetesExtension extension;
 
   @Before
   public void setUp() throws IOException {
@@ -59,13 +57,7 @@ public class KubernetesUndeployTaskTest {
       when(kubernetesClient.getMasterUrl()).thenReturn(new URL("http://kubernetes-cluster"));
     });
     kubernetesUndeployServiceMockedConstruction = mockConstruction(KubernetesUndeployService.class);
-    isOffline = false;
-    final KubernetesExtension extension = new TestKubernetesExtension() {
-      @Override
-      public Property<Boolean> getOffline() {
-        return new DefaultProperty<>(Boolean.class).value(isOffline);
-      }
-    };
+    extension = new TestKubernetesExtension();
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
   }
 
@@ -78,7 +70,7 @@ public class KubernetesUndeployTaskTest {
   @Test
   public void runTask_withOffline_shouldThrowException() {
     // Given
-    isOffline = true;
+    extension.isOffline = true;
     final KubernetesUndeployTask undeployTask = new KubernetesUndeployTask(KubernetesExtension.class);
 
     // When
