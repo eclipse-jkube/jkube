@@ -48,8 +48,8 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
     JKubeServiceHub.JKubeServiceHubBuilder builder = super.initJKubeServiceHubBuilder();
     ResourceConfig resourceConfig = kubernetesExtension.resources;
-    if (kubernetesExtension.getNamespaceOrDefault() != null) {
-      resourceConfig = ResourceConfig.toBuilder(resourceConfig).namespace(kubernetesExtension.getNamespaceOrDefault()).build();
+    if (kubernetesExtension.getNamespaceOrNull() != null) {
+      resourceConfig = ResourceConfig.toBuilder(resourceConfig).namespace(kubernetesExtension.getNamespaceOrNull()).build();
     }
     final ResourceServiceConfig resourceServiceConfig = ResourceServiceConfig.builder()
         .project(kubernetesExtension.javaProject)

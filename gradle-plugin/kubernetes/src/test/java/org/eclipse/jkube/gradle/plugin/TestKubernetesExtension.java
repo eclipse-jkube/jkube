@@ -15,17 +15,30 @@ package org.eclipse.jkube.gradle.plugin;
 
 import java.io.File;
 
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+
 public class TestKubernetesExtension extends KubernetesExtension {
+
+  public Boolean isOffline;
+  public String buildRecreate;
+  public Boolean isForcePull;
+  public Boolean isFailOnNoKubernetesJson;
+
+  public TestKubernetesExtension() {
+    javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+  }
 
   @Override
   public Property<Boolean> getOffline() {
-    return new DefaultProperty<>(Boolean.class).value(true);
+    return new DefaultProperty<>(Boolean.class).value(isOffline);
   }
 
   @Override
@@ -50,7 +63,7 @@ public class TestKubernetesExtension extends KubernetesExtension {
 
   @Override
   public Property<String> getBuildRecreate() {
-    return new DefaultProperty<>(String.class);
+    return new DefaultProperty<>(String.class).value(buildRecreate);
   }
 
   @Override
@@ -85,7 +98,7 @@ public class TestKubernetesExtension extends KubernetesExtension {
 
   @Override
   public Property<Boolean> getForcePull() {
-    return new DefaultProperty<>(Boolean.class);
+    return new DefaultProperty<>(Boolean.class).value(isForcePull);
   }
 
   @Override
@@ -245,7 +258,7 @@ public class TestKubernetesExtension extends KubernetesExtension {
 
   @Override
   public Property<Boolean> getFailOnNoKubernetesJson() {
-    return new DefaultProperty<>(Boolean.class);
+    return new DefaultProperty<>(Boolean.class).value(isFailOnNoKubernetesJson);
   }
 
   @Override

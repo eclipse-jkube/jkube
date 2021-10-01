@@ -18,6 +18,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -209,8 +211,6 @@ public abstract class KubernetesExtension {
 
   public abstract Property<Integer> getPushRetries();
 
-  public JKubeBuildStrategy buildStrategy;
-
   public abstract Property<String> getSourceDirectory();
 
   public abstract Property<String> getOutputDirectory();
@@ -220,6 +220,8 @@ public abstract class KubernetesExtension {
   public abstract Property<Boolean> getProcessTemplatesLocally();
 
   public abstract Property<Boolean> getIgnoreRunningOAuthClients();
+
+  public JKubeBuildStrategy buildStrategy;
 
   public ClusterConfiguration access;
 
@@ -243,10 +245,6 @@ public abstract class KubernetesExtension {
     return RuntimeMode.KUBERNETES;
   }
 
-  public JKubeBuildStrategy getBuildStrategy() {
-    return buildStrategy != null ? buildStrategy : JKubeBuildStrategy.docker;
-  }
-
   public boolean isDockerAccessRequired() {
     return getBuildStrategyOrDefault() != JKubeBuildStrategy.jib;
   }
@@ -257,10 +255,6 @@ public abstract class KubernetesExtension {
 
   public ResourceClassifier getResourceClassifier() {
     return ResourceClassifier.KUBERNETES;
-  }
-
-  public ResourceFileType getResourceFileType() {
-    return resourceFileType != null ? resourceFileType : ResourceFileType.yaml;
   }
 
   public boolean isSupportOAuthClients() {
@@ -361,6 +355,11 @@ public abstract class KubernetesExtension {
       mappings = new ArrayList<>();
     }
     mappings.add(closureTo(closure, MappingConfig.class));
+  }
+
+  public JKubeBuildStrategy getBuildStrategyOrDefault() {
+    return getProperty("jkube.build.strategy", JKubeBuildStrategy::valueOf)
+        .orElse(buildStrategy != null ? buildStrategy : JKubeBuildStrategy.docker);
   }
 
   public boolean getOfflineOrDefault() {
@@ -483,27 +482,27 @@ public abstract class KubernetesExtension {
     return getOrDefaultInteger("jkube.docker.maxConnections", this::getMaxConnections, DEFAULT_MAX_CONNECTIONS);
   }
 
-  public String getFilterOrDefault() {
+  public String getFilterOrNull() {
     return getOrDefaultString("jkube.image.filter", this::getFilter, null);
   }
 
-  public String getApiVersionOrDefault() {
+  public String getApiVersionOrNull() {
     return getOrDefaultString("jkube.docker.apiVersion", this::getApiVersion, null);
   }
 
-  public String getImagePullPolicyOrDefault() {
+  public String getImagePullPolicyOrNull() {
     return getOrDefaultString("jkube.docker.imagePullPolicy", this::getImagePullPolicy, null);
   }
 
-  public String getAutoPullOrDefault() {
+  public String getAutoPullOrNull() {
     return getOrDefaultString("jkube.docker.autoPull", this::getAutoPull, null);
   }
 
-  public String getDockerHostOrDefault() {
+  public String getDockerHostOrNull() {
     return getOrDefaultString("jkube.docker.host", this::getDockerHost, null);
   }
 
-  public String getCertPathOrDefault() {
+  public String getCertPathOrNull() {
     return getOrDefaultString("jkube.docker.certPath", this::getCertPath, null);
   }
 
@@ -543,7 +542,7 @@ public abstract class KubernetesExtension {
     return getOrDefaultFile("jkube.targetDir", this::getResourceTargetDirectory, javaProject.getOutputDirectory().toPath().resolve(DEFAULT_RESOURCE_TARGET_DIR).toFile());
   }
 
-  public String getResourceEnvironmentOrDefault() {
+  public String getResourceEnvironmentOrNull() {
     return getOrDefaultString("jkube.environment", this::getResourceEnvironment, null);
   }
 
@@ -551,67 +550,53 @@ public abstract class KubernetesExtension {
     return getOrDefaultFile("jkube.workDir", this::getWorkDirectory, javaProject.getBuildDirectory().toPath().resolve(DEFAULT_WORK_DIR).toFile());
   }
 
-  public String getProfileOrDefault() {
+  public String getProfileOrNull() {
     return getOrDefaultString("jkube.profile", this::getProfile, null);
   }
 
-  public String getNamespaceOrDefault() {
+  public String getNamespaceOrNull() {
     return getOrDefaultString("jkube.namespace", this::getNamespace, null);
   }
 
-  public String getLogPodNameOrDefault() {
+  public String getLogPodNameOrNull() {
     return getOrDefaultString("jkube.log.pod", this::getLogPodName, null);
   }
 
-  public String getLogContainerNameOrDefault() {
+  public String getLogContainerNameOrNull() {
     return getOrDefaultString("jkube.log.container", this::getLogContainerName, null);
   }
 
-  public JKubeBuildStrategy getBuildStrategyOrDefault() {
-    final String propValue = javaProject.getProperties().getProperty("jkube.build.strategy");
-    if (StringUtils.isNotBlank(propValue)) {
-      return JKubeBuildStrategy.valueOf(propValue);
-    }
-    return getBuildStrategy();
-  }
-
   public ResourceFileType getResourceFileTypeOrDefault() {
-    final String propValue = javaProject.getProperties().getProperty("jkube.resourceType");
-    if (StringUtils.isNotBlank(propValue)) {
-      return ResourceFileType.valueOf(propValue);
-    }
-    return getResourceFileType();
+    return getProperty("jkube.resourceType", ResourceFileType::valueOf)
+        .orElse(resourceFileType != null ? resourceFileType : ResourceFileType.yaml);
   }
 
   protected boolean getOrDefaultBoolean(String property, Supplier<Property<Boolean>> dslGetter, boolean defaultValue) {
-    final String propValue = javaProject.getProperties().getProperty(property);
-    if (StringUtils.isNotBlank(propValue)) {
-      return Boolean.parseBoolean(propValue);
-    }
-    return dslGetter.get().getOrElse(defaultValue);
+    return getOrDefault(property, Boolean::parseBoolean, dslGetter, defaultValue);
   }
 
   protected File getOrDefaultFile(String property, Supplier<Property<File>> dslGetter, File defaultValue) {
-    final String propValue = javaProject.getProperties().getProperty(property);
-    if (StringUtils.isNotBlank(propValue)) {
-      return javaProject.getBaseDirectory().toPath().resolve(propValue).toFile();
-    }
-    return dslGetter.get().getOrElse(defaultValue);
+    return getOrDefault(property, s -> javaProject.getBaseDirectory().toPath().resolve(s).toFile(), dslGetter, defaultValue);
   }
 
-  protected Integer getOrDefaultInteger(String property, Supplier<Property<Integer>> dslGetter, Integer defaultValue) {
-    final String propValue = javaProject.getProperties().getProperty(property);
-    if (StringUtils.isNotBlank(propValue)) {
-      return Integer.parseInt(propValue);
-    }
-    return dslGetter.get().getOrElse(defaultValue);
+  protected int getOrDefaultInteger(String property, Supplier<Property<Integer>> dslGetter, int defaultValue) {
+    return getOrDefault(property, Integer::parseInt, dslGetter, defaultValue);
   }
 
   protected String getOrDefaultString(String property, Supplier<Property<String>> dslGetter, String defaultValue) {
+    return getOrDefault(property, Function.identity(), dslGetter, defaultValue);
+  }
+
+  protected <T> T getOrDefault(String property, Function<String, T> propertyCaster, Supplier<Property<T>> dslGetter,
+      T defaultValue) {
+    return getProperty(property, propertyCaster).orElse(dslGetter.get().getOrElse(defaultValue));
+  }
+
+  protected <T> Optional<T> getProperty(String property, Function<String, T> propertyCaster) {
     final String propValue = javaProject.getProperties().getProperty(property);
     if (StringUtils.isNotBlank(propValue)) {
-      return propValue;
+      return Optional.of(propertyCaster.apply(propValue));
     }
-    return dslGetter.get().getOrElse(defaultValue);
+    return Optional.empty();
   }
 }
