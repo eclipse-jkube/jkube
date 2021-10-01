@@ -18,6 +18,8 @@ import java.util.Collections;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
+import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
+import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
@@ -32,6 +34,7 @@ import org.mockito.MockedConstruction;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -42,18 +45,18 @@ public class KubernetesPushTaskTest {
   @Rule
   public TaskEnvironment taskEnvironment = new TaskEnvironment();
 
+  private MockedConstruction<DockerAccessFactory> dockerAccessFactoryMockedConstruction;
   private MockedConstruction<DockerBuildService> dockerBuildServiceMockedConstruction;
   private KubernetesExtension extension;
 
   @Before
   public void setUp() throws IOException {
-    dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class, (mock, ctx) -> {
-      when(mock.isApplicable()).thenReturn(true);
-    });
-    extension = new TestKubernetesExtension() {
-      @Override
-      public boolean isDockerAccessRequired() { return false; }
-    };
+    // Mock required for environments with no DOCKER available (don't remove)
+    dockerAccessFactoryMockedConstruction = mockConstruction(DockerAccessFactory.class,
+        (mock, ctx) -> when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class)));
+    dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class,
+        (mock, ctx) -> when(mock.isApplicable()).thenReturn(true));
+    extension = new TestKubernetesExtension();
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     extension.images = Collections.singletonList(ImageConfiguration.builder()
       .name("foo/bar:latest")
@@ -66,6 +69,7 @@ public class KubernetesPushTaskTest {
   @After
   public void tearDown() {
     dockerBuildServiceMockedConstruction.close();
+    dockerAccessFactoryMockedConstruction.close();
   }
 
   @Test

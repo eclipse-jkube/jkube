@@ -15,8 +15,6 @@ package org.eclipse.jkube.gradle.plugin.task;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -78,7 +76,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
       enricherManager = new DefaultEnricherManager(JKubeEnricherContext.builder()
           .project(kubernetesExtension.javaProject)
           .processorConfig(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG,
-              kubernetesExtension.getProfileOrDefault(),
+              kubernetesExtension.getProfileOrNull(),
               resolveResourceSourceDirectory(),
               kubernetesExtension.enricher))
         .images(resolvedImages)
@@ -155,13 +153,13 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected final File resolveResourceSourceDirectory() {
     return ResourceUtil.getFinalResourceDir(kubernetesExtension.getResourceSourceDirectoryOrDefault(),
-        kubernetesExtension.getResourceEnvironmentOrDefault());
+        kubernetesExtension.getResourceEnvironmentOrNull());
   }
 
 
   protected ProcessorConfig extractGeneratorConfig() {
     try {
-      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfileOrDefault(), kubernetesExtension.getResourceTargetDirectoryOrDefault(), kubernetesExtension.generator);
+      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfileOrNull(), kubernetesExtension.getResourceTargetDirectoryOrDefault(), kubernetesExtension.generator);
     } catch (IOException e) {
       throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
     }
@@ -169,7 +167,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected List<ImageConfiguration> resolveImages(ImageConfigResolver imageConfigResolver) throws IOException {
     return initImageConfiguration(
-      kubernetesExtension.getApiVersionOrDefault(),
+        kubernetesExtension.getApiVersionOrNull(),
         getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
             DOCKER_BUILD_TIMESTAMP),
         kubernetesExtension.javaProject, kubernetesExtension.images, imageConfigResolver, kitLogger,

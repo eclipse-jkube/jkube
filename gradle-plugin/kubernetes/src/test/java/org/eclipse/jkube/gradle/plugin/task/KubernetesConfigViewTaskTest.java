@@ -33,7 +33,7 @@ public class KubernetesConfigViewTaskTest {
   @Rule
   public TaskEnvironment taskEnvironment = new TaskEnvironment();
 
-  private KubernetesExtension extension;
+  private TestKubernetesExtension extension;
 
   @Before
   public void setUp() throws IOException {
@@ -42,10 +42,10 @@ public class KubernetesConfigViewTaskTest {
   }
 
   @Test
-  public void runTask_withImplementationPending_shouldThrowException() {
+  public void runTask_withManualSettings_shouldLogThem() {
     // Given
     extension.buildStrategy = JKubeBuildStrategy.s2i;
-    extension.getOffline().set(true);
+    extension.isOffline = true;
     final KubernetesConfigViewTask configViewTask = new KubernetesConfigViewTask(KubernetesExtension.class);
     // When
     configViewTask.runTask();

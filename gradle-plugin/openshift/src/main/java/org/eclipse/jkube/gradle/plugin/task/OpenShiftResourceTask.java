@@ -39,7 +39,7 @@ public class OpenShiftResourceTask extends KubernetesResourceTask {
     RuntimeMode runtimeMode = kubernetesExtension.getRuntimeMode();
     final Properties properties = kubernetesExtension.javaProject.getProperties();
     if (!properties.contains(DOCKER_IMAGE_USER)) {
-      String namespaceToBeUsed = Optional.ofNullable(kubernetesExtension.getNamespaceOrDefault()).orElse(clusterAccess.getNamespace());
+      String namespaceToBeUsed = Optional.ofNullable(kubernetesExtension.getNamespaceOrNull()).orElse(clusterAccess.getNamespace());
       kitLogger.info("Using docker image name of namespace: " + namespaceToBeUsed);
       properties.setProperty(DOCKER_IMAGE_USER, namespaceToBeUsed);
     }

@@ -34,8 +34,8 @@ public class TaskUtil {
       KubernetesExtension kubernetesExtension) {
 
     final ImagePullManager imagePullManager = createImagePullManager(
-        kubernetesExtension.getImagePullPolicyOrDefault(),
-        kubernetesExtension.getAutoPullOrDefault(),
+        kubernetesExtension.getImagePullPolicyOrNull(),
+        kubernetesExtension.getAutoPullOrNull(),
         kubernetesExtension.javaProject.getProperties());
     return BuildServiceConfig.builder()
         .imagePullManager(imagePullManager)
@@ -53,8 +53,8 @@ public class TaskUtil {
           .log(kitLogger)
           .projectProperties(kubernetesExtension.javaProject.getProperties())
           .maxConnections(kubernetesExtension.getMaxConnectionsOrDefault())
-          .dockerHost(kubernetesExtension.getDockerHostOrDefault())
-          .certPath(kubernetesExtension.getCertPathOrDefault())
+          .dockerHost(kubernetesExtension.getDockerHostOrNull())
+          .certPath(kubernetesExtension.getCertPathOrNull())
           .machine(kubernetesExtension.machine)
           .minimalApiVersion(kubernetesExtension.getMinimalApiVersion().getOrNull())
           .skipMachine(kubernetesExtension.getSkipMachineOrDefault())
