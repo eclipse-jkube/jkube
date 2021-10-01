@@ -37,13 +37,12 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 public class TaskUtilTest {
-  private KubernetesExtension extension;
+  private TestKubernetesExtension extension;
   private KitLogger kitLogger;
 
   @Before
   public void setUp() {
     extension = new TestKubernetesExtension();
-    extension.javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
     kitLogger = mock(KitLogger.class, RETURNS_DEEP_STUBS);
   }
 
@@ -63,17 +62,10 @@ public class TaskUtilTest {
   @Test
   public void buildServiceConfigBuilder_shouldInitializeBuildServiceConfigWithConfiguredValues() {
     // Given
-    extension = new TestKubernetesExtension() {
-      @Override
-      public Property<String> getBuildRecreate() { return new DefaultProperty<>(String.class).value("true"); }
-
-      @Override
-      public JKubeBuildStrategy getBuildStrategy() { return JKubeBuildStrategy.jib; }
-
-      @Override
-      public Property<Boolean> getForcePull() { return new DefaultProperty<>(Boolean.class).value(true); }
-    };
-    extension.javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+    extension = new TestKubernetesExtension();
+    extension.buildRecreate = "true";
+    extension.isForcePull = true;
+    extension.buildStrategy = JKubeBuildStrategy.jib;
     when(extension.javaProject.getBuildDirectory().getAbsolutePath()).thenReturn("/tmp/foo");
 
     // When

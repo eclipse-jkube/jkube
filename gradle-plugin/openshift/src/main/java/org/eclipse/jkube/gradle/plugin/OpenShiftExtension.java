@@ -55,6 +55,11 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   }
 
   @Override
+  public boolean isDockerAccessRequired() {
+    return false;
+  }
+
+  @Override
   public PlatformMode getPlatformMode() {
     return PlatformMode.openshift;
   }
@@ -73,13 +78,9 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   }
 
   @Override
-  public JKubeBuildStrategy getBuildStrategy() {
-    return buildStrategy != null ? buildStrategy : JKubeBuildStrategy.s2i;
-  }
-
-  @Override
-  public boolean isDockerAccessRequired() {
-    return false;
+  public JKubeBuildStrategy getBuildStrategyOrDefault() {
+    return getProperty("jkube.build.strategy", JKubeBuildStrategy::valueOf)
+        .orElse(buildStrategy != null ? buildStrategy : JKubeBuildStrategy.s2i);
   }
 
   public String getOpenshiftPullSecretOrDefault() {

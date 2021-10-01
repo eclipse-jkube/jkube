@@ -25,8 +25,6 @@ import org.eclipse.jkube.kit.config.service.ApplyService;
 
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jgit.util.FileUtils;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.provider.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,8 +48,7 @@ public class OpenShiftApplyTaskTest {
 
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedConstruction<ApplyService> applyServiceMockedConstruction;
-  private boolean isOffline;
-  private boolean isFailOnUnknownKubernetesJson;
+  private TestOpenShiftExtension extension;
 
   @Before
   public void setUp() {
@@ -62,20 +59,9 @@ public class OpenShiftApplyTaskTest {
       when(mock.createDefaultClient()).thenReturn(openShiftClient);
     });
     applyServiceMockedConstruction = mockConstruction(ApplyService.class);
-    isOffline = false;
-    isFailOnUnknownKubernetesJson = false;
-    final OpenShiftExtension extension = new TestOpenShiftExtension() {
-      @Override
-      public Property<Boolean> getOffline() {
-        return new DefaultProperty<>(Boolean.class).value(isOffline);
-      }
-
-      @Override
-      public Property<Boolean> getFailOnNoKubernetesJson() {
-        return new DefaultProperty<>(Boolean.class).value(isFailOnUnknownKubernetesJson);
-      }
-    };
+    extension = new TestOpenShiftExtension();
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    extension.isFailOnNoKubernetesJson = false;
   }
 
   @After
@@ -87,7 +73,7 @@ public class OpenShiftApplyTaskTest {
   @Test
   public void runTask_withOffline_shouldThrowException() {
     // Given
-    isOffline = true;
+    extension.isOffline = true;
     final OpenShiftApplyTask ocApplyTask = new OpenShiftApplyTask(OpenShiftExtension.class);
 
     // When
@@ -101,7 +87,7 @@ public class OpenShiftApplyTaskTest {
   @Test
   public void runTask_withNoManifest_shouldThrowException() {
     // Given
-    isFailOnUnknownKubernetesJson = true;
+    extension.isFailOnNoKubernetesJson = true;
     final OpenShiftApplyTask ocApplyTask = new OpenShiftApplyTask(OpenShiftExtension.class);
     // When
     final IllegalStateException result = assertThrows(IllegalStateException.class, ocApplyTask::runTask);
