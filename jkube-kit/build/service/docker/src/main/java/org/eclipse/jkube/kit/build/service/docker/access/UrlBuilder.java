@@ -213,7 +213,7 @@ public final class UrlBuilder {
     }
 
     private String[] encodeArgs(String[] args) {
-        String ret[] = new String[args.length];
+        String[] ret = new String[args.length];
         int i=0;
         for (String arg : args) {
             ret[i++] = encode(arg);
