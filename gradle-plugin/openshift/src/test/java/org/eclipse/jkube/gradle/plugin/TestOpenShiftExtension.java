@@ -300,6 +300,16 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   }
 
   @Override
+  public Property<Integer> getLocalDebugPort() {
+    return new DefaultProperty<>(Integer.class);
+  }
+
+  @Override
+  public Property<Boolean> getDebugSuspend() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
   public Property<File> getOpenShiftManifest() {
     return new DefaultProperty<>(File.class);
   }
