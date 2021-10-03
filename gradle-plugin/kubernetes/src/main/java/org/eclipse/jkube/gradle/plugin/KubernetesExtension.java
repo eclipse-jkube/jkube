@@ -111,7 +111,7 @@ public abstract class KubernetesExtension {
   private static final Path DEFAULT_JSON_LOG_DIR = Paths.get("jkube","applyJson");
   private static final Path DEFAULT_RESOURCE_SOURCE_DIR = Paths.get("src", "main", "jkube");
   private static final Path DEFAULT_RESOURCE_TARGET_DIR = Paths.get("META-INF", "jkube");
-  private static final String DEFAULT_WORK_DIR = "jkube";
+  private static final Path DEFAULT_WORK_DIR = Paths.get("jkube");
 
   public transient JavaProject javaProject;
 
@@ -220,6 +220,10 @@ public abstract class KubernetesExtension {
   public abstract Property<Boolean> getProcessTemplatesLocally();
 
   public abstract Property<Boolean> getIgnoreRunningOAuthClients();
+
+  public abstract Property<Integer> getLocalDebugPort();
+
+  public abstract Property<Boolean> getDebugSuspend();
 
   public JKubeBuildStrategy buildStrategy;
 
@@ -569,6 +573,14 @@ public abstract class KubernetesExtension {
   public ResourceFileType getResourceFileTypeOrDefault() {
     return getProperty("jkube.resourceType", ResourceFileType::valueOf)
         .orElse(resourceFileType != null ? resourceFileType : ResourceFileType.yaml);
+  }
+
+  public int getLocalDebugPortOrDefault() {
+    return getOrDefaultInteger("jkube.debug.port", this::getLocalDebugPort, 5005);
+  }
+
+  public boolean getDebugSuspendOrDefault() {
+    return getOrDefaultBoolean("jkube.debug.suspend", this::getDebugSuspend, false);
   }
 
   protected boolean getOrDefaultBoolean(String property, Supplier<Property<Boolean>> dslGetter, boolean defaultValue) {
