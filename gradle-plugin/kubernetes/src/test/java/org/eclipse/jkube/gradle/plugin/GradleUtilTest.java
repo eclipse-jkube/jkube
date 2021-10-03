@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -30,8 +31,10 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,6 +42,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.eclipse.jkube.gradle.plugin.GradleUtil.canBeResolved;
 import static org.eclipse.jkube.gradle.plugin.GradleUtil.convertGradleProject;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -57,6 +61,7 @@ public class GradleUtilTest {
   public void setUp() throws IOException {
     project = mock(Project.class, RETURNS_DEEP_STUBS);
     javaPlugin = mock(JavaPluginConvention.class, RETURNS_DEEP_STUBS);
+    when(javaPlugin.getSourceSets().stream()).thenReturn(Stream.empty());
     when(project.getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getProperties()).thenReturn(Collections.emptyMap());
@@ -231,16 +236,49 @@ public class GradleUtilTest {
     assertThat(result.getArtifact()).isNotNull().hasName("final-artifact.jar");
   }
 
+  @Test
+  public void canBeResolved_withDeprecatedAndResolutionAlternatives_shouldReturnFalse() {
+    // Given
+    final DeprecatableConfiguration c = mock(DeprecatableConfiguration.class);
+    when(c.getResolutionAlternatives()).thenReturn(Collections.emptyList());
+    // When
+    final boolean result = canBeResolved(c);
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void canBeResolved_DeprecatedAndNullResolutionAlternativesAndResolvable_shouldReturnTrue() {
+    // Given
+    final DeprecatableConfiguration c = mock(DeprecatableConfiguration.class);
+    when(c.isCanBeResolved()).thenReturn(true);
+    when(c.getResolutionAlternatives()).thenReturn(null);
+    // When
+    final boolean result = canBeResolved(c);
+    // Then
+    assertThat(result).isTrue();
+  }
+
   private static Function<String[], Configuration> configurationDependencyMock() {
     return s -> {
       final Configuration c = mock(Configuration.class, RETURNS_DEEP_STUBS);
+      when(c.isCanBeResolved()).thenReturn(true);
       final Dependency d = mock(Dependency.class);
       when(c.getAllDependencies().stream()).thenAnswer(i -> Stream.of(d));
       when(c.getOutgoing().getArtifacts().getFiles().getFiles()).thenReturn(Collections.emptySet());
       when(d.getGroup()).thenReturn(s[0]);
       when(d.getName()).thenReturn(s[1]);
       when(d.getVersion()).thenReturn(s[2]);
+      final ResolvedDependencyResult dr = mock(ResolvedDependencyResult.class, RETURNS_DEEP_STUBS);
+      when(c.getIncoming().getResolutionResult().getRoot().getDependencies())
+          .thenAnswer(i -> new HashSet<>(Collections.singletonList(dr)));
+      when(c.getIncoming().getResolutionResult().getAllDependencies())
+          .thenAnswer(i -> new HashSet<>(Collections.singletonList(dr)));
+      when(dr.getSelected().getModuleVersion().getGroup()).thenReturn(s[0]);
+      when(dr.getSelected().getModuleVersion().getName()).thenReturn(s[1]);
+      when(dr.getSelected().getModuleVersion().getVersion()).thenReturn(s[2]);
       return c;
     };
   }
+
 }

@@ -16,11 +16,14 @@ package org.eclipse.jkube.gradle.plugin;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,10 +37,16 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 public class GradleUtil {
 
@@ -46,8 +55,8 @@ public class GradleUtil {
   private GradleUtil() {}
 
   public static JavaProject convertGradleProject(Project gradleProject) {
-    File artifact = findArtifact(gradleProject);
-    JavaProject.JavaProjectBuilder builder = JavaProject.builder()
+    final File artifact = findArtifact(gradleProject);
+    return JavaProject.builder()
         .properties(extractProperties(gradleProject))
         .name(gradleProject.getName())
         .description(gradleProject.getDescription())
@@ -56,10 +65,10 @@ public class GradleUtil {
         .version(Objects.toString(gradleProject.getVersion()))
         .baseDirectory(gradleProject.getProjectDir())
 //        .documentationUrl(gradleProject.)
-//        .compileClassPathElements(gradleProject.)
+        .compileClassPathElements(extractClassPath(gradleProject))
 //        .packaging(gradleProject)
         .dependencies(extractDependencies(gradleProject))
-        .dependenciesWithTransitive(extractDependencies(gradleProject))
+        .dependenciesWithTransitive(extractDependenciesWithTransitive(gradleProject))
 //        .localRepositoryBaseDirectory(gradleProject.)
         .plugins(extractPlugins(gradleProject))
 //
@@ -74,12 +83,9 @@ public class GradleUtil {
 //
 //        .scmTag(gradleProject.)
 //        .scmUrl(gradleProject.)
-        .artifact(artifact);
-
-    if (artifact != null) {
-      builder.buildPackageDirectory(artifact.getParentFile());
-    }
-    return builder.build();
+        .artifact(artifact)
+        .buildPackageDirectory(artifact != null ? artifact.getParentFile() : null)
+        .build();
   }
 
   private static Properties extractProperties(Project gradleProject) {
@@ -92,15 +98,34 @@ public class GradleUtil {
   }
 
   private static List<Dependency> extractDependencies(Project gradleProject) {
+    return extractDependencies(gradleProject, rr -> rr.getRoot().getDependencies());
+  }
+
+  private static List<Dependency> extractDependenciesWithTransitive(Project gradleProject) {
+    return extractDependencies(gradleProject, ResolutionResult::getAllDependencies);
+  }
+
+  private static List<Dependency> extractDependencies(Project gradleProject,
+      Function<ResolutionResult, Set<? extends DependencyResult>> resolutionToDependency) {
     return gradleProject.getConfigurations().stream()
-        .map(Configuration::getAllDependencies).flatMap(DependencySet::stream)
-        .map(d -> Dependency.builder().groupId(d.getGroup()).artifactId(d.getName()).version(d.getVersion()).build())
+        .filter(GradleUtil::canBeResolved)
+        .map(Configuration::getIncoming)
+        .map(ResolvableDependencies::getResolutionResult)
+        .map(resolutionToDependency)
+        .flatMap(Set::stream)
+        .filter(ResolvedDependencyResult.class::isInstance)
+        .map(ResolvedDependencyResult.class::cast)
+        .map(ResolvedDependencyResult::getSelected)
+        .map(ResolvedComponentResult::getModuleVersion)
+        .filter(Objects::nonNull)
+        .map(mv -> Dependency.builder().groupId(mv.getGroup()).artifactId(mv.getName()).version(mv.getVersion()).build())
         .distinct()
         .collect(Collectors.toList());
   }
 
   private static List<Plugin> extractPlugins(Project gradleProject) {
     return gradleProject.getBuildscript().getConfigurations().stream()
+        .filter(GradleUtil::canBeResolved)
         .map(Configuration::getAllDependencies).flatMap(DependencySet::stream)
         .filter(d -> d.getName().toLowerCase(Locale.ENGLISH).endsWith("gradle.plugin"))
         .map(d -> Plugin.builder().groupId(d.getGroup()).artifactId(d.getName()).version(d.getVersion()).build())
@@ -108,10 +133,26 @@ public class GradleUtil {
         .collect(Collectors.toList());
   }
 
+  private static SourceSetContainer extractSourceSets(Project gradleProject) {
+    return gradleProject.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+  }
+
+  private static List<String> extractClassPath(Project gradleProject) {
+    final SourceSetContainer sourceSetContainer = extractSourceSets(gradleProject);
+    if (sourceSetContainer != null) {
+      return sourceSetContainer.stream()
+          .map(SourceSet::getCompileClasspath)
+          .map(FileCollection::getFiles)
+          .flatMap(Collection::stream)
+          .map(File::getAbsolutePath)
+          .collect(Collectors.toList());
+    }
+    return Collections.emptyList();
+  }
+
   private static File findClassesOutputDirectory(Project gradleProject) {
     try {
-      final SourceSetContainer sourceSetContainer = gradleProject.getConvention().getPlugin(JavaPluginConvention.class)
-          .getSourceSets();
+      final SourceSetContainer sourceSetContainer = extractSourceSets(gradleProject);
       if (sourceSetContainer != null) {
         return sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getJava().getDestinationDirectory()
             .getAsFile().getOrNull();
@@ -133,5 +174,11 @@ public class GradleUtil {
         .distinct()
         .filter(File::exists)
         .findFirst().orElse(null);
+  }
+
+  static boolean canBeResolved(Configuration configuration) {
+    boolean isDeprecatedForResolving = configuration instanceof DeprecatableConfiguration
+        && ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null;
+    return configuration.isCanBeResolved() && !isDeprecatedForResolving;
   }
 }
