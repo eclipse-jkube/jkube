@@ -306,4 +306,14 @@ public class TestKubernetesExtension extends KubernetesExtension {
   public Property<Integer> getPushRetries() {
     return new DefaultProperty<>(Integer.class);
   }
+
+  @Override
+  public Property<Integer> getLocalDebugPort() {
+    return new DefaultProperty<>(Integer.class);
+  }
+
+  @Override
+  public Property<Boolean> getDebugSuspend() {
+    return new DefaultProperty<>(Boolean.class);
+  }
 }
