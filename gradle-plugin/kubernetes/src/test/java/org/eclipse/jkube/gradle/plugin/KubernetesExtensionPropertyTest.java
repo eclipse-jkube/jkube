@@ -116,7 +116,9 @@ public class KubernetesExtensionPropertyTest {
             ResourceFileType.yaml },
         new Object[] { "getLogPodNameOrNull", "jkube.log.pod", "test", "test", null },
         new Object[] { "getLogContainerNameOrNull", "jkube.log.container", "test", "test", null },
-        new Object[] { "getUseProjectClassPathOrDefault", "jkube.useProjectClasspath", "true", true, false });
+        new Object[] { "getUseProjectClassPathOrDefault", "jkube.useProjectClasspath", "true", true, false },
+        new Object[] { "getLocalDebugPortOrDefault", "jkube.debug.port", "1337", 1337, 5005 },
+        new Object[] { "getDebugSuspendOrDefault", "jkube.debug.suspend", "true", true, false });
   }
 
   @Parameterized.Parameter
