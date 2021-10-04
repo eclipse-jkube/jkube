@@ -19,6 +19,7 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
+import org.gradle.api.GradleException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,9 +37,11 @@ public class KubernetesLogTaskTest {
   @Rule
   public TaskEnvironment taskEnvironment = new TaskEnvironment();
 
+  private TestKubernetesExtension extension;
+
   @Before
   public void setUp() throws IOException {
-    TestKubernetesExtension extension = new TestKubernetesExtension();
+    extension = new TestKubernetesExtension();
     extension.isUseColor = false;
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
   }
@@ -57,18 +60,27 @@ public class KubernetesLogTaskTest {
   }
 
   @Test
-  public void runTask_withManifestLoadException_shouldThrowException() {
+  public void runTask_withNoManifestAndFailure_shouldThrowException() {
+    // Given
+    extension.isFailOnNoKubernetesJson = true;
+    final KubernetesLogTask kubernetesLogTask = new KubernetesLogTask(KubernetesExtension.class);
+    // When
+    final IllegalStateException result = assertThrows(IllegalStateException.class, kubernetesLogTask::runTask);
+    // Then
+    assertThat(result)
+        .hasMessageMatching("No such generated manifest file: .+kubernetes\\.yml");
+  }
+
+  @Test
+  public void runTask_withIOException_shouldThrowException() {
     try (MockedStatic<KubernetesHelper> mockStatic = Mockito.mockStatic(KubernetesHelper.class)) {
       // Given
+      mockStatic.when(() -> KubernetesHelper.loadResources(any())).thenThrow(new IOException("IO error with logs"));
       KubernetesLogTask kubernetesLogTask = new KubernetesLogTask(KubernetesExtension.class);
-
-      mockStatic.when(() -> KubernetesHelper.loadResources(any())).thenThrow(new IOException("Can't load manifests"));
-
       // When
-      IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, kubernetesLogTask::runTask);
-
+      final Exception result = assertThrows(GradleException.class, kubernetesLogTask::runTask);
       // Then
-      assertThat(illegalStateException).hasMessage("Failure in getting logs");
+      assertThat(result).hasMessage("Failure in getting logs");
     }
   }
 }

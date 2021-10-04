@@ -98,7 +98,7 @@ public class KubernetesApplyTaskTest {
   @Test
   public void configureApplyService_withManifest_shouldSetDefaults() throws Exception {
     // Given
-    withKubernetesManifest();
+    taskEnvironment.withKubernetesManifest();
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
     // When
     applyTask.runTask();
@@ -123,7 +123,7 @@ public class KubernetesApplyTaskTest {
   @Test
   public void runTask_withManifest_shouldApplyEntities() throws Exception {
     // Given
-    withKubernetesManifest();
+    taskEnvironment.withKubernetesManifest();
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
     // When
     applyTask.runTask();
@@ -131,10 +131,5 @@ public class KubernetesApplyTaskTest {
     assertThat(applyServiceMockedConstruction.constructed()).hasSize(1);
     verify(applyServiceMockedConstruction.constructed().iterator().next(), times(1))
         .applyEntities(any(), eq(Collections.emptyList()), any(), eq(5L));
-  }
-
-  private void withKubernetesManifest() throws IOException {
-    final File manifestsDir = taskEnvironment.newFolder("build", "classes", "java", "main", "META-INF", "jkube");
-    FileUtils.touch(new File(manifestsDir, "kubernetes.yml").toPath());
   }
 }

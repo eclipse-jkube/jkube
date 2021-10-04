@@ -48,16 +48,7 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
     try (KubernetesClient kubernetes = jKubeServiceHub.getClient()) {
       applyService = jKubeServiceHub.getApplyService();
 
-      final File manifest = kubernetesExtension.getManifest(kitLogger, kubernetes);
-      if (!manifest.exists() || !manifest.isFile()) {
-        if (kubernetesExtension.getFailOnNoKubernetesJsonOrDefault()) {
-          throw new IllegalStateException("No such generated manifest file: " + manifest);
-        } else {
-          kitLogger.warn("No such generated manifest file %s for this project so ignoring", manifest);
-          return;
-        }
-      }
-
+      final File manifest = getManifest(kubernetes);
       URL masterUrl = kubernetes.getMasterUrl();
       KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
       List<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
