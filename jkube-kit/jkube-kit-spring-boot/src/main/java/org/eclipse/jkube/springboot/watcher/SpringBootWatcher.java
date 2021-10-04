@@ -214,7 +214,9 @@ public class SpringBootWatcher extends BaseWatcher {
                     if (status != 0) {
                         log.warn("Process returned status: %s", status);
                     }
-                } catch (Exception e) {
+                }  catch(InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }catch (Exception e) {
                     throw new RuntimeException("Failed to run RemoteSpringApplication: " + e, e);
                 }
             } catch (IOException e) {
