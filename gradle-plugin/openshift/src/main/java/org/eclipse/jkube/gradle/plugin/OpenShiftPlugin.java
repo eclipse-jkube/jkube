@@ -15,12 +15,13 @@ package org.eclipse.jkube.gradle.plugin;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jkube.gradle.plugin.task.KubernetesApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesConfigViewTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesDebugTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
@@ -42,18 +43,21 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
   public Map<String, Collection<Class<? extends Task>>> getTaskPrecedence() {
     final Map<String, Collection<Class<? extends Task>>> ret = new HashMap<>();
     ret.put("ocApply", Arrays.asList(KubernetesResourceTask.class, OpenShiftResourceTask.class));
+    ret.put("ocDebug", Arrays.asList(KubernetesBuildTask.class, OpenShiftBuildTask.class,
+        KubernetesResourceTask.class, OpenShiftResourceTask.class, KubernetesApplyTask.class, OpenShiftApplyTask.class));
     ret.put("ocPush", Arrays.asList(KubernetesBuildTask.class, OpenShiftBuildTask.class));
     return ret;
   }
 
   @Override
   protected void jKubeApply(Project project) {
-    register(project, "ocConfigView", KubernetesConfigViewTask.class);
+    register(project, "ocApply", OpenShiftApplyTask.class);
     register(project, "ocBuild", OpenShiftBuildTask.class);
+    register(project, "ocConfigView", KubernetesConfigViewTask.class);
+    register(project, "ocDebug", KubernetesDebugTask.class);
+    register(project, "ocLog", KubernetesLogTask.class);
     register(project, "ocPush", OpenShiftPushTask.class);
     register(project, "ocResource", OpenShiftResourceTask.class);
-    register(project, "ocApply", OpenShiftApplyTask.class);
-    register(project, "ocLog", KubernetesLogTask.class);
     register(project, "ocUndeploy", OpenShiftUndeployTask.class);
   }
 

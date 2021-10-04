@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.gradle.plugin.GradleLogger;
@@ -161,5 +162,17 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         kubernetesExtension.javaProject, kubernetesExtension.images, imageConfigResolver, kitLogger,
       kubernetesExtension.getFilter().getOrNull(),
       this::customizeConfig);
+  }
+
+  protected File getManifest(KubernetesClient kc) {
+    final File manifest = kubernetesExtension.getManifest(kitLogger, kc);
+    if (!manifest.exists() || !manifest.isFile()) {
+      if (kubernetesExtension.getFailOnNoKubernetesJsonOrDefault()) {
+        throw new IllegalStateException("No such generated manifest file: " + manifest);
+      } else {
+        kitLogger.warn("No such generated manifest file %s for this project so ignoring", manifest);
+      }
+    }
+    return manifest;
   }
 }
