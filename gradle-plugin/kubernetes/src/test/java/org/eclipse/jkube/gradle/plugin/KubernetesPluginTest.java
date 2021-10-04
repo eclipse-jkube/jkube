@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -49,21 +50,6 @@ public class KubernetesPluginTest {
     project = mock(Project.class, RETURNS_DEEP_STUBS);
   }
 
-  @Test
-  public void apply_withValidProject_shouldCreateExtensionAndRegisterTasks() {
-    // When
-    new KubernetesPlugin().apply(project);
-    // Then
-    verify(project.getExtensions(), times(1))
-        .create("kubernetes", KubernetesExtension.class);
-    verify(project.getTasks(), times(1))
-        .register("k8sBuild", KubernetesBuildTask.class, KubernetesExtension.class);
-    verify(project.getTasks(), times(1))
-        .register("k8sResource", KubernetesResourceTask.class, KubernetesExtension.class);
-    verify(project.getTasks(), times(1))
-        .register("k8sApply", KubernetesApplyTask.class, KubernetesExtension.class);
-  }
-
   @SuppressWarnings("unchecked")
   @Test
   public void apply_withValidProject_shouldConfigureTasks() {
@@ -94,8 +80,10 @@ public class KubernetesPluginTest {
     final Map<String, Collection<Class<? extends Task>>> result = new KubernetesPlugin().getTaskPrecedence();
     // Then
     assertThat(result)
-        .hasSize(2)
+        .hasSize(3)
         .containsEntry("k8sApply", Collections.singletonList(KubernetesResourceTask.class))
+        .containsEntry("k8sDebug",
+            Arrays.asList(KubernetesBuildTask.class, KubernetesResourceTask.class, KubernetesApplyTask.class))
         .containsEntry("k8sPush", Collections.singletonList(KubernetesBuildTask.class));
   }
 }

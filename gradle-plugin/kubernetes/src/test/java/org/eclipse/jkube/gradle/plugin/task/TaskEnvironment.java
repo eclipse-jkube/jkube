@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
+import org.eclipse.jgit.util.FileUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
@@ -20,6 +21,8 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.MockedConstruction;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -53,5 +56,10 @@ public class TaskEnvironment extends TemporaryFolder {
   protected void after() {
     super.after();
     defaultTaskMockedConstruction.close();
+  }
+
+  public void withKubernetesManifest() throws IOException {
+    final File manifestsDir = newFolder("build", "classes", "java", "main", "META-INF", "jkube");
+    FileUtils.touch(new File(manifestsDir, "kubernetes.yml").toPath());
   }
 }
