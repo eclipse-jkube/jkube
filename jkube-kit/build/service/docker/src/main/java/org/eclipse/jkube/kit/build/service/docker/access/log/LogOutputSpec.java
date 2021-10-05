@@ -41,10 +41,10 @@ public class LogOutputSpec {
     private final boolean useColor;
     private final boolean logStdout;
     private final boolean fgBright;
-    private String prefix;
-    private Ansi.Color color;
-    private DateTimeFormatter timeFormatter;
-    private String file;
+    private final String prefix;
+    private final Ansi.Color color;
+    private final DateTimeFormatter timeFormatter;
+    private final String file;
 
     // Palette used for prefixing the log output
     private static final Ansi.Color[] COLOR_PALETTE = {
