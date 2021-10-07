@@ -61,8 +61,7 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
         .resourceFileType(kubernetesExtension.getResourceFileTypeOrDefault())
         .resourceConfig(resourceConfig)
         .interpolateTemplateParameters(kubernetesExtension.getInterpolateTemplateParametersOrDefault())
-        .resourceFilesProcessor(
-            resourceFiles -> gradleFilterFiles(resourceFiles, kubernetesExtension.getWorkDirectoryOrDefault()))
+        .resourceFilesProcessor(this::gradleFilterFiles)
         .build();
     builder.resourceService(new LazyBuilder<>(() -> new DefaultResourceService(resourceServiceConfig)));
 
@@ -119,10 +118,11 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
     }
   }
 
-  private File[] gradleFilterFiles(File[] resourceFiles, File outDir) throws IOException {
+  private File[] gradleFilterFiles(File[] resourceFiles) throws IOException {
     if (resourceFiles == null) {
       return new File[0];
     }
+    final File outDir = kubernetesExtension.getWorkDirectoryOrDefault();
     if (!outDir.exists() && !outDir.mkdirs()) {
       throw new IOException("Cannot create working dir " + outDir);
     }
