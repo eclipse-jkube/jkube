@@ -16,14 +16,14 @@ package org.eclipse.jkube.gradle.plugin.task;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,31 +58,34 @@ public class KubernetesResourceTaskTest {
   }
 
   @Test
-  public void runTask_shouldInterpolateFragments() throws IOException {
+  public void runTask_withMultipleFiles_shouldInterpolateApplicableFragments() throws IOException {
     // Given
-    withProperties(Collections.singletonMap("some.property", "value"));
+    final Map<String, Object> properties = new HashMap<>();
+    properties.put("some.property", "value");
+    properties.put("unused", "value");
+    properties.put("other.property", "value2");
+    withProperties(properties);
     withResourceFragment("configmap.yml", "key: ${some.property}");
+    withResourceFragment("second-configmap.yml",
+        "field-1: ${some.property}\nfield-2: ${other.property}\nf3: ${not.here}\nf4: Hard");
     KubernetesResourceTask resourceTask = new KubernetesResourceTask(KubernetesExtension.class);
-
     // When
     resourceTask.runTask();
-
     // Then
-    File targetFragment = new File(taskEnvironment.getRoot(), "build/jkube/configmap.yml");
-    assertThat(targetFragment)
+    assertThat(taskEnvironment.getRoot().toPath().resolve("build").resolve("jkube"))
         .exists()
-        .hasContent("key: value" + System.lineSeparator());
+        .satisfies(p -> assertThat(p.resolve("configmap.yml")).hasContent("key: value"))
+        .satisfies(p -> assertThat(p.resolve("second-configmap.yml"))
+            .hasContent("field-1: value\nfield-2: value2\nf3: ${not.here}\nf4: Hard"));
   }
 
-  private void withProperties(Map propertiesMap) {
-    when(taskEnvironment.project.getProperties()).thenReturn(propertiesMap);
+  private void withProperties(Map<String, ?> properties) {
+    when(taskEnvironment.project.getProperties()).thenAnswer(i -> properties);
   }
 
   private void withResourceFragment(String name, String content) throws IOException {
-    File fragmentDir = taskEnvironment.newFolder("src", "main", "jkube");
-    File fragmentFile = new File(fragmentDir, name);
-    boolean fragmentFileCreated = fragmentFile.createNewFile();
-    Files.write(fragmentFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
-    assertThat(fragmentFileCreated).isTrue();
+    final File dir = taskEnvironment.getRoot().toPath().resolve("src").resolve("main").resolve("jkube").toFile();
+    FileUtils.forceMkdir(dir);
+    FileUtils.write(new File(dir, name), content, StandardCharsets.UTF_8);
   }
 }
