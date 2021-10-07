@@ -53,7 +53,7 @@ public class NetworkingV1IngressGeneratorTest {
                 .hasFieldOrPropertyWithValue("host", "test-svc.org.eclipse.jkube");
         assertThat(ingress.getSpec()).isNotNull();
         assertThat(ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).getPath()).isEqualTo("/");
-        assertThat(ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).getPathType()).isEqualTo("Exact");
+        assertThat(ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).getPathType()).isEqualTo("ImplementationSpecific");
     }
 
     @Test
