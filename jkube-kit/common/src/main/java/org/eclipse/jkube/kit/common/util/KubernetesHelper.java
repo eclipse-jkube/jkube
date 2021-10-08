@@ -892,7 +892,7 @@ public class KubernetesHelper {
                 Resource<Service> serviceResource = kubernetes.services().inNamespace(namespace).withName(name);
                 String url = pollServiceForExposeUrl(serviceUrlWaitTimeSeconds, service, serviceResource, exposeServiceAnnotationKey);
 
-                // lets not wait for other services
+                // let's not wait for other services
                 serviceUrlWaitTimeSeconds = 1;
                 if (StringUtils.isNotBlank(url) && url.startsWith("http")) {
                     return url;
@@ -904,7 +904,7 @@ public class KubernetesHelper {
 
     private static String pollServiceForExposeUrl(long serviceUrlWaitTimeSeconds, Service service, Resource<Service> serviceResource, String exposeSvcAnnotationKey) throws InterruptedException {
         String url = null;
-        // lets wait a little while until there is a service URL in case the exposecontroller is running slow
+        // let's wait a little while until there is a service URL in case the exposecontroller is running slow
         for (int i = 0; i < serviceUrlWaitTimeSeconds; i++) {
             if (i > 0) {
                 Thread.sleep(1000);

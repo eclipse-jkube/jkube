@@ -35,7 +35,7 @@ public class JKubeFileInterpolator {
      * @param properties properties to interpolate in the provided dockerFile.
      * @param filter filter for parsing properties from Dockerfile
      * @return The interpolated contents of the file.
-     * @throws IOException if there's a problem while performin IO operations.
+     * @throws IOException if there's a problem while performing IO operations.
      */
     public static String interpolate(File file, Properties properties, String filter) throws IOException {
         StringBuilder ret = new StringBuilder();

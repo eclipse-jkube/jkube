@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.5.0-SNAPSHOT
+* Fix #971: Rethrow the InterruptException that is caught in ApplyMojo.java
 * Fix #823: Converting `StringBuffer` to `StringBuilder` in `jkube/jkube-kit/common/src/main/java/org/eclipse/jkube/kit/common/util/IoUtil.java` and `jkube/jkube-kit/common/src/main/java/org/eclipse/jkube/kit/common/util/TemplateUtil.java`
 * Fix #815: `java.lang.ClassCastException` during `oc:build` when OpenShift not present
 * Fix #716: Update Spring Boot Quickstarts to latest version
@@ -32,6 +33,7 @@ Usage:
 * Fix #923: QuakusGenerator not applicable when using `io.quarkus.platform` groupId
 * Fix #895: FileUtil#createDirectory works for files with trailing separator (`/`)
 * Fix #913: Make provider name configurable
+* Fix #877: LogMojo: Change access modifiers to protected for use in XML configuration
 
 ### 1.4.0 (2021-07-27)
 * Fix #253: Refactor JKubeServiceHub's BuildService election mechanism via ServiceLoader

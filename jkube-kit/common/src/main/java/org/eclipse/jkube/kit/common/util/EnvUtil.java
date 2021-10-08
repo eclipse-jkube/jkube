@@ -71,7 +71,7 @@ public class EnvUtil {
     /**
      * Compare to version strings and return the larger version strings. This is used in calculating
      * the minimal required API version for this plugin. Version strings must be comparable as floating numbers.
-     * The versions must be given in the format in a semantic version foramt (e.g. "1.23"
+     * The versions must be given in the format in a semantic version format (e.g. "1.23"
      * <p> If either version is <code>null</code>, the other version is returned (which can be null as well)
      *
      * @param versionA first version number
@@ -270,7 +270,7 @@ public class EnvUtil {
     /**
      * Extract from a Maven property which is in the form ${name} the name.
      *
-     * @param propName property name to extrat
+     * @param propName property name to extract
      * @return the pure name or null if this is not a property name
      */
     public static String extractMavenPropertyName(String propName) {
@@ -348,7 +348,7 @@ public class EnvUtil {
     }
 
     /**
-     * Return the first non null registry given. Use the env var DOCKER_REGISTRY as final fallback
+     * Return the first non-null registry given. Use the env var DOCKER_REGISTRY as final fallback
      *
      * @param checkFirst list of registries to check
      * @return registry found or null if none.
