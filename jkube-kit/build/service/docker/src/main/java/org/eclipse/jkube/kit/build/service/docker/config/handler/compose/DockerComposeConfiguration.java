@@ -21,9 +21,9 @@ public class DockerComposeConfiguration {
     private final String composeFile;
     private final boolean ignoreBuild;
     public DockerComposeConfiguration(Map<String, String> config) {
-        basedir = config.containsKey("basedir") ? config.get("basedir") : "src/main/docker";
-        composeFile = config.containsKey("composeFile") ? config.get("composeFile") : "docker-compose.yml";
-        ignoreBuild = config.containsKey("ignoreBuild") ? Boolean.parseBoolean(config.get("ignoreBuilder")) : false;
+        basedir = config.getOrDefault("basedir", "src/main/docker");
+        composeFile = config.getOrDefault("composerFile", "docker-compose.yml");
+        ignoreBuild = Boolean.parseBoolean(config.get("ignoreBuild"));
     }
 
     String getBasedir() {
