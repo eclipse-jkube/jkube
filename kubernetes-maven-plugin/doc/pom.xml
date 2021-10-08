@@ -108,12 +108,19 @@
               <idprefix/>
               <idseparator>-</idseparator>
               <allow-uri-read>true</allow-uri-read>
+              <toc>left</toc>
+              <linkcss>false</linkcss>
+              <plugin>${plugin}</plugin>
+              <goal-prefix>${goal-prefix}</goal-prefix>
+              <cluster>${cluster}</cluster>
             </attributes>
             <logHandler>
               <failIf>
                 <severity>DEBUG</severity>
               </failIf>
             </logHandler>
+            <sourceHighlighter>coderay</sourceHighlighter>
+            <backend>html</backend>
           </configuration>
           <dependencies>
             <dependency>
@@ -143,25 +150,32 @@
                 <goals>
                   <goal>process-asciidoc</goal>
                 </goals>
-                <configuration>
-                  <sourceHighlighter>coderay</sourceHighlighter>
-                  <backend>html</backend>
-                  <sourceHighlighter>coderay</sourceHighlighter>
-                  <attributes>
-                    <toc>left</toc>
-                    <linkcss>false</linkcss>
-                    <plugin>${plugin}</plugin>
-                    <goal-prefix>${goal-prefix}</goal-prefix>
-                    <cluster>${cluster}</cluster>
-                    <version>${project.version}</version>
-                  </attributes>
-                </configuration>
               </execution>
             </executions>
           </plugin>
         </plugins>
       </build>
       <activation><activeByDefault>true</activeByDefault></activation>
+    </profile>
+    <profile>
+      <id>doc-watch</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctor-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>output-html</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>auto-refresh</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 
