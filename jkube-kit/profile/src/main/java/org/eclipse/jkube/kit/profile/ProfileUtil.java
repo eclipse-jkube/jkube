@@ -13,14 +13,8 @@
  */
 package org.eclipse.jkube.kit.profile;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,15 +33,16 @@ import java.util.List;
  */
 public class ProfileUtil {
 
+
+    // Mapper for handling YAML formats
+    private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     private ProfileUtil() {}
 
     private static final Logger log = LoggerFactory.getLogger(ProfileUtil.class);
 
     // Allowed profile names
-    public static final String[] PROFILE_FILENAMES = {"profiles%s.yml", "profiles%s.yaml", "profiles%s"};
+    private static final String[] PROFILE_FILENAMES = {"profiles%s.yml", "profiles%s.yaml", "profiles%s"};
 
-    // Mapper for handling YAML formats
-    private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     // Default profile which will be always there
     public static final String DEFAULT_PROFILE = "default";
