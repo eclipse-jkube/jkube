@@ -82,8 +82,8 @@ public class EnvUtil {
         if (versionB == null || versionA == null) {
             return versionA == null ? versionB : versionA;
         } else {
-            String partsA[] = versionA.split("\\.");
-            String partsB[] = versionB.split("\\.");
+            String[] partsA = versionA.split("\\.");
+            String[] partsB = versionB.split("\\.");
             for (int i = 0; i < (partsA.length < partsB.length ? partsA.length : partsB.length); i++) {
                 int pA = Integer.parseInt(partsA[i]);
                 int pB = Integer.parseInt(partsB[i]);
