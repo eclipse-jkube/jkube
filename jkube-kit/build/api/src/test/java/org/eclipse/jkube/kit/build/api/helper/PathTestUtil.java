@@ -193,5 +193,5 @@ public class PathTestUtil {
          * Preserve the file, do not delete it.  The caller is responsible for clean up.
          */
         PRESERVE
-    };
+    }
 }
