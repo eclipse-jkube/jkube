@@ -487,14 +487,9 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
             // This images loads config from something totally different
             return true;
         }
-
-        if(externalConfig.get("prefix") != null)
-        {
-            // This image has a specified prefix. If multiple images have explicitly set docker. as prefix we
-            // assume user know what they are doing and allow it.
-            return true;
-        }
-
-        return false;
+        
+        // This image has a specified prefix. If multiple images have explicitly set docker. as prefix we
+        // assume user know what they are doing and allow it.
+        return externalConfig.get("prefix") != null;
     }
 }
