@@ -53,5 +53,5 @@ public class DeepCopy {
         } catch (IOException | ClassNotFoundException e) {
             throw new IllegalStateException("Cannot copy " + orig, e);
         }
-    };
+    }
 }
