@@ -112,7 +112,7 @@ public class NetworkingV1IngressGenerator {
                     .withHost(resolveIngressHost(serviceName, routeDomainPostfix, host))
                     .withNewHttp()
                     .withPaths(new HTTPIngressPathBuilder()
-                            .withPathType("Exact")
+                            .withPathType("ImplementationSpecific")
                             .withPath("/")
                             .withNewBackend()
                             .withService(getIngressServiceBackend(serviceName, servicePort))

@@ -109,8 +109,14 @@ items:
       group: org.eclipse.jkube
     name: ingress-xml-config
   spec:
-    defaultBackend:
-      service:
-        name: ingress-xml-config
-        port:
-          number: 8080
+    rules:
+      - host: test.example.com
+        http:
+          paths:
+            - backend:
+                service:
+                  name: ingress-xml-config
+                  port:
+                    number: 8080
+              path: /
+              pathType: ImplementationSpecific
