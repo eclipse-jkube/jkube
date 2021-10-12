@@ -85,7 +85,7 @@ public class ContainerCreateConfig {
                      * This case is to handle the Maven interpolation issue which used
                      * to occur when using ${..} only without any suffix.
                      */
-                    value = value.substring(1, value.length());
+                    value = value.substring(1);
                 }
                 envProps.put(entry.getKey(), StringSubstitutor.replace(value, mavenProps));
             }
