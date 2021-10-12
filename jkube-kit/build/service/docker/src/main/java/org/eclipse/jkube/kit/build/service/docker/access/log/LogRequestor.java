@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.UrlBuilder;
@@ -30,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -167,7 +167,7 @@ public class LogRequestor extends Thread implements LogGetHandle {
                                   " [ Header: " + Hex.encodeHexString(headerBuffer.array()) + "]", e);
         }
 
-        String message = Charsets.UTF_8.newDecoder().decode(payload).toString();
+        String message = StandardCharsets.UTF_8.decode(payload).toString();
         callLogCallback(type, message);
         return true;
     }
