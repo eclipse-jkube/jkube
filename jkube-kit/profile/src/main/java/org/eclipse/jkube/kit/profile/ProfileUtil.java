@@ -46,7 +46,8 @@ public class ProfileUtil {
 
     // Default profile which will be always there
     public static final String DEFAULT_PROFILE = "default";
-
+        // Mapper for handling YAML formats
+    private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     /**
      * Find a profile. Profiles are looked up at various locations:
      *
