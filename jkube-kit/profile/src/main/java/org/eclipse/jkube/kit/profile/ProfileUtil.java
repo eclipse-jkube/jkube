@@ -44,7 +44,7 @@ public class ProfileUtil {
     private static final Logger log = LoggerFactory.getLogger(ProfileUtil.class);
 
     // Allowed profile names
-    public static final String[] PROFILE_FILENAMES = {"profiles%s.yml", "profiles%s.yaml", "profiles%s"};
+    private static final String[] PROFILE_FILENAMES = {"profiles%s.yml", "profiles%s.yaml", "profiles%s"};
 
     // Mapper for handling YAML formats
     private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
