@@ -119,4 +119,4 @@ items:
                   port:
                     number: 8080
               path: /
-              pathType: Exact
+              pathType: ImplementationSpecific
