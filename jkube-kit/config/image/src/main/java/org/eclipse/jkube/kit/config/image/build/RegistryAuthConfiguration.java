@@ -46,7 +46,7 @@ public class RegistryAuthConfiguration implements Serializable {
             authMap.put("pull", pull);
         }
 
-        String content[] = new String[] {
+        String[] content = new String[] {
             "username", username,
             "password", password,
             "authToken", authToken,
