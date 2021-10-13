@@ -39,9 +39,6 @@ import java.util.List;
  */
 public class ProfileUtil {
 
-
-    // Mapper for handling YAML formats
-    private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     private ProfileUtil() {}
 
     private static final Logger log = LoggerFactory.getLogger(ProfileUtil.class);
@@ -49,11 +46,12 @@ public class ProfileUtil {
     // Allowed profile names
     private static final String[] PROFILE_FILENAMES = {"profiles%s.yml", "profiles%s.yaml", "profiles%s"};
 
+    // Mapper for handling YAML formats
+    private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     // Default profile which will be always there
     public static final String DEFAULT_PROFILE = "default";
-        // Mapper for handling YAML formats
-    private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+
     /**
      * Find a profile. Profiles are looked up at various locations:
      *
