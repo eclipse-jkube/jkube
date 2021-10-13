@@ -40,7 +40,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 class AwsSigner4 {
 
     // a-f must be lower case
-    final private static char[] HEXITS = "0123456789abcdef".toCharArray();
+    private static final char[] HEXITS = "0123456789abcdef".toCharArray();
 
     private final String service;
     private final String region;

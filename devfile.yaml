@@ -1,0 +1,106 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+apiVersion: 1.0.0
+metadata:
+  generateName: jkube-
+
+components:
+  - type: chePlugin
+    id: redhat/java/latest
+    preferences:
+      java.server.launchMode: Standard
+
+  - id: eamodio/gitlens/latest
+    type: chePlugin
+    registryUrl: 'https://che-plugin-registry-main.surge.sh/v3'
+
+  - id: github/vscode-pull-request-github/latest
+    type: chePlugin
+
+  - id: donjayamanne/githistory/latest
+    type: chePlugin
+    registryUrl: 'https://che-plugin-registry-main.surge.sh/v3'
+
+  - id: asciidoctor/asciidoctor-vscode/latest
+    type: chePlugin
+    registryUrl: 'https://che-plugin-registry-main.surge.sh/v3'
+
+  - mountSources: true
+    args: ['sleep', 'infinity']
+    memoryLimit: 64M
+    type: dockerimage
+    alias: git
+    image: quay.io/sunix/git-devtools
+
+  - type: dockerimage
+    alias: maven
+    image: 'quay.io/eclipse/che-java11-maven@sha256:5c8c8ab286f7cdde19f2e990f69e265b9dc8ac6d314e68de46daf6cb0441c366'
+    env:
+      - name: MAVEN_CONFIG
+        value: ''
+      - name: MAVEN_OPTS
+        value: '-XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xms20m -Djava.security.egd=file:/dev/./urandom -Duser.home=/home/user'
+      - name: JAVA_OPTS
+        value: '-XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xms20m -Djava.security.egd=file:/dev/./urandom'
+      - name: JAVA_TOOL_OPTIONS
+        value: '-XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xms20m -Djava.security.egd=file:/dev/./urandom'
+    memoryLimit: 2Gi
+    mountSources: true
+    volumes:
+      - name: m2
+        containerPath: /home/user/.m2
+      - name: www
+        containerPath: /var/www/html
+    endpoints:
+      - attributes:
+          public: 'false'
+        name: debug
+        port: 8000
+
+  - mountSources: true
+    endpoints:
+      - name: httpd
+        attributes:
+          public: 'true'
+        port: 8080
+    memoryLimit: 1Gi
+    type: dockerimage
+    image: 'quay.io/centos7/httpd-24-centos7:latest'
+    alias: jkube-doc-httpd
+    volumes:
+      - name: www
+        containerPath: /var/www/html
+
+commands:
+  - name: build all
+    actions:
+      - type: exec
+        component: maven
+        command: mvn clean install
+        workdir: '${CHE_PROJECTS_ROOT}/jkube'
+
+  - name: build documentation
+    actions:
+      - type: exec
+        component: maven
+        command: mvn clean -Phtml package -DoutputHtmlDirectory='/var/www/html'
+        workdir: '${CHE_PROJECTS_ROOT}/jkube/kubernetes-maven-plugin/doc'
+
+  - name: watch documentation
+    actions:
+      - type: exec
+        component: maven
+        command: mvn clean -Pdoc-watch package -DoutputHtmlDirectory='/var/www/html'
+        workdir: '${CHE_PROJECTS_ROOT}/jkube/kubernetes-maven-plugin/doc'
