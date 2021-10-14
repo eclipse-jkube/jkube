@@ -50,7 +50,7 @@ public class UlimitConfig implements Serializable {
         return soft;
     }
 
-    Pattern ULIMIT_PATTERN = Pattern.compile("^(?<name>[^=]+)=(?<hard>[^:]*):?(?<soft>[^:]*)$");
+    private static final Pattern ULIMIT_PATTERN = Pattern.compile("^(?<name>[^=]+)=(?<hard>[^:]*):?(?<soft>[^:]*)$");
 
     public UlimitConfig() {}
 
