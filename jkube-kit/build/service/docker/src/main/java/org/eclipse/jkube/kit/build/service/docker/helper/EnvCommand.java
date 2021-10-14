@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  *
  * @since 14/09/16
  */
-abstract public class EnvCommand extends ExternalCommand {
+    public abstract class EnvCommand extends ExternalCommand {
 
     private final Map<String, String> env = new HashMap<>();
 
