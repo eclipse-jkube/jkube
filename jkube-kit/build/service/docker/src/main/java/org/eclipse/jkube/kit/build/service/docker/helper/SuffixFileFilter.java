@@ -22,7 +22,7 @@ import java.io.FilenameFilter;
  */
 public class SuffixFileFilter implements FilenameFilter {
 
-    final public static FilenameFilter PEM_FILTER = new SuffixFileFilter(".pem");
+    public static final FilenameFilter PEM_FILTER = new SuffixFileFilter(".pem");
 
     private String suffix;
 
