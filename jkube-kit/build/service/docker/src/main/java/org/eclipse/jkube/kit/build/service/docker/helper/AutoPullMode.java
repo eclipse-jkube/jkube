@@ -46,7 +46,7 @@ public enum AutoPullMode {
         return (this == ONCE || this == ALWAYS);
     }
 
-    static public AutoPullMode fromString(String val) {
+        public static AutoPullMode fromString(String val) {
         String valNorm = val.toLowerCase();
         for (AutoPullMode mode : values()) {
             if (mode.values.contains(valNorm)) {
