@@ -162,8 +162,8 @@ class DockerComposeServiceWrapper {
 
     public List<String> getLinks() {
         List<String> ret = new ArrayList<>();
-        ret.addAll(this.<String>asList("links"));
-        ret.addAll(this.<String>asList("external_links"));
+        ret.addAll(this.asList("links"));
+        ret.addAll(this.asList("external_links"));
         return ret;
     }
 
@@ -384,7 +384,7 @@ class DockerComposeServiceWrapper {
     }
 
     private String asString(String key) {
-        return String.class.cast(configuration.get(key));
+        return (String) configuration.get(key);
     }
 
     private Long asLong(String key) {
@@ -410,7 +410,7 @@ class DockerComposeServiceWrapper {
                 value = Arrays.asList(value);
             }
 
-            return List.class.cast(value);
+            return (List) value;
         }
 
         return Collections.emptyList();
@@ -420,9 +420,9 @@ class DockerComposeServiceWrapper {
         if (configuration.containsKey(key)) {
             Object value = configuration.get(key);
             if (value instanceof List) {
-                value = convertToMap(List.class.cast(value));
+                value = convertToMap((List) value);
             }
-            return Map.class.cast(value);
+            return (Map) value;
         }
 
         return Collections.emptyMap();
