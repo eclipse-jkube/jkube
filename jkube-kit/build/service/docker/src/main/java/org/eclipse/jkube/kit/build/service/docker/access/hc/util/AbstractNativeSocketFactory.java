@@ -28,7 +28,7 @@ import org.apache.http.protocol.HttpContext;
  */
 public abstract class AbstractNativeSocketFactory implements ConnectionSocketFactory {
 
-    final private String path;
+    private final String path;
 
     protected AbstractNativeSocketFactory(String path) {
         this.path = path;
