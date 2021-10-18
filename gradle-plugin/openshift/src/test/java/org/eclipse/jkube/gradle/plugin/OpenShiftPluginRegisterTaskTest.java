@@ -17,10 +17,10 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.eclipse.jkube.gradle.plugin.task.KubernetesConfigViewTask;
-import org.eclipse.jkube.gradle.plugin.task.KubernetesDebugTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftDebugTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftPushTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftUndeployTask;
@@ -46,7 +46,7 @@ public class OpenShiftPluginRegisterTaskTest {
         new Object[] { "ocApply", OpenShiftApplyTask.class },
         new Object[] { "ocBuild", OpenShiftBuildTask.class },
         new Object[] { "ocConfigView", KubernetesConfigViewTask.class },
-        new Object[] { "ocDebug", KubernetesDebugTask.class },
+        new Object[] { "ocDebug", OpenShiftDebugTask.class },
         new Object[] { "ocLog", KubernetesLogTask.class },
         new Object[] { "ocPush", OpenShiftPushTask.class },
         new Object[] { "ocResource", OpenShiftResourceTask.class },
