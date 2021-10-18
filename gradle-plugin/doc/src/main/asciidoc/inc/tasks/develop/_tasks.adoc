@@ -1,6 +1,8 @@
 [[task-overview-develop]]
 == Development Tasks
 
+include::_jkube-debug.adoc[]
+
 include::_jkube-log.adoc[]
 
 include::_jkube-undeploy.adoc[]

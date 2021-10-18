@@ -91,6 +91,12 @@ security with Docker.
 Defaults to `true`
 | `jkube.deploy.create`
 
+| *debugSuspend*
+| Disables readiness probes in Kubernetes Deployment in order to start port forwarding during early phases of application startup.
+
+Defaults to `false`.
+| `jkube.debug.suspend`
+
 | *deletePodsOnReplicationControllerUpdate*
 | Delete all the pods if we update a Replication Controller.
 
@@ -198,6 +204,12 @@ ifeval::["{task-prefix}" == "k8s"]
   Defaults to `${basedir}/build/META-INF/jkube/kubernetes.yml`.
 | `jkube.kubernetesManifest`
 endif::[]
+
+| *localDebugPort*
+| Default port available for debugging your application inside Kubernetes.
+
+Defaults to `5005`.
+| `jkube.debug.port`
 
 | *logFollow*
 | Get follow logs for your application inside Kubernetes.
