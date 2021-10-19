@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +86,9 @@ public class JKubeTarArchiver {
         Optional.ofNullable(tarArchiveEntryCustomizer).ifPresent(tac -> tac.accept(tarEntry));
         tarArchiveOutputStream.putArchiveEntry(tarEntry);
         if (currentFile.isFile()) {
-          tarArchiveOutputStream.write(IOUtils.toByteArray(new FileInputStream(currentFile)));
+          try (InputStream fis = new FileInputStream(currentFile)) {
+            IOUtils.copy(fis, tarArchiveOutputStream);
+          }
         }
         tarArchiveOutputStream.closeArchiveEntry();
       }

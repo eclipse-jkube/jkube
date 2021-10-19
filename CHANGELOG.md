@@ -34,6 +34,7 @@ Usage:
 * Fix #895: FileUtil#createDirectory works for files with trailing separator (`/`)
 * Fix #913: Make provider name configurable
 * Fix #877: LogMojo: Change access modifiers to protected for use in XML configuration
+* Fix : JKubeTarArchive doesn't load files in memory
 
 ### 1.4.0 (2021-07-27)
 * Fix #253: Refactor JKubeServiceHub's BuildService election mechanism via ServiceLoader
