@@ -44,11 +44,11 @@ public class CamelRouteBuilder extends RouteBuilder {
         .setHeader(Exchange.FILE_NAME)
         .method(OrderGenerator.class, "generateFileName")
         .log("Generating order ${file:name}")
-        .to("file:work/orders/input");
+        .to("file:/tmp/work/orders/input");
     // Route to consume these orders and move them to a processed directory
-    from("file:work/orders/input")
+    from("file:/tmp/work/orders/input")
         .log("Processing order ${file:name}")
-        .to("file:work/orders/processed");
+        .to("file:/tmp/work/orders/processed");
     // Route to log a Hello world message every second
     from("timer:foo?period=1s")
         .setBody().constant(camelGreeting)
