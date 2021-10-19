@@ -23,6 +23,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Stas Sukhanov
@@ -45,10 +47,9 @@ public class KeyStoreUtilTest {
   }
 
   @Test
-  public void loadInvalidPrivateKey() throws Exception {
-    exception.expect(GeneralSecurityException.class);
-    exception.expectMessage("Cannot generate private key");
-    KeyStoreUtil.loadPrivateKey(getFile("keys/invalid.pem"));
+  public void loadInvalidPrivateKey() {
+    GeneralSecurityException exception = assertThrows(GeneralSecurityException.class, () -> KeyStoreUtil.loadPrivateKey(getFile("keys/invalid.pem")));
+    assertThat(exception).hasMessageContaining("Cannot generate private key");
   }
 
   static String getFile(String path) throws FileNotFoundException {
