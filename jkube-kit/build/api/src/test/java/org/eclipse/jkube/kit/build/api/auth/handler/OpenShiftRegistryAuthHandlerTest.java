@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.build.api.auth.handler;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Base64;
 import java.util.function.Consumer;
 
@@ -30,12 +29,12 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.CoreMatchers.containsString;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 
 /**
@@ -48,9 +47,6 @@ public class OpenShiftRegistryAuthHandlerTest {
 
     @Mocked
     KitLogger log;
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     OpenShiftRegistryAuthHandler handler;
 
@@ -109,9 +105,9 @@ public class OpenShiftRegistryAuthHandlerTest {
     public void testOpenShiftConfigNotLoggedIn() throws Exception {
         executeWithTempHomeDir(homeDir -> {
             createOpenShiftConfig(homeDir,"openshift_nologin_config.yaml");
-            expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage(containsString("~/.kube/config"));
-            handler.create(RegistryAuthConfig.Kind.PUSH, "roland", null, s -> s);
+
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->  handler.create(RegistryAuthConfig.Kind.PUSH, "roland", null, s -> s));
+            assertThat(exception).hasMessageContaining("~/.kube/config");
         });
 
     }

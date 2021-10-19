@@ -18,9 +18,7 @@ import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
@@ -31,9 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 08.03.2017
  */
 public class KeyStoreUtilTest {
-
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
 
   @Test
   public void createKeyStore() throws Exception {

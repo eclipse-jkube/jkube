@@ -29,30 +29,22 @@ import org.eclipse.jkube.kit.build.service.docker.auth.DockerRegistryAuthHandler
 import org.eclipse.jkube.kit.common.JsonFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import mockit.Mocked;
-import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static java.util.Collections.singletonMap;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 /**
  * @author roland
  */
 public class DockerRegistryAuthHandlerTest {
 
-
     @Mocked
     private KitLogger log;
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     private DockerRegistryAuthHandler handler;
 
@@ -100,12 +92,9 @@ public class DockerRegistryAuthHandlerTest {
     public void testDockerLoginSelectCredentialHelper() throws IOException {
         executeWithTempHomeDir(homeDir -> {
             writeDockerConfigJson(createDockerConfig(homeDir),"credsStore-does-not-exist",singletonMap("registry1", "credHelper1-does-not-exist"));
-            expectedException.expect(RuntimeException.class);
-            expectedException.expectCause(Matchers.<Throwable>allOf(
-                    instanceOf(IOException.class),
-                    hasProperty("message",startsWith("Failed to start 'docker-credential-credHelper1-does-not-exist version'"))
-                                                                   ));
-            handler.create(RegistryAuthConfig.Kind.PUSH, "roland", "registry1", s->s);
+
+            RuntimeException exception = assertThrows(RuntimeException.class, () ->  handler.create(RegistryAuthConfig.Kind.PUSH, "roland", "registry1", s->s));
+            assertThat(exception).hasCauseInstanceOf(IOException.class).getCause().hasFieldOrProperty("message").hasMessageStartingWith("Failed to start 'docker-credential-credHelper1-does-not-exist version'");
         });
     }
 
@@ -113,12 +102,9 @@ public class DockerRegistryAuthHandlerTest {
     public void testDockerLoginSelectCredentialsStore() throws IOException {
         executeWithTempHomeDir(homeDir -> {
             writeDockerConfigJson(createDockerConfig(homeDir),"credsStore-does-not-exist",singletonMap("registry1", "credHelper1-does-not-exist"));
-            expectedException.expect(RuntimeException.class);
-            expectedException.expectCause(Matchers.allOf(
-                    instanceOf(IOException.class),
-                    hasProperty("message",startsWith("Failed to start 'docker-credential-credsStore-does-not-exist version'"))
-                                                        ));
-            handler.create(RegistryAuthConfig.Kind.PUSH, "roland", null, s->s);
+
+            RuntimeException exception = assertThrows(RuntimeException.class, () ->  handler.create(RegistryAuthConfig.Kind.PUSH, "roland", null, s->s));
+            assertThat(exception).hasCauseInstanceOf(IOException.class).getCause().hasFieldOrProperty("message").hasMessageStartingWith("Failed to start 'docker-credential-credsStore-does-not-exist version'");
         });
     }
 
@@ -127,12 +113,9 @@ public class DockerRegistryAuthHandlerTest {
 
         executeWithTempHomeDir(homeDir -> {
             writeDockerConfigJson(createDockerConfig(homeDir),"credsStore-does-not-exist",singletonMap("registry1", "credHelper1-does-not-exist"));
-            expectedException.expect(RuntimeException.class);
-            expectedException.expectCause(Matchers.allOf(
-                    instanceOf(IOException.class),
-                    hasProperty("message",startsWith("Failed to start 'docker-credential-credsStore-does-not-exist version'"))
-                                                        ));
-            handler.create(RegistryAuthConfig.Kind.PUSH, "roland", "registry2", s->s);
+
+            RuntimeException exception = assertThrows(RuntimeException.class, () ->  handler.create(RegistryAuthConfig.Kind.PUSH, "roland", "registry2", s->s));
+            assertThat(exception).hasCauseInstanceOf(IOException.class).getCause().hasFieldOrProperty("message").hasMessageStartingWith("Failed to start 'docker-credential-credsStore-does-not-exist version'");
         });
     }
 
