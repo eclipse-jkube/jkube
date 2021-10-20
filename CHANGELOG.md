@@ -35,7 +35,7 @@ Usage:
 * Fix #913: Make provider name configurable
 * Fix #877: LogMojo: Change access modifiers to protected for use in XML configuration
 * Fix : JKubeTarArchive doesn't load files in memory
-* Fix #1040: KeyStoreUtilTest: Remove deprecated `ExpectedException.none()` and `@Rule` and use `assertThrows` instead
+* Fix #1040: Remove deprecated `ExpectedException.none()` and `@Rule` and use `assertThrows` instead
 
 ### 1.4.0 (2021-07-27)
 * Fix #253: Refactor JKubeServiceHub's BuildService election mechanism via ServiceLoader

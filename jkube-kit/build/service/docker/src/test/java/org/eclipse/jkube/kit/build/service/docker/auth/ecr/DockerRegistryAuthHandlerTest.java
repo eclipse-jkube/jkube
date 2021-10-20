@@ -35,7 +35,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static java.util.Collections.singletonMap;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author roland
