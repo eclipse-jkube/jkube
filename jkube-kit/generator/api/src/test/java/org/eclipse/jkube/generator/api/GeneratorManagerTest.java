@@ -84,9 +84,7 @@ public class GeneratorManagerTest {
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) {
       return existingConfigs.stream()
-          .peek(ic -> {
-            ic.setName("processed-by-test");
-          })
+          .peek(ic -> ic.setName("processed-by-test"))
           .collect(Collectors.toList());
     }
   }
