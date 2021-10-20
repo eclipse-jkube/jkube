@@ -19,10 +19,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
@@ -40,10 +43,17 @@ public class HelmServiceIT {
   @Test
   public void generateHelmChartsTest() throws Exception {
     // Given
-    final HelmConfig helmConfig = new HelmConfig();
+    JavaProject javaProject = JavaProject.builder()
+      .properties(new Properties())
+      .maintainers(Collections.emptyList())
+      .baseDirectory(new File("."))
+      .buildDirectory(new File("target"))
+      .build();
+    File manifest = new File("target/classes/META-INF/jkube/kubernetes.yml");
+    File templateDir = new File("target/jkube/helm");
+    HelmConfig helmConfig = new HelmConfig();
     helmConfig.setChart("ITChart");
     helmConfig.setVersion("1337");
-    helmConfig.setType("KUBERNEtES,oPenShift");
     helmConfig.setSourceDir(new File(HelmServiceIT.class.getResource("/it/sources").toURI()).getAbsolutePath());
     helmConfig.setOutputDir("target/helm-it");
     helmConfig.setTarballOutputDir("target/helm-it");
@@ -55,10 +65,13 @@ public class HelmServiceIT {
         ResourceUtil.load(new File(HelmServiceIT.class.getResource("/it/sources/global-template.yml").toURI()), Template.class)
     ));
     final AtomicInteger generatedChartCount = new AtomicInteger(0);
-    helmConfig.setGeneratedChartListeners(Collections.singletonList(
-        (helmConfig1, type, chartFile) -> generatedChartCount.incrementAndGet()));
+    List<GeneratedChartListener> generatedChartListeners = Collections.singletonList(
+      (helmConfig1, type, chartFile) -> generatedChartCount.incrementAndGet());
     final KitLogger logger = new KitLogger.StdoutLogger();
     // When
+    helmConfig = HelmServiceUtil.initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, helmConfig, generatedChartListeners);
+    HelmService.generateHelmCharts(logger, helmConfig);
+    helmConfig = HelmServiceUtil.initHelmConfig(HelmConfig.HelmType.OPENSHIFT, javaProject, manifest, templateDir, helmConfig, generatedChartListeners);
     HelmService.generateHelmCharts(logger, helmConfig);
     // Then
     assertThat(new File("target/helm-it/kubernetes/Chart.yaml")).exists().isNotEmpty();

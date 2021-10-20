@@ -22,12 +22,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
@@ -42,6 +44,10 @@ import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 
 import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
+import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.getHelmRepository;
+import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.isRepositoryValid;
+import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.setAuthentication;
+
 public class HelmService {
 
   private static final String YAML_EXTENSION = ".yaml";
@@ -86,7 +92,19 @@ public class HelmService {
     }
   }
 
-  public static void uploadHelmChart(KitLogger logger, HelmConfig helmConfig,
+  public static void uploadHelmChart(HelmConfig helm, List<RegistryServerConfiguration> registryServerConfigurations, UnaryOperator<String> passwordDecryptor, KitLogger logger) throws BadUploadException, IOException {
+    final HelmRepository helmRepository = getHelmRepository(helm);
+    if (isRepositoryValid(helmRepository)) {
+      setAuthentication(helmRepository, logger, registryServerConfigurations, passwordDecryptor);
+      HelmService.uploadHelmChart(logger, helm, helmRepository);
+    } else {
+      String error = "No repository or invalid repository configured for upload";
+      logger.error(error);
+      throw new IllegalStateException(error);
+    }
+  }
+
+  static void uploadHelmChart(KitLogger logger, HelmConfig helmConfig,
       HelmRepository helmRepository) throws IOException, BadUploadException {
 
     for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
