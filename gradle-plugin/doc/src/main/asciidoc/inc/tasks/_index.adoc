@@ -1,0 +1,51 @@
+
+[[tasks]]
+= Tasks Overview
+
+This plugin supports a rich set for providing a smooth Java developer experience.
+These tasks can be categorized in multiple groups:
+
+* <<tasks-build, Build and Deployment tasks>> are all about creating and managing Kubernetes build artifacts like Docker images or S2I builds.
+
+* <<tasks-develop, Development tasks>> target help not only in developing resource descriptors to the development cluster but also to manage the lifecycle of the development cluster as well.
+
+[[tasks-build]]
+.Build & Deployment Tasks
+[cols="1,3"]
+|===
+| Task | Description
+
+| *<<jkubeBuild>>*
+| Build images
+
+| *<<jkubePush>>*
+| Pushes the built images to the container image registry
+
+| *<<jkubeResource>>*
+| Generate resource manifests for your application
+
+| *<<jkubeApply>>*
+| Applies the generated resources to the connected cluster
+
+|===
+
+[[tasks-develop]]
+.Development Tasks
+[cols="1,3"]
+|===
+| Task | Description
+
+| *<<jkubeDebug>>*
+| Debug your Java app running on the cluster
+
+| *<<jkubeLog>>*
+| Show the logs of your Java app running on the cluster
+
+| *<<jkubeUndeploy>>*
+| Deletes the kubernetes resources that you deployed via the <<jkubeApply>> task
+
+|===
+
+include::build/_index.adoc[]
+
+include::develop/_index.adoc[]
