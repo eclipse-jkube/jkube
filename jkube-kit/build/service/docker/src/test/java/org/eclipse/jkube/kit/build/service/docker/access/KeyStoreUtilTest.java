@@ -18,17 +18,20 @@ import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
 
 /**
  * @author Stas Sukhanov
  * @since 08.03.2017
  */
 public class KeyStoreUtilTest {
+
+  @Rule
+  public ExpectedException exception = ExpectedException.none();
 
   @Test
   public void createKeyStore() throws Exception {
@@ -43,9 +46,9 @@ public class KeyStoreUtilTest {
 
   @Test
   public void loadInvalidPrivateKey() throws Exception {
-    GeneralSecurityException exception = assertThrows(GeneralSecurityException.class,
-        () -> KeyStoreUtil.loadPrivateKey(getFile("keys/invalid.pem")));
-    assertThat(exception).hasMessageContaining("Cannot generate private key");
+    exception.expect(GeneralSecurityException.class);
+    exception.expectMessage("Cannot generate private key");
+    KeyStoreUtil.loadPrivateKey(getFile("keys/invalid.pem"));
   }
 
   static String getFile(String path) throws FileNotFoundException {
