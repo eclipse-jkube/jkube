@@ -1,10 +1,10 @@
 
-[[jkube:log]]
+[[jkubeLog]]
 === *{task-prefix}Log*
 
 This task tails the log of the app that you deployed via the <<jkube:deploy, {task-prefix}Apply>> task
 
-[source, sh, subs="+attributes"]
+[source,sh,subs="+attributes"]
 ----
 gradle {task-prefix}Log
 ----
@@ -13,7 +13,7 @@ You can then terminate the output by hitting `Ctrl+C`
 
 If you wish to get the log of the app and then terminate immediately then try:
 
-[source, sh, subs="+attributes"]
+[source,sh,subs="+attributes"]
 ----
 gradle {task-prefix}Log -Djkube.log.follow=false
 ----

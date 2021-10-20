@@ -21,9 +21,9 @@ ifdef::basebackend-html[toc::[]]
 
 include::inc/_introduction.adoc[]
 
-include::inc/scenarios/_scenarios.adoc[]
+include::inc/scenarios/_index.adoc[]
 
-include::inc/tasks/_tasks.adoc[]
+include::inc/tasks/_index.adoc[]
 
 include::inc/_groovy-configuration.adoc[]
 
@@ -31,7 +31,8 @@ include::inc/_registry.adoc[]
 
 include::inc/_authentication.adoc[]
 
-include::inc/_profiles.adoc[]
+// TODO - Add when support is complete
+// include::inc/_profiles.adoc[]
 
 include::inc/_kind-filename-type-mapping.adoc[]
 

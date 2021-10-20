@@ -7,9 +7,9 @@ ifeval::["{task-prefix}" == "k8s"]
 [[build-kubernetes]]
 ==== Kubernetes Build
 
-A normal Docker build is performed by default. For Kubernetes builds the {plugin} uses the Docker remote API so the URL of your Docker Daemon must be specified. The URL can be specified by the dockerHost or machine configuration, or by the `DOCKER_HOST` environment variable.
+A normal Docker build is performed by default.For Kubernetes builds the {plugin} uses the Docker remote API so the URL of your Docker Daemon must be specified.The URL can be specified by the dockerHost or machine configuration, or by the `DOCKER_HOST` environment variable.
 
-The Docker remote API supports communication via SSL and authentication with certificates. The path to the certificates can be specified by the certPath or machine configuration, or by the `DOCKER_CERT_PATH` environment variable.
+The Docker remote API supports communication via SSL and authentication with certificates.The path to the certificates can be specified by the certPath or machine configuration, or by the `DOCKER_CERT_PATH` environment variable.
 
 If you don't have access to docker daemon, you can change build strategy using `buildStrategy` option in groovy configuration like this:
 
@@ -34,19 +34,20 @@ These are the different options supported by `buildStrategy`:
 | Deamonless container image creation using https://github.com/GoogleContainerTools/jib[JIB] build
 |===
 
-{plugin} by default tries to build up an opinionated <<config-image, Image Configuration>> by inspecting `build.gradle`. You can also provide your own <<dockerfile-scenario, Dockerfile>> or provide Custom ImageConfiguration via <<groovy-scenario-image, Groovy DSL configuration>>.
+{plugin} by default tries to build up an opinionated <<config-image, Image Configuration>> by inspecting `build.gradle`.
+You can also provide your own <<dockerfile-scenario, Dockerfile>> or provide Custom ImageConfiguration via <<groovy-scenario-image, Groovy DSL configuration>>.
 endif::[]
 
 ifeval::["{task-prefix}" == "oc"]
+
 [[build-openshift]]
 ==== OpenShift Build
 
 For the `openshift` mode, OpenShift specific
-https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html[builds] will be
-performed. These are so called
+https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html[builds] will be performed.
+These are so called
 https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html[Binary Source]
-builds ("binary builds" in short), where the data specified with the <<build-configuration, build configuration>>  is
-sent directly to OpenShift as a binary archive.
+builds ("binary builds" in short), where the data specified with the <<build-configuration, build configuration>>  is sent directly to OpenShift as a binary archive.
 
 There are two kind of binary builds supported by this plugin, which can be selected with the `buildStrategy` configuration option (`jkube.build.strategy` property)
 
@@ -56,10 +57,13 @@ There are two kind of binary builds supported by this plugin, which can be selec
 | `buildStrategy` | Description
 
 | `s2i`
-| The https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#source-build[Source-to-Image] (S2I) build strategy uses so called builder images for creating new application images from binary build data. The builder image to use is taken from the base image configuration specified with <<build-config-from, from>> in the image build configuration. See below for a list of builder images which can be used with this plugin.
+| The https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#source-build[Source-to-Image] (S2I) build strategy uses so called builder images for creating new application images from binary build data.
+The builder image to use is taken from the base image configuration specified with <<build-config-from, from>> in the image build configuration.
+See below for a list of builder images which can be used with this plugin.
 
 | `docker`
-| A https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#docker-build[Docker Build] is similar to a normal Docker build except that it is done by the OpenShift cluster and not by a Docker daemon. In addition this build pushes the generated image to the OpenShift internal registry so that it is accessbile in the whole cluster.
+| A https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#docker-build[Docker Build] is similar to a normal Docker build except that it is done by the OpenShift cluster and not by a Docker daemon.
+In addition this build pushes the generated image to the OpenShift internal registry so that it is accessbile in the whole cluster.
 |===
 
 Both build strategies update an
@@ -68,19 +72,16 @@ after the image creation.
 
 The https://docs.openshift.com/enterprise/latest/dev_guide/builds.html#defining-a-buildconfig[Build Config] and
 https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#image-streams[Image streams]
-can be managed by this plugin. If they do not exist, they will be automatically created by `{task-prefix}Build`.
-If they do already exist, they are reused, except when the `buildRecreate` configuration option
-(property `jkube.build.recreate`) is set to a value as described in <<global-configuration, Global Configuration>>.
-Also if the provided build strategy is different than the one defined in the existing build configuration, the Build
-Config is edited to reflect the new type (which in turn removes all build associated with the previous build).
+can be managed by this plugin.
+If they do not exist, they will be automatically created by `{task-prefix}Build`.
+If they do already exist, they are reused, except when the `buildRecreate` configuration option (property `jkube.build.recreate`) is set to a value as described in <<global-configuration, Global Configuration>>.
+Also if the provided build strategy is different than the one defined in the existing build configuration, the Build Config is edited to reflect the new type (which in turn removes all build associated with the previous build).
 
 This image stream created can then be directly referenced from
 https://docs.openshift.com/enterprise/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[Deployment Configuration]
 objects created by <<jkube:resource, {task-prefix}Resource>>.
-By default, image streams are created with a local lookup policy, so that they can be used also by other resources such
-as Deployments or StatefulSets.
-This behavior can be turned off by setting the `jkube.s2i.imageStreamLookupPolicyLocal` property to `false` when building
-the project.
+By default, image streams are created with a local lookup policy, so that they can be used also by other resources such as Deployments or StatefulSets.
+This behavior can be turned off by setting the `jkube.s2i.imageStreamLookupPolicyLocal` property to `false` when building the project.
 
 In order to be able to create these OpenShift resource objects access to an OpenShift installation is required.
 The access parameters are described in <<access-configuration, Access Configuration>>.
@@ -98,7 +99,10 @@ For an S2I binary build, on the other hand, the most relevant section is the <<b
 
 [[setting-quota-openshift-build]]
 ==== Setting Quotas for OpenShift Build
-You can also limit resource use by specifying resource limits as part of the build configuration. You can do this by providing `<openshiftBuildConfig>` field in `<resource>` configuration. Below is an example on how to do this:
+
+You can also limit resource use by specifying resource limits as part of the build configuration.
+You can do this by providing `<openshiftBuildConfig>` field in `<resource>` configuration.
+Below is an example on how to do this:
 
 .Example of OpenShift S2I Build resource/limit Configuration
 [source,groovy,subs="attributes+"]
