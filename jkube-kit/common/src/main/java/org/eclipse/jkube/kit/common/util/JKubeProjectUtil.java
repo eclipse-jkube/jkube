@@ -169,4 +169,12 @@ public class JKubeProjectUtil {
         jKubeProject.getCompileClassPathElements(),
         jKubeProject.getOutputDirectory().getAbsolutePath());
   }
+
+  public static String getProperty(String key, JavaProject project) {
+    String value = System.getProperty(key);
+    if (value == null) {
+      value = project.getProperties().getProperty(key);
+    }
+    return value;
+  }
 }

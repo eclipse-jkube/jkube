@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.Maintainer;
 
 import java.io.File;
 import java.util.Collections;

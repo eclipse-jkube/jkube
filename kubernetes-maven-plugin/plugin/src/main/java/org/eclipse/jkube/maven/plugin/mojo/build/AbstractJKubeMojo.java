@@ -113,13 +113,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         return log;
     }
 
-    protected String getProperty(String key) {
-        String value = System.getProperty(key);
-        if (value == null) {
-            value = project.getProperties().getProperty(key);
-        }
-        return value;
-    }
+
 
     protected RuntimeMode getRuntimeMode() {
         return RuntimeMode.KUBERNETES;

@@ -16,9 +16,13 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
@@ -31,6 +35,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 public class HelmServiceTest {
 
@@ -147,5 +152,36 @@ public class HelmServiceTest {
       assertThat(file)
           .hasName(fileName);
     }};
+  }
+
+  @Test
+  public void uploadHelmChart_withInvalidRepositoryConfiguration_shouldFail() {
+    // Given
+    helmConfig.setSnapshotRepository(new HelmRepository());
+    helmConfig.getSnapshotRepository().setName("SNAP-REPO");
+    List<RegistryServerConfiguration> serverConfigurationList = new ArrayList<>();
+    // When
+    final IllegalStateException result = assertThrows(IllegalStateException.class,
+      () -> HelmService.uploadHelmChart(helmConfig, serverConfigurationList, s -> s, kitLogger));
+    // Then
+    assertThat(result).hasMessage("No repository or invalid repository configured for upload");
+  }
+
+  @Test
+  public void uploadHelmChart_withMissingRepositoryConfiguration_shouldFail() {
+    // Given
+    helmConfig.setSnapshotRepository(HelmRepository.builder()
+      .name("SNAP-REPO")
+      .type(HelmRepository.HelmRepoType.ARTIFACTORY)
+      .url("https://example.com/artifactory")
+      .username("jkubeUser")
+      .password("S3cret")
+      .build());
+    List<RegistryServerConfiguration> serverConfigurationList = new ArrayList<>();
+    // When
+    final IllegalStateException result = assertThrows(IllegalStateException.class,
+      () -> HelmService.uploadHelmChart(helmConfig, serverConfigurationList, s -> s, kitLogger));
+    // Then
+    assertThat(result).hasMessage("No repository or invalid repository configured for upload");
   }
 }

@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.resource.helm;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.jkube.kit.common.Maintainer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
