@@ -138,6 +138,7 @@ public class ProfileUtil {
             }
         }
         // "larger" orders are "earlier" in the list
+        // Changed the sort method implementation interface for easier readabilty.
         profiles.sort(Collections.reverseOrder());
         return mergeProfiles(profiles);
     }
