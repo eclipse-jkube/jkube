@@ -121,7 +121,7 @@
             <dependency>
               <groupId>org.asciidoctor</groupId>
               <artifactId>asciidoctorj</artifactId>
-              <version>${asciidoctorj.version}</version>
+              <version>${version.asciidoctorj}</version>
             </dependency>
           </dependencies>
         </plugin>
