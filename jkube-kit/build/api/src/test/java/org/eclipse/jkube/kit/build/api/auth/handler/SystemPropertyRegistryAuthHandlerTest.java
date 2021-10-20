@@ -25,10 +25,11 @@ import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
 import mockit.Mocked;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
 /**
  * @author roland
@@ -39,6 +40,9 @@ public class SystemPropertyRegistryAuthHandlerTest {
     KitLogger log;
 
     SystemPropertyRegistryAuthHandler handler;
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void setup() {
@@ -81,8 +85,9 @@ public class SystemPropertyRegistryAuthHandlerTest {
 
     @Test
     public void testSystemPropertyNoPassword() throws IOException {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->  checkException("jkube.docker.username"));
-        assertThat(exception).hasMessageContaining("No password provided for username secret");
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("No password provided for username secret");
+        checkException("jkube.docker.username");
     }
 
     private void checkException(String key) throws IOException {
