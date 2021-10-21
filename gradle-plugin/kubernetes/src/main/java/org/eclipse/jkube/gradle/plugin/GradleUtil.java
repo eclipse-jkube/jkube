@@ -20,12 +20,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -36,12 +38,14 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
@@ -109,16 +113,27 @@ public class GradleUtil {
       Function<ResolutionResult, Set<? extends DependencyResult>> resolutionToDependency) {
     return gradleProject.getConfigurations().stream()
         .filter(GradleUtil::canBeResolved)
-        .map(Configuration::getIncoming)
-        .map(ResolvableDependencies::getResolutionResult)
-        .map(resolutionToDependency)
-        .flatMap(Set::stream)
-        .filter(ResolvedDependencyResult.class::isInstance)
-        .map(ResolvedDependencyResult.class::cast)
-        .map(ResolvedDependencyResult::getSelected)
-        .map(ResolvedComponentResult::getModuleVersion)
-        .filter(Objects::nonNull)
-        .map(mv -> Dependency.builder().groupId(mv.getGroup()).artifactId(mv.getName()).version(mv.getVersion()).build())
+        .flatMap(c -> {
+          final Map<ComponentIdentifier, ResolvedArtifactResult> artifacts = artifactMap(c);
+          return resolutionToDependency.apply(c.getIncoming().getResolutionResult())
+              .stream()
+              .filter(ResolvedDependencyResult.class::isInstance)
+              .map(ResolvedDependencyResult.class::cast)
+              .map(ResolvedDependencyResult::getSelected)
+              .filter(rcr -> Objects.nonNull(rcr.getModuleVersion()))
+              .map(rcr -> {
+                final ModuleVersionIdentifier mvi = rcr.getModuleVersion();
+                final Dependency.DependencyBuilder db = Dependency.builder()
+                    .groupId(mvi.getGroup()).artifactId(mvi.getName()).version(mvi.getVersion());
+                final ResolvedArtifactResult artifact = artifacts.get(rcr.getId());
+                if (artifact != null) {
+                  db.scope(c.getName().toLowerCase(Locale.ROOT).contains("test") ? "test" : "compile");
+                  db.file(artifact.getFile());
+                  db.type(artifact.getVariant().getAttributes().getAttribute(Attribute.of("artifactType", String.class)));
+                }
+                return db.build();
+              });
+        })
         .distinct()
         .collect(Collectors.toList());
   }
@@ -180,5 +195,13 @@ public class GradleUtil {
     boolean isDeprecatedForResolving = configuration instanceof DeprecatableConfiguration
         && ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null;
     return configuration.isCanBeResolved() && !isDeprecatedForResolving;
+  }
+
+  private static Map<ComponentIdentifier, ResolvedArtifactResult> artifactMap(Configuration configuration) {
+    return StreamSupport.stream(configuration.getIncoming().getArtifacts().spliterator(), false)
+        .collect(Collectors.toMap(
+            rar -> rar.getId().getComponentIdentifier(),
+            Function.identity(),
+            (old, rep) -> rep));
   }
 }
