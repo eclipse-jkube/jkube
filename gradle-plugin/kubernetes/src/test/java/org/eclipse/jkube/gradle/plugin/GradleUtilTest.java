@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,6 +33,8 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -128,22 +132,25 @@ public class GradleUtilTest {
     when(project.getConfigurations()).thenReturn(cc);
     final Function<String[], Configuration> mockConfiguration = configurationDependencyMock();
     when(cc.stream()).thenAnswer(i -> Stream.of(
-        mockConfiguration.apply(new String[] {"com.example", "artifact", null}),
-        mockConfiguration.apply(new String[] {"com.example.sub", "duplicate-artifact", "1.33.7"}),
-        mockConfiguration.apply(new String[] {"com.example.sub", "duplicate-artifact", "1.33.7"}),
-        mockConfiguration.apply(new String[] {"com.example", "other.artifact", "1.0.0"}),
-        mockConfiguration.apply(new String[] {"com.example", "other.artifact", "1.1.0"})));
+        mockConfiguration.apply(new String[] { "api", "com.example", "artifact", null }),
+        mockConfiguration.apply(new String[] { "implementation", "com.example.sub", "duplicate-artifact", "1.33.7" }),
+        mockConfiguration.apply(new String[] { "implementation", "com.example.sub", "duplicate-artifact", "1.33.7" }),
+        mockConfiguration.apply(new String[] { "implementation", "com.example", "other.artifact", "1.0.0" }),
+        mockConfiguration.apply(new String[] { "implementation", "com.example", "other.artifact", "1.1.0" }),
+        mockConfiguration.apply(new String[] { "testImplementation", "com.example", "other.artifact", "1.1.0" })));
     // When
     final JavaProject result = convertGradleProject(project);
     // Then
     assertThat(result.getDependencies())
-        .hasSize(4)
-        .extracting("groupId", "artifactId", "version")
+        .hasSize(5)
+        .satisfies(l -> assertThat(l).first().extracting("file").hasFieldOrPropertyWithValue("name", "artifact.jar"))
+        .extracting("groupId", "artifactId", "version", "scope")
         .containsExactlyInAnyOrder(
-            tuple("com.example", "artifact", null),
-            tuple("com.example.sub", "duplicate-artifact", "1.33.7"),
-            tuple("com.example", "other.artifact", "1.0.0"),
-            tuple("com.example", "other.artifact", "1.1.0")
+            tuple("com.example", "artifact", null, "compile"),
+            tuple("com.example.sub", "duplicate-artifact", "1.33.7", "compile"),
+            tuple("com.example", "other.artifact", "1.0.0", "compile"),
+            tuple("com.example", "other.artifact", "1.1.0", "compile"),
+            tuple("com.example", "other.artifact", "1.1.0", "test")
         );
   }
 
@@ -154,10 +161,13 @@ public class GradleUtilTest {
     when(project.getBuildscript().getConfigurations()).thenReturn(cc);
     final Function<String[], Configuration> mockConfiguration = configurationDependencyMock();
     when(cc.stream()).thenAnswer(i -> Stream.of(
-        mockConfiguration.apply(new String[] {"org.springframework.boot", "org.springframework.boot.gradle.plugin", "1.33.7"}),
-        mockConfiguration.apply(new String[] {"org.springframework.boot", "org.springframework.boot.gradle.plugin", "1.33.7"}),
-        mockConfiguration.apply(new String[] {"com.example", "not-a-plugin", "1.33.7"}),
-        mockConfiguration.apply(new String[] {"org.eclipse.jkube.kubernetes", "org.eclipse.jkube.kubernetes.gradle.plugin", "1.0.0"})));
+        mockConfiguration.apply(
+            new String[] { "implementation", "org.springframework.boot", "org.springframework.boot.gradle.plugin", "1.33.7" }),
+        mockConfiguration.apply(
+            new String[] { "implementation", "org.springframework.boot", "org.springframework.boot.gradle.plugin", "1.33.7" }),
+        mockConfiguration.apply(new String[] { "implementation", "com.example", "not-a-plugin", "1.33.7" }),
+        mockConfiguration.apply(new String[] { "implementation", "org.eclipse.jkube.kubernetes",
+            "org.eclipse.jkube.kubernetes.gradle.plugin", "1.0.0" })));
     // When
     final JavaProject result = convertGradleProject(project);
     // Then
@@ -262,23 +272,56 @@ public class GradleUtilTest {
   private static Function<String[], Configuration> configurationDependencyMock() {
     return s -> {
       final Configuration c = mock(Configuration.class, RETURNS_DEEP_STUBS);
+      when(c.getName()).thenReturn(s[0]);
       when(c.isCanBeResolved()).thenReturn(true);
       final Dependency d = mock(Dependency.class);
       when(c.getAllDependencies().stream()).thenAnswer(i -> Stream.of(d));
       when(c.getOutgoing().getArtifacts().getFiles().getFiles()).thenReturn(Collections.emptySet());
-      when(d.getGroup()).thenReturn(s[0]);
-      when(d.getName()).thenReturn(s[1]);
-      when(d.getVersion()).thenReturn(s[2]);
+      when(d.getGroup()).thenReturn(s[1]);
+      when(d.getName()).thenReturn(s[2]);
+      when(d.getVersion()).thenReturn(s[3]);
+      final ComponentIdentifier commonArtifactId = new TestComponentIdentifier();
       final ResolvedDependencyResult dr = mock(ResolvedDependencyResult.class, RETURNS_DEEP_STUBS);
       when(c.getIncoming().getResolutionResult().getRoot().getDependencies())
           .thenAnswer(i -> new HashSet<>(Collections.singletonList(dr)));
       when(c.getIncoming().getResolutionResult().getAllDependencies())
           .thenAnswer(i -> new HashSet<>(Collections.singletonList(dr)));
-      when(dr.getSelected().getModuleVersion().getGroup()).thenReturn(s[0]);
-      when(dr.getSelected().getModuleVersion().getName()).thenReturn(s[1]);
-      when(dr.getSelected().getModuleVersion().getVersion()).thenReturn(s[2]);
+      when(dr.getSelected().getId()).thenReturn(commonArtifactId);
+      when(dr.getSelected().getModuleVersion().getGroup()).thenReturn(s[1]);
+      when(dr.getSelected().getModuleVersion().getName()).thenReturn(s[2]);
+      when(dr.getSelected().getModuleVersion().getVersion()).thenReturn(s[3]);
+      final ResolvedArtifactResult rar = mock(ResolvedArtifactResult.class, RETURNS_DEEP_STUBS);
+      when(rar.getId().getComponentIdentifier()).thenReturn(commonArtifactId);
+      when(rar.getFile()).thenReturn(new File(s[2] + ".jar"));
+      final ResolvedArtifactResult notMatchingRar = mock(ResolvedArtifactResult.class, RETURNS_DEEP_STUBS);
+      when(notMatchingRar.getId().getComponentIdentifier()).thenReturn(new TestComponentIdentifier());
+      when(c.getIncoming().getArtifacts().spliterator()).thenAnswer(i -> Stream.of(notMatchingRar, rar).spliterator());
       return c;
     };
   }
 
+  private static final class TestComponentIdentifier implements ComponentIdentifier {
+
+    private final UUID id = UUID.randomUUID();
+
+    @Override
+    public String getDisplayName() {
+      return "This is a test";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o)
+        return true;
+      if (o == null || getClass() != o.getClass())
+        return false;
+      TestComponentIdentifier that = (TestComponentIdentifier) o;
+      return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(id);
+    }
+  }
 }
