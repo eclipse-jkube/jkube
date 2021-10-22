@@ -38,7 +38,7 @@ public class DockerConnectionDetector {
         if (externalProviders != null) {
             dockerHostProviders.addAll(externalProviders);
         }
-        Collections.sort(dockerHostProviders,new DockerHostProvider.Comparator());
+        dockerHostProviders.sort(new DockerHostProvider.Comparator());
     }
 
     private Collection<? extends DockerHostProvider> getDefaultEnvProviders() {
