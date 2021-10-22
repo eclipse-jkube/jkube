@@ -129,7 +129,7 @@ public class ProcessorConfig {
                 T named = lookup.get(inc);
                 if (named == null) {
                     List<String> keys = new ArrayList<>(lookup.keySet());
-                    Collections.sort(keys);
+                    keys.sort(Comparator.naturalOrder());
                     throw new IllegalArgumentException(
                             "No " + type + " with name '" + inc +
                                     "' found to include. " +
