@@ -473,7 +473,7 @@ public class KubernetesResourceUtil {
             return null;
         }
         List<Pod> sortedPods = new ArrayList<>(pods);
-        Collections.sort(sortedPods, (p1, p2) -> {
+        sortedPods.sort((p1, p2) -> {
             Date t1 = getCreationTimestamp(p1);
             Date t2 = getCreationTimestamp(p2);
             if (t1 != null) {
