@@ -137,7 +137,7 @@ class AwsSigner4 {
             return "";
         }
         List<NameValuePair> params = URLEncodedUtils.parse(query, StandardCharsets.UTF_8);
-        Collections.sort(params, (l, r) -> l.getName().compareToIgnoreCase(r.getName()));
+        params.sort((l, r) -> l.getName().compareToIgnoreCase(r.getName()));
         return URLEncodedUtils.format(params, StandardCharsets.UTF_8);
     }
 
