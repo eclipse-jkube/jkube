@@ -30,11 +30,11 @@ Usage:
 * Fix #904: DeploymentConfig ImageChange trigger seems to be wrong for custom images
 * Fix #904: `%g` should be resolved to namespace in OpenShift Maven Plugin
 * Fix #908: OpenShift-Maven-Plugin doesn't remove periods from container name
-* Fix #923: QuakusGenerator not applicable when using `io.quarkus.platform` groupId
+* Fix #923: QuarkusGenerator not applicable when using `io.quarkus.platform` groupId
 * Fix #895: FileUtil#createDirectory works for files with trailing separator (`/`)
 * Fix #913: Make provider name configurable
 * Fix #877: LogMojo: Change access modifiers to protected for use in XML configuration
-* Fix : JKubeTarArchive doesn't load files in memory
+* Fix #1036: JKubeTarArchive doesn't load files in memory
 * Fix #1040: Remove deprecated `ExpectedException.none()` and `@Rule` and use `assertThrows` instead
 
 ### 1.4.0 (2021-07-27)

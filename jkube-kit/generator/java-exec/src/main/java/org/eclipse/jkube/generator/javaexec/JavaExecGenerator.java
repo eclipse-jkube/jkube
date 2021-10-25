@@ -180,11 +180,9 @@ public class JavaExecGenerator extends BaseGenerator {
 
     private Assembly createDefaultLayer() {
         final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
-        if (isFatJar()) {
-            FatJarDetector.Result fatJar = detectFatJar();
-            if (fatJar != null) {
-                fileSets.add(getOutputDirectoryFileSet(fatJar, getProject()));
-            }
+        final FatJarDetector.Result fatJar = detectFatJar();
+        if (isFatJar() && fatJar != null) {
+            fileSets.add(getOutputDirectoryFileSet(fatJar, getProject()));
         } else {
             log.warn("No fat Jar detected, make sure your image assembly configuration contains all the required" +
                 " dependencies for your application to run.");
