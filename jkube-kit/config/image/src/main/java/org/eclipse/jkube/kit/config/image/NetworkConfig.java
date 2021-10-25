@@ -121,7 +121,7 @@ public class NetworkConfig implements Serializable {
         bridge,
         host,
         container,
-        custom;
+        custom
     }
 
     public static class NetworkConfigBuilder {
