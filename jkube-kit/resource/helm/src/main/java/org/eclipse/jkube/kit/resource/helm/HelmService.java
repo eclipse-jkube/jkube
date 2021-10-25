@@ -44,7 +44,7 @@ import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 
 import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
-import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.getHelmRepository;
+import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.selectHelmRepository;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.isRepositoryValid;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.setAuthentication;
 
@@ -93,10 +93,10 @@ public class HelmService {
   }
 
   public static void uploadHelmChart(HelmConfig helm, List<RegistryServerConfiguration> registryServerConfigurations, UnaryOperator<String> passwordDecryptor, KitLogger logger) throws BadUploadException, IOException {
-    final HelmRepository helmRepository = getHelmRepository(helm);
+    final HelmRepository helmRepository = selectHelmRepository(helm);
     if (isRepositoryValid(helmRepository)) {
       setAuthentication(helmRepository, logger, registryServerConfigurations, passwordDecryptor);
-      HelmService.uploadHelmChart(logger, helm, helmRepository);
+      uploadHelmChart(logger, helm, helmRepository);
     } else {
       String error = "No repository or invalid repository configured for upload";
       logger.error(error);

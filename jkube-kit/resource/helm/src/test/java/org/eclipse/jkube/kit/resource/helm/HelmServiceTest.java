@@ -16,8 +16,6 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,41 +39,38 @@ public class HelmServiceTest {
 
   @Mocked
   KitLogger kitLogger;
-  @Mocked
-  HelmConfig helmConfig;
+
+  private HelmConfig.HelmConfigBuilder helmConfig;
 
   @Before
   public void setUp() throws Exception {
+    helmConfig = HelmConfig.builder();
   }
 
   @After
   public void tearDown() {
     kitLogger = null;
-    helmConfig = null;
   }
 
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   @Test(expected = IOException.class)
   public void prepareSourceDirValidWithNoYamls(@Mocked File file) throws Exception {
     // Given
+    // @formatter:off
     new Expectations() {{
-      file.isDirectory();
-      result = true;
+      file.isDirectory();result = true;
     }};
+    // @formatter:on
     // When
-    HelmService.prepareSourceDir(helmConfig, HelmConfig.HelmType.OPENSHIFT);
+    HelmService.prepareSourceDir(helmConfig.build(), HelmConfig.HelmType.OPENSHIFT);
   }
 
   @Test
   public void createChartYaml(@Mocked File outputDir, @Mocked ResourceUtil resourceUtil) throws Exception {
     // Given
-    new Expectations() {{
-      helmConfig.getChart();
-      result = "Chart Name";
-      helmConfig.getVersion();
-      result = "1337";
-    }};
+    helmConfig.chart("Chart Name").version("1337");
     // When
-    HelmService.createChartYaml(helmConfig, outputDir);
+    HelmService.createChartYaml(helmConfig.build(), outputDir);
     // Then
     new Verifications() {{
       Chart chart;
@@ -96,16 +91,10 @@ public class HelmServiceTest {
         .version("1.2.3.")
         .repository("repository")
         .build();
-    new Expectations() {{
-      helmConfig.getChart();
-      result = "Chart Name";
-      helmConfig.getVersion();
-      result = "1337";
-      helmConfig.getDependencies();
-      result = Arrays.asList(helmDependency);
-    }};
+    helmConfig.chart("Chart Name").version("1337")
+        .dependencies(Collections.singletonList(helmDependency));
     // When
-    HelmService.createChartYaml(helmConfig, outputDir);
+    HelmService.createChartYaml(helmConfig.build(), outputDir);
     // Then
     new Verifications() {{
       Chart chart;
@@ -120,30 +109,24 @@ public class HelmServiceTest {
   }
 
   @Test
-  public void uploadChart(
-      @Mocked HelmUploader helmUploader,
-      @Mocked HelmRepository helmRepository)
+  public void uploadChart(@Mocked HelmUploader helmUploader)
       throws IOException, BadUploadException {
     //Given
+    helmConfig
+        .types(Collections.singletonList(HelmType.KUBERNETES))
+        .chart("chartName")
+        .version("1337")
+        .chartExtension("tar.gz")
+        .outputDir("target")
+        .tarballOutputDir("target");
+    final HelmRepository helmRepository = HelmRepository.builder().name("Artifactory").build();
+    // @formatter:off
     new Expectations() {{
-      helmConfig.getTypes();
-      result = Arrays.asList(HelmType.KUBERNETES);
-      helmConfig.getChart();
-      result = "chartName";
-      helmConfig.getVersion();
-      result = "1337";
-      helmConfig.getChartExtension();
-      result = "tar.gz";
-      helmConfig.getOutputDir();
-      result = "target";
-      helmConfig.getTarballOutputDir();
-      result = "target";
-      helmRepository.getName();
-      result = "Artifactory";
       helmUploader.uploadSingle(withInstanceOf(File.class), helmRepository);
     }};
+    // @formatter:on
     // When
-    HelmService.uploadHelmChart(kitLogger, helmConfig, helmRepository);
+    HelmService.uploadHelmChart(kitLogger, helmConfig.build(), helmRepository);
     // Then
     new Verifications() {{
       String fileName = "chartName-1337-helm.tar.gz";
@@ -157,12 +140,13 @@ public class HelmServiceTest {
   @Test
   public void uploadHelmChart_withInvalidRepositoryConfiguration_shouldFail() {
     // Given
-    helmConfig.setSnapshotRepository(new HelmRepository());
-    helmConfig.getSnapshotRepository().setName("SNAP-REPO");
-    List<RegistryServerConfiguration> serverConfigurationList = new ArrayList<>();
+    final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
+        .snapshotRepository(HelmRepository.builder().name("INVALID").build())
+        .build();
+    final List<RegistryServerConfiguration> serverConfigurationList = Collections.emptyList();
     // When
     final IllegalStateException result = assertThrows(IllegalStateException.class,
-      () -> HelmService.uploadHelmChart(helmConfig, serverConfigurationList, s -> s, kitLogger));
+      () -> HelmService.uploadHelmChart(helm, serverConfigurationList, s -> s, kitLogger));
     // Then
     assertThat(result).hasMessage("No repository or invalid repository configured for upload");
   }
@@ -170,18 +154,70 @@ public class HelmServiceTest {
   @Test
   public void uploadHelmChart_withMissingRepositoryConfiguration_shouldFail() {
     // Given
-    helmConfig.setSnapshotRepository(HelmRepository.builder()
-      .name("SNAP-REPO")
-      .type(HelmRepository.HelmRepoType.ARTIFACTORY)
-      .url("https://example.com/artifactory")
-      .username("jkubeUser")
-      .password("S3cret")
-      .build());
-    List<RegistryServerConfiguration> serverConfigurationList = new ArrayList<>();
+    final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT").build();
+    final List<RegistryServerConfiguration> serverConfigurationList = Collections.emptyList();
     // When
     final IllegalStateException result = assertThrows(IllegalStateException.class,
-      () -> HelmService.uploadHelmChart(helmConfig, serverConfigurationList, s -> s, kitLogger));
+      () -> HelmService.uploadHelmChart(helm, serverConfigurationList, s -> s, kitLogger));
     // Then
     assertThat(result).hasMessage("No repository or invalid repository configured for upload");
+  }
+
+  @Test
+  public void uploadHelmChart_withServerConfigurationWithoutUsername_shouldFail() {
+    // Given
+    final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
+        .snapshotRepository(completeValidRepository().username(null).build()).build();
+    final List<RegistryServerConfiguration> serverConfigurations = Collections.singletonList(
+        RegistryServerConfiguration.builder()
+            .id("SNAP-REPO")
+            .build());
+    // When
+    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
+        HelmService.uploadHelmChart(helm, serverConfigurations, s -> s, kitLogger));
+    // Then
+    assertThat(result).hasMessage("Repo SNAP-REPO was found in server list but has no username/password.");
+  }
+
+  @Test
+  public void uploadHelmChart_withServerConfigurationWithoutPassword_shouldFail() {
+    // Given
+    final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
+        .snapshotRepository(completeValidRepository().password(null).build()).build();
+    final List<RegistryServerConfiguration> serverConfigurations = Collections.singletonList(
+        RegistryServerConfiguration.builder()
+            .id("SNAP-REPO")
+            .build());
+    // When
+    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
+        HelmService.uploadHelmChart(helm, serverConfigurations, s -> s, kitLogger));
+    // Then
+    assertThat(result).hasMessage("Repo SNAP-REPO has a username but no password defined.");
+  }
+
+
+  @Test
+  public void uploadHelmChart_withMissingServerConfiguration_shouldFail() {
+    // Given
+    final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
+        .snapshotRepository(completeValidRepository().username(null).build()).build();
+    final List<RegistryServerConfiguration> serverConfigurations = Collections.singletonList(
+        RegistryServerConfiguration.builder()
+            .id("DIFFERENT")
+            .build());
+    // When
+    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
+        HelmService.uploadHelmChart(helm, serverConfigurations, s -> s, kitLogger));
+    // Then
+    assertThat(result).hasMessage("No credentials found for SNAP-REPO in configuration or settings.xml server list.");
+  }
+
+  private static HelmRepository.HelmRepositoryBuilder completeValidRepository() {
+    return HelmRepository.builder()
+        .name("SNAP-REPO")
+        .type(HelmRepository.HelmRepoType.ARTIFACTORY)
+        .url("https://example.com/artifactory")
+        .username("User")
+        .password("S3cret");
   }
 }

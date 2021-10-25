@@ -13,34 +13,34 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.Maintainer;
+import org.eclipse.jkube.kit.common.ResourceFileType;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.Maintainer;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.common.ResourceFileType;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class HelmServiceUtilTest {
+
   @Mocked
   private JavaProject javaProject;
 
@@ -51,7 +51,7 @@ public class HelmServiceUtilTest {
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Test
-  public void initHelmConfigNoConfigShouldInitConfigWithDefaultValuesAndGenerate() throws IOException {
+  public void initHelmConfig_withNoConfig_shouldInitConfigWithDefaultValues() throws IOException {
     // Given
     File baseDir = temporaryFolder.newFolder("test-project");
     File manifest = new File(baseDir, "target/classes/META-INF/jkube/kubernetes.yml");
@@ -61,29 +61,23 @@ public class HelmServiceUtilTest {
       Maintainer.builder().email(null).name(null).build()
     );
     boolean templateDirCreated = templateDir.mkdirs();
+    // @formatter:off
     new Expectations() {{
-      javaProject.getProperties();
-      result = new Properties();
-      javaProject.getOutputDirectory();
-      result = new File(baseDir, "target/classes");
-      javaProject.getBuildDirectory();
-      result = "target";
-      javaProject.getArtifactId();
-      result = "artifact-id";
-      javaProject.getVersion();
-      result = "1337";
-      javaProject.getDescription();
-      result = "A description from Maven";
-      javaProject.getUrl();
-      result = "https://project.url";
-      javaProject.getScmUrl();
-      result = "https://scm.url";
-      javaProject.getMaintainers();
-      result = maintainers;
+      javaProject.getProperties(); result = new Properties();
+      javaProject.getOutputDirectory(); result = new File(baseDir, "target/classes");
+      javaProject.getBuildDirectory(); result = "target";
+      javaProject.getArtifactId(); result = "artifact-id";
+      javaProject.getVersion(); result = "1337";
+      javaProject.getDescription(); result = "A description from Maven";
+      javaProject.getUrl(); result = "https://project.url";
+      javaProject.getScmUrl(); result = "https://scm.url";
+      javaProject.getMaintainers(); result = maintainers;
     }};
+    // @formatter:on
 
     // When
-    HelmConfig helm = HelmServiceUtil.initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, null, Collections.emptyList());
+    HelmConfig helm = HelmServiceUtil.initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, null)
+        .build();
 
     // Then
     assertThat(templateDirCreated).isTrue();
@@ -214,46 +208,4 @@ public class HelmServiceUtilTest {
       .contains(template);
   }
 
-  @Test
-  public void setAuthentication_withServerConfigurationWithoutUsername_shouldFail() {
-    // Given
-    HelmRepository helmRepository = HelmRepository.builder().name("SNAP-REPO").build();
-    List<RegistryServerConfiguration> serverConfigurations = new ArrayList<>();
-    serverConfigurations.add(RegistryServerConfiguration.builder()
-      .id("SNAP-REPO")
-      .username(null)
-      .build());
-
-    // When
-    IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () -> HelmServiceUtil.setAuthentication(helmRepository, kitLogger, serverConfigurations, s -> s));
-
-    // Then
-    assertThat(result).hasMessage("Repo SNAP-REPO was found in server list but has no username/password.");
-  }
-
-  @Test
-  public void setAuthentication_withWithUsernameWithoutPassword_shouldFail() {
-    // Given
-    HelmRepository helmRepository = HelmRepository.builder().name("SNAP-REPO").username("user").password(null).build();
-    List<RegistryServerConfiguration> serverConfigurations = new ArrayList<>();
-
-    // When
-    IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () -> HelmServiceUtil.setAuthentication(helmRepository, kitLogger, serverConfigurations, s -> s));
-
-    // Then
-    assertThat(result).hasMessage("Repo SNAP-REPO has a username but no password defined.");
-  }
-
-  @Test
-  public void setAuthentication_withWithoutUsername_shouldFail() {
-    // Given
-    HelmRepository helmRepository = HelmRepository.builder().name("SNAP-REPO").username(null).password(null).build();
-    List<RegistryServerConfiguration> serverConfigurations = new ArrayList<>();
-
-    // When
-    IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () -> HelmServiceUtil.setAuthentication(helmRepository, kitLogger, serverConfigurations, s -> s));
-
-    // Then
-    assertThat(result).hasMessage("No credentials found for SNAP-REPO in configuration or settings.xml server list.");
-  }
 }

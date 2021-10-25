@@ -69,9 +69,11 @@ public class HelmServiceIT {
       (helmConfig1, type, chartFile) -> generatedChartCount.incrementAndGet());
     final KitLogger logger = new KitLogger.StdoutLogger();
     // When
-    helmConfig = HelmServiceUtil.initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, helmConfig, generatedChartListeners);
+    helmConfig = HelmServiceUtil.initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, helmConfig)
+        .generatedChartListeners(generatedChartListeners).build();
     HelmService.generateHelmCharts(logger, helmConfig);
-    helmConfig = HelmServiceUtil.initHelmConfig(HelmConfig.HelmType.OPENSHIFT, javaProject, manifest, templateDir, helmConfig, generatedChartListeners);
+    helmConfig = HelmServiceUtil.initHelmConfig(HelmConfig.HelmType.OPENSHIFT, javaProject, manifest, templateDir, helmConfig)
+        .generatedChartListeners(generatedChartListeners).build();
     HelmService.generateHelmCharts(logger, helmConfig);
     // Then
     assertThat(new File("target/helm-it/kubernetes/Chart.yaml")).exists().isNotEmpty();
