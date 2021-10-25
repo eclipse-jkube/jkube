@@ -68,9 +68,8 @@ public class Timestamp implements Comparable<Timestamp> {
         Timestamp timestamp = (Timestamp) o;
 
         if (rest != timestamp.rest) return false;
-        if (!date.equals(timestamp.date)) return false;
 
-        return true;
+        return date.equals(timestamp.date);
     }
 
     @Override
