@@ -47,7 +47,7 @@ import java.util.Map;
  */
 public class GitEnricher extends BaseEnricher {
 
-    private String GIT_REMOTE = "jkube.remoteName";
+    private static final String GIT_REMOTE = "jkube.remoteName";
 
     public GitEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-git");
