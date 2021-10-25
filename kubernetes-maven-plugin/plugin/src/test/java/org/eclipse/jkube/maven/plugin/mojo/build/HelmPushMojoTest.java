@@ -13,24 +13,31 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Properties;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.resource.helm.BadUploadException;
+import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.eclipse.jkube.kit.resource.helm.HelmRepository;
+import org.eclipse.jkube.kit.resource.helm.HelmRepository.HelmRepoType;
+import org.eclipse.jkube.kit.resource.helm.HelmService;
+
 import mockit.Delegate;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
+import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.resource.helm.BadUploadException;
-import org.eclipse.jkube.kit.resource.helm.HelmConfig;
-import org.eclipse.jkube.kit.resource.helm.HelmService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
-
-import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
@@ -40,7 +47,9 @@ public class HelmPushMojoTest {
   @Mocked
   KitLogger logger;
   @Mocked
-  JavaProject javaProject;
+  MavenProject mavenProject;
+  @Mocked
+  Build mavenBuild;
   @Mocked
   HelmService helmService;
   @Mocked
@@ -55,13 +64,15 @@ public class HelmPushMojoTest {
     mavenProperties = new Properties();
     helmPushMojo = new HelmPushMojo();
     helmPushMojo.helm = new HelmConfig();
-    helmPushMojo.javaProject = javaProject;
+    helmPushMojo.project = mavenProject;
     helmPushMojo.settings = new Settings();
     helmPushMojo.securityDispatcher = secDispatcher;
-    helmPushMojo.log = logger;
     // @formatter:off
-    new Expectations() {{
-      javaProject.getProperties(); result = mavenProperties; minTimes = 0;
+    new Expectations(helmPushMojo) {{
+      mavenProject.getProperties(); result = mavenProperties; minTimes = 0;
+      mavenProject.getBuild(); result = mavenBuild; minTimes = 0;
+      mavenBuild.getOutputDirectory(); result = "target/classes"; minTimes = 0;
+      mavenBuild.getDirectory(); result = "target"; minTimes = 0;
       secDispatcher.decrypt(anyString);
       result = new Delegate<String>() {String delegate(String arg) {return arg;}}; minTimes = 0;
     }};
@@ -70,54 +81,136 @@ public class HelmPushMojoTest {
 
   @After
   public void tearDown() {
-    javaProject = null;
+    mavenProject = null;
     helmPushMojo = null;
     helmService = null;
   }
 
   @Test
-  public void executeInternalWithSkipShouldSkipExecution() throws Exception {
+  public void execute_withValidXMLConfig_shouldUpload() throws Exception {
+    // Given
+    helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    helmPushMojo.execute();
+    // Then
+    assertThat(helmPushMojo.helm)
+        .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml")
+        .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.ARTIFACTORY);
+    assertHelmServiceUpload();
+  }
+
+  @Test
+  public void execute_withValidXMLConfigAndUploadError_shouldFail() throws Exception {
+    // Given
+    helmPushMojo.helm.setStableRepository(completeValidRepository());
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337";
+      helmService.uploadHelmChart(withNotNull(), withNotNull(), withNotNull(), withNotNull());
+      result = new BadUploadException("Error uploading helm chart");
+    }};
+    // When
+    final MojoExecutionException result = assertThrows(MojoExecutionException.class,
+        () -> helmPushMojo.execute());
+    // Then
+    assertThat(result).hasMessage("Error uploading helm chart");
+  }
+
+  @Test
+  public void execute_withValidPropertiesConfig_shouldUpload() throws Exception {
+    // Given
+    mavenProperties.put("jkube.helm.snapshotRepository.name", "props repo");
+    mavenProperties.put("jkube.helm.snapshotRepository.type", "nExus");
+    mavenProperties.put("jkube.helm.snapshotRepository.url", "http://example.com/url");
+    mavenProperties.put("jkube.helm.snapshotRepository.username", "propsUser");
+    mavenProperties.put("jkube.helm.snapshotRepository.password", "propS3cret");
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    helmPushMojo.execute();
+    // Then
+    assertThat(helmPushMojo.helm)
+        .hasFieldOrPropertyWithValue("snapshotRepository.name", "props repo")
+        .hasFieldOrPropertyWithValue("snapshotRepository.url", "http://example.com/url")
+        .hasFieldOrPropertyWithValue("snapshotRepository.username", "propsUser")
+        .hasFieldOrPropertyWithValue("snapshotRepository.password", "propS3cret")
+        .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.NEXUS)
+        .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml");
+    assertHelmServiceUpload();
+  }
+
+  @Test
+  public void execute_withValidPropertiesAndXMLConfig_shouldGenerateWithPropertiesTakingPrecedence() throws Exception {
+    // Given
+    helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+    mavenProperties.put("jkube.helm.snapshotRepository.password", "propS3cret");
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    helmPushMojo.execute();
+    // Then
+    assertThat(helmPushMojo.helm)
+        .hasFieldOrPropertyWithValue("snapshotRepository.name", "SNAP-REPO")
+        .hasFieldOrPropertyWithValue("snapshotRepository.url", "https://example.com/artifactory")
+        .hasFieldOrPropertyWithValue("snapshotRepository.username", "User")
+        .hasFieldOrPropertyWithValue("snapshotRepository.password", "propS3cret")
+        .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.ARTIFACTORY)
+        .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml");
+    assertHelmServiceUpload();
+  }
+
+  @Test
+  public void executeInternal_withValidMavenSettings_shouldUpload() throws Exception {
+    // Given
+    helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+    helmPushMojo.helm.getSnapshotRepository().setUsername(null);
+    helmPushMojo.helm.getSnapshotRepository().setPassword(null);
+    helmPushMojo.settings.addServer(completeValidServer());
+    // @formatter:off
+    new Expectations() {{
+      mavenProject.getVersion(); result = "1337-SNAPSHOT";
+    }};
+    // @formatter:on
+    // When
+    helmPushMojo.execute();
+    // Then
+    // @formatter:off
+    new Verifications() {{
+      HelmService.uploadHelmChart(helmPushMojo.helm,
+          Collections.singletonList(RegistryServerConfiguration.builder()
+              .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build()),
+          withNotNull(), helmPushMojo.log);
+      times = 1;
+    }};
+    // @formatter:on
+  }
+
+  @Test
+  public void execute_withSkip_shouldSkipExecution() throws Exception {
     // Given
     helmPushMojo.skip = true;
     // When
-    helmPushMojo.executeInternal();
+    helmPushMojo.execute();
     // Then
     new Verifications() {{
-      HelmService.uploadHelmChart(helmPushMojo.helm, withNotNull(), withNotNull(), logger);
+      HelmService.uploadHelmChart(helmPushMojo.helm, withNotNull(), withNotNull(), withNotNull());
       times = 0;
     }};
   }
 
   @Test
-  public void executeInternal_shouldCallHelmServiceForUpload() throws Exception {
-    // Given
-    // When
-    helmPushMojo.executeInternal();
-
-    // Then
-    assertHelmServiceUpload();
-  }
-
-  @Test
-  public void executeInternal_whenHelmServiceThrowsException_shouldThrowMojoExecutionException() throws Exception {
-    // Given
-    BadUploadException badUploadException = new BadUploadException("Failure");
-    new Expectations() {{
-      HelmService.uploadHelmChart(helmPushMojo.helm, withNotNull(), withNotNull(), logger);
-      result = badUploadException;
-    }};
-    // When
-    MojoExecutionException mojoExecutionException = assertThrows(MojoExecutionException.class, () -> helmPushMojo.executeInternal());
-
-    // Then
-    assertThat(mojoExecutionException).hasMessage("Failure");
-    new Verifications() {{
-      logger.error("Error performing helm push", badUploadException);
-    }};
-  }
-
-  @Test
-  public void canExecuteWithSkipShouldReturnFalse() {
+  public void canExecute_withSkip_shouldReturnFalse() {
     // Given
     helmPushMojo.skip = true;
     // When
@@ -126,44 +219,30 @@ public class HelmPushMojoTest {
     assertThat(result).isFalse();
   }
 
-  @Test
-  public void getMavenPasswordDecryptionMethod_whenInvoked_callSecDispatcherForDecryption() throws SecDispatcherException {
-    // Given + When
-    String result = helmPushMojo.getMavenPasswordDecryptionMethod("foo");
-
-    // Then
-    assertThat(result).isEqualTo("foo");
-    new Verifications() {{
-      secDispatcher.decrypt("foo");
-      times = 1;
-    }};
-  }
-
-  @Test
-  public void getMavenPasswordDecryptionMethod_whenInvoked_throwsException() throws SecDispatcherException {
-    // Given
-    new Expectations() {{
-      secDispatcher.decrypt(anyString);
-      result = new SecDispatcherException("Failure");
-    }};
-
-    // When
-    String result = helmPushMojo.getMavenPasswordDecryptionMethod("foo");
-
-    // Then
-    assertThat(result).isNull();
-    new Verifications() {{
-      logger.error("Failure in decrypting password");
-      times = 1;
-    }};
-  }
-
   private void assertHelmServiceUpload() throws Exception {
     // @formatter:off
     new Verifications() {{
-      HelmService.uploadHelmChart(helmPushMojo.helm, withNotNull(), withNotNull(), logger);
+      HelmService.uploadHelmChart(helmPushMojo.helm, withNotNull(), withNotNull(), helmPushMojo.log);
       times = 1;
     }};
     // @formatter:on
+  }
+
+  private static HelmRepository completeValidRepository() {
+    final HelmRepository repository = new HelmRepository();
+    repository.setName("SNAP-REPO");
+    repository.setType("ArtIFACTORY");
+    repository.setUrl("https://example.com/artifactory");
+    repository.setUsername("User");
+    repository.setPassword("S3cret");
+    return repository;
+  }
+
+  private static Server completeValidServer() {
+    final Server server = new Server();
+    server.setId("SNAP-REPO");
+    server.setUsername("mavenUser");
+    server.setPassword("mavenPassword");
+    return server;
   }
 }
