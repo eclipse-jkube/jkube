@@ -1,12 +1,15 @@
 /**
- * Copyright (c) 2019 Red Hat, Inc. This program and the accompanying materials are made available
- * under the terms of the Eclipse Public License 2.0 which is available at:
- * <p>
- * https://www.eclipse.org/legal/epl-2.0/
- * <p>
+ * Copyright (c) 2019 Red Hat, Inc.
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at:
+ *
+ *     https://www.eclipse.org/legal/epl-2.0/
+ *
  * SPDX-License-Identifier: EPL-2.0
- * <p>
- * Contributors: Red Hat, Inc. - initial API and implementation
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
  */
 package org.eclipse.jkube.generator.api;
 
@@ -57,8 +60,7 @@ public class GeneratorManagerTest {
         .contains("processed-by-test");
     // @formatter:off
     new Verifications() {{
-      logger.info("Running generator %s", "fake-generator");
-      times = 1;
+      logger.info("Running generator %s", "fake-generator"); times = 1;
     }};
     // @formatter:on
   }
@@ -80,8 +82,7 @@ public class GeneratorManagerTest {
     }
 
     @Override
-    public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs,
-        boolean prePackagePhase) {
+    public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) {
       return existingConfigs.stream()
           .peek(ic -> {
             ic.setName("processed-by-test");
