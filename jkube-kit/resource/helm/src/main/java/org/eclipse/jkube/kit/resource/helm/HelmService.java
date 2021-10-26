@@ -28,7 +28,9 @@ import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
@@ -56,9 +58,11 @@ public class HelmService {
   private static final String VALUES_FILENAME = "values" + YAML_EXTENSION;
   private static final String GOLANG_EXPRESSION_REGEX = "\\{\\{.+}}";
 
+  private final JKubeConfiguration jKubeConfiguration;
   private final KitLogger logger;
 
-  public HelmService(KitLogger logger) {
+  public HelmService(JKubeConfiguration jKubeConfiguration, KitLogger logger) {
+    this.jKubeConfiguration = jKubeConfiguration;
     this.logger = logger;
   }
 
@@ -114,12 +118,14 @@ public class HelmService {
    * @throws IOException in case of any I/O exception when .
    */
   public void uploadHelmChart(HelmConfig helm) throws BadUploadException, IOException {
-    uploadHelmChart(helm, Collections.emptyList(), s -> s);
-  }
-
-  public void uploadHelmChart(HelmConfig helm, List<RegistryServerConfiguration> registryServerConfigurations, UnaryOperator<String> passwordDecryptor) throws BadUploadException, IOException {
     final HelmRepository helmRepository = selectHelmRepository(helm);
     if (isRepositoryValid(helmRepository)) {
+      final List<RegistryServerConfiguration> registryServerConfigurations = Optional
+          .ofNullable(jKubeConfiguration).map(JKubeConfiguration::getRegistryConfig).map(RegistryConfig::getSettings)
+          .orElse(Collections.emptyList());
+      final UnaryOperator<String> passwordDecryptor = Optional.ofNullable(jKubeConfiguration)
+          .map(JKubeConfiguration::getRegistryConfig).map(RegistryConfig::getPasswordDecryptionMethod)
+          .orElse(s -> s);
       setAuthentication(helmRepository, logger, registryServerConfigurations, passwordDecryptor);
       uploadHelmChart(helm, helmRepository);
     } else {

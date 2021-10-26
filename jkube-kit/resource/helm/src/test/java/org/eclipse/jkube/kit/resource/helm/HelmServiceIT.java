@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
@@ -49,7 +50,7 @@ public class HelmServiceIT {
 
   @Before
   public void setUp() throws Exception {
-    helmService = new HelmService(new KitLogger.SilentLogger());
+    helmService = new HelmService(new JKubeConfiguration(), new KitLogger.SilentLogger());
     helmOutputDir = temporaryFolder.newFolder("helm-output");
   }
 

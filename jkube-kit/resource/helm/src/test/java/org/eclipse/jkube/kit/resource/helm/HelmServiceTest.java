@@ -16,10 +16,12 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
@@ -38,12 +40,15 @@ import static org.junit.Assert.assertThrows;
 public class HelmServiceTest {
 
   private HelmConfig.HelmConfigBuilder helmConfig;
+  private JKubeConfiguration jKubeConfiguration;
   private HelmService helmService;
 
   @Before
   public void setUp() throws Exception {
     helmConfig = HelmConfig.builder();
-    helmService = new HelmService(new KitLogger.SilentLogger());
+    jKubeConfiguration = JKubeConfiguration.builder()
+        .registryConfig(RegistryConfig.builder().settings(new ArrayList<>()).build()).build();
+    helmService = new HelmService(jKubeConfiguration, new KitLogger.SilentLogger());
   }
 
   @After
@@ -145,10 +150,9 @@ public class HelmServiceTest {
     final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
         .snapshotRepository(HelmRepository.builder().name("INVALID").build())
         .build();
-    final List<RegistryServerConfiguration> serverConfigurationList = Collections.emptyList();
     // When
     final IllegalStateException result = assertThrows(IllegalStateException.class,
-      () -> helmService.uploadHelmChart(helm, serverConfigurationList, s -> s));
+      () -> helmService.uploadHelmChart(helm));
     // Then
     assertThat(result).hasMessage("No repository or invalid repository configured for upload");
   }
@@ -157,10 +161,9 @@ public class HelmServiceTest {
   public void uploadHelmChart_withMissingRepositoryConfiguration_shouldFail() {
     // Given
     final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT").build();
-    final List<RegistryServerConfiguration> serverConfigurationList = Collections.emptyList();
     // When
     final IllegalStateException result = assertThrows(IllegalStateException.class,
-      () -> helmService.uploadHelmChart(helm, serverConfigurationList, s -> s));
+      () -> helmService.uploadHelmChart(helm));
     // Then
     assertThat(result).hasMessage("No repository or invalid repository configured for upload");
   }
@@ -170,13 +173,11 @@ public class HelmServiceTest {
     // Given
     final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
         .snapshotRepository(completeValidRepository().username(null).build()).build();
-    final List<RegistryServerConfiguration> serverConfigurations = Collections.singletonList(
-        RegistryServerConfiguration.builder()
-            .id("SNAP-REPO")
-            .build());
+    jKubeConfiguration.getRegistryConfig().getSettings()
+        .add(RegistryServerConfiguration.builder().id("SNAP-REPO").build());
     // When
     final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
-        helmService.uploadHelmChart(helm, serverConfigurations, s -> s));
+        helmService.uploadHelmChart(helm));
     // Then
     assertThat(result).hasMessage("Repo SNAP-REPO was found in server list but has no username/password.");
   }
@@ -186,13 +187,11 @@ public class HelmServiceTest {
     // Given
     final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
         .snapshotRepository(completeValidRepository().password(null).build()).build();
-    final List<RegistryServerConfiguration> serverConfigurations = Collections.singletonList(
-        RegistryServerConfiguration.builder()
-            .id("SNAP-REPO")
-            .build());
+    jKubeConfiguration.getRegistryConfig().getSettings()
+        .add(RegistryServerConfiguration.builder().id("SNAP-REPO").build());
     // When
     final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
-        helmService.uploadHelmChart(helm, serverConfigurations, s -> s));
+        helmService.uploadHelmChart(helm));
     // Then
     assertThat(result).hasMessage("Repo SNAP-REPO has a username but no password defined.");
   }
@@ -203,13 +202,11 @@ public class HelmServiceTest {
     // Given
     final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
         .snapshotRepository(completeValidRepository().username(null).build()).build();
-    final List<RegistryServerConfiguration> serverConfigurations = Collections.singletonList(
-        RegistryServerConfiguration.builder()
-            .id("DIFFERENT")
-            .build());
+    jKubeConfiguration.getRegistryConfig().getSettings()
+        .add(RegistryServerConfiguration.builder().id("DIFFERENT").build());
     // When
     final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
-        helmService.uploadHelmChart(helm, serverConfigurations, s -> s));
+        helmService.uploadHelmChart(helm));
     // Then
     assertThat(result).hasMessage("No credentials found for SNAP-REPO in configuration or settings.xml server list.");
   }

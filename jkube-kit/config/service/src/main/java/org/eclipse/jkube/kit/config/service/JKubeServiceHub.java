@@ -170,7 +170,7 @@ public class JKubeServiceHub implements Closeable {
             return new KubernetesUndeployService(this, log);
         });
         migrateService = new LazyBuilder<>(() -> new MigrateService(getConfiguration().getBasedir(), log));
-        helmService = new LazyBuilder<>(() -> new HelmService(log));
+        helmService = new LazyBuilder<>(() -> new HelmService(getConfiguration(), log));
     }
 
     private void validateIfConnectedToCluster() {
