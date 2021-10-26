@@ -30,9 +30,11 @@ import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
+import org.eclipse.jkube.kit.resource.helm.HelmService;
 
 import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
 
@@ -64,6 +66,7 @@ public class JKubeServiceHub implements Closeable {
     private LazyBuilder<UndeployService> undeployService;
     private LazyBuilder<MigrateService> migrateService;
     private LazyBuilder<DebugService> debugService;
+    private LazyBuilder<HelmService> helmService;
     private final boolean offline;
 
     @Builder
@@ -89,8 +92,6 @@ public class JKubeServiceHub implements Closeable {
         Objects.requireNonNull(platformMode, "platformMode is a required parameter");
 
         initClusterAccessAndLazyBuilders();
-        artifactResolverService = new LazyBuilder<>(() -> new JKubeArtifactResolverService(configuration.getProject()));
-        migrateService = new LazyBuilder<>(() -> new MigrateService(getConfiguration().getBasedir(), log));
     }
 
     @Override
@@ -135,6 +136,10 @@ public class JKubeServiceHub implements Closeable {
         return debugService.get();
     }
 
+    public HelmService getHelmService() {
+        return helmService.get();
+    }
+
     private void initClusterAccessAndLazyBuilders() {
         if (!offline) {
             if (clusterAccess == null) {
@@ -143,6 +148,8 @@ public class JKubeServiceHub implements Closeable {
             }
             this.client = clusterAccess.createDefaultClient();
         }
+        artifactResolverService = new LazyBuilder<>(() -> new JKubeArtifactResolverService(configuration.getProject()));
+        buildServiceManager = new LazyBuilder<>(() -> new BuildServiceManager(this));
         applyService = new LazyBuilder<>(() -> {
             validateIfConnectedToCluster();
             return new ApplyService(client, log);
@@ -162,7 +169,8 @@ public class JKubeServiceHub implements Closeable {
             }
             return new KubernetesUndeployService(this, log);
         });
-        buildServiceManager = new LazyBuilder<>(() -> new BuildServiceManager(this));
+        migrateService = new LazyBuilder<>(() -> new MigrateService(getConfiguration().getBasedir(), log));
+        helmService = new LazyBuilder<>(() -> new HelmService(log));
     }
 
     private void validateIfConnectedToCluster() {

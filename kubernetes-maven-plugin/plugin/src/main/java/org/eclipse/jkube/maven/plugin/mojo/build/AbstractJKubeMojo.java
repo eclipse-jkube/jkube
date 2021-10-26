@@ -113,8 +113,6 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         return log;
     }
 
-
-
     protected RuntimeMode getRuntimeMode() {
         return RuntimeMode.KUBERNETES;
     }

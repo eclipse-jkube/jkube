@@ -11,11 +11,10 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.access;
+package org.eclipse.jkube.kit.build.api.model;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.jkube.kit.build.api.model.Container;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 
 import java.io.File;
@@ -142,7 +141,7 @@ public class PortMapping {
      *
      * @return 'PortBindings' object or null if no port mappings are used.
      */
-    JsonObject toDockerPortBindingsJson() {
+    public JsonObject toDockerPortBindingsJson() {
         Map<String, Integer> portMap = getContainerPortToHostPortMap();
         if (!portMap.isEmpty()) {
             JsonObject portBindings = new JsonObject();

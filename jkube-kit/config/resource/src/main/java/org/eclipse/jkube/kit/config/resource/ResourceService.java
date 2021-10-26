@@ -11,14 +11,13 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.config.service;
+package org.eclipse.jkube.kit.config.resource;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
 
 import io.fabric8.kubernetes.api.model.KubernetesList;
 

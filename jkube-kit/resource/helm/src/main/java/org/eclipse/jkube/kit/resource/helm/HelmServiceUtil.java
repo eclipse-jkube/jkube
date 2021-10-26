@@ -136,7 +136,7 @@ public class HelmServiceUtil {
   }
 
   static List<HelmConfig.HelmType> resolveHelmTypes(HelmConfig.HelmType defaultHelmType, JavaProject project) {
-    List<HelmConfig.HelmType> helmTypes = Optional.ofNullable(getProperty(PROPERTY_TYPE, project))
+    final List<HelmConfig.HelmType> helmTypes = Optional.ofNullable(getProperty(PROPERTY_TYPE, project))
       .filter(StringUtils::isNotBlank)
       .map(types -> StringUtils.split(types, ","))
       .map(Stream::of)

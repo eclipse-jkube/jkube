@@ -15,13 +15,12 @@ package org.eclipse.jkube.kit.resource.helm;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
@@ -32,6 +31,7 @@ import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
 import mockit.Expectations;
 import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -41,85 +41,124 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class HelmServiceUtilTest {
 
-  @Mocked
-  private JavaProject javaProject;
-
-  @Mocked
-  KitLogger kitLogger;
-
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+  private File manifest;
+  private File templateDir;
+  private JavaProject javaProject;
+
+  @Before
+  public void setUp() throws Exception {
+    final File baseDir = temporaryFolder.newFolder("test-project");
+    final File buildDir = new File(baseDir, "target");
+    manifest = new File(buildDir, "classes/META-INF/jkube/kubernetes.yml");
+    templateDir = new File(buildDir, "jkube");
+    FileUtils.forceMkdir(templateDir);
+    javaProject = JavaProject.builder()
+        .properties(new Properties())
+        .baseDirectory(baseDir)
+        .outputDirectory(new File(buildDir, "classes"))
+        .buildDirectory(buildDir)
+        .artifactId("artifact-id")
+        .version("1337")
+        .description("A configured description")
+        .url("https://project.url")
+        .scmUrl("https://scm.url")
+        .maintainer(Maintainer.builder().email("john@example.com").name("John").build())
+        .maintainer(Maintainer.builder().email(null).name(null).build())
+        .build();
+  }
+
   @Test
   public void initHelmConfig_withNoConfig_shouldInitConfigWithDefaultValues() throws IOException {
-    // Given
-    File baseDir = temporaryFolder.newFolder("test-project");
-    File manifest = new File(baseDir, "target/classes/META-INF/jkube/kubernetes.yml");
-    File templateDir = new File(baseDir, "target/jkube");
-    List<Maintainer> maintainers = Arrays.asList(
-      Maintainer.builder().email("john@example.com").name("John").build(),
-      Maintainer.builder().email(null).name(null).build()
-    );
-    boolean templateDirCreated = templateDir.mkdirs();
-    // @formatter:off
-    new Expectations() {{
-      javaProject.getProperties(); result = new Properties();
-      javaProject.getOutputDirectory(); result = new File(baseDir, "target/classes");
-      javaProject.getBuildDirectory(); result = "target";
-      javaProject.getArtifactId(); result = "artifact-id";
-      javaProject.getVersion(); result = "1337";
-      javaProject.getDescription(); result = "A description from Maven";
-      javaProject.getUrl(); result = "https://project.url";
-      javaProject.getScmUrl(); result = "https://scm.url";
-      javaProject.getMaintainers(); result = maintainers;
-    }};
-    // @formatter:on
-
     // When
-    HelmConfig helm = HelmServiceUtil.initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, null)
+    final HelmConfig result = HelmServiceUtil
+        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, null)
         .build();
-
     // Then
-    assertThat(templateDirCreated).isTrue();
-    assertThat(helm)
+    assertThat(result)
       .isNotNull()
       .hasFieldOrPropertyWithValue("chart", "artifact-id")
       .hasFieldOrPropertyWithValue("chartExtension", "tar.gz")
       .hasFieldOrPropertyWithValue("version", "1337")
-      .hasFieldOrPropertyWithValue("description", "A description from Maven")
+      .hasFieldOrPropertyWithValue("description", "A configured description")
       .hasFieldOrPropertyWithValue("home", "https://project.url")
       .hasFieldOrPropertyWithValue("sources", Collections.singletonList("https://scm.url"))
+      .hasFieldOrPropertyWithValue("maintainers",
+          Collections.singletonList(new Maintainer("John", "john@example.com")))
+      .hasFieldOrPropertyWithValue("types", Collections.singletonList(HelmConfig.HelmType.KUBERNETES))
+      .hasFieldOrPropertyWithValue("additionalFiles", Collections.emptyList())
+      .hasFieldOrPropertyWithValue("templates", Collections.emptyList())
       .hasFieldOrProperty("icon");
-    assertThat(helm.getSourceDir()).endsWith("target/classes/META-INF/jkube/");
-    assertThat(helm.getOutputDir()).endsWith("target/jkube/helm/artifact-id");
-    assertThat(helm.getTarballOutputDir()).endsWith("target");
-    assertThat(helm.getMaintainers()).contains(new Maintainer("John", "john@example.com"));
-    assertThat(helm.getAdditionalFiles()).isEmpty();
-    assertThat(helm.getTemplates()).isEmpty();
-    assertThat(helm.getTypes()).contains(HelmConfig.HelmType.KUBERNETES);
+    assertThat(result.getSourceDir()).endsWith("target/classes/META-INF/jkube/");
+    assertThat(result.getOutputDir()).endsWith("target/jkube/helm/artifact-id");
+    assertThat(result.getTarballOutputDir()).endsWith("target");
+  }
+
+  @Test
+  public void initHelmConfig_withOriginalConfig_shouldInitConfigWithoutOverriding() throws IOException {
+    // Given
+    final HelmConfig original = HelmConfig.builder()
+        .chart("Original Name")
+        .version("313373")
+        .sources(Collections.emptyList())
+        .maintainers(Collections.emptyList())
+        .sourceDir("sources")
+        .outputDir("output")
+        .build();
+    // When
+    final HelmConfig result = HelmServiceUtil
+        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, original)
+        .build();
+    // Then
+    assertThat(result)
+      .isNotNull()
+      .hasFieldOrPropertyWithValue("chart", "Original Name")
+      .hasFieldOrPropertyWithValue("chartExtension", "tar.gz")
+      .hasFieldOrPropertyWithValue("version", "313373")
+      .hasFieldOrPropertyWithValue("description", "A configured description")
+      .hasFieldOrPropertyWithValue("home", "https://project.url")
+      .hasFieldOrPropertyWithValue("sources", Collections.emptyList())
+      .hasFieldOrPropertyWithValue("maintainers", Collections.emptyList())
+      .hasFieldOrPropertyWithValue("sourceDir", "sources")
+      .hasFieldOrPropertyWithValue("outputDir", "output");
+  }
+
+  @Test
+  public void initHelmConfig_withTypeProperty_shouldInitConfigWithForSpecifiedTypes() throws IOException {
+    // Given
+    javaProject.getProperties().put("jkube.helm.type", "Openshift,KuBernetEs");
+    // When
+    final HelmConfig result = HelmServiceUtil
+        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, null)
+        .build();
+    // Then
+    assertThat(result)
+      .hasFieldOrPropertyWithValue("chart", "artifact-id")
+      .hasFieldOrPropertyWithValue("version", "1337")
+      .extracting(HelmConfig::getTypes).asList()
+      .containsExactlyInAnyOrder(
+          HelmConfig.HelmType.KUBERNETES,
+          HelmConfig.HelmType.OPENSHIFT
+      );
   }
 
   @Test
   public void initHelmPushConfig_withValidProperties_shouldInitHelmConfigWithConfiguredProperties() {
     // Given
     HelmConfig helm = new HelmConfig();
-    Properties properties = new Properties();
-    properties.put("jkube.helm.snapshotRepository.name", "props repo");
-    properties.put("jkube.helm.snapshotRepository.type", "nExus");
-    properties.put("jkube.helm.snapshotRepository.url", "http://example.com/url");
-    properties.put("jkube.helm.snapshotRepository.username", "propsUser");
-    properties.put("jkube.helm.snapshotRepository.password", "propS3cret");
-    // @formatter:off
-    new Expectations() {{
-      javaProject.getProperties(); result = properties;
-    }};
-    // @formatter:on
+    javaProject.getProperties().put("jkube.helm.snapshotRepository.name", "props repo");
+    javaProject.getProperties().put("jkube.helm.snapshotRepository.type", "nExus");
+    javaProject.getProperties().put("jkube.helm.snapshotRepository.url", "https://example.com/url");
+    javaProject.getProperties().put("jkube.helm.snapshotRepository.username", "propsUser");
+    javaProject.getProperties().put("jkube.helm.snapshotRepository.password", "propS3cret");
     // When
     HelmServiceUtil.initHelmPushConfig(helm, javaProject);
     // Then
     assertThat(helm)
       .hasFieldOrPropertyWithValue("snapshotRepository.name", "props repo")
-      .hasFieldOrPropertyWithValue("snapshotRepository.url", "http://example.com/url")
+      .hasFieldOrPropertyWithValue("snapshotRepository.url", "https://example.com/url")
       .hasFieldOrPropertyWithValue("snapshotRepository.username", "propsUser")
       .hasFieldOrPropertyWithValue("snapshotRepository.password", "propS3cret")
       .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepository.HelmRepoType.NEXUS)
@@ -137,13 +176,7 @@ public class HelmServiceUtilTest {
       .username("jkubeUser")
       .password("S3cret")
       .build());
-    Properties properties = new Properties();
-    properties.put("jkube.helm.snapshotRepository.password", "propS3cret");
-    // @formatter:off
-    new Expectations() {{
-      javaProject.getProperties(); result = properties;
-    }};
-    // @formatter:on
+    javaProject.getProperties().put("jkube.helm.snapshotRepository.password", "propS3cret");
     // When
     HelmServiceUtil.initHelmPushConfig(helm, javaProject);
     // Then
@@ -158,15 +191,10 @@ public class HelmServiceUtilTest {
   @Test
   public void resolveFromPropertyOrDefaultPropertyHasPrecedenceOverConfiguration() {
     // Given
-    final Properties properties = new Properties();
-    properties.put("jkube.helm.property", "Overrides Current Value");
-    properties.put("jkube.helm.otherProperty", "Ignored");
+    javaProject.getProperties().put("jkube.helm.property", "Overrides Current Value");
+    javaProject.getProperties().put("jkube.helm.otherProperty", "Ignored");
     final HelmConfig config = new HelmConfig();
     config.setChart("This value will be overridden");
-    new Expectations() {{
-      javaProject.getProperties();
-      result = properties;
-    }};
     // When
     String value = HelmServiceUtil.resolveFromPropertyOrDefault(
       "jkube.helm.property", javaProject, config::getChart, "default is ignored");

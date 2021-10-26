@@ -17,8 +17,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.resource.helm.BadUploadException;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository;
@@ -45,9 +45,9 @@ import static org.junit.Assert.assertThrows;
 public class HelmPushMojoTest {
 
   @Mocked
-  KitLogger logger;
-  @Mocked
   MavenProject mavenProject;
+  @Mocked
+  JKubeServiceHub jKubeServiceHub;
   @Mocked
   Build mavenBuild;
   @Mocked
@@ -67,8 +67,10 @@ public class HelmPushMojoTest {
     helmPushMojo.project = mavenProject;
     helmPushMojo.settings = new Settings();
     helmPushMojo.securityDispatcher = secDispatcher;
+    helmPushMojo.jkubeServiceHub = jKubeServiceHub;
     // @formatter:off
     new Expectations(helmPushMojo) {{
+      jKubeServiceHub.getHelmService(); result = helmService; minTimes = 0;
       mavenProject.getProperties(); result = mavenProperties; minTimes = 0;
       mavenProject.getBuild(); result = mavenBuild; minTimes = 0;
       mavenBuild.getOutputDirectory(); result = "target/classes"; minTimes = 0;
@@ -111,7 +113,7 @@ public class HelmPushMojoTest {
     // @formatter:off
     new Expectations() {{
       mavenProject.getVersion(); result = "1337";
-      helmService.uploadHelmChart(withNotNull(), withNotNull(), withNotNull(), withNotNull());
+      helmService.uploadHelmChart(withNotNull(), withNotNull(), withNotNull());
       result = new BadUploadException("Error uploading helm chart");
     }};
     // When
@@ -187,10 +189,10 @@ public class HelmPushMojoTest {
     // Then
     // @formatter:off
     new Verifications() {{
-      HelmService.uploadHelmChart(helmPushMojo.helm,
+      helmService.uploadHelmChart(helmPushMojo.helm,
           Collections.singletonList(RegistryServerConfiguration.builder()
               .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build()),
-          withNotNull(), helmPushMojo.log);
+          withNotNull());
       times = 1;
     }};
     // @formatter:on
@@ -204,7 +206,7 @@ public class HelmPushMojoTest {
     helmPushMojo.execute();
     // Then
     new Verifications() {{
-      HelmService.uploadHelmChart(helmPushMojo.helm, withNotNull(), withNotNull(), withNotNull());
+      helmService.uploadHelmChart(helmPushMojo.helm, withNotNull(), withNotNull());
       times = 0;
     }};
   }
@@ -222,7 +224,7 @@ public class HelmPushMojoTest {
   private void assertHelmServiceUpload() throws Exception {
     // @formatter:off
     new Verifications() {{
-      HelmService.uploadHelmChart(helmPushMojo.helm, withNotNull(), withNotNull(), helmPushMojo.log);
+      helmService.uploadHelmChart(helmPushMojo.helm, withNotNull(), withNotNull());
       times = 1;
     }};
     // @formatter:on

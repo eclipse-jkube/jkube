@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyFiles;
-import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
+import org.eclipse.jkube.kit.build.api.model.PortMapping;
 import org.eclipse.jkube.kit.build.service.docker.helper.StartContainerExecutor;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.build.service.docker.watch.CopyFilesTask;

@@ -25,7 +25,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.ContainerNetworkingConf
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.ExecException;
-import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
+import org.eclipse.jkube.kit.build.api.model.PortMapping;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.config.image.NetworkConfig;
 import org.eclipse.jkube.kit.config.image.RestartPolicy;
