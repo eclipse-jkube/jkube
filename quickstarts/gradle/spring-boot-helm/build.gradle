@@ -41,3 +41,26 @@ kubernetes {
         }]
     }
 }
+
+openshift {
+    resources {
+        labels {
+            all {
+                testProject = 'spring-boot-with-yaml-label-for-all'
+            }
+        }
+    }
+    generator {
+        config {
+            'spring-boot' {
+                color = 'always'
+            }
+        }
+    }
+    helm {
+        maintainers = [{
+            name = 'John'
+            email = 'john.doe@example.com'
+        }]
+    }
+}

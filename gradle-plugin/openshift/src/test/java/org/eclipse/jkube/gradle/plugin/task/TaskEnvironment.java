@@ -62,4 +62,8 @@ public class TaskEnvironment extends TemporaryFolder {
     final File manifestsDir = newFolder("build", "classes", "java", "main", "META-INF", "jkube");
     FileUtils.touch(new File(manifestsDir, "openshift.yml").toPath());
   }
+
+  public void withOpenShiftTemplate() throws IOException {
+    newFolder("build", "classes", "java", "main", "META-INF", "jkube", "openshift");
+  }
 }

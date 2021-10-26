@@ -126,11 +126,13 @@ In a next step you can install this via the https://github.com/helm/helm/release
 
 [source, sh, subs="+attributes"]
 ----
-helm install nameForChartInRepository build/jkube/helm/${chartName}/kubernetes
+helm install nameForChartInRepository build/jkube/helm/${chartName}/{cluster}
 ----
 or
+
+[source, sh, subs="+attributes"]
 ----
-helm install build/jkube/helm/${chartName}/kubernetes --generate-name
+helm install build/jkube/helm/${chartName}/{cluster} --generate-name
 ----
 
 In addition, this task will also create a tar-archive below `${basedir}/build` which contains the chart with its template.
