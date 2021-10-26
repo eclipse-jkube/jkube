@@ -203,6 +203,12 @@ ifeval::["{task-prefix}" == "k8s"]
 
   Defaults to `${basedir}/build/META-INF/jkube/kubernetes.yml`.
 | `jkube.kubernetesManifest`
+
+| *kubernetesTemplate*
+| File or directory containing the Kubernetes YAML files to be included as Chart templates.
+
+Defaults to `${basedir}/build/classes/java/main/META-INF/jkube/kubernetes`
+| `jkube.kubernetesTemplate`
 endif::[]
 
 | *localDebugPort*

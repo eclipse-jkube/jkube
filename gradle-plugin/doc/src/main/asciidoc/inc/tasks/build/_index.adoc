@@ -8,3 +8,5 @@ include::_jkube-push.adoc[]
 include::_jkube-resource.adoc[]
 
 include::_jkube-apply.adoc[]
+
+include::_jkube-helm.adoc[]
