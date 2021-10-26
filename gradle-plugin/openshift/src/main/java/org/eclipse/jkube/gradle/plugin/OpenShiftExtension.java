@@ -25,11 +25,13 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.gradle.api.provider.Property;
 
 public abstract class OpenShiftExtension extends KubernetesExtension {
 
   public static final Path DEFAULT_OPENSHIFT_MANIFEST = Paths.get("META-INF","jkube","openshift.yml");
+  private static final Path DEFAULT_OPENSHIFT_TEMPLATE = Paths.get("META-INF", "jkube", "openshift");
   private static final String DEFAULT_OPENSHIFT_PULLSECRET = "pullsecret-jkube";
   private static final String DEFAULT_S2I_BUILDNAME_SUFFIX = "-s2i";
   public static final String DEFAULT_BUILD_OUTPUT_KIND = "ImageStreamTag";
@@ -106,6 +108,15 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   @Override
   public boolean isSupportOAuthClients() {
     return true;
+  }
+
+  @Override
+  public HelmConfig.HelmType getDefaultHelmType() {
+    return HelmConfig.HelmType.OPENSHIFT;
+  }
+
+  public File getOpenShiftTemplateOrDefault() {
+    return getOrDefaultFile("jkube.kubernetesTemplate", this::getKubernetesTemplate, javaProject.getOutputDirectory().toPath().resolve(DEFAULT_OPENSHIFT_TEMPLATE).toFile());
   }
 
   public File getOpenShiftManifestOrDefault() {
