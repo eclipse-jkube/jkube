@@ -67,7 +67,7 @@ public class HelmServiceUtil {
   private HelmServiceUtil() { }
 
   public static HelmConfig.HelmConfigBuilder initHelmConfig(
-      HelmConfig.HelmType defaultHelmType, JavaProject project, File manifest, File templateDir, HelmConfig original)
+      HelmConfig.HelmType defaultHelmType, JavaProject project, File manifest, File template, HelmConfig original)
       throws IOException {
 
     if (original == null) {
@@ -81,7 +81,7 @@ public class HelmServiceUtil {
     if (original.getSources() == null) {
       original.setSources(project.getScmUrl() != null ? Collections.singletonList(project.getScmUrl()) : Collections.emptyList());
     }
-    if (original.getMaintainers() == null) {
+    if (original.getMaintainers() == null && project.getMaintainers() != null) {
       original.setMaintainers(project.getMaintainers().stream()
           .filter(m -> StringUtils.isNotBlank(m.getName()) || StringUtils.isNotBlank(m.getEmail()))
           .map(m -> new Maintainer(m.getName(), m.getEmail()))
@@ -90,7 +90,7 @@ public class HelmServiceUtil {
     original.setIcon(resolveFromPropertyOrDefault(PROPERTY_ICON, project, original::getIcon, findIconURL(manifest)));
     original.setAdditionalFiles(getAdditionalFiles(original, project));
     if (original.getTemplates() == null) {
-      original.setTemplates(findTemplates(templateDir));
+      original.setTemplates(findTemplates(template));
     }
     original.setTypes(resolveHelmTypes(defaultHelmType, project));
 

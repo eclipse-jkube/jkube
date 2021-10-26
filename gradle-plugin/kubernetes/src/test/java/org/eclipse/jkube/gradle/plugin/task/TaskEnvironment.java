@@ -62,4 +62,8 @@ public class TaskEnvironment extends TemporaryFolder {
     final File manifestsDir = newFolder("build", "classes", "java", "main", "META-INF", "jkube");
     FileUtils.touch(new File(manifestsDir, "kubernetes.yml").toPath());
   }
+
+  public void withKubernetesTemplate() throws IOException {
+    newFolder("build", "classes", "java", "main", "META-INF", "jkube", "kubernetes");
+  }
 }

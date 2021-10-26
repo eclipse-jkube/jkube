@@ -80,10 +80,11 @@ public class KubernetesPluginTest {
     final Map<String, Collection<Class<? extends Task>>> result = new KubernetesPlugin().getTaskPrecedence();
     // Then
     assertThat(result)
-        .hasSize(3)
+        .hasSize(4)
         .containsEntry("k8sApply", Collections.singletonList(KubernetesResourceTask.class))
         .containsEntry("k8sDebug",
             Arrays.asList(KubernetesBuildTask.class, KubernetesResourceTask.class, KubernetesApplyTask.class))
-        .containsEntry("k8sPush", Collections.singletonList(KubernetesBuildTask.class));
+        .containsEntry("k8sPush", Collections.singletonList(KubernetesBuildTask.class))
+        .containsEntry("k8sHelm", Collections.singletonList(KubernetesResourceTask.class));
   }
 }
