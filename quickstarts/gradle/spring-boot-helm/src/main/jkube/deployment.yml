@@ -1,0 +1,41 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+metadata:
+  namespace: ${helm_namespace}
+  labels:
+    project: ${projectArtifactId}
+    hystrix.enabled: true
+    hystrix.cluster: default
+    version: ${projectVersion}
+  annotations:
+    jkube.helm.sh/expression-example: ${golang_expression}
+    jkube.helm.sh/expression-example-scalar: ${golang_expression_scalar}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      namespace: ${helm_namespace}
+      labels:
+        project: ${projectArtifactId}
+        hystrix.enabled: true
+        hystrix.cluster: default
+        version: ${projectVersion}
+    spec:
+      containers:
+        - resources:
+            limits:
+              memory: ${limits_memory}
+            requests:
+              memory: ${requests_memory}
