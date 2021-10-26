@@ -14,8 +14,10 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.plugins.annotations.Component;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
@@ -35,6 +37,8 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -75,7 +79,11 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     @Parameter
     protected ClusterConfiguration access;
 
+    @Component(role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class, hint = "default")
+    protected SecDispatcher securityDispatcher;
+
     protected KitLogger log;
+
     protected ClusterAccess clusterAccess;
 
     // The JKube service hub
@@ -149,6 +157,10 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
             .configuration(JKubeConfiguration.builder()
                 .project(javaProject)
                 .reactorProjects(Collections.singletonList(javaProject))
+                .registryConfig(RegistryConfig.builder()
+                    .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
+                    .passwordDecryptionMethod(this::decrypt)
+                    .build())
                 .build())
             .clusterAccess(clusterAccess)
             .offline(offline)
@@ -159,5 +171,13 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         return resources;
     }
 
+    String decrypt(String password) {
+        try {
+            return securityDispatcher.decrypt(password);
+        } catch (SecDispatcherException e) {
+            getKitLogger().error("Failure in decrypting password");
+        }
+        return password;
+    }
 }
 
