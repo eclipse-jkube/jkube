@@ -28,6 +28,7 @@ skippush: true
 skiptag: true
 pushregistry: quay.io
 pushretries: 5
+kubernetestemplate: "@endsWith('extension-configuration/build/META-INF/jkube/kubernetes')@"
 access:
   namespace: "default"
 enricher:
@@ -83,3 +84,13 @@ mappings:
   - "foo"
   - "bar"
   valid: true
+helm:
+  chart: "This is a test"
+  sources:
+    - "https://different.source/yaml.yml"
+  maintainers:
+    - name: "John"
+      email: "john.doe@example.com"
+  icon: "This is the icon"
+  types:
+    - "KUBERNETES"

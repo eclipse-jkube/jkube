@@ -43,6 +43,7 @@ kubernetes {
     skipTag = true
     pushRegistry = 'quay.io'
     pushRetries = 5
+    kubernetesTemplate = file('build/META-INF/jkube/kubernetes')
     access {
         namespace = 'default'
     }
@@ -77,5 +78,17 @@ kubernetes {
             kind = 'Var'
             filenameTypes = 'foo, bar'
         }
+    }
+    helm {
+        chart = 'This is a test'
+        type = 'KuBernetEs'
+        icon = 'This is the icon'
+        sources = [
+                'https://different.source/yaml.yml'
+        ]
+        maintainers = [{
+            name = 'John'
+            email = 'john.doe@example.com'
+        }]
     }
 }

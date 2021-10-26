@@ -42,6 +42,7 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import groovy.lang.Closure;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.gradle.api.provider.Property;
 
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
@@ -108,6 +109,7 @@ public abstract class KubernetesExtension {
 
   private static final boolean DEFAULT_OFFLINE = false;
   private static final Path DEFAULT_KUBERNETES_MANIFEST = Paths.get("META-INF", "jkube", "kubernetes.yml");
+  private static final Path DEFAULT_KUBERNETES_TEMPLATE = Paths.get("META-INF", "jkube", "kubernetes");
   private static final Path DEFAULT_JSON_LOG_DIR = Paths.get("jkube","applyJson");
   private static final Path DEFAULT_RESOURCE_SOURCE_DIR = Paths.get("src", "main", "jkube");
   private static final Path DEFAULT_RESOURCE_TARGET_DIR = Paths.get("META-INF", "jkube");
@@ -225,6 +227,8 @@ public abstract class KubernetesExtension {
 
   public abstract Property<Boolean> getDebugSuspend();
 
+  public abstract Property<File> getKubernetesTemplate();
+
   public JKubeBuildStrategy buildStrategy;
 
   public ClusterConfiguration access;
@@ -245,6 +249,8 @@ public abstract class KubernetesExtension {
 
   public ResourceFileType resourceFileType;
 
+  public HelmConfig helm;
+
   public RuntimeMode getRuntimeMode() {
     return RuntimeMode.KUBERNETES;
   }
@@ -263,6 +269,10 @@ public abstract class KubernetesExtension {
 
   public boolean isSupportOAuthClients() {
     return false;
+  }
+
+  public HelmConfig.HelmType getDefaultHelmType() {
+    return HelmConfig.HelmType.KUBERNETES;
   }
 
   public void access(Closure<?> closure) {
@@ -359,6 +369,10 @@ public abstract class KubernetesExtension {
       mappings = new ArrayList<>();
     }
     mappings.add(closureTo(closure, MappingConfig.class));
+  }
+
+  public void helm(Closure<?> closure) {
+    helm = closureTo(closure, HelmConfig.class);
   }
 
   public JKubeBuildStrategy getBuildStrategyOrDefault() {
@@ -581,6 +595,10 @@ public abstract class KubernetesExtension {
 
   public boolean getDebugSuspendOrDefault() {
     return getOrDefaultBoolean("jkube.debug.suspend", this::getDebugSuspend, false);
+  }
+
+  public File getKubernetesTemplateOrDefault() {
+    return getOrDefaultFile("jkube.kubernetesTemplate", this::getKubernetesTemplate, javaProject.getOutputDirectory().toPath().resolve(DEFAULT_KUBERNETES_TEMPLATE).toFile());
   }
 
   protected boolean getOrDefaultBoolean(String property, Supplier<Property<Boolean>> dslGetter, boolean defaultValue) {
