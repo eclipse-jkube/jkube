@@ -21,7 +21,7 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.eclipse.jkube.kit.config.service.ResourceServiceConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.resource.service.DefaultResourceService;
 
 import java.io.BufferedWriter;

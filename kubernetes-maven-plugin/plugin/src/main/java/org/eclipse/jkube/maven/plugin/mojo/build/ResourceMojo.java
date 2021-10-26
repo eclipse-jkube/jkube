@@ -41,7 +41,7 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.eclipse.jkube.kit.config.service.ResourceServiceConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.profile.ProfileUtil;

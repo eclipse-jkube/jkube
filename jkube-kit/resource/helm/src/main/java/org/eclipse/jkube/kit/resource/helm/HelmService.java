@@ -56,9 +56,19 @@ public class HelmService {
   private static final String VALUES_FILENAME = "values" + YAML_EXTENSION;
   private static final String GOLANG_EXPRESSION_REGEX = "\\{\\{.+}}";
 
-  private HelmService() {}
+  private final KitLogger logger;
 
-  public static void generateHelmCharts(KitLogger logger, HelmConfig helmConfig) throws IOException {
+  public HelmService(KitLogger logger) {
+    this.logger = logger;
+  }
+
+  /**
+   * Generates Helm Charts for the provided {@link HelmConfig}.
+   *
+   * @param helmConfig Configuration for which to generate the Charts.
+   * @throws IOException in case of any I/O exception when writing the Chart files.
+   */
+  public void generateHelmCharts(HelmConfig helmConfig) throws IOException {
     for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
       logger.info("Creating Helm Chart \"%s\" for %s", helmConfig.getChart(), helmType.getDescription());
       logger.debug("Source directory: %s", helmConfig.getSourceDir());
@@ -66,8 +76,8 @@ public class HelmService {
 
       final File sourceDir = prepareSourceDir(helmConfig, helmType);
       final File outputDir = prepareOutputDir(helmConfig, helmType);
-      final File tarballOutputDir =
-          new File(Objects.requireNonNull(helmConfig.getTarballOutputDir(), "Tarball output directory is required"));
+      final File tarballOutputDir = new File(Objects.requireNonNull(helmConfig.getTarballOutputDir(),
+          "Tarball output directory is required"));
       final File templatesDir = new File(outputDir, "templates");
       FileUtils.forceMkdir(templatesDir);
 
@@ -92,11 +102,26 @@ public class HelmService {
     }
   }
 
-  public static void uploadHelmChart(HelmConfig helm, List<RegistryServerConfiguration> registryServerConfigurations, UnaryOperator<String> passwordDecryptor, KitLogger logger) throws BadUploadException, IOException {
+  /**
+   * Uploads the charts defined in the provided {@link HelmConfig} to the applicable configured repository.
+   *
+   * <p> For Charts with versions ending in "-SNAPSHOT" the {@link HelmConfig#getSnapshotRepository()} is used.
+   * {@link HelmConfig#getStableRepository()} is used for other versions.
+   *
+   *
+   * @param helm Configuration for which to generate the Charts.
+   * @throws BadUploadException in case the chart cannot be uploaded.
+   * @throws IOException in case of any I/O exception when .
+   */
+  public void uploadHelmChart(HelmConfig helm) throws BadUploadException, IOException {
+    uploadHelmChart(helm, Collections.emptyList(), s -> s);
+  }
+
+  public void uploadHelmChart(HelmConfig helm, List<RegistryServerConfiguration> registryServerConfigurations, UnaryOperator<String> passwordDecryptor) throws BadUploadException, IOException {
     final HelmRepository helmRepository = selectHelmRepository(helm);
     if (isRepositoryValid(helmRepository)) {
       setAuthentication(helmRepository, logger, registryServerConfigurations, passwordDecryptor);
-      uploadHelmChart(logger, helm, helmRepository);
+      uploadHelmChart(helm, helmRepository);
     } else {
       String error = "No repository or invalid repository configured for upload";
       logger.error(error);
@@ -104,12 +129,11 @@ public class HelmService {
     }
   }
 
-  static void uploadHelmChart(KitLogger logger, HelmConfig helmConfig,
-      HelmRepository helmRepository) throws IOException, BadUploadException {
+  private void uploadHelmChart(HelmConfig helmConfig, HelmRepository helmRepository)
+      throws IOException, BadUploadException {
 
     for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
-
-      HelmUploader helmUploader = new HelmUploader(logger);
+      final HelmUploader helmUploader = new HelmUploader(logger);
       logger.info("Uploading Helm Chart \"%s\" to %s", helmConfig.getChart(), helmRepository.getName());
       logger.debug("OutputDir: %s", helmConfig.getOutputDir());
 

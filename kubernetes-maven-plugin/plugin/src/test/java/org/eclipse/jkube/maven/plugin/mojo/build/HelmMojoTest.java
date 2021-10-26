@@ -23,6 +23,7 @@ import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 
@@ -55,6 +56,8 @@ public class HelmMojoTest {
   @Mocked
   MavenProject mavenProject;
   @Mocked
+  JKubeServiceHub jKubeServiceHub;
+  @Mocked
   HelmService helmService;
 
   private HelmMojo helmMojo;
@@ -65,8 +68,10 @@ public class HelmMojoTest {
     helmMojo.offline = true;
     helmMojo.project = mavenProject;
     helmMojo.settings = new Settings();
+    helmMojo.jkubeServiceHub = jKubeServiceHub;
     // @formatter:off
     new Expectations() {{
+      jKubeServiceHub.getHelmService(); result = helmService;
       mavenProject.getProperties(); result = new Properties();
       mavenProject.getBuild().getOutputDirectory(); result = "target/classes";
       mavenProject.getBuild().getDirectory(); result = "target";
@@ -122,7 +127,7 @@ public class HelmMojoTest {
     assertThat(helmMojo.helm.getOutputDir(), is("target/jkube/helm/artifact-id"));
     assertThat(helmMojo.helm.getTarballOutputDir(), endsWith("/target"));
     new Verifications() {{
-      HelmService.generateHelmCharts(helmMojo.log, helmMojo.helm);
+      helmService.generateHelmCharts(helmMojo.helm);
       times = 1;
     }};
   }
@@ -134,7 +139,7 @@ public class HelmMojoTest {
     // Given
     // @formatter:off
     new Expectations() {{
-      HelmService.generateHelmCharts(null, withNotNull());
+      helmService.generateHelmCharts(withNotNull());
       result = new IOException("Exception is thrown");
     }};
     // formatter:on

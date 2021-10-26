@@ -131,6 +131,34 @@ public interface KitLogger {
 
     }
 
+    class SilentLogger implements KitLogger {
+
+        @Override
+        public void debug(String format, Object... params) {
+            // NOOP
+        }
+
+        @Override
+        public void info(String format, Object... params) {
+            // NOOP
+        }
+
+        @Override
+        public void warn(String format, Object... params) {
+            // NOOP
+        }
+
+        @Override
+        public void error(String format, Object... params) {
+            // NOOP
+        }
+
+        @Override
+        public boolean isDebugEnabled() {
+            return false;
+        }
+    }
+
     enum LogVerboseCategory {
         BUILD("build"), API("api");
 

@@ -11,10 +11,9 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.resource.helm;
+package org.eclipse.jkube.kit.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.jkube.kit.common.Maintainer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

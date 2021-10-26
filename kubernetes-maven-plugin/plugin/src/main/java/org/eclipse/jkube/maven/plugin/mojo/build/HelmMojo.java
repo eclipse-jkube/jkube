@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
-import org.eclipse.jkube.kit.resource.helm.HelmService;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
@@ -64,7 +63,7 @@ public class HelmMojo extends AbstractJKubeMojo {
           .generatedChartListeners(Collections.singletonList((helmConfig, type, chartFile) -> projectHelper
               .attachArtifact(project, helmConfig.getChartExtension(), type.getClassifier(), chartFile)))
           .build();
-      HelmService.generateHelmCharts(log, helm);
+      jkubeServiceHub.getHelmService().generateHelmCharts(helm);
     } catch (IOException exception) {
       throw new MojoExecutionException(exception.getMessage());
     }

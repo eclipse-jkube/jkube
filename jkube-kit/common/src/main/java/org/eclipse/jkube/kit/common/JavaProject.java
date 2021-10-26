@@ -251,7 +251,7 @@ public class JavaProject implements Serializable {
       String site, String description, String organizationName, String documentationUrl,
       String buildFinalName, File artifact, File localRepositoryBaseDirectory,
       String packaging, String issueManagementSystem, String issueManagementUrl, String url, String scmUrl, String scmTag,
-      List<Maintainer> maintainers) {
+      @Singular List<Maintainer> maintainers) {
 
     this.name = name;
     this.groupId = groupId;

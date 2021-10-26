@@ -14,7 +14,6 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.eclipse.jkube.kit.resource.helm.HelmService;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
@@ -46,7 +45,8 @@ public class HelmPushMojo extends HelmMojo {
     try {
       super.executeInternal();
       helm = initHelmPushConfig(helm, javaProject);
-      HelmService.uploadHelmChart(helm, MavenUtil.getRegistryServerFromMavenSettings(settings), this::getMavenPasswordDecryptionMethod, getKitLogger());
+      jkubeServiceHub.getHelmService()
+          .uploadHelmChart(helm, MavenUtil.getRegistryServerFromMavenSettings(settings), this::getMavenPasswordDecryptionMethod);
     } catch (Exception exp) {
       getKitLogger().error("Error performing helm push", exp);
       throw new MojoExecutionException(exp.getMessage(), exp);
