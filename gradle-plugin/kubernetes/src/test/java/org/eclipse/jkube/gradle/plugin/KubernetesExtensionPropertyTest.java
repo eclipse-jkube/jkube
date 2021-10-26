@@ -118,7 +118,12 @@ public class KubernetesExtensionPropertyTest {
         new Object[] { "getLogContainerNameOrNull", "jkube.log.container", "test", "test", null },
         new Object[] { "getUseProjectClassPathOrDefault", "jkube.useProjectClasspath", "true", true, false },
         new Object[] { "getLocalDebugPortOrDefault", "jkube.debug.port", "1337", 1337, 5005 },
-        new Object[] { "getDebugSuspendOrDefault", "jkube.debug.suspend", "true", true, false });
+        new Object[] { "getDebugSuspendOrDefault", "jkube.debug.suspend", "true", true, false },
+        new Object[] { "getKubernetesTemplateOrDefault", "jkube.kubernetesTemplate",
+            Paths.get("META-INF", "jkube", "other").toString(),
+            Paths.get("META-INF", "jkube", "other").toFile(),
+            new File(BASE, "build").toPath().resolve(Paths.get("META-INF", "jkube", "kubernetes")).toFile()
+        });
   }
 
   @Parameterized.Parameter

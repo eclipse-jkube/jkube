@@ -316,4 +316,9 @@ public class TestKubernetesExtension extends KubernetesExtension {
   public Property<Boolean> getDebugSuspend() {
     return new DefaultProperty<>(Boolean.class);
   }
+
+  @Override
+  public Property<File> getKubernetesTemplate() {
+    return new DefaultProperty<>(File.class);
+  }
 }
