@@ -73,9 +73,9 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
   @Override
   public File getManifest(KitLogger kitLogger, KubernetesClient kubernetesClient) {
     if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
-      return getOpenShiftManifestOrDefault();
+      return getKubernetesManifestOrDefault();
     }
-    return getKubernetesManifestOrDefault();
+    return super.getKubernetesManifestOrDefault();
   }
 
   @Override
@@ -115,11 +115,13 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
     return HelmConfig.HelmType.OPENSHIFT;
   }
 
-  public File getOpenShiftTemplateOrDefault() {
+  @Override
+  public File getKubernetesTemplateOrDefault() {
     return getOrDefaultFile("jkube.kubernetesTemplate", this::getKubernetesTemplate, javaProject.getOutputDirectory().toPath().resolve(DEFAULT_OPENSHIFT_TEMPLATE).toFile());
   }
 
-  public File getOpenShiftManifestOrDefault() {
+  @Override
+  public File getKubernetesManifestOrDefault() {
     return getOrDefaultFile("jkube.openshiftManifest", this::getOpenShiftManifest, javaProject.getOutputDirectory().toPath().resolve(DEFAULT_OPENSHIFT_MANIFEST).toFile());
   }
 

@@ -50,7 +50,7 @@ public class OpenShiftExtensionPropertyTest {
         new Object[] { "getBuildOutputKindOrDefault", "jkube.build.buildOutput.kind", "DockerImage", "DockerImage",
             "ImageStreamTag" },
         new Object[] { "getProcessTemplatesLocallyOrDefault", "jkube.deploy.processTemplatesLocally", "true", true, false },
-        new Object[] { "getOpenShiftManifestOrDefault", "jkube.openshiftManifest",
+        new Object[] { "getKubernetesManifestOrDefault", "jkube.openshiftManifest",
             Paths.get("META-INF", "jkube", "other.yml").toString(),
             Paths.get("META-INF", "jkube", "other.yml").toFile(),
             new File(BASE, "build").toPath().resolve(Paths.get("META-INF", "jkube", "openshift.yml")).toFile() },
