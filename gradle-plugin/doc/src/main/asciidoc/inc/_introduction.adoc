@@ -11,5 +11,7 @@ endif::[]
 ifeval::["{task-prefix}" == "oc"]
 https://www.openshift.com/[OpenShift].
 endif::[]
-This plugin focuses on two tasks: _Building Container images_ and
-creating _{cluster} resource descriptors_.
+This plugin focuses on two tasks:
+
+* Building Container images.
+* Creating {cluster} resource descriptors.
