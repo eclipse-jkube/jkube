@@ -32,25 +32,17 @@ public class KubernetesHelmTask extends AbstractJKubeTask {
   @Override
   public void run() {
     try {
-      File manifest = resolveManifest();
+      File manifest = kubernetesExtension.getKubernetesManifestOrDefault();
       if (manifest == null || !manifest.isFile()) {
         logManifestNotFoundWarning(manifest);
       }
       HelmConfig helm = initHelmConfig(kubernetesExtension.getDefaultHelmType(), kubernetesExtension.javaProject,
-        resolveManifest(), resolveTemplate(),
+      kubernetesExtension.getKubernetesManifestOrDefault(), kubernetesExtension.getKubernetesTemplateOrDefault(),
         kubernetesExtension.helm).build();
       jKubeServiceHub.getHelmService().generateHelmCharts(helm);
     } catch (IOException exception) {
       throw new IllegalStateException(exception.getMessage());
     }
-  }
-
-  protected File resolveManifest() {
-    return kubernetesExtension.getKubernetesManifestOrDefault();
-  }
-
-  protected File resolveTemplate() {
-    return kubernetesExtension.getKubernetesTemplateOrDefault();
   }
 
   protected void logManifestNotFoundWarning(File manifest) {

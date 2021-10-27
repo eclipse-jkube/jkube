@@ -28,16 +28,6 @@ public class OpenShiftHelmTask extends KubernetesHelmTask implements OpenShiftJK
   }
 
   @Override
-  protected File resolveManifest() {
-    return getOpenShiftExtension().getOpenShiftManifestOrDefault();
-  }
-
-  @Override
-  protected File resolveTemplate() {
-    return getOpenShiftExtension().getOpenShiftTemplateOrDefault();
-  }
-
-  @Override
   protected void logManifestNotFoundWarning(File manifest) {
     kitLogger.warn("No OpenShift manifest file has been generated yet by the ocResource task at: " + manifest);
   }
