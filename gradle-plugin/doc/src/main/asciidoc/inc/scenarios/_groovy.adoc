@@ -1,7 +1,11 @@
 [[groovy-scenario]]
 == Using Groovy Configuration
 
-If zero configuration mode doesn't fit your use case and you want more flexibility, you can also use {plugin} Groovy configuration to configure plugin as per your needs. {plugin} provides rich set of configuration in form of Groovy DSL which can be used to tune plugin's output as per requirements.
+If the <<zero-config-scenario, zero configuration>> mode doesn't fit your use case, and you want more
+flexibility, you can also use {plugin} Groovy configuration to configure
+plugin as per your needs.
+{plugin} provides a rich set of configuration in form of Groovy DSL which
+can be used to tune plugin's output as per your specific requirements.
 
 The plugin configuration can be roughly divided into the following sections:
 

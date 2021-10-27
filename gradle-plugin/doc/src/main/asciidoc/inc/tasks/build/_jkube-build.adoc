@@ -11,7 +11,7 @@ A normal Docker build is performed by default.For Kubernetes builds the {plugin}
 
 The Docker remote API supports communication via SSL and authentication with certificates.The path to the certificates can be specified by the certPath or machine configuration, or by the `DOCKER_CERT_PATH` environment variable.
 
-If you don't have access to docker daemon, you can change build strategy using `buildStrategy` option in groovy configuration like this:
+If you don't have access to docker daemon, you can change build strategy using `buildStrategy` option in Groovy configuration like this:
 
 .Example of overriding default build strategy
 [source,groovy,subs="attributes+"]

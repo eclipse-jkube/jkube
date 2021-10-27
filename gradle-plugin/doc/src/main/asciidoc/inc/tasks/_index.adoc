@@ -27,6 +27,9 @@ These tasks can be categorized in multiple groups:
 | *<<jkubeApply>>*
 | Applies the generated resources to the connected cluster
 
+| *<<jkubeHelm>>*
+| Generate Helm charts for your application
+
 |===
 
 [[tasks-develop]]

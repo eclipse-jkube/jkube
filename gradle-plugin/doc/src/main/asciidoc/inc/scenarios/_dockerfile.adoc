@@ -1,22 +1,36 @@
 [[dockerfile-scenario]]
 == Using Dockerfile
 
-You can build a container image and deploy to Kubernetes with {plugin} by just providing a <<external-dockerfile, Dockerfile>>. {plugin} would build a container image based on your Dockerfile and generate opinionated Kubernetes manifests by inspecting your Dockerfile.
+You can build a container image and deploy to Kubernetes with {plugin} by just providing a <<external-dockerfile, Dockerfile>>.
+{plugin} builds a container image based on your Dockerfile and generates
+opinionated Kubernetes manifests by inspecting it.
 
 [[simple-dockerfile-mode-scenario]]
 === Placing Dockerfile in project root directory
 
-You can place Dockerfile in project root directory along with `build.gradle` and {plugin} would automatically build an image based on Dockerfile. There will be no need to provide any sort of configuration apart from Dockerfile and project root directory as docker context directory. Image is created with opinionated name from group, artifact and version, but can be overridden by `jkube.image.name` property. Read <<simple-dockerfile-build, Simple Dockerfile>> section for more details.
+You can place the Dockerfile in the project root directory along with
+`build.gradle`.
+{plugin} detects it and automatically builds an image based on this Dockerfile.
+There is no need to provide any sort of configuration apart from Dockerfile and project root directory as docker context directory.
+The Image is created with an opinionated name from group, artifact and version.
+The name can be overridden by using the `jkube.image.name` property.
+Read <<simple-dockerfile-build, Simple Dockerfile>> section for more details.
 
 [[docker-file-provided-mode-scenario]]
 === Placing Dockerfile in some other directory
 
-You can choose to place your Dockerfile at some other location, by default plugin assumes it to be `src/main/docker`, but you'll need to configure docker context directory in plugin configuration. When not specified context directory is assumed to be Dockerfile's parent directory. You can take a look at https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/docker-file-provided-docker-file[Docker File Provided Quickstarts] for more details.
+You can choose to place your Dockerfile at some other location.
+By default, the plugin assumes it to be `src/main/docker`, but you'll need to configure docker context directory in plugin configuration.
+When not specified, context directory is assumed to be Dockerfile's parent directory.
+You can take a look at https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/docker-file-provided-docker-file[Docker File Provided Quickstarts] for more details.
 
 [[docker-file-mode-include-exclude]]
 === Controlling what gets copied to image
 
-When using Dockerfile mode, whatever is present in docker build context directory gets copied to the created docker image. But there are times when you want to ignore some files or you want to include only a specific set of files. {plugin} provides the following options to achieve this:
+When using Dockerfile mode, every file and directory present in the Docker build context directory
+gets copied to the created Docker image.
+In case you want to ignore some files, or you want to include only a specific set of files,
+the {plugin} provides the following options to achieve this:
 
 - <<ex-build-dockerinclude, `.jkube-dockerinclude`>> : Include only a specific set of files specified in this file
 - <<ex-build-dockerexclude, `.jkube-dockerexclude`>> : Exclude a certain set of files from being copied into container image
