@@ -37,6 +37,8 @@ Usage:
 * Fix #1036: JKubeTarArchive doesn't load files in memory
 * Fix #1040: Remove deprecated `ExpectedException.none()` and `@Rule` and use `assertThrows` instead
 
+_**Note**_: Kubernetes and OpenShift Gradle Plugins are a preview feature to get early feedback. Only the set of documented features are available to users.
+
 ### 1.4.0 (2021-07-27)
 * Fix #253: Refactor JKubeServiceHub's BuildService election mechanism via ServiceLoader
 * Fix #425: Multi-layer support for Container Images
