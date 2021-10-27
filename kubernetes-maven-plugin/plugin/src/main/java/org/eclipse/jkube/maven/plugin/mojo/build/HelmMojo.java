@@ -57,7 +57,7 @@ public class HelmMojo extends AbstractJKubeMojo {
     try {
       File manifest = getKubernetesManifest();
       if (manifest == null || !manifest.isFile()) {
-        getKitLogger().warn("No kubernetes manifest file has been generated yet by the kubernetes:resource goal at: " + manifest);
+        logManifestNotFoundWarning(manifest);
       }
       helm = initHelmConfig(getDefaultHelmType(), javaProject, getKubernetesManifest(), getKubernetesTemplate(), helm)
           .generatedChartListeners(Collections.singletonList((helmConfig, type, chartFile) -> projectHelper
@@ -67,6 +67,10 @@ public class HelmMojo extends AbstractJKubeMojo {
     } catch (IOException exception) {
       throw new MojoExecutionException(exception.getMessage());
     }
+  }
+
+  protected void logManifestNotFoundWarning(File manifest) {
+    getKitLogger().warn("No kubernetes manifest file has been generated yet by the k8s:resource goal at: " + manifest);
   }
 
   protected File getKubernetesManifest() {

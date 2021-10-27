@@ -55,4 +55,9 @@ public class OpenshiftHelmMojo extends HelmMojo {
   protected String getLogPrefix() {
     return OpenShift.DEFAULT_LOG_PREFIX;
   }
+
+  @Override
+  protected void logManifestNotFoundWarning(File manifest) {
+    getKitLogger().warn("No openshift manifest file has been generated yet by the oc:resource goal at: " + manifest);
+  }
 }
