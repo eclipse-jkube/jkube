@@ -20,6 +20,8 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesConfigViewTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesDebugTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmPushTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesPushTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
@@ -50,7 +52,9 @@ public class KubernetesPluginRegisterTaskTest {
         new Object[] { "k8sLog", KubernetesLogTask.class },
         new Object[] { "k8sPush", KubernetesPushTask.class },
         new Object[] { "k8sResource", KubernetesResourceTask.class },
-        new Object[] { "k8sUndeploy", KubernetesUndeployTask.class });
+        new Object[] { "k8sUndeploy", KubernetesUndeployTask.class },
+        new Object[] { "k8sHelm", KubernetesHelmTask.class },
+        new Object[] { "k8sHelmPush", KubernetesHelmPushTask.class });
   }
 
   @Parameterized.Parameter
