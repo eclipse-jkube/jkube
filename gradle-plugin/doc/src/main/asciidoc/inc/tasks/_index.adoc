@@ -30,6 +30,9 @@ These tasks can be categorized in multiple groups:
 | *<<jkubeHelm>>*
 | Generate Helm charts for your application
 
+| *<<jkubeHelmPush>>*
+| Upload Helm charts to Helm repositories.
+
 |===
 
 [[tasks-develop]]
