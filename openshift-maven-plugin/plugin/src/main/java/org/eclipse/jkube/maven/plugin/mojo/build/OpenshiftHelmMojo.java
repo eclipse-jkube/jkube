@@ -27,13 +27,13 @@ public class OpenshiftHelmMojo extends HelmMojo {
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift.yml")
+  @Parameter(property = "jkube.openshiftManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift.yml")
   private File openShiftManifest;
 
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift")
+  @Parameter(property = "jkube.kubernetesTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift")
   private File openShiftTemplate;
 
   @Override
