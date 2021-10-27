@@ -76,7 +76,7 @@ Except for the <<build-assembly,assembly configuration>> all other configuration
 
 When only a single image should be built with a Dockerfile no Groovy DSL configuration is needed at all.
 All what need to be done is to place a `Dockerfile` into the top-level module directory, alongside to `build.gradle`.
-You can still configure <<global-configuration, global aspects>> in the plugin configuration, but as soon as you add an `image` in the groovy DSL configuration, you need to configure also the build explicitly.
+You can still configure <<global-configuration, global aspects>> in the plugin configuration, but as soon as you add an `image` in the Groovy DSL configuration, you need to configure also the build explicitly.
 
 The image name is by default set from the Gradle coordinates (`%g/%a:%l`, see <<image-name,Image Name >> for an explanation of the params which are essentially the Gradle's group, project name and project version)
 This name can be set with the property `jkube.image.name` in `gradle.properties`.

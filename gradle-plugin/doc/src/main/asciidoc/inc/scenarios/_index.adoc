@@ -2,7 +2,11 @@
 [[common-scenarios]]
 = Common Scenarios
 
-When working with {plugin}, in most cases you'll be using common scenarios. Here are some known scenarios:
+When working with {plugin}, you'll probably be facing similar situations and following
+the same patterns other users do. These are some of the most common scenarios and
+configuration modes:
+
+include::_zero-config.adoc[]
 
 include::_groovy.adoc[]
 

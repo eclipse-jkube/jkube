@@ -1,6 +1,6 @@
 
 [[groovy-configuration]]
-= Groovy Configuration
+= Gradle Groovy DSL Configuration
 
 [[global-configuration]]
 == Global Configuration
@@ -460,7 +460,7 @@ include::build/_buildargs.adoc[]
 
 [[kuberetes-resource-configuration]]
 == Kubernetes Resources Configuration
-This section includes groovy DSL configuration options you can use to tweak generated Kubernetes manifests.
+This section includes Groovy DSL configuration options you can use to tweak generated Kubernetes manifests.
 
 [[labels-annotation-configuration]]
 === Labels/Annotations
