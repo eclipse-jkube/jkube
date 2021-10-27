@@ -18,6 +18,7 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.SystemMock;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -25,6 +26,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -169,5 +171,32 @@ public class JKubeProjectUtilTest {
     // Then
     assertThat(artifactFileCreated).isTrue();
     assertThat(finalOutputArtifact).hasName("foo-test-1.0.0.jar");
+  }
+
+  @Test
+  public void getProperty_whenSystemPropertyPresent_returnsSystemProperty() {
+    // Given
+    new SystemMock().put("jkube.testProperty", "true");
+    JavaProject javaProject = JavaProject.builder().build();
+
+    // When
+    String result = JKubeProjectUtil.getProperty("jkube.testProperty", javaProject);
+
+    // Then
+    assertThat(result).isEqualTo("true");
+  }
+
+  @Test
+  public void getProperty_whenProjectPropertyPresent_returnsProjectProperty() {
+    // Given
+    Properties properties = new Properties();
+    properties.put("jkube.test.project.property", "true");
+    JavaProject javaProject = JavaProject.builder().properties(properties).build();
+
+    // When
+    String result = JKubeProjectUtil.getProperty("jkube.test.project.property", javaProject);
+
+    // Then
+    assertThat(result).isEqualTo("true");
   }
 }

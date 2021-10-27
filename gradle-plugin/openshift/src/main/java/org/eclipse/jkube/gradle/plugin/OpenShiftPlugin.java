@@ -27,6 +27,7 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftDebugTask;
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftPushTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftUndeployTask;
@@ -47,6 +48,7 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
     ret.put("ocDebug", Arrays.asList(KubernetesBuildTask.class, OpenShiftBuildTask.class,
         KubernetesResourceTask.class, OpenShiftResourceTask.class, KubernetesApplyTask.class, OpenShiftApplyTask.class));
     ret.put("ocPush", Arrays.asList(KubernetesBuildTask.class, OpenShiftBuildTask.class));
+    ret.put("ocHelm", Arrays.asList(KubernetesResourceTask.class, OpenShiftResourceTask.class));
     return ret;
   }
 
@@ -60,6 +62,7 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
     register(project, "ocPush", OpenShiftPushTask.class);
     register(project, "ocResource", OpenShiftResourceTask.class);
     register(project, "ocUndeploy", OpenShiftUndeployTask.class);
+    register(project, "ocHelm", OpenShiftHelmTask.class);
   }
 
 }

@@ -19,14 +19,14 @@ import java.io.IOException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
+import org.eclipse.jkube.kit.config.resource.EnricherManager;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.config.service.EnricherManager;
-import org.eclipse.jkube.kit.config.service.ResourceServiceConfig;
 
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import mockit.Mocked;
 import mockit.Verifications;
+import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

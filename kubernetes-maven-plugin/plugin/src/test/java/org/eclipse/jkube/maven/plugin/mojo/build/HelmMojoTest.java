@@ -19,11 +19,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
+import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
-import org.eclipse.jkube.kit.resource.helm.Maintainer;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -40,6 +42,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -53,13 +56,27 @@ public class HelmMojoTest {
   @Mocked
   MavenProject mavenProject;
   @Mocked
+  JKubeServiceHub jKubeServiceHub;
+  @Mocked
   HelmService helmService;
+
   private HelmMojo helmMojo;
 
   @Before
   public void setUp() {
     helmMojo = new HelmMojo();
+    helmMojo.offline = true;
     helmMojo.project = mavenProject;
+    helmMojo.settings = new Settings();
+    helmMojo.jkubeServiceHub = jKubeServiceHub;
+    // @formatter:off
+    new Expectations() {{
+      jKubeServiceHub.getHelmService(); result = helmService;
+      mavenProject.getProperties(); result = new Properties();
+      mavenProject.getBuild().getOutputDirectory(); result = "target/classes";
+      mavenProject.getBuild().getDirectory(); result = "target";
+    }};
+    // @formatter:on
   }
 
   @After
@@ -75,34 +92,22 @@ public class HelmMojoTest {
 
     // Given
     assertThat(helmMojo.helm, nullValue());
+    // @formatter:off
     new Expectations() {{
-      mavenProject.getProperties();
-      result = new Properties();
-      mavenProject.getBuild().getOutputDirectory();
-      result = "target/classes";
-      mavenProject.getBuild().getDirectory();
-      result = "target";
-      mavenProject.getArtifactId();
-      result = "artifact-id";
-      mavenProject.getVersion();
-      result = "1337";
-      mavenProject.getDescription();
-      result = "A description from Maven";
-      mavenProject.getUrl();
-      result = "https://project.url";
-      mavenProject.getScm();
-      result = scm;
-      scm.getUrl();
-      result = "https://scm.url";
-      mavenProject.getDevelopers();
-      result = Arrays.asList(developer, developer);
+      mavenProject.getArtifactId(); result = "artifact-id";
+      mavenProject.getVersion(); result = "1337";
+      mavenProject.getDescription(); result = "A description from Maven";
+      mavenProject.getUrl(); result = "https://project.url";
+      mavenProject.getScm(); result = scm;
+      scm.getUrl(); result = "https://scm.url";
+      mavenProject.getDevelopers(); result = Arrays.asList(developer, developer);
       developer.getName();
       result = "John"; result = "John"; result = null;
-      developer.getEmail();
-      result = "john@example.com"; result = null;
+      developer.getEmail(); result = "john@example.com"; result = null;
     }};
+    // @formatter:on
     // When
-    helmMojo.executeInternal();
+    helmMojo.execute();
     // Then
     assertThat(helmMojo.helm, notNullValue());
     assertThat(helmMojo.helm.getChart(), is("artifact-id"));
@@ -120,26 +125,26 @@ public class HelmMojoTest {
     assertThat(helmMojo.helm.getTypes(), contains(HelmConfig.HelmType.KUBERNETES));
     assertThat(helmMojo.helm.getSourceDir(), is("target/classes/META-INF/jkube/"));
     assertThat(helmMojo.helm.getOutputDir(), is("target/jkube/helm/artifact-id"));
-    assertThat(helmMojo.helm.getTarballOutputDir(), is("target"));
+    assertThat(helmMojo.helm.getTarballOutputDir(), endsWith("/target"));
     new Verifications() {{
-      HelmService.generateHelmCharts(null, helmMojo.helm);
+      helmService.generateHelmCharts(helmMojo.helm);
       times = 1;
     }};
   }
 
   @Test(expected = MojoExecutionException.class)
   public void executeInternalWithNoConfigGenerateThrowsExceptionShouldRethrowWithMojoExecutionException()
-  throws Exception {
+      throws Exception {
 
     // Given
+    // @formatter:off
     new Expectations() {{
-      mavenProject.getProperties();
-      result = new Properties();
-      HelmService.generateHelmCharts(null, withNotNull());
+      helmService.generateHelmCharts(withNotNull());
       result = new IOException("Exception is thrown");
     }};
+    // formatter:on
     // When
-    helmMojo.executeInternal();
+    helmMojo.execute();
     // Then
     fail();
   }
@@ -151,13 +156,11 @@ public class HelmMojoTest {
     // Given
     helmMojo.kubernetesTemplate = kubernetesTemplate;
     new Expectations() {{
-      mavenProject.getProperties();
-      result = new Properties();
       ResourceUtil.load(kubernetesTemplate, KubernetesResource.class, ResourceFileType.yaml);
       result = template;
     }};
     // When
-    helmMojo.executeInternal();
+    helmMojo.execute();
     // Then
     assertThat(helmMojo.helm.getTemplates(), contains(template));
   }
@@ -169,8 +172,6 @@ public class HelmMojoTest {
     // Given
     helmMojo.kubernetesManifest = kubernetesManifest;
     new Expectations() {{
-      mavenProject.getProperties();
-      result = new Properties();
       kubernetesManifest.isFile();
       result = true;
       ResourceUtil.load(kubernetesManifest, KubernetesResource.class);
@@ -179,28 +180,9 @@ public class HelmMojoTest {
       result = Collections.singletonMap("jkube.io/iconUrl", "https://my-icon");
     }};
     // When
-    helmMojo.executeInternal();
+    helmMojo.execute();
     // Then
     assertThat(helmMojo.helm.getIcon(), is("https://my-icon"));
-  }
-
-  @Test
-  public void initFromPropertyOrDefaultPropertyHasPrecedenceOverConfiguration() {
-    // Given
-    final Properties properties = new Properties();
-    properties.put("jkube.helm.property", "Overrides Current Value");
-    properties.put("jkube.helm.otherProperty", "Ignored");
-    final HelmConfig config = new HelmConfig();
-    config.setChart("This value will be overridden");
-    new Expectations() {{
-        mavenProject.getProperties();
-        result = properties;
-    }};
-    // When
-    helmMojo.initFromPropertyOrDefault(
-        "jkube.helm.property", config::getChart, config::setChart, "default is ignored");
-    // Then
-    assertThat(config.getChart(), is("Overrides Current Value"));
   }
 
 }

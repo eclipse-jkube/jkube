@@ -29,7 +29,7 @@ import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.ExecException;
-import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
+import org.eclipse.jkube.kit.build.api.model.PortMapping;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.config.image.LogConfiguration;

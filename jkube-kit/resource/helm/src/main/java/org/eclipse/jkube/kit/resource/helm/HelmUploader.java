@@ -25,7 +25,7 @@ import org.apache.commons.io.IOUtils;
 
 public class HelmUploader {
 
-  private KitLogger logger;
+  private final KitLogger logger;
 
   public HelmUploader(KitLogger logger) {
     this.logger = logger;

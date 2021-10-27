@@ -11,11 +11,9 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.config.service;
+package org.eclipse.jkube.kit.config.resource;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
 public interface EnricherManager {
 

@@ -16,9 +16,9 @@ package org.eclipse.jkube.kit.enricher.api;
 import java.util.Collections;
 
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.resource.EnricherManager;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.service.EnricherManager;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;

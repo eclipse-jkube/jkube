@@ -94,9 +94,7 @@ public class WatcherManagerTest {
 
     @Override
     public void watch(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) {
-      configs.forEach(ic -> {
-        ic.setName("processed-by-test");
-      });
+      configs.forEach(ic -> ic.setName("processed-by-test"));
     }
   }
 }

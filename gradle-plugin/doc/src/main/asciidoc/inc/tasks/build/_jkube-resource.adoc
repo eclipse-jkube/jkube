@@ -1,8 +1,8 @@
-[[jkube:resource]]
+[[jkubeResource]]
 === *{task-prefix}Resource*
 
-This task generates {cluster} resources based on your project. It can either be opinionated defaults or
-based on the configuration provided in Groovy DSL configuration or resource fragments in `src/main/jkube`.
+This task generates {cluster} resources based on your project.
+It can either be opinionated defaults or based on the configuration provided in Groovy DSL configuration or resource fragments in `src/main/jkube`.
 ifeval::["{task-prefix}" == "k8s"]
 Generated resources are in `build/classes/java/main/META-INF/jkube/kubernetes` directory.
 endif::[]
@@ -11,4 +11,5 @@ Generated resources are in `build/classes/java/main/META-INF/jkube/openshift` di
 endif::[]
 You can find all Groovy DSL configuration options for {task-prefix}Resource in <<kuberetes-resource-configuration, Kubernetes Resource configuration>> section.
 
-Resource task also validates the generated resource descriptors using API specification of https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json[Kubernetes]. You can see configuration options regarding Kubernetes resource validation in <<global-configuration, Global Configuration>> section.
+Resource task also validates the generated resource descriptors using API specification of https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json[Kubernetes].
+You can see configuration options regarding Kubernetes resource validation in <<global-configuration, Global Configuration>> section.

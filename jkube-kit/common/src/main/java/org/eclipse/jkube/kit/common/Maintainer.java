@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.resource.helm;
+package org.eclipse.jkube.kit.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -23,6 +23,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 @Builder(toBuilder = true)
@@ -33,7 +35,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @EqualsAndHashCode
 @JsonInclude(NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Maintainer {
+public class Maintainer implements Serializable {
+
+  private static final long serialVersionUID = -968020668786188166L;
 
   @JsonProperty
   private String name;

@@ -212,6 +212,14 @@ public class JavaProject implements Serializable {
    * @return The project's issue management URL.
    */
   private String issueManagementUrl;
+
+  /**
+   * URL for website of the project.
+   *
+   * @param url URL for website of project.
+   * @return The project's website URL.
+   */
+  private String url;
   /**
    * URL for the project's browsable SCM repository.
    *
@@ -227,6 +235,13 @@ public class JavaProject implements Serializable {
    */
   private String scmTag;
 
+  /**
+   * List of Maintainers involved with the project.
+   * @param maintainers New maintainers for the project.
+   * @return The project maintainers.
+   */
+  private List<Maintainer> maintainers;
+
   @Builder
   public JavaProject(
       String name, String groupId, String artifactId, String version,
@@ -235,7 +250,8 @@ public class JavaProject implements Serializable {
       List<Dependency> dependenciesWithTransitive, @Singular List<Plugin> plugins,
       String site, String description, String organizationName, String documentationUrl,
       String buildFinalName, File artifact, File localRepositoryBaseDirectory,
-      String packaging, String issueManagementSystem, String issueManagementUrl, String scmUrl, String scmTag) {
+      String packaging, String issueManagementSystem, String issueManagementUrl, String url, String scmUrl, String scmTag,
+      @Singular List<Maintainer> maintainers) {
 
     this.name = name;
     this.groupId = groupId;
@@ -259,9 +275,11 @@ public class JavaProject implements Serializable {
     this.packaging = packaging;
     this.issueManagementSystem = issueManagementSystem;
     this.issueManagementUrl = issueManagementUrl;
+    this.url = url;
     this.scmUrl = scmUrl;
     this.scmTag = scmTag;
     this.buildPackageDirectory = buildPackageDirectory;
+    this.maintainers = maintainers;
   }
 }
 

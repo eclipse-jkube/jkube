@@ -17,9 +17,9 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
+import org.eclipse.jkube.kit.config.resource.EnricherManager;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.service.EnricherManager;
 
 import java.util.Collections;
 import java.util.List;

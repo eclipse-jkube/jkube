@@ -27,13 +27,13 @@ public class OpenshiftHelmMojo extends HelmMojo {
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift.yml")
+  @Parameter(property = "jkube.openshiftManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift.yml")
   private File openShiftManifest;
 
   /**
    * The generated kubernetes YAML file
    */
-  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift")
+  @Parameter(property = "jkube.kubernetesTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift")
   private File openShiftTemplate;
 
   @Override
@@ -54,5 +54,10 @@ public class OpenshiftHelmMojo extends HelmMojo {
   @Override
   protected String getLogPrefix() {
     return OpenShift.DEFAULT_LOG_PREFIX;
+  }
+
+  @Override
+  protected void logManifestNotFoundWarning(File manifest) {
+    getKitLogger().warn("No openshift manifest file has been generated yet by the oc:resource goal at: " + manifest);
   }
 }

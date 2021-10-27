@@ -52,13 +52,9 @@ public class KubernetesUndeployTask extends AbstractJKubeTask {
     }
   }
 
-  protected File findResources() {
-    return kubernetesExtension.getKubernetesManifestOrDefault();
-  }
-
   protected List<File> findManifestsToUndeploy() {
     final List<File> ret = new ArrayList<>();
-    ret.add(findResources());
+    ret.add(kubernetesExtension.getKubernetesManifestOrDefault());
     return ret;
   }
 }

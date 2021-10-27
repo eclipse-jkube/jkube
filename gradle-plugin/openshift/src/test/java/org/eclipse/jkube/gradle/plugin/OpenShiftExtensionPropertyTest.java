@@ -16,10 +16,7 @@ package org.eclipse.jkube.gradle.plugin;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -50,7 +47,7 @@ public class OpenShiftExtensionPropertyTest {
         new Object[] { "getBuildOutputKindOrDefault", "jkube.build.buildOutput.kind", "DockerImage", "DockerImage",
             "ImageStreamTag" },
         new Object[] { "getProcessTemplatesLocallyOrDefault", "jkube.deploy.processTemplatesLocally", "true", true, false },
-        new Object[] { "getOpenShiftManifestOrDefault", "jkube.openshiftManifest",
+        new Object[] { "getKubernetesManifestOrDefault", "jkube.openshiftManifest",
             Paths.get("META-INF", "jkube", "other.yml").toString(),
             Paths.get("META-INF", "jkube", "other.yml").toFile(),
             new File(BASE, "build").toPath().resolve(Paths.get("META-INF", "jkube", "openshift.yml")).toFile() },
@@ -58,6 +55,11 @@ public class OpenShiftExtensionPropertyTest {
             Paths.get("test-project-is.yml").toString(),
             Paths.get("test-project-is.yml").toFile(),
             new File(BASE, "build").toPath().resolve("artifact-id-is.yml").toFile()
+        },
+        new Object[] { "getKubernetesTemplateOrDefault", "jkube.kubernetesTemplate",
+            Paths.get("META-INF", "jkube", "other").toString(),
+            Paths.get("META-INF", "jkube", "other").toFile(),
+            new File(BASE, "build").toPath().resolve(Paths.get("META-INF", "jkube", "openshift")).toFile()
         }
     );
   }

@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,7 +37,7 @@ public class DockerConnectionDetector {
         if (externalProviders != null) {
             dockerHostProviders.addAll(externalProviders);
         }
-        Collections.sort(dockerHostProviders,new DockerHostProvider.Comparator());
+        dockerHostProviders.sort(new DockerHostProvider.Comparator());
     }
 
     private Collection<? extends DockerHostProvider> getDefaultEnvProviders() {
@@ -126,9 +125,10 @@ public class DockerConnectionDetector {
     class UnixSocketDockerHostProvider implements DockerHostProvider {
         @Override
         public ConnectionParameter getConnectionParameter(String certPath) throws IOException {
-            File unixSocket = new File("/var/run/docker.sock");
+            String filePath = "/var/run/docker.sock";
+            File unixSocket = new File(filePath);
             if (unixSocket.exists() && unixSocket.canRead() && unixSocket.canWrite() && LocalSocketUtil.canConnectUnixSocket(unixSocket)) {
-                return new ConnectionParameter("unix:///var/run/docker.sock", certPath);
+                return new ConnectionParameter("unix://"+filePath, certPath);
             } else {
                 return null;
             }

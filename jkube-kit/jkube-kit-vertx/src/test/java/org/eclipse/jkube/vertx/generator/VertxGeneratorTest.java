@@ -34,7 +34,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -152,11 +151,10 @@ public class VertxGeneratorTest {
       // When
       Map<String, String> env = new VertxGenerator(context).getEnv(true);
       // Then
-      assertThat(env).contains(entry("JAVA_OPTIONS", "-Dvertx.cacheDirBase=/tmp/vertx-cache -Dvertx.disableDnsResolver=true " +
-              // Force IPv4
-              "-Djava.net.preferIPv4Stack=true"));
-      assertThat(env).contains(entry("JAVA_ARGS", "-cluster"));
+      assertThat(env)
+              .containsEntry("JAVA_OPTIONS", "-Dvertx.cacheDirBase=/tmp/vertx-cache -Dvertx.disableDnsResolver=true " +
+                      // Force IPv4
+                      "-Djava.net.preferIPv4Stack=true")
+              .containsEntry("JAVA_ARGS", "-cluster");
     }
-
-
 }

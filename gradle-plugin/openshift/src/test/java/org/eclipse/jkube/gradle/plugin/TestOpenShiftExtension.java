@@ -343,4 +343,9 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   public Property<File> getImageStreamManifest() {
     return new DefaultProperty<>(File.class);
   }
+
+  @Override
+  public Property<File> getKubernetesTemplate() {
+    return new DefaultProperty<>(File.class);
+  }
 }

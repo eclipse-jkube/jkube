@@ -11,13 +11,12 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.config.service;
+package org.eclipse.jkube.kit.config.resource;
 
 import java.io.File;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.ResourceFileType;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

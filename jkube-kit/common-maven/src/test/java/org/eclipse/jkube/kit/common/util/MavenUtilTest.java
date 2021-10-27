@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Properties;
 
 import mockit.Verifications;
+import org.apache.maven.model.Developer;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -85,6 +86,11 @@ public class MavenUtilTest {
     assertEquals(1, mavenProject.getCompileClasspathElements().size());
     assertEquals("./target", mavenProject.getCompileClasspathElements().get(0));
     assertEquals("bar", project.getProperties().get("foo"));
+    assertEquals("https://projects.eclipse.org/projects/ecd.jkube", project.getUrl());
+    assertEquals(Collections.singletonList(org.eclipse.jkube.kit.common.Maintainer.builder()
+        .name("Dev1")
+        .email("dev1@eclipse.org")
+      .build()), project.getMaintainers());
   }
 
   @Test
@@ -179,6 +185,11 @@ public class MavenUtilTest {
         site.setUrl("https://www.eclipse.org/jkube/");
         distributionManagement.setSite(site);
         mavenProject.setDistributionManagement(distributionManagement);
+        mavenProject.setUrl("https://projects.eclipse.org/projects/ecd.jkube");
+        Developer developer = new Developer();
+        developer.setName("Dev1");
+        developer.setEmail("dev1@eclipse.org");
+        mavenProject.setDevelopers(Collections.singletonList(developer));
         return mavenProject;
     }
 

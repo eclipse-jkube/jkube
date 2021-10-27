@@ -40,7 +40,7 @@ public class FatJarDetector {
     }
 
     public Result scan() {
-        if (!directory.exists()) {
+        if (directory == null || !directory.exists()) {
             return null;
         }
         // Scanning is lazy ...

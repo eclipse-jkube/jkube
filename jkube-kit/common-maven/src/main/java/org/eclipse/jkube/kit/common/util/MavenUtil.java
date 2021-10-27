@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -30,6 +31,7 @@ import org.apache.maven.plugin.BuildPluginManager;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
@@ -373,6 +375,20 @@ public class MavenUtil {
 
         if (mavenProject.getArtifact() != null) {
             builder.artifact(mavenProject.getArtifact().getFile());
+        }
+
+        if (mavenProject.getUrl() != null) {
+            builder.url(mavenProject.getUrl());
+        }
+
+        if (mavenProject.getDevelopers() != null) {
+            builder.maintainers(Optional.of(mavenProject)
+              .map(MavenProject::getDevelopers)
+              .orElse(Collections.emptyList())
+              .stream()
+              .filter(developer -> StringUtils.isNotBlank(developer.getName()) || StringUtils.isNotBlank(developer.getEmail()))
+              .map(developer -> new Maintainer(developer.getName(), developer.getEmail()))
+              .collect(Collectors.toList()));
         }
 
         return builder.build();

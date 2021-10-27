@@ -1,9 +1,9 @@
-[[jkube:debug]]
+[[jkubeDebug]]
 === *{task-prefix}Debug*
 
 This task enables debugging in your Java app and then port forwards from localhost to the latest running pod of your app so that you can easily debug your app from your Java IDE.
 
-[source, sh, subs="+attributes"]
+[source,sh,subs="+attributes"]
 ----
 gradle {task-prefix}Debug
 ----
@@ -12,7 +12,7 @@ Then follow the on screen instructions.
 
 The default debug port is `5005`.If you wish to change the local port to use for debugging then pass in the `jkube.debug.port` parameter:
 
-[source, sh, subs="+attributes"]
+[source,sh,subs="+attributes"]
 ----
 gradle {task-prefix}Debug -Djkube.debug.port=8000
 ----
