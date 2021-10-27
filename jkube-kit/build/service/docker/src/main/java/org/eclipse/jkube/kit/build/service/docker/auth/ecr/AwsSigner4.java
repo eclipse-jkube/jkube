@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -137,7 +136,7 @@ class AwsSigner4 {
             return "";
         }
         List<NameValuePair> params = URLEncodedUtils.parse(query, StandardCharsets.UTF_8);
-        Collections.sort(params, (l, r) -> l.getName().compareToIgnoreCase(r.getName()));
+        params.sort((l, r) -> l.getName().compareToIgnoreCase(r.getName()));
         return URLEncodedUtils.format(params, StandardCharsets.UTF_8);
     }
 

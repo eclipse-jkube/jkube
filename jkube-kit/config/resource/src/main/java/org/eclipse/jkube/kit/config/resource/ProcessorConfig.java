@@ -28,6 +28,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.Comparator;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -129,7 +130,7 @@ public class ProcessorConfig {
                 T named = lookup.get(inc);
                 if (named == null) {
                     List<String> keys = new ArrayList<>(lookup.keySet());
-                    Collections.sort(keys);
+                    keys.sort(Comparator.naturalOrder());
                     throw new IllegalArgumentException(
                             "No " + type + " with name '" + inc +
                                     "' found to include. " +
