@@ -21,6 +21,7 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftDebugTask;
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmPushTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftPushTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
@@ -52,7 +53,8 @@ public class OpenShiftPluginRegisterTaskTest {
         new Object[] { "ocPush", OpenShiftPushTask.class },
         new Object[] { "ocResource", OpenShiftResourceTask.class },
         new Object[] { "ocUndeploy", OpenShiftUndeployTask.class },
-        new Object[] { "ocHelm", OpenShiftHelmTask.class});
+        new Object[] { "ocHelm", OpenShiftHelmTask.class},
+        new Object[] { "ocHelmPush", OpenShiftHelmPushTask.class});
   }
 
   @Parameterized.Parameter
