@@ -10,3 +10,5 @@ include::_jkube-resource.adoc[]
 include::_jkube-apply.adoc[]
 
 include::_jkube-helm.adoc[]
+
+include::_jkube-helm-push.adoc[]
