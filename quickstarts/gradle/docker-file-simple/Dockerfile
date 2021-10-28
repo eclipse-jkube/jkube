@@ -15,5 +15,5 @@
 FROM quay.io/jkube/jkube-java-binary-s2i:0.0.9
 ENV JAVA_APP_DIR=/deployments
 EXPOSE 8080 8778 9779
-COPY maven/build/libs/docker-file-simple-1.5.0.jar /deployments/
+COPY maven/build/libs/docker-file-simple-1.5.1.jar /deployments/
 COPY maven/static-dir-in-project-root/my-file.txt /deployments/my-file.txt

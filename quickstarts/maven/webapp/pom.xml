@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>webapp</artifactId>
-  <version>1.5.0</version>
+  <version>1.5.1</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Webapp</name>
   <packaging>war</packaging>
 

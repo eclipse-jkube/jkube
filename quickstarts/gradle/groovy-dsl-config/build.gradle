@@ -1,9 +1,9 @@
 plugins {
     id 'java'
-    id("org.eclipse.jkube.kubernetes") version "1.5.0"
+    id("org.eclipse.jkube.kubernetes") version "1.5.1"
 }
 
-version = "1.5.0"
+version = "1.5.1"
 group = "org.eclipse.jkube.quickstart.gradle.camelcdi"
 
 repositories {
