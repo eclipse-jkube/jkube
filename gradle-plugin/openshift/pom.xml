@@ -108,6 +108,14 @@
         </dependency>
         <dependency>
             <groupId>org.gradle</groupId>
+            <artifactId>gradle-messaging</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-native</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
             <artifactId>gradle-platform-jvm</artifactId>
         </dependency>
         <dependency>
