@@ -20,12 +20,12 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.5.0-SNAPSHOT
-* Fix #31: Kubernetes/OpenShift Gradle Plugin initial implementation
+### 1.5.0 (2021-10-28)
+* Fix #31: Kubernetes/OpenShift Gradle Plugin initial implementation **(Preview)**
 * Fix #971: Rethrow the InterruptException that is caught in ApplyMojo.java
 * Fix #823: Converting `StringBuffer` to `StringBuilder` in `jkube/jkube-kit/common/src/main/java/org/eclipse/jkube/kit/common/util/IoUtil.java` and `jkube/jkube-kit/common/src/main/java/org/eclipse/jkube/kit/common/util/TemplateUtil.java`
 * Fix #815: `java.lang.ClassCastException` during `oc:build` when OpenShift not present
-* Fix #716: Update Spring Boot Quickstarts to latest version
+* Fix #716: Update Spring Boot Quickstarts to the latest version
 * Fix #907: Bump JKube base images to 0.0.10
 * Fix #832: Bump jib-core to 0.20.0
 * Fix #904: DeploymentConfig ImageChange trigger seems to be wrong for custom images
@@ -38,7 +38,8 @@ Usage:
 * Fix #1036: JKubeTarArchive doesn't load files in memory
 * Fix #1040: Remove deprecated `ExpectedException.none()` and `@Rule` and use `assertThrows` instead
 
-_**Note**_: Kubernetes and OpenShift Gradle Plugins are a preview feature to get early feedback. Only the set of documented features are available to users.
+_**Note**_: Kubernetes and OpenShift Gradle Plugins are a preview feature to get early feedback.
+Only the set of documented features are available to users.
 
 ### 1.4.0 (2021-07-27)
 * Fix #253: Refactor JKubeServiceHub's BuildService election mechanism via ServiceLoader
