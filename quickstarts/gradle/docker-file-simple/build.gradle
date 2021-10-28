@@ -1,12 +1,12 @@
 plugins {
     id 'org.springframework.boot' version '2.5.3'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id 'org.eclipse.jkube.kubernetes' version '1.5.0'
+    id 'org.eclipse.jkube.kubernetes' version '1.5.1'
     id 'java'
 }
 
 group = 'org.eclipse.jkube.quickstart.maven.helloworld'
-version = '1.5.0'
+version = '1.5.1'
 sourceCompatibility = '11'
 
 repositories {

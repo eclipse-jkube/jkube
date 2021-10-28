@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>helloworld</artifactId>
-  <version>1.5.0</version>
+  <version>1.5.1</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Hello World</name>
   <packaging>jar</packaging>
 

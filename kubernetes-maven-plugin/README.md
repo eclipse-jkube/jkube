@@ -54,7 +54,7 @@ To enable kubernetes maven plugin on your project just add this to the plugins s
 
 | KMP               | Kubernetes 1.19.0  | Kubernetes 1.18.0  | Kubernetes 1.17.0  | Kubernetes 1.12.0  |
 |-------------------|--------------------|--------------------|--------------------|--------------------|
-| KMP 1.5.0         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| KMP 1.5.1         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | KMP 1.4.0         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | KMP 1.3.0         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | KMP 1.2.0         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |

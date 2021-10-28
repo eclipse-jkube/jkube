@@ -26,7 +26,7 @@
 
     <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
     <artifactId>docker-file-provided</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
     <name>Eclipse JKube :: Quickstarts :: Maven :: Docker File Provided</name>
     <packaging>jar</packaging>
 

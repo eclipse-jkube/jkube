@@ -26,7 +26,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>spring-boot-crd</artifactId>
-  <version>1.5.0</version>
+  <version>1.5.1</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot - Custom Resources</name>
   <packaging>jar</packaging>
 

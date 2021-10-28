@@ -22,7 +22,7 @@ Usage:
 ```
 ### 1.6.0-SNAPSHOT
 
-### 1.5.1
+### 1.5.1 (2021-10-28)
 * Fix #1084: Gradle dependencies should be test or provided scope
 
 ### 1.5.0 (2021-10-28)
