@@ -20,6 +20,8 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+### 1.6.0-SNAPSHOT
+
 ### 1.5.0 (2021-10-28)
 * Fix #31: Kubernetes/OpenShift Gradle Plugin initial implementation **(Preview)**
 * Fix #971: Rethrow the InterruptException that is caught in ApplyMojo.java
