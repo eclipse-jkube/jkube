@@ -22,6 +22,9 @@ Usage:
 ```
 ### 1.6.0-SNAPSHOT
 
+### 1.5.1
+* Fix #1084: Gradle dependencies should be test or provided scope
+
 ### 1.5.0 (2021-10-28)
 * Fix #31: Kubernetes/OpenShift Gradle Plugin initial implementation **(Preview)**
 * Fix #971: Rethrow the InterruptException that is caught in ApplyMojo.java
