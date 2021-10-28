@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>openliberty-microprofile</artifactId>
-  <version>1.4.0</version>
+  <version>1.5.0</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Open Liberty &amp; MicroProfile</name>
   <packaging>war</packaging>
 

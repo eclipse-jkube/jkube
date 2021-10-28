@@ -1,12 +1,12 @@
 plugins {
     id 'org.springframework.boot' version '2.4.0'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id 'org.eclipse.jkube.kubernetes' version '1.5.0-SNAPSHOT'
+    id 'org.eclipse.jkube.kubernetes' version '1.5.0'
     id 'java'
 }
 
 group = 'org.eclipse.jkube.quickstarts.gradle'
-version = '1.5.0-SNAPSHOT'
+version = '1.5.0'
 sourceCompatibility = '11'
 
 repositories {

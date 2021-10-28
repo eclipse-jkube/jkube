@@ -26,7 +26,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>external-resources</artifactId>
-  <version>1.4.0</version>
+  <version>1.5.0</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: External Resources</name>
   <packaging>jar</packaging>
 

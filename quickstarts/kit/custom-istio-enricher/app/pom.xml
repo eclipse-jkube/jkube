@@ -21,12 +21,12 @@
 
   <artifactId>eclipse-jkube-sample-custom-enricher-app</artifactId>
   <packaging>jar</packaging>
-  <version>1.4.0</version>
+  <version>1.5.0</version>
 
   <parent>
     <groupId>org.eclipse.jkube.quickstarts.kit</groupId>
     <artifactId>eclipse-jkube-sample-custom-enricher-parent</artifactId>
-    <version>1.4.0</version>
+    <version>1.5.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 

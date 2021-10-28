@@ -31,7 +31,7 @@ Either shell or params should be specified.
 ----
 entryPoint {
     // Shell Form
-    shell = 'java -jar maven/hello-world-1.5.0-SNAPSHOT.jar'
+    shell = 'java -jar maven/hello-world-{version}.jar'
 }
 ----
 
@@ -42,6 +42,6 @@ or
 ----
 entryPoint {
     // exec form
-    exec = ['java','-jar','maven/hello-world-1.5.0-SNAPSHOT.jar']
+    exec = ['java','-jar','maven/hello-world-{version}.jar']
 }
 ----
