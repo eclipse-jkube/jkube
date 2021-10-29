@@ -87,25 +87,19 @@ public class ProfileUtilTest {
     
     @Test
     public void findProfile_whenValidProfileArg_returnsValidProfile() throws URISyntaxException, IOException {
-        // Given
         File profileDir = getProfileDir();
 
-        // When
         Profile profile = ProfileUtil.findProfile("simple", profileDir);
 
-        // Then
         assertNotNull(profile);
     }
     
     @Test
     public void findProfile_whenNonExistentProfileArg_throwsException () throws URISyntaxException {
-        // Given
         File profileDir = getProfileDir();
 
-        // When
         IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("not-there", profileDir));
 
-        // Then
         assertTrue(illegalArgumentException.getMessage().contains("not-there"));
     }
 
