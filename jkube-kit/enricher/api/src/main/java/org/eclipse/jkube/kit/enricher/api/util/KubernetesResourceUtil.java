@@ -380,7 +380,7 @@ public class KubernetesResourceUtil {
             Map<String, Object> ret = mapper.readValue(file, typeRef);
             return ret != null ? ret : new HashMap<>();
         } catch (JsonProcessingException e) {
-            throw new JsonMappingException(String.format("[%s] %s", file, e.getMessage()), e.getLocation(), e);
+            throw JsonMappingException.from(mapper.getDeserializationContext(), String.format("[%s] %s", file, e.getMessage()));
         }
     }
 
