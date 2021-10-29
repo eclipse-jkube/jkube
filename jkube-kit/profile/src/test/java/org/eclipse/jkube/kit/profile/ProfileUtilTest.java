@@ -84,17 +84,29 @@ public class ProfileUtilTest {
     public File getProfileDir() throws URISyntaxException {
         return new File(getClass().getResource("/jkube/config/profiles-lookup-dir/profiles.yaml").toURI()).getParentFile();
     }
-
+    
     @Test
-    public void findProfile() throws URISyntaxException, IOException {
-        assertNotNull(ProfileUtil.findProfile("simple", getProfileDir()));
-        try {
-            ProfileUtil.findProfile("not-there", getProfileDir());
-            fail();
-        } catch (IllegalArgumentException exp) {
-            assertTrue(exp.getMessage().contains("not-there"));
-        }
+    public void findProfile_whenValidProfileArg_returnsValidProfile() throws URISyntaxException, IOException {
+        // Given
+        File profileDir = getProfileDir();
 
+        // When
+        Profile profile = ProfileUtil.findProfile("simple", profileDir);
+
+        // Then
+        assertNotNull(profile);
+    }
+    
+    @Test
+    public void findProfile_whenNonExistentProfileArg_throwsException () throws URISyntaxException {
+        // Given
+        File profileDir = getProfileDir();
+
+        // When
+        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("not-there", profileDir));
+
+        // Then
+        assertTrue(illegalArgumentException.getMessage().contains("not-there"));
     }
 
     @Test
