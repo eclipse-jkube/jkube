@@ -57,7 +57,7 @@ public class WildflyJARGeneratorTest {
     @Test
     public void notApplicable() throws IOException {
         WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
-        assertFalse(generator.isApplicable((List<ImageConfiguration>) Collections.EMPTY_LIST));
+        assertFalse(generator.isApplicable((List<ImageConfiguration>) Collections.emptyList()));
     }
 
     // To be revisited if we enable jolokia and prometheus.
@@ -267,7 +267,7 @@ public class WildflyJARGeneratorTest {
             context.getProject(); result = project;
             String tempDir = Files.createTempDirectory("wildfly-jar-test-project").toFile().getAbsolutePath();
             project.getOutputDirectory(); result = tempDir;
-            project.getPlugins(); result = Collections.EMPTY_LIST; minTimes = 0;
+            project.getPlugins(); result = Collections.emptyList(); minTimes = 0;
             project.getVersion(); result = "1.0.0"; minTimes = 0;
         }};
         return context;
