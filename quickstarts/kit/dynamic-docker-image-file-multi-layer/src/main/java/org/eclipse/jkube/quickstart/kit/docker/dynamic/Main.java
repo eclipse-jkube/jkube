@@ -73,6 +73,6 @@ public class Main {
     if (currentWorkDir.toAbsolutePath().endsWith("dynamic-docker-image-file-multi-layer")) {
       return currentWorkDir.toAbsolutePath();
     }
-    return currentWorkDir.resolve("quickstarts").resolve("kit").resolve("dynamic-docker-image-file-multi-layer");
+    return currentWorkDir.resolve("kit").resolve("dynamic-docker-image-file-multi-layer");
   }
 }

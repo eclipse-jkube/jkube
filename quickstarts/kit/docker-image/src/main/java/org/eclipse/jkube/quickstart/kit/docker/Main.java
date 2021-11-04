@@ -95,6 +95,6 @@ public class Main {
     if (currentWorkDir.toAbsolutePath().endsWith("docker-image")) {
       return currentWorkDir.toAbsolutePath();
     }
-    return currentWorkDir.resolve("quickstarts").resolve("kit").resolve("docker-image");
+    return currentWorkDir.resolve("kit").resolve("docker-image");
   }
 }
