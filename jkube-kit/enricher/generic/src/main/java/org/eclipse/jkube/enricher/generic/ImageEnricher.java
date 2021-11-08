@@ -283,28 +283,19 @@ public class ImageEnricher extends BaseEnricher {
                         .withName(resourceEnvEntry.getKey())
                         .withValue(resourceEnvEntry.getValue())
                         .build();
-                if (!hasEnvWithName(containerEnvVars, newEnvVar.getName())) {
+
+                EnvVar oldEnvVar = containerEnvVars.stream()
+                  .filter(e -> e.getName().equals(newEnvVar.getName()))
+                  .findFirst().orElse(null);
+                if (oldEnvVar == null) {
                     containerEnvVars.add(newEnvVar);
-                } else {
+                } else if (!newEnvVar.getValue().equals(oldEnvVar.getValue())) {
                     log.warn(
-                        "Environment variable %s will not be overridden: trying to set the value %s, but its actual value is %s",
-                        newEnvVar.getName(), newEnvVar.getValue(), getEnvValue(containerEnvVars, newEnvVar.getName()));
+                      "Environment variable %s will not be overridden: trying to set the value %s, but its actual value is %s",
+                      newEnvVar.getName(), newEnvVar.getValue(), oldEnvVar.getValue());
                 }
             }
         });
-    }
-
-    private String getEnvValue(List<EnvVar> envVars, String name) {
-        for (EnvVar var : envVars) {
-            if (var.getName().equals(name)) {
-                return var.getValue();
-            }
-        }
-        return "(not found)";
-    }
-
-    private boolean hasEnvWithName(List<EnvVar> envVars, String name) {
-        return envVars.stream().anyMatch(e -> e.getName().equals(name));
     }
 
     static String containerImageName(ImageConfiguration imageConfiguration) {

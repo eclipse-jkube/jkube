@@ -55,16 +55,9 @@ public class ImageEnricherTest {
     @Before
     public void prepareMock() {
         // Setup mock behaviour
+        givenResourceConfigWithEnvVar("MY_KEY", "MY_VALUE");
         // @formatter:off
         new Expectations() {{
-            Configuration configuration = Configuration.builder()
-                .resource(ResourceConfig.builder()
-                    .env(Collections.singletonMap("MY_KEY", "MY_VALUE"))
-                    .build())
-                .image(imageConfiguration)
-                .build();
-            context.getConfiguration(); result = configuration;
-
             imageConfiguration.getName(); result = "busybox";
             imageConfiguration.getAlias(); result = "busybox";
         }};
@@ -78,7 +71,7 @@ public class ImageEnricherTest {
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "Deployment");
+        assertCorrectlyGeneratedResources(builder.build(), "Deployment", "MY_KEY", "MY_VALUE");
     }
 
     @Test
@@ -86,7 +79,7 @@ public class ImageEnricherTest {
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new ReplicaSetBuilder().build());
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "ReplicaSet");
+        assertCorrectlyGeneratedResources(builder.build(), "ReplicaSet", "MY_KEY", "MY_VALUE");
     }
 
     @Test
@@ -96,7 +89,7 @@ public class ImageEnricherTest {
                 .endReplicationControllerItem();
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "ReplicationController");
+        assertCorrectlyGeneratedResources(builder.build(), "ReplicationController", "MY_KEY", "MY_VALUE");
     }
 
     @Test
@@ -104,7 +97,7 @@ public class ImageEnricherTest {
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DaemonSetBuilder().build());
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "DaemonSet");
+        assertCorrectlyGeneratedResources(builder.build(), "DaemonSet", "MY_KEY", "MY_VALUE");
     }
 
     @Test
@@ -112,7 +105,7 @@ public class ImageEnricherTest {
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new StatefulSetBuilder().build());
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "StatefulSet");
+        assertCorrectlyGeneratedResources(builder.build(), "StatefulSet", "MY_KEY", "MY_VALUE");
     }
 
     @Test
@@ -120,17 +113,66 @@ public class ImageEnricherTest {
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentConfigBuilder().build());
 
         imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "DeploymentConfig");
+        assertCorrectlyGeneratedResources(builder.build(), "DeploymentConfig", "MY_KEY", "MY_VALUE");
     }
 
-    private void assertCorrectlyGeneratedResources(KubernetesList list, String kind) throws JsonProcessingException {
+    @Test
+    public void create_whenEnvironmentVariableAbsent_thenAddsEnvironmentVariable() throws JsonProcessingException {
+        // Given
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());
+
+        // When
+        imageEnricher.create(PlatformMode.kubernetes, builder);
+
+        // Then
+        assertCorrectlyGeneratedResources(builder.build(), "Deployment", "MY_KEY", "MY_VALUE");
+    }
+
+    @Test
+    public void create_whenEnvironmentVariablePresentWithDifferentValue_thenOldValueIsPreserved() throws JsonProcessingException {
+        // Given
+        givenResourceConfigWithEnvVar("key", "valueNew");
+        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
+            .withNewSpec()
+            .withNewTemplate()
+            .withNewSpec()
+            .addNewContainer()
+            .addNewEnv().withName("key").withValue("valueOld").endEnv()
+            .endContainer()
+            .endSpec()
+            .endTemplate()
+            .endSpec()
+          .build());
+
+        // When
+        imageEnricher.create(PlatformMode.kubernetes, builder);
+
+        // Then
+        assertCorrectlyGeneratedResources(builder.build(), "Deployment", "key", "valueOld");
+    }
+
+    private void assertCorrectlyGeneratedResources(KubernetesList list, String kind, String expectedKey, String expectedValue) throws JsonProcessingException {
         assertEquals(1, list.getItems().size());
 
         String json = ResourceUtil.toJson(list.getItems().get(0));
         assertThat(json, JsonPathMatchers.isJson());
         assertThat(json, JsonPathMatchers.hasJsonPath("$.kind", Matchers.equalTo(kind)));
 
-        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0].env[0].name", Matchers.equalTo("MY_KEY")));
-        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0].env[0].value", Matchers.equalTo("MY_VALUE")));
+        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0].env[0].name", Matchers.equalTo(expectedKey)));
+        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0].env[0].value", Matchers.equalTo(expectedValue)));
+    }
+
+    private void givenResourceConfigWithEnvVar(String name, String value) {
+        // @formatter:off
+        new Expectations() {{
+            Configuration configuration = Configuration.builder()
+              .resource(ResourceConfig.builder()
+                .env(Collections.singletonMap(name, value))
+                .build())
+              .image(imageConfiguration)
+              .build();
+            context.getConfiguration(); result = configuration;
+        }};
+        // @formatter:on
     }
 }
