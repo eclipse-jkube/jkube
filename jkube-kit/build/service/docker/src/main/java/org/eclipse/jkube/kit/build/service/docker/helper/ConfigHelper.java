@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyMode;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -205,6 +206,14 @@ public class ConfigHelper {
 
         // Initialize configuration and detect minimal API version
         ConfigHelper.initAndValidate(resolvedImages, apiVersion, imageNameFormatter);
+
+        for (ImageConfiguration image : resolvedImages) {
+            BuildConfiguration buildConfiguration = image.getBuildConfiguration();
+            if (buildConfiguration.isDockerFileMode()) {
+                log.info("Using Dockerfile: %s", buildConfiguration.getDockerFile().getAbsolutePath());
+            }
+        }
+
         return resolvedImages;
     }
 
