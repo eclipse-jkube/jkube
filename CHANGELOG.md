@@ -26,6 +26,7 @@ Usage:
 * Fix #1054: Log selected Dockerfile in Docker build mode
 * Fix #1120: OpenShiftBuildService flattens assembly only if necessary
 * Fix #1123: Helm supports `.yaml` and `.yml` source files
+* Fix #1113: `ResourceUtil.deserializeKubernetesListOrTemplate` should also handle YAML manifests with multiple docs
 
 ### 1.5.1 (2021-10-28)
 * Fix #1084: Gradle dependencies should be test or provided scope

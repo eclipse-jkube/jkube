@@ -70,8 +70,13 @@ public class ResourceUtil {
         if (manifest.isFile()) {
             String fileContentAsStr = new String(Files.readAllBytes(manifest.toPath()), StandardCharsets.UTF_8);
             if (StringUtils.isNotBlank(fileContentAsStr)) {
+                ResourceFileType resourceFileType = ResourceFileType.fromFile(manifest);
+                if (resourceFileType.equals(ResourceFileType.yaml) && containsMultipleDocuments(fileContentAsStr)) {
+                    return parseMultipleKubernetesResourcesFromYamlManifest(resourceFileType.getObjectMapper(), fileContentAsStr);
+                }
+
                 kubernetesResources.addAll(parseKubernetesListOrTemplate(
-                    ResourceFileType.fromFile(manifest).getObjectMapper(), fileContentAsStr
+                    resourceFileType.getObjectMapper(), fileContentAsStr
                 ));
             }
         }
@@ -180,6 +185,21 @@ public class ResourceUtil {
                 throw new IOException("Cannot create directory " + parentDir);
             }
         }
+    }
+
+    private static boolean containsMultipleDocuments(String manifestString) {
+        return manifestString.split("---").length > 2;
+    }
+
+    private static List<HasMetadata> parseMultipleKubernetesResourcesFromYamlManifest(ObjectMapper objectMapper, String manifestString) throws JsonProcessingException {
+        String[] documents = manifestString.split("---");
+        List<HasMetadata> resources = new ArrayList<>();
+        for (String document : documents) {
+            if (StringUtils.isNotBlank(document)) {
+                resources.add(objectMapper.readValue(document, HasMetadata.class));
+            }
+        }
+        return resources;
     }
 
     public static File getFinalResourceDir(File resourceDir, String environment) {

@@ -1,0 +1,60 @@
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  labels:
+    app: "test-project"
+    decorated-by: "dekorate"
+    version: "latest"
+    group: "jkube"
+  name: "test-project"
+spec:
+  ports:
+    - name: "http"
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: "test-project"
+    decorated-by: "dekorate"
+    version: "latest"
+    group: "jkube"
+  type: "NodePort"
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  labels:
+    app: "test-project"
+    decorated-by: "dekorate"
+    version: "latest"
+    group: "jkube"
+  name: "test-project"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "test-project"
+      decorated-by: "dekorate"
+      version: "latest"
+      group: "jkube"
+  template:
+    metadata:
+      labels:
+        app: "test-project"
+        decorated-by: "dekorate"
+        version: "latest"
+        group: "jkube"
+    spec:
+      containers:
+        - env:
+            - name: "KUBERNETES_NAMESPACE"
+              valueFrom:
+                fieldRef:
+                  fieldPath: "metadata.namespace"
+          image: "maven/test-project:latest"
+          imagePullPolicy: "IfNotPresent"
+          name: "test-project"
+          ports:
+            - containerPort: 8080
+              name: "http"
+              protocol: "TCP"
