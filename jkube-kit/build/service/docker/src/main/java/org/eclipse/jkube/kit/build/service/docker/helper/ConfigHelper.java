@@ -209,7 +209,7 @@ public class ConfigHelper {
 
         for (ImageConfiguration image : resolvedImages) {
             BuildConfiguration buildConfiguration = image.getBuildConfiguration();
-            if (buildConfiguration.isDockerFileMode()) {
+            if (buildConfiguration != null &&  buildConfiguration.isDockerFileMode()) {
                 log.info("Using Dockerfile: %s", buildConfiguration.getDockerFile().getAbsolutePath());
             }
         }
