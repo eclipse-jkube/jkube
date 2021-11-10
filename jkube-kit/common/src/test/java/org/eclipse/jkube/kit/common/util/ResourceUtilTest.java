@@ -19,10 +19,13 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.openshift.api.model.Template;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.ResourceFileType;
@@ -131,6 +134,41 @@ public class ResourceUtilTest {
                 .withValue("replaced_value")
                 .build()
             );
+    }
+
+    @Test
+    public void testDeserializeKubernetesListOrTemplateWithMultipleYamlDocuments() throws IOException {
+        // Given
+        final File kubernetesListFile = new File(getClass().getResource(
+          "/util/resource-util/multiple-k8s-documents.yml").getFile());
+        // When
+        final List<HasMetadata> result = ResourceUtil.deserializeKubernetesListOrTemplate(
+          kubernetesListFile);
+        // Then
+        assertThat(result)
+          .hasSize(2).first()
+          .isInstanceOf(Service.class)
+          .asInstanceOf(InstanceOfAssertFactories.type(Service.class))
+          .hasFieldOrPropertyWithValue("metadata.name", "test-project")
+          .extracting("spec.ports").asList()
+          .containsExactly(new ServicePortBuilder()
+            .withName("http")
+            .withPort(8080)
+            .withTargetPort(new IntOrString(8080))
+            .build()
+          );
+        assertThat(result).element(1)
+          .isInstanceOf(Deployment.class)
+          .asInstanceOf(InstanceOfAssertFactories.type(Deployment.class))
+          .hasFieldOrPropertyWithValue("metadata.name", "test-project")
+          .extracting("spec.template.spec.containers").asList().first()
+          .extracting("env").asList()
+          .containsExactly(new EnvVarBuilder()
+            .withName("KUBERNETES_NAMESPACE")
+            .withNewValueFrom()
+            .withNewFieldRef().withFieldPath("metadata.namespace").endFieldRef()
+            .endValueFrom()
+            .build());
     }
 
     @Test
