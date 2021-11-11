@@ -34,8 +34,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -165,7 +165,7 @@ public class KubernetesResourceUtil {
     }
 
     private static HasMetadata getCustomResource(File file) throws IOException {
-        return Serialization.yamlMapper().readValue(file, GenericCustomResource.class);
+        return Serialization.yamlMapper().readValue(file, GenericKubernetesResource.class);
     }
 
     private static boolean isCustomResourceFragment(String fileName) {

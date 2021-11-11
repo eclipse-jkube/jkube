@@ -32,13 +32,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -95,7 +95,7 @@ public class ResourceUtil {
     private static List<HasMetadata> parseKubernetesList(ObjectMapper mapper, Map<String, Object> manifest) {
         final List<Map<String, Object>> items = (List<Map<String, Object>>)manifest.get("items");
         return items.stream().map(item -> {
-            final GenericCustomResource fallback = mapper.convertValue(item, GenericCustomResource.class);
+            final GenericKubernetesResource fallback = mapper.convertValue(item, GenericKubernetesResource.class);
             try {
                 // Convert Using KubernetesDeserializer or fail and return fallback generic
                 return mapper.convertValue(fallback, HasMetadata.class);
@@ -111,8 +111,8 @@ public class ResourceUtil {
         return load(file, clazz, type);
     }
 
-    private static boolean isGenericCustomResourceCompatible(Class<?> clazz){
-        return clazz.isAssignableFrom(GenericCustomResource.class);
+    private static boolean isGenericKubernetesResourceCompatible(Class<?> clazz){
+        return clazz.isAssignableFrom(GenericKubernetesResource.class);
     }
 
     public static <T extends KubernetesResource> T load(File file, Class<T> clazz, ResourceFileType resourceFileType)
@@ -120,8 +120,8 @@ public class ResourceUtil {
         try {
             return getObjectMapper(resourceFileType).readValue(file, clazz);
         } catch(IOException ex) {
-            if (isGenericCustomResourceCompatible(clazz)) {
-                return clazz.cast(getObjectMapper(resourceFileType).readValue(file, GenericCustomResource.class));
+            if (isGenericKubernetesResourceCompatible(clazz)) {
+                return clazz.cast(getObjectMapper(resourceFileType).readValue(file, GenericKubernetesResource.class));
             }
             throw ex;
         }
@@ -134,8 +134,8 @@ public class ResourceUtil {
             IOUtils.copy(in, baos);
             return getObjectMapper(resourceFileType).readValue(baos.toByteArray(), clazz);
         } catch(IOException ex) {
-            if (isGenericCustomResourceCompatible(clazz)) {
-                return clazz.cast(getObjectMapper(resourceFileType).readValue(baos.toByteArray(), GenericCustomResource.class));
+            if (isGenericKubernetesResourceCompatible(clazz)) {
+                return clazz.cast(getObjectMapper(resourceFileType).readValue(baos.toByteArray(), GenericKubernetesResource.class));
             }
             throw ex;
         }

@@ -36,12 +36,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HTTPHeader;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
+import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 
@@ -70,9 +69,6 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionVersion;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -91,7 +87,6 @@ import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
@@ -99,8 +94,6 @@ import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimGroup;
-import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimVersion;
 
 /**
  * @author roland
@@ -864,8 +857,9 @@ public class KubernetesHelper {
         return new File[0];
     }
 
-    public static String getFullyQualifiedApiGroupWithKind(CustomResourceDefinitionContext crdContext) {
-        return crdContext.getGroup() + "/" + crdContext.getVersion() + "#" + crdContext.getKind();
+    public static String getFullyQualifiedApiGroupWithKind(HasMetadata item) {
+        return ApiVersionUtil.joinApiGroupAndVersion(ApiVersionUtil.trimGroup(item.getApiVersion()), ApiVersionUtil.trimVersion(item.getApiVersion())) +
+            "#" + item.getKind();
     }
 
     public static String getNewestApplicationPodName(KubernetesClient client, String namespace, Collection<HasMetadata> resources) {
@@ -952,12 +946,6 @@ public class KubernetesHelper {
         return Arrays.stream(POD_CONTROLLER_KINDS).anyMatch(c -> c.equals(h.getKind()));
     }
 
-    public static CustomResourceDefinitionContext getCrdContext(CustomResourceDefinitionList customResourceDefinitionList, GenericCustomResource customResource) {
-        return findCrdForCustomResource(customResourceDefinitionList, customResource)
-            .map(CustomResourceDefinitionContext::fromCrd)
-            .orElse(null);
-    }
-
     public static List<HTTPHeader> convertMapToHTTPHeaderList(Map<String, String> headers) {
         List<HTTPHeader> httpHeaders = new ArrayList<>();
         if (headers != null) {
@@ -966,35 +954,6 @@ public class KubernetesHelper {
             }
         }
         return httpHeaders;
-    }
-
-    private static Optional<CustomResourceDefinition> findCrdForCustomResource(CustomResourceDefinitionList crdList, GenericCustomResource gcr) {
-        return crdList.getItems().stream()
-            .filter(hasGroup(gcr))
-            .filter(isVersionPresentInSpecVersion(gcr).or(isVersionPresentInVersionsList(gcr)))
-            .filter(hasKind(gcr))
-            .findFirst();
-    }
-
-    private static Predicate<CustomResourceDefinition> hasGroup(GenericCustomResource gcr) {
-        return crd -> crd.getSpec().getGroup().equals(trimGroup(gcr.getApiVersion()));
-    }
-
-    private static Predicate<CustomResourceDefinition> isVersionPresentInSpecVersion(GenericCustomResource gcr) {
-        final String gcrVersion = trimVersion(gcr.getApiVersion());
-        return crd -> crd.getSpec().getVersion() != null && crd.getSpec().getVersion().equals(gcrVersion);
-    }
-
-    private static Predicate<CustomResourceDefinition> isVersionPresentInVersionsList(GenericCustomResource gcr) {
-        final String gcrVersion = trimVersion(gcr.getApiVersion());
-        return crd -> crd.getSpec().getVersions() != null && crd.getSpec().getVersions()
-            .stream()
-            .map(CustomResourceDefinitionVersion::getName)
-            .anyMatch(n -> n.equals(gcrVersion));
-    }
-
-    private static Predicate<CustomResourceDefinition> hasKind(GenericCustomResource gcr) {
-        return crd -> crd.getSpec().getNames().getKind().equals(gcr.getKind());
     }
 }
 

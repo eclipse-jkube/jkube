@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.eclipse.jkube.kit.common.GenericCustomResource;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -50,7 +50,6 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionList;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
@@ -64,8 +63,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
@@ -83,7 +80,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getCrdContext;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getKind;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getName;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getOrCreateLabels;
@@ -207,8 +203,8 @@ public class ApplyService {
             applyNamespace((Namespace) dto);
         } else if (dto instanceof Project) {
             applyProject((Project) dto);
-        } else if (dto instanceof GenericCustomResource) {
-            applyGenericCustomResource((GenericCustomResource) dto, sourceName);
+        } else if (dto instanceof GenericKubernetesResource) {
+            applyGenericKubernetesResource((GenericKubernetesResource) dto, sourceName);
         } else if (dto instanceof HasMetadata) {
             HasMetadata entity = (HasMetadata) dto;
             try {
@@ -222,18 +218,25 @@ public class ApplyService {
         }
     }
 
-    public void applyGenericCustomResource(GenericCustomResource dto, String sourceName) {
-        try {
-            CustomResourceDefinitionList crdList = kubernetesClient.apiextensions().v1beta1().customResourceDefinitions().list();
-            CustomResourceDefinitionContext crdContext = getCrdContext(crdList, dto);
-            if (crdContext == null) {
-                onApplyError(String.format("Unable to find CustomResourceDefinition for CustomResource: %s#%s",
-                    dto.getApiVersion(), dto.getKind()), null);
-            }
-            applyCustomResource(crdContext, dto, sourceName);
-        } catch (IOException exception) {
-            onApplyError("Failed to apply " + getKind(dto) + " from " + sourceName + ". ", exception);
+    public void applyGenericKubernetesResource(GenericKubernetesResource genericKubernetesResource, String sourceName) {
+        String name = genericKubernetesResource.getMetadata().getName();
+        String applyNamespace = applicableNamespace(genericKubernetesResource, namespace, fallbackNamespace);
+        String apiGroupWithKind = KubernetesHelper.getFullyQualifiedApiGroupWithKind(genericKubernetesResource);
+        Objects.requireNonNull(name, "No name for " + genericKubernetesResource + " " + sourceName);
+
+        if (isRecreateMode()) {
+            log.info("Attempting to delete Custom Resource: %s %s/%s", apiGroupWithKind, namespace, name);
+            KubernetesClientUtil.doDeleteAndWait(kubernetesClient, genericKubernetesResource, applyNamespace, 10L);
         }
+        final GenericKubernetesResource existentCR = KubernetesClientUtil.doGetCustomResource(kubernetesClient, genericKubernetesResource, applyNamespace);
+        if (existentCR != null && isBlank(existentCR.getMetadata().getDeletionTimestamp())) {
+            log.info("Replacing Custom Resource: %s %s/%s",
+                apiGroupWithKind, applyNamespace, name);
+            genericKubernetesResource.getMetadata().setResourceVersion(existentCR.getMetadata().getResourceVersion());
+        }
+        kubernetesClient.genericKubernetesResources(genericKubernetesResource.getApiVersion(), genericKubernetesResource.getKind()).inNamespace(applyNamespace).withName(name)
+            .createOrReplace(genericKubernetesResource);
+        log.info("Created Custom Resource: %s %s/%s", apiGroupWithKind, applyNamespace, name);
     }
 
     public void applyOAuthClient(OAuthClient entity, String sourceName) {
@@ -481,30 +484,6 @@ public class ApplyService {
         } catch (Exception e) {
             onApplyError("Failed to create Custom Resource Definition from " + sourceName + ". " + e + ". " + entity, e);
         }
-    }
-
-    private void applyCustomResource(CustomResourceDefinitionContext context, GenericCustomResource genericCustomResource, String sourceName)
-        throws IOException {
-
-        String name = genericCustomResource.getMetadata().getName();
-        String applyNamespace = applicableNamespace(genericCustomResource, namespace, fallbackNamespace);
-        String apiGroupWithKind = KubernetesHelper.getFullyQualifiedApiGroupWithKind(context);
-        Objects.requireNonNull(name, "No name for " + genericCustomResource + " " + sourceName);
-
-        if (isRecreateMode()) {
-            log.info("Attempting to delete Custom Resource: %s %s/%s", apiGroupWithKind, namespace, name);
-            KubernetesClientUtil.doDeleteAndWait(kubernetesClient, context, applyNamespace, name, 10L);
-
-        }
-        final GenericCustomResource existentCR = KubernetesClientUtil.doGetCustomResource(kubernetesClient, context, applyNamespace, name);
-        if (existentCR != null && isBlank(existentCR.getMetadata().getDeletionTimestamp())) {
-            log.info("Replacing Custom Resource: %s %s/%s",
-                KubernetesHelper.getFullyQualifiedApiGroupWithKind(context), applyNamespace, name);
-            genericCustomResource.getMetadata().setResourceVersion(existentCR.getMetadata().getResourceVersion());
-        }
-        kubernetesClient.customResource(context).inNamespace(applyNamespace).withName(name)
-            .createOrReplace(Serialization.jsonMapper().writeValueAsString(genericCustomResource));
-        log.info("Created Custom Resource: %s %s/%s", apiGroupWithKind, applyNamespace, name);
     }
 
     protected boolean isBound(PersistentVolumeClaim claim) {
