@@ -14,13 +14,12 @@
 package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
-import org.eclipse.jkube.kit.common.GenericCustomResourceBuilder;
 import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -44,7 +43,7 @@ public class DefaultMetadataEnricherTest {
   private DefaultMetadataEnricher defaultMetadataEnricher;
   private ConfigMapBuilder configMap;
   private DeploymentBuilder deployment;
-  private GenericCustomResourceBuilder genericResource;
+  private GenericKubernetesResourceBuilder genericResource;
   private io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder ingressV1;
   private io.fabric8.kubernetes.api.model.networking.v1beta1.IngressBuilder ingressV1beta1;
   private ServiceAccountBuilder serviceAccount;
@@ -76,7 +75,7 @@ public class DefaultMetadataEnricherTest {
     defaultMetadataEnricher = new DefaultMetadataEnricher(buildContext);
     configMap = new ConfigMapBuilder().withNewMetadata().endMetadata();
     deployment = new DeploymentBuilder();
-    genericResource = new GenericCustomResourceBuilder(new GenericCustomResource());
+    genericResource = new GenericKubernetesResourceBuilder().withNewMetadata().endMetadata();
     ingressV1 = new io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder();
     ingressV1beta1 = new io.fabric8.kubernetes.api.model.networking.v1beta1.IngressBuilder();
     serviceAccount = new ServiceAccountBuilder();

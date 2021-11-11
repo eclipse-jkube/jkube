@@ -18,9 +18,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Supplier;
+import java.util.concurrent.TimeUnit;
 
-import org.eclipse.jkube.kit.common.GenericCustomResource;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
@@ -37,9 +38,6 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.Scaleable;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.fabric8.kubernetes.client.dsl.internal.RawCustomResourceOperationsImpl;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.apache.commons.lang3.StringUtils;
@@ -155,34 +153,21 @@ public class KubernetesClientUtil {
         return "";
     }
 
-    public static GenericCustomResource doGetCustomResource(KubernetesClient kubernetesClient, CustomResourceDefinitionContext crdContext, String namespace, String name) {
+    public static GenericKubernetesResource doGetCustomResource(KubernetesClient kubernetesClient, GenericKubernetesResource resource, String namespace) {
         try {
-            return Serialization.jsonMapper().convertValue(
-                    kubernetesClient.customResource(crdContext).inNamespace(namespace).withName(name).get(),
-                    GenericCustomResource.class
-            );
+            return kubernetesClient.genericKubernetesResources(resource.getApiVersion(), resource.getKind()).inNamespace(namespace).withName(resource.getMetadata().getName()).get();
         } catch (Exception exception) { // Not found exception
             return null;
         }
     }
 
-    public static void doDeleteAndWait(KubernetesClient kubernetesClient, CustomResourceDefinitionContext context,
-                                       String namespace, String name, long seconds) {
-        final RawCustomResourceOperationsImpl crClient = kubernetesClient.customResource(context)
+    public static void doDeleteAndWait(KubernetesClient kubernetesClient, GenericKubernetesResource resource,
+                                       String namespace, long seconds) {
+        final Resource<GenericKubernetesResource> crClient = kubernetesClient.genericKubernetesResources(resource.getApiVersion(), resource.getKind())
                 .inNamespace(namespace)
-                .withName(name);
-        try {
-            crClient.delete();
-            /* Not implemented in Fabric8 Kubernetes Client ----> TODO: replace when sth like this is available
-            crClient.waitUntilCondition(Objects::isNull, seconds, TimeUnit.SECONDS);
-             */
-            final Supplier<GenericCustomResource> getter = () -> doGetCustomResource(kubernetesClient, context, namespace, name);
-            while (seconds-- > 0 && !Objects.isNull(getter.get())) {
-                Thread.sleep(1000L);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+                .withName(resource.getMetadata().getName());
+        crClient.delete();
+        crClient.waitUntilCondition(Objects::isNull, seconds, TimeUnit.SECONDS);
     }
 
     public static String applicableNamespace(HasMetadata resource, String namespace, String fallbackNamespace) {

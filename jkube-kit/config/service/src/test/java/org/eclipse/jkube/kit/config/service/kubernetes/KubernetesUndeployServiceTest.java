@@ -16,9 +16,12 @@ package org.eclipse.jkube.kit.config.service.kubernetes;
 import java.io.File;
 import java.util.Arrays;
 
+import io.fabric8.kubernetes.api.model.APIResource;
+import io.fabric8.kubernetes.api.model.APIResourceBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -32,10 +35,6 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
@@ -117,21 +116,22 @@ public class KubernetesUndeployServiceTest {
     final File crManifest = temporaryFolder.newFile("temp-cr.yml");
     final String crdId = "org.eclipse.jkube/v1alpha1#Crd";
     final Service service = new Service();
-    final GenericCustomResource customResource = new GenericCustomResource();
+    final GenericKubernetesResource customResource = new GenericKubernetesResourceBuilder()
+        .withApiVersion("org.eclipse.jkube/v1alpha1")
+        .withKind("Crd")
+        .build();
     customResource.setMetadata(new ObjectMetaBuilder().withName("my-cr").build());
-    final CustomResourceDefinition crd = new CustomResourceDefinitionBuilder()
-        .withNewMetadata().withName(crdId).endMetadata()
-        .withNewSpec().withGroup("org.eclipse.jkube").withVersion("v1alpha1").withScope("Cluster")
-            .withNewNames()
-            .withKind("Crd")
-            .withPlural("crds")
-            .endNames().endSpec()
-        .withKind(crdId).build();
+    final APIResource customResourceApiResource = new APIResourceBuilder()
+        .withGroup("org.eclipse.jkube")
+        .withNamespaced(false)
+        .withKind("Crd")
+        .withName("crds")
+        .withSingularName("crd")
+        .build();
     // @formatter:off
     new Expectations() {{
       kubernetesHelper.loadResources(manifest); result = Arrays.asList(service, customResource);
-      jKubeServiceHub.getClient().apiextensions().v1beta1().customResourceDefinitions().list(); result = new CustomResourceDefinitionListBuilder().withItems(crd).build();
-      kubernetesHelper.getFullyQualifiedApiGroupWithKind((CustomResourceDefinitionContext)any);
+      kubernetesHelper.getFullyQualifiedApiGroupWithKind(customResource);
       result = crdId;
     }};
     // @formatter:on
@@ -140,7 +140,7 @@ public class KubernetesUndeployServiceTest {
     // Then
     // @formatter:off
     new Verifications() {{
-      jKubeServiceHub.getClient().customResource((CustomResourceDefinitionContext)any).inNamespace(null).withName("my-cr").delete();
+      jKubeServiceHub.getClient().genericKubernetesResources("org.eclipse.jkube/v1alpha1", "Crd").inNamespace(null).withName("my-cr").delete();
       times = 1;
     }};
     // @formatter:on

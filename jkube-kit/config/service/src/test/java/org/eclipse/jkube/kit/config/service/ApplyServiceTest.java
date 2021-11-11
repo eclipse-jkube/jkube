@@ -21,12 +21,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.fabric8.kubernetes.api.model.APIResource;
+import io.fabric8.kubernetes.api.model.APIResourceBuilder;
+import io.fabric8.kubernetes.api.model.APIResourceListBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
+import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
 
@@ -34,15 +39,9 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionListBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionNamesBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyBuilder;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -51,7 +50,6 @@ import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
-import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Rule;
@@ -194,7 +192,7 @@ public class ApplyServiceTest {
         applyService.apply(route, "route.yml");
 
         collector.assertEventsNotRecorded("get-route");
-        assertEquals(1, mockServer.getMockServer().getRequestCount());
+        assertEquals(0, mockServer.getOpenShiftMockServer().getRequestCount());
     }
 
     @Test
@@ -211,21 +209,21 @@ public class ApplyServiceTest {
         applyService.apply(route, "route.yml");
 
         collector.assertEventsRecordedInOrder("get-route");
-        assertEquals(2, mockServer.getMockServer().getRequestCount());
+        assertEquals(1, mockServer.getOpenShiftMockServer().getRequestCount());
     }
 
     @Test
-    public void testApplyGenericCustomResource() throws Exception {
+    public void testApplyGenericKubernetesResource() throws Exception {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
-        GenericCustomResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericCustomResource.class);
-        GenericCustomResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericCustomResource.class);
+        GenericKubernetesResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericKubernetesResource.class);
+        GenericKubernetesResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericKubernetesResource.class);
         WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().get()
-                .withPath("/apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions")
-                .andReply(collector.record("get-crds").andReturn(HTTP_OK, new CustomResourceDefinitionListBuilder()
-                    .withItems(virtualServiceCRD(), gatewayCRD()).build()))
+                .withPath("/apis/networking.istio.io/v1alpha3")
+                .andReply(collector.record("get-resources").andReturn(HTTP_OK, new APIResourceListBuilder()
+                    .addToResources(virtualServiceResource(), gatewayResource()).build()))
                 .times(2);
         mockServer.expect().post()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices")
@@ -237,12 +235,12 @@ public class ApplyServiceTest {
                 .once();
 
         // When
-        applyService.applyGenericCustomResource(gateway, gatewayFragment.getName());
-        applyService.applyGenericCustomResource(virtualService, virtualServiceFragment.getName());
+        applyService.applyGenericKubernetesResource(gateway, gatewayFragment.getName());
+        applyService.applyGenericKubernetesResource(virtualService, virtualServiceFragment.getName());
 
         // Then
-        collector.assertEventsRecordedInOrder("get-crds", "post-cr-gateway", "get-crds", "post-cr-virtualservice");
-        assertEquals(7, mockServer.getMockServer().getRequestCount());
+        collector.assertEventsRecordedInOrder("get-resources", "post-cr-gateway", "get-resources", "post-cr-virtualservice");
+        assertEquals(6, mockServer.getOpenShiftMockServer().getRequestCount());
     }
 
     @Test
@@ -250,14 +248,14 @@ public class ApplyServiceTest {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
-        GenericCustomResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericCustomResource.class);
-        GenericCustomResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericCustomResource.class);
+        GenericKubernetesResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericKubernetesResource.class);
+        GenericKubernetesResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericKubernetesResource.class);
         WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().get()
-                .withPath("/apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions")
-                .andReply(collector.record("get-crds").andReturn(HTTP_OK, new CustomResourceDefinitionListBuilder()
-                    .withItems(virtualServiceCRD(), gatewayCRD()).build()))
-                .times(2);
+                 .withPath("/apis/networking.istio.io/v1alpha3")
+                 .andReply(collector.record("get-resources").andReturn(HTTP_OK, new APIResourceListBuilder()
+                     .addToResources(virtualServiceResource(), gatewayResource()).build()))
+                 .times(2);
         mockServer.expect().get()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
                 .andReply(collector.record("get-cr-virtualservice").andReturn(HTTP_OK, "{\"metadata\":{\"resourceVersion\":\"1001\"}}"))
@@ -280,14 +278,13 @@ public class ApplyServiceTest {
             .once();
 
         // When
-        applyService.applyGenericCustomResource(gateway, gatewayFragment.getName());
-        applyService.applyGenericCustomResource(virtualService, virtualServiceFragment.getName());
+        applyService.applyGenericKubernetesResource(gateway, gatewayFragment.getName());
+        applyService.applyGenericKubernetesResource(virtualService, virtualServiceFragment.getName());
 
         // Then
-        collector.assertEventsRecordedInOrder(
-            "get-crds", "get-cr-gateway", "post-cr-gateway", "put-cr-gateway",
-            "get-crds", "get-cr-virtualservice", "post-cr-virtualservice");
-        assertEquals(8, mockServer.getMockServer().getRequestCount());
+        collector.assertEventsRecordedInOrder("get-cr-gateway", "post-cr-gateway", "put-cr-gateway",
+             "get-cr-virtualservice", "post-cr-virtualservice");
+        assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
     }
 
     @Test
@@ -295,14 +292,30 @@ public class ApplyServiceTest {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
-        GenericCustomResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericCustomResource.class);
-        GenericCustomResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericCustomResource.class);
+        GenericKubernetesResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericKubernetesResource.class);
+        GenericKubernetesResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericKubernetesResource.class);
         WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().get()
-                .withPath("/apis/apiextensions.k8s.io/v1beta1/customresourcedefinitions")
-                .andReply(collector.record("get-crds").andReturn(HTTP_OK, new CustomResourceDefinitionListBuilder()
-                    .withItems(virtualServiceCRD(), gatewayCRD()).build()))
-                .times(2);
+            .withPath("/apis/networking.istio.io/v1alpha3")
+            .andReply(collector.record("get-resources").andReturn(HTTP_OK, new APIResourceListBuilder()
+                .addToResources(virtualServiceResource(), gatewayResource()).build()))
+            .times(2);
+        mockServer.expect().get()
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways?fieldSelector=metadata.name%3Dmygateway-https")
+            .andReturn(HTTP_OK, new GenericKubernetesResourceBuilder()
+                .withApiVersion("networking.istio.io/v1alpha3")
+                .withKind("Gateway")
+                .withNewMetadata().withName("mygateway-https").endMetadata()
+                .build())
+            .once();
+        mockServer.expect().get()
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices?fieldSelector=metadata.name%3Dreviews-route")
+            .andReturn(HTTP_OK, new GenericKubernetesResourceBuilder()
+                .withApiVersion("networking.istio.io/v1alpha3")
+                .withKind("VirtualService")
+                .withNewMetadata().withName("reviews-route").endMetadata()
+                .build())
+            .once();
         mockServer.expect().delete()
                 .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
                 .andReply(collector.record("delete-cr-virtualservice").andReturn(HTTP_OK, "{\"kind\":\"Status\",\"status\":\"Success\"}"))
@@ -322,12 +335,12 @@ public class ApplyServiceTest {
         applyService.setRecreateMode(true);
 
         // When
-        applyService.applyGenericCustomResource(gateway, gatewayFragment.getName());
-        applyService.applyGenericCustomResource(virtualService, virtualServiceFragment.getName());
+        applyService.applyGenericKubernetesResource(gateway, gatewayFragment.getName());
+        applyService.applyGenericKubernetesResource(virtualService, virtualServiceFragment.getName());
 
         // Then
-        collector.assertEventsRecordedInOrder("get-crds", "delete-cr-gateway", "post-cr-gateway", "get-crds", "delete-cr-virtualservice", "post-cr-virtualservice");
-        assertEquals(11, mockServer.getMockServer().getRequestCount());
+        collector.assertEventsRecordedInOrder( "delete-cr-gateway", "post-cr-gateway", "delete-cr-virtualservice", "post-cr-virtualservice");
+        assertEquals(8, mockServer.getOpenShiftMockServer().getRequestCount());
         applyService.setRecreateMode(false);
     }
 
@@ -397,7 +410,7 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("configmap-ns1-create", "serviceaccount-default-create", "ingress-ns2-create");
-        assertEquals(6, mockServer.getMockServer().getRequestCount());
+        assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
         applyService.setFallbackNamespace(null);
         applyService.setNamespace(configuredNamespace);
     }
@@ -429,7 +442,7 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("configmap-default-ns-create", "serviceaccount-default-ns-create", "ingress-default-ns-create");
-        assertEquals(6, mockServer.getMockServer().getRequestCount());
+        assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
         applyService.setFallbackNamespace(null);
     }
 
@@ -449,37 +462,23 @@ public class ApplyServiceTest {
                 .build();
     }
 
-    private static CustomResourceDefinition gatewayCRD() {
-        return new CustomResourceDefinitionBuilder()
-            .withMetadata(new ObjectMetaBuilder()
-                .withName("gateways.networking.istio.io")
-                .build())
-            .withSpec(new CustomResourceDefinitionSpecBuilder()
-                .withGroup("networking.istio.io")
-                .withScope("Namespaced")
-                .withVersion("v1alpha3")
-                .withNames(new CustomResourceDefinitionNamesBuilder()
-                    .withKind("Gateway")
-                    .withPlural("gateways")
-                    .build())
-                .build())
+    private static APIResource virtualServiceResource() {
+        return new APIResourceBuilder()
+            .withName("gateways")
+            .withNamespaced(true)
+            .withGroup("networking.istio.io")
+            .withKind("Gateway")
+            .withSingularName("gateway")
             .build();
     }
 
-    private static CustomResourceDefinition virtualServiceCRD() {
-        return new CustomResourceDefinitionBuilder()
-            .withMetadata(new ObjectMetaBuilder()
-                .withName("virtualservices.networking.istio.io")
-                .build())
-            .withSpec(new CustomResourceDefinitionSpecBuilder()
-                .withGroup("networking.istio.io")
-                .withScope("Namespaced")
-                .withVersion("v1alpha3")
-                .withNames(new CustomResourceDefinitionNamesBuilder()
-                    .withKind("VirtualService")
-                    .withPlural("virtualservices")
-                    .build())
-                .build())
+    private static APIResource gatewayResource() {
+        return new APIResourceBuilder()
+            .withName("virtualservices")
+            .withNamespaced(true)
+            .withGroup("networking.istio.io")
+            .withKind("VirtualService")
+            .withSingularName("virtualservice")
             .build();
     }
 }

@@ -13,8 +13,9 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.Test;
@@ -29,14 +30,17 @@ public class KubernetesClientUtilTest {
   @Test
   public void doDeleteAndWait_withExistingResource_shouldDeleteAndReachWaitLimit() {
     // Given
-    final CustomResourceDefinitionContext context = new CustomResourceDefinitionContext();
+    GenericKubernetesResource resource = new GenericKubernetesResourceBuilder()
+        .withApiVersion("org.eclipse.jkube/v1beta1")
+        .withKind("JKubeCustomResource")
+        .withNewMetadata().withName("name").endMetadata()
+        .build();
     // When
-    doDeleteAndWait(kubernetesClient, context, "namespace", "name", 2L);
+    doDeleteAndWait(kubernetesClient, resource, "namespace",  2L);
     // Then
     // @formatter:off
     new Verifications(){{
-      kubernetesClient.customResource(context).inNamespace("namespace").withName("name").delete(); times = 1;
-      kubernetesClient.customResource(context).inNamespace("namespace").withName("name").get(); times = 2;
+      kubernetesClient.genericKubernetesResources("org.eclipse.jkube/v1beta1", "JKubeCustomResource").inNamespace("namespace").withName("name").delete(); times = 1;
     }};
     // @formatter:on
   }

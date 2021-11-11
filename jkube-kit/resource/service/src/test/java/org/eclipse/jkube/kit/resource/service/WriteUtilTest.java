@@ -16,8 +16,8 @@ package org.eclipse.jkube.kit.resource.service;
 import java.io.File;
 import java.io.IOException;
 
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import org.eclipse.jkube.kit.common.GenericCustomResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
@@ -148,8 +148,8 @@ public class WriteUtilTest {
     // @formatter:on
   }
 
-  private static GenericCustomResource genericCustomResource(String kind, String name) {
-    final GenericCustomResource gcr = new GenericCustomResource();
+  private static GenericKubernetesResource genericCustomResource(String kind, String name) {
+    final GenericKubernetesResource gcr = new GenericKubernetesResource();
     gcr.setKind(kind);
     gcr.setMetadata(new ObjectMetaBuilder().withName(name).build());
     return gcr;
