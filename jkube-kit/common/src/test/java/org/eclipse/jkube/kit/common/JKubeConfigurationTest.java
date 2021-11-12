@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
+import static org.junit.Assume.assumeFalse;
 
 public class JKubeConfigurationTest {
 
@@ -52,6 +54,7 @@ public class JKubeConfigurationTest {
   @Test
   public void inOutputDir_withAbsolutePath_shouldReturnPath() {
     // Given
+    assumeFalse(isWindows());
     final JKubeConfiguration configuration = JKubeConfiguration.builder()
         .project(JavaProject.builder().baseDirectory(new File("/")).build())
         .outputDirectory("target").build();

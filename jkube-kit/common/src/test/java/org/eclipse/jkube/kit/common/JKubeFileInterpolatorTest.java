@@ -19,11 +19,14 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 public class JKubeFileInterpolatorTest {
     @Test
@@ -161,14 +164,27 @@ public class JKubeFileInterpolatorTest {
     }
 
     @Test
-    public void testShouldResolveByEnvar() {
+    public void testShouldResolveByEnvVarInLinux() {
         // Given
+        assumeFalse(isWindows());
         Properties p = new Properties();
         String result = JKubeFileInterpolator.interpolate("this is a ${env.HOME} ${env.PATH}", p, Collections.singletonMap("${env.", "}"));
 
         // When + Then
         assertNotEquals("this is a ${HOME} ${PATH}", result);
         assertNotEquals("this is a ${env.HOME} ${env.PATH}", result);
+    }
+
+    @Test
+    public void testShouldResolveByEnvVarInWindows() {
+        // Given
+        assumeTrue(isWindows());
+        Properties p = new Properties();
+        String result = JKubeFileInterpolator.interpolate("this is a ${env.USERNAME} ${env.OS}", p, Collections.singletonMap("${env.", "}"));
+
+        // When + Then
+        assertNotEquals("this is a ${USERNAME} ${OS}", result);
+        assertNotEquals("this is a ${env.USERNAME} ${env.OS}", result);
     }
 
     @Test
