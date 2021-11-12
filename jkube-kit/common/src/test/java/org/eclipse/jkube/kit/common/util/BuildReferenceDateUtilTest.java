@@ -20,11 +20,13 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -61,15 +63,14 @@ public class BuildReferenceDateUtilTest {
   @Test
   public void testGetBuildTimestampFile() {
     // Given
-    String projectBuildDirectory = "target/docker";
+    String projectBuildDirectory = "target" + File.separator + "docker";
     String dockerBuildTimestampFile = "build.timestamp";
 
     // When
     File result = BuildReferenceDateUtil.getBuildTimestampFile(projectBuildDirectory, dockerBuildTimestampFile);
 
     // Then
-    assertNotNull(result);
-    assertEquals("target/docker/build.timestamp", result.getPath());
+    assertThat(result).isEqualTo(Paths.get("target", "docker", "build.timestamp").toFile());
   }
 
   @Test

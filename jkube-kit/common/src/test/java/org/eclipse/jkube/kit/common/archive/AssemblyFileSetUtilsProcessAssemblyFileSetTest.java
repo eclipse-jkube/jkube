@@ -36,6 +36,8 @@ import org.junit.rules.TemporaryFolder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.resolveSourceDirectory;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
+import static org.junit.Assume.assumeFalse;
 
 public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
 
@@ -48,6 +50,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
 
   @Before
   public void setUp() throws Exception {
+    assumeFalse(isWindows());
     baseDirectory = temp.newFolder("base");
     sourceDirectory = new File(baseDirectory, "source-directory");
     final List<File> sourceSubdirectories = Stream.of("one", "two", "three")
