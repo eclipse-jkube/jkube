@@ -212,13 +212,6 @@
               <allow-uri-read>true</allow-uri-read>
             </attributes>
           </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>org.eclipse.jkube</groupId>
-              <artifactId>kubernetes-maven-plugin-doc</artifactId>
-              <version>${project.version}</version>
-            </dependency>
-          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>
