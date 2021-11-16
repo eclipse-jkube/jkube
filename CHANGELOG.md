@@ -23,6 +23,7 @@ Usage:
 ### 1.6.0-SNAPSHOT
 * Fix #887: Incorrect warning about overriding environment variable
 * Fix #802: Update Fabric8 kubernetes Client to v5.10.1
+* Fix #1054: Log selected Dockerfile in Docker build mode
 
 ### 1.5.1 (2021-10-28)
 * Fix #1084: Gradle dependencies should be test or provided scope
@@ -44,6 +45,7 @@ Usage:
 * Fix #877: LogMojo: Change access modifiers to protected for use in XML configuration
 * Fix #1036: JKubeTarArchive doesn't load files in memory
 * Fix #1040: Remove deprecated `ExpectedException.none()` and `@Rule` and use `assertThrows` instead
+* Fix #891: VolumePermissionEnricher has configurable image with `busybox` as default
 
 _**Note**_: Kubernetes and OpenShift Gradle Plugins are a preview feature to get early feedback.
 Only the set of documented features are available to users.
@@ -93,6 +95,7 @@ Only the set of documented features are available to users.
 * Fix #690: Helm charts can be generated for custom resources, even those with same name (different apiGroup)
 * Fix #676: Define Helm Chart dependencies
 * Fix #590: Only assembled files are copied to 'Docker' build target directory
+* Fix #655: Set image creation time on JIB build (!breaks image reproducibility)
 
 ### 1.2.0 (2021-03-31)
 * Fix #529: `.maven-dockerignore`, `.maven-dockerexclude`, `.maven-dockerinclude` are no longer supported
