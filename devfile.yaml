@@ -19,14 +19,20 @@ metadata:
 components:
   - type: chePlugin
     id: redhat/java/latest
+    memoryLimit: 3Gi
     preferences:
+      java.jdt.ls.vmargs: '-javaagent:/lombok.jar'
       java.server.launchMode: Standard
+      java.import.gradle.enabled: false
 
   - id: eamodio/gitlens/latest
     type: chePlugin
     registryUrl: 'https://che-plugin-registry-main.surge.sh/v3'
 
   - id: github/vscode-pull-request-github/latest
+    type: chePlugin
+
+  - id: redhat/vscode-xml/latest
     type: chePlugin
 
   - id: donjayamanne/githistory/latest
@@ -37,16 +43,9 @@ components:
     type: chePlugin
     registryUrl: 'https://che-plugin-registry-main.surge.sh/v3'
 
-  - mountSources: true
-    args: ['sleep', 'infinity']
-    memoryLimit: 64M
-    type: dockerimage
-    alias: git
-    image: quay.io/sunix/git-devtools
-
   - type: dockerimage
-    alias: maven
-    image: 'quay.io/eclipse/che-java11-maven@sha256:5c8c8ab286f7cdde19f2e990f69e265b9dc8ac6d314e68de46daf6cb0441c366'
+    alias: jkube-dev
+    image: 'quay.io/sunix/jkube-dev:latest'
     env:
       - name: MAVEN_CONFIG
         value: ''
@@ -63,6 +62,8 @@ components:
         containerPath: /home/user/.m2
       - name: www
         containerPath: /var/www/html
+      - name: kube
+        containerPath: /home/user/.kube
     endpoints:
       - attributes:
           public: 'false'
@@ -75,7 +76,7 @@ components:
         attributes:
           public: 'true'
         port: 8080
-    memoryLimit: 1Gi
+    memoryLimit: 64Mi
     type: dockerimage
     image: 'quay.io/centos7/httpd-24-centos7:latest'
     alias: jkube-doc-httpd
@@ -83,24 +84,149 @@ components:
       - name: www
         containerPath: /var/www/html
 
+  - id: redhat/vscode-openshift-connector/latest
+    type: chePlugin
+
+  - memoryLimit: 64Mi
+    type: dockerimage
+    volumes:
+      - name: www
+        containerPath: /var/www/html
+    alias: surgesh
+    image: 'quay.io/sunix/surge.sh:latest'
+
 commands:
+
   - name: build all
     actions:
       - type: exec
-        component: maven
+        component: jkube-dev
         command: mvn clean install
         workdir: '${CHE_PROJECTS_ROOT}/jkube'
 
-  - name: build documentation
+  - name: build all skipTests
     actions:
       - type: exec
-        component: maven
-        command: mvn clean -Phtml package -DoutputHtmlDirectory='/var/www/html'
+        component: jkube-dev
+        command: mvn clean install -Dmaven.test.skip -DskipTests
+        workdir: '${CHE_PROJECTS_ROOT}/jkube'
+
+  - name: build current project with all dependent modules
+    actions:
+      - type: exec
+        component: jkube-dev
+        command: |
+          baseFolder=${workspaceFolder};
+          currentProject=${workspaceFolder};
+          currentFile=${file};
+          for projectPath in $(mvn -q --also-make exec:exec -Dexec.executable="pwd");
+          do
+            if [ -z "${currentFile##*$projectPath*}" -a -z "${projectPath##*$currentProject*}" ];
+            then
+              currentProject=$projectPath;
+            fi;
+          done
+          mvn -amd -pl ${currentProject#$baseFolder} clean install -Dmaven.test.skip
+        workdir: '${workspaceFolder}'
+
+  - name: doc-build kubernetes-maven-plugin
+    actions:
+      - type: exec
+        component: jkube-dev
+        command: mvn clean -Phtml package -Dasciidoctor.outputHtmlDirectory='/var/www/html'
         workdir: '${CHE_PROJECTS_ROOT}/jkube/kubernetes-maven-plugin/doc'
 
-  - name: watch documentation
+  - name: doc-watch kubernetes-maven-plugin
     actions:
       - type: exec
-        component: maven
-        command: mvn clean -Pdoc-watch package -DoutputHtmlDirectory='/var/www/html'
+        component: jkube-dev
+        command: mvn clean -Pdoc-watch package -Dasciidoctor.outputHtmlDirectory='/var/www/html'
         workdir: '${CHE_PROJECTS_ROOT}/jkube/kubernetes-maven-plugin/doc'
+
+  - name: doc-build gradle-plugin
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/jkube/gradle-plugin/doc'
+        type: exec
+        command: mvn clean -Phtml package -Dasciidoctor.outputHtmlDirectory='/var/www/html'
+        component: jkube-dev
+
+  - name: doc-watch gradle-plugin
+    actions:
+      - type: exec
+        component: jkube-dev
+        command: mvn clean -Pdoc-watch package -Dasciidoctor.outputHtmlDirectory='/var/www/html'
+        workdir: '${CHE_PROJECTS_ROOT}/jkube/gradle-plugin/doc'
+
+  - name: doc-build jkube-kit
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/jkube/jkube-kit/doc'
+        type: exec
+        command: mvn clean -Phtml package -Dasciidoctor.outputHtmlDirectory='/var/www/html'
+        component: jkube-dev
+
+  - name: doc-watch jkube-kit
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/jkube/jkube-kit/doc'
+        type: exec
+        command: mvn clean -Pdoc-watch package -Dasciidoctor.outputHtmlDirectory='/var/www/html'
+        component: jkube-dev
+
+  - name: 'run mvnDebug k8s:build quickstart/current'
+    actions:
+      - type: exec
+        component: jkube-dev
+        command: |
+            while [ ! -f pom.xml ] && [ "$(exec pwd)" != / ]; do cd ..; done
+            /usr/share/maven/bin/mvnDebug k8s:build -Djkube.build.strategy=jib -Djkube.version=1.6.0-SNAPSHOT
+        workdir: '${fileDirname}'
+
+  - name: 'run mvn k8s:build quickstart/current'
+    actions:
+      - type: exec
+        component: jkube-dev
+        command: |
+            while [ ! -f pom.xml ] && [ "$(exec pwd)" != / ]; do cd ..; done
+            mvn k8s:build -Djkube.build.strategy=jib -Djkube.version=1.6.0-SNAPSHOT
+        workdir: '${fileDirname}'
+
+  - name: 'run gradleDebug k8sBuild quickstart/current'
+    actions:
+      - type: exec
+        component: jkube-dev
+        command: |
+            while [ ! -f build.gradle ] && [ "$(exec pwd)" != / ]; do cd ..; done
+            ./gradlew k8sBuild -Djkube.build.strategy=jib -Dorg.gradle.debug=true
+        workdir: '${fileDirname}'
+
+  - name: 'run gradle k8s:build quickstart/current'
+    actions:
+      - type: exec
+        component: jkube-dev
+        command: |
+            while [ ! -f build.gradle ] && [ "$(exec pwd)" != / ]; do cd ..; done
+            ./gradlew k8sBuild -Djkube.build.strategy=jib
+        workdir: '${fileDirname}'
+
+  - name: connect java debugger mvnDebug
+    actions:
+      - type: vscode-launch
+        referenceContent: |
+          {
+          "version": "0.2.0",
+          "configurations": [
+            {
+              "type": "java",
+              "name": "Debug (Attach) - Remote",
+              "request": "attach",
+              "hostName": "localhost",
+              "port": 8000
+            }]
+          }
+
+  - name: doc-publish to surge.sh
+    actions:
+      - workdir: /var/www/html
+        type: exec
+        command: 'surge ./ "jkubedoc-$CHE_WORKSPACE_NAMESPACE-$CHE_WORKSPACE_NAME.surge.sh" && echo "Checkout the publised JKube doc at https://jkubedoc-$CHE_WORKSPACE_NAMESPACE-$CHE_WORKSPACE_NAME.surge.sh/"'
+        component: surgesh
+
