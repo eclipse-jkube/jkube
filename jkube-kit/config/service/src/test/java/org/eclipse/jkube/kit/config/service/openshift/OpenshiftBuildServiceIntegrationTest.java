@@ -13,6 +13,35 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
+import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
+import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
+import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
+import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
+import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -32,48 +61,26 @@ import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
-import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
-import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
-import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
-import org.eclipse.jkube.kit.common.Assembly;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.RegistryConfig;
-import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
-import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
-import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
-import org.eclipse.jkube.kit.config.service.JKubeServiceException;
-import mockit.Expectations;
-import mockit.Mocked;
-
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 public class OpenshiftBuildServiceIntegrationTest {
 
@@ -85,17 +92,11 @@ public class OpenshiftBuildServiceIntegrationTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Mocked
     private JKubeServiceHub jKubeServiceHub;
 
-    @Mocked
-    private OpenshiftHelper openshiftHelper;
+    private MockedStatic<OpenshiftHelper> openshiftHelper;
 
-    @Mocked
-    private ClusterAccess clusterAccess;
-
-    @Mocked
-    private JKubeBuildTarArchiver jKubeBuildTarArchiver;
+    private MockedConstruction<JKubeBuildTarArchiver> jKubeBuildTarArchiver;
 
     private File baseDirectory;
 
@@ -130,30 +131,29 @@ public class OpenshiftBuildServiceIntegrationTest {
         final File dockerFile = new File(baseDir, "Docker.tar");
         FileUtils.touch(dockerFile);
 
-        // @formatter:off
-        new Expectations(openshiftHelper) {{
-            // Partial Mock
-            openshiftHelper.isOpenShift(mockServer.getOpenshiftClient()); result = true;
+        openshiftHelper = mockStatic(OpenshiftHelper.class);
+        openshiftHelper.when(() -> OpenshiftHelper.isOpenShift(eq(mockServer.getOpenshiftClient())))
+            .thenReturn(true);
 
-            clusterAccess.createDefaultClient(); result = mockServer.getOpenshiftClient();
-            jKubeServiceHub.getLog(); result = logger;
-            jKubeServiceHub.getDockerServiceHub(); minTimes = 0;
-            jKubeServiceHub.getDockerServiceHub().getArchiveService(); minTimes = 0;
-            result = new ArchiveService(AssemblyManager.getInstance(), logger);
-            jKubeServiceHub.getBuildServiceConfig().getBuildDirectory(); result = target.getAbsolutePath(); minTimes = 0;
-            jKubeServiceHub.getConfiguration();
-            result = JKubeConfiguration.builder()
-                .outputDirectory(target.getAbsolutePath())
-                .project(JavaProject.builder()
-                    .baseDirectory(baseDirectory)
-                    .buildDirectory(target)
-                    .build())
-                .registryConfig(RegistryConfig.builder().build())
-                .build();
-            jKubeBuildTarArchiver.createArchive(withInstanceOf(File.class), withInstanceOf(BuildDirs.class), withEqual(ArchiveCompression.none));
-            result = emptyDockerBuildTar; minTimes = 0;
-        }};
-        // @formatter:on
+        jKubeBuildTarArchiver = mockConstruction(JKubeBuildTarArchiver.class, (mock, ctx) -> {
+            when(mock.createArchive(any(File.class), any(BuildDirs.class), eq(ArchiveCompression.none)))
+                .thenReturn(emptyDockerBuildTar);
+        });
+
+        jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
+        when(jKubeServiceHub.getClusterAccess().createDefaultClient()).thenReturn(mockServer.getOpenshiftClient());
+        when(jKubeServiceHub.getLog()).thenReturn(logger);
+        when(jKubeServiceHub.getDockerServiceHub().getArchiveService())
+            .thenReturn(new ArchiveService(AssemblyManager.getInstance(), logger));
+        when(jKubeServiceHub.getBuildServiceConfig().getBuildDirectory()).thenReturn(target.getAbsolutePath());
+        when(jKubeServiceHub.getConfiguration()).thenReturn(JKubeConfiguration.builder()
+            .outputDirectory(target.getAbsolutePath())
+            .project(JavaProject.builder()
+                .baseDirectory(baseDirectory)
+                .buildDirectory(target)
+                .build())
+            .registryConfig(RegistryConfig.builder().build())
+            .build());
 
         image = ImageConfiguration.builder()
                 .name(projectName)
@@ -176,6 +176,12 @@ public class OpenshiftBuildServiceIntegrationTest {
                 .openshiftPullSecret("pullsecret-fabric8")
                 .openshiftPushSecret("pushsecret-fabric8")
                 .buildOutputKind("DockerImage");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        jKubeBuildTarArchiver.close();
+        openshiftHelper.close();
     }
 
     @Test
@@ -607,11 +613,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     }
 
     private BuildServiceConfig withBuildServiceConfig(BuildServiceConfig buildServiceConfig) {
-        // @formatter:off
-        new Expectations() {{
-            jKubeServiceHub.getBuildServiceConfig(); result = buildServiceConfig;
-        }};
-        // @formatter:on
+        when(jKubeServiceHub.getBuildServiceConfig()).thenReturn(buildServiceConfig);
         return buildServiceConfig;
     }
 
