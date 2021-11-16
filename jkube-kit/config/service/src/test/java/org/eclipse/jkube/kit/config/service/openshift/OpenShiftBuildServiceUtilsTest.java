@@ -15,17 +15,8 @@ package org.eclipse.jkube.kit.config.service.openshift;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 
-import io.fabric8.openshift.api.model.BuildConfig;
-import io.fabric8.openshift.api.model.BuildConfigBuilder;
-import io.fabric8.openshift.api.model.BuildConfigSpec;
-import io.fabric8.openshift.api.model.BuildConfigSpecBuilder;
-import io.fabric8.openshift.api.model.BuildOutput;
-import io.fabric8.openshift.api.model.BuildStrategy;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -37,13 +28,18 @@ import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
+import io.fabric8.openshift.api.model.BuildConfig;
+import io.fabric8.openshift.api.model.BuildConfigBuilder;
+import io.fabric8.openshift.api.model.BuildConfigSpec;
+import io.fabric8.openshift.api.model.BuildConfigSpecBuilder;
+import io.fabric8.openshift.api.model.BuildOutput;
+import io.fabric8.openshift.api.model.BuildStrategy;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.computeS2IBuildName;
@@ -52,26 +48,28 @@ import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServi
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildStrategy;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.getBuildConfigSpec;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings("ConstantConditions")
 public class OpenShiftBuildServiceUtilsTest {
-
-  @Mocked
-  private JKubeServiceHub jKubeServiceHub;
-
-  @Mocked
-  private JKubeBuildTarArchiver tarArchiver;
-
-  private ImageConfiguration imageConfiguration;
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+  private JKubeServiceHub jKubeServiceHub;
+  private ImageConfiguration imageConfiguration;
+
   @Before
   public void setUp() throws Exception {
-    final String projectName = "myapp";
+    jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
+    when(jKubeServiceHub.getBuildServiceConfig().getBuildDirectory())
+        .thenReturn(temporaryFolder.getRoot().getAbsolutePath());
     imageConfiguration = ImageConfiguration.builder()
-        .name(projectName)
+        .name("myapp")
         .build(BuildConfiguration.builder()
             .env(Collections.singletonMap("FOO", "BAR"))
             .from("ubi8/s2i-base")
@@ -79,19 +77,17 @@ public class OpenShiftBuildServiceUtilsTest {
         ).build();
   }
 
+  @After
+  public void tearDown() throws Exception {
+    jKubeServiceHub = null;
+  }
+
   @Test
   public void createBuildArchive_withIOExceptionOnCreateDockerBuildArchive_shouldThrowException() throws Exception {
     // Given
-    //  @formatter:off
-    withBuildServiceConfig(BuildServiceConfig.builder()
-        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
-        .build());
-    new Expectations() {{
-      jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
-         withInstanceOf(ImageConfiguration.class), withInstanceOf(JKubeConfiguration.class), withInstanceOf(ArchiverCustomizer.class));
-      result = new IOException("Mocked Exception");
-    }};
-    // @formatter:on
+    when(jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
+        any(ImageConfiguration.class), any(JKubeConfiguration.class), any(ArchiverCustomizer.class)))
+        .thenThrow(new IOException("Mocked Exception"));
     // When
     final JKubeServiceException result = assertThrows(JKubeServiceException.class, () ->
         createBuildArchive(jKubeServiceHub, imageConfiguration));
@@ -141,10 +137,7 @@ public class OpenShiftBuildServiceUtilsTest {
   @Test
   public void createBuildStrategy_withJibBuildStrategy_shouldThrowException() {
     // Given
-    withBuildServiceConfig(BuildServiceConfig.builder()
-        .jKubeBuildStrategy(JKubeBuildStrategy.jib)
-        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
-        .build());
+    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.jib);
     // When
     final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
         createBuildStrategy(jKubeServiceHub, imageConfiguration, null));
@@ -155,10 +148,7 @@ public class OpenShiftBuildServiceUtilsTest {
   @Test
   public void createBuildStrategy_withS2iBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
     // Given
-    withBuildServiceConfig(BuildServiceConfig.builder()
-        .jKubeBuildStrategy(JKubeBuildStrategy.s2i)
-        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
-        .build());
+    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.s2i);
     // When
     final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null);
     // Then
@@ -172,10 +162,7 @@ public class OpenShiftBuildServiceUtilsTest {
   @Test
   public void createBuildStrategy_withS2iBuildStrategyAndPullSecret_shouldReturnValidBuildStrategy() {
     // Given
-    withBuildServiceConfig(BuildServiceConfig.builder()
-        .jKubeBuildStrategy(JKubeBuildStrategy.s2i)
-        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
-        .build());
+    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.s2i);
     // When
     final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
     // Then
@@ -190,10 +177,8 @@ public class OpenShiftBuildServiceUtilsTest {
   @Test
   public void createBuildStrategy_withDockerBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
     // Given
-    withBuildServiceConfig(BuildServiceConfig.builder()
-        .jKubeBuildStrategy(JKubeBuildStrategy.docker)
-        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
-        .build());
+    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy())
+        .thenReturn(JKubeBuildStrategy.docker);
     // When
     final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null);
     // Then
@@ -207,10 +192,8 @@ public class OpenShiftBuildServiceUtilsTest {
   @Test
   public void createBuildStrategy_withDockerBuildStrategyAndPullSecret_shouldReturnValidBuildStrategy() {
     // Given
-    withBuildServiceConfig(BuildServiceConfig.builder()
-        .jKubeBuildStrategy(JKubeBuildStrategy.docker)
-        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
-        .build());
+    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy())
+        .thenReturn(JKubeBuildStrategy.docker);
     // When
     final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
     // Then
@@ -254,29 +237,19 @@ public class OpenShiftBuildServiceUtilsTest {
 
   @Test
   public void checkTarPackage() throws Exception {
-    withBuildServiceConfig(BuildServiceConfig.builder()
-        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
-        .build());
+    final JKubeBuildTarArchiver tarArchiver = mock(JKubeBuildTarArchiver.class);
     createBuildArchive(jKubeServiceHub, imageConfiguration);
 
-    final List<ArchiverCustomizer> customizer = new ArrayList<>();
-    // @formatter:off
-    new Verifications() {{
-      jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
-          withInstanceOf(ImageConfiguration.class), withInstanceOf(JKubeConfiguration.class), withCapture(customizer));
-    }};
-    // @formatter:on
-    assertThat(customizer).hasSize(1);
-    customizer.iterator().next().customize(tarArchiver);
-    final List<String> path = new LinkedList<>();
-    final List<File> file = new LinkedList<>();
-    // @formatter:off
-    new Verifications() {{
-      tarArchiver.includeFile(withCapture(file), withCapture(path));
-    }};
-    // @formatter:on
-    assertThat(path).singleElement().isEqualTo(".s2i/environment");
-    assertThat(file).singleElement().satisfies(f -> assertThat(f).hasContent("FOO=BAR"));
+    final ArgumentCaptor<ArchiverCustomizer> customizer = ArgumentCaptor.forClass(ArchiverCustomizer.class);
+    verify(jKubeServiceHub.getDockerServiceHub().getArchiveService(), times(1))
+        .createDockerBuildArchive(any(ImageConfiguration.class), any(JKubeConfiguration.class), customizer.capture());
+
+    customizer.getValue().customize(tarArchiver);
+    final ArgumentCaptor<String> path = ArgumentCaptor.forClass(String.class);
+    final ArgumentCaptor<File> file = ArgumentCaptor.forClass(File.class);
+    verify(tarArchiver, times(1)).includeFile(file.capture(), path.capture());
+    assertThat(path.getAllValues()).singleElement().isEqualTo(".s2i/environment");
+    assertThat(file.getAllValues()).singleElement().satisfies(f -> assertThat(f).hasContent("FOO=BAR"));
   }
 
   @Test
@@ -305,13 +278,5 @@ public class OpenShiftBuildServiceUtilsTest {
         .isNotSameAs(originalSpec)
         .isSameAs(buildConfig.getSpec())
         .hasFieldOrPropertyWithValue("runPolicy", "Serial");
-  }
-
-  private void withBuildServiceConfig(BuildServiceConfig buildServiceConfig) {
-    //  @formatter:off
-    new Expectations() {{
-      jKubeServiceHub.getBuildServiceConfig(); result = buildServiceConfig;
-    }};
-    // @formatter:on
   }
 }

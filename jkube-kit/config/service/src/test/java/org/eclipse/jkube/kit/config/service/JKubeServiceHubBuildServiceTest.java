@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.config.service;
 import java.util.Arrays;
 import java.util.Collection;
 
-import mockit.Mocked;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -32,6 +31,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 
 @RunWith(Parameterized.class)
 public class JKubeServiceHubBuildServiceTest {
@@ -59,15 +60,12 @@ public class JKubeServiceHubBuildServiceTest {
   @Parameterized.Parameter(2)
   public Class<? extends BuildService> buildServiceClass;
 
-  @Mocked
-  private ServiceHub dockerServiceHub;
-
   @Test
   public void getBuildService() {
     // Given
     final BuildServiceConfig config = BuildServiceConfig.builder().jKubeBuildStrategy(buildStrategy).build();
     final JKubeServiceHub jKubeServiceHub = new JKubeServiceHub(
-        null, runtimeMode, new KitLogger.StdoutLogger(), dockerServiceHub, new JKubeConfiguration(), config, new LazyBuilder<>(() -> null), true);
+        null, runtimeMode, new KitLogger.StdoutLogger(), mock(ServiceHub.class, RETURNS_DEEP_STUBS), new JKubeConfiguration(), config, new LazyBuilder<>(() -> null), true);
     // When
     final BuildService result = jKubeServiceHub.getBuildService();
     // Then
