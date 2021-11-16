@@ -32,8 +32,16 @@ import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
+import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
+import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -56,6 +64,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -86,9 +95,13 @@ public class OpenshiftBuildServiceIntegrationTest {
     private ClusterAccess clusterAccess;
 
     @Mocked
-    private JKubeBuildTarArchiver tarArchiver;
+    private JKubeBuildTarArchiver jKubeBuildTarArchiver;
+
+    private File baseDirectory;
 
     private String baseDir;
+
+    private File target;
 
     private String projectName;
 
@@ -106,7 +119,11 @@ public class OpenshiftBuildServiceIntegrationTest {
 
     @Before
     public void init() throws Exception {
-        baseDir = temporaryFolder.newFolder("openshift-build-service").getAbsolutePath();
+        baseDirectory = temporaryFolder.newFolder("openshift-build-service");
+        target = temporaryFolder.newFolder("openshift-build-service", "target");
+        final File emptyDockerBuildTar = new File(target, "docker-build.tar");
+        FileUtils.touch(emptyDockerBuildTar);
+        baseDir = baseDirectory.getAbsolutePath();
         projectName = "myapp";
         logger = new KitLogger.StdoutLogger();
         FileUtils.deleteDirectory(new File(baseDir, projectName));
@@ -122,22 +139,19 @@ public class OpenshiftBuildServiceIntegrationTest {
             jKubeServiceHub.getLog(); result = logger;
             jKubeServiceHub.getDockerServiceHub(); minTimes = 0;
             jKubeServiceHub.getDockerServiceHub().getArchiveService(); minTimes = 0;
-            jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
-                withAny(null),
-                withAny(null)
-            );
-            result = dockerFile; minTimes = 0;
-            jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
-                withAny(null),
-                withAny(null),
-                withAny(null)
-            );
-            result = dockerFile; minTimes = 0;
-            jKubeServiceHub.getConfiguration().getProject();
-            result = jKubeServiceHub.getConfiguration().getProject(); minTimes = 0;
-            jKubeServiceHub.getConfiguration().getRegistryConfig();
-            result = RegistryConfig.builder().build();
-            minTimes = 0;
+            result = new ArchiveService(AssemblyManager.getInstance(), logger);
+            jKubeServiceHub.getBuildServiceConfig().getBuildDirectory(); result = target.getAbsolutePath(); minTimes = 0;
+            jKubeServiceHub.getConfiguration();
+            result = JKubeConfiguration.builder()
+                .outputDirectory(target.getAbsolutePath())
+                .project(JavaProject.builder()
+                    .baseDirectory(baseDirectory)
+                    .buildDirectory(target)
+                    .build())
+                .registryConfig(RegistryConfig.builder().build())
+                .build();
+            jKubeBuildTarArchiver.createArchive(withInstanceOf(File.class), withInstanceOf(BuildDirs.class), withEqual(ArchiveCompression.none));
+            result = emptyDockerBuildTar; minTimes = 0;
         }};
         // @formatter:on
 
@@ -179,6 +193,46 @@ public class OpenshiftBuildServiceIntegrationTest {
             collector.assertEventsNotRecorded("patch-build-config");
             assertTrue(containsRequest("imagestreams"));
         });
+    }
+
+    @Test
+    public void build_withDockerfileModeAndFlattenedAssembly_shouldThrowException() {
+        //Given
+        image.setBuild(BuildConfiguration.builder()
+            .dockerFile(new File(target, "Dockerfile").getAbsolutePath())
+            .assembly(AssemblyConfiguration.builder()
+                .layer(Assembly.builder().id("one").build())
+                .build().getFlattenedClone(jKubeServiceHub.getConfiguration()))
+            .build());
+        image.getBuildConfiguration().initAndValidate();
+        final OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
+        // When
+        final JKubeServiceException result = assertThrows(JKubeServiceException.class, () ->
+            openshiftBuildService.build(image));
+        // Then
+        assertThat(result)
+            .getCause().hasMessage("This image has already been flattened, you can only flatten the image once");
+    }
+
+    @Test
+    public void build_withDockerfileModeAndAssembly_shouldSucceed() throws Exception {
+        //Given
+        final File dockerFile = new File(target, "Dockerfile");
+        FileUtils.write(dockerFile, "FROM busybox\n", StandardCharsets.UTF_8);
+        image.setBuild(BuildConfiguration.builder()
+            .from(projectName)
+            .dockerFile(dockerFile.getAbsolutePath())
+            .assembly(AssemblyConfiguration.builder()
+                .layer(Assembly.builder().id("one").baseDirectory(baseDirectory).build())
+                .build())
+            .build());
+        image.getBuildConfiguration().initAndValidate();
+        final WebServerEventCollector collector = createMockServer(withBuildServiceConfig(defaultConfig.build()),
+            true, 50, false, false);
+        // When
+        new OpenshiftBuildService(jKubeServiceHub).build(image);
+        // Then
+        collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     }
 
     @Test

@@ -126,7 +126,8 @@ public class OpenshiftBuildService implements BuildService {
         String buildName = null;
         try {
             final ImageConfiguration.ImageConfigurationBuilder applicableImageConfigBuilder = imageConfig.toBuilder();
-            if (imageConfig.getBuildConfiguration() != null && imageConfig.getBuildConfiguration().getAssembly() != null) {
+            if (imageConfig.getBuildConfiguration() != null && !imageConfig.getBuildConfiguration().isDockerFileMode()
+                && imageConfig.getBuildConfiguration().getAssembly() != null) {
                 applicableImageConfigBuilder.build(imageConfig.getBuild().toBuilder().assembly(
                     imageConfig.getBuildConfiguration().getAssembly().getFlattenedClone(jKubeServiceHub.getConfiguration()))
                     .build());
