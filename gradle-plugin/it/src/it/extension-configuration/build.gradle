@@ -46,6 +46,16 @@ kubernetes {
     pushRegistry = 'quay.io'
     pushRetries = 5
     kubernetesTemplate = file('build/META-INF/jkube/kubernetes')
+    watchMode = 'copy'
+    watchInterval = 1000
+    watchKeepRunning = true
+    watchPostExec = 'ls -lt'
+    watchAutoCreateCustomNetworks = true
+    watchKeepContainer = true
+    watchRemoveVolumes = true
+    watchContainerNamePattern = '%g-%l'
+    watchFollow = true
+    watchShowLogs = 'true'
     access {
         namespace = 'default'
     }
@@ -55,6 +65,14 @@ kubernetes {
     generator {
         includes = ['openliberty', 'spring-boot']
         excludes = ['webapp']
+    }
+    watcher {
+        includes = ['spring-boot']
+        config {
+            'spring-boot' {
+                serviceUrlWaitTimeSeconds = 10
+            }
+        }
     }
     resources {
         controllerName = 'test'
