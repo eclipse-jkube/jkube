@@ -46,7 +46,7 @@ public class TaskUtil {
   }
 
   public static JKubeServiceHub.JKubeServiceHubBuilder addDockerServiceHubToJKubeServiceHubBuilder(
-      JKubeServiceHub.JKubeServiceHubBuilder builder, KubernetesExtension kubernetesExtension, KitLogger kitLogger) {
+      JKubeServiceHub.JKubeServiceHubBuilder builder, KubernetesExtension kubernetesExtension, KitLogger kitLogger, ServiceHubFactory serviceHubFactory) {
     DockerAccess access = null;
     if (kubernetesExtension.isDockerAccessRequired()) {
       DockerAccessFactory.DockerAccessContext dockerAccessContext = DockerAccessFactory.DockerAccessContext.builder()
@@ -62,7 +62,6 @@ public class TaskUtil {
       DockerAccessFactory dockerAccessFactory = new DockerAccessFactory();
       access = dockerAccessFactory.createDockerAccess(dockerAccessContext);
     }
-    ServiceHubFactory serviceHubFactory = new ServiceHubFactory();
     LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(true, true, null);
     builder.dockerServiceHub(serviceHubFactory.createServiceHub(access, kitLogger, logSpecFactory));
     return builder;

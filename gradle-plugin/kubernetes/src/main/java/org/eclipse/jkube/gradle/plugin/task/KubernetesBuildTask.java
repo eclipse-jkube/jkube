@@ -42,7 +42,7 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
   @Override
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
     return TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(
-        super.initJKubeServiceHubBuilder(), kubernetesExtension, kitLogger)
+        super.initJKubeServiceHubBuilder(), kubernetesExtension, kitLogger, serviceHubFactory)
       .buildServiceConfig(buildServiceConfigBuilder().build());
   }
 
