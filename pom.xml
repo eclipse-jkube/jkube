@@ -113,6 +113,7 @@
     <version.slf4j-api>1.7.25</version.slf4j-api>
     <version.license-maven-plugin>3.0</version.license-maven-plugin>
     <project.build.outputTimestamp>2020-11-08T11:04:00Z</project.build.outputTimestamp>
+    <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>
 
   <modules>
@@ -203,15 +204,28 @@
           <version>${version.asciidoctor-maven-plugin}</version>
           <configuration>
             <sourceDirectory>src/main/asciidoc</sourceDirectory>
+            <outputDirectory>${asciidoctor.outputHtmlDirectory}</outputDirectory>
+            <refreshOn>.*</refreshOn>
             <attributes>
-              <icons>font</icons>
-              <pagenums/>
-              <version>${project.version}</version>
-              <idprefix/>
-              <idseparator>-</idseparator>
-              <allow-uri-read>true</allow-uri-read>
+                <icons>font</icons>
+                <pagenums/>
+                <version>${project.version}</version>
+                <idprefix/>
+                <idseparator>-</idseparator>
+                <allow-uri-read>true</allow-uri-read>
+                <toc>left</toc>
+                <linkcss>false</linkcss>
             </attributes>
+            <sourceHighlighter>coderay</sourceHighlighter>
+            <backend>html5</backend>
           </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.asciidoctor</groupId>
+              <artifactId>asciidoctorj</artifactId>
+              <version>${version.asciidoctorj}</version>
+            </dependency>
+          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>

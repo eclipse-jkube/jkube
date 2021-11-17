@@ -29,19 +29,11 @@
     <name>Gradle Plugin :: Documentation</name>
 
     <properties>
-      <jkube.kit.version>${project.version}</jkube.kit.version>
       <plugin>kubernetes-gradle-plugin</plugin>
       <task-prefix>k8s</task-prefix>
       <cluster>Kubernetes</cluster>
       <pluginExtension>kubernetes</pluginExtension>
     </properties>
-
-    <dependencies>
-      <dependency>
-        <groupId>org.asciidoctor</groupId>
-        <artifactId>asciidoctorj</artifactId>
-      </dependency>
-    </dependencies>
 
   <build>
     <plugins>
@@ -85,6 +77,23 @@
         </executions>
       </plugin>
     </plugins>
+
+    <pluginManagement>
+        <plugins>
+          <plugin>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctor-maven-plugin</artifactId>
+            <configuration>
+              <attributes>
+                <plugin>${plugin}</plugin>
+                <task-prefix>${task-prefix}</task-prefix>
+                <cluster>${cluster}</cluster>
+                <pluginExtension>${pluginExtension}</pluginExtension>
+              </attributes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </pluginManagement>
   </build>
 
   <!-- ==== HTML documentation ====================== -->
@@ -103,20 +112,6 @@
                 <goals>
                   <goal>process-asciidoc</goal>
                 </goals>
-                <configuration>
-                  <sourceHighlighter>coderay</sourceHighlighter>
-                  <backend>html</backend>
-                  <sourceHighlighter>coderay</sourceHighlighter>
-                  <attributes>
-                    <toc>left</toc>
-                    <linkcss>false</linkcss>
-                    <plugin>${plugin}</plugin>
-                    <task-prefix>${task-prefix}</task-prefix>
-                    <cluster>${cluster}</cluster>
-                    <version>${project.version}</version>
-                    <pluginExtension>${pluginExtension}</pluginExtension>
-                  </attributes>
-                </configuration>
               </execution>
             </executions>
           </plugin>
@@ -124,5 +119,25 @@
       </build>
       <activation><activeByDefault>true</activeByDefault></activation>
     </profile>
+    <profile>
+        <id>doc-watch</id>
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>org.asciidoctor</groupId>
+              <artifactId>asciidoctor-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>output-html</id>
+                  <phase>package</phase>
+                  <goals>
+                    <goal>auto-refresh</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </build>
+      </profile>
   </profiles>
 </project>
