@@ -13,19 +13,16 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
+import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.provider.Property;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedConstruction;
@@ -84,13 +81,14 @@ public class TaskUtilTest {
     try (MockedConstruction<DockerAccessFactory> dockerAccessFactory = mockConstruction(DockerAccessFactory.class)) {
       // Given
       JKubeConfiguration jKubeConfiguration = mock(JKubeConfiguration.class, RETURNS_DEEP_STUBS);
+      ServiceHubFactory serviceHubFactory = mock(ServiceHubFactory.class, RETURNS_DEEP_STUBS);
       JKubeServiceHub.JKubeServiceHubBuilder builder = JKubeServiceHub.builder()
         .configuration(jKubeConfiguration)
         .log(kitLogger)
         .platformMode(RuntimeMode.KUBERNETES);
 
       // When
-      JKubeServiceHub jKubeServiceHub = TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(builder, extension, kitLogger)
+      JKubeServiceHub jKubeServiceHub = TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(builder, extension, kitLogger, serviceHubFactory)
           .build();
 
       // Then

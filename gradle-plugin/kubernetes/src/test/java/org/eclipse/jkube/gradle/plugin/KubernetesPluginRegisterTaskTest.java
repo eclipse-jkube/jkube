@@ -27,6 +27,7 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesPushTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesUndeployTask;
 
+import org.eclipse.jkube.gradle.plugin.task.KubernetesWatchTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.junit.Before;
@@ -54,7 +55,8 @@ public class KubernetesPluginRegisterTaskTest {
         new Object[] { "k8sResource", KubernetesResourceTask.class },
         new Object[] { "k8sUndeploy", KubernetesUndeployTask.class },
         new Object[] { "k8sHelm", KubernetesHelmTask.class },
-        new Object[] { "k8sHelmPush", KubernetesHelmPushTask.class });
+        new Object[] { "k8sHelmPush", KubernetesHelmPushTask.class },
+        new Object[] { "k8sWatch", KubernetesWatchTask.class});
   }
 
   @Parameterized.Parameter
