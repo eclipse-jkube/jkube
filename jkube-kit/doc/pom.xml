@@ -38,18 +38,9 @@
           <groupId>org.asciidoctor</groupId>
           <artifactId>asciidoctor-maven-plugin</artifactId>
           <configuration>
-            <sourceDirectory>src/main/asciidoc</sourceDirectory>
             <requires>
               <require>asciidoctor-diagram</require>
             </requires>
-            <attributes>
-              <icons>font</icons>
-              <pagenums/>
-              <version>${project.version}</version>
-              <idprefix/>
-              <idseparator>-</idseparator>
-              <allow-uri-read>true</allow-uri-read>
-            </attributes>
           </configuration>
         </plugin>
       </plugins>
@@ -73,13 +64,6 @@
                   <goal>process-asciidoc</goal>
                 </goals>
                 <configuration>
-                  <sourceHighlighter>coderay</sourceHighlighter>
-                  <backend>html5</backend>
-                  <sourceHighlighter>coderay</sourceHighlighter>
-                  <attributes>
-                    <toc>left</toc>
-                    <linkcss>false</linkcss>
-                  </attributes>
                 </configuration>
               </execution>
             </executions>
@@ -88,7 +72,26 @@
       </build>
       <activation><activeByDefault>true</activeByDefault></activation>
     </profile>
-
+    <profile>
+        <id>doc-watch</id>
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>org.asciidoctor</groupId>
+              <artifactId>asciidoctor-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>output-html</id>
+                  <phase>package</phase>
+                  <goals>
+                    <goal>auto-refresh</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </build>
+      </profile>
   </profiles>
 
 </project>

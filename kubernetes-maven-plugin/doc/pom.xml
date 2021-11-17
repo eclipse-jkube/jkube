@@ -33,7 +33,6 @@
     <plugin>kubernetes-maven-plugin</plugin>
     <goal-prefix>k8s</goal-prefix>
     <cluster>Kubernetes</cluster>
-    <outputHtmlDirectory>${project.build.directory}/generated-docs</outputHtmlDirectory>
   </properties>
 
   <build>
@@ -85,32 +84,12 @@
           <groupId>org.asciidoctor</groupId>
           <artifactId>asciidoctor-maven-plugin</artifactId>
           <configuration>
-            <sourceDirectory>src/main/asciidoc</sourceDirectory>
-            <outputDirectory>${outputHtmlDirectory}</outputDirectory>
-            <refreshOn>.*</refreshOn>
             <attributes>
-              <icons>font</icons>
-              <pagenums/>
-              <version>${project.version}</version>
-              <idprefix/>
-              <idseparator>-</idseparator>
-              <allow-uri-read>true</allow-uri-read>
-              <toc>left</toc>
-              <linkcss>false</linkcss>
               <plugin>${plugin}</plugin>
               <goal-prefix>${goal-prefix}</goal-prefix>
               <cluster>${cluster}</cluster>
             </attributes>
-            <sourceHighlighter>coderay</sourceHighlighter>
-            <backend>html</backend>
           </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>org.asciidoctor</groupId>
-              <artifactId>asciidoctorj</artifactId>
-              <version>${version.asciidoctorj}</version>
-            </dependency>
-          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>
