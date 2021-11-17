@@ -18,9 +18,11 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
 import org.eclipse.jkube.kit.common.JavaProject;
 
 import org.eclipse.jkube.kit.common.ResourceFileType;
+import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.junit.Before;
 import org.junit.Test;
@@ -125,7 +127,17 @@ public class KubernetesExtensionPropertyTest {
             Paths.get("META-INF", "jkube", "other").toString(),
             Paths.get("META-INF", "jkube", "other").toFile(),
             new File(BASE, "build").toPath().resolve(Paths.get("META-INF", "jkube", "kubernetes")).toFile()
-        });
+        },
+        new Object[] { "getWatchModeOrDefault", "jkube.watch.mode", "copy", WatchMode.copy, WatchMode.both},
+        new Object[] { "getWatchIntervalOrDefault", "jkube.watch.interval", "10000", 10000, 5000},
+        new Object[] { "getWatchKeepRunningOrDefault", "jkube.watch.keepRunning", "true", true, false},
+        new Object[] { "getWatchPostExecOrNull", "jkube.watch.postExec", "ls -lt", "ls -lt", null},
+        new Object[] { "getWatchAutoCreateCustomNetworksOrDefault", "jkube.watch.autoCreateCustomNetworks", "true", true, false},
+        new Object[] { "getWatchKeepContainerOrDefault", "jkube.watch.keepContainer", "true", true, false},
+        new Object[] { "getWatchRemoveVolumesOrDefault", "jkube.watch.removeVolumes", "true", true, false},
+        new Object[] { "getWatchContainerNamePatternOrDefault", "jkube.watch.containerNamePattern", "%n-%g", "%n-%g", ContainerNamingUtil.DEFAULT_CONTAINER_NAME_PATTERN},
+        new Object[] { "getWatchFollowOrDefault", "jkube.watch.follow", "true", true, false},
+        new Object[] { "getWatchShowLogsOrNull", "jkube.watch.showLogs", "true", "true", null});
   }
 
   @Parameterized.Parameter

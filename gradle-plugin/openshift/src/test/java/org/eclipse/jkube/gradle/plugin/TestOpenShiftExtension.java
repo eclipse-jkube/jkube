@@ -355,7 +355,52 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   }
 
   @Override
+  public Property<Boolean> getWatchKeepRunning() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
   public Property<Boolean> getSkipBuild() {
     return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Integer> getWatchInterval() {
+    return new DefaultProperty<>(Integer.class);
+  }
+
+  @Override
+  public Property<String> getWatchPostExec() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<Boolean> getWatchAutoCreateCustomNetworks() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getWatchKeepContainer() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getWatchRemoveVolumes() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getWatchFollow() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<String> getWatchShowLogs() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<String> getWatchContainerNamePattern() {
+    return new DefaultProperty<>(String.class);
   }
 }

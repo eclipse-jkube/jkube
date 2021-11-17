@@ -31,6 +31,16 @@ skipresource: true
 pushregistry: quay.io
 pushretries: 5
 kubernetestemplate: "@endsWith('extension-configuration/build/META-INF/jkube/kubernetes')@"
+watchMode: "copy"
+watchinterval: 1000
+watchkeeprunning: true
+watchpostexec: "ls -lt"
+watchautocreatecustomnetworks: true
+watchkeepcontainer: true
+watchremovevolumes: true
+watchcontainernamepattern: "%g-%l"
+watchfollow: true
+watchshowlogs: "true"
 access:
   namespace: "default"
 enricher:
@@ -42,6 +52,12 @@ generator:
   - "spring-boot"
   excludes:
   - "webapp"
+watcher:
+  includes:
+    - "spring-boot"
+  config:
+    spring-boot:
+      serviceUrlWaitTimeSeconds: 10
 resources:
   controllerName: "test"
   configMap:
