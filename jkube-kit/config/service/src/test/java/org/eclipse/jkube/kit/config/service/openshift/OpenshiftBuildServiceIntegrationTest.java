@@ -194,6 +194,23 @@ public class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  public void build_withAssembly_shouldSucceed() throws Exception {
+    // Given
+    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
+    image.setBuild(BuildConfiguration.builder()
+        .from(projectName)
+        .assembly(AssemblyConfiguration.builder()
+            .layer(Assembly.builder().id("one").build())
+            .build())
+        .build());
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+    // Then
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
+  }
+
+  @Test
   public void build_withDockerfileModeAndFlattenedAssembly_shouldThrowException() {
     //Given
     image.setBuild(BuildConfiguration.builder()
