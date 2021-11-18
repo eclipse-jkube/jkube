@@ -200,7 +200,7 @@ public class HelmService {
       if (dto instanceof Template) {
         splitAndSaveTemplate((Template) dto, templatesDir);
       } else {
-        final String fileName = FileUtil.stripPostfix(file.getName(), ".yml") + YAML_EXTENSION;
+        final String fileName = FileUtil.stripPostfix(FileUtil.stripPostfix(file.getName(), ".yml"), YAML_EXTENSION) + YAML_EXTENSION;
         File targetFile = new File(templatesDir, fileName);
         // lets escape any {{ or }} characters to avoid creating invalid templates
         String text = FileUtils.readFileToString(file, Charset.defaultCharset());
