@@ -25,6 +25,7 @@ Usage:
 * Fix #802: Update Fabric8 kubernetes Client to v5.10.1
 * Fix #1054: Log selected Dockerfile in Docker build mode
 * Fix #1120: OpenShiftBuildService flattens assembly only if necessary
+* Fix #1123: Helm supports `.yaml` and `.yml` source files
 
 ### 1.5.1 (2021-10-28)
 * Fix #1084: Gradle dependencies should be test or provided scope
