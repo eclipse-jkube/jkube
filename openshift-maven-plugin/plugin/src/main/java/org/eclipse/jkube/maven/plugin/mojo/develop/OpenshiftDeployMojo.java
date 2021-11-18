@@ -32,7 +32,7 @@ import java.io.File;
  * @since 09/06/16
  */
 
-@Mojo(name = "deploy", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.VALIDATE)
+@Mojo(name = "deploy", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.VALIDATE)
 @Execute(phase = LifecyclePhase.INSTALL)
 public class OpenshiftDeployMojo extends DeployMojo {
 

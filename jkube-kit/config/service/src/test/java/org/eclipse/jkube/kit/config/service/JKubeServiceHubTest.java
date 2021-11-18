@@ -138,15 +138,6 @@ public class JKubeServiceHubTest {
   }
 
   @Test
-  public void testGetArtifactResolverService() {
-    JKubeServiceHub hub = commonInit()
-            .platformMode(RuntimeMode.KUBERNETES)
-            .build();
-
-    assertThat(hub.getArtifactResolverService()).isNotNull();
-  }
-
-  @Test
   public void testGetJibBuildServiceInKubernetes() {
     // Given
     // @formatter:off

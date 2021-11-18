@@ -25,7 +25,6 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.service.MigrateService;
 import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
@@ -58,7 +57,6 @@ public class JKubeServiceHub implements Closeable {
     private BuildServiceConfig buildServiceConfig;
     @Getter
     private KubernetesClient client;
-    private LazyBuilder<ArtifactResolverService> artifactResolverService;
     private LazyBuilder<BuildServiceManager> buildServiceManager;
     private LazyBuilder<ResourceService> resourceService;
     private LazyBuilder<PortForwardService> portForwardService;
@@ -104,10 +102,6 @@ public class JKubeServiceHub implements Closeable {
         return platformMode;
     }
 
-    public ArtifactResolverService getArtifactResolverService() {
-        return artifactResolverService.get();
-    }
-
     public BuildService getBuildService() {
         return buildServiceManager.get().resolveBuildService();
     }
@@ -148,7 +142,6 @@ public class JKubeServiceHub implements Closeable {
             }
             this.client = clusterAccess.createDefaultClient();
         }
-        artifactResolverService = new LazyBuilder<>(() -> new JKubeArtifactResolverService(configuration.getProject()));
         buildServiceManager = new LazyBuilder<>(() -> new BuildServiceManager(this));
         applyService = new LazyBuilder<>(() -> {
             validateIfConnectedToCluster();

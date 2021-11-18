@@ -37,7 +37,7 @@ import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_OPENSH
 /**
  * Used to automatically rebuild Docker images and restart containers in case of updates.
  */
-@Mojo(name = "watch", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
+@Mojo(name = "watch", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 @Execute(goal = "deploy")
 public class OpenshiftWatchMojo extends WatchMojo {
 

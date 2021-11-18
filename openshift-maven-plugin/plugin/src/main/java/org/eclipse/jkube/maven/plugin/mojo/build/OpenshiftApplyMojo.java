@@ -26,7 +26,7 @@ import java.io.File;
 /**
  * Base class for goals which deploy the generated artifacts into the OpenShift cluster
  */
-@Mojo(name = "apply", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.INSTALL)
+@Mojo(name = "apply", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.INSTALL)
 public class OpenshiftApplyMojo extends ApplyMojo {
 
   /**

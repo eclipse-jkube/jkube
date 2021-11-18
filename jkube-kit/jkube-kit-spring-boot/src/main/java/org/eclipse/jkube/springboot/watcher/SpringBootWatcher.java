@@ -54,6 +54,7 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
+import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getSpringBootPluginConfiguration;
 
 public class SpringBootWatcher extends BaseWatcher {
 
@@ -79,8 +80,8 @@ public class SpringBootWatcher extends BaseWatcher {
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) {
-        return JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(),
-            SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        return JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID) ||
+         JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID);
     }
 
     @Override
@@ -259,14 +260,12 @@ public class SpringBootWatcher extends BaseWatcher {
 
     private File getSpringBootDevToolsJar(JavaProject project) {
         String version = SpringBootUtil.getSpringBootDevToolsVersion(project).orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
-        return getContext().getJKubeServiceHub().getArtifactResolverService().resolveArtifact(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
+        return JKubeProjectUtil.resolveArtifact(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
     }
 
     private String validateSpringBootDevtoolsSettings() {
-        final Map<String, Object> configuration = JKubeProjectUtil
-            .getPlugin(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID)
-            .getConfiguration();
-        if(!configuration.containsKey("excludeDevtools") || !configuration.get("excludeDevtools").equals("false")) {
+        final Map<String, Object> configuration = getSpringBootPluginConfiguration(getContext().getBuildContext().getProject());
+        if(configuration != null && (!configuration.containsKey("excludeDevtools") || !configuration.get("excludeDevtools").equals("false"))) {
             log.warn("devtools need to be included in repacked archive, please set <excludeDevtools> to false in plugin configuration");
             throw new IllegalStateException("devtools needs to be included in fat jar");
         }

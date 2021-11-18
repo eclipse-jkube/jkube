@@ -30,7 +30,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * <p> To terminate the log hit
  * <code>Ctrl+C</code>
  */
-@Mojo(name = "log", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.VALIDATE)
+@Mojo(name = "log", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.VALIDATE)
 public class LogMojo extends ApplyMojo {
 
   @Parameter(property = "jkube.log.follow", defaultValue = "true")

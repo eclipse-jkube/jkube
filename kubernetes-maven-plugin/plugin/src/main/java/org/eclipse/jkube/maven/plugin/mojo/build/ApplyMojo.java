@@ -42,7 +42,7 @@ import org.apache.maven.project.MavenProject;
 /**
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
  */
-@Mojo(name = "apply", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.INSTALL)
+@Mojo(name = "apply", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.INSTALL)
 public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
 
     public static final String DEFAULT_KUBERNETES_MANIFEST = "${basedir}/target/classes/META-INF/jkube/kubernetes.yml";

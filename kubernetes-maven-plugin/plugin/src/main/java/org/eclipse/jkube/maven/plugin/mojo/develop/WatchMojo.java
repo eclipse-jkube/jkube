@@ -60,7 +60,7 @@ import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERN
 /**
  * Used to automatically rebuild Docker images and restart containers in case of updates.
  */
-@Mojo(name = "watch", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE)
+@Mojo(name = "watch", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 @Execute(goal = "deploy")
 public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
 
@@ -141,7 +141,6 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
             .logger(log)
             .runtimeMode(getConfiguredRuntimeMode())
             .useProjectClasspath(useProjectClasspath)
-            .artifactResolver(jkubeServiceHub.getArtifactResolverService())
             .generatorMode(GeneratorMode.WATCH);
     }
 

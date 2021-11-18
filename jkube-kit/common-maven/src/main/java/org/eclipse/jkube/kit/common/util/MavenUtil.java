@@ -174,7 +174,7 @@ public class MavenUtil {
     return project.getDependencies().stream()
         .map(d -> Dependency.builder()
             .groupId(d.getGroupId()).artifactId(d.getArtifactId()).version(d.getVersion()).type(d.getType())
-            .scope(d.getScope()).build())
+            .scope(d.getScope()).file(getArtifactFileFromArtifactMap(project, d)).build())
         .collect(Collectors.toList());
   }
 
@@ -417,6 +417,14 @@ public class MavenUtil {
             project = project.getParent();
         }
         return answer;
+    }
+
+    private static File getArtifactFileFromArtifactMap(MavenProject mavenProject, org.apache.maven.model.Dependency dependency) {
+        Artifact artifact = mavenProject.getArtifactMap().get(dependency.getGroupId() + ":" + dependency.getArtifactId());
+        if (artifact != null) {
+            return artifact.getFile();
+        }
+        return null;
     }
 }
 

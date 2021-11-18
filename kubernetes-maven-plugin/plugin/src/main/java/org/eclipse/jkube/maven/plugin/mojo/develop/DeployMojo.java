@@ -28,7 +28,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * @author roland
  */
 
-@Mojo(name = "deploy", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.VALIDATE)
+@Mojo(name = "deploy", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.VALIDATE)
 @Execute(phase = LifecyclePhase.INSTALL)
 public class DeployMojo extends ApplyMojo {
 
