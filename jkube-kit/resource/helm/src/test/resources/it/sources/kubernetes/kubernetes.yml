@@ -61,7 +61,7 @@ items:
       version: 1337
     name: test
   spec:
-    replicas: 1
+    replicas: ${deployment_replicas}
     revisionHistoryLimit: 2
     selector:
       matchLabels:

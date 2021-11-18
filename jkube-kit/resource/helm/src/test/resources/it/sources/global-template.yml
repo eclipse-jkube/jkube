@@ -25,3 +25,5 @@ parameters:
     value: the-value
   - name: golang_expression
     value: "{{ .Values.unused_value | upper | quote }}"
+  - name: deployment_replicas
+    value: 1

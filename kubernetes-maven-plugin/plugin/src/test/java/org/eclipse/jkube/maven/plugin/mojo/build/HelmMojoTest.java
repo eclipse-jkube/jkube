@@ -21,7 +21,6 @@ import java.util.Properties;
 
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.Maintainer;
-import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -156,7 +155,7 @@ public class HelmMojoTest {
     // Given
     helmMojo.kubernetesTemplate = kubernetesTemplate;
     new Expectations() {{
-      ResourceUtil.load(kubernetesTemplate, KubernetesResource.class, ResourceFileType.yaml);
+      ResourceUtil.load(kubernetesTemplate, KubernetesResource.class);
       result = template;
     }};
     // When

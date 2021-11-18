@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
@@ -20,6 +21,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
@@ -27,6 +29,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.PatchService;
 import mockit.Mocked;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,6 +51,12 @@ public class PatchServiceTest {
     @Before
     public void setUp() {
         patchService = new PatchService(mockServer.getOpenshiftClient(), log);
+        Serialization.jsonMapper().disable(SerializationFeature.INDENT_OUTPUT);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        Serialization.jsonMapper().enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     @Test

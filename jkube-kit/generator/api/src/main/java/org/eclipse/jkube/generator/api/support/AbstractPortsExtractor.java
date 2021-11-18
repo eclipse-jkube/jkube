@@ -24,21 +24,16 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.PortsExtractor;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
 
 public abstract class AbstractPortsExtractor implements PortsExtractor {
-
-	public static final ObjectMapper JSON_MAPPER = new ObjectMapper();
-	public static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
 	private static final String DOT = ".";
 	private static final String JSON_EXTENSION = ".json";
@@ -128,9 +123,9 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 	private Map<String, String> readConfig(File f) throws IOException {
 		Map<String, String> map;
 		if (f.getName().endsWith(JSON_EXTENSION)) {
-			map = flatten(JSON_MAPPER.readValue(f, Map.class));
+			map = flatten(Serialization.jsonMapper().readValue(f, Map.class));
 		} else if (f.getName().endsWith(YAML_EXTENSION) || f.getName().endsWith(YML_EXTENSION)) {
-			map = flatten(YAML_MAPPER.readValue(f, Map.class));
+			map = flatten(Serialization.yamlMapper().readValue(f, Map.class));
 		} else if (f.getName().endsWith(PROPERTIES_EXTENSION)) {
 			Properties properties = new Properties();
 			try (FileInputStream fis = new FileInputStream(f)) {

@@ -20,11 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Parameter;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.client.OpenShiftClient;
@@ -36,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class OpenshiftHelper {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     public static final String DEFAULT_API_VERSION = "v1";
 
     private OpenshiftHelper() {}
@@ -88,7 +87,7 @@ public class OpenshiftHelper {
                     json = json.replace(from, value);
                 }
             }
-            return  OBJECT_MAPPER.readerFor(KubernetesList.class).readValue(json);
+            return  Serialization.jsonMapper().readerFor(KubernetesList.class).readValue(json);
         } else {
             KubernetesList answer = new KubernetesList();
             answer.setItems(objects);

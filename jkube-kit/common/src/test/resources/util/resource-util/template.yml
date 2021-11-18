@@ -14,6 +14,10 @@ objects:
               value: ${ENV_VAR_KEY}
           image: busybox
           name: master
+          securityContext:
+            privileged: ${POD_SECURITY_CONTEXT}
 parameters:
   - name: ENV_VAR_KEY
     value: "replaced_value"
+  - name: POD_SECURITY_CONTEXT
+    value: false

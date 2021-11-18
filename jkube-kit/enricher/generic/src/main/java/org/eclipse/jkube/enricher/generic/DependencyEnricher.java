@@ -13,11 +13,10 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Template;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -56,9 +55,9 @@ public class DependencyEnricher extends BaseEnricher {
     private static final String DEPENDENCY_KUBERNETES_TEMPLATE_YAML = "META-INF/jkube/k8s-template.yml";
     private static final String DEPENDENCY_OPENSHIFT_YAML = "META-INF/jkube/openshift.yml";
 
-    private Set<URI> kubernetesDependencyArtifacts = new HashSet<>();
-    private Set<URI> kubernetesTemplateDependencyArtifacts = new HashSet<>();
-    private Set<URI> openshiftDependencyArtifacts = new HashSet<>();
+    private final Set<URI> kubernetesDependencyArtifacts = new HashSet<>();
+    private final Set<URI> kubernetesTemplateDependencyArtifacts = new HashSet<>();
+    private final Set<URI> openshiftDependencyArtifacts = new HashSet<>();
 
     @AllArgsConstructor
     private enum Config implements Configs.Config {
@@ -130,11 +129,11 @@ public class DependencyEnricher extends BaseEnricher {
     private void enrichKubernetes(final KubernetesListBuilder builder) {
         final List<HasMetadata> kubernetesItems = new ArrayList<>();
         processArtifactSetResources(this.kubernetesDependencyArtifacts, items -> {
-            kubernetesItems.addAll(Arrays.asList(items.toArray(new HasMetadata[items.size()])));
+            kubernetesItems.addAll(Arrays.asList(items.toArray(new HasMetadata[0])));
             return null;
         });
         processArtifactSetResources(this.kubernetesTemplateDependencyArtifacts, items -> {
-            List<HasMetadata> templates = Arrays.asList(items.toArray(new HasMetadata[items.size()]));
+            List<HasMetadata> templates = Arrays.asList(items.toArray(new HasMetadata[0]));
 
             // lets remove all the plain resources (without any ${PARAM} expressions) which match objects
             // in the Templates found from the k8s-templates.yml files which still contain ${PARAM} expressions
@@ -206,10 +205,10 @@ public class DependencyEnricher extends BaseEnricher {
         for (URI uri : artifactSet) {
             try {
                 log.debug("Processing Kubernetes YAML in at: %s", uri);
-                KubernetesList resources = new ObjectMapper(new YAMLFactory()).readValue(uri.toURL(), KubernetesList.class);
+                KubernetesList resources = Serialization.yamlMapper().readValue(uri.toURL(), KubernetesList.class);
                 List<HasMetadata> items = resources.getItems();
                 if (items.isEmpty() && Objects.equals("Template", resources.getKind())) {
-                    Template template = new ObjectMapper(new YAMLFactory()).readValue(uri.toURL(), Template.class);
+                    Template template = Serialization.yamlMapper().readValue(uri.toURL(), Template.class);
                     if (template != null) {
                         items.add(template);
                     }

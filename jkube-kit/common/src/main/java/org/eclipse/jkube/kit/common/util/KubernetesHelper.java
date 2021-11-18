@@ -42,23 +42,18 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.ResourceFileType;
 
-import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
-import io.fabric8.kubernetes.api.model.Context;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.HasMetadataComparator;
-import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
-import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodCondition;
@@ -90,7 +85,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
-import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -129,35 +123,6 @@ public class KubernetesHelper {
             }
         }
         return currentValue;
-    }
-
-
-    /**
-     * Loads the Kubernetes JSON and converts it to a list of entities
-     *
-     * @param entity Kubernetes generic resource object
-     * @return list of objects of type HasMetadata
-     */
-    @SuppressWarnings("unchecked")
-    public static List<HasMetadata> toItemList(Object entity) {
-        if (entity instanceof List) {
-            return (List<HasMetadata>) entity;
-        } else if (entity instanceof HasMetadata[]) {
-            HasMetadata[] array = (HasMetadata[]) entity;
-            return Arrays.asList(array);
-        } else if (entity instanceof KubernetesList) {
-            KubernetesList config = (KubernetesList) entity;
-            return config.getItems();
-        } else if (entity instanceof Template) {
-            Template objects = (Template) entity;
-            return objects.getObjects();
-        } else {
-            List<HasMetadata> answer = new ArrayList<>();
-            if (entity instanceof HasMetadata) {
-                answer.add((HasMetadata) entity);
-            }
-            return answer;
-        }
     }
 
     public static Map<String, String> getOrCreateAnnotations(HasMetadata entity) {
@@ -291,50 +256,6 @@ public class KubernetesHelper {
         }
     }
 
-
-    /**
-     * Creates an IntOrString from the given string which could be a number or a name
-     *
-     * @param intVal integer as value
-     * @return wrapped object as IntOrString
-     */
-    public static IntOrString createIntOrString(int intVal) {
-        IntOrString answer = new IntOrString();
-        answer.setIntVal(intVal);
-        answer.setKind(0);
-        return answer;
-    }
-
-    /**
-     * Creates an IntOrString from the given string which could be a number or a name
-     *
-     * @param nameOrNumber String containing name or number
-     * @return IntOrString object
-     */
-    public static IntOrString createIntOrString(String nameOrNumber) {
-        if (StringUtils.isBlank(nameOrNumber)) {
-            return null;
-        } else {
-            IntOrString answer = new IntOrString();
-            Integer intVal = null;
-            try {
-                intVal = Integer.parseInt(nameOrNumber);
-            } catch (Exception e) {
-                // ignore invalid number
-            }
-            if (intVal != null) {
-                answer.setIntVal(intVal);
-                answer.setKind(0);
-            } else {
-                answer.setStrVal(nameOrNumber);
-                answer.setKind(1);
-            }
-            return answer;
-        }
-    }
-
-
-
     /**
      * Returns true if the pod is running
      *
@@ -428,67 +349,6 @@ public class KubernetesHelper {
         return ns != null ? ns : "default";
     }
 
-    public static String currentUserName() {
-        Config config = parseConfigs();
-        if (config != null) {
-            Context context = getCurrentContext(config);
-            if (context != null) {
-                String user = context.getUser();
-                if (user != null) {
-                    String[] parts = user.split("/");
-                    if (parts.length > 0) {
-                        return parts[0];
-                    }
-                    return user;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static Config parseConfigs() {
-        File file = getKubernetesConfigFile();
-        if (file.exists() && file.isFile()) {
-            try {
-                return ResourceUtil.load(file, Config.class, ResourceFileType.yaml);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns the current context in the given config
-     */
-    private static Context getCurrentContext(Config config) {
-        String contextName = config.getCurrentContext();
-        if (contextName != null) {
-            List<NamedContext> contexts = config.getContexts();
-            if (contexts != null) {
-                for (NamedContext context : contexts) {
-                    if (Objects.equals(contextName, context.getName())) {
-                        return context.getContext();
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private static File getKubernetesConfigFile() {
-        String file = System.getProperty("kubernetes.config.file");
-        if (file != null) {
-            return new File(file);
-        }
-        file = System.getenv("KUBECONFIG");
-        if (file != null) {
-            return new File(file);
-        }
-        String homeDir = System.getProperty("user.home", ".");
-        return new File(homeDir, ".kube/config");
-    }
-
     public static void handleKubernetesClientException(KubernetesClientException e, KitLogger logger) {
         Throwable cause = e.getCause();
         if (cause instanceof UnknownHostException) {
@@ -562,8 +422,6 @@ public class KubernetesHelper {
         }
         return "";
     }
-
-
 
     public static FilterWatchListDeletable<Pod, PodList> withSelector(NonNamespaceOperation<Pod, PodList, PodResource<Pod>> pods, LabelSelector selector, KitLogger log) {
         FilterWatchListDeletable<Pod, PodList> answer = pods;

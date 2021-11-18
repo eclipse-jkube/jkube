@@ -13,33 +13,27 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
+import org.eclipse.jkube.kit.common.ResourceFileType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.gson.JsonObject;
-import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -49,101 +43,63 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class ResourceUtil {
 
-    private ResourceUtil() {}
-
-    public static boolean jsonEquals(JsonObject first, JsonObject second) {
-        final ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            final JsonNode tree1 = mapper.readTree(first.toString());
-            final JsonNode tree2 = mapper.readTree(second.toString());
-            return tree1.equals(tree2);
-        } catch (IOException e) {
-            return false;
+    static {
+        Serialization.UNMATCHED_FIELD_TYPE_MODULE.setRestrictToTemplates(false);
+        Serialization.UNMATCHED_FIELD_TYPE_MODULE.setLogWarnings(false);
+        for (ObjectMapper mapper : new ObjectMapper[]{Serialization.jsonMapper(), Serialization.yamlMapper()}) {
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
         }
     }
 
-    public static List<HasMetadata> deserializeKubernetesListOrTemplate(File manifest)
-        throws IOException {
+    private ResourceUtil() {}
 
-        List<HasMetadata> kubernetesResources = new ArrayList<>();
-        if (manifest.isFile()) {
-            String fileContentAsStr = new String(Files.readAllBytes(manifest.toPath()), StandardCharsets.UTF_8);
-            if (StringUtils.isNotBlank(fileContentAsStr)) {
-                ResourceFileType resourceFileType = ResourceFileType.fromFile(manifest);
-                if (resourceFileType.equals(ResourceFileType.yaml) && containsMultipleDocuments(fileContentAsStr)) {
-                    return parseMultipleKubernetesResourcesFromYamlManifest(resourceFileType.getObjectMapper(), fileContentAsStr);
-                }
-
-                kubernetesResources.addAll(parseKubernetesListOrTemplate(
-                    resourceFileType.getObjectMapper(), fileContentAsStr
-                ));
-            }
+    /**
+     * Parse the provided file and return a List of HasMetadata resources.
+     *
+     * <p> If the provided resource is KubernetesList, the individual list items will be returned.
+     *
+     * <p> If the provided resource is a Template, the individual objects will be returned with the placeholders
+     * replaced.
+     *
+     * <p> n.b. the returned list will be sorted using the HasMetadataComparator.
+     *
+     * @param manifest the File to parse.
+     * @return a List of HasMetadata resources.
+     * @throws IOException if there's a problem while performing IO operations on the provided File.
+     */
+    public static List<HasMetadata> deserializeKubernetesListOrTemplate(File manifest) throws IOException {
+        if (!manifest.isFile() || !manifest.exists()) {
+            return Collections.emptyList();
+        }
+        final List<HasMetadata> kubernetesResources = new ArrayList<>();
+        try (InputStream fis = new FileInputStream(manifest)) {
+            kubernetesResources.addAll(split(Serialization.unmarshal(fis, Collections.emptyMap())));
         }
         return kubernetesResources;
     }
 
-    private static List<HasMetadata> parseKubernetesListOrTemplate(ObjectMapper mapper, String manifestString)
-        throws IOException {
-        final Map<String, Object> manifest = mapper
-            .readValue(manifestString, new TypeReference<Map<String, Object>>() {});
-        if (manifest.get("kind").equals(new Template().getKind())) {
-            return Optional.ofNullable(OpenshiftHelper.processTemplatesLocally(
-                mapper.convertValue(manifest, Template.class), false))
+    private static List<HasMetadata> split(Object resource) throws IOException {
+        if (resource instanceof Collection) {
+            final List<HasMetadata> collectionItems = new ArrayList<>();
+            for (Object item : ((Collection<?>)resource)) {
+                collectionItems.addAll(split(item));
+            }
+            return collectionItems;
+        } else if (resource instanceof KubernetesList) {
+            return ((KubernetesList) resource).getItems();
+        } else if (resource instanceof Template) {
+            return Optional.ofNullable(
+                    OpenshiftHelper.processTemplatesLocally((Template) resource, false))
                 .map(KubernetesList::getItems)
                 .orElse(Collections.emptyList());
-        } else {
-            return parseKubernetesList(mapper, manifest);
+        } else if (resource instanceof HasMetadata) {
+            return Collections.singletonList((HasMetadata) resource);
         }
-    }
-
-    private static List<HasMetadata> parseKubernetesList(ObjectMapper mapper, Map<String, Object> manifest) {
-        final List<Map<String, Object>> items = (List<Map<String, Object>>)manifest.get("items");
-        return items.stream().map(item -> {
-            final GenericKubernetesResource fallback = mapper.convertValue(item, GenericKubernetesResource.class);
-            try {
-                // Convert Using KubernetesDeserializer or fail and return fallback generic
-                return mapper.convertValue(fallback, HasMetadata.class);
-            } catch(Exception ex) {
-                return fallback;
-            }
-        })
-            .collect(Collectors.toList());
+        return Collections.emptyList();
     }
 
     public static <T extends KubernetesResource> T load(File file, Class<T> clazz) throws IOException {
-        ResourceFileType type = ResourceFileType.fromFile(file);
-        return load(file, clazz, type);
-    }
-
-    private static boolean isGenericKubernetesResourceCompatible(Class<?> clazz){
-        return clazz.isAssignableFrom(GenericKubernetesResource.class);
-    }
-
-    public static <T extends KubernetesResource> T load(File file, Class<T> clazz, ResourceFileType resourceFileType)
-        throws IOException {
-        try {
-            return getObjectMapper(resourceFileType).readValue(file, clazz);
-        } catch(IOException ex) {
-            if (isGenericKubernetesResourceCompatible(clazz)) {
-                return clazz.cast(getObjectMapper(resourceFileType).readValue(file, GenericKubernetesResource.class));
-            }
-            throw ex;
-        }
-    }
-
-    public static <T extends KubernetesResource> T load(InputStream in, Class<T> clazz, ResourceFileType resourceFileType)
-        throws IOException {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            IOUtils.copy(in, baos);
-            return getObjectMapper(resourceFileType).readValue(baos.toByteArray(), clazz);
-        } catch(IOException ex) {
-            if (isGenericKubernetesResourceCompatible(clazz)) {
-                return clazz.cast(getObjectMapper(resourceFileType).readValue(baos.toByteArray(), GenericKubernetesResource.class));
-            }
-            throw ex;
-        }
+        return Serialization.unmarshal(new FileInputStream(file), clazz);
     }
 
     public static File save(File file, Object data) throws IOException {
@@ -156,11 +112,6 @@ public class ResourceUtil {
         ensureDir(file);
         getObjectMapper(type).writeValue(output, data);
         return output;
-    }
-
-
-    public static String toYaml(Object resource) throws JsonProcessingException {
-        return serializeAsString(resource, ResourceFileType.yaml);
     }
 
     public static String toJson(Object resource) throws JsonProcessingException {
@@ -185,21 +136,6 @@ public class ResourceUtil {
                 throw new IOException("Cannot create directory " + parentDir);
             }
         }
-    }
-
-    private static boolean containsMultipleDocuments(String manifestString) {
-        return manifestString.split("---").length > 2;
-    }
-
-    private static List<HasMetadata> parseMultipleKubernetesResourcesFromYamlManifest(ObjectMapper objectMapper, String manifestString) throws JsonProcessingException {
-        String[] documents = manifestString.split("---");
-        List<HasMetadata> resources = new ArrayList<>();
-        for (String document : documents) {
-            if (StringUtils.isNotBlank(document)) {
-                resources.add(objectMapper.readValue(document, HasMetadata.class));
-            }
-        }
-        return resources;
     }
 
     public static File getFinalResourceDir(File resourceDir, String environment) {
