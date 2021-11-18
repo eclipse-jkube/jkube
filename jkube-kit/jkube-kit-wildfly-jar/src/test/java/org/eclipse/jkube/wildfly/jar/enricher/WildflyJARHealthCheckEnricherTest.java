@@ -27,10 +27,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import io.fabric8.kubernetes.client.utils.Serialization;
 import mockit.Expectations;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import mockit.Mocked;
-import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -48,7 +49,7 @@ public class WildflyJARHealthCheckEnricherTest {
     protected JKubeEnricherContext context;
 
     private void setupExpectations(JavaProject project, Map<String, Object> bootableJarconfig, Map<String, Map<String, Object>> jkubeConfig) {
-        Plugin plugin = 
+        Plugin plugin =
                 Plugin.builder().artifactId(WildflyJARHealthCheckEnricher.BOOTABLE_JAR_ARTIFACT_ID).
                         groupId(WildflyJARHealthCheckEnricher.BOOTABLE_JAR_GROUP_ID).configuration(bootableJarconfig).build();
         List<Plugin> lst = new ArrayList<>();
@@ -65,7 +66,7 @@ public class WildflyJARHealthCheckEnricherTest {
             result = configBuilder.build();
         }};
     }
-    
+
     private void setupExpectations(Map<String, Map<String, Object>> jkubeConfig) {
         ProcessorConfig c = new ProcessorConfig(null, null, jkubeConfig);
         new Expectations() {{
@@ -75,7 +76,7 @@ public class WildflyJARHealthCheckEnricherTest {
             result = configBuilder.build();
         }};
     }
-    
+
     @Test
     public void testDefaultConfiguration(@Mocked final JavaProject project) {
         setupExpectations(project, Collections.emptyMap(), Collections.emptyMap());
@@ -85,7 +86,7 @@ public class WildflyJARHealthCheckEnricherTest {
         probe = enricher.getReadinessProbe();
         assertNull(probe);
     }
-    
+
     @Test
     public void testCloudConfiguration(@Mocked final JavaProject project) {
         Map<String, Object> config = new HashMap<>();
@@ -103,7 +104,7 @@ public class WildflyJARHealthCheckEnricherTest {
         assertEquals("HTTP", probe.getHttpGet().getScheme());
         assertNotNull(probe);
     }
-    
+
     @Test
     public void testWithCustomConfigurationComingFromConf(@Mocked final JavaProject project) {
         Map<String, Object> jarConfig = new HashMap<>();
@@ -118,7 +119,7 @@ public class WildflyJARHealthCheckEnricherTest {
                 +"\"successThreshold\":\"27\""
                 + "}");
         setupExpectations(project, jarConfig, config);
-        
+
         final WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -139,7 +140,7 @@ public class WildflyJARHealthCheckEnricherTest {
         assertEquals(27, probe.getSuccessThreshold().intValue());
         assertEquals(17, probe.getFailureThreshold().intValue());
     }
-    
+
     @Test
     public void testDisableHealth(@Mocked final JavaProject project) {
         Map<String, Object> jarConfig = new HashMap<>();
@@ -148,21 +149,21 @@ public class WildflyJARHealthCheckEnricherTest {
                 + "\"port\":\"-1\""
                 + "}");
         setupExpectations(project, jarConfig, config);
-        
+
         final WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
         probe = enricher.getReadinessProbe();
         assertNull(probe);
     }
-    
+
     @Test
     public void testEnforceTrueHealth() {
         final Map<String, Map<String, Object>> config = createFakeConfig("{"
                 + "\"enforceProbes\":\"true\""
                 + "}");
         setupExpectations(config);
-        
+
         final WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -175,21 +176,21 @@ public class WildflyJARHealthCheckEnricherTest {
         assertEquals("HTTP", probe.getHttpGet().getScheme());
         assertNotNull(probe);
     }
-    
+
     @Test
     public void testEnforceFalseHealth() {
         final Map<String, Map<String, Object>> config = createFakeConfig("{"
                 + "\"enforceProbes\":\"false\""
                 + "}");
         setupExpectations(config);
-        
+
         final WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
         probe = enricher.getReadinessProbe();
         assertNull(probe);
     }
-    
+
     @Test
     public void configureWildFlyJarHealthPort() {
         final WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
@@ -198,7 +199,7 @@ public class WildflyJARHealthCheckEnricherTest {
         Assert.assertEquals("/health/live", enricher.getLivenessPath());
         Assert.assertEquals("/health/ready", enricher.getReadinessPath());
     }
-    
+
     @Test
     public void kubernetesHostName() {
         KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
@@ -222,7 +223,7 @@ public class WildflyJARHealthCheckEnricherTest {
                 containerBuilders.add(containerBuilder);
             }
         });
-        
+
         Assert.assertEquals(1, containerBuilders.size());
         ContainerBuilder cb = containerBuilders.get(0);
         List<EnvVar> env = cb.build().getEnv();
@@ -233,10 +234,10 @@ public class WildflyJARHealthCheckEnricherTest {
         EnvVarSource src = hostName.getValueFrom();
         Assert.assertEquals("metadata.name", src.getFieldRef().getFieldPath());
     }
-    
+
     private Map<String, Map<String, Object>> createFakeConfig(String config) {
         try {
-            Map<String, Object> healthCheckJarMap = AbstractPortsExtractor.JSON_MAPPER.readValue(config, Map.class);
+            Map<String, Object> healthCheckJarMap = Serialization.jsonMapper().readValue(config, Map.class);
             Map<String, Map<String, Object>> enricherConfigMap = new HashMap<>();
             enricherConfigMap.put("jkube-healthcheck-wildfly-jar", healthCheckJarMap);
 

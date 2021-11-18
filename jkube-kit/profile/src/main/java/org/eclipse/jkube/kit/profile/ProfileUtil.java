@@ -14,8 +14,7 @@
 package org.eclipse.jkube.kit.profile;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -45,9 +44,6 @@ public class ProfileUtil {
 
     // Allowed profile names
     private static final String[] PROFILE_FILENAMES = {"profiles%s.yml", "profiles%s.yaml", "profiles%s"};
-
-    // Mapper for handling YAML formats
-    private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     // Default profile which will be always there
     public static final String DEFAULT_PROFILE = "default";
@@ -230,7 +226,7 @@ public class ProfileUtil {
      */
     public static List<Profile> fromYaml(InputStream is) throws IOException {
         TypeReference<List<Profile>> typeRef = new TypeReference<List<Profile>>() {};
-        return mapper.readValue(is, typeRef);
+        return Serialization.yamlMapper().readValue(is, typeRef);
     }
 
     // ================================================================================

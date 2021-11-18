@@ -13,8 +13,10 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
@@ -28,64 +30,41 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefin
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.openshift.api.model.Template;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.eclipse.jkube.kit.common.ResourceFileType;
+import org.eclipse.jgit.util.FileUtils;
+import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
-/**
- * @author roland
- * @since 07/02/17
- */
 public class ResourceUtilTest {
 
-    @Test
-    public void simple() {
-        JsonParser parser = new JsonParser();
-        JsonObject first = parser.parse("{first: bla, second: blub}").getAsJsonObject();
-        JsonObject same = parser.parse("{second: blub, first: bla   }").getAsJsonObject();
-        JsonObject different = parser.parse("{second: blub, first: bla2   }").getAsJsonObject();
-        assertTrue(ResourceUtil.jsonEquals(first, same));
-        assertFalse(ResourceUtil.jsonEquals(first, different));
-    }
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
-    public void testDeserializeKubernetesListOrTemplateWithNonExistentFile() throws IOException {
+    public void deserializeKubernetesListOrTemplate_withNonExistentFile_returnsEmptyList() throws IOException {
         // Given
-        File kubernetesManifestFile = new File("i-dont-exist.yml");
-
+        final File kubernetesManifestFile = new File("i-dont-exist.yml");
         // When
-        List<HasMetadata> kubernetesResourceList = ResourceUtil.deserializeKubernetesListOrTemplate(kubernetesManifestFile);
-
+        final List<HasMetadata> result = ResourceUtil.deserializeKubernetesListOrTemplate(kubernetesManifestFile);
         // Then
-        assertNotNull(kubernetesResourceList);
-        assertEquals(0, kubernetesResourceList.size());
+        assertThat(result).isNotNull().isEmpty();
     }
 
     @Test
-    public void testDeserializeKubernetesListOrTemplateWithEmptyFile() throws IOException {
+    public void deserializeKubernetesListOrTemplate_withEmptyFile_returnsEmptyList() throws IOException {
         // Given
-        File kubernetesManifestFile = Files.createTempFile("kubernetes-", ".yaml").toFile();
-
+        final File empty = temporaryFolder.newFile("kubernetes-empty.yaml");
+        FileUtils.touch(empty.toPath());
         // When
-        List<HasMetadata> kubernetesResourceList = ResourceUtil.deserializeKubernetesListOrTemplate(kubernetesManifestFile);
-
+        final List<HasMetadata> result = ResourceUtil.deserializeKubernetesListOrTemplate(empty);
         // Then
-        assertNotNull(kubernetesResourceList);
-        assertEquals(0, kubernetesResourceList.size());
+        assertThat(result).isNotNull().isEmpty();
     }
 
     @Test
-    public void testDeserializeKubernetesListOrTemplateWithMixedResourcesFile() throws IOException {
+    public void deserializeKubernetesListOrTemplate_withMixedResources_returnsValidList() throws IOException {
         // Given
         final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
             "/util/resource-util/list-with-standard-template-and-cr-resources.yml").getFile());
@@ -101,20 +80,21 @@ public class ResourceUtilTest {
             .hasAtLeastOneElementOfType(Service.class)
             .hasAtLeastOneElementOfType(ConfigMap.class)
             .hasAtLeastOneElementOfType(CustomResourceDefinition.class)
+            .hasAtLeastOneElementOfType(GenericKubernetesResource.class)
             .extracting("metadata.name")
             .containsExactly(
-                "my-new-cron-object-cr",
                 "ribbon",
                 "external-service",
                 "external-config-map",
-                "template-example",
                 "dummies.demo.fabric8.io",
-                "custom-resource"
-            );
+                "custom-resource",
+                "my-new-cron-object-cr",
+                "template-example"
+                );
     }
 
     @Test
-    public void testDeserializeKubernetesListOrTemplateWithTemplateFile() throws IOException {
+    public void deserializeKubernetesListOrTemplate_withTemplateFile_returnsValidList() throws IOException {
         // Given
         final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
             "/util/resource-util/template.yml").getFile());
@@ -123,7 +103,7 @@ public class ResourceUtilTest {
             kubernetesListFile);
         // Then
         assertThat(result)
-            .hasSize(1).first()
+            .singleElement()
             .isInstanceOf(Pod.class)
             .asInstanceOf(InstanceOfAssertFactories.type(Pod.class))
             .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
@@ -137,9 +117,9 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void testDeserializeKubernetesListOrTemplateWithMultipleYamlDocuments() throws IOException {
+    public void deserializeKubernetesListOrTemplate_withMultipleYamlAndSeparator_returnsValidList() throws IOException {
         // Given
-        final File kubernetesListFile = new File(getClass().getResource(
+        final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
           "/util/resource-util/multiple-k8s-documents.yml").getFile());
         // When
         final List<HasMetadata> result = ResourceUtil.deserializeKubernetesListOrTemplate(
@@ -172,6 +152,49 @@ public class ResourceUtilTest {
     }
 
     @Test
+    public void deserializeKubernetesListOrTemplate_withStandardResourcesAndPlaceholders_returnsValidList() throws IOException {
+        // Given
+        final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
+            "/util/resource-util/list-with-standard-resources-and-placeholders.yml").getFile());
+        // When
+        final List<HasMetadata> result = ResourceUtil.deserializeKubernetesListOrTemplate(
+            kubernetesListFile);
+        // Then
+        assertThat(result)
+            .hasSize(2)
+            .satisfies(l -> assertThat(l).first()
+                .isInstanceOf(Service.class)
+                .hasFieldOrPropertyWithValue("metadata.name", "the-service")
+                .hasFieldOrPropertyWithValue("metadata.additionalProperties.annotations", "${annotations_placeholder}")
+                .extracting("spec.ports").asList().singleElement()
+                .hasFieldOrPropertyWithValue("protocol", "TCP")
+                .hasFieldOrPropertyWithValue("additionalProperties.port", "{{ .Values.service.port }}")
+            )
+            .satisfies(l -> assertThat(l).element(1)
+                .isInstanceOf(Deployment.class)
+                .hasFieldOrPropertyWithValue("metadata.name", "the-deployment")
+                .hasFieldOrPropertyWithValue("metadata.additionalProperties.annotations", "${annotations_placeholder}")
+                .hasFieldOrPropertyWithValue("spec.additionalProperties.replicas", "{{ .Values.deployment.replicas }}")
+            );
+    }
+
+    @Test
+    public void deserializeKubernetesListOrTemplate_withSingleResource_returnsValidList() throws IOException {
+        // Given
+        final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
+            "/util/resource-util/custom-resource-cr.yml").getFile());
+        // When
+        final List<HasMetadata> result = ResourceUtil.deserializeKubernetesListOrTemplate(
+            kubernetesListFile);
+        // Then
+        assertThat(result)
+            .singleElement()
+            .isInstanceOf(GenericKubernetesResource.class)
+            .hasFieldOrPropertyWithValue("kind", "SomeCustomResource")
+            .hasFieldOrPropertyWithValue("metadata.name", "my-custom-resource");;
+    }
+
+    @Test
     public void load_withCustomResourceFile_shouldLoadGenericKubernetesResource() throws Exception {
         // When
         final HasMetadata result = ResourceUtil.load(
@@ -186,17 +209,23 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void load_withCustomResourceStream_shouldLoadGenericKubernetesResource() throws Exception {
+    public void load_withTemplate_shouldLoadTemplate() throws Exception {
         // When
         final HasMetadata result = ResourceUtil.load(
-            ResourceUtilTest.class.getResourceAsStream( "/util/resource-util/custom-resource-cr.yml"),
-            HasMetadata.class,
-            ResourceFileType.yaml
+            new File(ResourceUtilTest.class.getResource( "/util/resource-util/template.yml").getFile()),
+            HasMetadata.class
         );
         // Then
         assertThat(result)
-            .isInstanceOf(GenericKubernetesResource.class)
-            .hasFieldOrPropertyWithValue("kind", "SomeCustomResource")
-            .hasFieldOrPropertyWithValue("metadata.name", "my-custom-resource");
+            .isInstanceOf(Template.class)
+            .hasFieldOrPropertyWithValue("metadata.name", "template-example")
+            .extracting("objects").asList().singleElement()
+            .isInstanceOf(Pod.class)
+            .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
+            .extracting("spec.containers").asList().singleElement()
+            .hasFieldOrPropertyWithValue("image", "busybox")
+            .hasFieldOrPropertyWithValue("securityContext.additionalProperties.privileged", "${POD_SECURITY_CONTEXT}")
+            .extracting("env").asList().singleElement()
+            .hasFieldOrPropertyWithValue("value", "${ENV_VAR_KEY}");
     }
 }

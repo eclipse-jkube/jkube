@@ -1,0 +1,35 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations: ${annotations_placeholder}
+      labels:
+        app: helm-compatible
+        provider: jkube
+      name: the-service
+    spec:
+      ports:
+        - port: "{{ .Values.service.port }}"
+          protocol: TCP
+          targetPort: ${target_port}
+      selector:
+        app: helm-compatible
+        provider: jkube
+      type: LoadBalancer
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations: ${annotations_placeholder}
+      labels:
+        app: helm-compatible
+        provider: jkube
+      name: the-deployment
+    spec:
+      selector:
+        matchLabels:
+          app: helm-compatible
+          provider: jkube
+      replicas: "{{ .Values.deployment.replicas }}"

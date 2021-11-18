@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
@@ -29,6 +30,7 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -170,10 +172,12 @@ public class OpenshiftBuildServiceIntegrationTest {
         .openshiftPullSecret("pullsecret-fabric8")
         .openshiftPushSecret("pushsecret-fabric8")
         .buildOutputKind("DockerImage");
+    Serialization.jsonMapper().disable(SerializationFeature.INDENT_OUTPUT);
   }
 
   @After
   public void tearDown() throws Exception {
+    Serialization.jsonMapper().enable(SerializationFeature.INDENT_OUTPUT);
     jKubeBuildTarArchiver.close();
     openshiftHelper.close();
   }

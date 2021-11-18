@@ -12,6 +12,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+deployment_replicas: "1"
 golang_expression: "{{ .Values.unused_value | upper | quote }}"
 global_template_env_var: This is a sample
 limits_memory: 512Mi

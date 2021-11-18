@@ -225,7 +225,7 @@ public class HelmServiceUtilTest {
 
     // Given
     new Expectations() {{
-      ResourceUtil.load(kubernetesTemplate, KubernetesResource.class, ResourceFileType.yaml);
+      ResourceUtil.load(kubernetesTemplate, KubernetesResource.class);
       result = template;
     }};
     // When

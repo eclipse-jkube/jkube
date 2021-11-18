@@ -196,7 +196,7 @@ public class HelmService {
 
   private static void processSourceFiles(File sourceDir, File templatesDir) throws IOException {
     for (File file : listYamls(sourceDir)) {
-      final KubernetesResource dto = ResourceUtil.load(file, KubernetesResource.class, ResourceFileType.yaml);
+      final KubernetesResource dto = ResourceUtil.load(file, KubernetesResource.class);
       if (dto instanceof Template) {
         splitAndSaveTemplate((Template) dto, templatesDir);
       } else {

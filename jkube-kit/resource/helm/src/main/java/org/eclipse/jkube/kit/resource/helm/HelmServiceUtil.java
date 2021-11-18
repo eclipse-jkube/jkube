@@ -22,7 +22,6 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
@@ -204,7 +203,7 @@ public class HelmServiceUtil {
     }
     for (File sourceFile : Objects
       .requireNonNull(sourceFiles, "No template files found in the provided directory")) {
-      final KubernetesResource dto = ResourceUtil.load(sourceFile, KubernetesResource.class, ResourceFileType.yaml);
+      final KubernetesResource dto = ResourceUtil.load(sourceFile, KubernetesResource.class);
       if (dto instanceof  Template) {
         ret.add((Template) dto);
       } else if (dto instanceof KubernetesList) {

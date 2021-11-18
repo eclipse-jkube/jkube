@@ -23,7 +23,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -449,45 +448,6 @@ public class KubernetesResourceUtil {
             return build.getStatus().getPhase();
         }
         return null;
-    }
-
-    public static String getBuildStatusReason(Build build) {
-        if (build != null && build.getStatus() != null) {
-            String reason = build.getStatus().getReason();
-            String phase = build.getStatus().getPhase();
-            if (StringUtils.isNotBlank(phase)) {
-                if (StringUtils.isNotBlank(reason)) {
-                    return phase + ": " + reason;
-                } else {
-                    return phase;
-                }
-            } else {
-                return StringUtils.defaultIfEmpty(reason, "");
-            }
-        }
-        return "";
-    }
-
-    public static Pod getNewestPod(Collection<Pod> pods) {
-        if (pods == null || pods.isEmpty()) {
-            return null;
-        }
-        List<Pod> sortedPods = new ArrayList<>(pods);
-        sortedPods.sort((p1, p2) -> {
-            Date t1 = getCreationTimestamp(p1);
-            Date t2 = getCreationTimestamp(p2);
-            if (t1 != null) {
-                if (t2 == null) {
-                    return 1;
-                } else {
-                    return t1.compareTo(t2);
-                }
-            } else if (t2 == null) {
-                return 0;
-            }
-            return -1;
-        });
-        return sortedPods.get(sortedPods.size() - 1);
     }
 
     public static Date getCreationTimestamp(HasMetadata hasMetadata) {

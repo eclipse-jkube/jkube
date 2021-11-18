@@ -23,7 +23,7 @@ import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
@@ -137,7 +137,7 @@ public class VertxHealthCheckEnricherTest {
 
     @SuppressWarnings("unchecked")
     private TreeMap<String, String> createFakeConfigLikeMaven(String config) throws Exception {
-        Map<String, Object> nestedConfig = AbstractPortsExtractor.JSON_MAPPER.readValue(config, Map.class);
+        Map<String, Object> nestedConfig = Serialization.jsonMapper().readValue(config, Map.class);
         return nestedConfig.entrySet().stream()
             .filter(e -> e.getValue() instanceof String)
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), (String)e.getValue()))
@@ -147,7 +147,7 @@ public class VertxHealthCheckEnricherTest {
     @SuppressWarnings("unchecked")
     private Map<String, Object> createFakeConfig(String config) {
         try {
-            Map<String, Object> healthCheckVertxMap = AbstractPortsExtractor.JSON_MAPPER.readValue(config, Map.class);
+            Map<String, Object> healthCheckVertxMap = Serialization.jsonMapper().readValue(config, Map.class);
 
             Map<String, Object> enricherConfigMap = new HashMap<>();
             enricherConfigMap.put("jkube-healthcheck-vertx", healthCheckVertxMap);
