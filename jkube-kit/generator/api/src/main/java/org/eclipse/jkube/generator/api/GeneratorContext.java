@@ -21,7 +21,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.service.ArtifactResolverService;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -45,7 +44,6 @@ public class GeneratorContext {
 
     private boolean useProjectClasspath;
     private boolean prePackagePhase;
-    private ArtifactResolverService artifactResolver;
 
     private GeneratorMode generatorMode;
 

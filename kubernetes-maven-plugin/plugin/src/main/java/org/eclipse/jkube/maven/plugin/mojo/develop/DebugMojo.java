@@ -28,7 +28,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * Ensures that the current app has debug enabled, then opens the debug port so that you can debug the latest pod
  * from your IDE
  */
-@Mojo(name = "debug", requiresDependencyResolution = ResolutionScope.COMPILE, defaultPhase = LifecyclePhase.PACKAGE)
+@Mojo(name = "debug", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PACKAGE)
 public class DebugMojo extends ApplyMojo {
 
   @Parameter(property = "jkube.debug.port", defaultValue = "5005")

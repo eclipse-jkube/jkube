@@ -15,10 +15,13 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 
@@ -87,6 +90,18 @@ public class SpringBootUtil {
             return project.getProperties().get("spring.profiles.active").toString();
         }
         return null;
+    }
+
+    public static Map<String, Object> getSpringBootPluginConfiguration(JavaProject javaProject) {
+        Plugin mavenPlugin = JKubeProjectUtil.getPlugin(javaProject, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        if (mavenPlugin != null) {
+            return mavenPlugin.getConfiguration();
+        }
+        Plugin gradlePlugin = JKubeProjectUtil.getPlugin(javaProject, SpringBootConfigurationHelper.SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID);
+        if (gradlePlugin != null) {
+            return gradlePlugin.getConfiguration();
+        }
+        return Collections.emptyMap();
     }
 }
 

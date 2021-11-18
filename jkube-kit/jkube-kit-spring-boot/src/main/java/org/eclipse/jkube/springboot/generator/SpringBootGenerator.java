@@ -293,8 +293,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
     private File getSpringBootDevToolsJar() {
         String version = SpringBootUtil.getSpringBootDevToolsVersion(getProject())
             .orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
-        final File devToolsJar = getContext().getArtifactResolver()
-            .resolveArtifact(SPRING_BOOT_GROUP_ID, SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
+        final File devToolsJar = JKubeProjectUtil.resolveArtifact(getProject(), SPRING_BOOT_GROUP_ID, SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
         if (!devToolsJar.exists()) {
             throw new IllegalArgumentException("devtools need to be included in repacked archive, please set <excludeDevtools> to false in plugin configuration");
         }

@@ -712,8 +712,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                 .logger(log)
                 .runtimeMode(runtimeMode)
-                .useProjectClasspath(useProjectClasspath)
-                .artifactResolver(jkubeServiceHub.getArtifactResolverService());
+                .useProjectClasspath(useProjectClasspath);
     }
 
     // Get generator config

@@ -13,8 +13,12 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertNull;
@@ -72,6 +76,44 @@ public class SpringBootUtilTest {
         props = SpringBootUtil.getPropertiesFromApplicationYamlResource("kubernetes", getClass().getResource("/util/test-application-with-multiple-profiles.yml"));
         assertEquals("true", props.get("cloud.kubernetes.reload.enabled"));
         assertNull(props.get("spring.application.name"));
+    }
+
+    @Test
+    public void getSpringBootPluginConfiguration_whenSpringBootMavenPluginPresent_thenReturnsPluginConfiguration() {
+        // Given
+        JavaProject javaProject = JavaProject.builder()
+            .plugin(Plugin.builder()
+                .groupId("org.springframework.boot")
+                .artifactId("spring-boot-maven-plugin")
+                .configuration(Collections.singletonMap("layout", "ZIP"))
+                .build())
+            .build();
+
+        // When
+        Map<String, Object> configuration = SpringBootUtil.getSpringBootPluginConfiguration(javaProject);
+
+        // Then
+        assertNotNull(configuration);
+        assertEquals("ZIP", configuration.get("layout").toString());
+    }
+
+    @Test
+    public void getSpringBootPluginConfiguration_whenSpringBootGradlePluginPresent_thenReturnsPluginConfiguration() {
+        // Given
+        JavaProject javaProject = JavaProject.builder()
+            .plugin(Plugin.builder()
+                .groupId("org.springframework.boot")
+                .artifactId("org.springframework.boot.gradle.plugin")
+                .configuration(Collections.singletonMap("mainClass", "com.example.ExampleApplication"))
+                .build())
+            .build();
+
+        // When
+        Map<String, Object> configuration = SpringBootUtil.getSpringBootPluginConfiguration(javaProject);
+
+        // Then
+        assertNotNull(configuration);
+        assertEquals("com.example.ExampleApplication", configuration.get("mainClass").toString());
     }
 
 }

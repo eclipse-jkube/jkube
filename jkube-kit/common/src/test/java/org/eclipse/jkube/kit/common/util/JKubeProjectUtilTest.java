@@ -19,6 +19,7 @@ import mockit.Mocked;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.SystemMock;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -198,5 +199,39 @@ public class JKubeProjectUtilTest {
 
     // Then
     assertThat(result).isEqualTo("true");
+  }
+
+  @Test
+  public void resolveArtifact_whenArtifactPresent_shouldReturnArtifact() {
+    // Given
+    File actualArtifact = new File(temporaryFolder.getRoot(), "test-artifact-0.0.1.jar");
+    JavaProject javaProject = JavaProject.builder()
+        .dependency(Dependency.builder()
+            .groupId("org.example")
+            .artifactId("test-artifact")
+            .version("0.0.1")
+            .type("jar")
+            .file(actualArtifact)
+            .build())
+        .build();
+
+    // When
+    File resolvedArtifact = JKubeProjectUtil.resolveArtifact(javaProject, "org.example", "test-artifact", "0.0.1", "jar");
+
+    // Then
+    assertThat(resolvedArtifact).isNotNull().isEqualTo(actualArtifact);
+  }
+
+  @Test
+  public void resolveArtifact_whenNoArtifactPresent_shouldThrowException() {
+    // Given
+    JavaProject javaProject = JavaProject.builder().build();
+
+    // When
+    IllegalStateException illegalStateException = Assert.assertThrows(IllegalStateException.class,
+        () -> JKubeProjectUtil.resolveArtifact(javaProject, "org.example", "test-artifact", "0.0.1", "jar"));
+
+    // Then
+    assertThat(illegalStateException).hasMessage("Cannot find artifact test-artifact-0.0.1.jar within the resolved resources");
   }
 }

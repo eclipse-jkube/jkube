@@ -177,4 +177,19 @@ public class JKubeProjectUtil {
     }
     return value;
   }
+
+  public static File resolveArtifact(JavaProject project, String groupId, String artifactId, String version, String type) {
+    File artifact = project.getDependencies().stream()
+        .filter(d -> d.getGroupId().equals(groupId)
+            && d.getArtifactId().equals(artifactId)
+            && d.getVersion().equals(version)
+            && d.getType().equals(type))
+        .findFirst()
+        .map(Dependency::getFile)
+        .orElse(null);
+    if (artifact == null) {
+      throw new IllegalStateException("Cannot find artifact " + String.format("%s-%s.%s", artifactId, version, type) + " within the resolved resources");
+    }
+    return artifact;
+  }
 }

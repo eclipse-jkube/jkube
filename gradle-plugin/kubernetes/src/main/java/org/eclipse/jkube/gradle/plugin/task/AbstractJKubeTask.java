@@ -131,8 +131,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         .project(kubernetesExtension.javaProject)
         .logger(kitLogger)
         .runtimeMode(kubernetesExtension.getRuntimeMode())
-        .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault())
-        .artifactResolver(jKubeServiceHub.getArtifactResolverService());
+        .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault());
   }
 
   protected ClusterConfiguration initClusterConfiguration() {
