@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -227,5 +228,51 @@ public class ResourceUtilTest {
             .hasFieldOrPropertyWithValue("securityContext.additionalProperties.privileged", "${POD_SECURITY_CONTEXT}")
             .extracting("env").asList().singleElement()
             .hasFieldOrPropertyWithValue("value", "${ENV_VAR_KEY}");
+    }
+
+    @Test
+    public void save_withValidYamlFileAndItem_shouldSave() throws IOException {
+        // Given
+        final File file = temporaryFolder.newFile("temp-resource.yaml");
+        final ConfigMap resource = new ConfigMapBuilder().withNewMetadata().withName("cm").endMetadata()
+            .addToData("field", "value").build();
+        // When
+        ResourceUtil.save(file, resource);
+        // Then
+        assertThat(file).hasSameTextualContentAs(
+            new File(ResourceUtilTest.class.getResource( "/util/resource-util/expected/config-map-simple.yml").getFile()));
+    }
+
+    @Test
+    public void save_withValidJsonFileAndItem_shouldSave() throws IOException {
+        // Given
+        final File file = temporaryFolder.newFile("temp-resource.json");
+        final ConfigMap resource = new ConfigMapBuilder().withNewMetadata().withName("cm").endMetadata()
+            .addToData("field", "value").build();
+        // When
+        ResourceUtil.save(file, resource);
+        // Then
+        assertThat(file).hasSameTextualContentAs(
+            new File(ResourceUtilTest.class.getResource( "/util/resource-util/expected/config-map-simple.json").getFile()));
+    }
+
+    @Test
+    public void save_withValidYamlFileAndItemWithAdditionalProperties_shouldSave() throws IOException {
+        // Given
+        final File file = temporaryFolder.newFile("temp-resource.yaml");
+        final ConfigMap resource = new ConfigMapBuilder().withNewMetadata().withName("cm").endMetadata()
+            .addToData("field", "value")
+            .withImmutable(true)
+            .build();
+        resource.setAdditionalProperty("immutable", "${immutable}");
+        resource.setAdditionalProperty("not-cm-field-1", "test");
+        resource.setAdditionalProperty("not-cm-field-2", "{{ .Values.value }}");
+        resource.setAdditionalProperty("not-cm-field-bool", true);
+        resource.setAdditionalProperty("not-cm-field-double", 1.337D);
+        // When
+        ResourceUtil.save(file, resource);
+        // Then
+        assertThat(file).hasSameTextualContentAs(
+            new File(ResourceUtilTest.class.getResource( "/util/resource-util/expected/config-map-placeholders.yml").getFile()));
     }
 }

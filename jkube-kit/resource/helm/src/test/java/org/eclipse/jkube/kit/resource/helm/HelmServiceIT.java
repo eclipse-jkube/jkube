@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +36,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,11 +45,13 @@ public class HelmServiceIT {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+  private ObjectMapper mapper;
   private HelmService helmService;
   private File helmOutputDir;
 
   @Before
   public void setUp() throws Exception {
+    mapper = new ObjectMapper(new YAMLFactory());
     helmService = new HelmService(new JKubeConfiguration(), new KitLogger.SilentLogger());
     helmOutputDir = temporaryFolder.newFolder("helm-output");
   }
@@ -59,7 +61,7 @@ public class HelmServiceIT {
     // Given
     final HelmConfig helmConfig = new HelmConfig();
     helmConfig.setChart("ITChart");
-    helmConfig.setVersion("1337");
+    helmConfig.setVersion("1.33.7");
     helmConfig.setTypes(Arrays.asList(HelmConfig.HelmType.OPENSHIFT, HelmConfig.HelmType.KUBERNETES));
     helmConfig.setSourceDir(new File(HelmServiceIT.class.getResource("/it/sources").toURI()).getAbsolutePath());
     helmConfig.setOutputDir(helmOutputDir.getAbsolutePath());
@@ -86,14 +88,14 @@ public class HelmServiceIT {
     assertThat(new File(helmOutputDir, "openshift/additional-file.txt")).exists().isNotEmpty();
     assertThat(new File(helmOutputDir, "openshift/templates/test-pod.yaml")).exists().isNotEmpty();
     assertThat(new File(helmOutputDir, "openshift/templates/openshift.yaml")).exists().isNotEmpty();
-    ArchiveAssertions.assertThat(new File(helmOutputDir, "ITChart-1337-helm.tar"))
+    ArchiveAssertions.assertThat(new File(helmOutputDir, "ITChart-1.33.7-helm.tar"))
         .exists().isNotEmpty().isUncompressed().fileTree().containsExactlyInAnyOrder(
             "ITChart/additional-file.txt",
             "ITChart/templates/",
             "ITChart/templates/kubernetes.yaml",
             "ITChart/Chart.yaml",
             "ITChart/values.yaml");
-    ArchiveAssertions.assertThat(new File(helmOutputDir, "ITChart-1337-helmshift.tar"))
+    ArchiveAssertions.assertThat(new File(helmOutputDir, "ITChart-1.33.7-helmshift.tar"))
         .exists().isNotEmpty().isUncompressed().fileTree().containsExactlyInAnyOrder(
             "ITChart/additional-file.txt",
             "ITChart/templates/",
@@ -106,7 +108,6 @@ public class HelmServiceIT {
   }
 
   private void assertYamls() throws Exception {
-    final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     final Path expectations = new File(HelmServiceIT.class.getResource("/it/expected").toURI()).toPath();
     final Path generatedYamls = helmOutputDir.toPath();
     for (Path expected : Files.walk(expectations).filter(Files::isRegularFile).collect(Collectors.toList())) {
