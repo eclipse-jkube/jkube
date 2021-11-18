@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -49,6 +51,9 @@ public class ResourceUtil {
         for (ObjectMapper mapper : new ObjectMapper[]{Serialization.jsonMapper(), Serialization.yamlMapper()}) {
             mapper.enable(SerializationFeature.INDENT_OUTPUT);
         }
+        ((YAMLFactory)Serialization.yamlMapper().getFactory())
+            .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true)
+            .configure(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS, true);
     }
 
     private ResourceUtil() {}
@@ -109,7 +114,7 @@ public class ResourceUtil {
     public static File save(File file, Object data, ResourceFileType type) throws IOException {
         boolean hasExtension = FilenameUtils.indexOfExtension(file.getAbsolutePath()) != -1;
         File output = hasExtension ? file : type.addExtensionIfMissing(file);
-        ensureDir(file);
+        FileUtil.createDirectory(file.getParentFile());
         getObjectMapper(type).writeValue(output, data);
         return output;
     }
@@ -129,20 +134,10 @@ public class ResourceUtil {
                 .disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
     }
 
-    private static void ensureDir(File file) throws IOException {
-        File parentDir = file.getParentFile();
-        if (!parentDir.exists()) {
-            if (!parentDir.mkdirs()) {
-                throw new IOException("Cannot create directory " + parentDir);
-            }
-        }
-    }
-
     public static File getFinalResourceDir(File resourceDir, String environment) {
         if (resourceDir != null && StringUtils.isNotEmpty(environment)) {
             return new File(resourceDir, environment);
         }
-
         return resourceDir;
     }
 

@@ -17,8 +17,7 @@ import java.io.File;
 import java.util.Arrays;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,17 +32,14 @@ public enum ResourceFileType {
     json("json","json") {
         @Override
         public ObjectMapper getObjectMapper() {
-            return new ObjectMapper();
+            return Serialization.jsonMapper();
         }
     },
 
     yaml("yml","yml") {
         @Override
         public ObjectMapper getObjectMapper() {
-            return new ObjectMapper(new YAMLFactory()
-                    .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true)
-                    .configure(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS, true)
-            );
+            return Serialization.yamlMapper();
         }
     };
 

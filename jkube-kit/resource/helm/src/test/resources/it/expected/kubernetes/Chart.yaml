@@ -15,4 +15,4 @@
 ---
 apiVersion: v1
 name: ITChart
-version: "1337"
+version: 1.33.7

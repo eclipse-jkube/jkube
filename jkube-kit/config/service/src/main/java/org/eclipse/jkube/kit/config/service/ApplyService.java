@@ -351,7 +351,7 @@ public class ApplyService {
         if (openShiftClient != null) {
             log.info("Creating a Template from " + sourceName + " namespace " + namespace + " name " + getName(entity));
             try {
-                Object answer = openShiftClient.templates().inNamespace(namespace).create(entity);
+                final Template answer = openShiftClient.templates().inNamespace(namespace).create(entity);
                 logGeneratedEntity("Created Template: ", namespace, entity, answer);
             } catch (Exception e) {
                 onApplyError("Failed to Template entity from " + sourceName + ". " + e + ". " + entity, e);
