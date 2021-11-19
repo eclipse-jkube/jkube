@@ -14,6 +14,8 @@
 
 kind: Template
 parameters:
+  - name: replicas
+  - name: paused
   - name: limits_memory
     value: "512Mi"
   - name: parameter_with_no_value

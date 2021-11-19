@@ -14,7 +14,7 @@
 import org.eclipse.jkube.maven.it.Verify
 
 // Verify k8s:resource output
-["kubernetes", "kubernetes/helm-and-fragments-deployment"].each {
+["kubernetes", "kubernetes/helm-and-fragments-deployment", "kubernetes/helm-and-fragments-configmap"].each {
   Verify.verifyResourceDescriptors(
           new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml", it)),
           new File(basedir, sprintf("/expected/resource/%s.yml", it)))
@@ -22,7 +22,7 @@ import org.eclipse.jkube.maven.it.Verify
 
 // Verify k8s:helm output
 [
-  "Chart", "values", "templates/helm-and-fragments-deployment"
+  "Chart", "values", "templates/helm-and-fragments-deployment", "templates/helm-and-fragments-configmap"
 ].each {
   Verify.verifyResourceDescriptors(
           new File(basedir, sprintf("/target/jkube/helm/helm-and-fragments/kubernetes/%s.yaml", it)),

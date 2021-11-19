@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.enricher.api.util;
 
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -173,10 +174,14 @@ public class KubernetesResourceUtilTest {
     // Given
     final File resource = new File(fragmentsDir, "I-Dont-EXIST.yaml");
     // When
-    final FileNotFoundException result = assertThrows(FileNotFoundException.class, () ->
+    final IOException result = assertThrows(IOException.class, () ->
         KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING, resource, "app"));
     // Then
-    assertThat(result).hasMessageContaining("I-Dont-EXIST.yaml");
+    assertThat(result)
+        .hasMessageContaining("I-Dont-EXIST.yaml")
+        .hasMessageContaining("No such file or directory")
+        .getCause()
+        .isInstanceOf(FileNotFoundException.class);
   }
 
   @Test
@@ -270,11 +275,12 @@ public class KubernetesResourceUtilTest {
         kubernetes, v, "pong", new File(fragmentsDir, "complete-directory").listFiles());
     // Then
     assertThat(result.build().getItems())
-        .hasSize(2)
-        .extracting("apiVersion", "kind", "metadata.name")
+        .hasSize(3)
+        .extracting("class", "apiVersion", "kind", "metadata.name")
         .containsExactlyInAnyOrder(
-            tuple("v2", "Service", "pong"),
-            tuple("v2", "ReplicationController", "pong")
+            tuple(Service.class, "v2", "Service", "pong"),
+            tuple(ReplicationController.class, "v2", "ReplicationController", "pong"),
+            tuple(GenericKubernetesResource.class, "jkube/v1", "CustomKind", "custom")
         );
   }
 

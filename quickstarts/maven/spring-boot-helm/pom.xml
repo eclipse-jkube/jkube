@@ -72,6 +72,7 @@
         <helm_namespace>default</helm_namespace>
         <golang_expression>n/a development</golang_expression>
         <golang_expression_scalar>n/a development</golang_expression_scalar>
+        <replicas>1</replicas>
         <limits_memory/>
         <requests_memory/>
       </properties>
@@ -133,7 +134,7 @@
     <profile>
       <id>openshift</id>
       <properties>
-        <jkube.openshift.enrichAllWithImageChangeTrigger>true</jkube.openshift.enrichAllWithImageChangeTrigger>
+        <jkube.build.switchToDeployment>true</jkube.build.switchToDeployment>
       </properties>
       <build>
         <plugins>

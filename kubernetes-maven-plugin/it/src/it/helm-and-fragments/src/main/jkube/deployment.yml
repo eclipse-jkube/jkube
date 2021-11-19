@@ -20,6 +20,8 @@ metadata:
     jkube.helm.sh/provided-value: ${golang_expression}
     jkube.helm.sh/provided-value-scalar: ${golang_expression_scalar}
 spec:
+  paused: ${paused}
+  replicas: ${replicas}
   template:
     metadata:
       namespace: ${helm_namespace}

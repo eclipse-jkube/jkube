@@ -28,9 +28,10 @@ metadata:
     version: "@ignore@"
     group: org.eclipse.jkube
   name: helm-and-fragments
-  namespace: {{ .Release.Namespace }
+  namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 1
+  paused: {{ .Values.paused }}
+  replicas: {{ .Values.replicas }}
   revisionHistoryLimit: 2
   selector:
     matchLabels:
@@ -39,7 +40,7 @@ spec:
       group: org.eclipse.jkube
   template:
     metadata:
-      namespace: {{ .Release.Namespace }
+      namespace: {{ .Release.Namespace }}
       annotations:
         jkube.helm.sh/provided-value: {{ .Values.i_should_be_quoted | upper | quote }}
         jkube.helm.sh/provided-value-scalar: {{ .Values.i_should_be_quoted | upper | quote }}

@@ -16,6 +16,16 @@
 apiVersion: v1
 kind: List
 items:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    annotations: "@ignore@"
+    labels:
+      app: helm-and-fragments
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube
+    name: helm-and-fragments
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
@@ -30,7 +40,8 @@ items:
       group: org.eclipse.jkube
     name: helm-and-fragments
   spec:
-    replicas: 1
+    paused: ${paused}
+    replicas: ${replicas}
     revisionHistoryLimit: 2
     selector:
       matchLabels:
@@ -93,5 +104,7 @@ items:
       group: org.eclipse.jkube
     name: helm-and-fragments
   parameters:
+    - name: replicas
+    - name: paused
     - name: limits_memory
       value: 512Mi
