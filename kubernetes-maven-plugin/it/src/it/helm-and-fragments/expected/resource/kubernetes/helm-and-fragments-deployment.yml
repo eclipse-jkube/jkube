@@ -27,7 +27,8 @@ metadata:
     group: org.eclipse.jkube
   name: helm-and-fragments
 spec:
-  replicas: 1
+  paused: ${paused}
+  replicas: ${replicas}
   revisionHistoryLimit: 2
   selector:
     matchLabels:

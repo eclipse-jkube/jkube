@@ -23,7 +23,7 @@ metadata:
     jkube.helm.sh/expression-example: ${golang_expression}
     jkube.helm.sh/expression-example-scalar: ${golang_expression_scalar}
 spec:
-  replicas: 1
+  replicas: ${replicas}
   template:
     metadata:
       namespace: ${helm_namespace}

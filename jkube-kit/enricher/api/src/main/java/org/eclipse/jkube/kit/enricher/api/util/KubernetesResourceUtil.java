@@ -14,7 +14,9 @@
 package org.eclipse.jkube.kit.enricher.api.util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -33,7 +35,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 
-import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
@@ -46,12 +47,7 @@ import org.eclipse.jkube.kit.config.resource.MappingConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -132,6 +128,13 @@ public class KubernetesResourceUtil {
         KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(byte.class);
     }
 
+    static final Map<String,String> FILENAME_TO_KIND_MAPPER = new HashMap<>();
+    static final Map<String,String> KIND_TO_FILENAME_MAPPER = new HashMap<>();
+
+    static {
+        initializeKindFilenameMapper();
+    }
+
     /**
      * Read all Kubernetes resource fragments from a directory and create a {@link KubernetesListBuilder} which
      * can be adapted later.
@@ -150,26 +153,10 @@ public class KubernetesResourceUtil {
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         if (resourceFiles != null) {
             for (File file : resourceFiles) {
-                builder.addToItems(convertFragmentToHasMetadata(platformMode, apiVersions, defaultName, file));
+                builder.addToItems(getResource(platformMode, apiVersions, file, defaultName));
             }
         }
         return builder;
-    }
-
-    private static HasMetadata convertFragmentToHasMetadata(PlatformMode platformMode, ResourceVersioning apiVersions, String defaultName, File file) throws IOException {
-        if(isCustomResourceFragment(file.getName())) {
-            return getCustomResource(file);
-        } else {
-            return getResource(platformMode, apiVersions, file, defaultName);
-        }
-    }
-
-    private static HasMetadata getCustomResource(File file) throws IOException {
-        return Serialization.yamlMapper().readValue(file, GenericKubernetesResource.class);
-    }
-
-    private static boolean isCustomResourceFragment(String fileName) {
-        return fileName.endsWith("cr.yml") || fileName.endsWith("cr.yaml");
     }
 
     /**
@@ -187,26 +174,16 @@ public class KubernetesResourceUtil {
      * @param file file to read.
      * @param appName resource name specifying resources belonging to this application
      * @return HasMetadata object for resource
-     * @throws IOException IOException in case file loading is failed
+     * @throws IOException in case file loading is failed
      */
     public static HasMetadata getResource(PlatformMode platformMode, ResourceVersioning apiVersions,
                                           File file, String appName) throws IOException {
-        Map<String,Object> fragment = readAndEnrichFragment(platformMode, apiVersions, file, appName);
-        ObjectMapper mapper = new ObjectMapper();
+        final Map<String, Object> fragment = readAndEnrichFragment(platformMode, apiVersions, file, appName);
         try {
-            return mapper.convertValue(fragment, HasMetadata.class);
+            return Serialization.jsonMapper().convertValue(fragment, HasMetadata.class);
         } catch (ClassCastException exp) {
             throw new IllegalArgumentException(String.format("Resource fragment %s has an invalid syntax (%s)", file.getPath(), exp.getMessage()));
         }
-    }
-
-    // ========================================================================================================
-
-    static final Map<String,String> FILENAME_TO_KIND_MAPPER = new HashMap<>();
-    static final Map<String,String> KIND_TO_FILENAME_MAPPER = new HashMap<>();
-
-    static {
-        initializeKindFilenameMapper();
     }
 
     protected static void initializeKindFilenameMapper() {
@@ -254,8 +231,9 @@ public class KubernetesResourceUtil {
     }
 
     // Read fragment and add default values
-    private static Map<String, Object> readAndEnrichFragment(PlatformMode platformMode, ResourceVersioning apiVersions,
-                                                             File file, String appName) throws IOException {
+    private static Map<String, Object> readAndEnrichFragment(
+        PlatformMode platformMode, ResourceVersioning apiVersions, File file, String appName) throws IOException {
+
         Matcher matcher = FILENAME_PATTERN.matcher(file.getName());
         if (!matcher.matches()) {
             throw new IllegalArgumentException(
@@ -263,11 +241,10 @@ public class KubernetesResourceUtil {
         }
         String name = matcher.group("name");
         String type = matcher.group("type");
-        String ext = matcher.group("ext").toLowerCase();
-        String kind;
 
-        Map<String,Object> fragment = readFragment(file, ext);
+        Map<String,Object> fragment = readFragment(file);
 
+        final String kind;
         if (type != null) {
             kind = getAndValidateKindFromType(file, type);
         } else {
@@ -373,14 +350,13 @@ public class KubernetesResourceUtil {
         }
     }
 
-    private static Map<String,Object> readFragment(File file, String ext) throws IOException {
-        ObjectMapper mapper = new ObjectMapper("json".equals(ext) ? new JsonFactory() : new YAMLFactory());
-        TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
-        try {
-            Map<String, Object> ret = mapper.readValue(file, typeRef);
+    private static Map<String,Object> readFragment(File file) throws IOException {
+        TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
+        try (InputStream fis = new FileInputStream(file)) {
+            final Map<String, Object> ret = Serialization.unmarshal(fis, typeRef);
             return ret != null ? ret : new HashMap<>();
-        } catch (JsonProcessingException e) {
-            throw new JsonMappingException(String.format("[%s] %s", file, e.getMessage()), e.getLocation(), e);
+        } catch (Exception e) {
+            throw new IOException(String.format("Error reading fragment [%s] %s", file, e.getMessage()), e);
         }
     }
 

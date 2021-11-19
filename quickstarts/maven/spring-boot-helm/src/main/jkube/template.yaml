@@ -18,6 +18,7 @@ parameters:
     value: "512Mi"
   - name: requests_memory
     value: "256Mi"
+  - name: replicas
   - name: helm_namespace
     value: |
         {{ .Release.Namespace }}
