@@ -110,7 +110,7 @@ public class KubernetesResourceUtil {
 
     private static final Set<Class<?>> SIMPLE_FIELD_TYPES = new HashSet<>();
 
-    public static final String CONTAINER_NAME_REGEX = "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$";
+    private static final String CONTAINER_NAME_REGEX = "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$";
 
     protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
 
@@ -141,12 +141,13 @@ public class KubernetesResourceUtil {
      * @param defaultName the default name to use when none is given
      * @param resourceFiles files to add.
      * @return the list builder
-     * @throws IOException IOException in case file is not found
+     * @throws IOException in case file is not found
      */
-    public static KubernetesListBuilder readResourceFragmentsFrom(PlatformMode platformMode, ResourceVersioning apiVersions,
-                                                                  String defaultName,
-                                                                  File[] resourceFiles) throws IOException {
-        KubernetesListBuilder builder = new KubernetesListBuilder();
+    public static KubernetesListBuilder readResourceFragmentsFrom(
+        PlatformMode platformMode, ResourceVersioning apiVersions, String defaultName, File[] resourceFiles)
+        throws IOException {
+
+        final KubernetesListBuilder builder = new KubernetesListBuilder();
         if (resourceFiles != null) {
             for (File file : resourceFiles) {
                 builder.addToItems(convertFragmentToHasMetadata(platformMode, apiVersions, defaultName, file));
