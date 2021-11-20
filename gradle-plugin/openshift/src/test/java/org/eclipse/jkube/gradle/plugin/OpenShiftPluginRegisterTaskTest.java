@@ -27,6 +27,7 @@ import org.eclipse.jkube.gradle.plugin.task.OpenShiftPushTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftUndeployTask;
 
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftWatchTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.junit.Before;
@@ -54,7 +55,8 @@ public class OpenShiftPluginRegisterTaskTest {
         new Object[] { "ocResource", OpenShiftResourceTask.class },
         new Object[] { "ocUndeploy", OpenShiftUndeployTask.class },
         new Object[] { "ocHelm", OpenShiftHelmTask.class},
-        new Object[] { "ocHelmPush", OpenShiftHelmPushTask.class});
+        new Object[] { "ocHelmPush", OpenShiftHelmPushTask.class},
+        new Object[] { "ocWatch", OpenShiftWatchTask.class});
   }
 
   @Parameterized.Parameter
