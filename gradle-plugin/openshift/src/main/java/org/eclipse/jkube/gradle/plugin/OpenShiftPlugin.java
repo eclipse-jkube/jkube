@@ -33,6 +33,7 @@ import org.eclipse.jkube.gradle.plugin.task.OpenShiftPushTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftUndeployTask;
 
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftWatchTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 
@@ -66,6 +67,7 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
     register(project, "ocUndeploy", OpenShiftUndeployTask.class);
     register(project, "ocHelm", OpenShiftHelmTask.class);
     register(project, "ocHelmPush", OpenShiftHelmPushTask.class);
+    register(project, "ocWatch", OpenShiftWatchTask.class);
   }
 
 }
