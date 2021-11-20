@@ -6,3 +6,5 @@ include::_jkube-debug.adoc[]
 include::_jkube-log.adoc[]
 
 include::_jkube-undeploy.adoc[]
+
+include::_jkube-watch.adoc[]

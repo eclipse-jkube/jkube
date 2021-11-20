@@ -415,6 +415,70 @@ Defaults to `false`.
 | Boolean attribute for switching on verbose output like the build steps when doing a Docker build. Default is `false`.
 | `jkube.docker.verbose`
 
+| *watchAutoCreateCustomNetworks*
+| Whether to create the customs networks (user-defined bridge networks) before starting automatically
+
+Defaults to `false`.
+| `jkube.watch.autoCreateCustomNetworks`
+
+| *watchMode*
+a|
+How to watch for image changes.
+
+* `copy`: Copy watched artifacts into container
+* `build`: Build only images
+* `run`: Run images
+* `both`: Build and run images
+* `none`: Neither build nor run
+
+Defaults to `both`.
+
+| `jkube.watch.mode`
+
+| *watchInterval*
+| Interval in milliseconds (how often to check for changes).
+
+  Defaults to `5000`.
+| `jkube.watch.interval`
+
+| *watchKeepRunning*
+| If set to true all containers will be kept running after {goal-prefix}:watch has been stopped.
+
+  Defaults to `false`.
+| `jkube.watch.keepRunning`
+
+| *watchPostExec*
+| A command which is executed within the container after files are copied into this container
+when watchMode is copy. Note that this container must be running.
+
+| `jkube.watch.postExec`
+
+| *watchKeepContainer*
+| If this is set to `false` (and `watchKeepRunning` is disabled) then all containers will be removed after
+they have been stopped.
+
+  Defaults to `false`.
+| `jkube.watch.keepContainer`
+
+| *watchRemoveVolumes*
+| If set to `true` remove any volumes associated with the container as well.
+
+  This option will be ignored if either `watchKeepContainer` or `watchKeepRunning` is `true`.
+
+  Defaults to `false`.
+| `jkube.watch.removeVolumes`
+
+| *watchShowLogs*
+| If set to `true`, logs will be shown for watched container.
+| `jkube.watch.showLogs`
+
+| *watchFollow*
+| If `watchShowLogs` is set to `false`, and there is a run image configuration, logs are followed
+if set to `true`.
+
+  Defaults to `false`.
+| `jkube.watch.follow`
+
 | *workDirectory*
 | The JKube working directory. Defaults to `${project.build.directory}/jkube`.
 | `jkube.workDir`

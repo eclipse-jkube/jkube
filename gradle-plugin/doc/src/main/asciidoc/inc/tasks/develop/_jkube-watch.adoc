@@ -1,0 +1,111 @@
+
+[[jkube:watch]]
+=== *{task-prefix}Watch*
+
+This task is used to monitor the project workspace for changes and automatically trigger a redeploy of the application
+running on Kubernetes. There are two kinds of watchers present at the moment:
+
+- Docker Image Watcher(watches docker images)
+- Spring Boot Watcher(based on Spring Boot Devtools)
+
+Before entering the watch mode, this task must generate the docker image and the Kubernetes resources
+(optionally including some development libraries/configuration),
+and deploy the app on Kubernetes.
+
+For any application having `k8sResource` and `k8sBuild` tasks bound to the lifecycle, the following
+command can be used to run the watch task.
+
+[source, bash, subs="+attributes"]
+----
+gradle {task-prefix}Watch
+----
+
+This plugin supports different watcher providers, enabled automatically if the project satisfies certain conditions.
+
+Watcher providers can also be configured manually. Here is an example:
+
+[source, groovy, subs="+attributes"]
+----
+kubernetes {
+    watcher {
+        includes = ['docker-image']
+        config {
+            'spring-boot' {
+                 serviceUrlWaitTimeSeconds = 10
+            }
+        }
+    }
+}
+----
+
+[[watcher-spring-boot]]
+==== Spring Boot
+
+This watcher is enabled by default for all Spring Boot projects. It performs the following actions:
+
+* deploys your application with Spring Boot DevTools enabled
+* tails the log of the latest running pod for your application
+* watches the local development build of your Spring Boot based application and then triggers a reload of the application when there are changes
+
+You need to make sure that `devtools` is included in the repacked archive, as shown in the following listing (taken from https://docs.spring.io/spring-boot/docs/2.3.1.RELEASE/gradle-plugin/reference/html/#packaging-executable-configuring-including-development-only-dependencies[Spring Docs])
+
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+bootJar {
+    classpath configurations.developmentOnly
+}
+----
+
+Then you need to set a `spring.devtools.remote.secret` in application.properties, as shown in the following example:
+
+----
+spring.devtools.remote.secret=mysecret
+----
+
+WARNING: Spring devtools automatically ignores projects named `spring-boot`, `spring-boot-devtools`,
+         `spring-boot-autoconfigure`, `spring-boot-actuator`, `and spring-boot-starter`
+
+You can try it on any spring boot application via:
+
+[source, sh, subs="+attributes"]
+----
+gradle {task-prefix}Watch
+----
+
+Once the task starts up the spring boot RemoteSpringApplication it will watch for local development changes.
+
+e.g. if you edit the java code of your app and then build it via something like this:
+
+[source, sh, subs="+attributes"]
+----
+gradle build
+----
+
+You should see your app reload on the fly in the shell running the <<jkube:watch>> task!
+
+There is also support for LiveReload as well.
+
+
+[[watcher-docker-image]]
+==== Docker Image
+
+This is a generic watcher that can be used in Kubernetes mode only. Once activated, it listens for changes in the project workspace
+ in order to trigger a redeploy of the application. This enables rebuilding of images and restarting of containers in case of updates.
+
+There are five watch modes, which can be specified in multiple ways:
+
+- `build`: Automatically rebuild one or more Docker images when one of the files selected by an assembly changes. This works for all files included in assembly.
+- `run`: Automatically restart your application when their associated images change.
+- `copy`:  Copy changed files into the running container. This is the fast way to update a container, however the target container must support hot deploy, too so that it makes sense. Most application servers like Tomcat supports this.
+- `both`: Enables both `build` and `run`. **This is the default**.
+- `none`:  Image is completely ignored for watching.
+
+The watcher can be activated e.g. by running this command in another shell:
+
+[source, sh, subs="+attributes"]
+----
+gradle build
+----
+
+The watcher will detect that the binary artifact has changed and will first rebuild the docker image,
+then start a redeploy of the Kubernetes pod.
