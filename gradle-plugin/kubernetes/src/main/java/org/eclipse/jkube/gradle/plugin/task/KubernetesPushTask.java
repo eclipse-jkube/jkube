@@ -39,15 +39,17 @@ public class KubernetesPushTask extends AbstractJKubeTask {
 
   @Override
   public void run() {
-    if (kubernetesExtension.getSkipPushOrDefault()) {
-      return;
-    }
-
     try {
       jKubeServiceHub.getBuildService().push(resolvedImages, kubernetesExtension.getPushRetriesOrDefault(), initRegistryConfig(kubernetesExtension.getPushRegistry().getOrNull()), kubernetesExtension.getSkipTagOrDefault());
     } catch (JKubeServiceException e) {
       throw new IllegalStateException("Error in pushing image: " + e.getMessage(), e);
     }
+  }
+
+
+  @Override
+  protected boolean canExecute() {
+    return super.canExecute() && !kubernetesExtension.getSkipPushOrDefault();
   }
 
   private RegistryConfig initRegistryConfig(String specificRegistry) {

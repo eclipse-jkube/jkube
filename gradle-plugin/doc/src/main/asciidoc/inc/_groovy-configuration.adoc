@@ -374,6 +374,10 @@ Defaults to `false`.
 | If set not images will be build (which implies also _skip.tag_) with `{task-prefix}Build`.
 | `jkube.skip.build`
 
+| *skipResource*
+| If not set resource manifests would be generated with `{task-prefix}Resource`.
+| `jkube.skip.resource`
+
 | *skipTag*
 | If set to `true` this plugin won't add any tags to images that have been built with `{task-prefix}Build`.
 | `jkube.skip.tag`

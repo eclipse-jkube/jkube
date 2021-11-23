@@ -16,6 +16,7 @@ package org.eclipse.jkube.gradle.plugin.task;
 import java.io.IOException;
 import java.util.Collections;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
@@ -26,6 +27,8 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.provider.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -127,5 +130,25 @@ public class KubernetesBuildTaskTest {
     // Then
     assertThat(result)
         .hasMessage("Exception during Build");
+  }
+
+  @Test
+  public void runTask_withSkipBuild_shouldDoNothing() throws JKubeServiceException {
+    // Given
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkipBuild() {
+        return new DefaultProperty<>(Boolean.class).value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesBuildTask buildTask = new KubernetesBuildTask(KubernetesExtension.class);
+
+    // When
+    buildTask.runTask();
+
+    // Then
+    Assertions.assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
+    verify(buildTask.jKubeServiceHub.getBuildService(), times(0)).build(any());
   }
 }

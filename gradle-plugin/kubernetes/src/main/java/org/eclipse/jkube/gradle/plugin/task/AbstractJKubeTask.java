@@ -84,7 +84,9 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     } catch (IOException exception) {
       kitLogger.error("Error in fetching Build timestamps: " + exception.getMessage());
     }
-    run();
+    if (canExecute()) {
+      run();
+    }
   }
 
   @Internal
@@ -173,5 +175,9 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
       }
     }
     return manifest;
+  }
+
+  protected boolean canExecute() {
+    return !kubernetesExtension.getSkipOrDefault();
   }
 }

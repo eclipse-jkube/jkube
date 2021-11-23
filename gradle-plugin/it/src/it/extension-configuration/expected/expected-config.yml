@@ -26,6 +26,8 @@ jsonlogdir: "@endsWith('extension-configuration/build/jkube/applyJson')@"
 serviceurlwaittimeseconds: 10
 skippush: true
 skiptag: true
+skipbuild: true
+skipresource: true
 pushregistry: quay.io
 pushretries: 5
 kubernetestemplate: "@endsWith('extension-configuration/build/META-INF/jkube/kubernetes')@"

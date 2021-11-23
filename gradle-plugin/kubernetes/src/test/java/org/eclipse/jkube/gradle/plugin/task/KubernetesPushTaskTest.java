@@ -16,6 +16,7 @@ package org.eclipse.jkube.gradle.plugin.task;
 import java.io.IOException;
 import java.util.Collections;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
@@ -25,6 +26,8 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.provider.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,6 +36,8 @@ import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -86,4 +91,24 @@ public class KubernetesPushTaskTest {
         .push(eq(extension.images), eq(0), any(), eq(false));
   }
 
+
+  @Test
+  public void runTask_withSkipPush_shouldDoNothing() throws JKubeServiceException {
+    // Given
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkipPush() {
+        return new DefaultProperty<>(Boolean.class).value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesPushTask pushTask = new KubernetesPushTask(KubernetesExtension.class);
+
+    // When
+    pushTask.runTask();
+
+    // Then
+    Assertions.assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
+    verify(pushTask.jKubeServiceHub.getBuildService(), times(0)).push(any(), anyInt(), any(), anyBoolean());
+  }
 }

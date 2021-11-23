@@ -43,6 +43,8 @@ public class KubernetesExtensionPropertyTest {
         new Object[] { "getInterpolateTemplateParametersOrDefault", "jkube.interpolateTemplateParameters", "false", false,
             true },
         new Object[] { "getSkipResourceValidationOrDefault", "jkube.skipResourceValidation", "true", true, false },
+        new Object[] { "getSkipResourceOrDefault", "jkube.skip.resource", "true", true, false},
+        new Object[] { "getSkipBuildOrDefault", "jkube.skip.build", "true", true, false},
         new Object[] { "getLogFollowOrDefault", "jkube.log.follow", "false", false, true },
         new Object[] { "getRecreateOrDefault", "jkube.recreate", "true", true, false },
         new Object[] { "getSkipApplyOrDefault", "jkube.skip.apply", "true", true, false },
