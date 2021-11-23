@@ -28,7 +28,7 @@ spec:
             - name: config
               mountPath: /deployments/config
           env:
-            - name: KUBERNETES_NAMESPACE
+            - name: MY_POD_NAMESPACE
               valueFrom:
                 fieldRef:
                   apiVersion: v1

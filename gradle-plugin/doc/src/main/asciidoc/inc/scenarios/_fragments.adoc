@@ -26,7 +26,7 @@ The resource fragments are in `src/main/jkube`.
               - name: config
                 mountPath: /app/config
             env:
-              - name: KUBERNETES_NAMESPACE
+              - name: MY_POD_NAMESPACE
                 valueFrom:
                   fieldRef:
                     apiVersion: v1
