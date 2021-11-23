@@ -71,6 +71,11 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
     }
   }
 
+  @Override
+  protected boolean canExecute() {
+    return super.canExecute() && !kubernetesExtension.getSkipApplyOrDefault();
+  }
+
   private void applyEntities(String fileName, final Collection<HasMetadata> entities) throws InterruptedException {
     KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
     applyService.applyEntities(fileName, entities, serviceLogger, kubernetesExtension.getServiceUrlWaitTimeSecondsOrDefault());

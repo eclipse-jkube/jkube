@@ -24,6 +24,8 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.provider.Property;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -77,6 +79,26 @@ public class KubernetesResourceTaskTest {
         .satisfies(p -> assertThat(p.resolve("configmap.yml")).hasContent("key: value"))
         .satisfies(p -> assertThat(p.resolve("second-configmap.yml"))
             .hasContent("field-1: value\nfield-2: value2\nf3: ${not.here}\nf4: Hard"));
+  }
+
+  @Test
+  public void runTask_withSkipResource_shouldDoNothing() {
+    // Given
+    KubernetesExtension extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkipResource() {
+        return new DefaultProperty<>(Boolean.class).value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesResourceTask kubernetesResourceTask = new KubernetesResourceTask(KubernetesExtension.class);
+
+    // When
+    kubernetesResourceTask.runTask();
+
+    // Then
+    assertThat(taskEnvironment.getRoot().toPath().resolve("build").resolve("jkube"))
+        .doesNotExist();
   }
 
   private void withProperties(Map<String, ?> properties) {

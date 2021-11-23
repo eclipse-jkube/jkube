@@ -348,4 +348,14 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   public Property<File> getKubernetesTemplate() {
     return new DefaultProperty<>(File.class);
   }
+
+  @Override
+  public Property<Boolean> getSkipResource() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
+  public Property<Boolean> getSkipBuild() {
+    return new DefaultProperty<>(Boolean.class);
+  }
 }

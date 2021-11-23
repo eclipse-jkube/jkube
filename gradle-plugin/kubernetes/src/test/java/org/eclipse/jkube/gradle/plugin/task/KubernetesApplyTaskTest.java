@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
@@ -24,7 +23,8 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jgit.util.FileUtils;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.provider.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -131,5 +131,24 @@ public class KubernetesApplyTaskTest {
     assertThat(applyServiceMockedConstruction.constructed()).hasSize(1);
     verify(applyServiceMockedConstruction.constructed().iterator().next(), times(1))
         .applyEntities(any(), eq(Collections.emptyList()), any(), eq(5L));
+  }
+
+  @Test
+  public void runTask_withSkipApply_shouldDoNothing() {
+    // Given
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkipApply() {
+        return new DefaultProperty<>(Boolean.class).value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
+
+    // When
+    applyTask.runTask();
+
+    // Then
+    assertThat(applyServiceMockedConstruction.constructed()).isEmpty();
   }
 }

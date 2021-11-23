@@ -41,6 +41,8 @@ kubernetes {
     serviceUrlWaitTimeSeconds = 10
     skipPush = true
     skipTag = true
+    skipBuild = true
+    skipResource = true
     pushRegistry = 'quay.io'
     pushRetries = 5
     kubernetesTemplate = file('build/META-INF/jkube/kubernetes')

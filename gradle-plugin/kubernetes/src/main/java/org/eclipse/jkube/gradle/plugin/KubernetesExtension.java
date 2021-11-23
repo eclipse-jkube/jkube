@@ -229,6 +229,10 @@ public abstract class KubernetesExtension {
 
   public abstract Property<File> getKubernetesTemplate();
 
+  public abstract Property<Boolean> getSkipResource();
+
+  public abstract Property<Boolean> getSkipBuild();
+
   public JKubeBuildStrategy buildStrategy;
 
   public ClusterConfiguration access;
@@ -599,6 +603,14 @@ public abstract class KubernetesExtension {
 
   public File getKubernetesTemplateOrDefault() {
     return getOrDefaultFile("jkube.kubernetesTemplate", this::getKubernetesTemplate, javaProject.getOutputDirectory().toPath().resolve(DEFAULT_KUBERNETES_TEMPLATE).toFile());
+  }
+
+  public boolean getSkipResourceOrDefault() {
+    return getOrDefaultBoolean("jkube.skip.resource", this::getSkipResource, false);
+  }
+
+  public boolean getSkipBuildOrDefault() {
+    return getOrDefaultBoolean("jkube.skip.build", this::getSkipBuild, false);
   }
 
   protected boolean getOrDefaultBoolean(String property, Supplier<Property<Boolean>> dslGetter, boolean defaultValue) {
