@@ -68,11 +68,11 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: jkube-kit-sonar-{{ checksum "pom.xml" }}
+        key: cachev1-jkube-kit-sonar-{{ checksum "pom.xml" }}
     - run: |
         MAVEN_OPTS="-Xmx3000m" ./mvnw -B -Pjacoco,sonar clean install
     - save_cache:
-        key: jkube-kit-sonar-{{ checksum "pom.xml" }}
+        key: cachev1-jkube-kit-sonar-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
 
