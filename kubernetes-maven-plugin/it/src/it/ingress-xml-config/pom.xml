@@ -82,11 +82,11 @@
       </build>
     </profile>
     <profile>
-      <id>zero-config-networkv1-host-enricher-config</id>
+      <id>zero-config-extensionsv1beta1-host-enricher-config</id>
       <properties>
         <jkube.enricher.jkube-ingress.host>test.example.com</jkube.enricher.jkube-ingress.host>
-        <jkube.enricher.jkube-ingress.targetApiVersion>networking.k8s.io/v1</jkube.enricher.jkube-ingress.targetApiVersion>
-        <target>zero-config-networkv1-host-enricher-config</target>
+        <jkube.enricher.jkube-ingress.targetApiVersion>extensions/v1beta1</jkube.enricher.jkube-ingress.targetApiVersion>
+        <target>zero-config-extensionsv1beta1-host-enricher-config</target>
       </properties>
       <build>
         <plugins>
@@ -99,10 +99,10 @@
       </build>
     </profile>
     <profile>
-      <id>zero-config-networkv1-enricher-config</id>
+      <id>zero-config-extensionsv1beta1-enricher-config</id>
       <properties>
-        <jkube.enricher.jkube-ingress.targetApiVersion>networking.k8s.io/v1</jkube.enricher.jkube-ingress.targetApiVersion>
-        <target>zero-config-networkv1-enricher-config</target>
+        <jkube.enricher.jkube-ingress.targetApiVersion>extensions/v1beta1</jkube.enricher.jkube-ingress.targetApiVersion>
+        <target>zero-config-extensionsv1beta1-enricher-config</target>
       </properties>
       <build>
         <plugins>

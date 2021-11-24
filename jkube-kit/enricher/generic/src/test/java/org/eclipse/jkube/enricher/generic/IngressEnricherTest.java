@@ -17,8 +17,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressTLSBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.IngressConfig;
@@ -38,10 +41,6 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
-import io.fabric8.kubernetes.api.model.extensions.Ingress;
-import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
-import io.fabric8.kubernetes.api.model.extensions.IngressSpec;
-import io.fabric8.kubernetes.api.model.extensions.IngressTLSBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -109,8 +108,8 @@ public class IngressEnricherTest {
             .hasSize(2)
             .element(1).asInstanceOf(InstanceOfAssertFactories.type(Ingress.class))
             .hasFieldOrPropertyWithValue("metadata.name", providedService.getMetadata().getName())
-            .hasFieldOrPropertyWithValue("spec.backend.serviceName", providedService.getMetadata().getName())
-            .hasFieldOrPropertyWithValue("spec.backend.servicePort", providedService.getSpec().getPorts().get(0).getTargetPort());
+            .hasFieldOrPropertyWithValue("spec.defaultBackend.service.name", providedService.getMetadata().getName())
+            .hasFieldOrPropertyWithValue("spec.defaultBackend.service.port.number", providedService.getSpec().getPorts().get(0).getTargetPort().getIntVal());
     }
 
     @Test
@@ -167,7 +166,7 @@ public class IngressEnricherTest {
             .extracting(KubernetesListBuilder::buildItems).asList()
             .hasSize(2)
             .element(1).asInstanceOf(InstanceOfAssertFactories.type(Ingress.class))
-            .hasFieldOrPropertyWithValue("apiVersion", "extensions/v1beta1")
+            .hasFieldOrPropertyWithValue("apiVersion", "networking.k8s.io/v1")
             .hasFieldOrPropertyWithValue("metadata.name", providedService.getMetadata().getName())
             .extracting(Ingress::getSpec)
             .satisfies(is -> assertThat(is).extracting("tls").asList().element(0)
@@ -179,8 +178,8 @@ public class IngressEnricherTest {
                 .extracting("http.paths").asList().element(0)
                 .hasFieldOrPropertyWithValue("path", "/icons")
                 .hasFieldOrPropertyWithValue("pathType", "ImplementationSpecific")
-                .hasFieldOrPropertyWithValue("backend.serviceName", "hello-k8s")
-                .hasFieldOrPropertyWithValue("backend.servicePort.intVal", 80)
+                .hasFieldOrPropertyWithValue("backend.service.name", "hello-k8s")
+                .hasFieldOrPropertyWithValue("backend.service.port.number", 80)
             )
             .satisfies(r -> assertThat(r).asList().element(1)
                 .hasFieldOrPropertyWithValue("host", "*.foo.com")
@@ -457,8 +456,7 @@ public class IngressEnricherTest {
                 .withPath("/")
                 .withPathType("Prefix")
                 .withNewBackend()
-                .withServiceName("test-svc")
-                .withServicePort(new IntOrString(8080))
+                .withNewService().withName("test-svc").withNewPort().withNumber(8080).endPort().endService()
                 .endBackend()
                 .endPath()
                 .endHttp()

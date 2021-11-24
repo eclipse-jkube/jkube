@@ -21,15 +21,16 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.6.0-SNAPSHOT
-* Fix #1136: ConcurrentModificationException when running gradle k8sBuild on Quarkus sample
-* Fix #887: Incorrect warning about overriding environment variable
+* Fix #778: Support deserialization of fragments with mismatched field types of target Java class 
 * Fix #802: Update Fabric8 kubernetes Client to v5.10.1
+* Fix #887: Incorrect warning about overriding environment variable
 * Fix #961: `k8sBuild`, `k8sResource` and `k8sApply` tasks don't respect skip options
+* Fix #1030: Update IngressEnricher's default targetApiVersion to `networking.k8s.io/v1`
 * Fix #1054: Log selected Dockerfile in Docker build mode
+* Fix #1113: `ResourceUtil.deserializeKubernetesListOrTemplate` should also handle YAML manifests with multiple docs
 * Fix #1120: OpenShiftBuildService flattens assembly only if necessary
 * Fix #1123: Helm supports `.yaml` and `.yml` source files
-* Fix #1113: `ResourceUtil.deserializeKubernetesListOrTemplate` should also handle YAML manifests with multiple docs
-* Fix #778: Support deserialization of fragments with mismatched field types of target Java class
+* Fix #1136: ConcurrentModificationException when running gradle k8sBuild on Quarkus sample
 * Fix #1145: Remove redundant ServiceHubFactory
 
 ### 1.5.1 (2021-10-28)

@@ -96,7 +96,7 @@ items:
             protocol: TCP
           securityContext:
             privileged: false
-- apiVersion: extensions/v1beta1
+- apiVersion: networking.k8s.io/v1
   kind: Ingress
   metadata:
     annotations:
@@ -109,6 +109,8 @@ items:
       group: org.eclipse.jkube
     name: ingress-xml-config
   spec:
-    backend:
-      serviceName: ingress-xml-config
-      servicePort: 8080
+    defaultBackend:
+      service:
+        name: ingress-xml-config
+        port:
+          number: 8080

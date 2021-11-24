@@ -18,6 +18,6 @@ JKube generates Ingress only for Services which have either `expose=true` or `ex
 | *targetApiVersion*
 | Whether to generate `extensions/v1beta1` Ingress or `networking.k8s.io/v1` Ingress.
 
-  Defaults to `extensions/v1beta1`.
+  Defaults to `networking.k8s.io/v1`.
 | `jkube.enricher.jkube-ingress.targetApiVersion`
 |===
