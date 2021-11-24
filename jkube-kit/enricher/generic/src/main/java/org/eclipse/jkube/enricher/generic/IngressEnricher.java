@@ -50,7 +50,7 @@ public class IngressEnricher extends BaseEnricher {
     @AllArgsConstructor
     public enum Config implements Configs.Config {
         HOST("host", null),
-        TARGET_API_VERSION("targetApiVersion", "extensions/v1beta1");
+        TARGET_API_VERSION("targetApiVersion", "networking.k8s.io/v1");
 
         @Getter
         protected String key;

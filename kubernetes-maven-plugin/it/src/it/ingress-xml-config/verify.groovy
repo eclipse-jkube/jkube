@@ -13,7 +13,7 @@
  */
 import org.eclipse.jkube.maven.it.Verify
 
-[ "xml-config", "zero-config-host-enricher-config", "zero-config-no-host", "zero-config-networkv1-host-enricher-config","zero-config-networkv1-enricher-config"  ].each {
+[ "xml-config", "zero-config-host-enricher-config", "zero-config-no-host", "zero-config-extensionsv1beta1-host-enricher-config","zero-config-extensionsv1beta1-enricher-config"  ].each {
   Verify.verifyResourceDescriptors(
           new File(basedir, sprintf("/%s/classes/META-INF/jkube/kubernetes.yml",it)),
           new File(basedir, sprintf("/expected/%s/kubernetes.yml",it)))
