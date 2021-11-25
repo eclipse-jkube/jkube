@@ -46,6 +46,8 @@ public class PortForwardTask implements Runnable, AutoCloseable {
             .watch(new PortForwardMonitor(logger, podName, podAvailableLatch))
     ) {
       podAvailableLatch.await();
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
     } catch (Exception exception) {
       logger.warn("Not able to port forward: %s", exception.getMessage());
     } finally {
