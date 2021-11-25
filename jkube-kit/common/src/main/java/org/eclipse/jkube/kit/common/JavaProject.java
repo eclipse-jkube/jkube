@@ -183,13 +183,6 @@ public class JavaProject implements Serializable {
    */
   private File artifact;
   /**
-   * Directory for the project's local repository.
-   *
-   * @param localRepositoryBaseDirectory New directory for the project's local repository.
-   * @return The project's local repository directory.
-   */
-  private File localRepositoryBaseDirectory;
-  /**
    * Project's packaging type. Specifies the type of artifact the project produces.
    *
    * <p> (e.g. war, jar, ear...)
@@ -249,8 +242,8 @@ public class JavaProject implements Serializable {
       Properties properties, @Singular List<String> compileClassPathElements, @Singular List<Dependency> dependencies,
       List<Dependency> dependenciesWithTransitive, @Singular List<Plugin> plugins,
       String site, String description, String organizationName, String documentationUrl,
-      String buildFinalName, File artifact, File localRepositoryBaseDirectory,
-      String packaging, String issueManagementSystem, String issueManagementUrl, String url, String scmUrl, String scmTag,
+      String buildFinalName, File artifact, String packaging, String issueManagementSystem, String issueManagementUrl,
+      String url, String scmUrl, String scmTag,
       @Singular List<Maintainer> maintainers) {
 
     this.name = name;
@@ -271,7 +264,6 @@ public class JavaProject implements Serializable {
     this.documentationUrl = documentationUrl;
     this.buildFinalName = buildFinalName;
     this.artifact = artifact;
-    this.localRepositoryBaseDirectory = localRepositoryBaseDirectory;
     this.packaging = packaging;
     this.issueManagementSystem = issueManagementSystem;
     this.issueManagementUrl = issueManagementUrl;
