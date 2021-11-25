@@ -316,15 +316,11 @@ public class MavenUtil {
         JavaProject.JavaProjectBuilder builder = JavaProject.builder();
 
         Properties properties = new Properties();
-        File localRepositoryBaseDir = null;
 
         if (mavenProject.getProperties() != null) {
             properties.putAll(mavenProject.getProperties());
         }
         if (mavenSession != null) {
-            if (mavenSession.getLocalRepository().getBasedir() != null) {
-                localRepositoryBaseDir = new File(mavenSession.getLocalRepository().getBasedir());
-            }
             if (mavenSession.getUserProperties() != null) {
                 properties.putAll(mavenSession.getUserProperties());
             }
@@ -348,7 +344,6 @@ public class MavenUtil {
                 .packaging(mavenProject.getPackaging())
                 .dependencies(getDependencies(mavenProject))
                 .dependenciesWithTransitive(getTransitiveDependencies(mavenProject))
-                .localRepositoryBaseDirectory(localRepositoryBaseDir)
                 .plugins(getPlugins(mavenProject));
 
         if (mavenProject.getOrganization() != null) {
