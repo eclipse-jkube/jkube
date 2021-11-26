@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Objects;
 
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryConfig;
@@ -36,7 +36,7 @@ public class DockerBuildService implements BuildService {
     private final RuntimeMode runtimeMode;
     private final BuildServiceConfig buildServiceConfig;
     private final JKubeConfiguration jKubeConfiguration;
-    private final ServiceHub dockerServices;
+    private final DockerServiceHub dockerServices;
 
     public DockerBuildService(JKubeServiceHub jKubeServiceHub) {
         this.runtimeMode = jKubeServiceHub.getRuntimeMode();

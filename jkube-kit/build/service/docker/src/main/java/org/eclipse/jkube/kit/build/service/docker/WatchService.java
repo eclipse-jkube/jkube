@@ -263,7 +263,7 @@ public class WatchService {
                     .basedir(watcher.watchContext.getBuildContext().getProject().getBaseDirectory())
                     .imageConfig(imageConfig)
                     .hub(watcher.watchContext.getHub())
-                    .logOutputSpecFactory(watcher.watchContext.getServiceHubFactory().getLogOutputSpecFactory())
+                    .logOutputSpecFactory(watcher.watchContext.getLogOutputSpecFactory())
                     .showLogs(watcher.watchContext.getShowLogs())
                     .containerNamePattern(watcher.watchContext.getContainerNamePattern())
                     .buildDate(watcher.watchContext.getBuildTimestamp())

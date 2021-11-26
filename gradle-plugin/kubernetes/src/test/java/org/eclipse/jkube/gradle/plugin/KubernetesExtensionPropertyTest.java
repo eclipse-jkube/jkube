@@ -119,6 +119,8 @@ public class KubernetesExtensionPropertyTest {
         new Object[] { "getResourceFileTypeOrDefault", "jkube.resourceType", "json", ResourceFileType.json,
             ResourceFileType.yaml },
         new Object[] { "getLogPodNameOrNull", "jkube.log.pod", "test", "test", null },
+        new Object[] { "getLogDateOrNull", "jkube.docker.logDate", "test", "test", null },
+        new Object[] { "getLogStdoutOrDefault", "jkube.docker.logStdout", "true", true, false },
         new Object[] { "getLogContainerNameOrNull", "jkube.log.container", "test", "test", null },
         new Object[] { "getUseProjectClassPathOrDefault", "jkube.useProjectClasspath", "true", true, false },
         new Object[] { "getLocalDebugPortOrDefault", "jkube.debug.port", "1337", 1337, 5005 },

@@ -37,7 +37,7 @@ import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 
 @Builder
 @AllArgsConstructor
@@ -48,7 +48,7 @@ public class StartContainerExecutor {
     private String exposeContainerProps;
     private KitLogger log;
     private LogOutputSpecFactory logOutputSpecFactory;
-    private ServiceHub hub;
+    private DockerServiceHub hub;
     private boolean follow;
     private String showLogs;
     private String containerNamePattern;

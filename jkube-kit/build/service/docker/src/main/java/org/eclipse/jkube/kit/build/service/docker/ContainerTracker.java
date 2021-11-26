@@ -26,6 +26,14 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
  */
 public class ContainerTracker {
 
+    private static class ContainerTrackerHolder {
+        public static final ContainerTracker INSTANCE = new ContainerTracker();
+    }
+
+    public static ContainerTracker getInstance() {
+        return ContainerTracker.ContainerTrackerHolder.INSTANCE;
+    }
+
     // Map holding associations between started containers and their images via name and aliases
     // Key: Image, Value: Container
     private final Map<String, String> imageToContainerMap = new HashMap<>();

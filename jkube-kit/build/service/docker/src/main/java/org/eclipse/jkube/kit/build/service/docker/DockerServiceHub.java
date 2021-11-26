@@ -25,7 +25,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
  * @author roland
  * @since 01/12/15
  */
-public class ServiceHub {
+public class DockerServiceHub {
 
     private final DockerAccess dockerAccess;
 
@@ -38,9 +38,21 @@ public class ServiceHub {
     private final WatchService watchService;
     private final WaitService waitService;
 
-    ServiceHub(DockerAccess dockerAccess, ContainerTracker containerTracker,
-               AssemblyManager assemblyManager,
-               KitLogger logger, LogOutputSpecFactory logSpecFactory) {
+    public static DockerServiceHub newInstance(KitLogger kitLogger) {
+        return newInstance(kitLogger,
+            new DockerAccessFactory().createDockerAccess(DockerAccessFactory.DockerAccessContext.getDefault(kitLogger)),
+            new LogOutputSpecFactory(true, true)
+        );
+    }
+
+    public static DockerServiceHub newInstance(KitLogger kitLogger, DockerAccess dockerAccess, LogOutputSpecFactory logOutputSpecFactory) {
+      return new DockerServiceHub(dockerAccess, ContainerTracker.getInstance(), AssemblyManager.getInstance(), kitLogger,
+          logOutputSpecFactory);
+    }
+
+    DockerServiceHub(DockerAccess dockerAccess, ContainerTracker containerTracker,
+                     AssemblyManager assemblyManager,
+                     KitLogger logger, LogOutputSpecFactory logSpecFactory) {
 
         this.dockerAccess = dockerAccess;
 

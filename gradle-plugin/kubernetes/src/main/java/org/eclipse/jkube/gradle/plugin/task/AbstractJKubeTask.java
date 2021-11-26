@@ -25,7 +25,7 @@ import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.gradle.plugin.GradleLogger;
 import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
+import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -52,12 +52,12 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected final KubernetesExtension kubernetesExtension;
   protected KitLogger kitLogger;
+  protected LogOutputSpecFactory logOutputSpecFactory;
   protected ClusterAccess clusterAccess;
   protected JKubeServiceHub jKubeServiceHub;
   protected static final String DOCKER_BUILD_TIMESTAMP = "docker/build.timestamp";
   protected List<ImageConfiguration> resolvedImages;
   protected DefaultEnricherManager enricherManager;
-  protected ServiceHubFactory serviceHubFactory;
 
   protected AbstractJKubeTask(Class<? extends KubernetesExtension> extensionClass) {
     kubernetesExtension = getProject().getExtensions().getByType(extensionClass);
@@ -67,8 +67,9 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   public final void runTask() {
     kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
     kitLogger = createLogger(null);
+    logOutputSpecFactory = new LogOutputSpecFactory(isAnsiEnabled(), kubernetesExtension.getLogStdoutOrDefault(),
+        kubernetesExtension.getLogDateOrNull());
     clusterAccess = new ClusterAccess(kitLogger, initClusterConfiguration());
-    serviceHubFactory = new ServiceHubFactory();
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     ImageConfigResolver imageConfigResolver = new ImageConfigResolver();
     try {
@@ -103,10 +104,13 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     return GeneratorManager.generate(configs, initGeneratorContextBuilder().build(), false);
   }
 
-  protected final KitLogger createLogger(String prefix) {
-    final boolean ansiEnabled = kubernetesExtension.getUseColorOrDefault()
+  private boolean isAnsiEnabled() {
+    return kubernetesExtension.getUseColorOrDefault()
         && getProject().getGradle().getStartParameter().getConsoleOutput() != ConsoleOutput.Plain;
-    return new GradleLogger(getLogger(), ansiEnabled, getLogPrefix() + Optional.ofNullable(prefix).map(" "::concat).orElse(""));
+  }
+
+  protected final KitLogger createLogger(String prefix) {
+    return new GradleLogger(getLogger(), isAnsiEnabled(), getLogPrefix() + Optional.ofNullable(prefix).map(" "::concat).orElse(""));
   }
 
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {

@@ -14,6 +14,7 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
@@ -29,12 +30,12 @@ public class KubernetesPushTask extends AbstractJKubeTask {
     setDescription("Uploads the built Docker images to a Docker registry");
   }
 
-
   @Override
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
-    return TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(
-        super.initJKubeServiceHubBuilder(), kubernetesExtension, kitLogger, serviceHubFactory)
-      .buildServiceConfig(buildServiceConfigBuilder().build());
+    return super.initJKubeServiceHubBuilder()
+        .dockerServiceHub(DockerServiceHub.newInstance(kitLogger, TaskUtil.initDockerAccess(kubernetesExtension, kitLogger),
+            logOutputSpecFactory))
+        .buildServiceConfig(buildServiceConfigBuilder().build());
   }
 
   @Override
