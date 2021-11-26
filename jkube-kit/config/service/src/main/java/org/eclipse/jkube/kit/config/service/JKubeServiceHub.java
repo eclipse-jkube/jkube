@@ -23,7 +23,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.service.MigrateService;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
@@ -43,20 +43,20 @@ import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
 public class JKubeServiceHub implements Closeable {
 
     @Getter
-    private JKubeConfiguration configuration;
+    private final JKubeConfiguration configuration;
+    @Getter
+    private final KitLogger log;
+    @Getter
+    private final DockerServiceHub dockerServiceHub;
+    @Getter
+    private final BuildServiceConfig buildServiceConfig;
+    @Getter
+    private KubernetesClient client;
     @Getter
     private ClusterAccess clusterAccess;
     @Getter
     @Setter
     private RuntimeMode platformMode;
-    @Getter
-    private KitLogger log;
-    @Getter
-    private ServiceHub dockerServiceHub;
-    @Getter
-    private BuildServiceConfig buildServiceConfig;
-    @Getter
-    private KubernetesClient client;
     private LazyBuilder<BuildServiceManager> buildServiceManager;
     private LazyBuilder<ResourceService> resourceService;
     private LazyBuilder<PortForwardService> portForwardService;
@@ -70,7 +70,7 @@ public class JKubeServiceHub implements Closeable {
     @Builder
     public JKubeServiceHub(
             ClusterAccess clusterAccess, RuntimeMode platformMode, KitLogger log,
-            ServiceHub dockerServiceHub, JKubeConfiguration configuration,
+            DockerServiceHub dockerServiceHub, JKubeConfiguration configuration,
             BuildServiceConfig buildServiceConfig,
             LazyBuilder<ResourceService> resourceService, boolean offline) {
         this.clusterAccess = clusterAccess;
@@ -95,7 +95,7 @@ public class JKubeServiceHub implements Closeable {
     @Override
     public void close() {
         Optional.ofNullable(client).ifPresent(KubernetesClient::close);
-        Optional.ofNullable(dockerServiceHub).map(ServiceHub::getDockerAccess).ifPresent(DockerAccess::shutdown);
+        Optional.ofNullable(dockerServiceHub).map(DockerServiceHub::getDockerAccess).ifPresent(DockerAccess::shutdown);
     }
 
     public RuntimeMode getRuntimeMode() {

@@ -36,8 +36,7 @@ import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.common.RegistryConfig;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
@@ -258,9 +257,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected MavenProjectHelper projectHelper;
 
     @Component
-    protected ServiceHubFactory serviceHubFactory;
-
-    @Component
     protected DockerAccessFactory dockerAccessFactory;
 
     /**
@@ -329,6 +325,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected AuthConfigFactory authConfigFactory;
 
     protected KitLogger log;
+
+    protected LogOutputSpecFactory logOutputSpecFactory;
 
     protected String minimalApiVersion;
 
@@ -407,6 +405,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     protected void init() {
         log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
+        logOutputSpecFactory = new LogOutputSpecFactory(useColorForLogging(), logStdout, logDate);
         authConfigFactory = new AuthConfigFactory(log);
         imageConfigResolver.setLog(log);
         clusterAccess = new ClusterAccess(log, initClusterConfiguration());
@@ -423,21 +422,20 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         if (canExecute()) {
             final boolean ansiRestore = Ansi.isEnabled();
             try {
-                LogOutputSpecFactory logSpecFactory = new LogOutputSpecFactory(useColor, logStdout, logDate);
-                DockerAccess access = null;
+                DockerAccess dockerAccess = null;
                 try {
                     javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
                     // The 'real' images configuration to use (configured images + externally resolved images)
                     if (isDockerAccessRequired()) {
                         DockerAccessFactory.DockerAccessContext dockerAccessContext = getDockerAccessContext();
-                        access = dockerAccessFactory.createDockerAccess(dockerAccessContext);
+                        dockerAccess = dockerAccessFactory.createDockerAccess(dockerAccessContext);
                     }
                     jkubeServiceHub = JKubeServiceHub.builder()
                         .log(log)
                         .configuration(initJKubeConfiguration())
                         .clusterAccess(clusterAccess)
                         .platformMode(getConfiguredRuntimeMode())
-                        .dockerServiceHub(serviceHubFactory.createServiceHub(access, log, logSpecFactory))
+                        .dockerServiceHub(DockerServiceHub.newInstance(log, dockerAccess, logOutputSpecFactory))
                         .buildServiceConfig(buildServiceConfigBuilder().build())
                         .offline(offline)
                         .build();
@@ -766,7 +764,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         return new GavLabel(project.getGroupId(), project.getArtifactId(), project.getVersion());
     }
 
-    protected LogDispatcher getLogDispatcher(ServiceHub hub) {
+    protected LogDispatcher getLogDispatcher(DockerServiceHub hub) {
         LogDispatcher dispatcher = (LogDispatcher) getPluginContext().get(CONTEXT_KEY_LOG_DISPATCHER);
         if (dispatcher == null) {
             dispatcher = new LogDispatcher(hub.getDockerAccess());

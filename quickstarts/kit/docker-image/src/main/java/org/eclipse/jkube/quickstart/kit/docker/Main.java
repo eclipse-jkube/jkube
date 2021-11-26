@@ -17,9 +17,8 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
 import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -34,11 +33,10 @@ import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 public class Main {
+
   public static void main(String[] args) {
     final KitLogger kitLogger = new KitLogger.StdoutLogger();
     kitLogger.info("Initiating default JKube configuration and required services...");
-    kitLogger.info(" - Creating Docker Service Hub");
-    final ServiceHub serviceHub = new ServiceHubFactory().createServiceHub(kitLogger);
     kitLogger.info(" - Creating Docker Build Service Configuration");
     final BuildServiceConfig dockerBuildServiceConfig = BuildServiceConfig.builder().build();
     kitLogger.info(" - Creating configuration for JKube");
@@ -63,7 +61,7 @@ public class Main {
             .from("busybox")
             .assembly(AssemblyConfiguration.builder()
                 .targetDir("/")
-                .inline(Assembly.builder()
+                .layer(Assembly.builder()
                     .fileSet(AssemblyFileSet.builder()
                         .directory(new File("static"))
                         .build())
@@ -78,7 +76,7 @@ public class Main {
             .log(kitLogger)
             .configuration(configuration)
             .platformMode(RuntimeMode.KUBERNETES)
-            .dockerServiceHub(serviceHub)
+            .dockerServiceHub(DockerServiceHub.newInstance(kitLogger))
             .buildServiceConfig(dockerBuildServiceConfig)
             .build()) {
       jKubeServiceHub.getBuildService().build(imageConfiguration);
@@ -95,6 +93,6 @@ public class Main {
     if (currentWorkDir.toAbsolutePath().endsWith("docker-image")) {
       return currentWorkDir.toAbsolutePath();
     }
-    return currentWorkDir.resolve("kit").resolve("docker-image");
+    return currentWorkDir.resolve("quickstarts").resolve("kit").resolve("docker-image");
   }
 }

@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
@@ -85,7 +85,7 @@ public class DockerImageWatcher extends BaseWatcher {
                 .containerCopyTask(f -> copyFileToPod(f, resources))
                 .build();
 
-        ServiceHub hub = getContext().getJKubeServiceHub().getDockerServiceHub();
+        DockerServiceHub hub = getContext().getJKubeServiceHub().getDockerServiceHub();
         try {
             hub.getWatchService().watch(watchContext, getContext().getBuildContext(), configs);
         } catch (Exception ex) {

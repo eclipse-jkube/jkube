@@ -183,6 +183,10 @@ public abstract class KubernetesExtension {
 
   public abstract Property<String> getLogPodName();
 
+  public abstract Property<String> getLogDate();
+
+  public abstract Property<Boolean> getLogStdout();
+
   public abstract Property<File> getKubernetesManifest();
 
   public abstract Property<Boolean> getRecreate();
@@ -615,6 +619,14 @@ public abstract class KubernetesExtension {
 
   public String getLogPodNameOrNull() {
     return getOrDefaultString("jkube.log.pod", this::getLogPodName, null);
+  }
+
+  public String getLogDateOrNull() {
+    return getOrDefaultString("jkube.docker.logDate", this::getLogDate, null);
+  }
+
+  public boolean getLogStdoutOrDefault() {
+    return getOrDefaultBoolean("jkube.docker.logStdout", this::getLogStdout, false);
   }
 
   public String getLogContainerNameOrNull() {

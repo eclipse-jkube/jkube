@@ -15,22 +15,21 @@ package org.eclipse.jkube.gradle.plugin.task;
 
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TaskUtilTest {
@@ -59,7 +58,6 @@ public class TaskUtilTest {
   @Test
   public void buildServiceConfigBuilder_shouldInitializeBuildServiceConfigWithConfiguredValues() {
     // Given
-    extension = new TestKubernetesExtension();
     extension.buildRecreate = "true";
     extension.isForcePull = true;
     extension.buildStrategy = JKubeBuildStrategy.jib;
@@ -77,24 +75,25 @@ public class TaskUtilTest {
   }
 
   @Test
-  public void addDockerServiceHubToJKubeServiceHubBuilder_shouldInitializeJKubeServiceHubWithDefaults() {
-    try (MockedConstruction<DockerAccessFactory> dockerAccessFactory = mockConstruction(DockerAccessFactory.class)) {
-      // Given
-      JKubeConfiguration jKubeConfiguration = mock(JKubeConfiguration.class, RETURNS_DEEP_STUBS);
-      ServiceHubFactory serviceHubFactory = mock(ServiceHubFactory.class, RETURNS_DEEP_STUBS);
-      JKubeServiceHub.JKubeServiceHubBuilder builder = JKubeServiceHub.builder()
-        .configuration(jKubeConfiguration)
-        .log(kitLogger)
-        .platformMode(RuntimeMode.KUBERNETES);
-
+  public void initDockerAccess_withDockerAccessRequired_shouldReturnDockerAccess() {
+    try (MockedConstruction<DockerAccessFactory> daf = mockConstruction(DockerAccessFactory.class)) {
       // When
-      JKubeServiceHub jKubeServiceHub = TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(builder, extension, kitLogger, serviceHubFactory)
-          .build();
-
+      TaskUtil.initDockerAccess(extension, kitLogger);
       // Then
-      assertThat(jKubeServiceHub)
-        .hasFieldOrProperty("buildServiceConfig")
-        .hasFieldOrProperty("dockerServiceHub");
+      assertThat(daf.constructed()).hasSize(1);
+      verify(daf.constructed().iterator().next(), times(1)).createDockerAccess(any());
+    }
+  }
+
+  @Test
+  public void initDockerAccess_withNoDockerAccessRequired_shouldReturnNull() {
+    try (MockedConstruction<DockerAccessFactory> daf = mockConstruction(DockerAccessFactory.class)) {
+      // Given
+      extension.buildStrategy = JKubeBuildStrategy.jib;
+      // When
+      TaskUtil.initDockerAccess(extension, kitLogger);
+      // Then
+      assertThat(daf.constructed()).isEmpty();
     }
   }
 }

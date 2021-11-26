@@ -17,10 +17,10 @@ import java.io.Serializable;
 import java.util.Date;
 
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory;
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
+import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
@@ -56,8 +56,8 @@ public class WatchContext implements Serializable {
   private transient Task<WatchService.ImageWatcher> containerRestarter;
   private transient ExecTask containerCommandExecutor;
   private transient CopyFilesTask containerCopyTask;
-  private transient ServiceHub hub;
-  private transient ServiceHubFactory serviceHubFactory;
+  private transient DockerServiceHub hub;
+  private transient LogOutputSpecFactory logOutputSpecFactory;
   private transient LogDispatcher dispatcher;
   private transient Runnable postGoalTask;
 

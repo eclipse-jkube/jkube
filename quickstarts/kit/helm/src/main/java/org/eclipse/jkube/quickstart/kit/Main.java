@@ -119,6 +119,6 @@ public class Main {
     if (currentWorkDir.toAbsolutePath().endsWith("helm")) {
       return currentWorkDir.toAbsolutePath();
     }
-    return currentWorkDir.resolve("kit").resolve("helm");
+    return currentWorkDir.resolve("quickstarts").resolve("kit").resolve("helm");
   }
 }

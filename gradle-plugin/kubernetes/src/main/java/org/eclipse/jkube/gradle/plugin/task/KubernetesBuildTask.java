@@ -16,6 +16,7 @@ package org.eclipse.jkube.gradle.plugin.task;
 import javax.inject.Inject;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -41,9 +42,10 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
 
   @Override
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
-    return TaskUtil.addDockerServiceHubToJKubeServiceHubBuilder(
-        super.initJKubeServiceHubBuilder(), kubernetesExtension, kitLogger, serviceHubFactory)
-      .buildServiceConfig(buildServiceConfigBuilder().build());
+    return super.initJKubeServiceHubBuilder()
+        .dockerServiceHub(DockerServiceHub.newInstance(kitLogger, TaskUtil.initDockerAccess(kubernetesExtension, kitLogger),
+            logOutputSpecFactory))
+        .buildServiceConfig(buildServiceConfigBuilder().build());
   }
 
   @Override

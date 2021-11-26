@@ -107,11 +107,6 @@
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
-      <role>org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory</role>
-      <implementation>org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory</implementation>
-      <isolated-realm>false</isolated-realm>
-    </component>
-    <component>
       <role>org.codehaus.plexus.archiver.Archiver</role>
       <role-hint>track</role-hint>
       <implementation>org.eclipse.jkube.kit.build.core.assembly.MappingTrackArchiver</implementation>

@@ -13,87 +13,65 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Expectations;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
-import org.junit.Test;
 
-import java.util.Properties;
+import io.fabric8.openshift.client.OpenShiftClient;
+import org.junit.Before;
+import org.junit.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
+@SuppressWarnings({"unused"})
 public class JKubeServiceHubTest {
 
-  @Mocked
-  private KitLogger logger;
+  private JKubeServiceHub.JKubeServiceHubBuilder jKubeServiceHubBuilder;
 
-  @Mocked
-  private ClusterAccess clusterAccess;
-
-  @Mocked
-  private OpenShiftClient openShiftClient;
-
-  @Mocked
-  private ServiceHub dockerServiceHub;
-
-  @Mocked
-  private JKubeConfiguration configuration;
-
-  @Mocked
-  private BuildServiceConfig buildServiceConfig;
-
-  private JKubeServiceHub.JKubeServiceHubBuilder commonInit() {
-    return JKubeServiceHub.builder()
-            .configuration(configuration)
-            .clusterAccess(clusterAccess)
-            .log(logger)
-            .dockerServiceHub(dockerServiceHub)
-            .offline(false)
-            .buildServiceConfig(buildServiceConfig);
+  @Before
+  public void setUp() throws Exception {
+    final ClusterAccess clusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
+    when(clusterAccess.createDefaultClient()).thenReturn(mock(OpenShiftClient.class, RETURNS_DEEP_STUBS));
+    jKubeServiceHubBuilder = JKubeServiceHub.builder()
+        .platformMode(RuntimeMode.KUBERNETES)
+        .configuration(mock(JKubeConfiguration.class, RETURNS_DEEP_STUBS))
+        .clusterAccess(clusterAccess)
+        .log(mock(KitLogger.class))
+        .dockerServiceHub(mock(DockerServiceHub.class, RETURNS_DEEP_STUBS))
+        .offline(false)
+        .buildServiceConfig(mock(BuildServiceConfig.class, RETURNS_DEEP_STUBS));
   }
 
   @Test(expected = NullPointerException.class)
   public void testMissingClusterAccess() {
     JKubeServiceHub.builder()
-            .log(logger)
-            .build();
+        .log(mock(KitLogger.class))
+        .build();
   }
 
   @Test(expected = NullPointerException.class)
   public void testMissingKitLogger() {
     JKubeServiceHub.builder()
-            .clusterAccess(clusterAccess)
-            .build();
+        .clusterAccess(mock(ClusterAccess.class))
+        .build();
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   @Test
   public void testBasicInit() {
-    // Given
-    // @formatter:off
-    new Expectations() {{
-      configuration.getProject().getProperties(); result = new Properties();
-    }};
-    // @formatter:on
     // When
-    try (final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
-            .platformMode(RuntimeMode.KUBERNETES)
-            .configuration(configuration)
-            .log(logger)
-            .build()
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()
     ) {
       // Then
       assertThat(jKubeServiceHub)
@@ -107,9 +85,7 @@ public class JKubeServiceHubTest {
   @Test
   public void testGetBuildServiceInKubernetes() {
     // Given
-    JKubeServiceHub hub = commonInit()
-            .platformMode(RuntimeMode.KUBERNETES)
-            .build();
+    JKubeServiceHub hub = jKubeServiceHubBuilder.build();
     // When
     BuildService buildService = hub.getBuildService();
     // Then
@@ -121,13 +97,7 @@ public class JKubeServiceHubTest {
   @Test
   public void testGetBuildServiceInOpenShift() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      buildServiceConfig.getJKubeBuildStrategy(); result = null;
-    }};
-    // @formatter:on
-    JKubeServiceHub hub = commonInit()
-            .platformMode(RuntimeMode.OPENSHIFT)
+    JKubeServiceHub hub = jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT)
             .build();
     // When
     BuildService buildService = hub.getBuildService();
@@ -140,14 +110,8 @@ public class JKubeServiceHubTest {
   @Test
   public void testGetJibBuildServiceInKubernetes() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      buildServiceConfig.getJKubeBuildStrategy(); result = JKubeBuildStrategy.jib;
-    }};
-    // @formatter:on
-    JKubeServiceHub hub = commonInit()
-            .platformMode(RuntimeMode.KUBERNETES)
-            .build();
+    JKubeServiceHub hub = jKubeServiceHubBuilder.build();
+    when(hub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.jib);
     // When
     BuildService buildService = hub.getBuildService();
     // Then
@@ -159,9 +123,7 @@ public class JKubeServiceHubTest {
   @Test
   public void testGetUndeployServiceInKubernetes() {
     // Given
-    JKubeServiceHub hub = commonInit()
-            .platformMode(RuntimeMode.KUBERNETES)
-            .build();
+    JKubeServiceHub hub = jKubeServiceHubBuilder.build();
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
@@ -173,14 +135,8 @@ public class JKubeServiceHubTest {
   @Test
   public void testGetUndeployServiceInOpenShiftWithInvalidClient() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      openShiftClient.isAdaptable(OpenShiftClient.class); result = false;
-    }};
-    // @formatter:on
-    JKubeServiceHub hub = commonInit()
-            .platformMode(RuntimeMode.OPENSHIFT)
-            .build();
+    JKubeServiceHub hub = jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT).build();
+    when(hub.getClient().isAdaptable(OpenShiftClient.class)).thenReturn(false);
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
@@ -192,14 +148,8 @@ public class JKubeServiceHubTest {
   @Test
   public void testGetUndeployServiceInOpenShiftWithValidClient() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      openShiftClient.isAdaptable(OpenShiftClient.class); result = true;
-    }};
-    // @formatter:on
-    JKubeServiceHub hub = commonInit()
-            .platformMode(RuntimeMode.OPENSHIFT)
-            .build();
+    JKubeServiceHub hub = jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT).build();
+    when(hub.getClient().isAdaptable(OpenShiftClient.class)).thenReturn(true);
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
@@ -210,28 +160,16 @@ public class JKubeServiceHubTest {
 
   @Test
   public void testGetPortForwardService() {
-    // Given
-    JKubeServiceHub hub = commonInit()
-            .platformMode(RuntimeMode.KUBERNETES)
-            .build();
-
     // When
-    final PortForwardService portForwardService = hub.getPortForwardService();
-
+    final PortForwardService portForwardService = jKubeServiceHubBuilder.build().getPortForwardService();
     // Then
     assertThat(portForwardService).isNotNull();
   }
 
   @Test
   public void testGetDebugService() {
-    // Given
-    JKubeServiceHub hub = commonInit()
-            .platformMode(RuntimeMode.KUBERNETES)
-            .build();
-
     // When
-    final DebugService debugService = hub.getDebugService();
-
+    final DebugService debugService = jKubeServiceHubBuilder.build().getDebugService();
     // Then
     assertThat(debugService).isNotNull();
   }
@@ -239,7 +177,7 @@ public class JKubeServiceHubTest {
   @Test
   public void testBasicInitWithOffline() {
     // Given + When
-    try (final JKubeServiceHub jKubeServiceHub = commonInit().platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
       // Then
       assertThat(jKubeServiceHub)
           .isNotNull()
@@ -250,7 +188,7 @@ public class JKubeServiceHubTest {
   @Test
   public void testAccessServiceWithNonInitializedClientThrowsException() {
     // Given + When
-    try (final JKubeServiceHub jKubeServiceHub = commonInit().platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
       // Then
       assertThrows(IllegalArgumentException.class, jKubeServiceHub::getApplyService);
     }

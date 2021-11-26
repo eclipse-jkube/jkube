@@ -564,7 +564,7 @@ public class RunService {
      * @return List of volumes created
      * @throws DockerAccessException docker access exception
      */
-    public List<String> createVolumesAsPerVolumeBinds(ServiceHub hub, List<String> binds, List<VolumeConfiguration> volumes)
+    public List<String> createVolumesAsPerVolumeBinds(DockerServiceHub hub, List<String> binds, List<VolumeConfiguration> volumes)
             throws DockerAccessException {
 
         Map<String, Integer> indexMap = new HashMap<>();

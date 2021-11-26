@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
-import org.eclipse.jkube.kit.build.service.docker.ServiceHub;
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
@@ -158,7 +158,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     }
 
     protected WatchContext getWatchContext() throws DependencyResolutionRequiredException, IOException {
-        final ServiceHub hub = jkubeServiceHub.getDockerServiceHub();
+        final DockerServiceHub hub = jkubeServiceHub.getDockerServiceHub();
         return WatchContext.builder()
                 .watchInterval(watchInterval)
                 .watchMode(watchMode)
@@ -173,7 +173,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                 .buildContext(initJKubeConfiguration())
                 .follow(watchFollow)
                 .showLogs(watchShowLogs)
-                .serviceHubFactory(serviceHubFactory)
+                .logOutputSpecFactory(logOutputSpecFactory)
                 .hub(hub)
                 .dispatcher(getLogDispatcher(hub))
                 .postGoalTask(() -> MavenUtil.callMavenPluginWithGoal(project, session, pluginManager, watchPostGoal, log))

@@ -210,6 +210,16 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   }
 
   @Override
+  public Property<String> getLogDate() {
+    return new DefaultProperty<>(String.class);
+  }
+
+  @Override
+  public Property<Boolean> getLogStdout() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
   public Property<File> getKubernetesManifest() {
     return new DefaultProperty<>(File.class);
   }
