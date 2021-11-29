@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.6.0-SNAPSHOT
+* Fix #1136: ConcurrentModificationException when running gradle k8sBuild on Quarkus sample
 * Fix #887: Incorrect warning about overriding environment variable
 * Fix #802: Update Fabric8 kubernetes Client to v5.10.1
 * Fix #961: `k8sBuild`, `k8sResource` and `k8sApply` tasks don't respect skip options
