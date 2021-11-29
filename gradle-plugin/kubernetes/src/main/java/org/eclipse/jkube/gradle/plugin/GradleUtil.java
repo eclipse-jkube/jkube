@@ -16,6 +16,7 @@ package org.eclipse.jkube.gradle.plugin;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -111,7 +112,7 @@ public class GradleUtil {
 
   private static List<Dependency> extractDependencies(Project gradleProject,
       Function<ResolutionResult, Set<? extends DependencyResult>> resolutionToDependency) {
-    return gradleProject.getConfigurations().stream()
+    return new ArrayList<Configuration>(gradleProject.getConfigurations()).stream()
         .filter(GradleUtil::canBeResolved)
         .flatMap(c -> {
           final Map<ComponentIdentifier, ResolvedArtifactResult> artifacts = artifactMap(c);
@@ -179,7 +180,7 @@ public class GradleUtil {
   }
 
   private static File findArtifact(Project gradleProject) {
-    return gradleProject.getConfigurations().stream()
+    return new ArrayList<Configuration>(gradleProject.getConfigurations()).stream()
         .map(Configuration::getOutgoing)
         .map(ConfigurationPublications::getArtifacts)
         .map(PublishArtifactSet::getFiles)

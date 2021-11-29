@@ -16,11 +16,14 @@ package org.eclipse.jkube.gradle.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,6 +46,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -61,12 +65,20 @@ public class GradleUtilTest {
   private Project project;
   private JavaPluginConvention javaPlugin;
 
+  private List<Configuration> projectConfigurations;
+
   @Before
   public void setUp() throws IOException {
     project = mock(Project.class, RETURNS_DEEP_STUBS);
     javaPlugin = mock(JavaPluginConvention.class, RETURNS_DEEP_STUBS);
     when(javaPlugin.getSourceSets().stream()).thenReturn(Stream.empty());
-    when(project.getConfigurations().stream()).thenAnswer(i -> Stream.empty());
+
+    final ConfigurationContainer cc = mock(ConfigurationContainer.class);
+    when(project.getConfigurations()).thenReturn(cc);
+    projectConfigurations = new ArrayList<Configuration>();
+    when(cc.stream()).thenAnswer(i -> projectConfigurations.stream());
+    when(cc.toArray()).thenAnswer(i -> projectConfigurations.toArray());
+
     when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getProperties()).thenReturn(Collections.emptyMap());
     when(project.getBuildDir()).thenReturn(folder.newFolder("build"));
@@ -128,16 +140,13 @@ public class GradleUtilTest {
   @Test
   public void extractDependencies_withMultipleAndDuplicateDependencies_shouldReturnValidDependencies() {
     // Given
-    final ConfigurationContainer cc = mock(ConfigurationContainer.class);
-    when(project.getConfigurations()).thenReturn(cc);
     final Function<String[], Configuration> mockConfiguration = configurationDependencyMock();
-    when(cc.stream()).thenAnswer(i -> Stream.of(
-        mockConfiguration.apply(new String[] { "api", "com.example", "artifact", null }),
-        mockConfiguration.apply(new String[] { "implementation", "com.example.sub", "duplicate-artifact", "1.33.7" }),
-        mockConfiguration.apply(new String[] { "implementation", "com.example.sub", "duplicate-artifact", "1.33.7" }),
-        mockConfiguration.apply(new String[] { "implementation", "com.example", "other.artifact", "1.0.0" }),
-        mockConfiguration.apply(new String[] { "implementation", "com.example", "other.artifact", "1.1.0" }),
-        mockConfiguration.apply(new String[] { "testImplementation", "com.example", "other.artifact", "1.1.0" })));
+    projectConfigurations.add(mockConfiguration.apply(new String[] { "api", "com.example", "artifact", null }));
+    projectConfigurations.add(mockConfiguration.apply(new String[] { "implementation", "com.example.sub", "duplicate-artifact", "1.33.7" }));
+    projectConfigurations.add(mockConfiguration.apply(new String[] { "implementation", "com.example.sub", "duplicate-artifact", "1.33.7" }));
+    projectConfigurations.add(mockConfiguration.apply(new String[] { "implementation", "com.example", "other.artifact", "1.0.0" }));
+    projectConfigurations.add(mockConfiguration.apply(new String[] { "implementation", "com.example", "other.artifact", "1.1.0" }));
+    projectConfigurations.add(mockConfiguration.apply(new String[] { "testImplementation", "com.example", "other.artifact", "1.1.0" }));
     // When
     final JavaProject result = convertGradleProject(project);
     // Then
@@ -178,6 +187,32 @@ public class GradleUtilTest {
             tuple("org.springframework.boot", "org.springframework.boot.gradle.plugin", "1.33.7"),
             tuple("org.eclipse.jkube.kubernetes", "org.eclipse.jkube.kubernetes.gradle.plugin", "1.0.0")
         );
+  }
+
+ /**
+   * Some plugins might modify the ConfigurationContainer collection while we traverse it.
+   *
+   * This test ensures that no ConcurrentModificationException are thrown because we clone the ConfigurationContainer
+   * into an ArrayList.
+   */
+  @Test
+  public void convertGradleProject_withConcurrentConfigurationModifications_shouldReturnValidProject() {
+    // Given
+    final Configuration mockConfiguration = mock(Configuration.class, RETURNS_DEEP_STUBS);
+    projectConfigurations.add(mockConfiguration);
+    final Answer<Set<?>> concurrentModificationAnswer = i -> {
+      projectConfigurations.remove(mockConfiguration);
+      projectConfigurations.add(mockConfiguration);
+      return Collections.emptySet();
+    };
+    when(mockConfiguration.isCanBeResolved()).thenReturn(true);
+    when(mockConfiguration.getOutgoing().getArtifacts().getFiles().getFiles()).thenAnswer(concurrentModificationAnswer);
+    when(mockConfiguration.getIncoming().getResolutionResult().getAllDependencies()).thenAnswer(concurrentModificationAnswer);
+    when(mockConfiguration.getIncoming().getResolutionResult().getRoot().getDependencies()).thenAnswer(concurrentModificationAnswer);
+    // When
+    final JavaProject result = convertGradleProject(project);
+    // Then
+    assertThat(result).isNotNull();
   }
 
   @Test
@@ -221,7 +256,7 @@ public class GradleUtilTest {
     when(c.getOutgoing().getArtifacts().getFiles().getFiles()).thenReturn(Stream.of(
         folder.newFile("final-artifact.jar")
     ).collect(Collectors.toSet()));
-    when(project.getConfigurations().stream()).thenAnswer(i -> Stream.of(c));
+    projectConfigurations.add(c);
     // When
     final JavaProject result = convertGradleProject(project);
     // Then
@@ -239,7 +274,7 @@ public class GradleUtilTest {
     when(c.getOutgoing().getArtifacts().getFiles().getFiles()).thenReturn(Stream.of(
         jar2, jar1
     ).collect(Collectors.toSet()));
-    when(project.getConfigurations().stream()).thenAnswer(i -> Stream.of(c));
+    projectConfigurations.add(c);
     // When
     final JavaProject result = convertGradleProject(project);
     // Then
