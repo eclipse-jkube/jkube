@@ -57,7 +57,7 @@ public class WildflyJARGeneratorTest {
     @Test
     public void notApplicable() throws IOException {
         WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
-        assertFalse(generator.isApplicable( Collections.<ImageConfiguration>emptyList()));
+        assertFalse(generator.isApplicable(Collections.emptyList()));
     }
 
     // To be revisited if we enable jolokia and prometheus.
