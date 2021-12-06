@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.6.0-SNAPSHOT
+* Fix #1047: Gradle image build should use the Quarkus generator for Quarkus projects
 * Fix #778: Support deserialization of fragments with mismatched field types of target Java class 
 * Fix #802: Update Fabric8 kubernetes Client to v5.10.1
 * Fix #887: Incorrect warning about overriding environment variable

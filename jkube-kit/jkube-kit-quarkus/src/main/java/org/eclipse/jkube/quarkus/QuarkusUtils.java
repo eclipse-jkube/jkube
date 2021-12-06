@@ -142,7 +142,8 @@ public class QuarkusUtils {
 
   public static boolean hasQuarkusPlugin(JavaProject javaProject) {
     return JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_GROUP_ID, "quarkus-maven-plugin") ||
-           JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_PLATFORM_GROUP_ID, "quarkus-maven-plugin");
+           JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_PLATFORM_GROUP_ID, "quarkus-maven-plugin") ||
+           JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_GROUP_ID, "io.quarkus.gradle.plugin");
   }
 
   /**
