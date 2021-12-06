@@ -136,6 +136,23 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
+  public void isApplicable_withQuarkusGradlePlugin_shouldReturnTrue() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
+        .groupId("io.quarkus")
+        .artifactId("io.quarkus.gradle.plugin")
+        .build());
+    }};
+    // @formatter:on
+    // When
+    final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
   public void customize_inOpenShift_shouldReturnS2iFrom() {
     // Given
     in(RuntimeMode.OPENSHIFT);
