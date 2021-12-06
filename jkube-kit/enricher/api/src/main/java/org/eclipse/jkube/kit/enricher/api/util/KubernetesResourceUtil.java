@@ -356,7 +356,7 @@ public class KubernetesResourceUtil {
             final Map<String, Object> ret = Serialization.unmarshal(fis, typeRef);
             return ret != null ? ret : new HashMap<>();
         } catch (Exception e) {
-            throw new IOException(String.format("Error reading fragment [%s] %s", file, e.getMessage()), e);
+            throw JsonMappingException.from(mapper.getDeserializationContext(), String.format("[%s] %s", file, e.getMessage()));
         }
     }
 
