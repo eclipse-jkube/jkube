@@ -24,11 +24,11 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinitionBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.BuildConfigBuilder;
 import io.fabric8.openshift.api.model.ImageStream;
@@ -234,7 +234,7 @@ public class PatchService {
             }
 
             CustomResourceDefinitionBuilder entity =
-                    new CustomResourceDefinitionBuilder(client.apiextensions().v1beta1().customResourceDefinitions()
+                    new CustomResourceDefinitionBuilder(client.apiextensions().v1().customResourceDefinitions()
                             .withName(oldObj.getMetadata().getName())
                             .fromServer().get());
 
@@ -245,7 +245,7 @@ public class PatchService {
             if (!UserConfigurationCompare.configEqual(newObj.getSpec(), oldObj.getSpec())) {
                 entity.withSpec(newObj.getSpec());
             }
-            return client.apiextensions().v1beta1().customResourceDefinitions()
+            return client.apiextensions().v1().customResourceDefinitions()
                     .withName(oldObj.getMetadata().getName())
                     .edit(p -> entity.build());
         };
