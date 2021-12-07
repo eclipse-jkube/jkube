@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.config.resource;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -103,7 +102,7 @@ public class ProcessorConfig {
     @SuppressWarnings({"squid:S3740", "rawtypes", "unchecked"})
     public void setConfig(Map<String, TreeMap> config) {
         this.config = new HashMap<>();
-        config.forEach((key, value) -> this.config.put(key, (Map<String, Object>) value));
+        config.forEach((key, value) -> this.config.put(key, value));
     }
 
     /**
