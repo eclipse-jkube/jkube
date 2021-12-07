@@ -76,10 +76,10 @@ public class DockerRegistrySecretEnricherTest {
 
         secretEnriched = (Secret) builder.buildItem(0);
         Map<String, String> enrichedData = secretEnriched.getData();
-        assertThat(enrichedData.size()).isEqualTo(1);
+        assertThat().hasSize();
         String data = enrichedData.get(SecretConstants.DOCKER_DATA_KEY);
         assertThat(data).isNotNull();
-        JsonObject auths = (JsonObject) new JsonParser().parse(new String(Base64.decodeBase64(data)));
+        JsonObject auths = (JsonObject) new JsonParser().parseString(new String(Base64.decodeBase64(data)));
         assertThat(auths.size()).isEqualTo(1);
         JsonObject auth = auths.getAsJsonObject("docker.io");
         assertThat(auth.size()).isEqualTo(2);
