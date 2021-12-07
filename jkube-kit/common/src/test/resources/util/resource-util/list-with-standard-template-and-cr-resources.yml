@@ -62,7 +62,7 @@ items:
       - name: limits_memory
         value: "512Mi"
       - name: parameter_with_no_value
-  - apiVersion: apiextensions.k8s.io/v1beta1
+  - apiVersion: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     metadata:
       labels:
