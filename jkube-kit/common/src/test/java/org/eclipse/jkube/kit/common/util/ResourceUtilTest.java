@@ -27,7 +27,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.openshift.api.model.Template;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -74,19 +74,21 @@ public class ResourceUtilTest {
             kubernetesListFile);
         // Then
         assertThat(result)
-            .hasSize(7)
+            .hasSize(8)
             .allMatch(HasMetadata.class::isInstance)
             .hasAtLeastOneElementOfType(ServiceAccount.class)
             .hasAtLeastOneElementOfType(Template.class)
             .hasAtLeastOneElementOfType(Service.class)
             .hasAtLeastOneElementOfType(ConfigMap.class)
             .hasAtLeastOneElementOfType(CustomResourceDefinition.class)
+            .hasAtLeastOneElementOfType(io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition.class)
             .hasAtLeastOneElementOfType(GenericKubernetesResource.class)
             .extracting("metadata.name")
             .containsExactly(
                 "ribbon",
                 "external-service",
                 "external-config-map",
+                "crd-v1",
                 "dummies.demo.fabric8.io",
                 "custom-resource",
                 "my-new-cron-object-cr",

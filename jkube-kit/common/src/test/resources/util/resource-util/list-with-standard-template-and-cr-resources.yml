@@ -83,6 +83,10 @@ items:
         - name: v1
           served: true
           storage: true
+  - apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: crd-v1
   - apiVersion: custom.resource.example.com/v1
     kind: Example
     metadata:
