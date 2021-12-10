@@ -267,9 +267,10 @@ public class KubernetesResourceUtilTest {
   @Test
   public void readResourceFragmentsFrom_withValidDirectory_shouldReadAllFragments() throws IOException {
     // Given
-    ResourceVersioning v = new ResourceVersioning()
+    ResourceVersioning v = ResourceVersioning.builder()
         .withCoreVersion("v2")
-        .withExtensionsVersion("extensions/v2");
+        .withExtensionsVersion("extensions/v2")
+        .build();
     // When
     final KubernetesListBuilder result = KubernetesResourceUtil.readResourceFragmentsFrom(
         kubernetes, v, "pong", new File(fragmentsDir, "complete-directory").listFiles());

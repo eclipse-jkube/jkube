@@ -85,7 +85,7 @@ public class KubernetesResourceUtil {
     private static final Logger LOG = LoggerFactory.getLogger(KubernetesResourceUtil.class);
 
     public static final String API_VERSION = "v1";
-    public static final String API_EXTENSIONS_VERSION = "extensions/v1beta1";
+    public static final String EXTENSIONS_VERSION = "extensions/v1beta1";
     public static final String API_APPS_VERSION = "apps/v1";
     public static final String API_NETWORKING_VERSION = "networking.k8s.io/v1";
     public static final String JOB_VERSION = "batch/v1";
@@ -93,16 +93,19 @@ public class KubernetesResourceUtil {
     public static final String CRONJOB_VERSION = "batch/v1beta1";
     public static final String RBAC_VERSION = "rbac.authorization.k8s.io/v1";
     public static final String EXPOSE_LABEL = "expose";
+    public static final String API_EXTENSIONS_VERSION = "apiextensions.k8s.io/v1";
 
-    public static final ResourceVersioning DEFAULT_RESOURCE_VERSIONING = new ResourceVersioning()
-            .withCoreVersion(API_VERSION)
-            .withExtensionsVersion(API_EXTENSIONS_VERSION)
-            .withAppsVersion(API_APPS_VERSION)
-            .withNetworkingVersion(API_NETWORKING_VERSION)
-            .withOpenshiftV1Version(OPENSHIFT_V1_VERSION)
-            .withJobVersion(JOB_VERSION)
-            .withCronJobVersion(CRONJOB_VERSION)
-            .withRbacVersioning(RBAC_VERSION);
+    public static final ResourceVersioning DEFAULT_RESOURCE_VERSIONING = ResourceVersioning.builder()
+        .withCoreVersion(API_VERSION)
+        .withExtensionsVersion(EXTENSIONS_VERSION)
+        .withAppsVersion(API_APPS_VERSION)
+        .withNetworkingVersion(API_NETWORKING_VERSION)
+        .withJobVersion(JOB_VERSION)
+        .withOpenshiftV1version(OPENSHIFT_V1_VERSION)
+        .withRbacVersion(RBAC_VERSION)
+        .withCronJobVersion(CRONJOB_VERSION)
+        .withApiExtensionsVersion(API_EXTENSIONS_VERSION)
+        .build();
 
     private static final Set<Class<?>> SIMPLE_FIELD_TYPES = new HashSet<>();
 
@@ -286,6 +289,9 @@ public class KubernetesResourceUtil {
                 apiVersion = apiVersions.getCronJobVersion();
                 break;
 
+            case "CustomResourceDefinition":
+                apiVersion = apiVersions.getApiExtensionsVersion();
+                break;
             case "ClusterRole" :
             case "ClusterRoleBinding" :
             case "Role" :

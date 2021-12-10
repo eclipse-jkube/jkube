@@ -32,6 +32,8 @@ Usage:
 * Fix #1123: Helm supports `.yaml` and `.yml` source files
 * Fix #1136: ConcurrentModificationException when running gradle k8sBuild on Quarkus sample
 * Fix #1145: Remove redundant ServiceHubFactory
+* Fix #1167: Replace apiextensions.k8s.io/v1beta1 by apiextensions.k8s.io/v1
+
 
 ### 1.5.1 (2021-10-28)
 * Fix #1084: Gradle dependencies should be test or provided scope
