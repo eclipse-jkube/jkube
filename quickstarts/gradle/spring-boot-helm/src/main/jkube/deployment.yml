@@ -15,10 +15,10 @@
 metadata:
   namespace: ${helm_namespace}
   labels:
-    project: ${projectArtifactId}
+    project: ${name}
     hystrix.enabled: true
     hystrix.cluster: default
-    version: ${projectVersion}
+    version: ${version}
   annotations:
     jkube.helm.sh/expression-example: ${golang_expression}
     jkube.helm.sh/expression-example-scalar: ${golang_expression_scalar}
@@ -28,10 +28,10 @@ spec:
     metadata:
       namespace: ${helm_namespace}
       labels:
-        project: ${projectArtifactId}
+        project: ${name}
         hystrix.enabled: true
         hystrix.cluster: default
-        version: ${projectVersion}
+        version: ${version}
     spec:
       containers:
         - resources:
