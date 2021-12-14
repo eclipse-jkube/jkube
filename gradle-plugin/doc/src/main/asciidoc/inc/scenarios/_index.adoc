@@ -8,6 +8,10 @@ configuration modes:
 
 include::_zero-config.adoc[]
 
+ifeval::["{task-prefix}" == "k8s"]
+include::_minikube.adoc[]
+endif::[]
+
 include::_groovy.adoc[]
 
 include::_dockerfile.adoc[]
