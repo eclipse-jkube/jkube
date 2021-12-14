@@ -25,6 +25,7 @@ Usage:
 * Fix #778: Support deserialization of fragments with mismatched field types of target Java class 
 * Fix #802: Update Fabric8 kubernetes Client to v5.10.1
 * Fix #887: Incorrect warning about overriding environment variable
+* Fix #900: Fix #900: Remove `projectArtifactId` and `projectVersion` from `gradle.properties` in Spring Boot Helm Quickstart
 * Fix #961: `k8sBuild`, `k8sResource` and `k8sApply` tasks don't respect skip options
 * Fix #1030: Update IngressEnricher's default targetApiVersion to `networking.k8s.io/v1`
 * Fix #1054: Log selected Dockerfile in Docker build mode
