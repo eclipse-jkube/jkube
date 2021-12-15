@@ -1,0 +1,47 @@
+plugins {
+  id 'java'
+  id 'application'
+  id 'org.eclipse.jkube.kubernetes' version '1.6.0-SNAPSHOT'
+  id 'org.eclipse.jkube.openshift' version '1.6.0-SNAPSHOT'
+  id 'io.vertx.vertx-plugin' version '1.3.0'
+}
+
+group = 'org.eclipse.jkube.quickstarts.gradle'
+version = '1.6.0-SNAPSHOT'
+sourceCompatibility = '11'
+def vertxVersion = '4.2.2'
+def launcherClassName = 'io.vertx.core.Launcher'
+
+repositories {
+  mavenCentral()
+}
+
+application {
+  mainClass.set(launcherClassName)
+}
+
+dependencies {
+  implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
+  implementation "io.vertx:vertx-web:$vertxVersion"
+}
+
+kubernetes {
+  enricher {
+    config {
+      'jkube-service' {
+        type = 'NodePort'
+      }
+    }
+  }
+  generator {
+      config {
+          'vertx' {
+              webPort = '8888'
+          }
+      }
+  }
+}
+
+vertx {
+  mainVerticle = 'org.eclipse.jkube.quickstarts.gradle.vertx.MainVerticle'
+}
