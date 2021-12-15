@@ -180,7 +180,7 @@ public class GradleUtil {
   }
 
   private static File findArtifact(Project gradleProject) {
-    return new ArrayList<Configuration>(gradleProject.getConfigurations()).stream()
+    return new ArrayList<>(gradleProject.getConfigurations()).stream()
         .map(Configuration::getOutgoing)
         .map(ConfigurationPublications::getArtifacts)
         .map(PublishArtifactSet::getFiles)
@@ -189,6 +189,7 @@ public class GradleUtil {
         .sorted((o1, o2) -> (int)(o2.length() - o1.length()))
         .distinct()
         .filter(File::exists)
+        .filter(GradleUtil::isJavaArtifact)
         .findFirst().orElse(null);
   }
 
@@ -204,5 +205,9 @@ public class GradleUtil {
             rar -> rar.getId().getComponentIdentifier(),
             Function.identity(),
             (old, rep) -> rep));
+  }
+
+  private static boolean isJavaArtifact(File artifact) {
+    return artifact.getName().toLowerCase(Locale.ROOT).matches(".+?\\.(jar|war|ear)");
   }
 }

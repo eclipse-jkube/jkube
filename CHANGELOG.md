@@ -34,6 +34,7 @@ Usage:
 * Fix #1123: Helm supports `.yaml` and `.yml` source files
 * Fix #1136: ConcurrentModificationException when running gradle k8sBuild on Quarkus sample
 * Fix #1145: Remove redundant ServiceHubFactory
+* Fix #1146: VertxGenerator now works with Kubernetes Gradle Plugin
 * Fix #1167: Replace apiextensions.k8s.io/v1beta1 by apiextensions.k8s.io/v1
 
 

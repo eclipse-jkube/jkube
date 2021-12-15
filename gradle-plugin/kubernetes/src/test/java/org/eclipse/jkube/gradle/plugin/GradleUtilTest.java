@@ -282,6 +282,22 @@ public class GradleUtilTest {
   }
 
   @Test
+  public void findArtifact_withMultipleArchiveFiles_shouldReturnJavaArchiveOnly() throws IOException {
+    // Given
+    final Configuration c = mock(Configuration.class, RETURNS_DEEP_STUBS);
+    File jar1 = folder.newFile("final-artifact.jar");
+    File jar2 = folder.newFile("final-artifact.tar");
+    File jar3 = folder.newFile("final-artifact.zip");
+    when(c.getAllDependencies().stream()).thenAnswer(i -> Stream.empty());
+    when(c.getOutgoing().getArtifacts().getFiles().getFiles()).thenReturn(Stream.of(jar1, jar2, jar3).collect(Collectors.toSet()));
+    projectConfigurations.add(c);
+    // When
+    final JavaProject result = convertGradleProject(project);
+    // Then
+    assertThat(result.getArtifact()).isNotNull().hasName("final-artifact.jar");
+  }
+
+  @Test
   public void canBeResolved_withDeprecatedAndResolutionAlternatives_shouldReturnFalse() {
     // Given
     final DeprecatableConfiguration c = mock(DeprecatableConfiguration.class);
