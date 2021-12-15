@@ -78,12 +78,27 @@ public class VertxGeneratorTest {
   }
 
   @Test
-  public void isApplicableWithPlugin() {
+  public void isApplicable_withMavenPlugin_shouldReturnTrue() {
     // Given
     // @formatter:off
     new Expectations() {{
       project.getPlugins(); result = Collections.singletonList(
           Plugin.builder().groupId("io.reactiverse").artifactId("vertx-maven-plugin").build());
+    }};
+    // @formatter:on
+    // When
+    final boolean result = new VertxGenerator(context).isApplicable(Collections.emptyList());
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void isApplicable_withGradlePlugin_shouldReturnTrue() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      project.getPlugins(); result = Collections.singletonList(
+          Plugin.builder().groupId("io.vertx").artifactId("io.vertx.vertx-plugin").build());
     }};
     // @formatter:on
     // When

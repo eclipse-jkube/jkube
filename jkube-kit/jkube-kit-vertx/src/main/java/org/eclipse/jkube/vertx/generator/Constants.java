@@ -17,6 +17,8 @@ public class Constants {
 
     static final String VERTX_MAVEN_PLUGIN_GROUP = "io.reactiverse";
     static final String VERTX_MAVEN_PLUGIN_ARTIFACT = "vertx-maven-plugin";
+    static final String VERTX_GRADLE_PLUGIN_GROUP = "io.vertx";
+    static final String VERTX_GRADLE_PLUGIN_ARTIFACT = "io.vertx.vertx-plugin";
     static final String SHADE_PLUGIN_GROUP = "org.apache.maven.plugins";
     static final String SHADE_PLUGIN_ARTIFACT = "maven-shade-plugin";
     static final String VERTX_GROUPID = "io.vertx";
