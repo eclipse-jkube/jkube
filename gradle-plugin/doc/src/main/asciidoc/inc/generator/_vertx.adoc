@@ -1,0 +1,31 @@
+[[generator-vertx]]
+=== Vert.x
+
+The Vert.x generator detects an application using Eclipse Vert.x. It generates the metadata to start the application as a fat jar.
+
+Currently, this generator is enabled if:
+
+* you are using the Vert.x Gradle Plugin (https://github.com/jponge/vertx-gradle-plugin)
+* you are depending on `io.vertx:vertx-core` and uses the https://github.com/johnrengelman/shadow[Shadow Jar plugin]
+
+Otherwise, this generator is identical to the <<generator-java-exec,java-exec generator>>. It supports the  <<generator-options-common, common generator options>> and the <<generator-java-exec-options, `java-exec` options>>.
+
+The generator automatically:
+
+* enable metrics and JMX publishing of the metrics when `io.vertx:vertx-dropwizard-metrics` is in the project's classpath / dependencies.
+* enable clustering when a Vert.x cluster manager is available in the project's classpath / dependencies. this is done by appending `-cluster` to the command line.
+* Force IPv4 stack when `vertx-infinispan` is used.
+* Disable the async DNS resolver to fall back to the regular JVM DNS resolver.
+
+You can pass application parameter by setting the `JAVA_ARGS` env variable. You can pass system properties either using the same variable or using `JAVA_OPTIONS`. For instance, create `src/main/jkube/deployment.yml` with the following content to configure `JAVA_ARGS`:
+
+[source, yaml]
+----
+spec:
+ template:
+   spec:
+     containers:
+       - env:
+         - name: JAVA_ARGS
+           value: "-Dfoo=bar -cluster -instances=2"
+----

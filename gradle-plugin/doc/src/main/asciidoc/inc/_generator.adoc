@@ -1,0 +1,34 @@
+
+[[generators]]
+= Generators
+
+include::generator/_overview.adoc[]
+
+[[generators-default]]
+== Default Generators
+
+All default generators examine the build information for certain aspects and generate a Docker build configuration on the fly. They can be configured to a certain degree, where the configuration is generator specific.
+
+.Default Generators
+[cols="1,1,4"]
+|===
+| Generator | Name | Description
+
+| <<generator-java-exec,Java Applications>>
+| `java-exec`
+| Generic generator for flat classpath and fat-jar Java applications
+
+| <<generator-spring-boot,Spring Boot>>
+| `spring-boot`
+| Spring Boot specific generator
+
+| <<generator-vertx,Vert.x>>
+| `vertx`
+| Generator for Vert.x applications
+|===
+
+include::generator/_options_common.adoc[]
+
+include::generator/_java_exec.adoc[]
+include::generator/_spring_boot.adoc[]
+include::generator/_vertx.adoc[]

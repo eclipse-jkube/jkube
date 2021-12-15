@@ -27,6 +27,8 @@ include::inc/tasks/_index.adoc[]
 
 include::inc/_groovy-configuration.adoc[]
 
+include::inc/_generator.adoc[]
+
 include::inc/_registry.adoc[]
 
 include::inc/_authentication.adoc[]
