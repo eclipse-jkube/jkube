@@ -18,12 +18,12 @@ import java.util.List;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
 import static org.eclipse.jkube.micronaut.MicronautUtils.extractPort;
 import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
+import static org.eclipse.jkube.micronaut.MicronautUtils.hasMicronautPlugin;
 
 public class MicronautGenerator extends JavaExecGenerator {
 
@@ -33,8 +33,7 @@ public class MicronautGenerator extends JavaExecGenerator {
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
-        return shouldAddGeneratedImageConfiguration(configs)
-                && JKubeProjectUtil.hasPlugin(getProject(), "io.micronaut.build", "micronaut-maven-plugin");
+        return shouldAddGeneratedImageConfiguration(configs) && hasMicronautPlugin(getProject());
     }
 
     @Override

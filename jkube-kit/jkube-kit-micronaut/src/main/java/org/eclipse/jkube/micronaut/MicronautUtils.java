@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.micronaut;
 
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+
 import java.net.URLClassLoader;
 import java.util.Properties;
 import java.util.function.Supplier;
@@ -46,5 +49,10 @@ public class MicronautUtils {
       }
     }
     return new Properties();
+  }
+
+  public static boolean hasMicronautPlugin(JavaProject javaProject) {
+    return JKubeProjectUtil.hasPlugin(javaProject, "io.micronaut.build", "micronaut-maven-plugin") ||
+        JKubeProjectUtil.hasPlugin(javaProject, "io.micronaut.application", "io.micronaut.application.gradle.plugin");
   }
 }
