@@ -23,3 +23,5 @@ ifeval::["{task-prefix}" == "oc"]
 include::_openshift.adoc[]
 
 endif::[]
+
+include::_vertx.adoc[]
