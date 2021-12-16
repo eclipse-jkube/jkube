@@ -1,0 +1,29 @@
+[[vertx-scenario]]
+== Vert.x
+
+You can easily get started with using {plugin} on an https://start.vertx.io/[Eclipse Vert.x] without providing any explicit configuration. {plugin} would generate an opinionated container image and manifests by inspecting your project configuration.
+
+[[vertx-set-service-port]]
+=== How to set Service Port?
+
+By default, in Vert.x applications, application port value is 8888. {plugin} opinionated defaults use port 8080. If you want to change this, you'll need to configure {plugin} to generate image with desired port:
+
+.Example for setting port number for vertx apps
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+  generator {
+      config {
+          'vertx' {
+              webPort = '8888'
+          }
+      }
+  }
+}
+----
+
+Once configured, you can go ahead and deploy application to Kubernetes:
+[source,shell,subs="attributes+"]
+----
+$ gradle build {task-prefix}Build {task-prefix}Resource {task-prefix}Apply
+----
