@@ -57,13 +57,31 @@ public class MicronautGeneratorTest {
   }
 
   @Test
-  public void isApplicableWithPlugin() {
+  public void isApplicableWithMavenPlugin() {
     // Given
     // @formatter:off
     new Expectations() {{
       project.getPlugins(); result = Collections.singletonList(Plugin.builder()
           .groupId("io.micronaut.build")
           .artifactId("micronaut-maven-plugin")
+          .build()
+      );
+    }};
+    // @formatter:on
+    // When
+    final boolean result = micronautGenerator.isApplicable(Collections.emptyList());
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void isApplicableWithGradlePlugin() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
+          .groupId("io.micronaut.application")
+          .artifactId("io.micronaut.application.gradle.plugin")
           .build()
       );
     }};
