@@ -16,7 +16,6 @@ package org.eclipse.jkube.vertx.generator;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +26,6 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-import org.eclipse.jkube.kit.common.Plugin;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,59 +65,6 @@ public class VertxGeneratorTest {
         .logger(logger)
         .project(project)
         .build();
-  }
-
-  @Test
-  public void isApplicableEmptyProject() {
-    // When
-    final boolean result = new VertxGenerator(context).isApplicable(Collections.emptyList());
-    // Then
-    assertThat(result).isFalse();
-  }
-
-  @Test
-  public void isApplicable_withMavenPlugin_shouldReturnTrue() {
-    // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(
-          Plugin.builder().groupId("io.reactiverse").artifactId("vertx-maven-plugin").build());
-    }};
-    // @formatter:on
-    // When
-    final boolean result = new VertxGenerator(context).isApplicable(Collections.emptyList());
-    // Then
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  public void isApplicable_withGradlePlugin_shouldReturnTrue() {
-    // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(
-          Plugin.builder().groupId("io.vertx").artifactId("io.vertx.vertx-plugin").build());
-    }};
-    // @formatter:on
-    // When
-    final boolean result = new VertxGenerator(context).isApplicable(Collections.emptyList());
-    // Then
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  public void isApplicableWithDependency() {
-    // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getDependencies(); result = Collections.singletonList(
-          Dependency.builder().groupId("io.vertx").build());
-    }};
-    // @formatter:on
-    // When
-    final boolean result = new VertxGenerator(context).isApplicable(Collections.emptyList());
-    // Then
-    assertThat(result).isTrue();
   }
 
   @Test
