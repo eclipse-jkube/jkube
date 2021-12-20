@@ -1,6 +1,6 @@
 
-[[common-scenarios]]
-= Common Scenarios
+[[getting-started]]
+= Getting Started
 
 When working with {plugin}, you'll probably be facing similar situations and following
 the same patterns other users do. These are some of the most common scenarios and
