@@ -30,8 +30,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
-
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -49,7 +47,6 @@ public class AssemblyFileSetUtils {
 
   private AssemblyFileSetUtils() {}
 
-  @Nonnull
   public static List<AssemblyFileEntry> calculateFilePermissions(File source, File dest, AssemblyFileSet assemblyFileSet) {
     final List<AssemblyFileEntry> ret = new ArrayList<>();
     final String fileMode = Optional.ofNullable(assemblyFileSet.getFileMode()).orElse(FILE_MODE_DEFAULT);
@@ -85,7 +82,6 @@ public class AssemblyFileSetUtils {
    * @throws IOException in case something goes wrong when performing File operations.
    */
   @SuppressWarnings("squid:S3864")
-  @Nonnull
   public static List<AssemblyFileEntry> processAssemblyFileSet(
       File baseDirectory, File outputDirectory, AssemblyFileSet assemblyFileSet,
       Assembly layer, AssemblyConfiguration assemblyConfiguration) throws IOException {
@@ -185,14 +181,12 @@ public class AssemblyFileSetUtils {
    * @param afs the fileSet with the declared exclude patterns
    * @return Predicate function to evaluate a Stream of {@link Path}
    */
-  @Nonnull
-  static Predicate<Path> isNotExcluded(@Nonnull Path sourceDirectory, @Nonnull AssemblyFileSet afs) {
+  static Predicate<Path> isNotExcluded(Path sourceDirectory, AssemblyFileSet afs) {
     final List<PathMatcher> excludePM = excludePathMatchers(afs);
     return path -> excludePM.stream().noneMatch(pm -> pm.matches(sourceDirectory.relativize(path).normalize()));
   }
 
-  @Nonnull
-  private static List<PathMatcher> excludePathMatchers(@Nonnull AssemblyFileSet fileSet) {
+  private static List<PathMatcher> excludePathMatchers(AssemblyFileSet fileSet) {
     return Optional.ofNullable(fileSet.getExcludes()).orElse(Collections.emptyList())
         .stream()
         .map(exclude -> FileSystems.getDefault().getPathMatcher(String.format("glob:%s", exclude)))

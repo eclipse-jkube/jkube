@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth;
 
-import com.google.common.net.UrlEscapers;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +38,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -311,7 +311,7 @@ public class AuthConfigFactory {
 
             // get temporary credentials
             request = new HttpGet("http://169.254.169.254/latest/meta-data/iam/security-credentials/"
-                    + UrlEscapers.urlPathSegmentEscaper().escape(instanceRole));
+                    + URLEncoder.encode(instanceRole, StandardCharsets.UTF_8.displayName()));
             request.setConfig(conf);
             try (CloseableHttpResponse response = client.execute(request)) {
                 if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {

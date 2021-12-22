@@ -14,13 +14,14 @@
 package org.eclipse.jkube.kit.build.api.model;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Joiner;
 import com.google.gson.JsonObject;
 
 
@@ -183,7 +184,10 @@ public class ContainerDetails implements Container {
             return null;
         }
 
-        return Joiner.on(", ").join(json.getAsJsonObject(CONFIG).getAsJsonObject(HEALTHCHECK).getAsJsonArray(TEST));
+        List<String> jsonStrList = new ArrayList<>();
+        json.getAsJsonObject(CONFIG).getAsJsonObject(HEALTHCHECK).getAsJsonArray(TEST)
+            .forEach(j -> jsonStrList.add(j.getAsString()));
+        return String.join(", ", jsonStrList);
     }
 
     private void addPortMapping(String port, JsonObject hostConfig, Map<String, PortBinding> portBindings) {

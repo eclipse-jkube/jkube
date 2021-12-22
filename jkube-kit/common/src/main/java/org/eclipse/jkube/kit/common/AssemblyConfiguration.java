@@ -19,8 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
-
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -148,7 +146,6 @@ public class AssemblyConfiguration implements Serializable {
         this.inline = inline;
     }
 
-    @Nonnull
     public List<Assembly> getLayers() {
         final List<Assembly> ret = new ArrayList<>();
         if (layers != null) {
@@ -160,8 +157,7 @@ public class AssemblyConfiguration implements Serializable {
         return ret;
     }
 
-    @Nonnull
-    public List<Assembly> getProcessedLayers(@Nonnull JKubeConfiguration configuration) {
+    public List<Assembly> getProcessedLayers(JKubeConfiguration configuration) {
         final List<Assembly> originalLayers = getLayers();
         if (flattened) {
             return originalLayers;
@@ -185,8 +181,7 @@ public class AssemblyConfiguration implements Serializable {
         return ret;
     }
 
-    @Nonnull
-    private Assembly getLayersFlattened(@Nonnull JKubeConfiguration configuration) {
+    private Assembly getLayersFlattened(JKubeConfiguration configuration) {
         final Assembly.AssemblyBuilder assemblyBuilder = Assembly.builder();
         getProcessedLayers(configuration).forEach(layer -> {
             if (layer.getFileSets() != null) {
@@ -199,8 +194,7 @@ public class AssemblyConfiguration implements Serializable {
         return assemblyBuilder.build();
     }
 
-    @Nonnull
-    public AssemblyConfiguration getFlattenedClone(@Nonnull JKubeConfiguration configuration) {
+    public AssemblyConfiguration getFlattenedClone(JKubeConfiguration configuration) {
         if (isFlattened()) {
             throw new IllegalStateException("This image has already been flattened, you can only flatten the image once");
         }

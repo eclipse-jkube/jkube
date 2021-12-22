@@ -31,7 +31,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import com.google.common.base.Strings;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -147,7 +146,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
             SpringBootUtil.getSpringBootActiveProfile(getProject()),
             JKubeProjectUtil.getClassLoader(getProject()));
         String remoteSecret = properties.getProperty(DEV_TOOLS_REMOTE_SECRET);
-        if (Strings.isNullOrEmpty(remoteSecret)) {
+        if (StringUtils.isBlank(remoteSecret)) {
             addSecretTokenToApplicationProperties();
             throw new IllegalStateException("No spring.devtools.remote.secret found in application.properties. Plugin has added it, please re-run goals");
         }

@@ -13,11 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -33,10 +28,9 @@ import mockit.Mocked;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.TreeMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -130,21 +124,18 @@ public class VolumePermissionEnricherTest {
                 continue;
             }
 
-            Gson gson = new Gson();
-            JsonArray ja = new JsonParser().parse(gson.toJson(initContainers, new TypeToken<Collection<Container>>() {}.getType())).getAsJsonArray();
-            assertEquals(1, ja.size());
-
-            JsonObject jo = ja.get(0).getAsJsonObject();
-            assertEquals(tc.initContainerName, jo.get("name").getAsString());
-            assertEquals(tc.imageName, jo.get("image").getAsString());
+            assertEquals(1, initContainers.size());
+            Container container = initContainers.get(0);
+            assertEquals(tc.initContainerName, container.getName());
+            assertEquals(tc.imageName, container.getImage());
             String permission = StringUtils.isBlank(tc.permission) ? "777" : tc.permission;
-            JsonArray chmodCmd = new JsonArray();
-            chmodCmd.add("chmod");
-            chmodCmd.add(permission);
+            List<String> expectedCommand = new ArrayList<>();
+            expectedCommand.add("chmod");
+            expectedCommand.add(permission);
             for (String vn : tc.volumeNames) {
-              chmodCmd.add("/tmp/" + vn);
+                expectedCommand.add("/tmp/" + vn);
             }
-            assertEquals(chmodCmd.toString(), jo.getAsJsonArray("command").toString());
+            assertEquals(expectedCommand, container.getCommand());
         }
     }
 

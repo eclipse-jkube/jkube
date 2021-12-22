@@ -16,7 +16,6 @@ package org.eclipse.jkube.generator.api;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
-import javax.annotation.Nonnull;
 import java.util.Properties;
 
 public class GeneratorConfig {
@@ -49,7 +48,7 @@ public class GeneratorConfig {
      * @param defaultVal the default value to use when the no config is set
      * @return the value looked up or the default value.
      */
-    public String get(@Nonnull Configs.Config key, String defaultVal) {
+    public String get(Configs.Config key, String defaultVal) {
         return ProcessorConfig.getConfigValue(config, name, GENERATOR_PROP_PREFIX, properties, key, defaultVal);
     }
 

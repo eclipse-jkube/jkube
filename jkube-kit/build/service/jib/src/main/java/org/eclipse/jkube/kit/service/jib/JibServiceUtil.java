@@ -60,8 +60,6 @@ import com.google.cloud.tools.jib.event.progress.ProgressEventHandler;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nonnull;
-
 import static com.google.cloud.tools.jib.api.LayerConfiguration.DEFAULT_FILE_PERMISSIONS_PROVIDER;
 import static org.fusesource.jansi.Ansi.ansi;
 
@@ -270,7 +268,6 @@ public class JibServiceUtil {
                 .orElse(BUSYBOX);
     }
 
-    @Nonnull
     public static List<FileEntriesLayer> layers(BuildDirs buildDirs, Map<Assembly, List<AssemblyFileEntry>> layers) {
         final List<FileEntriesLayer> fileEntriesLayers = new ArrayList<>();
         for (Map.Entry<Assembly, List<AssemblyFileEntry>> layer : layers.entrySet()) {

@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
-import com.google.common.io.ByteStreams;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.UrlBuilder;
 import org.eclipse.jkube.kit.build.service.docker.helper.RequestUtil;
@@ -123,13 +122,34 @@ public class LogRequestor extends Thread implements LogGetHandle {
      * @throws IOException
      */
     private void readFully(InputStream in, byte[] bytes) throws IOException {
-        int read = ByteStreams.read(in, bytes, 0, bytes.length);
+        int read = read(in, bytes, 0, bytes.length);
         if (read == 0) {
             throw new NoBytesReadException();
         } else if (read != bytes.length) {
             throw new EOFException("reached end of stream after reading "
                     + read + " bytes; " + bytes.length + " bytes expected");
         }
+    }
+
+    private static int read(InputStream in, byte[] b, int off, int len) throws IOException {
+        if (in == null || b == null) {
+            return 0;
+        }
+        if (len < 0) {
+            throw new IndexOutOfBoundsException(String.format("len (%s) cannot be negative", len));
+        }
+        if (off < 0 || (off + len) < off || (off + len) > b.length) {
+            throw new IndexOutOfBoundsException(String.format("Invalid position indices start: %d, end: %d, size: %d", off, off + len, b.length));
+        }
+        int total = 0;
+        while (total < len) {
+            int result = in.read(b, off + total, len - total);
+            if (result == -1) {
+                break;
+            }
+            total += result;
+        }
+        return total;
     }
 
     private boolean readStreamFrame(InputStream is) throws IOException, LogCallback.DoneException {
@@ -161,7 +181,7 @@ public class LogRequestor extends Thread implements LogGetHandle {
         // Read the actual message
         ByteBuffer payload = ByteBuffer.allocate(size);
         try {
-            ByteStreams.readFully(is, payload.array());
+            readFully(is, payload.array());
         } catch (EOFException e) {
             throw new IOException("Failed to read log message. Could not read all " + size + " bytes. " + e.getMessage() +
                                   " [ Header: " + Hex.encodeHexString(headerBuffer.array()) + "]", e);

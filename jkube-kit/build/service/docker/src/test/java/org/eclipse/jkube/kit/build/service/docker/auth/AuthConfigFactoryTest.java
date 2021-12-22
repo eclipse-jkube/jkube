@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import mockit.Expectations;
@@ -331,17 +330,17 @@ public class AuthConfigFactoryTest {
     }
 
     private void givenEcsMetadataService(String containerCredentialsUri, String accessKeyId, String secretAccessKey, String sessionToken) throws IOException {
+        Map<String, String> responseEntity = new HashMap<>();
+        responseEntity.put("AccessKeyId", accessKeyId);
+        responseEntity.put("SecretAccessKey", secretAccessKey);
+        responseEntity.put("Token", sessionToken);
         httpServer =
                 ServerBootstrap.bootstrap()
                         .setLocalAddress(InetAddress.getLoopbackAddress())
                         .registerHandler("*", (request, response, context) -> {
                             System.out.println("REQUEST: " + request.getRequestLine());
                             if (containerCredentialsUri.matches(request.getRequestLine().getUri())) {
-                                response.setEntity(new StringEntity(gsonBuilder.create().toJson(ImmutableMap.of(
-                                        "AccessKeyId", accessKeyId,
-                                        "SecretAccessKey", secretAccessKey,
-                                        "Token", sessionToken
-                                ))));
+                                response.setEntity(new StringEntity(gsonBuilder.create().toJson(responseEntity)));
                             } else {
                                 response.setStatusCode(SC_NOT_FOUND);
                             }

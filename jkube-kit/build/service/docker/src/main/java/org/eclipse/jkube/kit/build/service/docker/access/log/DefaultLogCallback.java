@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
-import com.google.common.io.Files;
 import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
+import org.eclipse.jkube.kit.common.util.FileUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -47,7 +47,7 @@ public class DefaultLogCallback implements LogCallback {
             } else {
                 SharedPrintStream cachedPs = printStreamMap.get(file);
                 if (cachedPs == null) {
-                    Files.createParentDirs(new File(file));
+                    FileUtil.createParentDirs(new File(file));
                     PrintStream ps = new PrintStream(new FileOutputStream(file), true);
                     cachedPs = new SharedPrintStream(ps);
                     printStreamMap.put(file, cachedPs);

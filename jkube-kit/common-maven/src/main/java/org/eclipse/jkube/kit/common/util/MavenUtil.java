@@ -35,7 +35,6 @@ import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
-import com.google.common.base.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -103,13 +102,13 @@ public class MavenUtil {
         if (artifacts != null) {
             for (Artifact artifact : artifacts) {
                 String scope = artifact.getScope();
-                if (Objects.equal("test", scope)) {
+                if (scope.equals("test")) {
                     continue;
                 }
-                if (artifactId != null && !Objects.equal(artifactId, artifact.getArtifactId())) {
+                if (artifactId != null && !artifactId.equals(artifact.getArtifactId())) {
                     continue;
                 }
-                if (Objects.equal(groupId, artifact.getGroupId())) {
+                if (groupId.equals(artifact.getGroupId())) {
                     return artifact.getVersion();
                 }
             }

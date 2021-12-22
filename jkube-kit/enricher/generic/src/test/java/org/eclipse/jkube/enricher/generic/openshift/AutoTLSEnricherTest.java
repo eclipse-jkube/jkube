@@ -13,17 +13,13 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodTemplate;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import mockit.Expectations;
@@ -36,9 +32,7 @@ import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -130,12 +124,10 @@ public class AutoTLSEnricherTest {
             Assert.assertTrue(generatedAnnotation.containsValue(context.getGav().getArtifactId() + "-tls"));
 
             //Test Pod template
-            Gson gson = new Gson();
-            JsonArray ja = new JsonParser().parse(gson.toJson(initContainers, new TypeToken<Collection<Container>>() {}.getType())).getAsJsonArray();
-            assertEquals(1, ja.size());
-            JsonObject jo = ja.get(0).getAsJsonObject();
-            assertEquals(tc.initContainerName, jo.get("name").getAsString());
-            assertEquals(tc.initContainerImage, jo.get("image").getAsString());
+            assertEquals(1, initContainers.size());
+            Container initContainer = initContainers.get(0);
+            assertEquals(tc.initContainerName, initContainer.getName());
+            assertEquals(tc.initContainerImage, initContainer.getImage());
             //Test volumes are created
             List<Volume> volumes = pt.getTemplate().getSpec().getVolumes();
             assertEquals(2, volumes.size());
@@ -143,12 +135,12 @@ public class AutoTLSEnricherTest {
             Assert.assertTrue(volumeNames.contains(tc.tlsSecretVolumeName));
             Assert.assertTrue(volumeNames.contains(tc.jksVolumeName));
             //Test volume mounts are created
-            JsonArray mounts = jo.get("volumeMounts").getAsJsonArray();
-            assertEquals(2, mounts.size());
-            JsonObject mount = mounts.get(0).getAsJsonObject();
-            assertEquals(tc.tlsSecretVolumeName, mount.get("name").getAsString());
-            mount = mounts.get(1).getAsJsonObject();
-            assertEquals(tc.jksVolumeName, mount.get("name").getAsString());
+            List<VolumeMount> volumeMounts = initContainer.getVolumeMounts();
+            assertEquals(2, volumeMounts.size());
+            VolumeMount mount = volumeMounts.get(0);
+            assertEquals(tc.tlsSecretVolumeName, mount.getName());
+            mount = volumeMounts.get(1);
+            assertEquals(tc.jksVolumeName, mount.getName());
         }
     }
 }

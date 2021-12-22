@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import com.google.common.collect.ImmutableSet;
 import org.eclipse.jkube.kit.build.api.model.Container;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
@@ -23,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -147,11 +147,11 @@ public class ContainerNamingUtil {
     }
 
     private static Set<String> extractContainerNames(final Collection<Container> existingContainers) {
-        final ImmutableSet.Builder<String> containerNamesBuilder = ImmutableSet.builder();
+        Set<String> containerNames = new HashSet<>();
         for (final Container container : existingContainers) {
-            containerNamesBuilder.add(container.getName());
+            containerNames.add(container.getName());
         }
-        return containerNamesBuilder.build();
+        return containerNames;
     }
 
     private static String extractContainerNamePattern(ImageConfiguration image, String defaultContainerNamePattern) {

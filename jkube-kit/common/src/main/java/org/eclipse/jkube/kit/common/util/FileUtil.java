@@ -252,5 +252,18 @@ public class FileUtil {
           throw new IOException("Failed to create directory: " + directory.getAbsolutePath());
         }
     }
+
+    public static void createParentDirs(File file) throws IOException {
+        if (file != null) {
+            File parent = file.getCanonicalFile().getParentFile();
+            if (parent == null) {
+                return;
+            }
+            parent.mkdirs();
+            if (!parent.isDirectory()) {
+                throw new IOException("Unable to create parent directories of " + file);
+            }
+        }
+    }
 }
 

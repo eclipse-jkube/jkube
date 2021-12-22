@@ -20,7 +20,6 @@ import java.lang.reflect.Modifier;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -70,7 +69,7 @@ public class KubernetesConfigViewTask extends AbstractJKubeTask {
   }
 
   @Override
-  public void setGroup(@Nullable String group) {
+  public void setGroup(String group) {
     // Task group is set in constructor and shouldn't be changed.
   }
 

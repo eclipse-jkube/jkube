@@ -36,8 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.Named;
 
-import javax.annotation.Nonnull;
-
 /**
  * Configuration for enrichers and generators
  *
@@ -230,7 +228,6 @@ public class ProcessorConfig {
             .distinct().collect(Collectors.toList());
     }
 
-    @Nonnull
     private static Map<String, Map<String, Object>> mergeConfig(ProcessorConfig ... processorConfigs) {
         final Map<String, Map<String, Object>> ret= new HashMap<>();
         final Predicate<Map.Entry<?, ? >> nonNullEntry = e -> e.getKey() != null && e.getValue() !=null;

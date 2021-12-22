@@ -30,7 +30,6 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
-import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -43,7 +42,6 @@ import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
@@ -333,9 +331,10 @@ public class OpenshiftBuildServiceIntegrationTest {
     final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false);
 
     OpenshiftBuildService service = new OpenshiftBuildService(jKubeServiceHub);
-    Map<String,String> fromExt = ImmutableMap.of("name", "app:1.2-1",
-        "kind", "ImageStreamTag",
-        "namespace", "my-project");
+    Map<String, String> fromExt = new HashMap<>();
+    fromExt.put("name", "app:1.2-1");
+    fromExt.put("kind", "ImageStreamTag");
+    fromExt.put("namespace", "my-project");
     ImageConfiguration fromExtImage = ImageConfiguration.builder()
         .name(projectName)
         .build(BuildConfiguration.builder()

@@ -25,8 +25,6 @@ import java.util.LinkedList;
 
 import com.google.gson.JsonObject;
 
-import com.google.common.collect.ImmutableMap;
-
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
@@ -160,11 +158,12 @@ public class BuildService {
     }
 
     private Map<String, String> prepareBuildArgs(Map<String, String> buildArgs, BuildConfiguration buildConfig) {
-        ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder().putAll(buildArgs);
+        Map<String, String> builder = new HashMap<>();
+        builder.putAll(buildArgs);
         if (buildConfig.getArgs() != null) {
             builder.putAll(buildConfig.getArgs());
         }
-        return builder.build();
+        return builder;
     }
 
     private String getDockerfileName(BuildConfiguration buildConfig) {
@@ -182,15 +181,12 @@ public class BuildService {
     }
 
     private Map<String, String> addBuildArgs(JKubeConfiguration configuration) {
-        Map<String, String> buildArgsFromProject = addBuildArgsFromProperties(configuration.getProject().getProperties());
-        Map<String, String> buildArgsFromSystem = addBuildArgsFromProperties(System.getProperties());
-        Map<String, String> buildArgsFromDockerConfig = addBuildArgsFromDockerConfig();
-        return ImmutableMap.<String, String>builder()
-                .putAll(buildArgsFromDockerConfig)
-                .putAll(Optional.ofNullable(configuration.getBuildArgs()).orElse(Collections.emptyMap()))
-                .putAll(buildArgsFromProject)
-                .putAll(buildArgsFromSystem)
-                .build();
+        Map<String, String> finalBuildArgs = new HashMap<>();
+        finalBuildArgs.putAll(addBuildArgsFromDockerConfig());
+        finalBuildArgs.putAll(Optional.ofNullable(configuration.getBuildArgs()).orElse(Collections.emptyMap()));
+        finalBuildArgs.putAll(addBuildArgsFromProperties(configuration.getProject().getProperties()));
+        finalBuildArgs.putAll(addBuildArgsFromProperties(System.getProperties()));
+        return finalBuildArgs;
     }
 
     private Map<String, String> addBuildArgsFromProperties(Properties properties) {

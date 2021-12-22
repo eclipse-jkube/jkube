@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -185,12 +183,10 @@ public class RunImageConfiguration implements Serializable {
     return null;
   }
 
-  @Nonnull
   public List<String> getDependsOn() {
     return EnvUtil.splitAtCommasAndTrim(dependsOn);
   }
 
-  @Nonnull
   public List<String> getPorts() {
     return EnvUtil.removeEmptyEntries(ports);
   }
@@ -209,7 +205,6 @@ public class RunImageConfiguration implements Serializable {
     return volumes;
   }
 
-  @Nonnull
   public List<String> getLinks() {
     return EnvUtil.splitAtCommasAndTrim(links);
   }

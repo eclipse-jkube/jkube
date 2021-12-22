@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.JavaProject;
 
 import java.text.SimpleDateFormat;
@@ -151,7 +151,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
 
         public String lookup() {
             String tag = getProperty(DOCKER_IMAGE_TAG);
-            if (!Strings.isNullOrEmpty(tag)) {
+            if (StringUtils.isNotBlank(tag)) {
                 return tag;
             }
 
