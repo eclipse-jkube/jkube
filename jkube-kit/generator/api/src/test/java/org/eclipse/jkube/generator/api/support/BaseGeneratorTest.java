@@ -36,8 +36,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.AssertionsForClassTypes.entry;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -351,6 +351,22 @@ public class BaseGeneratorTest {
     List<String> tags = config.getTags();
     assertEquals(1, tags.size());
     assertTrue(tags.get(0).endsWith("latest"));
+  }
+
+  @Test
+  public void addTagsFromConfig() {
+    new Expectations() {{
+        ctx.getProject();
+        result = project;
+    }};
+    BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+    properties.put("jkube.generator.test-generator.tags", " tag-1, tag-2 , other-tag");
+    BaseGenerator generator = createGenerator(null);
+    generator.addTagsFromConfig(builder);
+    BuildConfiguration config = builder.build();
+    assertThat(config.getTags())
+        .hasSize(3)
+        .containsExactlyInAnyOrder("tag-1", "tag-2", "other-tag");
   }
 
   public void inKubernetes() {

@@ -76,6 +76,7 @@ public class KarafGenerator extends BaseGenerator {
       buildBuilder.assembly(createDefaultAssembly());
     }
     addLatestTagIfSnapshot(buildBuilder);
+    addTagsFromConfig(buildBuilder);
     imageBuilder
         .name(getImageName())
         .alias(getAlias())

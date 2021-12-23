@@ -154,6 +154,7 @@ public class JavaExecGenerator extends BaseGenerator {
       addPrometheusPort(buildBuilder);
 
       addLatestTagIfSnapshot(buildBuilder);
+      addTagsFromConfig(buildBuilder);
       buildBuilder.workdir(getBuildWorkdir());
       buildBuilder.entryPoint(getBuildEntryPoint());
       return buildBuilder;
