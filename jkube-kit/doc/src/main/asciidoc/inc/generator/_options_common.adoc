@@ -45,6 +45,10 @@ or already added by a generator which has been run previously.
 | *registry*
 | A optional Docker registry used when doing Docker builds. It has no effect for OpenShift S2I builds.
 | `jkube.generator.registry`
+
+| *tags*
+| A comma separated list of additional tags you want to tag your image with
+| `jkube.generator.tags`
 |===
 
 When used as properties they can be directly referenced with the property names above.

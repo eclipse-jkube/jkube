@@ -15,10 +15,12 @@ package org.eclipse.jkube.generator.api.support;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.Generator;
@@ -74,7 +76,10 @@ public abstract class BaseGenerator implements Generator {
         FROM_MODE("fromMode", null),
 
         // Optional registry
-        REGISTRY("registry", null);
+        REGISTRY("registry", null),
+
+        // Tags
+        TAGS("tags", null);
 
         @Getter
         protected String key;
@@ -224,6 +229,16 @@ public abstract class BaseGenerator implements Generator {
     protected void addLatestTagIfSnapshot(BuildConfiguration.BuildConfigurationBuilder buildBuilder) {
         if (getProject().getVersion().endsWith("-SNAPSHOT")) {
             buildBuilder.tags(Collections.singletonList("latest"));
+        }
+    }
+
+    protected void addTagsFromConfig(BuildConfiguration.BuildConfigurationBuilder buildConfigurationBuilder) {
+        String commaSeparatedTags = getConfig(Config.TAGS);
+        if (StringUtils.isNotBlank(commaSeparatedTags)) {
+            List<String> tags = Arrays.stream(commaSeparatedTags.split(","))
+                .map(String::trim)
+                .collect(Collectors.toList());
+            buildConfigurationBuilder.tags(tags);
         }
     }
 

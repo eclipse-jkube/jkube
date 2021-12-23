@@ -128,6 +128,7 @@ public class WebAppGenerator extends BaseGenerator {
       buildBuilder.assembly(createAssembly(handler));
     }
     addLatestTagIfSnapshot(buildBuilder);
+    addTagsFromConfig(buildBuilder);
     imageBuilder
         .name(getImageName())
         .alias(getAlias())
