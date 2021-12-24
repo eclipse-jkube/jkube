@@ -28,7 +28,7 @@ so that the assembly files will end up in `/my/target/directory` within the cont
 If this directory contains a `.jkube-dockerignore` (or alternatively, a `.jkube-dockerexclude` file), then it is used
 for excluding files for the build. If the file doesn't exist, or it's empty, then there are no exclusions.
 
-Each line in this file is treated as an entry in the `excludes` assembly `fileSet` <<build-assembly-inline, configuration >>.
+Each line in this file is treated as an entry in the `excludes` assembly `fileSet` <<build-assembly-layer, configuration >>.
 Files can be referenced by using their relative path name.
 Wildcards are also supported, patterns will be matched using
 https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)[
@@ -51,7 +51,7 @@ build/classes/**  # <1>
 If this directory contains a `.jkube-dockerinclude` file, then it is used for including only those files for the build.
 If the file doesn't exist or it's empty, then everything is included.
 
-Each line in this file is treated as an entry in the `includes` assembly `fileSet` <<build-assembly-inline, configuration >>.
+Each line in this file is treated as an entry in the `includes` assembly `fileSet` <<build-assembly-layer, configuration >>.
 Files can be referenced by using their relative path name.
 Wildcards are also supported, patterns will be matched using
 https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)[

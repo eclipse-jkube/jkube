@@ -278,9 +278,10 @@ protected registry which requires authentication.
 
 endif::[]
 
-| *profile*
-| Profile to which contains enricher and generators configuration. See <<profiles,Profiles>> for details.
-| `jkube.profile`
+// TODO - Add when support is complete
+//| *profile*
+//| Profile to which contains enricher and generators configuration. See <<profiles,Profiles>> for details.
+//| `jkube.profile`
 
 ifeval::["{task-prefix}" == "oc"]
 | *processTemplatesLocally*

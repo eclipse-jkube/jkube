@@ -77,7 +77,8 @@ the following additional configuration options are recognized:
 | `jkube.generator.java-exec.webPort`
 |===
 
-The exposed ports are typically later on use by <<enrichers, Enrichers>> to create default Kubernetes or OpenShift services.
+// TODO - Add when enrichers are added to documentation
+//The exposed ports are typically later on use by <<enrichers, Enrichers>> to create default Kubernetes or OpenShift services.
 
 You can add additional files to the target image within `baseDir` by placing files into `src/main/jkube-includes`.
 These will be added with mode `0644`, while everything in `src/main/jkube-includes/bin` will be added with `0755`.

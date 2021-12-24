@@ -32,7 +32,8 @@ Profiles are defined in YAML. The following example shows a simple profiles whic
 ----
 <1> Profile's name
 <2> <<generators, Generators>> to use
-<3> <<enrichers, Enrichers>> to use
+// TODO - Add when support is complete
+//<3> <<enrichers, Enrichers>> to use
 <4> List of enricher to *include* in that given order
 <5> List of enricher to *exclude*
 <6> Configuration for services an enrichers
