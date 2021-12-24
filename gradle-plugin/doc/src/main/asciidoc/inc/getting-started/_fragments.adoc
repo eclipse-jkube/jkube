@@ -43,4 +43,6 @@ Additionally, if you name your fragment using a name prefix followed by a dash a
 
 No image is also referenced in this example because the plugin also fills in the image details based on the configured image you are building with (either from a generator or from a dedicated image plugin configuration, as seen before).
 
-Enrichment of resource fragments can be fine-tuned by using profile sub-directories. For more details see <<profiles, Profiles>>.
+Enrichment of resource fragments can be fine-tuned by using profile sub-directories.
+// TODO - Add when support is complete
+//For more details see <<profiles, Profiles>>.

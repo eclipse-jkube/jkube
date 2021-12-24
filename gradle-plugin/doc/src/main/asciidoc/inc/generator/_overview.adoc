@@ -1,8 +1,9 @@
 The usual way to define Docker images is with the plugin configuration as explained in <<jkubeBuild>>. This can either be done completely within the `build.gradle` or by referring to an external Dockerfile.
 
-However, this plugin provides an additional route for defining image configurations. This is done by so called _Generators_. A generator is a Java component providing an auto-detection mechanism for certain build types like a Spring Boot build or a plain Java build. As soon as a _Generator_ detects that it is applicable it will be called with the list of images configured in the `build.gradle`. Typically a generator only creates dynamically a new image configuration if this list is empty. But a generator is free to also add new images to an existing list or even change the current image list.
+However, this plugin provides an additional route for defining image configurations. This is done by so called _Generators_. A generator is a Java component providing an auto-detection mechanism for certain build types like a Spring Boot build or a plain Java build. As soon as a _Generator_ detects that it is applicable it will be called with the list of images configured in the `build.gradle`.
 
-You can easily create your own generator as explained in <<generators-api, Generator API>>. This section will focus on existing generators and how you can configure them.
+// TODO - Add when support is complete
+//You can easily create your own generator as explained in <<generators-api, Generator API>>. This section will focus on existing generators and how you can configure them.
 
 The included _Generators_ are enabled by default, but you can easily disable them or only select a certain set of generators. Each generator has a _name_, which is unique for a generator.
 

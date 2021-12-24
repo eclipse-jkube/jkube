@@ -22,13 +22,28 @@ All default generators examine the build information for certain aspects and gen
 | `spring-boot`
 | Spring Boot specific generator
 
+| <<generator-quarkus,Quarkus>>
+| `Quarkus`
+| Generator for Quarkus based applications
+
+| <<generator-micronaut,Micronaut>>
+| `micronaut`
+| Generator for Micronaut based applications
+
 | <<generator-vertx,Vert.x>>
 | `vertx`
 | Generator for Vert.x applications
+
+| <<generator-openliberty,Open Liberty>>
+| `openliberty`
+| Generator for Open Liberty applications
 |===
 
 include::generator/_options_common.adoc[]
 
 include::generator/_java_exec.adoc[]
 include::generator/_spring_boot.adoc[]
+include::generator/_quarkus.adoc[]
+include::generator/_micronaut.adoc[]
 include::generator/_vertx.adoc[]
+include::generator/_openliberty.adoc[]
