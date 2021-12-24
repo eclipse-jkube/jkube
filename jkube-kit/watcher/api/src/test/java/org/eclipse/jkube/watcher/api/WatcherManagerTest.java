@@ -63,7 +63,7 @@ public class WatcherManagerTest {
     // Given
     final List<ImageConfiguration> images = Collections.singletonList(new ImageConfiguration());
     // When
-    WatcherManager.watch(images, Collections.emptyList(), watcherContext);
+    WatcherManager.watch(images, null, Collections.emptyList(), watcherContext);
     // Then
     assertThat(images)
         .hasSize(1)
@@ -93,7 +93,7 @@ public class WatcherManagerTest {
     }
 
     @Override
-    public void watch(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) {
+    public void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode) {
       configs.forEach(ic -> ic.setName("processed-by-test"));
     }
   }

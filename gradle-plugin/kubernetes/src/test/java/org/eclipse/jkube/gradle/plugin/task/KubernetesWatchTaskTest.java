@@ -35,6 +35,7 @@ import java.net.URL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
@@ -103,6 +104,6 @@ public class KubernetesWatchTaskTest {
     // Then
     AssertionsForClassTypes.assertThat(watchTask.jKubeServiceHub.getBuildService()).isNotNull()
         .isInstanceOf(DockerBuildService.class);
-    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), any(), any()), times(1));
+    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), isNull(), any(), any()), times(1));
   }
 }

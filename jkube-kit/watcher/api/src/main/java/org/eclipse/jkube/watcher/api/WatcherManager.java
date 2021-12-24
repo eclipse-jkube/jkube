@@ -38,7 +38,7 @@ public class WatcherManager {
   private WatcherManager() {
   }
 
-  public static void watch(List<ImageConfiguration> ret, Collection<HasMetadata> resources, WatcherContext watcherCtx)
+  public static void watch(List<ImageConfiguration> ret, String namespace, Collection<HasMetadata> resources, WatcherContext watcherCtx)
       throws Exception {
 
     final PluginServiceFactory<WatcherContext> pluginFactory = new PluginServiceFactory<>(watcherCtx);
@@ -73,6 +73,6 @@ public class WatcherManager {
     }
 
     log.info("Running watcher %s", chosen.getName());
-    chosen.watch(ret, resources, mode);
+    chosen.watch(ret, namespace, resources, mode);
   }
 }

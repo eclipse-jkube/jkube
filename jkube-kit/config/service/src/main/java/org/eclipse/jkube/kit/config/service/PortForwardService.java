@@ -62,7 +62,7 @@ public class PortForwardService {
      * @param localPort port at remote machine outside Kubernetes Cluster
      * @return {@link Closeable} Closeable
      */
-    public Closeable forwardPortAsync(final LabelSelector podSelector, final int containerPort, final int localPort) {
+    public Closeable forwardPortAsync(final LabelSelector podSelector, String namespace, final int containerPort, final int localPort) {
 
         final Lock monitor = new ReentrantLock(true);
         final Condition podChanged = monitor.newCondition();
@@ -125,10 +125,10 @@ public class PortForwardService {
         };
 
         // Switching forward to the current pod if present
-        Pod newPod = getNewestPod(podSelector);
+        Pod newPod = getNewestPod(namespace, podSelector);
         nextForwardedPod[0] = newPod;
 
-        final Watch watch = KubernetesHelper.withSelector(kubernetes.pods(), podSelector, log).watch(new Watcher<Pod>() {
+        final Watch watch = KubernetesHelper.withSelector(kubernetes.pods().inNamespace(namespace), podSelector, log).watch(new Watcher<Pod>() {
 
             @Override
             public void eventReceived(Action action, Pod pod) {
@@ -195,9 +195,9 @@ public class PortForwardService {
         return KubernetesHelper.getName(pod1).equals(KubernetesHelper.getName(pod2));
     }
 
-    private Pod getNewestPod(LabelSelector selector) {
+    private Pod getNewestPod(String namespace, LabelSelector selector) {
         FilterWatchListDeletable<Pod, PodList> pods =
-                KubernetesHelper.withSelector(kubernetes.pods(), selector, log);
+                KubernetesHelper.withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
 
         PodList list = pods.list();
         if (list != null) {

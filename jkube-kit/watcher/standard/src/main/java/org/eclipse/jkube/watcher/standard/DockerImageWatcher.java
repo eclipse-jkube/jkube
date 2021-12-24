@@ -74,7 +74,7 @@ public class DockerImageWatcher extends BaseWatcher {
     }
 
     @Override
-    public void watch(List<ImageConfiguration> configs, final Collection<HasMetadata> resources, PlatformMode mode) {
+    public void watch(List<ImageConfiguration> configs, String namespace, final Collection<HasMetadata> resources, PlatformMode mode) {
 
         WatchContext watchContext = getContext().getWatchContext();
 

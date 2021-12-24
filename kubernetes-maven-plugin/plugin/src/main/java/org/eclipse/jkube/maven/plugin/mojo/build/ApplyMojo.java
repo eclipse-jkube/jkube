@@ -182,7 +182,10 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
             }
             KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
             List<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
-            log.info("Using %s at %s in namespace %s with manifest %s ", clusterKind, masterUrl, clusterAccess.getNamespace(), manifest);
+            log.info("Using %s at %s in namespace %s with manifest %s ", clusterKind, masterUrl, Optional.ofNullable(namespace)
+                .orElse(Optional.ofNullable(resources)
+                    .map(ResourceConfig::getNamespace)
+                    .orElse(clusterAccess.getNamespace())), manifest);
 
             configureApplyService(kubernetes);
 

@@ -37,6 +37,7 @@ Usage:
 * Fix #1146: VertxGenerator now works with Kubernetes Gradle Plugin
 * Fix #1148: Enable MicronautGenerator with Kubernetes Gradle Plugin
 * Fix #1167: Replace apiextensions.k8s.io/v1beta1 by apiextensions.k8s.io/v1
+* Fix #1180: `k8s:watch` uses default namespace even if other namespace is configured
 
 
 ### 1.5.1 (2021-10-28)

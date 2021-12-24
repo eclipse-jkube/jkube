@@ -65,15 +65,15 @@ public class PortForwardServiceTest {
                 .endMetadata()
                 .build();
 
-        mockServer.expect().get().withPath("/api/v1/namespaces/test/pods?labelSelector=mykey%3Dmyvalue").andReturn(200, pods1).always();
-        mockServer.expect().get().withPath("/api/v1/namespaces/test/pods").andReturn(200, pods1).always();
-        mockServer.expect().get().withPath("/api/v1/namespaces/test/pods?labelSelector=mykey%3Dmyvalue&watch=true")
+        mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=mykey%3Dmyvalue").andReturn(200, pods1).always();
+        mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods").andReturn(200, pods1).always();
+        mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=mykey%3Dmyvalue&watch=true")
                 .andUpgradeToWebSocket().open()
                 .waitFor(1000)
                 .andEmit(new WatchEvent(pod1, "MODIFIED"))
                 .done().always();
 
-        mockServer.expect().get().withPath("/api/v1/namespaces/test/pods?resourceVersion=1&watch=true")
+        mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?resourceVersion=1&watch=true")
                 .andUpgradeToWebSocket().open()
                 .waitFor(1000)
                 .andEmit(new WatchEvent(pod1, "MODIFIED"))
@@ -87,7 +87,7 @@ public class PortForwardServiceTest {
             }
         };
 
-        try (Closeable c = service.forwardPortAsync(new LabelSelectorBuilder().withMatchLabels(Collections.singletonMap("mykey", "myvalue")).build(), 8080, 9000)) {
+        try (Closeable c = service.forwardPortAsync(new LabelSelectorBuilder().withMatchLabels(Collections.singletonMap("mykey", "myvalue")).build(), "ns1", 8080, 9000)) {
             Thread.sleep(3000);
         }
     }

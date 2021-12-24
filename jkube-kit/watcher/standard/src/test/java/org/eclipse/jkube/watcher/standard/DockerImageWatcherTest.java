@@ -72,7 +72,7 @@ public class DockerImageWatcherTest {
   @Test
   public void watchShouldInitWatchContext() {
     // When
-    dockerImageWatcher.watch(null, null, null);
+    dockerImageWatcher.watch(null, null, null, null);
     // Then
     assertThat(watchContext)
         .isNotNull()
@@ -83,7 +83,7 @@ public class DockerImageWatcherTest {
   @Test
   public void watchExecuteCommandInPodTask(@Mocked PodExecutor podExecutor) throws Exception {
     // Given
-    dockerImageWatcher.watch(null, null, null);
+    dockerImageWatcher.watch(null, null, null, null);
     final ExecTask execTask = watchContext.getContainerCommandExecutor();
     // When
     execTask.exec("the command");
@@ -100,7 +100,7 @@ public class DockerImageWatcherTest {
   @Test
   public void watchCopyFileToPod(@Mocked PodExecutor podExecutor) throws Exception {
     // Given
-    dockerImageWatcher.watch(null, null, null);
+    dockerImageWatcher.watch(null, null, null, null);
     final CopyFilesTask copyFilesTask = watchContext.getContainerCopyTask();
     // When
     copyFilesTask.copy(null);
