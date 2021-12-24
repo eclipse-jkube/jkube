@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
@@ -29,6 +30,7 @@ import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
@@ -68,7 +70,10 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
      * The generated kubernetes YAML file
      */
     @Parameter(property = "jkube.kubernetesManifest", defaultValue = DEFAULT_KUBERNETES_MANIFEST)
-    private File kubernetesManifest;
+    protected File kubernetesManifest;
+
+    @Parameter(property = "jkube.namespace")
+    protected String namespace;
 
     /**
      * Watcher specific options. This is a generic prefix where the keys have the form
@@ -80,7 +85,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     @Component
     private BuildPluginManager pluginManager;
 
-    private KubernetesClient kubernetesClient;
+    KubernetesClient kubernetesClient;
 
     @Override
     public File getKubernetesManifest() {
@@ -99,10 +104,16 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
         KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
 
         try {
-            List<HasMetadata> resources = KubernetesHelper.loadResources(getManifest(kubernetesClient));
+            List<HasMetadata> appliedK8sResources = KubernetesHelper.loadResources(getManifest(kubernetesClient));
             WatcherContext context = getWatcherContext();
 
-            WatcherManager.watch(getResolvedImages(), resources, context);
+            WatcherManager.watch(getResolvedImages(),
+                Optional.ofNullable(namespace)
+                    .orElse(Optional.ofNullable(resources)
+                        .map(ResourceConfig::getNamespace)
+                        .orElse(clusterAccess.getNamespace())),
+                appliedK8sResources,
+                context);
 
         } catch (KubernetesClientException ex) {
             KubernetesResourceUtil.handleKubernetesClientException(ex, this.log);

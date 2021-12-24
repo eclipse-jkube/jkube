@@ -85,7 +85,7 @@ public class SpringBootWatcher extends BaseWatcher {
     }
 
     @Override
-    public void watch(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) throws Exception {
+    public void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode) throws Exception {
         KubernetesClient kubernetes = getContext().getJKubeServiceHub().getClient();
 
         PodLogService.PodLogServiceContext logContext = PodLogService.PodLogServiceContext.builder()
@@ -96,12 +96,12 @@ public class SpringBootWatcher extends BaseWatcher {
 
         new PodLogService(logContext).tailAppPodsLogs(
             kubernetes,
-            getContext().getJKubeServiceHub().getClusterAccess().getNamespace(),
+            namespace,
             resources, false, null, true, null, false);
 
-        String url = getServiceExposeUrl(kubernetes, resources);
+        String url = getServiceExposeUrl(kubernetes, namespace, resources);
         if (url == null) {
-            url = getPortForwardUrl(resources);
+            url = getPortForwardUrl(namespace, resources);
         }
 
         if (url != null) {
@@ -111,7 +111,7 @@ public class SpringBootWatcher extends BaseWatcher {
         }
     }
 
-    String getPortForwardUrl(final Collection<HasMetadata> resources) {
+    String getPortForwardUrl(final String namespace, final Collection<HasMetadata> resources) {
         LabelSelector selector = KubernetesHelper.extractPodLabelSelector(resources);
         if (selector == null) {
             log.warn("Unable to determine a selector for application pods");
@@ -125,7 +125,7 @@ public class SpringBootWatcher extends BaseWatcher {
 
         int localHostPort = IoUtil.getFreeRandomPort();
         int containerPort = propertyHelper.getServerPort(properties);
-        portForwardService.forwardPortAsync(selector, containerPort, localHostPort);
+        portForwardService.forwardPortAsync(selector, namespace, containerPort, localHostPort);
 
         return createForwardUrl(propertyHelper, properties, localHostPort);
     }
@@ -136,9 +136,9 @@ public class SpringBootWatcher extends BaseWatcher {
         return scheme + "localhost:" + localPort + contextPath;
     }
 
-    private String getServiceExposeUrl(KubernetesClient kubernetes, Collection<HasMetadata> resources) throws InterruptedException {
+    private String getServiceExposeUrl(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> resources) throws InterruptedException {
         long serviceUrlWaitTimeSeconds = Configs.asInt(getConfig(Config.SERVICE_URL_WAIT_TIME_SECONDS));
-        String url = KubernetesHelper.getServiceExposeUrl(kubernetes, resources, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
+        String url = KubernetesHelper.getServiceExposeUrl(kubernetes, namespace, resources, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
         if (StringUtils.isNotBlank(url)) {
             return url;
         }

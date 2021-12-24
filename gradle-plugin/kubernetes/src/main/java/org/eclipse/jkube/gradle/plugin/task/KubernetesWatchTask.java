@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
@@ -34,6 +35,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 
@@ -62,7 +64,13 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
         List<HasMetadata> resources = KubernetesHelper.loadResources(getManifest(kubernetesClient));
         WatcherContext context = createWatcherContext();
 
-        WatcherManager.watch(resolvedImages, resources, context);
+        WatcherManager.watch(resolvedImages,
+            Optional.ofNullable(kubernetesExtension.getNamespaceOrNull())
+                .orElse(Optional.ofNullable(kubernetesExtension.resources)
+                    .map(ResourceConfig::getNamespace)
+                    .orElse(clusterAccess.getNamespace())),
+            resources,
+            context);
       } catch (KubernetesClientException kubernetesClientException) {
         KubernetesResourceUtil.handleKubernetesClientException(kubernetesClientException, kitLogger);
       } catch (Exception ioException) {

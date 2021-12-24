@@ -1358,7 +1358,7 @@ public class ApplyService {
     }
 
     private void logExposeServiceUrl(Collection<HasMetadata> entities, KitLogger serviceLogger, long serviceUrlWaitTimeSeconds) throws InterruptedException {
-        String url = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
+        String url = KubernetesHelper.getServiceExposeUrl(kubernetesClient, namespace, entities, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
         if (url != null) {
             serviceLogger.info("ExposeController Service URL: %s", url);
         }

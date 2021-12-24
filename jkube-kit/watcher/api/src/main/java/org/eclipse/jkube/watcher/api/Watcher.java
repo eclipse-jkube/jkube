@@ -38,7 +38,11 @@ public interface Watcher extends Named {
      * Watch the resources and kick a rebuild when they change.
      *
      * @param configs all image configurations
+     * @param namespace namespace in which resources are deployed
+     * @param resources list of resources applied
+     * @param mode {@link PlatformMode}
+     * @throws Exception in case of any failure
      */
-    void watch(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) throws Exception;
+    void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode) throws Exception;
 
 }

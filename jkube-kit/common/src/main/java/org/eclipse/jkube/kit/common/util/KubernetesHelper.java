@@ -735,12 +735,11 @@ public class KubernetesHelper {
         return expose != null && expose.equalsIgnoreCase("true");
     }
 
-    public static String getServiceExposeUrl(KubernetesClient kubernetes, Collection<HasMetadata> resources, long serviceUrlWaitTimeSeconds, String exposeServiceAnnotationKey) throws InterruptedException {
+    public static String getServiceExposeUrl(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> resources, long serviceUrlWaitTimeSeconds, String exposeServiceAnnotationKey) throws InterruptedException {
         for (HasMetadata entity : resources) {
             if (entity instanceof Service) {
                 Service service = (Service) entity;
                 String name = KubernetesHelper.getName(service);
-                String namespace = kubernetes.getNamespace();
                 Resource<Service> serviceResource = kubernetes.services().inNamespace(namespace).withName(name);
                 String url = pollServiceForExposeUrl(serviceUrlWaitTimeSeconds, service, serviceResource, exposeServiceAnnotationKey);
 

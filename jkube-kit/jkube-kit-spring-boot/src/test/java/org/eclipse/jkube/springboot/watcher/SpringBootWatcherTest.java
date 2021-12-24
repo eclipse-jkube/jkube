@@ -105,12 +105,12 @@ public class SpringBootWatcherTest {
         SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 
         // When
-        String portForwardUrl = springBootWatcher.getPortForwardUrl(resources);
+        String portForwardUrl = springBootWatcher.getPortForwardUrl("ns1", resources);
 
         // Then
         assertTrue(portForwardUrl.contains("http://localhost:"));
         new Verifications() {{
-            portForwardService.forwardPortAsync((LabelSelector) any, 9001, anyInt);
+            portForwardService.forwardPortAsync((LabelSelector) any, "ns1", 9001, anyInt);
         }};
     }
 

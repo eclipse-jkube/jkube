@@ -282,7 +282,7 @@ public class KubernetesHelperTest {
         Set<HasMetadata> entities = new HashSet<>();
         entities.add(svc);
         new Expectations() {{
-            kubernetesClient.services().inNamespace(anyString).withName("svc1");
+            kubernetesClient.services().inNamespace("ns1").withName("svc1");
             result = svcResource;
             svcResource.get();
             result = new ServiceBuilder()
@@ -294,12 +294,12 @@ public class KubernetesHelperTest {
         }};
 
         // When
-        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, 3, "exposeUrl");
+        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, "ns1", entities, 3, "exposeUrl");
 
         // Then
         assertEquals("http://example.com", result);
         new Verifications() {{
-            kubernetesClient.services().inNamespace(anyString).withName("svc1");
+            kubernetesClient.services().inNamespace("ns1").withName("svc1");
             times = 1;
             svcResource.get();
             times = 1;
@@ -313,7 +313,7 @@ public class KubernetesHelperTest {
         Set<HasMetadata> entities = new HashSet<>();
         entities.add(svc);
         new Expectations() {{
-            kubernetesClient.services().inNamespace(anyString).withName("svc1");
+            kubernetesClient.services().inNamespace("ns1").withName("svc1");
             result = svcResource;
             svcResource.get();
             result = new ServiceBuilder()
@@ -324,12 +324,12 @@ public class KubernetesHelperTest {
         }};
 
         // When
-        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, 1, "exposeUrl");
+        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, "ns1", entities, 1, "exposeUrl");
 
         // Then
         assertNull(result);
         new Verifications() {{
-            kubernetesClient.services().inNamespace(anyString).withName("svc1");
+            kubernetesClient.services().inNamespace("ns1").withName("svc1");
             times = 1;
             svcResource.get();
             times = 1;
