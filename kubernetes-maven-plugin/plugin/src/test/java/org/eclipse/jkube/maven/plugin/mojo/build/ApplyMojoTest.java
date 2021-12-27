@@ -124,7 +124,7 @@ public class ApplyMojoTest {
     applyMojo.execute();
     // Then
     assertThat(applyMojo.applyService.getNamespace()).isEqualTo("configured-namespace");
-    assertThat(applyMojo.applyService.getFallbackNamespace()).isNull();
+    assertThat(applyMojo.applyService.getFallbackNamespace()).isEqualTo("configured-namespace");
   }
 
   @Test

@@ -194,4 +194,17 @@ public class KubernetesClientUtil {
                 .map(ClusterAccess::getNamespace)
                 .orElse(null));
     }
+
+    public static ResourceConfig updateResourceConfigNamespace(String namespaceProvidedViaProperty, ResourceConfig resourceConfig) {
+        String resolvedNamespace = Optional.ofNullable(namespaceProvidedViaProperty)
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .orElse(null);
+        if (resourceConfig == null) {
+            resourceConfig = ResourceConfig.builder().namespace(resolvedNamespace).build();
+        } else if (resolvedNamespace != null) {
+            resourceConfig = ResourceConfig.toBuilder(resourceConfig).namespace(resolvedNamespace).build();
+        }
+        return resourceConfig;
+    }
 }

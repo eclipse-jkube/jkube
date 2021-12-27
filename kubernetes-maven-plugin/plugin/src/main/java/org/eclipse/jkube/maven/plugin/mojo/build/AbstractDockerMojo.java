@@ -92,6 +92,7 @@ import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestampFile;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.updateResourceConfigNamespace;
 import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo.DEFAULT_LOG_PREFIX;
 
 public abstract class AbstractDockerMojo extends AbstractMojo
@@ -379,6 +380,12 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected String containerNamePattern = ContainerNamingUtil.DEFAULT_CONTAINER_NAME_PATTERN;
 
     /**
+     * Namespace to use when accessing Kubernetes or OpenShift
+     */
+    @Parameter(property = "jkube.namespace")
+    protected String namespace;
+
+    /**
      * Whether to create the customs networks (user-defined bridge networks) before starting automatically
      */
     @Parameter(property = "jkube.watch.autoCreateCustomNetworks", defaultValue = "false")
@@ -425,6 +432,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 DockerAccess dockerAccess = null;
                 try {
                     javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+                    resources = updateResourceConfigNamespace(namespace, resources);
                     // The 'real' images configuration to use (configured images + externally resolved images)
                     if (isDockerAccessRequired()) {
                         DockerAccessFactory.DockerAccessContext dockerAccessContext = getDockerAccessContext();

@@ -102,6 +102,7 @@ public class OpenshiftBuildService implements BuildService {
     private final BuildServiceConfig buildServiceConfig;
     private final JKubeConfiguration jKubeConfiguration;
     private OpenShiftClient client;
+    private String applicableOpenShiftNamespace;
 
     public OpenshiftBuildService(JKubeServiceHub jKubeServiceHub) {
         this.jKubeServiceHub = Objects.requireNonNull(jKubeServiceHub, "JKube Service Hub is required");
@@ -207,7 +208,7 @@ public class OpenshiftBuildService implements BuildService {
         BuildOutput buildOutput = createBuildOutput(config, imageName);
 
         // Fetch existing build config
-        BuildConfig buildConfig = client.buildConfigs().withName(buildName).get();
+        BuildConfig buildConfig = client.buildConfigs().inNamespace(applicableOpenShiftNamespace).withName(buildName).get();
         if (buildConfig != null) {
             // lets verify the BC
             BuildConfigSpec spec = OpenShiftBuildServiceUtils.getBuildConfigSpec(buildConfig);
@@ -215,7 +216,7 @@ public class OpenshiftBuildService implements BuildService {
 
             if (config.getBuildRecreateMode().isBuildConfig()) {
                 // Delete and recreate afresh
-                client.buildConfigs().withName(buildName).delete();
+                client.buildConfigs().inNamespace(applicableOpenShiftNamespace).withName(buildName).delete();
                 return createBuildConfig(builder, buildName, buildStrategyResource, buildOutput);
             } else {
                 // Update & return
@@ -238,6 +239,11 @@ public class OpenshiftBuildService implements BuildService {
             throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
         }
         client = (OpenShiftClient) k8sClient;
+        if (buildServiceConfig.getResourceConfig() != null && buildServiceConfig.getResourceConfig().getNamespace() != null) {
+            applicableOpenShiftNamespace = buildServiceConfig.getResourceConfig().getNamespace();
+        } else {
+            applicableOpenShiftNamespace = clusterAccess.getNamespace();
+        }
     }
 
     private void validateSourceType(String buildName, BuildConfigSpec spec) {
@@ -303,7 +309,7 @@ public class OpenshiftBuildService implements BuildService {
         // lets check if the strategy or output has changed and if so lets update the BC
         // e.g. the S2I builder image or the output tag and
         if (!Objects.equals(buildStrategy, spec.getStrategy()) || !Objects.equals(buildOutput, spec.getOutput())) {
-            client.buildConfigs().withName(buildName).edit(bc -> new BuildConfigBuilder(bc)
+            client.buildConfigs().inNamespace(applicableOpenShiftNamespace).withName(buildName).edit(bc -> new BuildConfigBuilder(bc)
                     .editSpec()
                     .withStrategy(buildStrategy)
                     .withOutput(buildOutput)
@@ -335,7 +341,7 @@ public class OpenshiftBuildService implements BuildService {
                     registryConfig.getSettings(), null, pullRegistry, registryConfig.getPasswordDecryptionMethod());
 
             final Secret secret = Optional.ofNullable(pullSecretName)
-                .map(psn ->  client.secrets().withName(psn).get()).orElse(null);
+                .map(psn ->  client.secrets().inNamespace(applicableOpenShiftNamespace).withName(psn).get()).orElse(null);
 
             if (secret != null) {
                 log.info("Adding to Secret %s", pullSecretName);
@@ -373,7 +379,7 @@ public class OpenshiftBuildService implements BuildService {
 
     private boolean updateSecret(OpenShiftClient client, String pullSecretName, Map<String, String> data) {
         if (!Objects.equals(data, client.secrets().withName(pullSecretName).get().getData())) {
-            client.secrets().withName(pullSecretName).edit(s -> new SecretBuilder(s)
+            client.secrets().inNamespace(applicableOpenShiftNamespace).withName(pullSecretName).edit(s -> new SecretBuilder(s)
                     .editMetadata()
                     .withName(pullSecretName)
                     .endMetadata()
@@ -388,9 +394,9 @@ public class OpenshiftBuildService implements BuildService {
     }
 
     private void checkOrCreateImageStream(BuildServiceConfig config, OpenShiftClient client, KubernetesListBuilder builder, String imageStreamName) {
-        boolean hasImageStream = client.imageStreams().withName(imageStreamName).get() != null;
+        boolean hasImageStream = client.imageStreams().inNamespace(applicableOpenShiftNamespace).withName(imageStreamName).get() != null;
         if (hasImageStream && config.getBuildRecreateMode().isImageStream()) {
-            client.imageStreams().withName(imageStreamName).delete();
+            client.imageStreams().inNamespace(applicableOpenShiftNamespace).withName(imageStreamName).delete();
             hasImageStream = false;
         }
         if (!hasImageStream) {
@@ -418,14 +424,14 @@ public class OpenshiftBuildService implements BuildService {
 
         if (builder.hasItems()) {
             KubernetesList k8sList = builder.build();
-            client.lists().create(k8sList);
+            client.lists().inNamespace(applicableOpenShiftNamespace).create(k8sList);
         }
     }
 
     private Build startBuild(OpenShiftClient client, File dockerTar, String buildName) {
         log.info("Starting Build %s", buildName);
         try {
-            return client.buildConfigs().withName(buildName)
+            return client.buildConfigs().inNamespace(applicableOpenShiftNamespace).withName(buildName)
                     .instantiateBinary()
                     .fromFile(dockerTar);
         } catch (KubernetesClientException exp) {
@@ -451,13 +457,13 @@ public class OpenshiftBuildService implements BuildService {
         // Don't query for logs directly, Watch over the build pod:
         waitUntilPodIsReady(buildName + "-build", 120, log);
         log.info("Waiting for build " + buildName + " to complete...");
-        try (LogWatch logWatch = client.pods().withName(buildName + "-build").watchLog()) {
+        try (LogWatch logWatch = client.pods().inNamespace(applicableOpenShiftNamespace).withName(buildName + "-build").watchLog()) {
             KubernetesHelper.printLogsAsync(logWatch,
                     "Failed to tail build log", logTerminateLatch, log);
             Watcher<Build> buildWatcher = getBuildWatcher(latch, buildName, buildHolder);
-            try (Watch watcher = client.builds().withName(buildName).watch(buildWatcher)) {
+            try (Watch watcher = client.builds().inNamespace(applicableOpenShiftNamespace).withName(buildName).watch(buildWatcher)) {
                 // Check if the build is already finished to avoid waiting indefinitely
-                Build lastBuild = client.builds().withName(buildName).get();
+                Build lastBuild = client.builds().inNamespace(applicableOpenShiftNamespace).withName(buildName).get();
                 if (OpenshiftHelper.isFinished(KubernetesHelper.getBuildStatusPhase(lastBuild))) {
                     log.debug("Build %s is already finished", buildName);
                     buildHolder.set(lastBuild);
@@ -470,7 +476,7 @@ public class OpenshiftBuildService implements BuildService {
                 build = buildHolder.get();
                 if (build == null) {
                     log.debug("Build watcher on %s was closed prematurely", buildName);
-                    build = client.builds().withName(buildName).get();
+                    build = client.builds().inNamespace(applicableOpenShiftNamespace).withName(buildName).get();
                 }
                 String status = KubernetesHelper.getBuildStatusPhase(build);
                 if (OpenshiftHelper.isFailed(status) || OpenshiftHelper.isCancelled(status)) {
@@ -495,7 +501,7 @@ public class OpenshiftBuildService implements BuildService {
      */
     private void waitUntilPodIsReady(String podName, int nAwaitTimeout, final KitLogger log) {
         final CountDownLatch readyLatch = new CountDownLatch(1);
-        try (Watch watch = client.pods().withName(podName).watch(new Watcher<Pod>() {
+        try (Watch watch = client.pods().inNamespace(applicableOpenShiftNamespace).withName(podName).watch(new Watcher<Pod>() {
             @Override
             public void eventReceived(Action action, Pod aPod) {
                 if(KubernetesHelper.isPodReady(aPod)) {
@@ -559,7 +565,7 @@ public class OpenshiftBuildService implements BuildService {
 
     private void logBuildFailedDetails(OpenShiftClient client, String buildName) {
         try {
-            BuildConfig build = client.buildConfigs().withName(buildName).get();
+            BuildConfig build = client.buildConfigs().inNamespace(applicableOpenShiftNamespace).withName(buildName).get();
             ObjectReference ref = build.getSpec().getStrategy().getSourceStrategy().getFrom();
             String kind = ref.getKind();
             String name = ref.getName();
@@ -584,7 +590,7 @@ public class OpenshiftBuildService implements BuildService {
 
     private void logBuildFailure(OpenShiftClient client, String buildName) throws JKubeServiceException {
         try {
-            List<Build> builds = client.builds().inNamespace(client.getNamespace()).list().getItems();
+            List<Build> builds = client.builds().inNamespace(applicableOpenShiftNamespace).list().getItems();
             for(Build build : builds) {
                 if(build.getMetadata().getName().contains(buildName)) {
                     log.error(build.getMetadata().getName() + "\t" + "\t" + build.getStatus().getReason() + "\t" + build.getStatus().getMessage());
@@ -601,7 +607,7 @@ public class OpenshiftBuildService implements BuildService {
     }
 
     private void addImageStreamToFile(File imageStreamFile, ImageName imageName, OpenShiftClient client) throws IOException {
-        ImageStreamService imageStreamHandler = new ImageStreamService(client, log);
+        ImageStreamService imageStreamHandler = new ImageStreamService(client, applicableOpenShiftNamespace, log);
         imageStreamHandler.appendImageStreamResource(imageName, imageStreamFile);
     }
 

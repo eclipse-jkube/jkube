@@ -30,7 +30,6 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
-import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -115,6 +114,8 @@ public class OpenshiftBuildServiceIntegrationTest {
 
   private BuildServiceConfig.BuildServiceConfigBuilder dockerImageConfig;
 
+  private ResourceConfig mockedResourceConfig;
+
   @Before
   public void init() throws Exception {
     final KitLogger logger = new KitLogger.StdoutLogger();
@@ -135,6 +136,9 @@ public class OpenshiftBuildServiceIntegrationTest {
     jKubeBuildTarArchiver = mockConstruction(JKubeBuildTarArchiver.class, (mock, ctx) ->
         when(mock.createArchive(any(File.class), any(BuildDirs.class), eq(ArchiveCompression.none)))
         .thenReturn(emptyDockerBuildTar));
+
+    mockedResourceConfig = mock(ResourceConfig.class, RETURNS_DEEP_STUBS);
+    when(mockedResourceConfig.getNamespace()).thenReturn("ns1");
 
     jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     when(jKubeServiceHub.getClusterAccess().createDefaultClient()).thenReturn(mockServer.getOpenshiftClient());
@@ -162,6 +166,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .buildDirectory(baseDir)
         .buildRecreateMode(BuildRecreateMode.none)
         .s2iBuildNameSuffix("-s2i-suffix2")
+        .resourceConfig(mockedResourceConfig)
         .jKubeBuildStrategy(JKubeBuildStrategy.s2i);
 
     defaultConfigSecret = defaultConfig.build().toBuilder().openshiftPullSecret("pullsecret-fabric8");
@@ -275,7 +280,8 @@ public class OpenshiftBuildServiceIntegrationTest {
         .buildDirectory(baseDir)
         .buildRecreateMode(BuildRecreateMode.none)
         .s2iBuildNameSuffix("-docker")
-        .jKubeBuildStrategy(JKubeBuildStrategy.docker).build());
+        .jKubeBuildStrategy(JKubeBuildStrategy.docker)
+        .resourceConfig(mockedResourceConfig).build());
     final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
@@ -292,7 +298,8 @@ public class OpenshiftBuildServiceIntegrationTest {
         .buildDirectory(baseDir)
         .buildRecreateMode(BuildRecreateMode.none)
         .s2iBuildNameSuffix("-docker")
-        .jKubeBuildStrategy(JKubeBuildStrategy.docker).build());
+        .jKubeBuildStrategy(JKubeBuildStrategy.docker)
+        .resourceConfig(mockedResourceConfig).build());
     image.setName("docker.io/registry/component1/component2/name:tag");
     final WebServerEventCollector collector = prepareMockServer("component1-component2-name",
         dockerConfig, true, false, false);
@@ -311,6 +318,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .buildDirectory(baseDir)
         .buildRecreateMode(BuildRecreateMode.none)
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
+        .resourceConfig(mockedResourceConfig)
         .build());
     final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false);
 
@@ -329,6 +337,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .buildRecreateMode(BuildRecreateMode.none)
         .s2iBuildNameSuffix("-docker")
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
+        .resourceConfig(mockedResourceConfig)
         .build());
     final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false);
 
@@ -392,11 +401,9 @@ public class OpenshiftBuildServiceIntegrationTest {
     final Map<String, String> limitsMap = new HashMap<>();
     limitsMap.put("cpu", "100m");
     limitsMap.put("memory", "256Mi");
+    when(mockedResourceConfig.getOpenshiftBuildConfig()).thenReturn(OpenshiftBuildConfig.builder().limits(limitsMap).build());
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfig
-        .resourceConfig(ResourceConfig.builder()
-            .openshiftBuildConfig(OpenshiftBuildConfig.builder().limits(limitsMap).build())
-            .build()
-        ).build());
+        .resourceConfig(mockedResourceConfig).build());
     final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
@@ -527,49 +534,49 @@ public class OpenshiftBuildServiceIntegrationTest {
         .build();
 
     if (!buildConfigExists) {
-      mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("build-config-check").andReturn
+      mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("build-config-check").andReturn
           (404, "")).once();
-      mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs/" + resourceName + s2iBuildNameSuffix + "pullSecret").andReply(collector.record("build-config-check").andReturn
+      mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix + "pullSecret").andReply(collector.record("build-config-check").andReturn
           (404, "")).once();
-      mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs").andReply(collector.record("new-build-config").andReturn(201, bc)).once();
+      mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs").andReply(collector.record("new-build-config").andReturn(201, bc)).once();
       if (bcSecret != null) {
-        mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs").andReply(collector.record("new-build-config").andReturn(201, bcSecret)).once();
+        mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs").andReply(collector.record("new-build-config").andReturn(201, bcSecret)).once();
       }
     } else {
-      mockServer.expect().patch().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("patch-build-config").andReturn
+      mockServer.expect().patch().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("patch-build-config").andReturn
           (200, bc)).once();
       if (bcSecret != null) {
-        mockServer.expect().patch().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs/" + resourceName + s2iBuildNameSuffix + "pullSecret").andReply(collector.record("patch-build-config").andReturn
+        mockServer.expect().patch().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix + "pullSecret").andReply(collector.record("patch-build-config").andReturn
             (200, bcSecret)).once();
       }
     }
-    mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("build-config-check").andReturn(200,
+    mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("build-config-check").andReturn(200,
         bc)).always();
     if (bcSecret != null) {
-      mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs/" + resourceName + s2iBuildNameSuffix + "pullSecret").andReply(collector.record("build-config-check").andReturn(200,
+      mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix + "pullSecret").andReply(collector.record("build-config-check").andReturn(200,
           bcSecret)).always();
     }
 
 
     if (!imageStreamExists) {
-      mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/test/imagestreams/" + resourceName).andReturn(404, "").once();
+      mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams/" + resourceName).andReturn(404, "").once();
     }
-    mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/test/imagestreams/" + resourceName).andReturn(200, imageStream).always();
+    mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams/" + resourceName).andReturn(200, imageStream).always();
 
-    mockServer.expect().post().withPath("/apis/image.openshift.io/v1/namespaces/test/imagestreams").andReturn(201, imageStream).once();
+    mockServer.expect().post().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams").andReturn(201, imageStream).once();
 
-    mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/test/buildconfigs/" + resourceName + s2iBuildNameSuffix + "/instantiatebinary?name="+ resourceName + s2iBuildNameSuffix +"&namespace=test")
+    mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix + "/instantiatebinary?name="+ resourceName + s2iBuildNameSuffix +"&namespace=ns1")
         .andReply(
             collector.record("pushed")
                 .andReturn(201, imageStream))
         .once();
 
-    mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/test/builds").andReply(collector.record("check-build").andReturn(200, builds)).always();
-    mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/test/builds?labelSelector=openshift.io/build-config.name%3D" + resourceName + s2iBuildNameSuffix).andReturn(200, builds)
+    mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds").andReply(collector.record("check-build").andReturn(200, builds)).always();
+    mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds?labelSelector=openshift.io/build-config.name%3D" + resourceName + s2iBuildNameSuffix).andReturn(200, builds)
         .always();
 
-    mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/test/builds/" + resourceName).andReturn(200, build).always();
-    mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/test/builds?fieldSelector=metadata.name%3D" + resourceName + "&watch=true")
+    mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds/" + resourceName).andReturn(200, build).always();
+    mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds?fieldSelector=metadata.name%3D" + resourceName + "&watch=true")
         .andUpgradeToWebSocket().open()
         .waitFor(buildDelay)
         .andEmit(new WatchEvent(build, "MODIFIED"))

@@ -31,7 +31,6 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,10 +63,10 @@ public class ImageStreamServiceTest {
 
     @Test
     public void simple() throws Exception {
-        ImageStreamService service = new ImageStreamService(client, log);
+        ImageStreamService service = new ImageStreamService(client, "default", log);
 
         final ImageStream lookedUpIs = lookupImageStream("ab12cd");
-        setupClientMock(lookedUpIs,"test");
+        setupClientMock(lookedUpIs,"default", "test");
         ImageName name = new ImageName("test:1.0");
         File target = File.createTempFile("ImageStreamServiceTest",".yml");
         service.appendImageStreamResource(name, target);
@@ -96,7 +95,7 @@ public class ImageStreamServiceTest {
 
         // Add a second image stream
         ImageStream secondIs = lookupImageStream("secondIS");
-        setupClientMock(secondIs, "second-test");
+        setupClientMock(secondIs, "default", "second-test");
         ImageName name2 = new ImageName("second-test:1.0");
         service.appendImageStreamResource(name2, target);
 
@@ -124,13 +123,11 @@ public class ImageStreamServiceTest {
         return (Map<String,Object>) yaml.load(ios);
     }
 
-    private void setupClientMock(final ImageStream lookedUpIs, final String name) {
+    private void setupClientMock(final ImageStream lookedUpIs, final String namespace, final String name) {
         new Expectations() {{
             client.imageStreams(); result = imageStreamsOp;
-            imageStreamsOp.withName(name); result = resource;
+            imageStreamsOp.inNamespace(namespace).withName(name); result = resource;
             resource.get(); result = lookedUpIs;
-
-            client.getNamespace(); result = "default";
         }};
     }
 
@@ -150,7 +147,7 @@ public class ImageStreamServiceTest {
     @Test
     public void should_return_newer_tag() throws Exception {
         // GIVEN
-        ImageStreamService service = new ImageStreamService(client, log);
+        ImageStreamService service = new ImageStreamService(client, "default", log);
         TagEvent oldTag = new TagEvent("2018-03-09T03:27:05Z\n", null, null, null);
         TagEvent latestTag = new TagEvent("2018-03-09T03:28:05Z\n", null, null, null);
 
@@ -164,7 +161,7 @@ public class ImageStreamServiceTest {
     @Test
     public void should_return_first_tag() throws Exception {
         // GIVEN
-        ImageStreamService service = new ImageStreamService(client, log);
+        ImageStreamService service = new ImageStreamService(client, "default", log);
         TagEvent first = new TagEvent("2018-03-09T03:27:05Z\n", null, null, null);
         TagEvent latestTag = null;
 

@@ -47,6 +47,7 @@ import org.gradle.api.tasks.TaskAction;
 
 import static org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper.initImageConfiguration;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.updateResourceConfigNamespace;
 
 public abstract class AbstractJKubeTask extends DefaultTask implements KubernetesJKubeTask {
 
@@ -80,6 +81,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         kubernetesExtension.getLogDateOrNull());
     clusterAccess = new ClusterAccess(kitLogger, initClusterConfiguration());
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
+    kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);
     ImageConfigResolver imageConfigResolver = new ImageConfigResolver();
     try {
       resolvedImages = resolveImages(imageConfigResolver);
