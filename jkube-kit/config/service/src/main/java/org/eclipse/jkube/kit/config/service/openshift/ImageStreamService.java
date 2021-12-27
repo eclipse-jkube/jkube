@@ -56,10 +56,12 @@ public class ImageStreamService {
     private static final long IMAGE_STREAM_TAG_RETRY_TIMEOUT_IN_MILLIS = 1000;
 
     private final OpenShiftClient client;
+    private final String namespace;
     private final KitLogger log;
 
-    public ImageStreamService(OpenShiftClient client, KitLogger log) {
+    public ImageStreamService(OpenShiftClient client, String namespace, KitLogger log) {
         this.client = client;
+        this.namespace = namespace;
         this.log = log;
     }
 
@@ -120,8 +122,7 @@ public class ImageStreamService {
     }
 
     private void createOrUpdateImageStreamTag(OpenShiftClient client, ImageName image, ImageStream is) {
-        String namespace = client.getNamespace();
-        String tagSha = findTagSha(client, resolveImageStreamName(image), client.getNamespace());
+        String tagSha = findTagSha(client, resolveImageStreamName(image), namespace);
         String name = resolveImageStreamName(image) + "@" + tagSha;
 
         TagReference tag = extractTag(is);
@@ -184,7 +185,7 @@ public class ImageStreamService {
                     Thread.currentThread().interrupt();
                 }
             }
-            currentImageStream = client.imageStreams().withName(imageStreamName).get();
+            currentImageStream = client.imageStreams().inNamespace(namespace).withName(imageStreamName).get();
             if (currentImageStream == null) {
                 continue;
             }

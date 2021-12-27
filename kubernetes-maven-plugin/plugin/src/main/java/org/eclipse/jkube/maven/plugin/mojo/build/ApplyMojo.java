@@ -138,12 +138,6 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
     @Parameter(property = "jkube.environment")
     private String environment;
 
-    /**
-     * Namespace to use when accessing Kubernetes or OpenShift
-     */
-    @Parameter(property = "jkube.namespace")
-    protected String namespace;
-
     @Parameter(property = "jkube.skip.apply", defaultValue = "false")
     protected boolean skipApply;
 

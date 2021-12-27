@@ -38,7 +38,6 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.MappingConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
@@ -163,12 +162,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter
     private List<MappingConfig> mappings;
 
-    /**
-     * Namespace to use when accessing Kubernetes or OpenShift
-     */
-    @Parameter(property = "jkube.namespace")
-    protected String namespace;
-
     @Parameter(property = "jkube.skip.resource", defaultValue = "false")
     protected boolean skipResource;
 
@@ -239,9 +232,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Override
     protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder(JavaProject javaProject) {
         realResourceDir = ResourceUtil.getFinalResourceDir(resourceDir, environment);
-        if (namespace != null && !namespace.isEmpty()) {
-            resources = ResourceConfig.toBuilder(resources).namespace(namespace).build();
-        }
         final ResourceServiceConfig resourceServiceConfig = ResourceServiceConfig.builder()
             .project(javaProject)
             .resourceDir(realResourceDir)

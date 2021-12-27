@@ -43,6 +43,8 @@ import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 import java.util.Collections;
 import java.util.Optional;
 
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.updateResourceConfigNamespace;
+
 public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLoggerProvider {
 
     protected static final String DEFAULT_LOG_PREFIX = "k8s: ";
@@ -76,6 +78,9 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
+    @Parameter(property = "jkube.namespace")
+    public String namespace;
+
     @Parameter
     protected ClusterConfiguration access;
 
@@ -96,6 +101,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         clusterAccess = new ClusterAccess(log, initClusterConfiguration());
         javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         jkubeServiceHub = initJKubeServiceHubBuilder(javaProject).build();
+        resources = updateResourceConfigNamespace(namespace, resources);
     }
 
     protected boolean canExecute() {
