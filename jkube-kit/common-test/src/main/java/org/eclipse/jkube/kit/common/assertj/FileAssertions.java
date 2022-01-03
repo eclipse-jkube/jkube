@@ -29,6 +29,8 @@ import org.assertj.core.api.ObjectAssert;
 
 public class FileAssertions extends AbstractFileAssert<FileAssertions> {
 
+  private static final String GIT_KEEP_FILE = ".gitkeep";
+
   public FileAssertions(File actual) {
     super(actual, FileAssertions.class);
   }
@@ -43,7 +45,10 @@ public class FileAssertions extends AbstractFileAssert<FileAssertions> {
     final Path actualPath = actual.toPath().normalize();
     final List<String> paths = new ArrayList<>();
     try (Stream<Path> pathStream = Files.walk(actualPath)) {
-      for (Path temp : pathStream.filter(p -> !p.equals(actualPath)).collect(Collectors.toList())) {
+      for (Path temp : pathStream
+          .filter(p -> !p.equals(actualPath))
+          .filter(p -> !p.toFile().getName().equals(GIT_KEEP_FILE))
+          .collect(Collectors.toList())) {
         paths.add(actualPath.relativize(temp.normalize().toRealPath()).toString());
       }
     }

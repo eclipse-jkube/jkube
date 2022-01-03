@@ -16,34 +16,24 @@ package org.eclipse.jkube.kit.common.assertj;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.AbstractFileAssert;
 import org.assertj.core.api.AbstractListAssert;
+import org.assertj.core.api.InputStreamAssert;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
+import org.assertj.core.error.BasicErrorMessageFactory;
 import org.assertj.core.error.ShouldBeEmpty;
 import org.assertj.core.internal.Failures;
-import org.assertj.core.util.Files;
 
 import static org.assertj.core.error.ShouldBeEqualIgnoringCase.shouldBeEqual;
 
@@ -98,27 +88,8 @@ public class ArchiveAssertions extends AbstractFileAssert<ArchiveAssertions> {
     return this;
   }
 
-  private TarArchiveInputStream inputStream(BufferedInputStream bis) {
-    try {
-      return new TarArchiveInputStream(new CompressorStreamFactory().createCompressorInputStream(bis));
-    } catch (CompressorException ex) {
-      return new TarArchiveInputStream(bis);
-    }
-  }
-
   private List<TarArchiveEntry> loadEntries() throws IOException {
-    final List<TarArchiveEntry> archiveEntries = new ArrayList<>();
-    try (
-        FileInputStream fis = new FileInputStream(actual);
-        BufferedInputStream bis = new BufferedInputStream(fis);
-        TarArchiveInputStream tis = inputStream(bis)
-    ) {
-      TarArchiveEntry entry;
-      while ((entry = tis.getNextTarEntry()) != null) {
-        archiveEntries.add(entry);
-      }
-    }
-    return archiveEntries;
+    return loadEntries(actual);
   }
 
   public AbstractListAssert<ListAssert<TarArchiveEntry>, List<? extends TarArchiveEntry>, TarArchiveEntry, ObjectAssert<TarArchiveEntry>> entries()
@@ -132,55 +103,58 @@ public class ArchiveAssertions extends AbstractFileAssert<ArchiveAssertions> {
         loadEntries().stream().map(TarArchiveEntry::getName).collect(Collectors.toList()));
   }
 
-  public ArchiveAssertions hasSameFolderContentAs(File directory) throws IOException, ArchiveException {
-    File temporaryOutputDir = Files.newTemporaryFolder();
-    try (final InputStream is = new FileInputStream(actual);
-         final TarArchiveInputStream debInputStream = (TarArchiveInputStream) new ArchiveStreamFactory().createArchiveInputStream("tar", is)) {
-      TarArchiveEntry entry;
-      while ((entry = (TarArchiveEntry)debInputStream.getNextEntry()) != null) {
-        final File outputFile = new File(temporaryOutputDir, entry.getName());
-        if (entry.isDirectory()) {
-          if (!outputFile.exists() && !outputFile.mkdirs()) {
-            throw new IllegalStateException(String.format("ArchiveAssertion: Couldn't create temporary directory %s. while extracting archive", outputFile.getAbsolutePath()));
-          }
-        } else {
-          final OutputStream outputFileStream = new FileOutputStream(outputFile);
-          IOUtils.copy(debInputStream, outputFileStream);
-          outputFileStream.close();
+  public ArchiveAssertions hasSameContentAsDirectory(File directory) throws IOException {
+    final List<String> actualEntries = new ArrayList<>();
+    processArchive(actual, (entry, tis) -> {
+      // Remove last separator for directory entries -> Required for fileTree assertion
+      actualEntries.add(entry.isDirectory() ?
+          entry.getName().substring(0, entry.getName().length() - 1) : entry.getName());
+      final File expected = new File(directory, entry.getName());
+      if (!expected.exists()) {
+        throw failures.failure(info, new BasicErrorMessageFactory("%nExpecting archive <%s>%nnot to contain entry:%n <%s>%n",
+          actual.getName(), entry.getName()));
+      }
+      if (!expected.isDirectory()) {
+        try (FileInputStream expectedFis = new FileInputStream(expected)) {
+          new InputStreamAssert(IOUtils.toBufferedInputStream(tis)).hasSameContentAs(expectedFis);
         }
       }
-    }
-    verifyFolderContainSameContent(temporaryOutputDir, directory);
-
+    });
+    FileAssertions.assertThat(directory).fileTree()
+        .hasSize(actualEntries.size())
+        .hasSameElementsAs(actualEntries);
     return this;
   }
 
-  private void verifyFolderContainSameContent(File folder1, File folder2) {
-    Map<String, File> relativePathsInFolder1 = createRelativePathList(folder1);
-    Map<String, File> relativePathsInFolder2 = createRelativePathList(folder2);
+  private static TarArchiveInputStream inputStream(BufferedInputStream bis) {
+    try {
+      return new TarArchiveInputStream(new CompressorStreamFactory().createCompressorInputStream(bis));
+    } catch (CompressorException ex) {
+      return new TarArchiveInputStream(bis);
+    }
+  }
 
-    for (Map.Entry<String, File> relativePathToFileEntry : relativePathsInFolder1.entrySet()) {
-      org.assertj.core.api.Assertions.assertThat(relativePathsInFolder2).containsKey(relativePathToFileEntry.getKey());
-      File folder2File = relativePathsInFolder2.get(relativePathToFileEntry.getKey());
-      if (folder2File.isFile()) {
-        org.assertj.core.api.Assertions.assertThat(folder2File).hasSameBinaryContentAs(relativePathToFileEntry.getValue());
+  private static List<TarArchiveEntry> loadEntries(File file) throws IOException{
+    final List<TarArchiveEntry> archiveEntries = new ArrayList<>();
+    processArchive(file, (e, is) -> archiveEntries.add(e));
+    return archiveEntries;
+  }
+
+  private static void processArchive(File file, TarEntryConsumer entryConsumer) throws IOException {
+    try (
+        FileInputStream fis = new FileInputStream(file);
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        TarArchiveInputStream tis = inputStream(bis)
+    ) {
+      TarArchiveEntry entry;
+      while ((entry = tis.getNextTarEntry()) != null) {
+        entryConsumer.accept(entry, tis);
       }
     }
   }
 
-  private Map<String, File> createRelativePathList(File folder) {
-    Collection<File> files = FileUtils.listFiles(
-        folder,
-        new RegexFileFilter("^(.*?)"),
-        DirectoryFileFilter.DIRECTORY
-    );
-    Map<String, File> relativePathsToFileMap = new HashMap<>();
-
-    for (File file : files) {
-      String relativePath = new File(folder.getAbsolutePath()).toURI().relativize(new File(file.getAbsolutePath()).toURI()).getPath();
-      relativePathsToFileMap.put(relativePath, file);
-    }
-
-    return relativePathsToFileMap;
+  @FunctionalInterface
+  private interface TarEntryConsumer {
+    void accept(TarArchiveEntry tarArchiveEntry, TarArchiveInputStream tarArchiveInputStream) throws IOException;
   }
 }
