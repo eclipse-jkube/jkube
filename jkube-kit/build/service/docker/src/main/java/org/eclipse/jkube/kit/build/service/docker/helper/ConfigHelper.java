@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler;
@@ -181,21 +182,21 @@ public class ConfigHelper {
         }
     }
 
-    public static List<ImageConfiguration> initImageConfiguration(String apiVersion, Date buildTimeStamp, JavaProject javaProject, List<ImageConfiguration> images, ImageConfigResolver imageConfigResolver, KitLogger log, String filter, ConfigHelper.Customizer customizer) {
+    public static List<ImageConfiguration> initImageConfiguration(String apiVersion, Date buildTimeStamp, List<ImageConfiguration> images, ImageConfigResolver imageConfigResolver, KitLogger log, String filter, ConfigHelper.Customizer customizer, JKubeConfiguration jKubeConfiguration) {
         List<ImageConfiguration> resolvedImages;
-        ImageNameFormatter imageNameFormatter = new ImageNameFormatter(javaProject, buildTimeStamp);
+        ImageNameFormatter imageNameFormatter = new ImageNameFormatter(jKubeConfiguration.getProject(), buildTimeStamp);
         // Resolve images
         resolvedImages = ConfigHelper.resolveImages(
                 log,
                 images,                  // Unresolved images
-                (ImageConfiguration image) -> imageConfigResolver.resolve(image, javaProject),
+                (ImageConfiguration image) -> imageConfigResolver.resolve(image, jKubeConfiguration.getProject()),
                 filter,                   // A filter which image to process
                 customizer);                     // customizer (can be overwritten by a subclass)
 
         // Check for simple Dockerfile mode
-        if (isSimpleDockerFileMode(javaProject.getBaseDirectory())) {
-            File topDockerfile = getTopLevelDockerfile(javaProject.getBaseDirectory());
-            String defaultImageName = imageNameFormatter.format(getValueFromProperties(javaProject.getProperties(),
+        if (isSimpleDockerFileMode(jKubeConfiguration.getBasedir())) {
+            File topDockerfile = getTopLevelDockerfile(jKubeConfiguration.getBasedir());
+            String defaultImageName = imageNameFormatter.format(getValueFromProperties(jKubeConfiguration.getProject().getProperties(),
                     "jkube.image.name", "jkube.generator.name"));
             if (resolvedImages.isEmpty()) {
                 resolvedImages.add(createSimpleDockerfileConfig(topDockerfile, defaultImageName));
@@ -211,6 +212,7 @@ public class ConfigHelper {
             BuildConfiguration buildConfiguration = image.getBuildConfiguration();
             if (buildConfiguration != null &&  buildConfiguration.isDockerFileMode()) {
                 log.info("Using Dockerfile: %s", buildConfiguration.getDockerFile().getAbsolutePath());
+                log.info("Using Docker Context Directory: %s", buildConfiguration.getAbsoluteContextDirPath(jKubeConfiguration.getSourceDirectory(), jKubeConfiguration.getBasedir().getAbsolutePath()));
             }
         }
 

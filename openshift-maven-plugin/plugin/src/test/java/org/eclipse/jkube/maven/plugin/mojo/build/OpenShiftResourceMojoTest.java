@@ -13,9 +13,6 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
@@ -33,75 +30,51 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class OpenShiftResourceMojoTest {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Mocked
-  private MavenProject mockedMavenProject;
-
-  @Mocked
-  private MavenSession mockedMavenSession;
-
-  @Mocked
-  private Settings mockedSettings;
-
-  @Mocked
-  private JKubeServiceHub mockedJKubeServiceHub;
-
-  @Mocked
   private ClusterAccess mockedClusterAccess;
-
-  @Mocked
-  private KitLogger mockedLogger;
-
-  @Mocked
-  private MavenProjectHelper mockedMavenProjectHelper;
-
-  @Mocked
   private ImageConfigResolver mockedImageConfigResolver;
 
   private OpenshiftResourceMojo openShiftResourceMojo;
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() {
+    mockedClusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
+    mockedImageConfigResolver = mock(ImageConfigResolver.class, RETURNS_DEEP_STUBS);
+    MavenProject mockedMavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
+    JavaProject mockedJavaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+    JKubeServiceHub mockedJKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
+    Properties properties = new Properties();
+
     this.openShiftResourceMojo = new OpenshiftResourceMojo();
-    this.openShiftResourceMojo.jkubeServiceHub = mockedJKubeServiceHub;
     this.openShiftResourceMojo.project = mockedMavenProject;
-    this.openShiftResourceMojo.session = mockedMavenSession;
+    this.openShiftResourceMojo.settings = mock(Settings.class, RETURNS_DEEP_STUBS);
+    this.openShiftResourceMojo.jkubeServiceHub = mockedJKubeServiceHub;
     this.openShiftResourceMojo.clusterAccess = mockedClusterAccess;
-    this.openShiftResourceMojo.settings = mockedSettings;
-    this.openShiftResourceMojo.log = mockedLogger;
+    this.openShiftResourceMojo.log = mock(KitLogger.class, RETURNS_DEEP_STUBS);
     this.openShiftResourceMojo.skipResourceValidation = true;
-    this.openShiftResourceMojo.projectHelper = mockedMavenProjectHelper;
+    this.openShiftResourceMojo.projectHelper = mock(MavenProjectHelper.class, RETURNS_DEEP_STUBS);
     this.openShiftResourceMojo.imageConfigResolver = mockedImageConfigResolver;
-    File buildDirectory = temporaryFolder.newFolder("target");
-    new Expectations() {{
-      mockedMavenProject.getArtifactId();
-      result = "test-project";
+    this.openShiftResourceMojo.javaProject = mockedJavaProject;
 
-      mockedMavenProject.getGroupId();
-      result = "org.eclipse.jkube";
-
-      mockedMavenProject.getProperties();
-      result = new Properties();
-
-      mockedMavenProject.getBuild().getOutputDirectory();
-      result = buildDirectory.getAbsolutePath();
-
-      mockedMavenProject.getBuild().getDirectory();
-      result = buildDirectory.getAbsolutePath();
-
-      mockedMavenProject.getBasedir();
-      result = temporaryFolder.getRoot();
-    }};
+    when(mockedMavenProject.getProperties()).thenReturn(properties);
+    when(mockedJavaProject.getArtifactId()).thenReturn("test-project");
+    when(mockedJavaProject.getGroupId()).thenReturn("org.eclipse.jkube");
+    when(mockedJavaProject.getProperties()).thenReturn(properties);
+    when(mockedJKubeServiceHub.getConfiguration().getProject()).thenReturn(mockedJavaProject);
+    when(mockedJKubeServiceHub.getConfiguration().getBasedir()).thenReturn(temporaryFolder.getRoot());
   }
 
   @Test
@@ -113,13 +86,8 @@ public class OpenShiftResourceMojoTest {
         .from("test-base-image:latest")
         .build())
       .build();
-    new Expectations() {{
-      mockedClusterAccess.getNamespace();
-      result = "test-custom-namespace";
-
-      mockedImageConfigResolver.resolve(imageConfiguration, (JavaProject) any);
-      result = Collections.singletonList(imageConfiguration);
-    }};
+    when(mockedClusterAccess.getNamespace()).thenReturn("test-custom-namespace");
+    when(mockedImageConfigResolver.resolve(eq(imageConfiguration), any())).thenReturn(Collections.singletonList(imageConfiguration));
     this.openShiftResourceMojo.images = Collections.singletonList(imageConfiguration);
 
     // When
@@ -139,10 +107,7 @@ public class OpenShiftResourceMojoTest {
         .from("test-base-image:latest")
         .build())
       .build();
-    new Expectations() {{
-      mockedImageConfigResolver.resolve(imageConfiguration, (JavaProject) any);
-      result = Collections.singletonList(imageConfiguration);
-    }};
+    when(mockedImageConfigResolver.resolve(eq(imageConfiguration), any())).thenReturn(Collections.singletonList(imageConfiguration));
     this.openShiftResourceMojo.images = Collections.singletonList(imageConfiguration);
     this.openShiftResourceMojo.namespace = "namespace-configured-via-plugin";
 

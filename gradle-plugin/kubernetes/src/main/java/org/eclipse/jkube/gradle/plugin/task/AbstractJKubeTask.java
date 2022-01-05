@@ -179,9 +179,10 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         kubernetesExtension.getApiVersionOrNull(),
         getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
             DOCKER_BUILD_TIMESTAMP),
-        kubernetesExtension.javaProject, kubernetesExtension.images, imageConfigResolver, kitLogger,
+        kubernetesExtension.images, imageConfigResolver, kitLogger,
       kubernetesExtension.getFilter().getOrNull(),
-      this::customizeConfig);
+      this::customizeConfig,
+      jKubeServiceHub.getConfiguration());
   }
 
   protected File getManifest(KubernetesClient kc) {
