@@ -28,7 +28,9 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.apache.maven.model.Build;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -50,6 +52,11 @@ public class HelmPushMojoTest {
   HelmService helmService;
   @Mocked
   SecDispatcher secDispatcher;
+  @Mocked
+  MojoExecution mojoExecution;
+  @Mocked
+  MojoDescriptor mojoDescriptor;
+
 
   private Properties mavenProperties;
 
@@ -63,12 +70,15 @@ public class HelmPushMojoTest {
     helmPushMojo.project = mavenProject;
     helmPushMojo.settings = new Settings();
     helmPushMojo.securityDispatcher = secDispatcher;
+    helmPushMojo.mojoExecution = mojoExecution;
     // @formatter:off
     new Expectations(helmPushMojo) {{
       mavenProject.getProperties(); result = mavenProperties; minTimes = 0;
       mavenProject.getBuild(); result = mavenBuild; minTimes = 0;
       mavenBuild.getOutputDirectory(); result = "target/classes"; minTimes = 0;
       mavenBuild.getDirectory(); result = "target"; minTimes = 0;
+      mojoExecution.getMojoDescriptor(); result = mojoDescriptor; minTimes = 0;
+      mojoDescriptor.getFullGoalName(); result = "k8s:helm-push"; minTimes = 0;
       secDispatcher.decrypt(anyString);
       result = new Delegate<String>() {String delegate(String arg) {return arg;}}; minTimes = 0;
     }};

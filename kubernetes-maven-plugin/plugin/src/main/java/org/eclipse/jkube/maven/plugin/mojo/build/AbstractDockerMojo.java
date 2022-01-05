@@ -71,6 +71,7 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -119,6 +120,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     @Parameter(defaultValue = "${session}", readonly = true)
     protected MavenSession session;
+
+    @Parameter(defaultValue = "${mojoExecution}", readonly = true)
+    protected MojoExecution mojoExecution;
 
     @Parameter(property = "jkube.docker.apiVersion")
     protected String apiVersion;
@@ -426,41 +430,47 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
         init();
-        if (canExecute()) {
-            final boolean ansiRestore = Ansi.isEnabled();
+        if (!canExecute()) {
+            log.info("`%s` goal is skipped.", mojoExecution.getMojoDescriptor().getFullGoalName());
+            return;
+        }
+        doExecute();
+    }
+
+    protected void doExecute() throws MojoExecutionException {
+        final boolean ansiRestore = Ansi.isEnabled();
+        try {
+            DockerAccess dockerAccess = null;
             try {
-                DockerAccess dockerAccess = null;
-                try {
-                    javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
-                    resources = updateResourceConfigNamespace(namespace, resources);
-                    // The 'real' images configuration to use (configured images + externally resolved images)
-                    if (isDockerAccessRequired()) {
-                        DockerAccessFactory.DockerAccessContext dockerAccessContext = getDockerAccessContext();
-                        dockerAccess = dockerAccessFactory.createDockerAccess(dockerAccessContext);
-                    }
-                    jkubeServiceHub = JKubeServiceHub.builder()
-                        .log(log)
-                        .configuration(initJKubeConfiguration())
-                        .clusterAccess(clusterAccess)
-                        .platformMode(getConfiguredRuntimeMode())
-                        .dockerServiceHub(DockerServiceHub.newInstance(log, dockerAccess, logOutputSpecFactory))
-                        .buildServiceConfig(buildServiceConfigBuilder().build())
-                        .offline(offline)
-                        .build();
-                    resolvedImages = ConfigHelper.initImageConfiguration(apiVersion, getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), javaProject, images, imageConfigResolver, log, filter, this);
-                    executeInternal();
-                } catch (IOException | DependencyResolutionRequiredException exp) {
-                    logException(exp);
-                    throw new MojoExecutionException(exp.getMessage());
-                } catch (MojoExecutionException exp) {
-                    logException(exp);
-                    throw exp;
-                } finally {
-                    Optional.ofNullable(jkubeServiceHub).ifPresent(JKubeServiceHub::close);
+                javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+                resources = updateResourceConfigNamespace(namespace, resources);
+                // The 'real' images configuration to use (configured images + externally resolved images)
+                if (isDockerAccessRequired()) {
+                    DockerAccessFactory.DockerAccessContext dockerAccessContext = getDockerAccessContext();
+                    dockerAccess = dockerAccessFactory.createDockerAccess(dockerAccessContext);
                 }
+                jkubeServiceHub = JKubeServiceHub.builder()
+                    .log(log)
+                    .configuration(initJKubeConfiguration())
+                    .clusterAccess(clusterAccess)
+                    .platformMode(getConfiguredRuntimeMode())
+                    .dockerServiceHub(DockerServiceHub.newInstance(log, dockerAccess, logOutputSpecFactory))
+                    .buildServiceConfig(buildServiceConfigBuilder().build())
+                    .offline(offline)
+                    .build();
+                resolvedImages = ConfigHelper.initImageConfiguration(apiVersion, getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), javaProject, images, imageConfigResolver, log, filter, this);
+                executeInternal();
+            } catch (IOException | DependencyResolutionRequiredException exp) {
+                logException(exp);
+                throw new MojoExecutionException(exp.getMessage());
+            } catch (MojoExecutionException exp) {
+                logException(exp);
+                throw exp;
             } finally {
-                Ansi.setEnabled(ansiRestore);
+                Optional.ofNullable(jkubeServiceHub).ifPresent(JKubeServiceHub::close);
             }
+        } finally {
+            Ansi.setEnabled(ansiRestore);
         }
     }
 
