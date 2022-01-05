@@ -47,7 +47,6 @@ import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.kit.resource.service.DefaultResourceService;
 
 import io.fabric8.kubernetes.api.model.KubernetesList;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -219,7 +218,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
                 // Attach it to the Maven reactor so that it will also get deployed
                 projectHelper.attachArtifact(project, this.resourceFileType.getArtifactType(), resourceClassifier.getValue(), artifact);
             }
-        } catch (IOException | DependencyResolutionRequiredException e) {
+        } catch (IOException e) {
             throw new MojoExecutionException("Failed to generate kubernetes descriptor", e);
         }
     }
@@ -280,7 +279,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
         RuntimeMode runtimeMode = getRuntimeMode();
         jkubeServiceHub.setPlatformMode(runtimeMode);
         if (runtimeMode.equals(RuntimeMode.OPENSHIFT)) {
-            Properties properties = project.getProperties();
+            Properties properties = javaProject.getProperties();
             if (!properties.contains(DOCKER_IMAGE_USER)) {
                 String namespaceToBeUsed = this.namespace != null && !this.namespace.isEmpty() ?
                         this.namespace: clusterAccess.getNamespace();
@@ -294,10 +293,10 @@ public class ResourceMojo extends AbstractJKubeMojo {
     }
 
     private KubernetesList generateResources()
-        throws IOException, DependencyResolutionRequiredException {
+        throws IOException {
 
         JKubeEnricherContext.JKubeEnricherContextBuilder ctxBuilder = JKubeEnricherContext.builder()
-                .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
+                .project(javaProject)
                 .processorConfig(extractEnricherConfig())
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                 .resources(resources)
@@ -321,13 +320,11 @@ public class ResourceMojo extends AbstractJKubeMojo {
     // ==================================================================================
 
     private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log)
-        throws DependencyResolutionRequiredException, IOException {
-      final JavaProject jkubeProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        throws IOException {
       return ConfigHelper.initImageConfiguration(
           null /* no minimal api version */,
           getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(),
               DOCKER_BUILD_TIMESTAMP),
-          jkubeProject,
           images, imageConfigResolver,
           log,
           null, // no filter on image name yet (TODO: Maybe add this, too ?)
@@ -335,7 +332,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
             try {
               GeneratorContext ctx = GeneratorContext.builder()
                   .config(extractGeneratorConfig())
-                  .project(jkubeProject)
+                  .project(javaProject)
                   .runtimeMode(getRuntimeMode())
                   .logger(log)
                   .strategy(JKubeBuildStrategy.docker)
@@ -345,7 +342,8 @@ public class ResourceMojo extends AbstractJKubeMojo {
             } catch (Exception e) {
               throw new IllegalArgumentException("Cannot extract generator: " + e, e);
             }
-          });
+          },
+          jkubeServiceHub.getConfiguration());
     }
 
     private File[] mavenFilterFiles(File[] resourceFiles, File outDir) throws IOException {

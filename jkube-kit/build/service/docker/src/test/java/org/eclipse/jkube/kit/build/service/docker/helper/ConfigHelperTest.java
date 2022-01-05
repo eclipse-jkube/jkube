@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -30,16 +30,24 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ConfigHelperTest {
-  @Mocked
   private ImageConfigResolver imageConfigResolver;
-
-  @Mocked
   private KitLogger logger;
-
-  @Mocked
   private JavaProject javaProject;
+  private JKubeConfiguration jKubeConfiguration;
+
+  @Before
+  public void setUp() {
+    imageConfigResolver = mock(ImageConfigResolver.class, RETURNS_DEEP_STUBS);
+    logger = new KitLogger.SilentLogger();
+    javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+    jKubeConfiguration = mock(JKubeConfiguration.class, RETURNS_DEEP_STUBS);
+    when(jKubeConfiguration.getProject()).thenReturn(javaProject);
+  }
 
   @Test
   public void initImageConfiguration_withSimpleImageConfiguration_shouldReturnImageConfiguration() {
@@ -52,16 +60,11 @@ public class ConfigHelperTest {
         .build();
     List<ImageConfiguration> images = new ArrayList<>();
     images.add(dummyImageConfiguration);
-    new Expectations() {{
-      imageConfigResolver.resolve(dummyImageConfiguration, javaProject);
-      result = dummyImageConfiguration;
-
-      javaProject.getBaseDirectory();
-      result = new File("dummydir");
-    }};
+    when(jKubeConfiguration.getBasedir()).thenReturn(new File("dummydir"));
+    when(imageConfigResolver.resolve(dummyImageConfiguration, javaProject)).thenReturn(images);
 
     // When
-    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), javaProject, images, imageConfigResolver, logger, null, configs -> configs);
+    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), images, imageConfigResolver, logger, null, configs -> configs, jKubeConfiguration);
 
     // Then
     assertThat(resolvedImages)
@@ -74,25 +77,14 @@ public class ConfigHelperTest {
   public void initImageConfiguration_withSimpleDockerFileInProjectBaseDir_shouldCreateImageConfiguration() {
     List<ImageConfiguration> images = new ArrayList<>();
     File dockerFile = new File(getClass().getResource("/dummy-javaproject/Dockerfile").getFile());
-    new Expectations() {{
-      javaProject.getBaseDirectory();
-      result = dockerFile.getParentFile();
-
-      javaProject.getProperties();
-      result = new Properties();
-
-      javaProject.getGroupId();
-      result = "org.eclipse.jkube";
-
-      javaProject.getArtifactId();
-      result = "test-java-project";
-
-      javaProject.getVersion();
-      result = "0.0.1-SNAPSHOT";
-    }};
+    when(jKubeConfiguration.getBasedir()).thenReturn(dockerFile.getParentFile());
+    when(javaProject.getProperties()).thenReturn(new Properties());
+    when(javaProject.getGroupId()).thenReturn("org.eclipse.jkube");
+    when(javaProject.getArtifactId()).thenReturn("test-java-project");
+    when(javaProject.getVersion()).thenReturn("0.0.1-SNAPSHOT");
 
     // When
-    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), javaProject, images, imageConfigResolver, logger, null, configs -> configs);
+    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), images, imageConfigResolver, logger, null, configs -> configs, jKubeConfiguration);
 
     // Then
     assertThat(resolvedImages)
@@ -112,19 +104,12 @@ public class ConfigHelperTest {
     List<ImageConfiguration> images = new ArrayList<>();
     images.add(dummyImageConfiguration);
     File dockerFile = new File(getClass().getResource("/dummy-javaproject/Dockerfile").getFile());
-    new Expectations() {{
-      imageConfigResolver.resolve(dummyImageConfiguration, javaProject);
-      result = dummyImageConfiguration;
-
-      javaProject.getBaseDirectory();
-      result = dockerFile.getParentFile();
-
-      javaProject.getProperties();
-      result = new Properties();
-    }};
+    when(imageConfigResolver.resolve(dummyImageConfiguration, javaProject)).thenReturn(images);
+    when(jKubeConfiguration.getBasedir()).thenReturn(dockerFile.getParentFile());
+    when(javaProject.getProperties()).thenReturn(new Properties());
 
     // When
-    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), javaProject, images, imageConfigResolver, logger, null, configs -> configs);
+    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), images, imageConfigResolver, logger, null, configs -> configs, jKubeConfiguration);
 
     // Then
     assertThat(resolvedImages)
