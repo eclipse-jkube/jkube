@@ -38,6 +38,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -103,6 +104,7 @@ public class KubernetesPushTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesPushTask pushTask = new KubernetesPushTask(KubernetesExtension.class);
+    when(pushTask.getName()).thenReturn("k8sPush");
 
     // When
     pushTask.runTask();
@@ -110,5 +112,7 @@ public class KubernetesPushTaskTest {
     // Then
     Assertions.assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
     verify(pushTask.jKubeServiceHub.getBuildService(), times(0)).push(any(), anyInt(), any(), anyBoolean());
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sPush` task is skipped."));
+
   }
 }
