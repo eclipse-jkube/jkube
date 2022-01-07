@@ -63,8 +63,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     kubernetesExtension = getProject().getExtensions().getByType(extensionClass);
   }
 
-  @TaskAction
-  public final void runTask() {
+  protected void init() {
     kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
     kitLogger = createLogger(null);
     logOutputSpecFactory = new LogOutputSpecFactory(isAnsiEnabled(), kubernetesExtension.getLogStdoutOrDefault(),
@@ -88,9 +87,16 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     } catch (IOException exception) {
       kitLogger.error("Error in fetching Build timestamps: " + exception.getMessage());
     }
-    if (canExecute()) {
-      run();
+  }
+
+  @TaskAction
+  public final void runTask() {
+    init();
+    if (!canExecute()) {
+        kitLogger.info("`%s` task is skipped.", this.getName());
+        return;
     }
+    run();
   }
 
   @Internal
