@@ -93,10 +93,8 @@ public class UndeployMojo extends AbstractJKubeMojo implements ManifestProvider 
 
   protected void undeploy() throws IOException {
     final File environmentResourceDir = ResourceUtil.getFinalResourceDir(resourceDir, environment);
-    final String fallbackNamespace = Optional.ofNullable(resources)
-            .map(ResourceConfig::getNamespace).orElse(clusterAccess.getNamespace());
     jkubeServiceHub.getUndeployService()
-        .undeploy(fallbackNamespace, environmentResourceDir, resources, getManifestsToUndeploy().toArray(new File[0]));
+        .undeploy(environmentResourceDir, resources, getManifestsToUndeploy().toArray(new File[0]));
   }
 
   protected List<File> getManifestsToUndeploy() {

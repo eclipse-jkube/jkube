@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.Optional;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
@@ -30,7 +29,6 @@ import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
@@ -52,6 +50,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
 
 
@@ -108,10 +107,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
             WatcherContext context = getWatcherContext();
 
             WatcherManager.watch(getResolvedImages(),
-                Optional.ofNullable(namespace)
-                    .orElse(Optional.ofNullable(resources)
-                        .map(ResourceConfig::getNamespace)
-                        .orElse(clusterAccess.getNamespace())),
+                applicableNamespace(null, namespace, resources, clusterAccess),
                 appliedK8sResources,
                 context);
 

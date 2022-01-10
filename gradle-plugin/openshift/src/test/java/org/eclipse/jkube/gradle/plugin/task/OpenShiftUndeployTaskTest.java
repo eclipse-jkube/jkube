@@ -31,8 +31,6 @@ import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -93,12 +91,11 @@ public class OpenShiftUndeployTaskTest {
     assertThat(openshiftUndeployServiceMockedConstruction.constructed()).hasSize(1);
     verify(openshiftUndeployServiceMockedConstruction.constructed().iterator().next(), times(1))
       .undeploy(
-            isNull(),
-            eq(taskEnvironment.getRoot().toPath().resolve(Paths.get("src", "main", "jkube"))
-                .toFile()),
-            eq(ResourceConfig.builder().build()), eq(taskEnvironment.getRoot().toPath()
-                .resolve(Paths.get("build", "classes", "java", "main", "META-INF", "jkube", "openshift.yml")).toFile()),
-            eq(taskEnvironment.getRoot().toPath().resolve(Paths.get("build", "test-project-is.yml")).toFile())
+            taskEnvironment.getRoot().toPath().resolve(Paths.get("src", "main", "jkube"))
+                .toFile(),
+            ResourceConfig.builder().build(), taskEnvironment.getRoot().toPath()
+                .resolve(Paths.get("build", "classes", "java", "main", "META-INF", "jkube", "openshift.yml")).toFile(),
+            taskEnvironment.getRoot().toPath().resolve(Paths.get("build", "test-project-is.yml")).toFile()
       );
   }
 }

@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.config.service.openshift;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -131,7 +130,7 @@ public class OpenshiftUndeployServiceTest {
     }};
     // @formatter:on
     // When
-    openshiftUndeployService.undeploy(null, null, ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null, ResourceConfig.builder().build(), temporaryFolder.newFile());
     // Then
     assertDeleteCount(1);
     assertDeleted(entity);
@@ -143,7 +142,7 @@ public class OpenshiftUndeployServiceTest {
     final Pod entity = new Pod();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null, null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
     // Then
     assertDeleteCount(1);
     assertDeleted(entity);
@@ -158,7 +157,7 @@ public class OpenshiftUndeployServiceTest {
         .build();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null, null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
     // Then
     assertDeleteCount(1);
     assertDeleted(entity);
@@ -180,7 +179,7 @@ public class OpenshiftUndeployServiceTest {
         .build();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null, null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
     // Then
     assertDeleteCount(3);
     assertDeleted(entity);
@@ -214,7 +213,7 @@ public class OpenshiftUndeployServiceTest {
         .endSpec().build();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null, null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
     // Then
     assertDeleteCount(3);
     assertDeleted(entity);
@@ -249,7 +248,7 @@ public class OpenshiftUndeployServiceTest {
         .endSpec().build();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null, null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
     // Then
     assertDeleteCount(1);
     assertDeleted(entity);
@@ -284,7 +283,7 @@ public class OpenshiftUndeployServiceTest {
         .endSpec().build();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null, null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
     // Then
     assertDeleteCount(2);
     assertDeleted(entity);
