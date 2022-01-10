@@ -63,7 +63,17 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     kubernetesExtension = getProject().getExtensions().getByType(extensionClass);
   }
 
-  protected void init() {
+  @TaskAction
+  public final void runTask() {
+    init();
+    if (!canExecute()) {
+        kitLogger.info("`%s` task is skipped.", this.getName());
+        return;
+    }
+    run();
+  }
+
+  private void init() {
     kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
     kitLogger = createLogger(null);
     logOutputSpecFactory = new LogOutputSpecFactory(isAnsiEnabled(), kubernetesExtension.getLogStdoutOrDefault(),
@@ -89,14 +99,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     }
   }
 
-  @TaskAction
-  public final void runTask() {
-    init();
-    if (!canExecute()) {
-        kitLogger.info("`%s` task is skipped.", this.getName());
-        return;
-    }
-    run();
+  protected boolean canExecute() {
+    return !kubernetesExtension.getSkipOrDefault();
   }
 
   @Internal
@@ -190,7 +194,4 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     return manifest;
   }
 
-  protected boolean canExecute() {
-    return !kubernetesExtension.getSkipOrDefault();
-  }
 }
