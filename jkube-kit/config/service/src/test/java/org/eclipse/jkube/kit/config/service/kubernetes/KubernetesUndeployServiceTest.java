@@ -66,7 +66,7 @@ public class KubernetesUndeployServiceTest {
     // Given
     final File nonexistent = new File("I don't exist");
     // When
-    kubernetesUndeployService.undeploy(null, null, ResourceConfig.builder().build(), nonexistent, null);
+    kubernetesUndeployService.undeploy(null, ResourceConfig.builder().build(), nonexistent, null);
     // Then
     // @formatter:off
     new Verifications() {{
@@ -90,7 +90,7 @@ public class KubernetesUndeployServiceTest {
     }};
     // @formatter:on
     // When
-    kubernetesUndeployService.undeploy(null, null, resourceConfig, file);
+    kubernetesUndeployService.undeploy(null, resourceConfig, file);
     // Then
     // @formatter:off
     new Verifications() {{
@@ -136,7 +136,7 @@ public class KubernetesUndeployServiceTest {
     }};
     // @formatter:on
     // When
-    kubernetesUndeployService.undeploy(null, null, resourceConfig, manifest);
+    kubernetesUndeployService.undeploy(null, resourceConfig, manifest);
     // Then
     // @formatter:off
     new Verifications() {{
@@ -160,10 +160,11 @@ public class KubernetesUndeployServiceTest {
       kubernetesHelper.loadResources(file); result = Arrays.asList(configMap, pod, service);
       kubernetesHelper.getNamespace(configMap); result = "ns1";
       kubernetesHelper.getNamespace(pod); result = "ns2";
+      KubernetesHelper.getDefaultNamespace(); result = "default";
     }};
     // @formatter:on
     // When
-    kubernetesUndeployService.undeploy("default", null, resourceConfig, file);
+    kubernetesUndeployService.undeploy(null, resourceConfig, file);
     // Then
     // @formatter:off
     new Verifications() {{

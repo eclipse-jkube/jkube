@@ -17,13 +17,11 @@ import java.io.File;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
@@ -38,6 +36,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.resolveFallbackNamespace;
 
 /**
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
@@ -182,12 +182,12 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
             }
             KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
             List<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
-            log.info("Using %s at %s in namespace %s with manifest %s ", clusterKind, masterUrl, Optional.ofNullable(namespace)
-                .orElse(Optional.ofNullable(resources)
-                    .map(ResourceConfig::getNamespace)
-                    .orElse(clusterAccess.getNamespace())), manifest);
 
             configureApplyService(kubernetes);
+
+            log.info("Using %s at %s in namespace %s with manifest %s ", clusterKind, masterUrl,
+                applyService.getNamespace(),
+                manifest);
 
             // Apply rest of the entities present in manifest
             applyEntities(kubernetes, manifest.getName(), entities);
@@ -242,9 +242,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         applyService.setRollingUpgradePreserveScale(isRollingUpgradePreserveScale());
         applyService.setRecreateMode(recreate);
         applyService.setNamespace(namespace);
-        applyService.setFallbackNamespace(
-                Optional.ofNullable(resources)
-                        .map(ResourceConfig::getNamespace).orElse(clusterAccess.getNamespace()));
+        applyService.setFallbackNamespace(resolveFallbackNamespace(resources, clusterAccess));
 
         boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
         if (openShift) {

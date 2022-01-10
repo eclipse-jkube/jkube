@@ -22,7 +22,6 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
@@ -31,7 +30,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.resolveFallbackNamespace;
 
 @SuppressWarnings("CdiInjectionPointsInspection")
 public class KubernetesApplyTask extends AbstractJKubeTask {
@@ -52,9 +52,10 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
       URL masterUrl = kubernetes.getMasterUrl();
       KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
       List<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
-      kitLogger.info("Using %s at %s in namespace %s with manifest %s ", OpenshiftHelper.isOpenShift(kubernetes) ? "OpenShift" : "Kubernetes", masterUrl, clusterAccess.getNamespace(), manifest);
 
       configureApplyService();
+
+      kitLogger.info("Using %s at %s in namespace %s with manifest %s ", OpenshiftHelper.isOpenShift(kubernetes) ? "OpenShift" : "Kubernetes", masterUrl, applyService.getNamespace(), manifest);
 
       // Apply rest of the entities present in manifest
       applyEntities(manifest.getName(), entities);
@@ -95,8 +96,6 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
     applyService.setRollingUpgradePreserveScale(kubernetesExtension.getRollingUpgradePreserveScaleOrDefault());
     applyService.setRecreateMode(kubernetesExtension.getRecreateOrDefault());
     applyService.setNamespace(kubernetesExtension.getNamespaceOrNull());
-    applyService.setFallbackNamespace(
-      Optional.ofNullable(kubernetesExtension.resources)
-        .map(ResourceConfig::getNamespace).orElse(clusterAccess.getNamespace()));
+    applyService.setFallbackNamespace(resolveFallbackNamespace(kubernetesExtension.resources, clusterAccess));
   }
 }

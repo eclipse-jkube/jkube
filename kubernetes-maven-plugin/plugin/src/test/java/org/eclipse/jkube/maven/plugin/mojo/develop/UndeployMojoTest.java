@@ -95,7 +95,7 @@ public class UndeployMojoTest {
   private void assertUndeployServiceUndeployWasCalled() throws Exception {
     // @formatter:off
     new Verifications() {{
-      jKubeServiceHub.getUndeployService().undeploy(null, mockResourceDir, withNotNull(), mockManifest);
+      jKubeServiceHub.getUndeployService().undeploy(mockResourceDir, withNotNull(), mockManifest);
       times = 1;
     }};
     // @formatter:on

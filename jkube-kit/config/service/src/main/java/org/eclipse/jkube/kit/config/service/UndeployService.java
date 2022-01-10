@@ -20,5 +20,5 @@ import java.io.IOException;
 
 public interface UndeployService {
 
-  void undeploy(String fallbackNamespace, File resourceDir, ResourceConfig resourceConfig, File... manifestFiles) throws IOException;
+  void undeploy(File resourceDir, ResourceConfig resourceConfig, File... manifestFiles) throws IOException;
 }

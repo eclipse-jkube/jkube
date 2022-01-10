@@ -16,6 +16,7 @@ package org.eclipse.jkube.gradle.plugin.task;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 import org.junit.After;
@@ -45,6 +46,7 @@ public class OpenShiftWatchTaskTest {
 
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedStatic<WatcherManager> watcherManagerMockedStatic;
+  private MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic;
   private TestOpenShiftExtension extension;
 
   @Before
@@ -55,8 +57,10 @@ public class OpenShiftWatchTaskTest {
       when(mock.createDefaultClient()).thenReturn(openShiftClient);
     });
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
+    kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
     extension = new TestOpenShiftExtension();
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    kubernetesHelperMockedStatic.when(KubernetesHelper::getDefaultNamespace).thenReturn(null);
     extension.isFailOnNoKubernetesJson = false;
   }
 
@@ -64,6 +68,7 @@ public class OpenShiftWatchTaskTest {
   public void tearDown() {
     watcherManagerMockedStatic.close();
     clusterAccessMockedConstruction.close();
+    kubernetesHelperMockedStatic.close();
   }
 
   @Test

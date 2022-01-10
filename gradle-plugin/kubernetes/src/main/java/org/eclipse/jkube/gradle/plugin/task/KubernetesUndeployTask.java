@@ -43,10 +43,8 @@ public class KubernetesUndeployTask extends AbstractJKubeTask {
         .build();
       final File environmentResourceDir = ResourceUtil.getFinalResourceDir(resolveResourceSourceDirectory(),
           kubernetesExtension.getResourceEnvironmentOrNull());
-      final String fallbackNamespace = Optional.ofNullable(kubernetesExtension.resources)
-        .map(ResourceConfig::getNamespace).orElse(clusterAccess.getNamespace());
       jKubeServiceHub.getUndeployService()
-        .undeploy(fallbackNamespace, environmentResourceDir, resources, findManifestsToUndeploy().toArray(new File[0]));
+        .undeploy(environmentResourceDir, resources, findManifestsToUndeploy().toArray(new File[0]));
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
     }

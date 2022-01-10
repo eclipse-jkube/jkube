@@ -19,6 +19,7 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.watcher.api.WatcherManager;
@@ -51,6 +52,7 @@ public class KubernetesWatchTaskTest {
   private MockedConstruction<DockerBuildService> dockerBuildServiceMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedStatic<WatcherManager> watcherManagerMockedStatic;
+  private MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic;
   private TestKubernetesExtension extension;
 
   @Before
@@ -67,14 +69,17 @@ public class KubernetesWatchTaskTest {
       when(mock.createDefaultClient()).thenReturn(kubernetesClient);
     });
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
+    kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
     extension = new TestKubernetesExtension();
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    kubernetesHelperMockedStatic.when(KubernetesHelper::getDefaultNamespace).thenReturn(null);
     extension.isFailOnNoKubernetesJson = false;
   }
 
   @After
   public void tearDown() {
     watcherManagerMockedStatic.close();
+    kubernetesHelperMockedStatic.close();
     clusterAccessMockedConstruction.close();
     dockerBuildServiceMockedConstruction.close();
     dockerAccessFactoryMockedConstruction.close();

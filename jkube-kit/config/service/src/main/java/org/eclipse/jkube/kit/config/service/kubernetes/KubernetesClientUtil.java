@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
@@ -25,6 +26,7 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
@@ -41,6 +43,7 @@ import io.fabric8.kubernetes.client.dsl.Scaleable;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 /**
  * Utility class for executing common tasks using the Kubernetes client
@@ -170,13 +173,25 @@ public class KubernetesClientUtil {
         crClient.waitUntilCondition(Objects::isNull, seconds, TimeUnit.SECONDS);
     }
 
+    public static String applicableNamespace(HasMetadata resource, String namespace, ResourceConfig resourceConfig, ClusterAccess clusterAccess) {
+        return applicableNamespace(resource, namespace, resolveFallbackNamespace(resourceConfig, clusterAccess));
+    }
+
     public static String applicableNamespace(HasMetadata resource, String namespace, String fallbackNamespace) {
         if (StringUtils.isNotBlank(namespace)) {
             return namespace;
         }
-        if (StringUtils.isNotBlank(KubernetesHelper.getNamespace(resource))) {
+        if (resource != null && StringUtils.isNotBlank(KubernetesHelper.getNamespace(resource))) {
             return KubernetesHelper.getNamespace(resource);
         }
         return StringUtils.isNotBlank(fallbackNamespace) ? fallbackNamespace : KubernetesHelper.getDefaultNamespace();
+    }
+
+    public static String resolveFallbackNamespace(ResourceConfig resourceConfig, ClusterAccess clusterAccess) {
+        return Optional.ofNullable(resourceConfig)
+            .map(ResourceConfig::getNamespace)
+            .orElse(Optional.ofNullable(clusterAccess)
+                .map(ClusterAccess::getNamespace)
+                .orElse(null));
     }
 }
