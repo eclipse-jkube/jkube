@@ -100,18 +100,6 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     protected JavaProject javaProject;
 
-    protected void init() throws DependencyResolutionRequiredException {
-        log = createLogger(null);
-        clusterAccess = new ClusterAccess(log, initClusterConfiguration());
-        javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
-        jkubeServiceHub = initJKubeServiceHubBuilder(javaProject).build();
-        resources = updateResourceConfigNamespace(namespace, resources);
-    }
-
-    protected boolean canExecute() {
-        return !skip;
-    }
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -124,6 +112,18 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         } catch (DependencyResolutionRequiredException e) {
             throw new MojoFailureException(e.getMessage());
         }
+    }
+
+    protected void init() throws DependencyResolutionRequiredException {
+        log = createLogger(null);
+        clusterAccess = new ClusterAccess(log, initClusterConfiguration());
+        javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        jkubeServiceHub = initJKubeServiceHubBuilder(javaProject).build();
+        resources = updateResourceConfigNamespace(namespace, resources);
+    }
+
+    protected boolean canExecute() {
+        return !skip;
     }
 
     public abstract void executeInternal() throws MojoExecutionException, MojoFailureException;

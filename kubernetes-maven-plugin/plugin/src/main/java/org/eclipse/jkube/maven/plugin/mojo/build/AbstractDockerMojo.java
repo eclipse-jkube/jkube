@@ -414,6 +414,16 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         return RuntimeMode.KUBERNETES;
     }
 
+    @Override
+    public final void execute() throws MojoExecutionException, MojoFailureException {
+        init();
+        if (!canExecute()) {
+            log.info("`%s` goal is skipped.", mojoExecution.getMojoDescriptor().getFullGoalName());
+            return;
+        }
+        doExecute();
+    }
+
     protected void init() {
         log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
         logOutputSpecFactory = new LogOutputSpecFactory(useColorForLogging(), logStdout, logDate);
@@ -425,16 +435,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     protected boolean canExecute() {
         return !skip;
-    }
-
-    @Override
-    public final void execute() throws MojoExecutionException, MojoFailureException {
-        init();
-        if (!canExecute()) {
-            log.info("`%s` goal is skipped.", mojoExecution.getMojoDescriptor().getFullGoalName());
-            return;
-        }
-        doExecute();
     }
 
     protected void doExecute() throws MojoExecutionException {
