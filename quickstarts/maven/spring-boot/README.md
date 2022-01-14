@@ -103,7 +103,7 @@ nginx-ingress-controller-6fc5bcc8c9-gt4mg   1/1     Running   3          4h5m
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:resource (default-cli) @ spring-boot ---
 [INFO] k8s: Running generator spring-boot
-[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.5 as base / builder
+[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
 [INFO] k8s: jkube-controller: Adding a default Deployment
 [INFO] k8s: jkube-service: Adding a default service 'spring-boot' with ports [8080]
 [INFO] k8s: jkube-healthcheck-spring-boot: Adding readiness probe on port 8080, path='/actuator/health', scheme='HTTP', with initial delay 10 seconds

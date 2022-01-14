@@ -32,11 +32,11 @@ $ mvn package k8s:build
 [INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator quarkus
-[INFO] k8s: quarkus: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.9 as base / builder
+[INFO] k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
 [INFO] k8s: Pulling from jkube/jkube-java-binary-s2i
 [INFO] k8s: Digest: sha256:dd5c9f44a86e19438662d293e180acc8d864887cf19c165c1b24ae703b16c2d4
-[INFO] k8s: Status: Downloaded newer image for quay.io/jkube/jkube-java-binary-s2i:0.0.9
-[INFO] k8s: Pulled quay.io/jkube/jkube-java-binary-s2i:0.0.9 in 21 seconds 
+[INFO] k8s: Status: Downloaded newer image for quay.io/jkube/jkube-java:0.0.13
+[INFO] k8s: Pulled quay.io/jkube/jkube-java:0.0.13 in 21 seconds 
 [INFO] k8s: [maven/quarkus:1.3.0] "quarkus": Created docker-build.tar in 241 milliseconds
 [INFO] k8s: [maven/quarkus:1.3.0] "quarkus": Built image sha256:c4e4b
 [INFO] k8s: [maven/quarkus:1.3.0] "quarkus": Removed old image sha256:3c4d4
@@ -63,7 +63,7 @@ $ mvn k8s:resource k8s:apply
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.3.0:resource (default-cli) @ quarkus ---
 [INFO] k8s: Running generator quarkus
-[INFO] k8s: quarkus: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.9 as base / builder
+[INFO] k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
 [INFO] k8s: Using resource templates from /home/user/00-MN/projects/forks/jkube/quickstarts/maven/quarkus/src/main/jkube
 [INFO] k8s: jkube-controller: Adding a default Deployment
 [INFO] k8s: jkube-service: Adding a default service 'quarkus' with ports [8080]

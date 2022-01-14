@@ -22,8 +22,8 @@ It will use the following base image by default, but as explained <<generator-op
 | | Docker Build | S2I Build | ImageStream
 
 | *Community*
-| `quay.io/jkube/jkube-java-binary-s2i`
-| `quay.io/jkube/jkube-java-binary-s2i`
+| `quay.io/jkube/jkube-java`
+| `quay.io/jkube/jkube-java`
 | `jkube-java`
 
 |===

@@ -43,6 +43,17 @@ import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
  */
 public class JavaExecGenerator extends BaseGenerator {
 
+  protected enum JDK {
+    DEFAULT("java"),
+    JDK_11("java11");
+
+    final String imagePrefix;
+
+    JDK(String imagePrefix) {
+      this.imagePrefix = imagePrefix;
+    }
+  }
+
     // Environment variable used for specifying a main class
     static final String JAVA_MAIN_CLASS_ENV_VAR = "JAVA_MAIN_CLASS";
     protected static final String JAVA_OPTIONS = "JAVA_OPTIONS";
@@ -61,7 +72,10 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     protected JavaExecGenerator(GeneratorContext context, String name) {
-        super(context, name, new FromSelector.Default(context, "java"));
+        this(context, name, JDK.DEFAULT);
+    }
+    protected JavaExecGenerator(GeneratorContext context, String name, JDK jdk) {
+        super(context, name, new FromSelector.Default(context, jdk.imagePrefix));
         fatJarDetector = new FatJarDetector(getProject().getBuildPackageDirectory());
         mainClassDetector = new MainClassDetector(getConfig(Config.MAIN_CLASS),
                 getProject().getOutputDirectory(), context.getLogger());

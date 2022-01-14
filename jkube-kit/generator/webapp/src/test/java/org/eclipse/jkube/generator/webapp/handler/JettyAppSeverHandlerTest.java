@@ -111,7 +111,7 @@ public class JettyAppSeverHandlerTest {
     // When
     final JettyAppSeverHandler handler = new JettyAppSeverHandler(generatorContext);
     // Then
-    assertThat(handler.getFrom(), startsWith("quay.io/jkube/jkube-jetty9-binary-s2i:"));
+    assertThat(handler.getFrom(), startsWith("quay.io/jkube/jkube-jetty9:"));
     assertThat(handler.exposedPorts(), contains("8080"));
     assertThat(handler.getDeploymentDir(), equalTo("/deployments"));
     assertThat(handler.getAssemblyName(), equalTo("deployments"));

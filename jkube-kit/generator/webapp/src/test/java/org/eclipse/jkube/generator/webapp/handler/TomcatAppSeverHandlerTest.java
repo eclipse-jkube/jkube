@@ -119,7 +119,7 @@ public class TomcatAppSeverHandlerTest {
     // When
     final TomcatAppSeverHandler handler = new TomcatAppSeverHandler(generatorContext);
     // Then
-    assertThat(handler.getFrom(), startsWith("quay.io/jkube/jkube-tomcat9-binary-s2i:"));
+    assertThat(handler.getFrom(), startsWith("quay.io/jkube/jkube-tomcat9:"));
     assertThat(handler.exposedPorts(), contains("8080"));
     assertThat(handler.getDeploymentDir(), equalTo("/deployments"));
     assertThat(handler.getAssemblyName(), equalTo("deployments"));

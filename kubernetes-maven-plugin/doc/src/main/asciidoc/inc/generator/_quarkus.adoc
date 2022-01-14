@@ -15,6 +15,6 @@ The base images chosen are:
 | `quay.io/quarkus/ubi-quarkus-native-binary-s2i`
 
 | *Normal Build*
-| `quay.io/jkube/jkube-java-binary-s2i`
-| `quay.io/jkube/jkube-java-binary-s2i`
+| `quay.io/jkube/jkube-java`
+| `quay.io/jkube/jkube-java`
 |===

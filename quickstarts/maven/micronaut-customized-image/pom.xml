@@ -154,7 +154,7 @@
             <image>
               <name>${project.groupId}/${project.artifactId}</name>
               <build>
-                <from>quay.io/jkube/jkube-java-binary-s2i:${jkube.image.version}</from>
+                <from>quay.io/jkube/jkube-java:${jkube.image.version}</from>
                 <tags>
                   <tag>latest</tag>
                   <tag>${project.version}</tag>
@@ -197,7 +197,7 @@
             <image>
               <name>${project.groupId}/${project.artifactId}</name>
               <build>
-                <from>quay.io/jkube/jkube-java-binary-s2i:${jkube.image.version}</from>
+                <from>quay.io/jkube/jkube-java:${jkube.image.version}</from>
                 <tags>
                   <tag>latest</tag>
                   <tag>${project.version}</tag>
