@@ -87,8 +87,8 @@
     <!-- Servlet container images -->
     <version.image.tomcat.upstream>${version.image.jkube-images}</version.image.tomcat.upstream>
     <version.image.jetty.upstream>${version.image.jkube-images}</version.image.jetty.upstream>
-    <version.image.wildfly.upstream.docker>19.0.0.Final</version.image.wildfly.upstream.docker>
-    <version.image.wildfly.upstream.s2i>19.0</version.image.wildfly.upstream.s2i>
+    <version.image.wildfly.upstream.docker>25.0.0.Final</version.image.wildfly.upstream.docker>
+    <version.image.wildfly.upstream.s2i>26.0</version.image.wildfly.upstream.s2i>
 
     <!-- ============================================= -->
     <!-- Default images used in the default generators. Please note that the generators make some assumption about
