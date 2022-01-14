@@ -88,11 +88,6 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-generator-wildfly-swarm</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-thorntail</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>

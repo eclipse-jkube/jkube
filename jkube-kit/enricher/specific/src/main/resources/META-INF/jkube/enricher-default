@@ -8,7 +8,6 @@
 # ----------------------------------------------------------------
 
 # Healthcheck Enrichers
-org.eclipse.jkube.kit.enricher.specific.WildFlySwarmHealthCheckEnricher
 org.eclipse.jkube.kit.enricher.specific.KarafHealthCheckEnricher
 org.eclipse.jkube.kit.enricher.specific.WebAppHealthCheckEnricher
 org.eclipse.jkube.kit.enricher.specific.DockerHealthCheckEnricher,510

@@ -94,7 +94,7 @@
     <!-- Default images used in the default generators. Please note that the generators make some assumption about
          these images (e.g. where the deployment directory is), so don't change them arbitrarily -->
 
-    <!-- java (java-exec, spring-boot, wildfly-swarm) -->
+    <!-- java (java-exec, spring-boot) -->
     <image.java.upstream.s2i>quay.io/jkube/jkube-java:${version.image.java.upstream.s2i}</image.java.upstream.s2i>
     <image.java.upstream.docker>quay.io/jkube/jkube-java:${version.image.java.upstream.docker}</image.java.upstream.docker>
     <image.java.upstream.istag>jkube-java:${version.image.java.upstream.s2i}</image.java.upstream.istag>

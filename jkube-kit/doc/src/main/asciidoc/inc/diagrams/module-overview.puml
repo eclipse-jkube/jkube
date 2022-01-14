@@ -69,7 +69,6 @@ package jkube.kit {
         [generator-java-exec] --> [generator-api]
         [generator-karaf] --> [generator-api]
         [generator-webapp] --> [generator-api]
-        [generator-wildfly-swarm] --> [generator-java-exec]
     }
     package kit.resource {
         package kit.resource.helm {
@@ -115,7 +114,6 @@ package maven.plugins {
     [kubernetes-maven-plugin] --> [generator-java-exec]
     [kubernetes-maven-plugin] --> [generator-karaf]
     [kubernetes-maven-plugin] --> [generator-webapp]
-    [kubernetes-maven-plugin] --> [generator-wildfly-swarm]
     [kubernetes-maven-plugin] --> [openliberty]
     [kubernetes-maven-plugin] --> [quarkus]
     [kubernetes-maven-plugin] --> [spring-boot]
