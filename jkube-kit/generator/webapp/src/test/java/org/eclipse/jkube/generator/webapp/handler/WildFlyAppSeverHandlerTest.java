@@ -119,7 +119,7 @@ public class WildFlyAppSeverHandlerTest {
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
     assertCommonValues(handler);
-    assertEquals("jboss/wildfly:19.0.0.Final", handler.getFrom());
+    assertEquals("jboss/wildfly:25.0.0.Final", handler.getFrom());
     assertEquals("/opt/jboss/wildfly/standalone/deployments", handler.getDeploymentDir());
     assertTrue(handler.runCmds().isEmpty());
   }
@@ -137,7 +137,7 @@ public class WildFlyAppSeverHandlerTest {
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
     assertCommonValues(handler);
-    assertEquals("jboss/wildfly:19.0.0.Final", handler.getFrom());
+    assertEquals("jboss/wildfly:25.0.0.Final", handler.getFrom());
     assertEquals("/opt/jboss/wildfly/standalone/deployments", handler.getDeploymentDir());
     assertEquals(Collections.singletonList("chmod -R a+rw /opt/jboss/wildfly/standalone/"), handler.runCmds());
   }
@@ -155,7 +155,7 @@ public class WildFlyAppSeverHandlerTest {
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
     assertCommonValues(handler);
-    assertEquals("quay.io/wildfly/wildfly-centos7:19.0", handler.getFrom());
+    assertEquals("quay.io/wildfly/wildfly-centos7:26.0", handler.getFrom());
     assertEquals("/deployments", handler.getDeploymentDir());
     assertTrue(handler.runCmds().isEmpty());
   }

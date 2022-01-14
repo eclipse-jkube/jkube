@@ -13,7 +13,7 @@
 [INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator webapp
-[INFO] k8s: webapp: Using jboss/wildfly:10.1.0.Final as base image for webapp
+[INFO] k8s: webapp: Using jboss/wildfly:25.0.0.Final as base image for webapp
 [INFO] k8s: [jkube/jkube-maven-sample-webapp-wildfly:latest] "webapp": Created docker-build.tar in 43 milliseconds
 [INFO] k8s: [jkube/jkube-maven-sample-webapp-wildfly:latest] "webapp": Built image sha256:fa2af
 [INFO] k8s: [jkube/jkube-maven-sample-webapp-wildfly:latest] "webapp": Removed old image sha256:11e06
@@ -39,7 +39,7 @@ jkube/jkube-maven-sample-webapp-wildfly   latest                        fa2af15e
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:resource (default-cli) @ jkube-maven-sample-webapp-wildfly ---
 [INFO] k8s: Running generator webapp
-[INFO] k8s: webapp: Using jboss/wildfly:10.1.0.Final as base image for webapp
+[INFO] k8s: webapp: Using jboss/wildfly:25.0.0.Final as base image for webapp
 [INFO] k8s: jkube-controller: Adding a default Deployment
 [INFO] k8s: jkube-service: Adding a default service 'jkube-maven-sample-webapp-wildfly' with ports [8080]
 [INFO] k8s: jkube-revision-history: Adding revision history limit to 2
