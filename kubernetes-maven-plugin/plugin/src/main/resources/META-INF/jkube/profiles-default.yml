@@ -56,7 +56,6 @@
     # Health checks
     - jkube-healthcheck-quarkus
     - jkube-healthcheck-spring-boot
-    - jkube-healthcheck-wildfly-swarm
     - jkube-healthcheck-thorntail-v2
     - jkube-healthcheck-wildfly-jar
     - jkube-healthcheck-karaf
@@ -85,7 +84,6 @@
     includes:
     - quarkus
     - spring-boot
-    - wildfly-swarm
     - thorntail-v2
     - wildfly-jar
     - openliberty
@@ -116,7 +114,6 @@
     # The order given in "includes" is the order in which generators are called
     includes:
     - spring-boot
-    - wildfly-swarm
     - thorntail-v2
     - wildfly-jar
     - karaf

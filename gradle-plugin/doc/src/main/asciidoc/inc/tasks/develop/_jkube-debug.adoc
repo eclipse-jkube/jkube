@@ -21,7 +21,11 @@ Then in your IDE you start a Remote debug execution using this remote port using
 
 This lets you debug your apps while they are running inside a Kubernetes cluster - for example if you wish to debug a REST endpoint while another pod is invoking it.
 
-Debug is enabled via the `JAVA_ENABLE_DEBUG` environment variable being set to `true`.This environment variable is used for all the standard Java docker images used by Spring Boot, flat classpath and executable JAR projects and Wildfly Swarm.If you use your own custom docker base image you may wish to also respect this environment variable too to enable debugging.
+Debug is enabled via the `JAVA_ENABLE_DEBUG` environment variable being set to `true`.
+This environment variable is used for all the standard Java docker images used by Spring Boot, Quarkus,
+flat classpath and executable JAR projects.
+If you use your own custom docker base image you may wish to also respect this environment variable too
+to enable debugging.
 
 ==== Speeding up debugging
 

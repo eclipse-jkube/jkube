@@ -44,7 +44,6 @@
       <module>build/service/jib</module>
       <module>generator/api</module>
       <module>generator/java-exec</module>
-      <module>generator/wildfly-swarm</module>
       <module>generator/karaf</module>
       <module>generator/webapp</module>
       <module>enricher/api</module>
