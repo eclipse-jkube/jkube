@@ -26,7 +26,7 @@ app : $ mvn k8s:resource
 [INFO] --- kubernetes-maven-plugin:1.1.0-SNAPSHOT:resource (default-cli) @ eclipse-jkube-sample-custom-enricher-app ---
 [WARNING] k8s: Cannot access cluster for detecting mode: No route to host (Host unreachable)
 [INFO] k8s: Running generator spring-boot
-[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java-binary-s2i:0.0.9 as base / builder
+[INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
 [INFO] k8s: Using resource templates from /home/rohaan/work/repos/jkube/quickstarts/kit/custom-istio-enricher/app/src/main/jkube
 [INFO] k8s: jkube-service: Adding a default service 'eclipse-jkube-sample-custom-enricher-app' with ports [8080]
 [INFO] k8s: jkube-revision-history: Adding revision history limit to 2

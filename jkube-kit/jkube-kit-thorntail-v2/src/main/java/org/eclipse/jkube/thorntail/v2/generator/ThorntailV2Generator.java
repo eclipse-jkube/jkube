@@ -24,7 +24,7 @@ import java.util.Map;
 public class ThorntailV2Generator extends JavaExecGenerator {
 
     public ThorntailV2Generator(GeneratorContext context) {
-        super(context, "thorntail-v2");
+        super(context, "thorntail-v2", JDK.JDK_11);
     }
 
     @Override

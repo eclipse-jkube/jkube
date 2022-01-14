@@ -10,8 +10,8 @@ This generator named `karaf` kicks in when the build uses a `karaf-maven-plugin`
 | | Docker Build | S2I Build | ImageStream
 
 | *Community*
-| `quay.io/jkube/jkube-karaf-binary-s2i`
-| `quay.io/jkube/jkube-karaf-binary-s2i`
+| `quay.io/jkube/jkube-karaf`
+| `quay.io/jkube/jkube-karaf`
 | `jkube-karaf`
 
 |===

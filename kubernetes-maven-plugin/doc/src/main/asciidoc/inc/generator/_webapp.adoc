@@ -3,7 +3,8 @@
 
 The `webapp` generator tries to detect WAR builds and selects a base servlet container image based on the configuration found in the `pom.xml`:
 
-* A **Tomcat** base image is selected when a `tomcat6-maven-plugin` or `tomcat7-maven-plugin` is present or when a `META-INF/context.xml` could be found in the classes directory.
+* A **Tomcat** base image is selected when a `tomcat6-maven-plugin`,
+`tomcat7-maven-plugin` or `tomcat8-maven-plugin` is present or when a `META-INF/context.xml` could be found in the classes directory.
 * A **Jetty** base image is selected when a `jetty-maven-plugin` is present or one of the files `WEB-INF/jetty-web.xml` or `WEB-INF/jetty-logging.properties` is found.
 * A **Wildfly** base image is chosen for a given `jboss-as-maven-plugin` or `wildfly-maven-plugin` or when a Wildfly specific deployment descriptor like `jboss-web.xml` is found.
 
@@ -16,12 +17,12 @@ The base images chosen are:
 | | Docker Build | S2I Build
 
 | *Tomcat*
-| `quay.io/jkube/jkube-tomcat9-binary-s2i`
-| `quay.io/jkube/jkube-tomcat9-binary-s2i`
+| `quay.io/jkube/jkube-tomcat9`
+| `quay.io/jkube/jkube-tomcat9`
 
 | *Jetty*
-| `quay.io/jkube/jkube-jetty9-binary-s2i`
-| `quay.io/jkube/jkube-jetty9-binary-s2i`
+| `quay.io/jkube/jkube-jetty9`
+| `quay.io/jkube/jkube-jetty9`
 
 | *Wildfly*
 | `jboss/wildfly`

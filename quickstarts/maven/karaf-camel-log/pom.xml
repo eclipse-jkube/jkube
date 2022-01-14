@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>karaf-camel-log</artifactId>
-  <version>1.5.1</version>
+  <version>1.6.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Karaf Camel Log</name>
 
@@ -30,11 +30,11 @@
   </description>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <camel.version>2.25.1</camel.version>
-    <karaf.version>4.2.8</karaf.version>
+    <camel.version>2.25.4</camel.version>
+    <karaf.version>4.3.5</karaf.version>
   </properties>
 
   <dependencies>
@@ -121,7 +121,7 @@
           </execution>
         </executions>
         <configuration>
-          <javase>1.8</javase>
+          <javase>11</javase>
           <framework>framework</framework>
           <useReferenceUrls>true</useReferenceUrls>
           <archiveTarGz>false</archiveTarGz>

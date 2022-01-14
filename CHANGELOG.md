@@ -29,6 +29,7 @@ Usage:
 * Fix #961: `k8sBuild`, `k8sResource` and `k8sApply` tasks don't respect skip options
 * Fix #1030: Update IngressEnricher's default targetApiVersion to `networking.k8s.io/v1`
 * Fix #1054: Log selected Dockerfile in Docker build mode
+* Fix #1106: Container Images based on Java 17 (Java-exec, Tomcat, Jetty, Karaf)
 * Fix #1113: `ResourceUtil.deserializeKubernetesListOrTemplate` should also handle YAML manifests with multiple docs
 * Fix #1120: OpenShiftBuildService flattens assembly only if necessary
 * Fix #1123: Helm supports `.yaml` and `.yml` source files

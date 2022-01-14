@@ -555,7 +555,7 @@ public class ContainerHandlerTest {
                 .name("roman.gordill/customer-service-cache:latest")
                 .registry("quay.io")
                 .build(BuildConfiguration.builder()
-                        .from("quay.io/jkube/jkube-java-binary-s2i:0.0.8")
+                        .from("quay.io/jkube/jkube-java:0.0.13")
                         .assembly(AssemblyConfiguration.builder()
                                 .targetDir("/deployments")
                                 .build())
