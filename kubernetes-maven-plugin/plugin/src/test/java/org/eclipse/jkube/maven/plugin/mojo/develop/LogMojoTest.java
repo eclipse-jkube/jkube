@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
 
-import mockit.Verifications;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.ApplyService;
@@ -26,9 +26,6 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.junit.After;
@@ -36,60 +33,57 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.MockedConstruction;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNotNull;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 @SuppressWarnings("unused")
 public class LogMojoTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
-  private File kubernetesManifestFile;
-  private Properties mavenProperties;
 
-  @Mocked
-  private KitLogger logger;
-  @Mocked
-  private JKubeServiceHub jKubeServiceHub;
-  @Mocked
-  private ClusterAccess clusterAccess;
-  @Mocked
+  private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
+  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
+  private MockedConstruction<PodLogService> podLogServiceMockedConstruction;
+  private File kubernetesManifestFile;
   private MavenProject mavenProject;
-  @Mocked
-  private Settings mavenSettings;
-  @Mocked
-  private DefaultKubernetesClient defaultKubernetesClient;
-  @Mocked
-  private PodLogService podLogService;
 
   private LogMojo logMojo;
 
   @Before
   public void setUp() throws IOException {
+    jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
+        withSettings().defaultAnswer(RETURNS_DEEP_STUBS));
+    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class);
+    podLogServiceMockedConstruction = mockConstruction(PodLogService.class);
     kubernetesManifestFile = temporaryFolder.newFile("kubernetes.yml");
-    mavenProperties = new Properties();
+    mavenProject = mock(MavenProject.class);
+    when(mavenProject.getProperties()).thenReturn(new Properties());
     // @formatter:off
     logMojo = new LogMojo() { {
       project = mavenProject;
-      settings = mavenSettings;
+      settings = mock(Settings.class);
       kubernetesManifest = kubernetesManifestFile;
-    }};
-    new Expectations(){{
-      jKubeServiceHub.getApplyService(); result = new ApplyService(defaultKubernetesClient, logger);
-      mavenProject.getProperties(); result = mavenProperties;
-      mavenProject.getBuild().getOutputDirectory(); result = "target/classes";
-      mavenProject.getBuild().getDirectory(); result = "target";
-      mavenProject.getArtifactId(); result = "artifact-id";
-      mavenProject.getVersion(); result = "1337";
-      mavenProject.getDescription(); result = "A description from Maven";
-      mavenProject.getParent(); result = null;
-      defaultKubernetesClient.isAdaptable(OpenShiftClient.class); result = false;
-      defaultKubernetesClient.getMasterUrl();
-      result = URI.create("https://www.example.com").toURL();
     }};
     // @formatter:on
   }
 
   @After
   public void tearDown() {
+    clusterAccessMockedConstruction.close();
+    jKubeServiceHubMockedConstruction.close();
     mavenProject = null;
     logMojo = null;
   }
@@ -99,19 +93,15 @@ public class LogMojoTest {
     // When
     logMojo.execute();
     // Then
-    // @formatter:off
-    new Verifications() {{
-      podLogService.tailAppPodsLogs(
-          defaultKubernetesClient,
-          null,
-          withNotNull(),
-          false,
-          null,
-          false,
-          null,
-          true);
-      times = 1;
-    }};
-    // @formatter:on
+    assertThat(podLogServiceMockedConstruction.constructed()).singleElement()
+        .satisfies(podLogService -> verify(podLogService, times(1)).tailAppPodsLogs(
+            any(KubernetesClient.class),
+            isNull(),
+            isNotNull(),
+            eq(false),
+            isNull(),
+            eq(false),
+            isNull(),
+            eq(true)));
   }
 }

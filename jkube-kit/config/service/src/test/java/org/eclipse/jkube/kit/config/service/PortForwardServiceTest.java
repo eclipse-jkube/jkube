@@ -67,13 +67,13 @@ public class PortForwardServiceTest {
 
         mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=mykey%3Dmyvalue").andReturn(200, pods1).always();
         mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods").andReturn(200, pods1).always();
-        mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=mykey%3Dmyvalue&watch=true")
+        mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=mykey%3Dmyvalue&allowWatchBookmarks=true&watch=true")
                 .andUpgradeToWebSocket().open()
                 .waitFor(1000)
                 .andEmit(new WatchEvent(pod1, "MODIFIED"))
                 .done().always();
 
-        mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?resourceVersion=1&watch=true")
+        mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?resourceVersion=1&allowWatchBookmarks=true&watch=true")
                 .andUpgradeToWebSocket().open()
                 .waitFor(1000)
                 .andEmit(new WatchEvent(pod1, "MODIFIED"))

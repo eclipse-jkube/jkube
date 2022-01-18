@@ -41,6 +41,7 @@ Usage:
 * Fix #1180: `k8s:watch` uses default namespace even if other namespace is configured
 * Fix #1190: OpenShiftBuildService doesn't apply resources in configured namespace
 * Fix #1209: Remove WildFly Swarm support
+* Fix #1219: Bump kubernetes-client to 5.11.2
 
 ### 1.5.1 (2021-10-28)
 * Fix #1084: Gradle dependencies should be test or provided scope

@@ -14,26 +14,24 @@
 package org.eclipse.jkube.watcher.standard;
 
 import io.fabric8.kubernetes.client.dsl.ExecListener;
-import okhttp3.Response;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 public class ExecListenerLatch implements ExecListener {
 
   private final CountDownLatch cdl;
   private final AtomicInteger closeCode;
   private final AtomicReference<String> closeReason;
-  private final Consumer<Response> onOpen;
+  private final Runnable onOpen;
 
   public ExecListenerLatch() {
     this(null);
   }
 
-  public ExecListenerLatch(Consumer<Response> onOpen) {
+  public ExecListenerLatch(Runnable onOpen) {
     cdl = new CountDownLatch(1);
     closeCode = new AtomicInteger(-1);
     closeReason = new AtomicReference<>();
@@ -41,9 +39,9 @@ public class ExecListenerLatch implements ExecListener {
   }
 
   @Override
-  public void onOpen(Response response) {
+  public void onOpen() {
     if (onOpen != null) {
-      onOpen.accept(response);
+      onOpen.run();
     }
   }
 

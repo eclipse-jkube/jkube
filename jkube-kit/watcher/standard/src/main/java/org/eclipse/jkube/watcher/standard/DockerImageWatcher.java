@@ -23,7 +23,6 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
@@ -54,7 +53,6 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.client.OpenShiftClient;
-import okhttp3.Response;
 import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.io.IOUtils;
 
@@ -196,7 +194,7 @@ public class DockerImageWatcher extends BaseWatcher {
             final PipedOutputStream pos = new PipedOutputStream();
             final PipedInputStream pis = new PipedInputStream(pos)
         ) {
-            final Consumer<Response> filePusher = uploadFilesConsumer(fileToUpload, pos, log);
+            final Runnable filePusher = uploadFilesRunnable(fileToUpload, pos, log);
             final PodExecutor podExecutor = new PodExecutor(clusterAccess, pis, WAIT_TIMEOUT, filePusher);
             podExecutor.executeCommandInPod(resources, "sh");
         } catch(InterruptedException exception) {
@@ -224,8 +222,8 @@ public class DockerImageWatcher extends BaseWatcher {
         return answer;
     }
 
-    static Consumer<Response> uploadFilesConsumer(File fileToUpload, PipedOutputStream pos, KitLogger log) {
-        return response -> {
+    static Runnable uploadFilesRunnable(File fileToUpload, PipedOutputStream pos, KitLogger log) {
+        return () -> {
             try(PrintWriter pw = new PrintWriter(pos, true)) {
                 pw.println("base64 -d << EOF | tar --no-overwrite-dir -C / -xf - && exit 0 || exit 1");
                 IOUtils.copy(new Base64InputStream(new FileInputStream(fileToUpload), true, 0, new byte[]{'\r', '\n'}), pos);

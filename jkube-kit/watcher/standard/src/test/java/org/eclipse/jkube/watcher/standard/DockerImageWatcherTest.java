@@ -20,14 +20,13 @@ import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.build.service.docker.watch.CopyFilesTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.ExecTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
 import mockit.Expectations;
@@ -35,7 +34,6 @@ import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
 import mockit.Verifications;
-import okhttp3.Response;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -96,7 +94,6 @@ public class DockerImageWatcherTest {
     // @formatter:on
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void watchCopyFileToPod(@Mocked PodExecutor podExecutor) throws Exception {
     // Given
@@ -108,23 +105,23 @@ public class DockerImageWatcherTest {
     // @formatter:off
     new Verifications() {{
       new PodExecutor(watcherContext.getJKubeServiceHub().getClusterAccess(),
-          (InputStream)any, Duration.ofMinutes(1), (Consumer<Response>)any); times = 1;
+          (InputStream)any, Duration.ofMinutes(1), (Runnable)any); times = 1;
       podExecutor.executeCommandInPod(null, "sh"); times = 1;
     }};
     // @formatter:on
   }
 
   @Test
-  public void uploadFilesConsumer() throws Exception {
+  public void uploadFilesRunnable() throws Exception {
     // Given
     final PipedOutputStream pipedOutputStream = new PipedOutputStream();
     final PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
     // When
-    DockerImageWatcher.uploadFilesConsumer(
+    DockerImageWatcher.uploadFilesRunnable(
         new File(DockerImageWatcherTest.class.getResource("/file.txt").toURI().getPath()),
         pipedOutputStream,
         watcherContext.getLogger()
-    ).accept(null);
+    ).run();
     assertThat(IOUtils.toString(pipedInputStream, StandardCharsets.UTF_8))
       .isEqualTo("base64 -d << EOF | tar --no-overwrite-dir -C / -xf - && exit 0 || exit 1\nQSBmaWxl\nEOF\n");
   }

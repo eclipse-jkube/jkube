@@ -26,9 +26,9 @@ public class ExecListenerLatchTest {
   public void onOpenWithConsumer() {
     // Given
     final AtomicBoolean consumed = new AtomicBoolean(false);
-    final ExecListenerLatch ell = new ExecListenerLatch(response -> consumed.set(true));
+    final ExecListenerLatch ell = new ExecListenerLatch(() -> consumed.set(true));
     // When
-    ell.onOpen(null);
+    ell.onOpen();
     // Then
     assertThat(consumed.get()).isTrue();
   }
