@@ -14,42 +14,55 @@
 package org.eclipse.jkube.kit.config.access;
 
 import java.net.UnknownHostException;
+import java.util.function.Consumer;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedConstruction;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ClusterAccessTest {
 
-  @Mocked
   private KitLogger logger;
+  private MockedConstruction<DefaultKubernetesClient> kubernetesClientMockedConstruction;
+  private Consumer<DefaultKubernetesClient> onInstantiate;
 
-  @Mocked
-  private DefaultKubernetesClient defaultKubernetesClient;
+  @Before
+  public void setUp() throws Exception {
+    logger = mock(KitLogger.class);
+    onInstantiate = kc -> {
+    };
+    kubernetesClientMockedConstruction = mockConstruction(DefaultKubernetesClient.class,
+        (mock, ctx) -> onInstantiate.accept(mock));
+  }
 
-  @Mocked
-  private DefaultOpenShiftClient defaultOpenShiftClient;
+  @After
+  public void tearDown() throws Exception {
+    kubernetesClientMockedConstruction.close();
+  }
 
   @Test
   public void isOpenShiftOpenShiftClusterShouldReturnTrue() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      defaultKubernetesClient.isAdaptable(OpenShiftClient.class); result = true;
-    }};
-    // @formatter:on
+    onInstantiate = kc -> when(kc.isAdaptable(OpenShiftClient.class)).thenReturn(true);
     // When
     final boolean result = new ClusterAccess(logger, null).isOpenShift();
     // Then
@@ -59,11 +72,7 @@ public class ClusterAccessTest {
   @Test
   public void isOpenShiftKubernetesClusterShouldReturnFalse() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      defaultKubernetesClient.isAdaptable(OpenShiftClient.class); result = false;
-    }};
-    // @formatter:on
+    onInstantiate = kc -> when(kc.isAdaptable(OpenShiftClient.class)).thenReturn(false);
     // When
     final boolean result = new ClusterAccess(logger, null).isOpenShift();
     // Then
@@ -73,20 +82,14 @@ public class ClusterAccessTest {
   @Test
   public void isOpenShiftThrowsExceptionShouldReturnFalse() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      defaultKubernetesClient.isAdaptable(OpenShiftClient.class); result = new KubernetesClientException("ERROR", new UnknownHostException());
-    }};
-    // @formatter:on
+    onInstantiate = kc -> when(kc.isAdaptable(OpenShiftClient.class))
+        .thenThrow(new KubernetesClientException("ERROR", new UnknownHostException()));
     // When
     final boolean result = new ClusterAccess(logger, null).isOpenShift();
     // Then
     assertFalse(result);
-    // @formatter:off
-    new Verifications() {{
-      logger.warn(withPrefix("Cannot access cluster for detecting mode"), "Unknown host ", any);
-    }};
-    // @formatter:on
+    verify(logger, times(1))
+        .warn(startsWith("Cannot access cluster for detecting mode"), eq("Unknown host "), isNull());
   }
 
   @Test
@@ -101,12 +104,7 @@ public class ClusterAccessTest {
   @Test
   public void createDefaultClientInOpenShiftShouldReturnOpenShiftClient() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      defaultKubernetesClient.isAdaptable(OpenShiftClient.class); result = true;
-    }};
-    // @formatter:on
-
+    onInstantiate = kc -> when(kc.isAdaptable(OpenShiftClient.class)).thenReturn(true);
     // When
     final KubernetesClient result = new ClusterAccess(logger, null).createDefaultClient();
     // Then

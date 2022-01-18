@@ -15,20 +15,12 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.junit.After;
@@ -36,58 +28,55 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.MockedConstruction;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNotNull;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 @SuppressWarnings("unused")
 public class DebugMojoTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
-  private File kubernetesManifestFile;
-  private Properties mavenProperties;
 
-  @Mocked
-  private KitLogger logger;
-  @Mocked
-  private JKubeServiceHub jKubeServiceHub;
-  @Mocked
-  private ClusterAccess clusterAccess;
-  @Mocked
+  private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
+  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
+  private File kubernetesManifestFile;
   private MavenProject mavenProject;
-  @Mocked
-  private Settings mavenSettings;
-  @Mocked
-  private DefaultKubernetesClient defaultKubernetesClient;
 
   private DebugMojo debugMojo;
 
   @Before
   public void setUp() throws IOException {
+    jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
+        withSettings().defaultAnswer(RETURNS_DEEP_STUBS));
+    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class);
     kubernetesManifestFile = temporaryFolder.newFile("kubernetes.yml");
-    mavenProperties = new Properties();
+    mavenProject = mock(MavenProject.class);
+    when(mavenProject.getProperties()).thenReturn(new Properties());
     // @formatter:off
     debugMojo = new DebugMojo() { {
       project = mavenProject;
-      settings = mavenSettings;
+      settings = mock(Settings.class);
       kubernetesManifest = kubernetesManifestFile;
-    }};
-    new Expectations(){{
-      jKubeServiceHub.getApplyService(); result = new ApplyService(defaultKubernetesClient, logger);
-      mavenProject.getProperties(); result = mavenProperties;
-      mavenProject.getBuild().getOutputDirectory(); result = "target/classes";
-      mavenProject.getBuild().getDirectory(); result = "target";
-      mavenProject.getArtifactId(); result = "artifact-id";
-      mavenProject.getVersion(); result = "1337";
-      mavenProject.getDescription(); result = "A description from Maven";
-      mavenProject.getParent(); result = null;
-      defaultKubernetesClient.isAdaptable(OpenShiftClient.class); result = false;
-      defaultKubernetesClient.getMasterUrl();
-      result = URI.create("https://www.example.com").toURL();
     }};
     // @formatter:on
   }
 
   @After
   public void tearDown() {
+    clusterAccessMockedConstruction.close();
+    jKubeServiceHubMockedConstruction.close();
     mavenProject = null;
     debugMojo = null;
   }
@@ -97,12 +86,13 @@ public class DebugMojoTest {
     // When
     debugMojo.execute();
     // Then
-    // @formatter:off
-    new Verifications() {{
-      jKubeServiceHub.getDebugService().debug(
-          null, "kubernetes.yml", withNotNull(), null, false, withInstanceOf(AnsiLogger.class));
-      times = 1;
-    }};
-    // @formatter:on
+    assertThat(jKubeServiceHubMockedConstruction.constructed()).singleElement()
+        .satisfies(jks -> verify(jks.getDebugService(), times(1)).debug(
+            isNull(),
+            eq("kubernetes.yml"),
+            isNotNull(),
+            isNull(),
+            eq(false),
+            any(AnsiLogger.class)));
   }
 }

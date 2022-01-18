@@ -18,8 +18,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -27,9 +25,8 @@ import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.junit.After;
@@ -37,59 +34,53 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 public class ApplyMojoTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
-  private File kubernetesManifestFile;
-  private Properties mavenProperties;
 
-  @Mocked
-  private KitLogger logger;
-  @Mocked
-  private JKubeServiceHub jKubeServiceHub;
-  @Mocked
-  private ClusterAccess clusterAccess;
-  @Mocked
+  private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
+  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
+  private File kubernetesManifestFile;
   private MavenProject mavenProject;
-  @Mocked
-  private Settings mavenSettings;
-  @Mocked
   private DefaultKubernetesClient defaultKubernetesClient;
+  private String kubeConfigNamespace;
 
   private ApplyMojo applyMojo;
 
   @Before
   public void setUp() throws IOException {
+    jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class, (mock, context) -> {
+        when(mock.getClient()).thenReturn(defaultKubernetesClient);
+        when(mock.getApplyService()).thenReturn(new ApplyService(defaultKubernetesClient, new KitLogger.SilentLogger()));
+    });
+    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, context) ->
+        when(mock.getNamespace()).thenAnswer(invocation -> kubeConfigNamespace));
     kubernetesManifestFile = temporaryFolder.newFile("kubernetes.yml");
-    mavenProperties = new Properties();
+    mavenProject = mock(MavenProject.class);
+    defaultKubernetesClient = mock(DefaultKubernetesClient.class);
+    when(mavenProject.getProperties()).thenReturn(new Properties());
+    when(defaultKubernetesClient.getMasterUrl()).thenReturn(URI.create("https://www.example.com").toURL());
     // @formatter:off
-    applyMojo = new ApplyMojo() { {
+    applyMojo = new ApplyMojo() {{
         project = mavenProject;
-        settings = mavenSettings;
+        settings = mock(Settings.class);
         kubernetesManifest = kubernetesManifestFile;
-    }};
-    new Expectations(){{
-      jKubeServiceHub.getApplyService(); result = new ApplyService(defaultKubernetesClient, logger);
-      mavenProject.getProperties(); result = mavenProperties;
-      mavenProject.getBuild().getOutputDirectory(); result = "target/classes";
-      mavenProject.getBuild().getDirectory(); result = "target";
-      mavenProject.getArtifactId(); result = "artifact-id";
-      mavenProject.getVersion(); result = "1337";
-      mavenProject.getDescription(); result = "A description from Maven";
-      mavenProject.getParent(); result = null;
-      defaultKubernetesClient.isAdaptable(OpenShiftClient.class); result = false;
-      defaultKubernetesClient.getMasterUrl();
-      result = URI.create("https://www.example.com").toURL();
     }};
     // @formatter:on
   }
 
   @After
   public void tearDown() {
+    clusterAccessMockedConstruction.close();
+    jKubeServiceHubMockedConstruction.close();
     mavenProject = null;
     applyMojo = null;
   }
@@ -141,10 +132,7 @@ public class ApplyMojoTest {
   @Test
   public void testResolveEffectiveNamespaceWhenNoNamespaceConfigured() throws MojoExecutionException, MojoFailureException {
     // Given
-    new Expectations() {{
-      clusterAccess.getNamespace();
-      result = "clusteraccess-namespace";
-    }};
+    kubeConfigNamespace = "clusteraccess-namespace";
     // When
     applyMojo.execute();
     // Then

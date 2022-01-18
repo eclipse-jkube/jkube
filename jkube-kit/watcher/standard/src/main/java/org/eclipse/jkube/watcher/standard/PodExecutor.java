@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchException;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -31,14 +30,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
-import okhttp3.Response;
 
 public class PodExecutor {
 
   private final ClusterAccess clusterAccess;
   private final InputStream readingInput;
   private final Duration waitTimeout;
-  private final Consumer<Response> onOpen;
+  private final Runnable onOpen;
   private final ObjectMapper objectMapper;
   private String output;
 
@@ -46,7 +44,7 @@ public class PodExecutor {
     this(clusterAccess, null, waitTimeout, null);
   }
 
-  public PodExecutor(ClusterAccess clusterAccess, InputStream readingInput, Duration waitTimeout, Consumer<Response> onOpen) {
+  public PodExecutor(ClusterAccess clusterAccess, InputStream readingInput, Duration waitTimeout, Runnable onOpen) {
     this.clusterAccess = clusterAccess;
     this.readingInput = readingInput;
     this.waitTimeout = waitTimeout;
