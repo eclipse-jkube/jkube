@@ -1,0 +1,75 @@
+apply plugin: 'liberty'
+apply plugin: 'war'
+apply plugin: 'org.eclipse.jkube.kubernetes'
+
+version '1.0-SNAPSHOT'
+group 'org.eclipse.jkube.quickstarts.gradle.openliberty'
+
+sourceCompatibility = 11
+targetCompatibility = 11
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+// configure liberty-gradle-plugin
+buildscript {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+    dependencies {
+        classpath 'org.fusesource.jansi:jansi:1.18'
+        classpath 'io.openliberty.tools:liberty-gradle-plugin:3.2'
+        classpath('org.eclipse.jkube.kubernetes:org.eclipse.jkube.kubernetes.gradle.plugin:1.6.0-SNAPSHOT') {
+            exclude group: 'org.fusesource.jansi', module: 'jansi'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // provided dependencies
+    providedCompile 'jakarta.platform:jakarta.jakartaee-api:8.0.0'
+    providedCompile 'org.eclipse.microprofile:microprofile:4.1'
+}
+
+clean.dependsOn 'libertyStop'
+build.dependsOn 'libertyPackage'
+
+liberty {
+    server {
+        name = 'openliberty'
+        looseApplication = true
+        stripVersion = true
+        bootstrapProperties = [
+                'default.http.port':project.property('http.port'),
+                'default.https.port':project.property('https.port'),
+                'app.context.root':'/'
+        ]
+        packageLiberty {
+            packageName = 'openliberty'
+            packageType = 'jar'
+            include = 'runnable'
+        }
+    }
+}
+
+kubernetes {
+    enricher {
+        config {
+            'jkube-service' {
+                type = 'NodePort'
+            }
+        }
+    }
+    generator {
+        config {
+            openliberty {
+                webPort = project.property('http.port')
+            }
+        }
+    }
+}
