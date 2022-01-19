@@ -95,7 +95,7 @@
     <version.jmockit>1.49</version.jmockit>
     <version.junit>4.13.1</version.junit>
     <version.assertj-core>3.18.0</version.assertj-core>
-    <version.lombok-maven-plugin>1.18.12.0</version.lombok-maven-plugin>
+    <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
     <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
     <version.maven-failsafe-plugin>3.0.0-M5</version.maven-failsafe-plugin>

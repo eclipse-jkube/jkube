@@ -52,7 +52,7 @@
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.1.1</version.JUnitParams>
     <version.kubernetes-client>5.11.2</version.kubernetes-client>
-    <version.lombok>1.18.12</version.lombok>
+    <version.lombok>1.18.22</version.lombok>
     <version.maven-archiver>3.5.0</version.maven-archiver>
     <version.maven-core>3.6.3</version.maven-core>
     <version.maven-filtering>3.1.1</version.maven-filtering>
