@@ -42,6 +42,7 @@ Usage:
 * Fix #1190: OpenShiftBuildService doesn't apply resources in configured namespace
 * Fix #1209: Remove WildFly Swarm support
 * Fix #1219: Bump kubernetes-client to 5.11.2
+* Fix #1213: SnakeYaml dependency from Kubernetes Client + uses SafeConstructor
 
 ### 1.5.1 (2021-10-28)
 * Fix #1084: Gradle dependencies should be test or provided scope

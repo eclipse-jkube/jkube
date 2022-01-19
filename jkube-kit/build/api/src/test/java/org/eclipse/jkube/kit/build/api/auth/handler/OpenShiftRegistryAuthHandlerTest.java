@@ -46,13 +46,13 @@ public class OpenShiftRegistryAuthHandlerTest {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Mocked
   KitLogger log;
 
   OpenShiftRegistryAuthHandler handler;
 
   @Before
   public void setup() {
+    log = new KitLogger.SilentLogger();
     RegistryAuthConfig registryAuthConfig = RegistryAuthConfig.builder()
         .skipExtendedAuthentication(false)
         .propertyPrefix("docker")

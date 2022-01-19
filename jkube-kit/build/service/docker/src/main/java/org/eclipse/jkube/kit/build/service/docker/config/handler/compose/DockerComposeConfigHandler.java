@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.build.service.docker.config.handler.ExternalConfigH
 import org.eclipse.jkube.kit.build.service.docker.helper.DeepCopy;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -124,7 +125,7 @@ public class DockerComposeConfigHandler implements ExternalConfigHandler {
 
     private Iterable<Object> getComposeConfigurations(File composePath) {
         try {
-            Yaml yaml = new Yaml();
+            Yaml yaml = new Yaml(new SafeConstructor());
             return yaml.loadAll(new FileReader(composePath));
         }
         catch (FileNotFoundException e) {

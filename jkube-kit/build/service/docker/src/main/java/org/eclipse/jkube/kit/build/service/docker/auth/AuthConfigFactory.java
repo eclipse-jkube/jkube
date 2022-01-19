@@ -44,8 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static org.eclipse.jkube.kit.build.api.helper.KubernetesConfigAuthUtil.readKubeConfigAuth;
 
 /**
  * Factory for creating docker specific authentication configuration
@@ -358,7 +358,7 @@ public class AuthConfigFactory {
         if (StringUtils.isNotBlank(useOpenAuthMode)) {
             boolean useOpenShift = Boolean.parseBoolean(useOpenAuthMode);
             if (useOpenShift) {
-                return validateMandatoryOpenShiftLogin(parseOpenShiftConfig(), useOpenAuthModeKey);
+                return validateMandatoryOpenShiftLogin(readKubeConfigAuth(), useOpenAuthModeKey);
             } else {
                 return null;
             }
@@ -368,7 +368,7 @@ public class AuthConfigFactory {
         Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfigMap);
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USE_OPENSHIFT_AUTH) &&
             Boolean.parseBoolean((String) mapToCheck.get(AUTH_USE_OPENSHIFT_AUTH))) {
-                return validateMandatoryOpenShiftLogin(parseOpenShiftConfig(), useOpenAuthModeKey);
+                return validateMandatoryOpenShiftLogin(readKubeConfigAuth(), useOpenAuthModeKey);
         } else {
             return null;
         }
@@ -579,64 +579,6 @@ public class AuthConfigFactory {
             return (Map<String, String>)authConfigMap.get(configMapKey);
         }
         return null;
-    }
-
-    // Parse OpenShift config to get credentials, but return null if not found
-    private static AuthConfig parseOpenShiftConfig() {
-        Map kubeConfig = DockerFileUtil.readKubeConfig();
-        if (kubeConfig == null) {
-            return null;
-        }
-
-        String currentContextName = (String) kubeConfig.get("current-context");
-        if (currentContextName == null) {
-            return null;
-        }
-
-        for (Map contextMap : (List<Map>) kubeConfig.get("contexts")) {
-            if (currentContextName.equals(contextMap.get("name"))) {
-                return parseContext(kubeConfig, (Map) contextMap.get("context"));
-            }
-        }
-
-        return null;
-    }
-
-    private static AuthConfig parseContext(Map kubeConfig, Map context) {
-        if (context == null) {
-            return null;
-        }
-        String userName = (String) context.get("user");
-        if (userName == null) {
-            return null;
-        }
-
-        List<Map> users = (List<Map>) kubeConfig.get("users");
-        if (users == null) {
-            return null;
-        }
-
-        for (Map userMap : users) {
-            if (userName.equals(userMap.get("name"))) {
-                return parseUser(userName, (Map) userMap.get("user"));
-            }
-        }
-        return null;
-    }
-
-    private static AuthConfig parseUser(String userName, Map user) {
-        if (user == null) {
-            return null;
-        }
-        String token = (String) user.get("token");
-        if (token == null) {
-            return null;
-        }
-
-        // Strip off stuff after username
-        Matcher matcher = Pattern.compile("^([^/]+).*$").matcher(userName);
-        return new AuthConfig(matcher.matches() ? matcher.group(1) : userName,
-                              token, null, null);
     }
 
     private static AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) {
