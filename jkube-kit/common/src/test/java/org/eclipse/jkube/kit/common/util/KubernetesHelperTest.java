@@ -52,6 +52,7 @@ import io.fabric8.openshift.api.model.Template;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,8 +64,12 @@ import static org.junit.Assert.assertTrue;
 
 public class KubernetesHelperTest {
 
-    @Mocked
     private KitLogger logger;
+
+    @Before
+    public void setUp() throws Exception {
+        logger = new KitLogger.SilentLogger();
+    }
 
     @Test
     public void testListResourceFragments() {

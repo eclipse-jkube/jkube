@@ -13,6 +13,23 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
+import org.eclipse.jkube.kit.build.api.helper.KubernetesConfigAuthUtil;
+import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.SystemMock;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -24,24 +41,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
-import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
-import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
-import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.common.SystemMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static java.util.UUID.randomUUID;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
@@ -93,23 +95,13 @@ public class AuthConfigFactoryTest {
         // Given
         new SystemMock().put("jkube.docker.useOpenShiftAuth", "true");
         Map<String, Object> authConfigMap = new HashMap<>();
-        new MockUp<DockerFileUtil>() {
+        new MockUp<KubernetesConfigAuthUtil>() {
             @Mock
-            Map<String, ?> readKubeConfig() {
-                Map<String, Object> context = new HashMap<>();
-                context.put("name", "test-ctxt");
-                context.put("context", Collections.singletonMap("user", "test/api-rh-dev-openshift:443"));
-
-                Map<String, Object> user = new HashMap<>();
-                user.put("name", "test/api-rh-dev-openshift:443");
-                user.put("user", Collections.singletonMap("token", "sometoken"));
-
-                Map<String, Object> kubeConfig = new HashMap<>();
-                kubeConfig.put("current-context", "test-ctxt");
-                kubeConfig.put("contexts", Collections.singletonList(context));
-                kubeConfig.put("users", Collections.singletonList(user));
-
-                return kubeConfig;
+            AuthConfig readKubeConfigAuth() {
+                return AuthConfig.builder()
+                    .username("test")
+                    .password("sometoken")
+                    .build();
             }
         };
         // When
@@ -123,23 +115,13 @@ public class AuthConfigFactoryTest {
         // Given
         Map<String, Object> authConfigMap = new HashMap<>();
         authConfigMap.put("useOpenShiftAuth", "true");
-        new MockUp<DockerFileUtil>() {
+        new MockUp<KubernetesConfigAuthUtil>() {
             @Mock
-            Map<String, ?> readKubeConfig() {
-                Map<String, Object> context = new HashMap<>();
-                context.put("name", "test-ctxt");
-                context.put("context", Collections.singletonMap("user", "test/api-rh-dev-openshift:443"));
-
-                Map<String, Object> user = new HashMap<>();
-                user.put("name", "test/api-rh-dev-openshift:443");
-                user.put("user", Collections.singletonMap("token", "sometoken"));
-
-                Map<String, Object> kubeConfig = new HashMap<>();
-                kubeConfig.put("current-context", "test-ctxt");
-                kubeConfig.put("contexts", Collections.singletonList(context));
-                kubeConfig.put("users", Collections.singletonList(user));
-
-                return kubeConfig;
+            AuthConfig readKubeConfigAuth() {
+                return AuthConfig.builder()
+                    .username("test")
+                    .password("sometoken")
+                    .build();
             }
         };
 

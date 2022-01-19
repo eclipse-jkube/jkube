@@ -13,31 +13,30 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
-import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
-import io.fabric8.openshift.api.model.ImageStream;
-import io.fabric8.openshift.api.model.ImageStreamBuilder;
-import io.fabric8.openshift.api.model.NamedTagEventList;
-import io.fabric8.openshift.api.model.TagEvent;
-import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.ImageName;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Assert;
-import org.junit.Test;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageName;
+
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
+import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.openshift.api.model.ImageStream;
+import io.fabric8.openshift.api.model.ImageStreamBuilder;
+import io.fabric8.openshift.api.model.TagEvent;
+import io.fabric8.openshift.client.OpenShiftClient;
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Assert;
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -74,7 +73,6 @@ public class ImageStreamServiceTest {
         assertTrue(target.exists());
 
         Map result = readImageStreamDescriptor(target);
-        Yaml yaml;
         System.out.println(result.toString());
         assertNotNull(result);
         List<Map> items = getItemsList(result);
@@ -116,11 +114,10 @@ public class ImageStreamServiceTest {
         return items;
     }
 
-    private Map readImageStreamDescriptor(File target) throws FileNotFoundException {
-        Yaml yaml = new Yaml();
-        InputStream ios = new FileInputStream(target);
-        // Parse the YAML file and return the output as a series of Maps and Lists
-        return (Map<String,Object>) yaml.load(ios);
+    private Map readImageStreamDescriptor(File target) throws IOException {
+        try (InputStream fis = new FileInputStream(target)) {
+            return Serialization.unmarshal(fis, Map.class);
+        }
     }
 
     private void setupClientMock(final ImageStream lookedUpIs, final String namespace, final String name) {
@@ -132,20 +129,19 @@ public class ImageStreamServiceTest {
     }
 
     private ImageStream lookupImageStream(String sha) {
-        NamedTagEventList list = new NamedTagEventList();
-        TagEvent tag = new TagEvent();
-        tag.setImage(sha);
-        list.setItems(new ArrayList<TagEvent>(Arrays.asList(tag)));
-
         return new ImageStreamBuilder()
             .withNewStatus()
-            .addToTags(list)
+            .addNewTag()
+            .addNewItem()
+            .withImage(sha)
+            .endItem()
+            .endTag()
             .endStatus()
             .build();
     }
 
     @Test
-    public void should_return_newer_tag() throws Exception {
+    public void should_return_newer_tag() {
         // GIVEN
         ImageStreamService service = new ImageStreamService(client, "default", log);
         TagEvent oldTag = new TagEvent("2018-03-09T03:27:05Z\n", null, null, null);
@@ -159,7 +155,7 @@ public class ImageStreamServiceTest {
     }
 
     @Test
-    public void should_return_first_tag() throws Exception {
+    public void should_return_first_tag() {
         // GIVEN
         ImageStreamService service = new ImageStreamService(client, "default", log);
         TagEvent first = new TagEvent("2018-03-09T03:27:05Z\n", null, null, null);
