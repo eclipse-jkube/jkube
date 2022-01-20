@@ -142,6 +142,9 @@ public class BuildService {
                         .cacheFrom(buildConfig.getCacheFrom())
                         .buildArgs(mergedBuildMap);
         String newImageId = doBuildImage(imageName, dockerArchive, opts);
+        if (newImageId == null) {
+            throw new IllegalStateException("Failure in building image, unable to find image built with name " + imageName);
+        }
         log.info("%s: Built image %s", imageConfig.getDescription(), newImageId);
 
         if (oldImageId != null && !oldImageId.equals(newImageId)) {

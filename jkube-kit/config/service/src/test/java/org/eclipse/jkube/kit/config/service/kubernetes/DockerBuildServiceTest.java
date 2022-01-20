@@ -13,64 +13,73 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
-import mockit.Expectations;
-import mockit.Verifications;
-import org.eclipse.jkube.kit.build.service.docker.BuildService;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
-import mockit.Mocked;
-import mockit.VerificationsInOrder;
+import org.eclipse.jkube.kit.build.service.docker.BuildService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class DockerBuildServiceTest {
 
-  @Mocked
-  private JKubeServiceHub jKubeServiceHub;
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+  private JKubeServiceHub mockedJKubeServiceHub;
 
-  @Test
-  public void build_withValidConfiguration_shouldBuildAndTag() throws Exception {
-    // Given
-    final ImageConfiguration image = ImageConfiguration.builder()
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+  private BuildService mockedDockerBuildService;
+
+  private ImageConfiguration image;
+
+  @Before
+  public void setUp() {
+    when(mockedJKubeServiceHub.getDockerServiceHub().getBuildService()).thenReturn(mockedDockerBuildService);
+    image = ImageConfiguration.builder()
         .name("image-name")
         .build(BuildConfiguration.builder()
             .from("from")
             .build()
         ).build();
+  }
+
+  @Test
+  public void build_withValidConfiguration_shouldBuildAndTag() throws Exception {
     // When
-    new DockerBuildService(jKubeServiceHub).build(image);
+    new DockerBuildService(mockedJKubeServiceHub).build(image);
     // Then
-    // @formatter:off
-    new VerificationsInOrder() {{
-      final BuildService buildService = jKubeServiceHub.getDockerServiceHub().getBuildService();
-      buildService.buildImage(image, (ImagePullManager) any, withInstanceOf(JKubeConfiguration.class)); times = 1;
-      buildService.tagImage("image-name", image); times = 1;
-    }};
-    // @formatter:on
+    verify(mockedDockerBuildService, times(1))
+      .buildImage(eq(image), any(), any());
+    verify(mockedDockerBuildService, times(1))
+        .tagImage("image-name", image);
   }
 
   @Test
   public void build_withFailure_shouldThrowException() throws Exception {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      jKubeServiceHub.getDockerServiceHub().getBuildService()
-          .buildImage((ImageConfiguration) any, withInstanceOf(ImagePullManager.class), withInstanceOf(JKubeConfiguration.class));
-      result = new IOException("Mock IO error");
-    }};
-    // @formatter:on
+    doThrow(new IOException("Mock IO error")).when(mockedDockerBuildService).buildImage(eq(image), any(), any());
     // When
     final JKubeServiceException result = assertThrows(JKubeServiceException.class, () ->
-        new DockerBuildService(jKubeServiceHub).build(null));
+        new DockerBuildService(mockedJKubeServiceHub).build(image));
     // Then
     assertThat(result).hasMessage("Error while trying to build the image: Mock IO error");
   }
@@ -78,13 +87,9 @@ public class DockerBuildServiceTest {
   @Test
   public void push_withDefaults_shouldPush() throws Exception {
     // When
-    new DockerBuildService(jKubeServiceHub).push(Collections.emptyList(), 0, null, false);
+    new DockerBuildService(mockedJKubeServiceHub).push(Collections.emptyList(), 0, null, false);
     // Then
-    // @formatter:off
-    new Verifications() {{
-      jKubeServiceHub.getDockerServiceHub().getRegistryService()
-          .pushImages(Collections.emptyList(), 0, null, false); times = 1;
-    }};
-    // @formatter:on
+    verify(mockedJKubeServiceHub.getDockerServiceHub().getRegistryService(), times(1))
+        .pushImages(eq(Collections.emptyList()), eq(0), isNull(), eq(false));
   }
 }
