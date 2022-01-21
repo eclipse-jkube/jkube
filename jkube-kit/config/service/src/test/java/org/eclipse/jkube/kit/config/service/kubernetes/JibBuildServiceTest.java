@@ -14,64 +14,99 @@
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import com.google.cloud.tools.jib.api.Credential;
-import mockit.Expectations;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryConfig;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.service.jib.JibServiceUtil;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.UnaryOperator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class JibBuildServiceTest {
-    @Mocked
-    private KitLogger logger;
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    private KitLogger mockedLogger;
 
-    @Mocked
-    private JKubeServiceHub serviceHub;
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    private JKubeServiceHub mockedServiceHub;
+
+    private ImageConfiguration imageConfiguration;
+
+    private RegistryConfig registryConfig;
+
+    private MockedStatic<JibServiceUtil> jibServiceUtilMockedStatic;
+
+    @Before
+    public void setUp() {
+        when(mockedServiceHub.getLog()).thenReturn(mockedLogger);
+        jibServiceUtilMockedStatic = mockStatic(JibServiceUtil.class);
+        imageConfiguration = ImageConfiguration.builder()
+            .name("test/testimage:0.0.1")
+            .build(BuildConfiguration.builder()
+                .from("busybox")
+                .build())
+            .build();
+        registryConfig = RegistryConfig.builder()
+            .authConfig(Collections.emptyMap())
+            .settings(Collections.emptyList())
+            .build();
+        jibServiceUtilMockedStatic.when(() -> JibServiceUtil.getBaseImage(imageConfiguration))
+            .thenReturn("busybox");
+    }
+
+    @After
+    public void close() {
+        jibServiceUtilMockedStatic.close();
+    }
 
     @Test
     public void isApplicable_withNoBuildStrategy_shouldReturnFalse() {
         // When
-        final boolean result = new JibBuildService(serviceHub).isApplicable();
+        final boolean result = new JibBuildService(mockedServiceHub).isApplicable();
         // Then
         assertThat(result).isFalse();
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test
     public void isApplicable_withJibBuildStrategy_shouldReturnTrue() {
         // Given
-        // @formatter:off
-        new Expectations() {{
-            serviceHub.getBuildServiceConfig().getJKubeBuildStrategy(); result = JKubeBuildStrategy.jib;
-        }};
-        // @formatter:on
+        when(mockedServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.jib);
         // When
-        final boolean result = new JibBuildService(serviceHub).isApplicable();
+        final boolean result = new JibBuildService(mockedServiceHub).isApplicable();
         // Then
         assertThat(result).isTrue();
     }
@@ -79,54 +114,43 @@ public class JibBuildServiceTest {
     @Test
     @java.lang.SuppressWarnings("squid:S00112")
     public void testGetRegistryCredentialsForPush() throws IOException {
-        // Given
-        ImageConfiguration imageConfiguration = getImageConfiguration();
-        mockAuthConfig();
-        RegistryConfig registryConfig = RegistryConfig.builder()
-                .authConfig(Collections.emptyMap())
-                .settings(Collections.emptyList())
-                .build();
-        // When
-        Credential credential = JibBuildService.getRegistryCredentials(
-            registryConfig, true, imageConfiguration, logger);
-        // Then
-        assertNotNull(credential);
-        assertEquals("testuserpush", credential.getUsername());
-        assertEquals("testpass", credential.getPassword());
+        try (MockedConstruction<AuthConfigFactory> authConfigFactoryMockedConstruction = mockAuthConfig(true)) {
+            // When
+            Credential credential = JibBuildService.getRegistryCredentials(
+                registryConfig, true, imageConfiguration, mockedLogger);
+            // Then
+            assertNotNull(credential);
+            assertEquals("testuserpush", credential.getUsername());
+            assertEquals("testpass", credential.getPassword());
+        }
     }
 
     @Test
     @java.lang.SuppressWarnings("squid:S00112")
     public void testGetRegistryCredentialsForPull() throws IOException {
-        // Given
-        ImageConfiguration imageConfiguration = getImageConfiguration();
-        mockAuthConfig();
-        RegistryConfig registryConfig = RegistryConfig.builder()
-            .authConfig(Collections.emptyMap())
-            .settings(Collections.emptyList())
-            .build();
-        // When
-        Credential credential = JibBuildService.getRegistryCredentials(
-            registryConfig, false, imageConfiguration, logger);
-        // Then
-        assertNotNull(credential);
-        assertEquals("testuserpull", credential.getUsername());
-        assertEquals("testpass", credential.getPassword());
+        try (MockedConstruction<AuthConfigFactory> authConfigFactoryMockedConstruction = mockAuthConfig(false)) {
+            // When
+            Credential credential = JibBuildService.getRegistryCredentials(
+                registryConfig, false, imageConfiguration, mockedLogger);
+            // Then
+            assertNotNull(credential);
+            assertEquals("testuserpull", credential.getUsername());
+            assertEquals("testpass", credential.getPassword());
+        }
     }
 
     @Test
     public void testGetBuildTarArchive() throws IOException {
         // Given
         File projectBaseDir = Files.createTempDirectory("test").toFile();
-        ImageConfiguration imageConfiguration = getImageConfiguration();
         // When
         File tarArchive = JibBuildService.getBuildTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir));
         // Then
         assertThat(tarArchive)
-          .isNotNull()
-          .isEqualTo(projectBaseDir.toPath().resolve(
-            FileSystems.getDefault().getPath("target", "test", "testimage", "0.0.1", "tmp", "docker-build.tar")
-          ).toFile());
+            .isNotNull()
+            .isEqualTo(projectBaseDir.toPath().resolve(
+                FileSystems.getDefault().getPath("target", "test", "testimage", "0.0.1", "tmp", "docker-build.tar")
+            ).toFile());
     }
 
 
@@ -134,21 +158,18 @@ public class JibBuildServiceTest {
     public void testGetAssemblyTarArchive() throws IOException {
         // Given
         File projectBaseDir = Files.createTempDirectory("test").toFile();
-        ImageConfiguration imageConfiguration = getImageConfiguration();
         // When
-        File tarArchive = JibBuildService.getAssemblyTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir), logger);
+        File tarArchive = JibBuildService.getAssemblyTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir), mockedLogger);
         // Then
         assertThat(tarArchive)
-          .isNotNull()
-          .isEqualTo(projectBaseDir.toPath().resolve(
-            FileSystems.getDefault().getPath("target", "test", "testimage", "0.0.1", "tmp", "docker-build.tar")
-          ).toFile());
+            .isNotNull()
+            .isEqualTo(projectBaseDir.toPath().resolve(
+                FileSystems.getDefault().getPath("target", "test", "testimage", "0.0.1", "tmp", "docker-build.tar")
+            ).toFile());
     }
 
     @Test
     public void testPrependRegistry() {
-        // Given
-        ImageConfiguration imageConfiguration = getImageConfiguration();
         // When
         JibBuildService.prependRegistry(imageConfiguration, "quay.io");
         // Then
@@ -157,66 +178,55 @@ public class JibBuildServiceTest {
     }
 
     @Test
-    public void testPushWithNoConfigurations(@Mocked JibServiceUtil jibServiceUtil) throws Exception {
+    public void testPushWithNoConfigurations() throws Exception {
         // When
-        new JibBuildService(serviceHub).push(Collections.emptyList(), 1, null, false);
+        new JibBuildService(mockedServiceHub).push(Collections.emptyList(), 1, null, false);
         // Then
-        // @formatter:off
-        new Verifications() {{
-            JibServiceUtil.jibPush((ImageConfiguration)any, (Credential)any, (File)any, logger); times = 0;
-        }};
-        // @formatter:on
+        jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(any(), any(), any(), eq(mockedLogger)), times(0));
     }
 
     @Test
-    public void testPushWithConfiguration(@Mocked JibServiceUtil jibServiceUtil) throws Exception {
-        // Given
-        mockAuthConfig();
-        final ImageConfiguration imageConfiguration = getImageConfiguration();
-        final RegistryConfig registryConfig = RegistryConfig.builder()
-            .build();
-        // When
-        new JibBuildService(serviceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
-        // Then
-        // @formatter:off
-        new Verifications() {{
-            JibServiceUtil.jibPush(
-                imageConfiguration,
-                Credential.from("testuserpush", "testpass"),
-                (File)any,
-                logger);
-            times = 1;
-        }};
-        // @formatter:on
+    public void testPushWithConfiguration() throws Exception {
+        try (MockedConstruction<AuthConfigFactory> authConfigFactoryMockedConstruction = mockAuthConfig(true)) {
+            // When
+            new JibBuildService(mockedServiceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
+            // Then
+            jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(eq(imageConfiguration), eq(Credential.from("testuserpush", "testpass")), any(), eq(mockedLogger)), times(1));
+        }
     }
 
-    private ImageConfiguration getImageConfiguration() {
-        return ImageConfiguration.builder()
-                .name("test/testimage:0.0.1")
-                .build(BuildConfiguration.builder().from("busybox").build())
-                .build();
+    @Test
+    public void build_withImageBuildConfigurationSkipTrue_shouldNotBuildImage() throws JKubeServiceException {
+        // Given
+        imageConfiguration = ImageConfiguration.builder()
+            .name("test/foo:latest")
+            .build(BuildConfiguration.builder()
+                .from("test/base:latest")
+                .skip(true)
+                .build())
+            .build();
+        // When
+        new JibBuildService(mockedServiceHub).build(Collections.singletonList(imageConfiguration));
+        // Then
+        jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.buildContainer(any(), any(), any()), times(0));
     }
 
     private static JKubeConfiguration createJKubeConfiguration(File projectBaseDir) {
         return JKubeConfiguration.builder()
-                .outputDirectory("target")
-                .project(JavaProject.builder()
-                        .baseDirectory(projectBaseDir)
-                        .build())
-                .build();
+            .outputDirectory("target")
+            .project(JavaProject.builder()
+                .baseDirectory(projectBaseDir)
+                .build())
+            .build();
     }
 
-
-    private static void mockAuthConfig() {
-        new MockUp<AuthConfigFactory>() {
-            @Mock
-            AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod)
-                throws IOException {
-                return AuthConfig.builder()
+    private MockedConstruction<AuthConfigFactory> mockAuthConfig(boolean isPush) {
+        return mockConstruction(AuthConfigFactory.class, (mock, ctx) -> {
+            when(mock.createAuthConfig(anyBoolean(), anyBoolean(), any(), anyList(), isNull(), anyString(), any()))
+                .thenReturn(AuthConfig.builder()
                     .username("testuser" + (isPush ? "push" : "pull"))
                     .password("testpass")
-                    .build();
-            }
-        };
+                    .build());
+        });
     }
 }

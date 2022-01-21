@@ -45,6 +45,7 @@ Usage:
 * Fix #1219: Bump kubernetes-client to 5.11.2
 * Fix #1213: SnakeYaml dependency from Kubernetes Client + uses SafeConstructor
 * Fix #1142: Log informative message whenever a goal/task is skipped
+* Fix #1197: Kubernetes Gradle Build tasks don't account for image model configuration skip field
 
 ### 1.5.1 (2021-10-28)
 * Fix #1084: Gradle dependencies should be test or provided scope
