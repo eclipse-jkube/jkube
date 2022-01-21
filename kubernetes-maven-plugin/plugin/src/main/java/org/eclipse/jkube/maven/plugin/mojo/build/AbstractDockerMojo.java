@@ -54,7 +54,6 @@ import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.RegistryAuthConfiguration;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -491,24 +490,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             .build();
     }
 
-    /**
-     * Helper method to process an ImageConfiguration.
-     *
-     * @param aImageConfig ImageConfiguration that would be forwarded to build and tag
-     * @throws MojoExecutionException
-     */
-    private void processImageConfig(ImageConfiguration aImageConfig) throws MojoExecutionException {
-        BuildConfiguration buildConfig = aImageConfig.getBuildConfiguration();
-
-        if (buildConfig != null) {
-            if (buildConfig.getSkip()) {
-                log.info("%s : Skipped building", aImageConfig.getDescription());
-            } else {
-                buildAndTag(aImageConfig);
-            }
-        }
-    }
-
     protected File getAndEnsureOutputDirectory() {
         File outputDir = new File(new File(project.getBuild().getDirectory()), DOCKER_EXTRA_DIR);
         if (!outputDir.exists()) {
@@ -617,10 +598,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         // Check for build plugins
         executeBuildPlugins();
 
-        // Iterate over all the ImageConfigurations and process one by one
-        for (ImageConfiguration imageConfig : getResolvedImages()) {
-            processImageConfig(imageConfig);
-        }
+        buildAndTag(getResolvedImages());
     }
 
     protected boolean shouldSkipBecauseOfPomPackaging() {
@@ -642,7 +620,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         return true;
     }
 
-    private void buildAndTag(ImageConfiguration imageConfig)
+    private void buildAndTag(List<ImageConfiguration> imageConfigs)
             throws MojoExecutionException {
 
         try {
@@ -650,7 +628,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             EnvUtil.storeTimestamp(getBuildTimestampFile(project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP),
                     getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP));
 
-            jkubeServiceHub.getBuildService().build(imageConfig);
+            jkubeServiceHub.getBuildService().build(imageConfigs);
 
         } catch (Exception ex) {
             throw new MojoExecutionException("Failed to execute the build", ex);

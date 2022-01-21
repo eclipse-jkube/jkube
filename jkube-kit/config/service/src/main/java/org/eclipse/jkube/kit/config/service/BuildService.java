@@ -31,11 +31,20 @@ public interface BuildService {
     boolean isApplicable();
 
     /**
-     * Builds the given image using the specified configuration.
+     * Builds the given images using the specified configuration.
      *
-     * @param imageConfig the image to build
+     * @param imageConfigs the image to build
+     * @throws JKubeServiceException in case of any error while building image
      */
-    void build(ImageConfiguration imageConfig) throws JKubeServiceException;
+    void build(Collection<ImageConfiguration> imageConfigs) throws JKubeServiceException;
+
+    /**
+     * Build the given image using specified configuration
+     *
+     * @param imageConfiguration single {@link ImageConfiguration} to build
+     * @throws JKubeServiceException in case of any error while building image
+     */
+    void build(ImageConfiguration imageConfiguration) throws JKubeServiceException;
 
     /**
      * Pushes to given image to specified Registry
@@ -44,6 +53,7 @@ public interface BuildService {
      * @param retries number of retries
      * @param registryConfig registry configuration
      * @param skipTag boolean value whether skip tagging or not
+     * @throws JKubeServiceException in case of any error while building image
      */
     void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException;
 
@@ -51,5 +61,4 @@ public interface BuildService {
      * Post processing step called after all images has been build
      */
     void postProcess();
-
 }

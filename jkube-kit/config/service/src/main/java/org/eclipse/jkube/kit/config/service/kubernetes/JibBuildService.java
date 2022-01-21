@@ -31,7 +31,7 @@ import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.service.BuildService;
+import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -48,7 +48,7 @@ import java.util.Objects;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.getBaseImage;
 
-public class JibBuildService implements BuildService {
+public class JibBuildService extends AbstractImageBuildService {
 
     private static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
     private static final List<String> DEFAULT_DOCKER_REGISTRIES = Arrays.asList(
@@ -61,6 +61,7 @@ public class JibBuildService implements BuildService {
     private final JKubeConfiguration configuration;
 
     public JibBuildService(JKubeServiceHub jKubeServiceHub) {
+        super(jKubeServiceHub);
         this.log = Objects.requireNonNull(jKubeServiceHub.getLog(), "Log is required");
         this.buildServiceConfig = Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(),
             "BuildServiceConfig is required");
@@ -98,11 +99,11 @@ public class JibBuildService implements BuildService {
             // archive customizers, file entries, etc.
             File dockerTarArchive = getAssemblyTarArchive(imageConfig, configuration, log);
             JibServiceUtil.buildContainer(containerBuilder,
-                    TarImage.at(dockerTarArchive.toPath()).named(imageConfig.getName()), log);
+                TarImage.at(dockerTarArchive.toPath()).named(imageConfig.getName()), log);
             log.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
         } catch (InterruptedException ex) {
-			Thread.currentThread().interrupt();
-		} catch (Exception ex) {
+            Thread.currentThread().interrupt();
+        } catch (Exception ex) {
             throw new JKubeServiceException("Error when building JIB image", ex);
         }
     }

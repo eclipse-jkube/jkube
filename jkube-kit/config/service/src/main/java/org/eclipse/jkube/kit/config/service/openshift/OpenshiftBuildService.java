@@ -42,7 +42,7 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.BuildService;
+import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -87,7 +87,7 @@ import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServi
 /**
  * @author nicola
  */
-public class OpenshiftBuildService implements BuildService {
+public class OpenshiftBuildService extends AbstractImageBuildService {
 
     protected static final String DEFAULT_S2I_BUILD_SUFFIX = "-s2i";
     public static final String DEFAULT_S2I_SOURCE_TYPE = "Binary";
@@ -105,6 +105,7 @@ public class OpenshiftBuildService implements BuildService {
     private String applicableOpenShiftNamespace;
 
     public OpenshiftBuildService(JKubeServiceHub jKubeServiceHub) {
+        super(jKubeServiceHub);
         this.jKubeServiceHub = Objects.requireNonNull(jKubeServiceHub, "JKube Service Hub is required");
         this.log = Objects.requireNonNull(jKubeServiceHub.getLog(), "Log is required");
         this.buildServiceConfig = Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(),

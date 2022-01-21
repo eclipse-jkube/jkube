@@ -17,7 +17,6 @@ import javax.inject.Inject;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
@@ -57,14 +56,12 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
       kitLogger.info("Building container image in [[B]]Kubernetes[[B]] mode");
     }
     try {
-      for (ImageConfiguration imageConfig : resolvedImages) {
-        storeTimestamp(
-            getBuildTimestampFile(kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
-                DOCKER_BUILD_TIMESTAMP),
-            getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
-                DOCKER_BUILD_TIMESTAMP));
-        jKubeServiceHub.getBuildService().build(imageConfig);
-      }
+      storeTimestamp(
+          getBuildTimestampFile(kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
+              DOCKER_BUILD_TIMESTAMP),
+          getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
+              DOCKER_BUILD_TIMESTAMP));
+      jKubeServiceHub.getBuildService().build(resolvedImages);
     } catch (JKubeServiceException | IOException e) {
       kitLogger.error(e.getMessage());
       throw new GradleException(e.getMessage(), e);

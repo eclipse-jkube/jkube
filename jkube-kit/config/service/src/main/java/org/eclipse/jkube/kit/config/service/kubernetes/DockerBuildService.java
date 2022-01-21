@@ -22,7 +22,7 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.BuildService;
+import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -31,7 +31,7 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
  * @author nicola
  * @since 17/02/2017
  */
-public class DockerBuildService implements BuildService {
+public class DockerBuildService extends AbstractImageBuildService {
 
     private final RuntimeMode runtimeMode;
     private final BuildServiceConfig buildServiceConfig;
@@ -39,6 +39,7 @@ public class DockerBuildService implements BuildService {
     private final DockerServiceHub dockerServices;
 
     public DockerBuildService(JKubeServiceHub jKubeServiceHub) {
+        super(jKubeServiceHub);
         this.runtimeMode = jKubeServiceHub.getRuntimeMode();
         this.buildServiceConfig = Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(),
             "BuildServiceConfig is required");
@@ -46,7 +47,6 @@ public class DockerBuildService implements BuildService {
             "JKubeConfiguration is required");
         this.dockerServices = Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub(),
             "Docker Service Hub is required");
-
     }
 
     @Override
