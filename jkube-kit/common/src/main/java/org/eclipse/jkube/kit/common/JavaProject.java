@@ -139,6 +139,13 @@ public class JavaProject implements Serializable {
    */
   private List<Plugin> plugins;
   /**
+   * List of applied plugin classes (Only applicable for Gradle projects).
+   *
+   * @param gradlePlugins Classes of the applied Gradle plugins.
+   * @return The project's applied Gradle plugin Classes.
+   */
+  private List<String> gradlePlugins;
+  /**
    * URL to the project's homepage.
    *
    * @param site New homepage for the project.
@@ -240,7 +247,7 @@ public class JavaProject implements Serializable {
       String name, String groupId, String artifactId, String version,
       File outputDirectory, File baseDirectory, File buildDirectory, File buildPackageDirectory,
       Properties properties, @Singular List<String> compileClassPathElements, @Singular List<Dependency> dependencies,
-      List<Dependency> dependenciesWithTransitive, @Singular List<Plugin> plugins,
+      List<Dependency> dependenciesWithTransitive, @Singular List<Plugin> plugins, @Singular List<String> gradlePlugins,
       String site, String description, String organizationName, String documentationUrl,
       String buildFinalName, File artifact, String packaging, String issueManagementSystem, String issueManagementUrl,
       String url, String scmUrl, String scmTag,
@@ -258,6 +265,7 @@ public class JavaProject implements Serializable {
     this.dependencies = dependencies;
     this.dependenciesWithTransitive = dependenciesWithTransitive;
     this.plugins = plugins;
+    this.gradlePlugins = gradlePlugins;
     this.site = site;
     this.description = description;
     this.organizationName = organizationName;

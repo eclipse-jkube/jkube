@@ -39,6 +39,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
@@ -75,13 +76,14 @@ public class GradleUtilTest {
 
     final ConfigurationContainer cc = mock(ConfigurationContainer.class);
     when(project.getConfigurations()).thenReturn(cc);
-    projectConfigurations = new ArrayList<Configuration>();
+    projectConfigurations = new ArrayList<>();
     when(cc.stream()).thenAnswer(i -> projectConfigurations.stream());
     when(cc.toArray()).thenAnswer(i -> projectConfigurations.toArray());
 
     when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getProperties()).thenReturn(Collections.emptyMap());
     when(project.getBuildDir()).thenReturn(folder.newFolder("build"));
+    when(project.getPlugins()).thenReturn(new DefaultPluginContainer(null, null, null));
     when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(javaPlugin);
   }
 

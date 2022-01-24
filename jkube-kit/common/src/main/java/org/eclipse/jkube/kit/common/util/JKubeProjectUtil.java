@@ -67,6 +67,12 @@ public class JKubeProjectUtil {
         return getPlugin(jkubeProject, artifactId) != null;
     }
 
+    public static boolean hasGradlePlugin(JavaProject javaProject, String pluginClassName) {
+      return Optional.ofNullable(javaProject.getGradlePlugins())
+          .map(classes -> classes.contains(pluginClassName))
+          .orElse(false);
+    }
+
     public static boolean hasDependency(JavaProject jkubeProject, String groupId, String artifactId) {
         return getDependency(jkubeProject, groupId, artifactId) != null;
     }
