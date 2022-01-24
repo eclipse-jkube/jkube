@@ -76,6 +76,8 @@ public class GradleUtil {
         .dependenciesWithTransitive(extractDependenciesWithTransitive(gradleProject))
 //        .localRepositoryBaseDirectory(gradleProject.)
         .plugins(extractPlugins(gradleProject))
+        .gradlePlugins(new ArrayList<>(gradleProject.getPlugins()).stream()
+            .map(Object::getClass).map(Class::getName).collect(Collectors.toList()))
 //
 //        .site(gradleProject.)
 //        .organizationName(gradleProject.)

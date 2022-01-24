@@ -18,6 +18,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.junit.rules.TemporaryFolder;
@@ -47,6 +48,7 @@ public class TaskEnvironment extends TemporaryFolder {
     logger = mock(Logger.class);
     when(project.getProjectDir()).thenReturn(getRoot());
     when(project.getBuildDir()).thenReturn(newFolder("build"));
+    when(project.getPlugins()).thenReturn(new DefaultPluginContainer(null, null, null));
 
     final ConfigurationContainer cc = mock(ConfigurationContainer.class);
     when(project.getConfigurations()).thenReturn(cc);
