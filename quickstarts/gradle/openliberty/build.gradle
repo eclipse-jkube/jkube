@@ -1,0 +1,74 @@
+plugins {
+    id 'io.openliberty.tools.gradle.Liberty' version '3.2'
+    id 'org.eclipse.jkube.kubernetes' version '1.6.0-SNAPSHOT'
+    id 'war'
+}
+
+group 'org.eclipse.jkube.quickstarts.gradle.openliberty'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    providedCompile 'jakarta.platform:jakarta.jakartaee-api:8.0.0'
+    providedCompile 'org.eclipse.microprofile:microprofile:4.1'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+clean.dependsOn 'libertyStop'
+build.dependsOn 'libertyPackage'
+
+liberty {
+    server {
+        name = 'openliberty'
+        looseApplication = true
+        stripVersion = true
+        bootstrapProperties = [
+                'default.http.port':project.property('http.port'),
+                'default.https.port':project.property('https.port'),
+                'app.context.root':'/'
+        ]
+        packageLiberty {
+            packageName = 'openliberty'
+            packageType = 'jar'
+            include = 'runnable'
+        }
+    }
+}
+
+kubernetes {
+    enricher {
+        config {
+            'jkube-service' {
+                type = 'NodePort'
+            }
+        }
+    }
+    generator {
+        config {
+            openliberty {
+                webPort = project.property('http.port')
+            }
+        }
+    }
+}
+
+/*
+ * There's a convergence of dependencies for jansi (The one provided by JKube prevails).
+ * The installFeature task from Liberty Gradle plugin brings in the com.ibm.ws.install_x.x.x.jar
+ * that contains an embedded version of JAnsi. This breaks the native libraries of JAnsi provided
+ * by Kubernetes Gradle Plugin.
+ * This workaround prevents AnsiConsole from being initialized from within the installFeature task,
+ */
+// https://github.com/fusesource/jansi/issues/216
+// https://github.com/fusesource/jansi/issues/66
+def installed = org.fusesource.jansi.AnsiConsole.class.getDeclaredField("installed")
+installed.setAccessible(true)
+installed.setInt(installed, 1)
+installed.setAccessible(false)
