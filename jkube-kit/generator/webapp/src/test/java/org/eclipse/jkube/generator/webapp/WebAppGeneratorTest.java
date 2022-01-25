@@ -28,34 +28,38 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class WebAppGeneratorTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Mocked
+  @Mock(answer = RETURNS_DEEP_STUBS)
   private GeneratorContext generatorContext;
 
+  @Mock
+  Plugin plugin;
+
   @Test
-  public void isApplicableHasMavenWarPluginShouldReturnTrue(@Mocked Plugin plugin) {
+  public void isApplicableHasMavenWarPluginShouldReturnTrue() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      plugin.getGroupId(); result = "org.apache.maven.plugins";
-      plugin.getArtifactId(); result = "maven-war-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
-    }};
-    // @formatter:on
+    when(plugin.getGroupId()).thenReturn("org.apache.maven.plugins");
+    when(plugin.getArtifactId()).thenReturn("maven-war-plugin");
+    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
+
     // When
     final boolean result = new WebAppGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
@@ -67,13 +71,10 @@ public class WebAppGeneratorTest {
     // Given
     final Properties projectProperties = new Properties();
     projectProperties.put("jkube.generator.from", "image-to-trigger-custom-app-server-handler");
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-      generatorContext.getStrategy(); result = JKubeBuildStrategy.s2i;
-      generatorContext.getProject().getProperties(); result = projectProperties;
-    }};
-    // @formatter:on
+    when(generatorContext.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
+    when(generatorContext.getStrategy()).thenReturn(JKubeBuildStrategy.s2i);
+    when(generatorContext.getProject().getProperties()).thenReturn(projectProperties);
+
     // When
     new WebAppGenerator(generatorContext).customize(Collections.emptyList(), false);
     // Then - Exception thrown
@@ -87,14 +88,12 @@ public class WebAppGeneratorTest {
     final File buildDirectory = temporaryFolder.newFolder("build");
     final File artifactFile = new File(buildDirectory, "artifact.war");
     assertTrue(artifactFile.createNewFile());
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = buildDirectory;
-      generatorContext.getProject().getBuildFinalName(); result = "artifact";
-      generatorContext.getProject().getPackaging(); result = "war";
-      generatorContext.getProject().getVersion(); result = "1.33.7-SNAPSHOT";
-    }};
-    // @formatter:on
+
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(buildDirectory);
+    when(generatorContext.getProject().getBuildFinalName()).thenReturn("artifact");
+    when(generatorContext.getProject().getPackaging()).thenReturn("war");
+    when(generatorContext.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
+
     // When
     final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
         .customize(originalImageConfigurations, false);
@@ -130,17 +129,14 @@ public class WebAppGeneratorTest {
     projectProperties.put("jkube.generator.webapp.ports", "8082,80");
     projectProperties.put("jkube.generator.webapp.supportsS2iBuild", "true");
     projectProperties.put("jkube.generator.from", "image-to-trigger-custom-app-server-handler");
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = buildDirectory;
-      generatorContext.getProject().getBuildFinalName(); result = "artifact";
-      generatorContext.getProject().getPackaging(); result = "war";
-      generatorContext.getProject().getVersion(); result = "1.33.7-SNAPSHOT";
-      generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-      generatorContext.getStrategy(); result = JKubeBuildStrategy.s2i;
-      generatorContext.getProject().getProperties(); result = projectProperties;
-    }};
-    // @formatter:on
+
+    when( generatorContext.getProject().getBuildDirectory()).thenReturn(buildDirectory);
+    when( generatorContext.getProject().getBuildFinalName()).thenReturn("artifact");
+    when( generatorContext.getProject().getPackaging()).thenReturn("war");
+    when( generatorContext.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
+    when( generatorContext.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
+    when( generatorContext.getStrategy()).thenReturn(JKubeBuildStrategy.s2i);
+    when( generatorContext.getProject().getProperties()).thenReturn(projectProperties);
     // When
     final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
         .customize(originalImageConfigurations, false);
