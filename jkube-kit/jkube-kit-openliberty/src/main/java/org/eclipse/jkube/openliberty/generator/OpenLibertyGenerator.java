@@ -38,7 +38,11 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddGeneratedImageConfiguration(configs)
-                && JKubeProjectUtil.hasPlugin(getProject(), "io.openliberty.tools", "liberty-maven-plugin");
+                && (
+                    JKubeProjectUtil.hasPlugin(getProject(), "io.openliberty.tools", "liberty-maven-plugin") ||
+                    JKubeProjectUtil.hasPlugin(getProject(), "io.openliberty.tools.gradle.Liberty", "io.openliberty.tools.gradle.Liberty.gradle.plugin") ||
+                    JKubeProjectUtil.hasGradlePlugin(getProject(), "io.openliberty.tools.gradle.Liberty")
+                );
 
     }
 
