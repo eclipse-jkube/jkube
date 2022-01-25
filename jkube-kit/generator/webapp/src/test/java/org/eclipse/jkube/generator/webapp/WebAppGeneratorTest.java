@@ -66,6 +66,17 @@ public class WebAppGeneratorTest {
     assertThat(result).isTrue();
   }
 
+  @Test
+  public void isApplicableHasGradleWarPluginShouldReturnTrue() {
+    // Given
+    when(generatorContext.getProject().getGradlePlugins()).thenReturn(Collections.singletonList("org.gradle.api.plugins.WarPlugin"));
+
+    // When
+    final boolean result = new WebAppGenerator(generatorContext).isApplicable(Collections.emptyList());
+    // Then
+    assertThat(result).isTrue();
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void customizeDoesNotSupportS2iBuildShouldThrowException() {
     // Given
