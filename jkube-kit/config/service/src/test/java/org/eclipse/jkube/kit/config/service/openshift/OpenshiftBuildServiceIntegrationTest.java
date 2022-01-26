@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.config.service.openshift;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -193,7 +192,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
     final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
 
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     // we should find a better way to assert that a certain call has been made
     assertTrue(mockServer.getOpenShiftMockServer().getRequestCount() > 8);
@@ -215,7 +214,7 @@ public class OpenshiftBuildServiceIntegrationTest {
             .build())
         .build());
     // When
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
     // Then
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
   }
@@ -233,7 +232,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     final OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
     // When
     final JKubeServiceException result = assertThrows(JKubeServiceException.class, () ->
-        openshiftBuildService.build(Collections.singletonList(image)));
+        openshiftBuildService.build(image));
     // Then
     assertThat(result)
         .getCause().hasMessage("This image has already been flattened, you can only flatten the image once");
@@ -255,7 +254,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     final WebServerEventCollector collector = prepareMockServer(withBuildServiceConfig(defaultConfig.build()),
         true, false, false);
     // When
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
     // Then
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
   }
@@ -266,7 +265,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     final WebServerEventCollector collector = prepareMockServer(
         config, true, false, false);
 
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     // we should find a better way to assert that a certain call has been made
     assertTrue(mockServer.getOpenShiftMockServer().getRequestCount() > 8);
@@ -285,7 +284,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .resourceConfig(mockedResourceConfig).build());
     final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false);
 
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     assertTrue(mockServer.getOpenShiftMockServer().getRequestCount() > 8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
@@ -305,7 +304,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     final WebServerEventCollector collector = prepareMockServer("component1-component2-name",
         dockerConfig, true, false, false);
 
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     assertTrue(mockServer.getOpenShiftMockServer().getRequestCount() > 8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
@@ -323,7 +322,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .build());
     final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false);
 
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     assertTrue(mockServer.getOpenShiftMockServer().getRequestCount() > 8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
@@ -354,7 +353,7 @@ public class OpenshiftBuildServiceIntegrationTest {
             .build()
         ).build();
 
-    service.build(Collections.singletonList(fromExtImage));
+    service.build(fromExtImage);
 
     assertTrue(mockServer.getOpenShiftMockServer().getRequestCount() > 8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
@@ -367,7 +366,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfigSecret.build());
     final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
 
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     // we should find a better way to assert that a certain call has been made
     assertTrue(mockServer.getOpenShiftMockServer().getRequestCount() > 8);
@@ -381,7 +380,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     final OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
 
     final JKubeServiceException result = assertThrows(JKubeServiceException.class, () ->
-        openshiftBuildService.build(Collections.singletonList(image)));
+        openshiftBuildService.build(image));
 
     assertThat(result).hasMessageContaining("Unable to build the image using the OpenShift build service");
   }
@@ -391,7 +390,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
     final WebServerEventCollector collector = prepareMockServer(config, true, true, true);
 
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     collector.assertEventsRecordedInOrder("build-config-check", "patch-build-config", "pushed");
     collector.assertEventsNotRecorded("new-build-config");
@@ -407,7 +406,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .resourceConfig(mockedResourceConfig).build());
     final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
 
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     collector.assertEventsNotRecorded("patch-build-config");
@@ -431,7 +430,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     final BuildServiceConfig config = withBuildServiceConfig(dockerImageConfig.build());
     final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
 
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     // we should add a better way to assert that a certain call has been made
     assertTrue(mockServer.getOpenShiftMockServer().getRequestCount() > 7);
@@ -446,7 +445,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     final BuildServiceConfig config = withBuildServiceConfig(dockerImageConfigSecret.build());
     final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
 
-    new OpenshiftBuildService(jKubeServiceHub).build(Collections.singletonList(image));
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     // we should find a better way to assert that a certain call has been made
     assertTrue(mockServer.getOpenShiftMockServer().getRequestCount() > 7);

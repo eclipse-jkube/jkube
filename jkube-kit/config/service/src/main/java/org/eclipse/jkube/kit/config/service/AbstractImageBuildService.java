@@ -15,8 +15,6 @@ package org.eclipse.jkube.kit.config.service;
 
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
-import java.util.Collection;
-
 public abstract class AbstractImageBuildService implements BuildService {
   private final JKubeServiceHub jKubeServiceHub;
 
@@ -24,14 +22,16 @@ public abstract class AbstractImageBuildService implements BuildService {
     this.jKubeServiceHub = jKubeServiceHub;
   }
 
+  protected abstract void buildSingleImage(ImageConfiguration imageConfiguration) throws JKubeServiceException;
+
   @Override
-  public void build(Collection<ImageConfiguration> imageConfigurations) throws JKubeServiceException {
+  public final void build(ImageConfiguration... imageConfigurations) throws JKubeServiceException {
     if (imageConfigurations != null) {
-      for (ImageConfiguration imageConfig : imageConfigurations) {
-        if (imageConfig.getBuildConfiguration() != null && imageConfig.getBuildConfiguration().getSkip()) {
-          jKubeServiceHub.getLog().info("%s : Skipped building", imageConfig.getDescription());
+      for (ImageConfiguration imageConfiguration : imageConfigurations) {
+        if (imageConfiguration.getBuildConfiguration() != null && imageConfiguration.getBuildConfiguration().getSkip()) {
+          jKubeServiceHub.getLog().info("%s : Skipped building", imageConfiguration.getDescription());
         } else {
-          build(imageConfig);
+          buildSingleImage(imageConfiguration);
         }
       }
     }

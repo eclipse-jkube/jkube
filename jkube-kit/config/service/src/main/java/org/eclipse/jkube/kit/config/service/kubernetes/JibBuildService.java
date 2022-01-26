@@ -75,7 +75,7 @@ public class JibBuildService extends AbstractImageBuildService {
     }
 
     @Override
-    public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
+    public void buildSingleImage(ImageConfiguration imageConfig) throws JKubeServiceException {
         try {
             log.info("[[B]]JIB[[B]] image build started");
             if (imageConfig.getBuildConfiguration().isDockerFileMode()) {

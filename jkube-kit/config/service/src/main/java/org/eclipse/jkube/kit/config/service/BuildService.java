@@ -31,20 +31,12 @@ public interface BuildService {
     boolean isApplicable();
 
     /**
-     * Builds the given images using the specified configuration.
+     * Build the given images using specified configuration
      *
-     * @param imageConfigs the image to build
+     * @param imageConfiguration {@link ImageConfiguration}(s) to build
      * @throws JKubeServiceException in case of any error while building image
      */
-    void build(Collection<ImageConfiguration> imageConfigs) throws JKubeServiceException;
-
-    /**
-     * Build the given image using specified configuration
-     *
-     * @param imageConfiguration single {@link ImageConfiguration} to build
-     * @throws JKubeServiceException in case of any error while building image
-     */
-    void build(ImageConfiguration imageConfiguration) throws JKubeServiceException;
+    void build(ImageConfiguration... imageConfiguration) throws JKubeServiceException;
 
     /**
      * Pushes to given image to specified Registry

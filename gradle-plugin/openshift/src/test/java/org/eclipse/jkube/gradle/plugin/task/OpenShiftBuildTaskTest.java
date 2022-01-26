@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -75,7 +75,7 @@ public class OpenShiftBuildTaskTest {
     // Then
     assertThat(buildTask.jKubeServiceHub.getBuildService()).isNotNull()
         .isInstanceOf(OpenshiftBuildService.class);
-    verify(buildTask.jKubeServiceHub.getBuildService(), times(1)).build(anyList());
+    verify(buildTask.jKubeServiceHub.getBuildService(), times(1)).build(any());
   }
 
 }
