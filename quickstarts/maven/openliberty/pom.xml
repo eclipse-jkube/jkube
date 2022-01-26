@@ -38,7 +38,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.arquillian-cube>1.18.2</version.arquillian-cube>
         <version.junit>4.13.1</version.junit>
-        <version.resteasy>3.6.2.Final</version.resteasy>
+        <version.resteasy>4.5.7.Final</version.resteasy>
         <version.restassured>4.1.1</version.restassured>
         <http.port>9080</http.port>
         <https.port>9443</https.port>
