@@ -123,7 +123,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
     }
 
     @Override
-    public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
+    public void buildSingleImage(ImageConfiguration imageConfig) throws JKubeServiceException {
         initClient();
         String buildName = null;
         try {

@@ -628,7 +628,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             EnvUtil.storeTimestamp(getBuildTimestampFile(project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP),
                     getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP));
 
-            jkubeServiceHub.getBuildService().build(imageConfigs);
+            jkubeServiceHub.getBuildService().build(imageConfigs.toArray(new ImageConfiguration[0]));
 
         } catch (Exception ex) {
             throw new MojoExecutionException("Failed to execute the build", ex);

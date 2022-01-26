@@ -38,7 +38,6 @@ import org.mockito.MockedConstruction;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -65,7 +64,7 @@ public class KubernetesBuildTaskTest {
     dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class, (mock, ctx) -> {
       when(mock.isApplicable()).thenReturn(isBuildServiceApplicable);
       if (isBuildError) {
-        doThrow(new JKubeServiceException("Exception during Build")).when(mock).build(anyList());
+        doThrow(new JKubeServiceException("Exception during Build")).when(mock).build(any());
       }
     });
     isBuildServiceApplicable = true;
@@ -95,7 +94,7 @@ public class KubernetesBuildTaskTest {
     // Then
     assertThat(buildTask.jKubeServiceHub.getBuildService()).isNotNull()
         .isInstanceOf(DockerBuildService.class);
-    verify(buildTask.jKubeServiceHub.getBuildService(), times(1)).build(anyList());
+    verify(buildTask.jKubeServiceHub.getBuildService(), times(1)).build(any());
   }
 
   @Test
@@ -139,6 +138,6 @@ public class KubernetesBuildTaskTest {
 
     // Then
     Assertions.assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
-    verify(buildTask.jKubeServiceHub.getBuildService(), times(0)).build(anyList());
+    verify(buildTask.jKubeServiceHub.getBuildService(), times(0)).build(any());
   }
 }

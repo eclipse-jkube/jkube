@@ -55,7 +55,7 @@ public class DockerBuildService extends AbstractImageBuildService {
     }
 
     @Override
-    public void build(ImageConfiguration imageConfig) throws JKubeServiceException {
+    public void buildSingleImage(ImageConfiguration imageConfig) throws JKubeServiceException {
         try {
             dockerServices.getBuildService().buildImage(imageConfig, buildServiceConfig.getImagePullManager(), jKubeConfiguration);
 

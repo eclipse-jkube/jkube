@@ -27,7 +27,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,17 +63,17 @@ public class OpenShiftBuildServiceTest {
   public void initClient_withNoOpenShift_shouldThrowException() {
     // Given
     //  @formatter:off
-    Collection<ImageConfiguration> imageConfigurations = Collections.singletonList(ImageConfiguration.builder()
+    ImageConfiguration imageConfiguration = ImageConfiguration.builder()
       .name("foo/bar:latest")
       .build(BuildConfiguration.builder()
         .from("baseimage:latest")
         .build())
-      .build());
+      .build();
     // @formatter:on
     OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
 
     // When + Then
-    IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () -> openshiftBuildService.build(imageConfigurations));
+    IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () -> openshiftBuildService.build(imageConfiguration));
     assertThat(illegalStateException.getMessage())
         .isEqualTo("OpenShift platform has been specified but OpenShift has not been detected!");
   }
@@ -82,19 +81,19 @@ public class OpenShiftBuildServiceTest {
   @Test
   public void build_withImageBuildConfigurationSkipEnabled_shouldNotBuildImage() throws JKubeServiceException, IOException {
     // Given
-    Collection<ImageConfiguration> imageConfigurations = Collections.singletonList(ImageConfiguration.builder()
+    ImageConfiguration imageConfiguration = ImageConfiguration.builder()
         .name("foo/bar:latest")
         .build(BuildConfiguration.builder()
             .from("baseimage:latest")
             .skip(true)
             .build())
-        .build());
+        .build();
     ArchiveService mockedArchiveService = mock(ArchiveService.class, RETURNS_DEEP_STUBS);
     when(jKubeServiceHub.getDockerServiceHub().getArchiveService()).thenReturn(mockedArchiveService);
     OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
 
     // When
-    openshiftBuildService.build(imageConfigurations);
+    openshiftBuildService.build(imageConfiguration);
 
     // Then
     verify(mockedArchiveService, times(0))

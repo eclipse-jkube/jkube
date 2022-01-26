@@ -13,11 +13,15 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import java.io.IOException;
+import java.util.Collections;
+
 import org.eclipse.jkube.kit.build.service.docker.BuildService;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,16 +29,13 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.IOException;
-import java.util.Collections;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,7 +65,7 @@ public class DockerBuildServiceTest {
   @Test
   public void build_withValidConfiguration_shouldBuildAndTag() throws Exception {
     // When
-    new DockerBuildService(mockedJKubeServiceHub).build(Collections.singletonList(image));
+    new DockerBuildService(mockedJKubeServiceHub).build(image);
     // Then
     verify(mockedDockerBuildService, times(1))
         .buildImage(eq(image), any(), any());
@@ -83,7 +84,7 @@ public class DockerBuildServiceTest {
         .build();
 
     // When
-    new DockerBuildService(mockedJKubeServiceHub).build(Collections.singletonList(image));
+    new DockerBuildService(mockedJKubeServiceHub).build(image);
     // Then
     verify(mockedDockerBuildService, times(0))
         .buildImage(eq(image), any(), any());
@@ -97,7 +98,7 @@ public class DockerBuildServiceTest {
     doThrow(new IOException("Mock IO error")).when(mockedDockerBuildService).buildImage(eq(image), any(), any());
     // When
     final JKubeServiceException result = assertThrows(JKubeServiceException.class, () ->
-        new DockerBuildService(mockedJKubeServiceHub).build(Collections.singletonList(image)));
+        new DockerBuildService(mockedJKubeServiceHub).build(image));
     // Then
     assertThat(result).hasMessage("Error while trying to build the image: Mock IO error");
   }
