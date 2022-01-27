@@ -36,7 +36,6 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <jkube.image.version>0.0.9</jkube.image.version>
     <micronaut.version>${project.parent.version}</micronaut.version>
     <exec.mainClass>org.eclipse.jkube.quickstart.micronaut.custom.Application</exec.mainClass>
   </properties>
