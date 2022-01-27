@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Objects;
 
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
@@ -67,9 +66,9 @@ public class DockerBuildService extends AbstractImageBuildService {
     }
 
     @Override
-    public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
         try {
-            dockerServices.getRegistryService().pushImages(imageConfigs, retries, registryConfig, skipTag);
+            dockerServices.getRegistryService().pushImage(imageConfiguration, retries, registryConfig, skipTag);
         } catch (IOException ex) {
             throw new JKubeServiceException("Error while trying to push the image: " + ex.getMessage(), ex);
         }

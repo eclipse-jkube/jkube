@@ -51,6 +51,8 @@ public class DockerBuildServiceTest {
 
   private ImageConfiguration image;
 
+  private ImageConfiguration imageWithSkipEnabled;
+
   @Before
   public void setUp() {
     when(mockedJKubeServiceHub.getDockerServiceHub().getBuildService()).thenReturn(mockedDockerBuildService);
@@ -60,6 +62,12 @@ public class DockerBuildServiceTest {
             .from("from")
             .build()
         ).build();
+    imageWithSkipEnabled = ImageConfiguration.builder()
+        .name("image-name")
+        .build(BuildConfiguration.builder()
+            .skip(true)
+            .build())
+        .build();
   }
 
   @Test
@@ -75,16 +83,8 @@ public class DockerBuildServiceTest {
 
   @Test
   public void build_withImageBuildConfigurationSkipEnabled_shouldNotBuildAndTag() throws Exception {
-    // Given
-    image = ImageConfiguration.builder()
-        .name("image-name")
-        .build(BuildConfiguration.builder()
-            .skip(true)
-            .build())
-        .build();
-
     // When
-    new DockerBuildService(mockedJKubeServiceHub).build(image);
+    new DockerBuildService(mockedJKubeServiceHub).build(imageWithSkipEnabled);
     // Then
     verify(mockedDockerBuildService, times(0))
         .buildImage(eq(image), any(), any());
@@ -108,7 +108,16 @@ public class DockerBuildServiceTest {
     // When
     new DockerBuildService(mockedJKubeServiceHub).push(Collections.emptyList(), 0, null, false);
     // Then
-    verify(mockedJKubeServiceHub.getDockerServiceHub().getRegistryService(), times(1))
-        .pushImages(eq(Collections.emptyList()), eq(0), isNull(), eq(false));
+    verify(mockedJKubeServiceHub.getDockerServiceHub().getRegistryService(), times(0))
+        .pushImage(any(), eq(0), isNull(), eq(false));
+  }
+
+  @Test
+  public void push_withImageBuildConfigurationSkipEnabled_shouldNotPush() throws Exception {
+    // When
+    new DockerBuildService(mockedJKubeServiceHub).build(imageWithSkipEnabled);
+    // Then
+    verify(mockedJKubeServiceHub.getDockerServiceHub().getRegistryService(), times(0))
+        .pushImage(any(), eq(0), isNull(), eq(false));
   }
 }

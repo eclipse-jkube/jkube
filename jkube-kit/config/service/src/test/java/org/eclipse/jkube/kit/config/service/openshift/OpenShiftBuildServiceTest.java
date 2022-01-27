@@ -20,6 +20,7 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
@@ -48,13 +49,48 @@ public class OpenShiftBuildServiceTest {
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private KitLogger mockedKitLogger;
 
+  private ImageConfiguration imageConfiguration;
+
+  private ImageConfiguration imageConfigurationWithSkipEnabled;
+
+  @Before
+  public void setUp() {
+    //  @formatter:off
+    imageConfiguration = ImageConfiguration.builder()
+        .name("foo/bar:latest")
+        .build(BuildConfiguration.builder()
+            .from("baseimage:latest")
+            .build())
+        .build();
+    imageConfigurationWithSkipEnabled = ImageConfiguration.builder()
+        .name("foo/bar:latest")
+        .build(BuildConfiguration.builder()
+            .from("baseimage:latest")
+            .skip(true)
+            .build())
+        .build();
+    // @formatter:on
+
+  }
+
   @Test
-  public void push_withDefaults_shouldLogWarning() throws JKubeServiceException {
+  public void push_withEmptyList_shouldNotLogWarning() throws JKubeServiceException {
     // Given
     when(jKubeServiceHub.getLog()).thenReturn(mockedKitLogger);
 
     // When
     new OpenshiftBuildService(jKubeServiceHub).push(Collections.emptyList(), 0, new RegistryConfig(), false);
+    // Then
+    verify(mockedKitLogger, times(0)).warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
+  }
+
+  @Test
+  public void push_withValidImage_shouldLogWarning() throws JKubeServiceException {
+    // Given
+    when(jKubeServiceHub.getLog()).thenReturn(mockedKitLogger);
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).push(Collections.singletonList(imageConfiguration), 0, new RegistryConfig(), false);
     // Then
     verify(mockedKitLogger, times(1)).warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
   }
@@ -62,14 +98,6 @@ public class OpenShiftBuildServiceTest {
   @Test
   public void initClient_withNoOpenShift_shouldThrowException() {
     // Given
-    //  @formatter:off
-    ImageConfiguration imageConfiguration = ImageConfiguration.builder()
-      .name("foo/bar:latest")
-      .build(BuildConfiguration.builder()
-        .from("baseimage:latest")
-        .build())
-      .build();
-    // @formatter:on
     OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
 
     // When + Then
@@ -81,19 +109,12 @@ public class OpenShiftBuildServiceTest {
   @Test
   public void build_withImageBuildConfigurationSkipEnabled_shouldNotBuildImage() throws JKubeServiceException, IOException {
     // Given
-    ImageConfiguration imageConfiguration = ImageConfiguration.builder()
-        .name("foo/bar:latest")
-        .build(BuildConfiguration.builder()
-            .from("baseimage:latest")
-            .skip(true)
-            .build())
-        .build();
     ArchiveService mockedArchiveService = mock(ArchiveService.class, RETURNS_DEEP_STUBS);
     when(jKubeServiceHub.getDockerServiceHub().getArchiveService()).thenReturn(mockedArchiveService);
     OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
 
     // When
-    openshiftBuildService.build(imageConfiguration);
+    openshiftBuildService.build(imageConfigurationWithSkipEnabled);
 
     // Then
     verify(mockedArchiveService, times(0))
