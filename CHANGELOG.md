@@ -43,6 +43,7 @@ Usage:
 * Fix #1167: Replace apiextensions.k8s.io/v1beta1 by apiextensions.k8s.io/v1
 * Fix #1180: `k8s:watch` uses default namespace even if other namespace is configured
 * Fix #1190: OpenShiftBuildService doesn't apply resources in configured namespace
+* Fix #1195: Push goal doesn't respect skip option in image build configuration
 * Fix #1209: Remove WildFly Swarm support
 * Fix #1219: Bump kubernetes-client to 5.11.2
 * Fix #1213: SnakeYaml dependency from Kubernetes Client + uses SafeConstructor

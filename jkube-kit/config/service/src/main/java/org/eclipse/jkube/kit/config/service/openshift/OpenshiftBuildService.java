@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.config.service.openshift;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -174,6 +173,12 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         }
     }
 
+    @Override
+    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) {
+        // Do nothing. Image is pushed as part of build phase
+        log.warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
+    }
+
     private void applyBuild(String buildName, File dockerTar, KubernetesListBuilder builder)
             throws Exception {
         applyResourceObjects(buildServiceConfig, client, builder);
@@ -183,12 +188,6 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
 
         // Wait until the build finishes
         waitForOpenShiftBuildToComplete(client, build);
-    }
-
-    @Override
-    public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
-        // Do nothing. Image is pushed as part of build phase
-        log.warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
     }
 
     private File getImageStreamFile() {

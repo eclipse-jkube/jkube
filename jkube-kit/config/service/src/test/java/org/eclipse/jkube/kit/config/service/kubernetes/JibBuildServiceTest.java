@@ -197,6 +197,22 @@ public class JibBuildServiceTest {
     }
 
     @Test
+    public void push_withImageBuildConfigurationSkipTrue_shouldNotPushImage() throws JKubeServiceException {
+        // Given
+        imageConfiguration = ImageConfiguration.builder()
+            .name("test/foo:latest")
+            .build(BuildConfiguration.builder()
+                .from("test/base:latest")
+                .skip(true)
+                .build())
+            .build();
+        // When
+        new JibBuildService(mockedServiceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
+        // Then
+        jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(any(), any(), any(), any()), times(0));
+    }
+
+    @Test
     public void build_withImageBuildConfigurationSkipTrue_shouldNotBuildImage() throws JKubeServiceException {
         // Given
         imageConfiguration = ImageConfiguration.builder()

@@ -40,7 +40,6 @@ import org.eclipse.jkube.kit.service.jib.JibServiceUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -109,18 +108,16 @@ public class JibBuildService extends AbstractImageBuildService {
     }
 
     @Override
-    public void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
         try {
-            for (ImageConfiguration imageConfiguration : imageConfigs) {
-                prependRegistry(imageConfiguration, registryConfig.getRegistry());
-                log.info("This push refers to: %s", imageConfiguration.getName());
-                JibServiceUtil.jibPush(
-                    imageConfiguration,
-                    getRegistryCredentials(registryConfig, true, imageConfiguration, log),
-                    getBuildTarArchive(imageConfiguration, configuration),
-                    log
-                );
-            }
+            prependRegistry(imageConfiguration, registryConfig.getRegistry());
+            log.info("This push refers to: %s", imageConfiguration.getName());
+            JibServiceUtil.jibPush(
+                imageConfiguration,
+                getRegistryCredentials(registryConfig, true, imageConfiguration, log),
+                getBuildTarArchive(imageConfiguration, configuration),
+                log
+            );
         } catch (Exception ex) {
             throw new JKubeServiceException("Error when push JIB image", ex);
         }

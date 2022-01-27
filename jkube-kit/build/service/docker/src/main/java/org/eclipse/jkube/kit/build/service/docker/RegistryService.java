@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.build.service.docker;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
@@ -46,35 +45,33 @@ public class RegistryService {
     /**
      * Push a set of images to a registry
      *
-     * @param imageConfigs images to push (but only if they have a build configuration)
+     * @param imageConfig image to push (but only if they have a build configuration)
      * @param retries how often to retry
      * @param registryConfig a global registry configuration
      * @param skipTag flag to skip pushing tagged images
      * @throws IOException exception
      */
-    public void pushImages(Collection<ImageConfiguration> imageConfigs,
-                           int retries, RegistryConfig registryConfig, boolean skipTag) throws IOException {
-        for (ImageConfiguration imageConfig : imageConfigs) {
-            BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
-            String name = imageConfig.getName();
-            if (buildConfig != null) {
-                String configuredRegistry = EnvUtil.firstRegistryOf(
-                    new ImageName(imageConfig.getName()).getRegistry(),
-                    imageConfig.getRegistry(),
-                    registryConfig.getRegistry());
+    public void pushImage(ImageConfiguration imageConfig,
+                          int retries, RegistryConfig registryConfig, boolean skipTag) throws IOException {
+        BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+        String name = imageConfig.getName();
+        if (buildConfig != null) {
+            String configuredRegistry = EnvUtil.firstRegistryOf(
+                new ImageName(imageConfig.getName()).getRegistry(),
+                imageConfig.getRegistry(),
+                registryConfig.getRegistry());
 
 
-                AuthConfig authConfig = createAuthConfig(true, new ImageName(name).getUser(), configuredRegistry, registryConfig);
+            AuthConfig authConfig = createAuthConfig(true, new ImageName(name).getUser(), configuredRegistry, registryConfig);
 
-                long start = System.currentTimeMillis();
-                docker.pushImage(name, authConfig, configuredRegistry, retries);
-                log.info("Pushed %s in %s", name, EnvUtil.formatDurationTill(start));
+            long start = System.currentTimeMillis();
+            docker.pushImage(name, authConfig, configuredRegistry, retries);
+            log.info("Pushed %s in %s", name, EnvUtil.formatDurationTill(start));
 
-                if (!skipTag) {
-                    for (String tag : imageConfig.getBuildConfiguration().getTags()) {
-                        if (tag != null) {
-                            docker.pushImage(new ImageName(name, tag).getFullName(), authConfig, configuredRegistry, retries);
-                        }
+            if (!skipTag) {
+                for (String tag : imageConfig.getBuildConfiguration().getTags()) {
+                    if (tag != null) {
+                        docker.pushImage(new ImageName(name, tag).getFullName(), authConfig, configuredRegistry, retries);
                     }
                 }
             }

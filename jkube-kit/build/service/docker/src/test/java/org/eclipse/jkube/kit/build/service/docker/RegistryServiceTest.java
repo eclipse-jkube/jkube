@@ -13,23 +13,25 @@
  */
 package org.eclipse.jkube.kit.build.service.docker;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Properties;
-
 import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
-
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Properties;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -41,12 +43,23 @@ public class RegistryServiceTest {
   private DockerAccess dockerAccess;
   private QueryService queryService;
   private RegistryService registryService;
+  private ImageConfiguration imageConfiguration;
+  private RegistryConfig mockedRegistryConfig;
 
   @Before
   public void setUp() throws Exception {
+    imageConfiguration = ImageConfiguration.builder()
+        .name("foo/bar:0.0.1")
+        .build(BuildConfiguration.builder()
+            .from("basefoo/basebar:0.1.0")
+            .tags(Arrays.asList("latest", "0.0.1-slim"))
+            .build())
+        .build();
     dockerAccess = mock(DockerAccess.class);
     queryService = mock(QueryService.class);
+    mockedRegistryConfig = mock(RegistryConfig.class);
     registryService = new RegistryService(dockerAccess, queryService, new KitLogger.SilentLogger());
+    when(mockedRegistryConfig.getRegistry()).thenReturn("example.com");
   }
 
   @Test
@@ -99,5 +112,31 @@ public class RegistryServiceTest {
         eq("quay.io"), createImageOptionsCaptor.capture());
     assertThat(createImageOptionsCaptor.getValue().getOptions()).containsExactlyInAnyOrderEntriesOf(
         new CreateImageOptions().fromImage("quay.io/organization/image").tag("version").platform("linux/amd64").getOptions());
+  }
+
+  @Test
+  public void pushImage_whenValidImageConfigurationProvidedWithSkipTag_shouldNotPushAdditionalTags() throws IOException {
+    // When
+    registryService.pushImage(imageConfiguration, 1, mockedRegistryConfig, true);
+
+    // Then
+    verify(dockerAccess, times(1))
+        .pushImage(eq("foo/bar:0.0.1"), any(), eq("example.com"), anyInt());
+    verify(dockerAccess, times(1))
+        .pushImage(any(), any(), any(), anyInt());
+  }
+
+  @Test
+  public void pushImage_whenValidImageConfigurationProvided_shouldPushApplicableTags() throws IOException {
+    // When
+    registryService.pushImage(imageConfiguration, 1, mockedRegistryConfig, false);
+
+    // Then
+    verify(dockerAccess, times(1))
+        .pushImage(eq("foo/bar:0.0.1"), any(), eq("example.com"), anyInt());
+    verify(dockerAccess, times(1))
+        .pushImage(eq("foo/bar:latest"), any(), eq("example.com"), anyInt());
+    verify(dockerAccess, times(1))
+        .pushImage(eq("foo/bar:0.0.1-slim"), any(), eq("example.com"), anyInt());
   }
 }

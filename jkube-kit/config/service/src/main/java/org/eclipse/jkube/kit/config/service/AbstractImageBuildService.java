@@ -13,7 +13,10 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+
+import java.util.Collection;
 
 public abstract class AbstractImageBuildService implements BuildService {
   private final JKubeServiceHub jKubeServiceHub;
@@ -24,14 +27,30 @@ public abstract class AbstractImageBuildService implements BuildService {
 
   protected abstract void buildSingleImage(ImageConfiguration imageConfiguration) throws JKubeServiceException;
 
+  protected abstract void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException;
+
   @Override
   public final void build(ImageConfiguration... imageConfigurations) throws JKubeServiceException {
+    processImage(this::buildSingleImage, "Skipped building", imageConfigurations);
+  }
+
+  @Override
+  public final void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+    processImage(imageConfiguration -> pushSingleImage(imageConfiguration, retries, registryConfig, skipTag), "Skipped push", imageConfigs.toArray(new ImageConfiguration[0]));
+  }
+
+  @FunctionalInterface
+  private interface ImageConfigurationProcessor {
+    void process(ImageConfiguration imageConfiguration) throws JKubeServiceException;
+  }
+
+  private void processImage(ImageConfigurationProcessor imageConfigurationConsumer, String skipMessage, ImageConfiguration... imageConfigurations) throws JKubeServiceException {
     if (imageConfigurations != null) {
       for (ImageConfiguration imageConfiguration : imageConfigurations) {
         if (imageConfiguration.getBuildConfiguration() != null && imageConfiguration.getBuildConfiguration().getSkip()) {
-          jKubeServiceHub.getLog().info("%s : Skipped building", imageConfiguration.getDescription());
+          jKubeServiceHub.getLog().info("%s : %s", imageConfiguration.getDescription(), skipMessage);
         } else {
-          buildSingleImage(imageConfiguration);
+          imageConfigurationConsumer.process(imageConfiguration);
         }
       }
     }
