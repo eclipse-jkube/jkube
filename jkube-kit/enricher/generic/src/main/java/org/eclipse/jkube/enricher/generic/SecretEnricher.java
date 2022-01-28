@@ -54,10 +54,10 @@ public abstract class SecretEnricher extends BaseEnricher {
             public void visit(SecretBuilder secretBuilder) {
                 Map<String, String> annotation = secretBuilder.buildMetadata().getAnnotations();
                 if (annotation != null) {
-                    if (!annotation.containsKey(getAnnotationKey())) {
+                    String dockerId = getDockerIdFromAnnotation(annotation);
+                    if (dockerId == null) {
                         return;
                     }
-                    String dockerId = annotation.get(getAnnotationKey());
                     Map<String, String> data = generateData(dockerId);
                     if (data == null) {
                         return;
@@ -135,7 +135,18 @@ public abstract class SecretEnricher extends BaseEnricher {
         return null;
     }
 
+    private String getDockerIdFromAnnotation(Map<String, String> annotation) {
+        if (annotation.containsKey(getDeprecatedAnnotationKey())) {
+            return annotation.get(getDeprecatedAnnotationKey());
+        } else if (annotation.containsKey(getAnnotationKey())) {
+            return annotation.get(getAnnotationKey());
+        }
+        return null;
+    }
+
     protected abstract String getAnnotationKey();
+
+    protected abstract String getDeprecatedAnnotationKey();
 
     protected abstract Map<String, String> generateData(String key);
 }

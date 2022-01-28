@@ -31,7 +31,12 @@ import java.util.Set;
 
 public class FileDataSecretEnricher extends BaseEnricher {
 
+    /**
+     * @deprecated Use <code>jkube.eclipse.org/secret/</code> instead
+     */
+    @Deprecated
     protected static final String PREFIX_ANNOTATION = "maven.jkube.io/secret/";
+    protected static final String FILEDATASECRET_PREFIX_ANNOTATION = INTERNAL_ANNOTATION_PREFIX + "/secret/";
 
     public FileDataSecretEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-secret-file");
@@ -68,7 +73,8 @@ public class FileDataSecretEnricher extends BaseEnricher {
             Map.Entry<String, String> entry = it.next();
             final String key = entry.getKey();
 
-            if(key.startsWith(PREFIX_ANNOTATION)) {
+            String secretFileLocationKey = getOutput(key);
+            if(secretFileLocationKey != null) {
                 byte[] bytes = readContent(entry.getValue());
                 secretFileLocations.put(getOutput(key), Base64Util.encodeToString(bytes));
                 it.remove();
@@ -83,6 +89,11 @@ public class FileDataSecretEnricher extends BaseEnricher {
     }
 
     private String getOutput(String key) {
-        return key.substring(PREFIX_ANNOTATION.length());
+        if (key.startsWith(PREFIX_ANNOTATION)) {
+            return key.substring(PREFIX_ANNOTATION.length());
+        } else if (key.startsWith(FILEDATASECRET_PREFIX_ANNOTATION)) {
+            return key.substring(FILEDATASECRET_PREFIX_ANNOTATION.length());
+        }
+        return null;
     }
 }

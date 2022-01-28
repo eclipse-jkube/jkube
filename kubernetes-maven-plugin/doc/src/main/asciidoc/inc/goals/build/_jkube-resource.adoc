@@ -457,7 +457,7 @@ This is best explained by an example.
 
 
 You can create a secret using a yaml fragment. You can reference the docker server id with an annotation
-`maven.jkube.io/dockerServerId`. The yaml fragment file should be put under
+`jkube.eclipse.org/dockerServerId`. The yaml fragment file should be put under
 the `src/main/jkube/` folder.
 
 .Example
@@ -470,7 +470,7 @@ metadata:
   name: mydockerkey
   namespace: default
   annotations:
-    maven.jkube.io/dockerServerId: ${docker.registry}
+    jkube.eclipse.org/dockerServerId: ${docker.registry}
 type: kubernetes.io/dockercfg
 ----
 
