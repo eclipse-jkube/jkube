@@ -57,7 +57,7 @@ public class ConfigMapEnricher extends BaseEnricher {
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
         addAnnotations(builder);
-        addConfigMapFromXmlConfigurations(builder);
+        addConfigMapFromResourceConfigurations(builder);
     }
 
     private void addAnnotations(KubernetesListBuilder builder) {
@@ -133,44 +133,49 @@ public class ConfigMapEnricher extends BaseEnricher {
         return key.substring(CONFIGMAP_PREFIX_ANNOTATION.length());
     }
 
-    private void addConfigMapFromXmlConfigurations(KubernetesListBuilder builder) {
-        org.eclipse.jkube.kit.config.resource.ConfigMap configMap = getConfigMapFromXmlConfiguration();
+    private void addConfigMapFromResourceConfigurations(KubernetesListBuilder builder) {
+        org.eclipse.jkube.kit.config.resource.ConfigMap configMapResourceConfiguration = getConfigMapFromXmlConfiguration();
         try {
-            if (configMap == null) {
+            if (configMapResourceConfiguration == null) {
                 return;
             }
-            String configMapName = configMap.getName() == null || configMap.getName().trim().isEmpty() ? "xmlconfig"
-                    : configMap.getName().trim();
+            String configMapName = configMapResourceConfiguration.getName() == null || configMapResourceConfiguration.getName().trim().isEmpty() ? "jkubeconfig"
+                    : configMapResourceConfiguration.getName().trim();
             if (checkIfItemExists(builder, configMapName)) {
                 return;
             }
 
-            ConfigMapBuilder configMapBuilder = new ConfigMapBuilder();
-            configMapBuilder.withNewMetadata().withName(configMapName).endMetadata();
+            io.fabric8.kubernetes.api.model.ConfigMap configMap = createConfigMapFromConfiguration(configMapResourceConfiguration, configMapName);
 
-            for (ConfigMapEntry configMapEntry : configMap.getEntries()) {
-                String name = configMapEntry.getName();
-                final String value = configMapEntry.getValue();
-                if (name != null && value != null) {
-                    configMapBuilder.addToData(name, value);
-                } else {
-                    final String file = configMapEntry.getFile();
-                    if (file != null) {
-                        if (name == null) {
-                            name = Paths.get(file).getFileName().toString();
-                        }
-                        addConfigMapEntryFromDirOrFile(configMapBuilder, name, file);
-                    }
-                }
-            }
-
-            if ((configMapBuilder.getData() != null && !configMapBuilder.getData().isEmpty())
-                    || (configMapBuilder.getBinaryData() != null && !configMapBuilder.getBinaryData().isEmpty())) {
-                builder.addToConfigMapItems(configMapBuilder.build());
+            if ((configMap.getData() != null && !configMap.getData().isEmpty())
+                    || (configMap.getBinaryData() != null && !configMap.getBinaryData().isEmpty())) {
+                builder.addToConfigMapItems(configMap);
             }
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    private io.fabric8.kubernetes.api.model.ConfigMap createConfigMapFromConfiguration(org.eclipse.jkube.kit.config.resource.ConfigMap configMap, String configMapName) throws IOException {
+        io.fabric8.kubernetes.api.model.ConfigMapBuilder configMapBuilder = new io.fabric8.kubernetes.api.model.ConfigMapBuilder();
+        configMapBuilder.withNewMetadata().withName(configMapName).endMetadata();
+
+        for (ConfigMapEntry configMapEntry : configMap.getEntries()) {
+            String name = configMapEntry.getName();
+            final String value = configMapEntry.getValue();
+            if (name != null && value != null) {
+                configMapBuilder.addToData(name, value);
+            } else {
+                final String file = configMapEntry.getFile();
+                if (file != null) {
+                    if (name == null) {
+                        name = Paths.get(file).getFileName().toString();
+                    }
+                    addConfigMapEntryFromDirOrFile(configMapBuilder, name, file);
+                }
+            }
+        }
+        return configMapBuilder.build();
     }
 
     private boolean checkIfItemExists(KubernetesListBuilder builder, String name) {
