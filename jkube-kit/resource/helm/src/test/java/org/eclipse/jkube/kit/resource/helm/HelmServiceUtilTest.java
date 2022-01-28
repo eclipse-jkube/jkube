@@ -89,7 +89,7 @@ public class HelmServiceUtilTest {
           Collections.singletonList(new Maintainer("John", "john@example.com")))
       .hasFieldOrPropertyWithValue("types", Collections.singletonList(HelmConfig.HelmType.KUBERNETES))
       .hasFieldOrPropertyWithValue("additionalFiles", Collections.emptyList())
-      .hasFieldOrPropertyWithValue("templates", Collections.emptyList())
+      .hasFieldOrPropertyWithValue("parameterTemplates", Collections.emptyList())
       .hasFieldOrProperty("icon");
     assertThat(result.getSourceDir()).endsWith("target/classes/META-INF/jkube/");
     assertThat(result.getOutputDir()).endsWith("target/jkube/helm/artifact-id");

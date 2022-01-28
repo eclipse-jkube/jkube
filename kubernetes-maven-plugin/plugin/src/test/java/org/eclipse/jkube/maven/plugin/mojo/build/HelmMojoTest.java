@@ -120,7 +120,7 @@ public class HelmMojoTest {
     ));
     assertThat(helmMojo.helm.getIcon(), nullValue());
     assertThat(helmMojo.helm.getAdditionalFiles(), empty());
-    assertThat(helmMojo.helm.getTemplates(), empty());
+    assertThat(helmMojo.helm.getParameterTemplates(), empty());
     assertThat(helmMojo.helm.getTypes(), contains(HelmConfig.HelmType.KUBERNETES));
     assertThat(helmMojo.helm.getSourceDir(), is("target/classes/META-INF/jkube/"));
     assertThat(helmMojo.helm.getOutputDir(), is("target/jkube/helm/artifact-id"));
@@ -161,7 +161,7 @@ public class HelmMojoTest {
     // When
     helmMojo.execute();
     // Then
-    assertThat(helmMojo.helm.getTemplates(), contains(template));
+    assertThat(helmMojo.helm.getParameterTemplates(), contains(template));
   }
 
   @Test

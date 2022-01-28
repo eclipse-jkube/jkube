@@ -31,6 +31,7 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.fabric8.openshift.api.model.ParameterBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -39,6 +40,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 public class HelmServiceIT {
 
@@ -47,6 +49,7 @@ public class HelmServiceIT {
 
   private ObjectMapper mapper;
   private HelmService helmService;
+  private HelmConfig helmConfig;
   private File helmOutputDir;
 
   @Before
@@ -54,25 +57,27 @@ public class HelmServiceIT {
     mapper = new ObjectMapper(new YAMLFactory());
     helmService = new HelmService(new JKubeConfiguration(), new KitLogger.SilentLogger());
     helmOutputDir = temporaryFolder.newFolder("helm-output");
+    helmConfig = new HelmConfig();
+    helmConfig.setSourceDir(new File(HelmServiceIT.class.getResource("/it/sources").toURI()).getAbsolutePath());
+    helmConfig.setOutputDir(helmOutputDir.getAbsolutePath());
+    helmConfig.setTarballOutputDir(helmOutputDir.getAbsolutePath());
+    helmConfig.setChartExtension("tar");
   }
 
   @Test
   public void generateHelmChartsTest() throws Exception {
     // Given
-    final HelmConfig helmConfig = new HelmConfig();
     helmConfig.setChart("ITChart");
     helmConfig.setVersion("1.33.7");
     helmConfig.setTypes(Arrays.asList(HelmConfig.HelmType.OPENSHIFT, HelmConfig.HelmType.KUBERNETES));
-    helmConfig.setSourceDir(new File(HelmServiceIT.class.getResource("/it/sources").toURI()).getAbsolutePath());
-    helmConfig.setOutputDir(helmOutputDir.getAbsolutePath());
-    helmConfig.setTarballOutputDir(helmOutputDir.getAbsolutePath());
-    helmConfig.setChartExtension("tar");
     helmConfig.setAdditionalFiles(Collections.singletonList(
         new File(HelmServiceIT.class.getResource("/it/sources/additional-file.txt").toURI())
     ));
-    helmConfig.setTemplates(Collections.singletonList(
+    helmConfig.setParameterTemplates(Collections.singletonList(
         ResourceUtil.load(new File(HelmServiceIT.class.getResource("/it/sources/global-template.yml").toURI()), Template.class)
     ));
+    helmConfig.setParameters(Collections.singletonList(new ParameterBuilder()
+        .withName("annotation_from_config").withValue("{{ .Chart.Name | upper }}").build()));
     final AtomicInteger generatedChartCount = new AtomicInteger(0);
     helmConfig.setGeneratedChartListeners(Collections.singletonList(
         (helmConfig1, type, chartFile) -> generatedChartCount.incrementAndGet()));
@@ -107,6 +112,18 @@ public class HelmServiceIT {
     assertThat(generatedChartCount).hasValue(2);
   }
 
+  @Test
+  public void generateHelmChartsTest_withInvalidParameters_throwsException() {
+    // Given
+    helmConfig.setTypes(Collections.singletonList(HelmConfig.HelmType.KUBERNETES));
+    helmConfig.setParameters(Collections.singletonList(new ParameterBuilder()
+        .withValue("{{ .Chart.Name | upper }}").build()));
+    // When
+    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
+        helmService.generateHelmCharts(helmConfig));
+    // Then
+    assertThat(result).hasMessageStartingWith("Helm parameters must be declared with a valid name:");
+  }
   private void assertYamls() throws Exception {
     final Path expectations = new File(HelmServiceIT.class.getResource("/it/expected").toURI()).toPath();
     final Path generatedYamls = helmOutputDir.toPath();

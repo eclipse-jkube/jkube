@@ -16,3 +16,7 @@ metadata:
   annotations:
     jkube.helm.sh/provided-value: ${golang_expression}
     jkube.helm.sh/provided-value-scalar: ${golang_expression_scalar}
+data:
+  value_from_config: ${a_value_with_a_default}
+  chart_name: ${chart_name}
+

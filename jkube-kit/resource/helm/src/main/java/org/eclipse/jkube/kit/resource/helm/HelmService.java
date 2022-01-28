@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +27,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
@@ -40,14 +39,18 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
+import com.google.common.collect.Streams;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.openshift.api.model.Parameter;
 import io.fabric8.openshift.api.model.Template;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
-import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.selectHelmRepository;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.isRepositoryValid;
+import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.selectHelmRepository;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.setAuthentication;
 
 public class HelmService {
@@ -91,8 +94,12 @@ public class HelmService {
       createChartYaml(helmConfig, outputDir);
       logger.debug("Copying additional files");
       copyAdditionalFiles(helmConfig, outputDir);
-      logger.debug("Processing YAML templates");
-      createTemplateParameters(helmConfig, outputDir, templatesDir);
+      logger.debug("Gathering parameters for placeholders");
+      final List<HelmParameter> parameters = collectParameters(helmConfig);
+      logger.debug("Generating values.yaml");
+      createValuesYaml(parameters, outputDir);
+      logger.debug("Interpolating YAML Chart templates");
+      interpolateChartTemplates(parameters, templatesDir);
       final File tarballFile = new File(tarballOutputDir, String.format("%s-%s-%s.%s",
           helmConfig.getChart(), helmConfig.getVersion(), helmType.getClassifier(), helmConfig.getChartExtension()));
       logger.debug("Creating Helm configuration Tarball: '%s'", tarballFile.getAbsolutePath());
@@ -284,21 +291,35 @@ public class HelmService {
     }
   }
 
-  private static void createTemplateParameters(HelmConfig helmConfig, File outputDir, File templatesDir) throws IOException {
-    final List<HelmParameter> helmParameters = Optional.ofNullable(helmConfig.getTemplates())
-        .orElse(Collections.emptyList()).stream()
-        .map(Template::getParameters).flatMap(List::stream)
-        .map(HelmParameter::new).collect(Collectors.toList());
-    final Map<String, String> values = helmParameters.stream()
-        .filter(hp -> hp.getParameter().getValue() != null)
-        .collect(Collectors.toMap(HelmParameter::getHelmName, hp -> hp.getParameter().getValue()));
-
-    File outputChartFile = new File(outputDir, VALUES_FILENAME);
-    ResourceUtil.save(outputChartFile, values, ResourceFileType.yaml);
-
+  private static void interpolateChartTemplates(List<HelmParameter> helmParameters, File templatesDir) throws IOException {
     // now lets replace all the parameter expressions in each template
     for (File file : listYamls(templatesDir)) {
       interpolateTemplateParameterExpressionsWithHelmExpressions(file, helmParameters);
     }
+  }
+
+  private static void createValuesYaml(List<HelmParameter> helmParameters, File outputDir) throws IOException {
+    final Map<String, String> values = helmParameters.stream()
+        .filter(hp -> hp.getParameter().getValue() != null)
+        // Placeholders replaced by Go expressions don't need to be persisted in the values.yaml file
+        .filter(hp -> !hp.getParameter().getValue().trim().matches(GOLANG_EXPRESSION_REGEX))
+        .collect(Collectors.toMap(HelmParameter::getHelmName, hp -> hp.getParameter().getValue()));
+
+    File outputChartFile = new File(outputDir, VALUES_FILENAME);
+    ResourceUtil.save(outputChartFile, values, ResourceFileType.yaml);
+  }
+
+  private static List<HelmParameter> collectParameters(HelmConfig helmConfig) {
+    final List<HelmParameter> parameters = new ArrayList<>();
+    final Stream<Parameter> fromYaml = Optional.ofNullable(helmConfig.getParameterTemplates())
+        .orElse(Collections.emptyList()).stream()
+        .map(Template::getParameters).flatMap(List::stream);
+    final Stream<Parameter> fromConfig = Optional.ofNullable(helmConfig.getParameters())
+        .orElse(Collections.emptyList()).stream();
+    Streams.concat(fromYaml, fromConfig).map(HelmParameter::new).forEach(parameters::add);
+    parameters.stream().filter(p -> p.getParameter().getName() == null).findAny().ifPresent(p -> {
+      throw new IllegalArgumentException("Helm parameters must be declared with a valid name: " + p.getParameter().toString());
+    });
+    return parameters;
   }
 }

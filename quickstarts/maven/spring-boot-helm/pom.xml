@@ -114,6 +114,12 @@
 <!--                    <email>john.doe@example.com</email>-->
 <!--                  </maintainer>-->
 <!--                </maintainers>-->
+<!--                <parameters>-->
+<!--                  <parameter>-->
+<!--                    <name>chart_name</name>-->
+<!--                    <value>{{ .Chart.Name }}</value>-->
+<!--                  </parameter>-->
+<!--                </parameters>-->
 <!--              </helm>-->
             </configuration>
 

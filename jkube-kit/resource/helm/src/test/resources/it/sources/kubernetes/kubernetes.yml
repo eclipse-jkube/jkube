@@ -55,6 +55,7 @@ items:
       jkube/it: This is a test
       helm-variable: ${GLOBAL_TEMPLATE_ENV_VAR}
       escape-test: "{{ }} should be escaped to prevent helm errors"
+      annotation-from-config: ${annotation_from_config}
     labels:
       app: test
       provider: jkube

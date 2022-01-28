@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import io.fabric8.openshift.api.model.ParameterBuilder;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 
@@ -100,7 +101,8 @@ public class HelmConfigTest {
         "\"snapshotRepository\":{}," +
         "\"stableRepository\":{}," +
         "\"tarballOutputDir\":\"./tar-output\"," +
-        "\"templates\":[{}]," +
+        "\"parameterTemplates\":[{}]," +
+        "\"parameters\": [{\"name\":\"key\"}]," +
         "\"description\":\"The description\"," +
         "\"home\":\"e.t.\"," +
         "\"icon\":\"Warhol\"," +
@@ -128,7 +130,8 @@ public class HelmConfigTest {
         .hasFieldOrPropertyWithValue("snapshotRepository", new HelmRepository())
         .hasFieldOrPropertyWithValue("stableRepository", new HelmRepository())
         .hasFieldOrPropertyWithValue("tarballOutputDir", "./tar-output")
-        .hasFieldOrPropertyWithValue("templates", Collections.singletonList(new Template()))
+        .hasFieldOrPropertyWithValue("parameterTemplates", Collections.singletonList(new Template()))
+        .hasFieldOrPropertyWithValue("parameters", Collections.singletonList(new ParameterBuilder().withName("key").build()))
         .hasFieldOrPropertyWithValue("description", "The description")
         .hasFieldOrPropertyWithValue("home", "e.t.")
         .hasFieldOrPropertyWithValue("icon", "Warhol")
@@ -159,7 +162,7 @@ public class HelmConfigTest {
     helmConfig.setSnapshotRepository(new HelmRepository());
     helmConfig.setStableRepository(new HelmRepository());
     helmConfig.setTarballOutputDir("tarballOutputDir");
-    helmConfig.setTemplates(Collections.singletonList(new Template()));
+    helmConfig.setParameterTemplates(Collections.singletonList(new Template()));
     helmConfig.setDescription("description");
     helmConfig.setHome("home");
     helmConfig.setIcon("icon");
@@ -182,7 +185,7 @@ public class HelmConfigTest {
     assertThat(helmConfig.getSnapshotRepository()).isNotNull();
     assertThat(helmConfig.getStableRepository()).isNotNull();
     assertThat(helmConfig.getTarballOutputDir()).isEqualTo("tarballOutputDir");
-    assertThat(helmConfig.getTemplates()).isNotEmpty();
+    assertThat(helmConfig.getParameterTemplates()).isNotEmpty();
     assertThat(helmConfig.getDescription()).isEqualTo("description");
     assertThat(helmConfig.getHome()).isEqualTo("home");
     assertThat(helmConfig.getIcon()).isEqualTo("icon");
@@ -207,7 +210,7 @@ public class HelmConfigTest {
         .snapshotRepository(new HelmRepository())
         .stableRepository(new HelmRepository())
         .tarballOutputDir("tarballOutputDir")
-        .templates(Collections.singletonList(new Template()))
+        .parameterTemplates(Collections.singletonList(new Template()))
         .description("description")
         .home("e.t.")
         .icon("Warhol")

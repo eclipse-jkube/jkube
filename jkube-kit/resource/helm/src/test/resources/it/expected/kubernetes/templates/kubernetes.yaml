@@ -55,6 +55,7 @@ items:
       jkube/it: This is a test
       helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default "This is a sample" }}
       escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
+      annotation-from-config: {{ .Chart.Name | upper }}
     labels:
       app: test
       provider: jkube
