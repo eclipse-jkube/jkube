@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
  * @since 01/04/16
  */
 public interface Enricher extends Named {
+    String INTERNAL_ANNOTATION_PREFIX = "jkube.eclipse.org";
 
     /**
      * Add default resources when they are missing. Each enricher should be responsible

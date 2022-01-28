@@ -24,7 +24,12 @@ import java.util.Map;
 import java.util.Optional;
 
 public class DockerRegistrySecretEnricher extends SecretEnricher {
+    /**
+     * @deprecated Use <code>jkube.eclipse.org/dockerServerId</code> instead.
+     */
+    @Deprecated
     private static final String ANNOTATION_KEY = "maven.jkube.io/dockerServerId";
+    private static final String DOCKER_SERVER_ID_ANNOTATION_KEY = INTERNAL_ANNOTATION_PREFIX + "/dockerServerId";
     private static final String ENRICHER_NAME = "jkube-docker-registry-secret";
 
 
@@ -34,6 +39,11 @@ public class DockerRegistrySecretEnricher extends SecretEnricher {
 
     @Override
     protected String getAnnotationKey() {
+        return DOCKER_SERVER_ID_ANNOTATION_KEY;
+    }
+
+    @Override
+    protected String getDeprecatedAnnotationKey() {
         return ANNOTATION_KEY;
     }
 

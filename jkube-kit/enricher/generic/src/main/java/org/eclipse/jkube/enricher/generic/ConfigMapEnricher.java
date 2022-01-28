@@ -42,7 +42,13 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 
 public class ConfigMapEnricher extends BaseEnricher {
 
+    /**
+     * @deprecated Use <code>jkube.eclipse.org/cm/</code> prefix instead
+     */
+    @Deprecated
     protected static final String PREFIX_ANNOTATION = "maven.jkube.io/cm/";
+
+    protected static final String CONFIGMAP_PREFIX_ANNOTATION = INTERNAL_ANNOTATION_PREFIX + "/cm/";
 
     public ConfigMapEnricher(JKubeEnricherContext enricherContext) {
         super(enricherContext, "jkube-configmap-file");
@@ -78,7 +84,7 @@ public class ConfigMapEnricher extends BaseEnricher {
             Map.Entry<String, String> entry = it.next();
             final String key = entry.getKey();
 
-            if (key.startsWith(PREFIX_ANNOTATION)) {
+            if (key.startsWith(PREFIX_ANNOTATION) || key.startsWith(CONFIGMAP_PREFIX_ANNOTATION)) {
                 addConfigMapEntryFromDirOrFile(configMapBuilder, getOutput(key), entry.getValue());
                 it.remove();
             }
@@ -121,7 +127,10 @@ public class ConfigMapEnricher extends BaseEnricher {
     }
 
     private String getOutput(String key) {
-        return key.substring(PREFIX_ANNOTATION.length());
+        if (key.startsWith(PREFIX_ANNOTATION)) {
+            return key.substring(PREFIX_ANNOTATION.length());
+        }
+        return key.substring(CONFIGMAP_PREFIX_ANNOTATION.length());
     }
 
     private void addConfigMapFromXmlConfigurations(KubernetesListBuilder builder) {

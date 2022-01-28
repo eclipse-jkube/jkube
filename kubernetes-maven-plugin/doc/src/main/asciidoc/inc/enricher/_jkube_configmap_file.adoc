@@ -89,7 +89,7 @@ If you are defining a custom `ConfigMap` file, you can use an annotation to defi
 metadata:
   name: ${project.artifactId}
   annotations:
-    maven.jkube.io/cm/application.properties: src/test/resources/test-application.properties
+    jkube.eclipse.org/cm/application.properties: src/test/resources/test-application.properties
 ----
 
 This creates a `ConfigMap` data with key `application.properties` (part defined after `cm`) and value the content of `src/test/resources/test-application.properties` file. 
@@ -101,7 +101,7 @@ You can specify a directory instead of a file:
 metadata:
   name: ${project.artifactId}
   annotations:
-    maven.jkube.io/cm/application.properties: src/test/resources/test-dir
+    jkube.eclipse.org/cm/application.properties: src/test/resources/test-dir
 ----
 
 This creates a `ConfigMap` named `application.properties` (part defined after `cm`) and for each file under the directory `test-dir` one entry with file name as key and its content as the value; subdirectories are ignored.

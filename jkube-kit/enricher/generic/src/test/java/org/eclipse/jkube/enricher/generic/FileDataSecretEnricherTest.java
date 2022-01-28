@@ -40,12 +40,12 @@ public class FileDataSecretEnricherTest {
     private JKubeEnricherContext context;
 
     @Test
-    public void shouldMaterializeFileContentFromAnnotation() throws IOException {
+    public void shouldMaterializeFileContentFromDeprecatedAnnotation() throws IOException {
         // Given
         final FileDataSecretEnricher fileDataSecretEnricher =
                 new FileDataSecretEnricher(context);
         final KubernetesListBuilder builder = new KubernetesListBuilder();
-        builder.addToSecretItems(createBaseSecret());
+        builder.addToSecretItems(createBaseSecret("maven.jkube.io/secret/"));
 
         // When
         fileDataSecretEnricher.create(PlatformMode.kubernetes,builder);
@@ -55,23 +55,48 @@ public class FileDataSecretEnricherTest {
 
         final Map<String, String> data = secret.getData();
         assertThat(data)
-                .containsKey(TEST_APPLICATION_PROPERTIES);
-
-        assertThat(data.get(TEST_APPLICATION_PROPERTIES))
-                .isEqualTo(Base64Util
-                        .encodeToString(Files.readAllBytes(Paths.get(TEST_APPLICATION_PROPERTIES_PATH))));
+            .containsEntry(TEST_APPLICATION_PROPERTIES, Base64Util
+                .encodeToString(Files.readAllBytes(Paths.get(TEST_APPLICATION_PROPERTIES_PATH))));
 
         final Map<String, String> annotations = secret.getMetadata().getAnnotations();
         assertThat(annotations)
                 .isEmpty();
     }
 
-    private Secret createBaseSecret() {
+
+    @Test
+    public void shouldMaterializeFileContentFrom_Annotation() throws IOException {
+        // Given
+        final FileDataSecretEnricher fileDataSecretEnricher =
+            new FileDataSecretEnricher(context);
+        final KubernetesListBuilder builder = new KubernetesListBuilder();
+        builder.addToSecretItems(createBaseSecret("jkube.eclipse.org/secret/"));
+
+        // When
+        fileDataSecretEnricher.create(PlatformMode.kubernetes,builder);
+
+        // Then
+        final Secret secret = (Secret) builder.buildFirstItem();
+
+        final Map<String, String> data = secret.getData();
+        assertThat(data)
+            .containsKey(TEST_APPLICATION_PROPERTIES);
+
+        assertThat(data)
+            .containsEntry(TEST_APPLICATION_PROPERTIES, Base64Util
+                .encodeToString(Files.readAllBytes(Paths.get(TEST_APPLICATION_PROPERTIES_PATH))));
+
+        final Map<String, String> annotations = secret.getMetadata().getAnnotations();
+        assertThat(annotations)
+            .isEmpty();
+    }
+
+    private Secret createBaseSecret(String annotationPrefix) {
         ObjectMetaBuilder metaBuilder = new ObjectMetaBuilder()
                 .withNamespace("default");
 
         Map<String, String> annotations = new HashMap<>();
-        annotations.put(FileDataSecretEnricher.PREFIX_ANNOTATION + TEST_APPLICATION_PROPERTIES,
+        annotations.put(annotationPrefix + TEST_APPLICATION_PROPERTIES,
                 TEST_APPLICATION_PROPERTIES_PATH);
         metaBuilder = metaBuilder.withAnnotations(annotations);
 
