@@ -88,8 +88,8 @@ public class HelmServiceUtil {
     }
     original.setIcon(resolveFromPropertyOrDefault(PROPERTY_ICON, project, original::getIcon, findIconURL(manifest)));
     original.setAdditionalFiles(getAdditionalFiles(original, project));
-    if (original.getTemplates() == null) {
-      original.setTemplates(findTemplates(template));
+    if (original.getParameterTemplates() == null) {
+      original.setParameterTemplates(findTemplates(template));
     }
     original.setTypes(resolveHelmTypes(defaultHelmType, project));
 

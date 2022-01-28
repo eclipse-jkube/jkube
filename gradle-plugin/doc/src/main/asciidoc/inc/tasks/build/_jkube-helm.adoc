@@ -68,7 +68,7 @@ Defaults to project description.
 | The Chart list of URLs to source code for this project.
 |
 
-| *maintainers*
+| *<<helm-maintainers, maintainers>>*
 | The Chart list of maintainers (name+email).
 |
 
@@ -115,12 +115,75 @@ Defaults to project description.
 | The Helm chart file extension (`tgz`, `tar.bz`, `tar.bzip2`, `tar.bz2`), default value is `tar.gz` if not provided.
 | `jkube.helm.chartExtension`
 
-| *dependencies*
-| The list of dependencies for this chart
+| *<<helm-dependencies, dependencies>>*
+| The list of dependencies for this chart.
+|
+
+| *<<helm-parameters, parameters>>*
+| The list of parameters to interpolate the Chart templates from the provided Fragments.
+
+  These parameters can represent variables, in this case the values are used to generate
+  the `values.yaml` file. The fragment placeholders will be replaced with a `.Values` variable.
+
+  The parameters can also represent a Golang expression
 |
 
 |===
 
+[[helm-maintainers]]
+.Helm Configuration - Maintainer
+[cols="1,5"]
+|===
+| Element | Description
+
+| *name*
+| The maintainer user name or organization.
+
+| *email*
+| The maintainer's contact email address.
+
+| *url*
+| The maintainer URL address.
+
+|===
+
+[[helm-dependencies]]
+.Helm Configuration - Dependency
+[cols="1,5"]
+|===
+| Element | Description
+
+| *name*
+| The name of the chart dependency.
+
+| *version*
+| Semantic version or version range for the dependency.
+
+| *repository*
+| URL pointing to a chart repository.
+
+|===
+
+[[helm-parameters]]
+.Helm Configuration - Parameters
+[cols="1,5"]
+|===
+| Element | Description
+
+| *name*
+| The name of the interpolatable parameter. Will be used to replace placeholders
+  (`$\{name}`) in the provided YAML fragments. And to generate the `values.yaml` file.
+
+| *required*
+| Set to true if this is a required value (when used to generate values).
+
+| *value*
+| In case we are generating a `.Values` variable, the default value.
+
+  In case the placeholder has to be replaced by an expression, the Golang expression
+  e.g. `{{ .Chart.Name | upper }}`.
+
+|===
 
 In a next step you can install this via the https://github.com/helm/helm/releases[helm command line tool] as follows:
 

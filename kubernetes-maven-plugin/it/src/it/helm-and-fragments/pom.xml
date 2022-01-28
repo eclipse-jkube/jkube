@@ -30,6 +30,20 @@
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>kubernetes-maven-plugin</artifactId>
         <version>@jkube.version@</version>
+        <configuration>
+          <helm>
+            <parameters>
+              <parameter>
+                <name>a_value_with_a_default</name>
+                <value>The default</value>
+              </parameter>
+              <parameter>
+                <name>chart_name</name>
+                <value>{{ .Chart.Name }}</value>
+              </parameter>
+            </parameters>
+          </helm>
+        </configuration>
       </plugin>
     </plugins>
   </build>

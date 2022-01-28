@@ -27,6 +27,9 @@ import java.io.Serializable;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
+/*
+ * https://github.com/helm/helm/blob/v3.7.2/pkg/chart/metadata.go#L26
+ */
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
@@ -39,10 +42,16 @@ public class Maintainer implements Serializable {
 
   private static final long serialVersionUID = -968020668786188166L;
 
+  public Maintainer(String name, String email) {
+    this(name, email, null);
+  }
+
   @JsonProperty
   private String name;
 
   @JsonProperty
   private String email;
 
+  @JsonProperty
+  private String url;
 }
