@@ -92,7 +92,7 @@ items:
       group: org.eclipse.jkube
     name: first
   parameters:
-    - name: requests_memory
+    - name: deployment.requests.memory
       value: 256Mi
 - apiVersion: v1
   kind: Template
@@ -106,5 +106,5 @@ items:
   parameters:
     - name: replicas
     - name: paused
-    - name: limits_memory
+    - name: deployment.limits.memory
       value: 512Mi

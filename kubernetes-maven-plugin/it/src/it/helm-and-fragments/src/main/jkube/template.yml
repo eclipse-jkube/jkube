@@ -16,7 +16,7 @@ kind: Template
 parameters:
   - name: replicas
   - name: paused
-  - name: limits_memory
+  - name: deployment.limits.memory
     value: "512Mi"
   - name: parameter_with_no_value
   - name: unused_parameter

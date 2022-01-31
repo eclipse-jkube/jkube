@@ -48,6 +48,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import static org.eclipse.jkube.kit.common.util.MapUtil.getNestedMap;
 import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.isRepositoryValid;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.selectHelmRepository;
@@ -306,7 +307,7 @@ public class HelmService {
         .collect(Collectors.toMap(HelmParameter::getHelmName, hp -> hp.getParameter().getValue()));
 
     File outputChartFile = new File(outputDir, VALUES_FILENAME);
-    ResourceUtil.save(outputChartFile, values, ResourceFileType.yaml);
+    ResourceUtil.save(outputChartFile, getNestedMap(values), ResourceFileType.yaml);
   }
 
   private static List<HelmParameter> collectParameters(HelmConfig helmConfig) {

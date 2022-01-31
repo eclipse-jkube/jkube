@@ -14,5 +14,5 @@
 
 kind: Template
 parameters:
-  - name: requests_memory
+  - name: deployment.requests.memory
     value: "256Mi"

@@ -18,16 +18,18 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.kit.common.util.MapUtil.getFlattenedMap;
+import static org.eclipse.jkube.kit.common.util.MapUtil.getNestedMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 /**
  * @author roland
- * @since 05/08/16
  */
 public class MapUtilTest {
 
@@ -59,7 +61,7 @@ public class MapUtilTest {
         originalMap.put("two", Arrays.asList("1", "2", "3"));
         originalMap.put("three", Collections.singletonMap("three-nested", createMap("k1", "v1", "k2", "v2")));
         originalMap.put("four", Collections.singletonMap("four-nested", Arrays.asList(1, 2, 3, 4)));
-        final Map<String, Object> fiveNested = new LinkedHashMap();
+        final Map<String, Object> fiveNested = new LinkedHashMap<>();
         originalMap.put("five", Collections.singletonMap("five-nested", fiveNested));
         fiveNested.put("k1", createMap("nk1", "nv1", "nk2", "nv2"));
         fiveNested.put("k2", Arrays.asList(true, false));
@@ -88,6 +90,52 @@ public class MapUtilTest {
         );
     }
 
+    @Test
+    public void getNestedMap_withFlattenedMap_shouldReturnNested() {
+        // Given
+        final Map<String, Object> flattenedMap = new LinkedHashMap<>();
+        flattenedMap.put("key", "top-level-value");
+        flattenedMap.put("first.second.key", "the-value-2");
+        flattenedMap.put("first.other.key", "the-value-other");
+        flattenedMap.put("first.second.third.key", "the-value-3");
+        // When
+        final Map<String, Object> result = getNestedMap(flattenedMap);
+        // Then
+        assertThat(result)
+            .containsEntry("key", "top-level-value")
+            .extracting("first").asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+            .containsEntry("other", Collections.singletonMap("key", "the-value-other"))
+            .extracting("second").asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+            .containsEntry("key", "the-value-2")
+            .extracting("third").asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+            .containsEntry("key", "the-value-3");
+    }
+
+    @Test
+    public void getNestedMap_withInvalidFlattenedMap_shouldThrowKeyOverlapsException() {
+        // Given
+        final Map<String, Object> flattenedMap = new LinkedHashMap<>();
+        flattenedMap.put("first.second.third.key", "the-value-3");
+        flattenedMap.put("first.second", "the-value-2");
+        // When
+        final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
+            getNestedMap(flattenedMap));
+        // Then
+        assertThat(result).hasMessage("The provided input Map is invalid (key <second> overlaps with node)");
+    }
+
+    @Test
+    public void getNestedMap_withInvalidFlattenedMap_shouldThrowNodeOverlapsException() {
+        // Given
+        final Map<String, Object> flattenedMap = new LinkedHashMap<>();
+        flattenedMap.put("first.second", "the-value-2");
+        flattenedMap.put("first.second.third.key", "the-value-3");
+        // When
+        final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
+            getNestedMap(flattenedMap));
+        // Then
+        assertThat(result).hasMessage("The provided input Map is invalid (node <second> overlaps with key)");
+    }
 
     private Map<String, String> createMap(String ... args) {
         Map<String, String> ret = new LinkedHashMap<>();

@@ -51,6 +51,7 @@ Usage:
 * Fix #1197: Kubernetes Gradle Build tasks don't account for image model configuration skip field
 * Fix #1245: Deprecate `maven.jkube.io` annotation prefix used in enrichers in favor of `jkube.eclipse.org`
 * Fix #1244: Helm Parameters/Variables/Values.yaml can be configured via XML/DSL
+* Fix #1244: Helm parameters can use dotted notation `${helm.parameter.with.dots}`
 
 ### 1.5.1 (2021-10-28)
 * Fix #1084: Gradle dependencies should be test or provided scope

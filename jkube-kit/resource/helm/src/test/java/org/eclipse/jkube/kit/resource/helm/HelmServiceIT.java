@@ -76,8 +76,9 @@ public class HelmServiceIT {
     helmConfig.setParameterTemplates(Collections.singletonList(
         ResourceUtil.load(new File(HelmServiceIT.class.getResource("/it/sources/global-template.yml").toURI()), Template.class)
     ));
-    helmConfig.setParameters(Collections.singletonList(new ParameterBuilder()
-        .withName("annotation_from_config").withValue("{{ .Chart.Name | upper }}").build()));
+    helmConfig.setParameters(Arrays.asList(
+        new ParameterBuilder().withName("annotation_from_config").withValue("{{ .Chart.Name | upper }}").build(),
+        new ParameterBuilder().withName("annotation.from.config.dotted").withValue("{{ .Chart.Name }}").build()));
     final AtomicInteger generatedChartCount = new AtomicInteger(0);
     helmConfig.setGeneratedChartListeners(Collections.singletonList(
         (helmConfig1, type, chartFile) -> generatedChartCount.incrementAndGet()));
