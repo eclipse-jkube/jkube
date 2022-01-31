@@ -34,7 +34,6 @@ import static org.junit.Assert.assertNull;
 
 public class DockerAccessWithHcClientTest {
 
-
     private AuthConfig authConfig;
 
     private DockerAccessWithHcClient client;
@@ -43,9 +42,6 @@ public class DockerAccessWithHcClientTest {
 
     @Mocked
     private ApacheHttpClientDelegate mockDelegate;
-
-    @Mocked
-    private KitLogger mockLogger;
 
     private int pushRetries;
 
@@ -59,9 +55,9 @@ public class DockerAccessWithHcClientTest {
 
     @Before
     public void setup() throws IOException {
-        client = new DockerAccessWithHcClient("tcp://1.2.3.4:2375", null, 1, mockLogger) {
+        client = new DockerAccessWithHcClient("tcp://1.2.3.4:2375", null, 1, new KitLogger.SilentLogger()) {
             @Override
-            ApacheHttpClientDelegate createHttpClient(ClientBuilder builder) throws IOException {
+            ApacheHttpClientDelegate createHttpClient(ClientBuilder builder) {
                 return mockDelegate;
             }
         };
@@ -110,7 +106,7 @@ public class DockerAccessWithHcClientTest {
     }
 
     @Test
-    public void testSaveImage() throws IOException {
+    public void testSaveImage() {
         givenAnImageName("test");
         givenFilename("test.tar");
         givenCompression(ArchiveCompression.none);

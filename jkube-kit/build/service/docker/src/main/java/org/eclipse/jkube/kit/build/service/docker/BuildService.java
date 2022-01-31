@@ -264,7 +264,7 @@ public class BuildService {
         }
         for (String fromImage : fromImages) {
             if (fromImage != null && !AssemblyManager.SCRATCH_IMAGE.equals(fromImage)) {
-                registryService.pullImageWithPolicy(fromImage, imagePullManager, configuration.getRegistryConfig(), queryService.hasImage(fromImage));
+                registryService.pullImageWithPolicy(fromImage, imagePullManager, configuration.getRegistryConfig(), buildConfig);
             }
         }
     }
