@@ -174,7 +174,7 @@
               <!-- "alias" is used to correlate to the containers in the pod spec -->
               <alias>camel-service</alias>
               <build>
-                <from>quay.io/jkube/jkube-java:0.0.13</from>
+                <from>quay.io/jkube/jkube-java-11:0.0.13</from>
                 <assembly>
                   <targetDir>/deployments</targetDir>
                   <inline>
