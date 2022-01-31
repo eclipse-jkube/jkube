@@ -21,8 +21,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 public class MapUtil {
+
+    private static final BiFunction<String, Object, Object> GET_OR_NEW = (nK, nV) ->
+        nV == null ?  new LinkedHashMap<>() : nV;
 
     private MapUtil() {}
 
@@ -75,9 +79,65 @@ public class MapUtil {
      * Build a flattened representation of provided Map.
      *
      * <p> <i>The conversion is compliant with the thorntail spring-boot rules.</i>
+     *
+     * <p> Given a Map of Maps:
+     * <pre>{@code
+     * Collections.singletonMap("key", Collections.singletonMap("nested-key", "value"));
+     * }</pre>
+     *
+     * <p> It will return a Map with the following structure
+     * <pre>{@code
+     * Collections.singletonMap("key.nested-key", "value");
+     * }</pre>
      */
     public static Map<String, Object> getFlattenedMap(Map<?, ?> source) {
         return buildFlattenedMap(source, null);
+    }
+
+    /**
+     * Build a nested representation of the provided Map.
+     *
+     * <p> Given a Map with a flat structure, it returns a Map of nested Maps. The original keys are split by the dot
+     * (<code>.</code>) character. For each element, a new Map node is created.
+     *
+     * <p> Given the following YAML representation of a Map:
+     * <pre>{@code
+     * one.two.key: value
+     * one.two.three: other
+     * }</pre>
+     *
+     * <p> It will converted to:
+     * <pre>{@code
+     * one:
+     *   two:
+     *     key: value
+     *     three: other
+     * }</pre>
+     */
+    public static Map<String, Object> getNestedMap(Map<String, ?> flattenedMap) {
+        final Map<String, Object> result = new LinkedHashMap<>();
+        flattenedMap.forEach((k, v) -> {
+            final String[] nodes = k.split("\\.");
+            if (nodes.length == 1) {
+                result.put(k, v);
+            } else {
+                Map<String, Object> currentNode = result;
+                for (int it = 0; it < nodes.length - 1; it++){
+                    final Object tempNode = currentNode.compute(nodes[it], GET_OR_NEW);
+                    if (!(tempNode instanceof Map)) {
+                        throw new IllegalArgumentException("The provided input Map is invalid (node <" +
+                            nodes[it] + "> overlaps with key)");
+                    }
+                    currentNode = (Map<String, Object>) tempNode;
+                }
+                final Object previousNodeValue = currentNode.put(nodes[nodes.length -1], v);
+                if (previousNodeValue != null) {
+                    throw new IllegalArgumentException("The provided input Map is invalid (key <" +
+                        nodes[nodes.length -1] + "> overlaps with node)");
+                }
+            }
+        });
+        return result;
     }
 
     private static Map<String, Object> buildFlattenedMap(Map<?, ?> source, String keyPrefix) {

@@ -56,13 +56,14 @@ items:
       helm-variable: ${GLOBAL_TEMPLATE_ENV_VAR}
       escape-test: "{{ }} should be escaped to prevent helm errors"
       annotation-from-config: ${annotation_from_config}
+      annotation-from-config/dotted: ${annotation.from.config.dotted}
     labels:
       app: test
       provider: jkube
       version: 1337
     name: test
   spec:
-    replicas: ${deployment_replicas}
+    replicas: ${deployment.replicas}
     revisionHistoryLimit: 2
     selector:
       matchLabels:
@@ -101,7 +102,7 @@ items:
             protocol: TCP
           resources:
             limits:
-              memory: ${limits_memory}
+              memory: ${deployment.limits.memory}
             requests:
               memory: ${requests_memory}
           securityContext:

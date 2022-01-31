@@ -17,7 +17,7 @@ parameters:
   - name: GLOBAL_TEMPLATE_ENV_VAR
     required: true
     value: This is a sample
-  - name: limits_memory
+  - name: deployment.limits.memory
     value: 512Mi
   - name: requests_memory
     value: 256Mi
@@ -25,5 +25,5 @@ parameters:
     value: the-value
   - name: golang_expression
     value: "{{ .Values.unused_value | upper | quote }}"
-  - name: deployment_replicas
+  - name: deployment.replicas
     value: 1

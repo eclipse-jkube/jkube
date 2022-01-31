@@ -56,13 +56,14 @@ items:
       helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default "This is a sample" }}
       escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
       annotation-from-config: {{ .Chart.Name | upper }}
+      annotation-from-config/dotted: {{ .Chart.Name }}
     labels:
       app: test
       provider: jkube
       version: 1337
     name: test
   spec:
-    replicas: {{ .Values.deployment_replicas | default "1" }}
+    replicas: {{ .Values.deployment.replicas | default "1" }}
     revisionHistoryLimit: 2
     selector:
       matchLabels:
@@ -101,7 +102,7 @@ items:
             protocol: TCP
           resources:
             limits:
-              memory: {{ .Values.limits_memory | default "512Mi" }}
+              memory: {{ .Values.deployment.limits.memory | default "512Mi" }}
             requests:
               memory: {{ .Values.requests_memory | default "256Mi" }}
           securityContext:

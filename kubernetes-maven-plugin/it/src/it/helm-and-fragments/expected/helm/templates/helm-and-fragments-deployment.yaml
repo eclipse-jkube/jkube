@@ -70,8 +70,8 @@ spec:
           protocol: TCP
         resources:
           limits:
-            memory: {{ .Values.limits_memory | default "512Mi" }}
+            memory: {{ .Values.deployment.limits.memory | default "512Mi" }}
           requests:
-            memory: {{ .Values.requests_memory | default "256Mi" }}
+            memory: {{ .Values.deployment.requests.memory | default "256Mi" }}
         securityContext:
           privileged: false

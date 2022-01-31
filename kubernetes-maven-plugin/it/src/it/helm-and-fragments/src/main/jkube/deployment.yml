@@ -41,6 +41,6 @@ spec:
             privileged: false
           resources:
             limits:
-              memory: ${limits_memory}
+              memory: ${deployment.limits.memory}
             requests:
-              memory: ${requests_memory}
+              memory: ${deployment.requests.memory}

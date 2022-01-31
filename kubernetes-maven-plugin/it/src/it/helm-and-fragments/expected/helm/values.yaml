@@ -14,6 +14,9 @@
 
 ---
 i_should_be_quoted: I'm a quoted uppercase value
-limits_memory: 512Mi
-requests_memory: 256Mi
+deployment:
+  limits:
+    memory: 512Mi
+  requests:
+    memory: 256Mi
 a_value_with_a_default: The default

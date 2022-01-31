@@ -12,8 +12,10 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-deployment_replicas: "1"
+deployment:
+  replicas: "1"
+  limits:
+    memory: 512Mi
 global_template_env_var: This is a sample
-limits_memory: 512Mi
 unused_value: the-value
 requests_memory: 256Mi
