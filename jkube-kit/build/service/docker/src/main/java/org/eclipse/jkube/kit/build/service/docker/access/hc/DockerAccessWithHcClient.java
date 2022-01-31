@@ -41,6 +41,7 @@ import org.eclipse.jkube.kit.build.api.model.VolumeCreateConfig;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.ContainerCreateConfig;
+import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.UrlBuilder;
@@ -413,11 +414,9 @@ public class DockerAccessWithHcClient implements DockerAccess {
     }
 
     @Override
-    public void pullImage(String image, AuthConfig authConfig, String registry)
+    public void pullImage(String image, AuthConfig authConfig, String registry, CreateImageOptions options)
             throws DockerAccessException {
-        ImageName name = new ImageName(image);
-        String pullUrl = urlBuilder.pullImage(name, registry);
-
+        String pullUrl = urlBuilder.pullImage(options);
         try {
             delegate.post(pullUrl, null, createAuthHeader(authConfig),
                     createPullOrPushResponseHandler(), HTTP_OK);

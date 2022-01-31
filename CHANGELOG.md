@@ -39,6 +39,7 @@ Usage:
 * Fix #1146: VertxGenerator now works with Kubernetes Gradle Plugin
 * Fix #1148: Enable MicronautGenerator with Kubernetes Gradle Plugin
 * Fix #1150: Enable OpenLibertyGenerator on Kubernetes Gradle Plugin
+* Fix #1157: Enable Create Image (pull) HTTP API options
 * Fix #1167: Replace apiextensions.k8s.io/v1beta1 by apiextensions.k8s.io/v1
 * Fix #1180: `k8s:watch` uses default namespace even if other namespace is configured
 * Fix #1190: OpenShiftBuildService doesn't apply resources in configured namespace

@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -33,10 +34,12 @@ import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 public class RegistryService {
 
     private final DockerAccess docker;
+    private final QueryService queryService;
     private final KitLogger log;
 
-    RegistryService(DockerAccess docker, KitLogger log) {
+    RegistryService(DockerAccess docker, QueryService queryService, KitLogger log) {
         this.docker = docker;
+        this.queryService = queryService;
         this.log = log;
     }
 
@@ -86,11 +89,11 @@ public class RegistryService {
      * @param image image
      * @param pullManager image pull manager
      * @param registryConfig registry configuration
-     * @param hasImage boolean variable indicating it has image or not
+     * @param buildConfiguration build configuration
      * @throws IOException exception
      */
-    public void pullImageWithPolicy(String image, ImagePullManager pullManager, RegistryConfig registryConfig, boolean hasImage)
-        throws IOException {
+    public void pullImageWithPolicy(String image, ImagePullManager pullManager,RegistryConfig registryConfig,
+        BuildConfiguration buildConfiguration) throws IOException {
 
         // Already pulled, so we don't need to take care
         if (pullManager.hasAlreadyPulled(image)) {
@@ -98,18 +101,21 @@ public class RegistryService {
         }
 
         // Check if a pull is required
-        if (!imageRequiresPull(hasImage, pullManager.getImagePullPolicy(), image)) {
+        if (!imageRequiresPull(queryService.hasImage(image), pullManager.getImagePullPolicy(), image)) {
             return;
         }
 
-        ImageName imageName = new ImageName(image);
-        long time = System.currentTimeMillis();
-        String actualRegistry = EnvUtil.firstRegistryOf(
-            imageName.getRegistry(),
-            registryConfig.getRegistry());
+        final ImageName imageName = new ImageName(image);
+        final long pullStartTime = System.currentTimeMillis();
+        final String actualRegistry = EnvUtil.firstRegistryOf(imageName.getRegistry(), registryConfig.getRegistry());
+        final CreateImageOptions createImageOptions = new CreateImageOptions(buildConfiguration.getCreateImageOptions())
+            .fromImage(imageName.getNameWithoutTag(actualRegistry))
+            .tag(imageName.getDigest() != null ? imageName.getDigest() : imageName.getTag());
+
         docker.pullImage(imageName.getFullName(),
-                         createAuthConfig(false, null, actualRegistry, registryConfig), actualRegistry);
-        log.info("Pulled %s in %s", imageName.getFullName(), EnvUtil.formatDurationTill(time));
+            createAuthConfig(false, null, actualRegistry, registryConfig),
+            actualRegistry, createImageOptions);
+        log.info("Pulled %s in %s", imageName.getFullName(), EnvUtil.formatDurationTill(pullStartTime));
         pullManager.pulled(image);
 
         if (actualRegistry != null && !imageName.hasRegistry()) {

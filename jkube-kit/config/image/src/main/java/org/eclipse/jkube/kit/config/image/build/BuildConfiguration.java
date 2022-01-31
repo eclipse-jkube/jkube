@@ -218,9 +218,18 @@ public class BuildConfiguration implements Serializable {
    * <p> These options map to the ones listed as query parameters in the Docker Remote API and are restricted to
    * simple options (e.g.: memory, shmsize).
    *
-   * @see <a href="https://docs.docker.com/engine/api/v1.40/#operation/ImageBuild">Docker Engine API v1.40</a>
+   * @see <a href="https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild">Docker Engine API v1.40</a>
    */
   private Map<String, String> buildOptions;
+  /**
+   * Map specifying the create image options to provide to the docker daemon when pulling or importing an image.
+   *
+   * <p> These options map to the ones listed as query parameters in the Docker Remote API and are restricted to
+   * simple options (e.g.: fromImage, fromSrc, platform).
+   *
+   * @see <a href="https://docs.docker.com/engine/api/v1.41/#operation/ImageCreate">Docker Engine API v1.41</a>
+   */
+  private Map<String, String> createImageOptions;
   /**
    * Path to Dockerfile to use, initialized lazily.
    */
