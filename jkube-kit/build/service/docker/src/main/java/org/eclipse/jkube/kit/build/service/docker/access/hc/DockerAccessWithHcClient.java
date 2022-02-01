@@ -430,21 +430,15 @@ public class DockerAccessWithHcClient implements DockerAccess {
             throws DockerAccessException {
         ImageName name = new ImageName(image);
         String pushUrl = urlBuilder.pushImage(name, registry);
-        String temporaryImage = tagTemporaryImage(name, registry);
+        TemporaryImageHandler temporaryImageHandler = tagTemporaryImage(name, registry);
         DockerAccessException dae = null;
         try {
             doPushImage(pushUrl, createAuthHeader(authConfig), createPullOrPushResponseHandler(), HTTP_OK, retries);
         } catch (IOException e) {
             dae = new DockerAccessException(e, "Unable to push '%s'%s", image, (registry != null) ? " to registry '" + registry + "'" : "");
-        }
-        if (temporaryImage != null && !removeImage(temporaryImage, true)) {
-            if (dae == null) {
-                throw new DockerAccessException("Image %s could be pushed, but the temporary tag could not be removed", temporaryImage);
-            } else {
-                throw new DockerAccessException(dae.getCause(), dae.getMessage() + " and also temporary tag [%s] could not be removed, too.", temporaryImage);
-            }
-        } else if (dae != null) {
             throw dae;
+        } finally {
+            temporaryImageHandler.handle(dae);
         }
     }
 
@@ -654,13 +648,26 @@ public class DockerAccessWithHcClient implements DockerAccess {
         }
     }
 
-    private String tagTemporaryImage(ImageName name, String registry) throws DockerAccessException {
+    private TemporaryImageHandler tagTemporaryImage(ImageName name, String registry) throws DockerAccessException {
         String targetImage = name.getFullName(registry);
-        if (!name.hasRegistry() && registry != null) {
-            tag(name.getFullName(), targetImage, false);
-            return targetImage;
+        if (name.hasRegistry() || registry == null) {
+            return () ->
+                log.info("Temporary image tag skipped. Target image '%s' already has registry set or no registry is available",
+                    targetImage);
         }
-        return null;
+
+        String fullName = name.getFullName();
+        boolean alreadyHasImage = hasImage(targetImage);
+
+        if (alreadyHasImage) {
+            log.warn("Target image '%s' already exists. Tagging of '%s' will replace existing image",
+                targetImage, fullName);
+        }
+
+        tag(fullName, targetImage, false);
+        return alreadyHasImage ?
+            () -> log.info("Tagged image '%s' won't be removed after tagging as it already existed", targetImage) :
+            new RemovingTemporaryImageHandler(targetImage);
     }
 
     // ===========================================================================================================
@@ -698,6 +705,40 @@ public class DockerAccessWithHcClient implements DockerAccess {
         try (CloseableHttpResponse response = delegate.getHttpClient().execute(get)) {
 
             return response.getFirstHeader("Api-Version") != null ? response.getFirstHeader("Api-Version").getValue() : API_VERSION;
+        }
+    }
+
+    @FunctionalInterface
+    private interface TemporaryImageHandler {
+        void handle() throws DockerAccessException;
+
+        default void handle(DockerAccessException interruptingError) throws DockerAccessException {
+            handle();
+
+            if (interruptingError == null) {
+                return;
+            }
+            throw interruptingError;
+        }
+    }
+
+    private final class RemovingTemporaryImageHandler implements TemporaryImageHandler {
+        private final String targetImage;
+
+        private RemovingTemporaryImageHandler(String targetImage) {
+            this.targetImage = targetImage;
+        }
+
+        @Override
+        public void handle() throws DockerAccessException {
+            boolean imageRemoved = removeImage(targetImage, true);
+            if (imageRemoved) {
+                return;
+            }
+            throw new DockerAccessException(
+                "Image %s could be pushed, but the temporary tag could not be removed",
+                targetImage
+            );
         }
     }
 }
