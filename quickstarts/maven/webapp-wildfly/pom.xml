@@ -35,7 +35,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <wildfly.version>2.0.1.Final</wildfly.version>
+    <wildfly.plugin.version>2.0.1.Final</wildfly.plugin.version>
     <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
   </properties>
 
@@ -53,7 +53,7 @@
       <plugin>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-maven-plugin</artifactId>
-        <version>${wildfly.version}</version>
+        <version>${wildfly.plugin.version}</version>
       </plugin>
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
