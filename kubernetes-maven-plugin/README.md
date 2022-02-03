@@ -41,28 +41,3 @@ To enable kubernetes maven plugin on your project just add this to the plugins s
   * **Generators** analyze the Maven build and generated automatic Docker image configurations for certain systems (spring-boot, plain java, karaf ...)
   * **Enrichers** extend the Kubernetes resource descriptors by extra information like SCM labels and can add default objects like Services.
   * Generators and Enrichers can be individually configured and combined into *profiles*
-
-### Kubernetes Compatibility
-
-:heavy_check_mark: : Supported, all available features can be used
-
-:x: : Not supported at all
-
-:large_blue_circle: : Supported, but not all features can be used
-
-##### Kubernetes
-
-| KMP               | Kubernetes 1.19.0  | Kubernetes 1.18.0  | Kubernetes 1.17.0  | Kubernetes 1.12.0  |
-|-------------------|--------------------|--------------------|--------------------|--------------------|
-| KMP 1.5.1         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| KMP 1.4.0         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| KMP 1.3.0         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| KMP 1.2.0         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| KMP 1.1.1         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| KMP 1.1.0         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| KMP 1.0.2         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| KMP 1.0.1         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| KMP 1.0.0         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| KMP 0.2.0         |                    |                    | :heavy_check_mark: | :heavy_check_mark: |
-| KMP 0.1.1         |                    |                    | :x:                | :heavy_check_mark: |
-| KMP 0.1.0         |                    |                    | :x:                | :heavy_check_mark: |
