@@ -26,7 +26,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>micronaut-customized-image</artifactId>
-  <version>1.5.1</version>
+  <version>1.6.0</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Micronaut customized Image</name>
   <description>
     Micronaut application featuring REST endpoints (micronaut-http) with validation (micronaut-validation).

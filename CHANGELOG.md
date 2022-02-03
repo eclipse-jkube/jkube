@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.6.0-SNAPSHOT
+### 1.6.0 (2022-02-03)
 * Fix #1047: Gradle image build should use the Quarkus generator for Quarkus projects
 * Fix #778: Support deserialization of fragments with mismatched field types of target Java class 
 * Fix #802: Update Fabric8 kubernetes Client to v5.10.1
@@ -52,6 +52,8 @@ Usage:
 * Fix #1245: Deprecate `maven.jkube.io` annotation prefix used in enrichers in favor of `jkube.eclipse.org`
 * Fix #1244: Helm Parameters/Variables/Values.yaml can be configured via XML/DSL
 * Fix #1244: Helm parameters can use dotted notation `${helm.parameter.with.dots}`
+* Fix #1232: Warning, instead of exception, on temporary image existence
+* Fix #1192: Log Docker Build Context Directory while building image in Simple Dockerfile mode
 
 ### 1.5.1 (2021-10-28)
 * Fix #1084: Gradle dependencies should be test or provided scope
