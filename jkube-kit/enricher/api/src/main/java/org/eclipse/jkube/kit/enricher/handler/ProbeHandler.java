@@ -99,12 +99,11 @@ public class ProbeHandler {
 
     private TCPSocketAction getTCPSocketAction(String getUrl, String port) {
         if (port != null) {
-            IntOrString portObj = new IntOrString(port);
+            IntOrString portObj;
             try {
-                Integer portInt = Integer.parseInt(port);
-                portObj.setIntVal(portInt);
+                portObj = new IntOrString(Integer.parseInt(port));
             } catch (NumberFormatException e) {
-                portObj.setStrVal(port);
+                portObj = new IntOrString(port);
             }
             if(getUrl==null)
                 return new TCPSocketAction(getUrl, portObj);
