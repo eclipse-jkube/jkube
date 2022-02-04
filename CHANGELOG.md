@@ -23,6 +23,7 @@ Usage:
 ### 1.7.0-SNAPSHOT
 * Fix #1126: Liveness and readiness TCP ports are not serialized as numbers when defined as numbers
 * Fix #1211: Port `java-options-env-merge` integration test and ContainerEnvJavaOptionsMergeEnricher documentation to gradle
+* Fix #1214: Add integration test to verify `jkube.debug.enabled` flag works as expected
 * Fix #1236: Add integration tests for DefaultControllerEnricher in gradle plugins
 * Fix #1237: Add gradle project integration test for DefaultMetadataEnricher
 
