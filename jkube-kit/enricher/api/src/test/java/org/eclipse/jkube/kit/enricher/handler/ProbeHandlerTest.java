@@ -25,6 +25,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 public class ProbeHandlerTest {
     Probe probe;
@@ -55,20 +56,6 @@ public class ProbeHandlerTest {
     }
 
     @Test
-    public void getHTTPProbeWithEmptyURLTest() {
-        //ProbeConfig with HTTPGet Action
-
-        //withEmptyUrl
-        probeConfig = ProbeConfig.builder()
-                .initialDelaySeconds(5).timeoutSeconds(5).getUrl(null)
-                .build();
-
-        probe = probeHandler.getProbe(probeConfig);
-        //assertion
-        assertNull(probe);
-    }
-
-    @Test
     public void getHTTPProbeWithHTTPURLTest() {
 
         //ProbeConfig with HTTPGet Action
@@ -92,26 +79,18 @@ public class ProbeHandlerTest {
     }
 
     @Test
-    public void getHTTPProbeWithoutHTTPURLTest() {
-        //ProbeConfig with HTTPGet Action
-        //URL Without http Portocol
-        probeConfig = ProbeConfig.builder()
-                .initialDelaySeconds(5).timeoutSeconds(5).getUrl("www.healthcheck.com:8080/healthz")
-                .build();
-
-        probe = probeHandler.getProbe(probeConfig);
-        assertNull(probe);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
     public void getHTTPProbeWithInvalidURLTest() {
-        //ProbeConfig with HTTPGet Action
-        //withInvalidUrl
+        // Given
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5).getUrl("httphealthcheck.com:8080/healthz")
                 .build();
 
-        probe = probeHandler.getProbe(probeConfig);
+        // When
+        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> probeHandler.getProbe(probeConfig));
+
+        // Then
+        assertThat(illegalArgumentException)
+            .hasMessageContaining("Invalid URL ");
     }
 
     @Test
@@ -174,6 +153,7 @@ public class ProbeHandlerTest {
         assertNull(probe.getHttpGet());
         assertNotNull(probe.getTcpSocket());
         assertEquals(80,probe.getTcpSocket().getPort().getIntVal().intValue());
+        assertEquals(0, probe.getTcpSocket().getPort().getKind().intValue());
         assertNull(probe.getTcpSocket().getHost());
         assertNull(probe.getExec());
         assertEquals(5,probe.getInitialDelaySeconds().intValue());
@@ -220,7 +200,8 @@ public class ProbeHandlerTest {
         assertNull(probe.getHttpGet());
         assertNotNull(probe.getTcpSocket());
         assertNull(probe.getExec());
-        assertEquals(80,probe.getTcpSocket().getPort().getIntVal().intValue());
+        assertEquals(80, probe.getTcpSocket().getPort().getIntVal().intValue());
+        assertEquals(0, probe.getTcpSocket().getPort().getKind().intValue());
         assertEquals("www.healthcheck.com",probe.getTcpSocket().getHost());
         assertEquals(5,probe.getInitialDelaySeconds().intValue());
         assertEquals(5,probe.getTimeoutSeconds().intValue());
@@ -245,7 +226,8 @@ public class ProbeHandlerTest {
         assertNull(probe.getHttpGet());
         assertNotNull(probe.getTcpSocket());
         assertNull(probe.getExec());
-        assertEquals("httpPort",probe.getTcpSocket().getPort().getStrVal());
+        assertEquals("httpPort", probe.getTcpSocket().getPort().getStrVal());
+        assertEquals(1, probe.getTcpSocket().getPort().getKind().intValue());
         assertEquals("www.healthcheck.com",probe.getTcpSocket().getHost());
         assertEquals(5,probe.getInitialDelaySeconds().intValue());
         assertEquals(5,probe.getTimeoutSeconds().intValue());
@@ -275,20 +257,6 @@ public class ProbeHandlerTest {
         assertEquals("/healthz",probe.getHttpGet().getPath());
         assertEquals(8080,probe.getHttpGet().getPort().getIntVal().intValue());
         assertEquals("HTTP",probe.getHttpGet().getScheme());
-    }
-
-    @Test
-    public void getTCPProbeWithTCPURLTest() {
-        //ProbeConfig with TCP Action
-        //without port and url with tcp request
-        probeConfig = ProbeConfig.builder()
-                .initialDelaySeconds(5).timeoutSeconds(5)
-                .getUrl("tcp://www.healthcheck.com:8080/healthz")
-                .build();
-
-        probe = probeHandler.getProbe(probeConfig);
-        //assertion
-        assertNull(probe);
     }
 
     @Test(expected = IllegalArgumentException.class)

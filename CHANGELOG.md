@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.7.0-SNAPSHOT
+* Fix #1126: Liveness and readiness TCP ports are not serialized as numbers when defined as numbers
 
 ### 1.6.0 (2022-02-03)
 * Fix #1047: Gradle image build should use the Quarkus generator for Quarkus projects
