@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      annotations:
+        jkube.io/git-url: "@ignore@"
+        jkube.io/git-commit: "@ignore@"
+        jkube.io/git-branch: "@ignore@"
+        image.openshift.io/triggers: "@ignore@"
+      labels:
+        app: controller
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: controller
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: controller
+          provider: jkube
+          version: "@ignore@"
+          group: org.eclipse.jkube.integration.tests.gradle
+      serviceName: controller
+      template:
+        metadata:
+          labels:
+            app: controller
+            provider: jkube
+            version: "@ignore@"
+            group: org.eclipse.jkube.integration.tests.gradle
+        spec:
+          containers:
+            - env:
+                - name: KUBERNETES_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: HOSTNAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+              image: repository/controller:latest
+              imagePullPolicy: IfNotPresent
+              name: repository-controller
+              securityContext:
+                privileged: false
