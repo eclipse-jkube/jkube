@@ -4,41 +4,25 @@
 
 This enricher adds ConfigMap defined as `resources` in plugin configuration and/or resolves file content from an annotation.
 
-As Groovy you can define:
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_entries_name_value_configuration.adoc[]
+endif::[]
 
-[source,groovy,subs="attributes+"]
-.build.gradle
-----
-{pluginExtension} {
-  resources {
-    configMap {
-      name = 'myconfigmap'
-      entries = [{
-        name = 'A'
-        value = 'B'
-      }]
-    }
-  }
-}
-----
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_entries_name_value_configuration.adoc[]
+endif::[]
 
 This creates a ConfigMap data with key `A` and value `B`.
 
 You can also use `file` tag to refer to the content of a file.
 
-[source,groovy,subs="attributes+"]
-----
-{pluginExtension} {
-  resources {
-    configMap {
-      name = 'configmap-test'
-      entries = [{
-        file = 'src/test/resources/test-application.properties'
-      }]
-    }
-  }
-}
-----
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_entries_file_configuration.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_entries_file_configuration.adoc[]
+endif::[]
 
 This creates a ConfigMap with key `test-application.properties` and value the content of the `src/test/resources/test-application.properties` file.
 If you set `name` tag then this is used as key instead of the filename.
@@ -80,24 +64,24 @@ Here are the supported options while providing `configMap` in Groovy configurati
 
 If you are defining a custom `ConfigMap` file, you can use an annotation to define a file name as key and its content as the value:
 
-[source, yaml]
-----
-metadata:
-  name: ${name}
-  annotations:
-    jkube.eclipse.org/cm/application.properties: src/test/resources/test-application.properties
-----
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_configmap_annotation_file_configuration.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_configmap_annotation_file_configuration.adoc[]
+endif::[]
 
 This creates a `ConfigMap` data with key `application.properties` (part defined after `cm`) and value the content of `src/test/resources/test-application.properties` file. 
 
 You can specify a directory instead of a file:
 
-[source, yaml]
-----
-metadata:
-  name: ${name}
-  annotations:
-    jkube.eclipse.org/cm/application.properties: src/test/resources/test-dir
-----
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_configmap_annotation_directory_configuration.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_configmap_annotation_directory_configuration.adoc[]
+endif::[]
 
 This creates a `ConfigMap` named `application.properties` (part defined after `cm`) and for each file under the directory `test-dir` one entry with file name as key and its content as the value; subdirectories are ignored.

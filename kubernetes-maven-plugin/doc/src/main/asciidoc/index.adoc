@@ -11,6 +11,9 @@ Roland Huß, James Strachan;
 :doctype: book
 :icons: font
 :plugindir: ../../../../../plugin
+:kitdoc-path: ../../../../../jkube-kit/doc/src/main/asciidoc
+:plugin-type: maven
+:plugin-configuration-type: XML
 
 ifndef::ebook-format[:leveloffset: 1]
 
@@ -27,7 +30,7 @@ include::inc/_installation.adoc[]
 include::inc/goals/_goals.adoc[]
 
 include::inc/_generator.adoc[]
-include::inc/_enricher.adoc[]
+include::{kitdoc-path}/inc/_enricher.adoc[]
 include::inc/_profiles.adoc[]
 
 include::inc/_access.adoc[]
