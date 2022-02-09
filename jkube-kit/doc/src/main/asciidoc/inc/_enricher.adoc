@@ -10,24 +10,27 @@ There are a lot of similarities to Generators:
 * Enrichers are looked up automatically from the plugin dependencies and there is a set of default enrichers delivered with this plugin.
 * Enrichers are configured the same ways as generators
 
-The <<generator-example,Generator example>> is a good blueprint, simply replace `<generator>` with `<enricher>`. The configuration is structural identical:
+The <<generator-example,Generator example>> is a good blueprint, simply replace `generator` with `enricher`. The configuration is structural identical:
 
 .Enricher configuration
 [cols="2,6"]
 |===
 | Element | Description
 
-| `<includes>`
-| Contains one ore more `<include>` elements with enricher names which should be included. If given, only this list of enrichers are included in this order. The enrichers from every active profile are included, too. However the enrichers listed here are moved to the front of the list, so that they are called first. Use the profile `raw` if you want to explicitly set the complete list of enrichers.
+| `includes`
+| Contains one ore more `include` elements with enricher names which should be included. If given, only this list of enrichers are included in this order. The enrichers from every active profile are included, too. However the enrichers listed here are moved to the front of the list, so that they are called first. Use the profile `raw` if you want to explicitly set the complete list of enrichers.
 
-| `<excludes>`
-| Holds one or more `<exclude>` elements with enricher names to exclude. This means all the detected enrichers are used except the ones mentioned in this section.
+| `excludes`
+| Holds one or more `exclude` elements with enricher names to exclude. This means all the detected enrichers are used except the ones mentioned in this section.
 
-| `<config>`
-| Configuration for all enrichers. Each enricher supports a specific set of configuration values as described in its documentation. The subelements of this section are enricher names. E.g. for enricher `jkube-service`, the sub-element is called `<jkube-service>`. This element then holds the specific enricher configuration like `<name>` for the service name. Configuration coming from profiles are merged into this config, but not overriding the configuration specified here.
+| `config`
+| Configuration for all enrichers. Each enricher supports a specific set of configuration values as described in its documentation. The subelements of this section are enricher names. E.g. for enricher `jkube-service`, the sub-element is called `jkube-service`. This element then holds the specific enricher configuration like `name` for the service name. Configuration coming from profiles are merged into this config, but not overriding the configuration specified here.
 |===
 
-This plugin comes with a set of default enrichers. In addition custom enrichers can be easily added by providing implementation of the <<enricher-api, Enricher API>> and adding these as a dependency to the build.
+This plugin comes with a set of default enrichers.
+ifeval::["{plugin-type}" == "maven"]
+In addition custom enrichers can be easily added by providing implementation of the <<enricher-api, Enricher API>> and adding these as a dependency to the build.
+endif::[]
 
 [[enrichers-default]]
 == Default Enrichers
@@ -44,12 +47,16 @@ This plugin comes with a set of default enrichers. In addition custom enrichers 
 | Enricher | Description
 
 | <<jkube-configmap-file>>
-| Add ConfigMap elements defined as XML or as annotation.
+| Add ConfigMap elements defined as Groovy or as annotation.
+
+// TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
+// rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
+ifeval::["{plugin-type}" == "maven"]
 
 | <<jkube-container-env-java-options>>
 | Merges `JAVA_OPTIONS` environment variable defined in <<config-image-build>>
-  environment (`env`) with `Container` `JAVA_OPTIONS` environment variable added
-  by other enrichers, XML configuration or fragment.
+environment (`env`) with `Container` `JAVA_OPTIONS` environment variable added
+by other enrichers, {plugin-configuration-type} configuration or fragment.
 
 | <<jkube-controller>>
 | Create default controller (replication controller, replica set or deployment https://kubernetes.io/docs/concepts/workloads/controllers/[Kubernetes doc]) if missing.
@@ -67,7 +74,7 @@ This plugin comes with a set of default enrichers. In addition custom enrichers 
 | Add the image name into a `PodSpec` of replication controller, replication sets and deployments, if missing.
 
 | <<jkube-ingress>>
-| Create a default Ingress if missing or configured from XML configuration
+| Create a default Ingress if missing or configured from {plugin-configuration-type} configuration
 
 | <<jkube-metadata>>
 | Add labels/annotations to generated Kubernetes resources
@@ -109,10 +116,12 @@ This plugin comes with a set of default enrichers. In addition custom enrichers 
 | Create a default service if missing and extract ports from the Docker image configuration.
 
 | <<jkube-serviceaccount>>
-| Add a ServiceAccount defined as XML or mentioned in resource fragment.
+| Add a ServiceAccount defined as {plugin-configuration-type} or mentioned in resource fragment.
 
 | <<jkube-triggers-annotation>>
 | Add ImageStreamTag change triggers on {cluster} resources such as StatefulSets, ReplicaSets and DaemonSets using the `image.openshift.io/triggers` annotation.
+
+endif::[]
 
 |===
 
@@ -122,7 +131,11 @@ This plugin comes with a set of default enrichers. In addition custom enrichers 
 Default generic enrichers are used for adding missing resources or adding metadata to given resource objects.
 The following default enhancers are available out of the box.
 
-include::enricher/_jkube_configmap_file.adoc[]
+include::enricher/configmap/_jkube_configmap_file.adoc[]
+
+// TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
+// rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
+ifeval::["{plugin-type}" == "maven"]
 
 include::enricher/_jkube_container_env_java_options.adoc[]
 
@@ -189,10 +202,16 @@ include::enricher/_jkube_triggers_annotation.adoc[]
 
 include::enricher/_jkube_volume_permission.adoc[]
 
+endif::[]
+
 [[enrichers-specific]]
 === Specific Enrichers
 
 Specific enrichers provide resource manifest enhancement for a certain tech stack that they detect.
+
+// TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
+// rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
+ifeval::["{plugin-type}" == "maven"]
 
 include::enricher/_jkube_healthcheck_karaf.adoc[]
 
@@ -215,3 +234,4 @@ include::enricher/_jkube_healthcheck_quarkus.adoc[]
 == Enricher API
 
 _How to write your own enrichers and install them._
+endif::[]

@@ -1,0 +1,15 @@
+[source, xml]
+----
+<configuration>
+  <resources>
+    <configMap>
+      <name>configmap-test</name>
+      <entries>
+        <entry>
+          <file>src/test/resources/test-application.properties</file>
+        </entry>
+       </entries>
+    </configMap>
+  </resources>
+</configuration>
+----

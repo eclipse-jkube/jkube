@@ -1,0 +1,17 @@
+As Groovy you can define:
+
+[source,groovy,subs="attributes+"]
+.build.gradle
+----
+{pluginExtension} {
+  resources {
+    configMap {
+      name = 'myconfigmap'
+      entries = [{
+        name = 'A'
+        value = 'B'
+      }]
+    }
+  }
+}
+----
