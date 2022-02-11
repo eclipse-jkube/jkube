@@ -52,17 +52,17 @@ endif::[]
 | <<jkube-controller>>
 | Create default controller (replication controller, replica set or deployment https://kubernetes.io/docs/concepts/workloads/controllers/[Kubernetes doc]) if missing.
 
+| <<jkube-container-env-java-options>>
+| Merges `JAVA_OPTIONS` environment variable defined in <<config-image-build>>
+environment (`env`) with `Container` `JAVA_OPTIONS` environment variable added
+by other enrichers, {plugin-configuration-type} configuration or fragment.
+
 | <<jkube-metadata>>
 | Add labels/annotations to generated Kubernetes resources
 
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
-
-| <<jkube-container-env-java-options>>
-| Merges `JAVA_OPTIONS` environment variable defined in <<config-image-build>>
-environment (`env`) with `Container` `JAVA_OPTIONS` environment variable added
-by other enrichers, {plugin-configuration-type} configuration or fragment.
 
 | <<jkube-dependency>>
 | Examine build dependencies for `kubernetes.yml` and add the objects found therein.
@@ -135,13 +135,14 @@ include::enricher/configmap/_jkube_configmap_file.adoc[]
 
 include::enricher/controller/_jkube_controller.adoc[]
 
+include::enricher/javacontainerenvoptions/_jkube_container_env_java_options.adoc[]
+
 include::enricher/metadata/_jkube_metadata.adoc[]
 
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
 
-include::enricher/_jkube_container_env_java_options.adoc[]
 
 [[jkube-dependency]]
 ==== jkube-dependency
