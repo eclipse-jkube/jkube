@@ -3,7 +3,7 @@
 ==== jkube-controller
 
 This enricher is used to ensure that a controller is present.
-This can be either directly configured with fragments or with the XML configuration.
+This can be either directly configured with fragments or with the {plugin-configuration-type} configuration.
 An explicit configuration always takes precedence over auto detection.
 See https://kubernetes.io/docs/concepts/workloads/controllers/[Kubernetes doc] for more information on types of controllers.
 
@@ -19,7 +19,13 @@ The following configuration parameters can be used to influence the behaviour of
 | Name of the Controller. Kubernetes Controller names must start with a letter. If the maven artifactId starts with a
   digit, `s` will be prefixed.
 
+ifeval::["{plugin-type}" == "maven"]
   Defaults to `${project.artifactId}`.
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+  Defaults to project name.
+endif::[]
 | `jkube.enricher.jkube-controller.name`
 
 | *pullPolicy*
