@@ -1,0 +1,17 @@
+[[jkube-debug]]
+==== jkube-debug
+
+This enricher enables debug mode via a property `jkube.debug.enabled` or via enabling debug mode in enricher configuration.
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_debug_configuration.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_debug_configuration.adoc[]
+endif::[]
+
+This would do the following things:
+
+- Add environment variable `JAVA_ENABLE_DEBUG` with value set to `true` in your application container
+- Add a container port named `debug` to your existing list of container ports with value set via `JAVA_DEBUG_PORT` environment variable. If not present, it defaults to `5005`.

@@ -1,0 +1,23 @@
+You can either set this property in `gradle.properties` file:
+
+[source,properties,subs="attributes+"]
+.gradle.properties
+----
+jkube.debug.enabled = true
+----
+
+Or provide {plugin-configuration-type} configuration for enricher
+
+[source,groovy,subs="attributes+"]
+.build.gradle
+----
+{pluginExtension} {
+    enricher {
+        config {
+            'jkube-debug' {
+                enabled = true
+            }
+        }
+    }
+}
+----
