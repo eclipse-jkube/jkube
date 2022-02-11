@@ -57,6 +57,9 @@ endif::[]
 environment (`env`) with `Container` `JAVA_OPTIONS` environment variable added
 by other enrichers, {plugin-configuration-type} configuration or fragment.
 
+| <<jkube-debug>>
+| Enables debug mode via a property or {plugin-configuration-type} configuration
+
 | <<jkube-metadata>>
 | Add labels/annotations to generated Kubernetes resources
 
@@ -136,6 +139,8 @@ include::enricher/configmap/_jkube_configmap_file.adoc[]
 include::enricher/controller/_jkube_controller.adoc[]
 
 include::enricher/javacontainerenvoptions/_jkube_container_env_java_options.adoc[]
+
+include::enricher/debug/_jkube_debug.adoc[]
 
 include::enricher/metadata/_jkube_metadata.adoc[]
 
