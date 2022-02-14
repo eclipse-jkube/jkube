@@ -66,6 +66,9 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-metadata>>
 | Add labels/annotations to generated Kubernetes resources
 
+| <<jkube-namespace>>
+| Set the _Namespace_ of the generated and processed Kubernetes resources metadata and optionally create a new Namespace
+
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
@@ -90,9 +93,6 @@ ifeval::["{plugin-type}" == "maven"]
 
 | <<jkube-name>>
 | Add a default name to every object which misses a name.
-
-| <<jkube-namespace>>
-| Set the _Namespace_ of the generated and processed Kubernetes resources metadata and optionally create a new Namespace
 
 | <<jkube-pod-annotation>>
 | Copy over annotations from a `Deployment` to a `Pod`
@@ -146,6 +146,8 @@ include::enricher/dependency/_jkube_dependency.adoc[]
 
 include::enricher/metadata/_jkube_metadata.adoc[]
 
+include::enricher/namespace/_jkube_namespace.adoc[]
+
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
@@ -171,8 +173,6 @@ include::enricher/_jkube_maven_issue_mgmt.adoc[]
 
 [[jkube-name]]
 ==== jkube-name
-
-include::enricher/_jkube_namespace.adoc[]
 
 include::enricher/_jkube_openshift_autotls.adoc[]
 
