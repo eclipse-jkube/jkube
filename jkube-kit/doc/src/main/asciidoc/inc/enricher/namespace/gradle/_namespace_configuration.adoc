@@ -1,0 +1,8 @@
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+  resources {
+    namespace = 'mynamespace'
+  }
+}
+----
