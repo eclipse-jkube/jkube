@@ -26,6 +26,7 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Handler for Jobs
@@ -35,6 +36,7 @@ import java.util.List;
 public class JobHandler implements ControllerHandler<Job> {
 
   private final PodTemplateHandler podTemplateHandler;
+  private static final String DEFAULT_JOB_RESTART_POLICY = "OnFailure";
 
   JobHandler(PodTemplateHandler podTemplateHandler) {
     this.podTemplateHandler = podTemplateHandler;
@@ -66,7 +68,7 @@ public class JobHandler implements ControllerHandler<Job> {
 
   private JobSpec createJobSpec(ResourceConfig config, List<ImageConfiguration> images) {
     return new JobSpecBuilder()
-        .withTemplate(podTemplateHandler.getPodTemplate(config, images))
+        .withTemplate(podTemplateHandler.getPodTemplate(config, Optional.ofNullable(config.getRestartPolicy()).orElse(DEFAULT_JOB_RESTART_POLICY), images))
         .build();
   }
 }

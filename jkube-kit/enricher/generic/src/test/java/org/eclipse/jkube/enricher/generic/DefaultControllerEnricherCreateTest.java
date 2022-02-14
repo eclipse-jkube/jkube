@@ -19,14 +19,12 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import mockit.Expectations;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,30 +32,26 @@ import java.util.Collections;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.when;
 
 public class DefaultControllerEnricherCreateTest {
 
-  @SuppressWarnings("unused")
-  @Mocked
   private JKubeEnricherContext buildContext;
   private Properties properties;
-  private ResourceConfig resourceConfig;
   private DefaultControllerEnricher defaultControllerEnricher;
   private KubernetesListBuilder klb;
 
   @Before
   public void setUp() throws Exception {
     properties = new Properties();
-    resourceConfig = ResourceConfig.builder().build();
-    // @formatter:off
-    new Expectations() {{
-      buildContext.getProperties(); result = properties;
-      buildContext.getConfiguration().getResource(); result = resourceConfig;
-      buildContext.getConfiguration().getImages();
-      result = Collections.singletonList(ImageConfiguration.builder().build());
-      buildContext.getGav().getSanitizedArtifactId(); result = "artifact-id";
-    }};
-    // @formatter:on
+    ResourceConfig resourceConfig = ResourceConfig.builder().build();
+    buildContext = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+    when(buildContext.getProperties()).thenReturn(properties);
+    when(buildContext.getConfiguration().getResource()).thenReturn(resourceConfig);
+    when(buildContext.getConfiguration().getImages()).thenReturn(Collections.singletonList(ImageConfiguration.builder().build()));
+    when(buildContext.getGav().getSanitizedArtifactId()).thenReturn("artifact-id");
     defaultControllerEnricher = new DefaultControllerEnricher(buildContext);
     klb = new KubernetesListBuilder();
   }
@@ -154,17 +148,29 @@ public class DefaultControllerEnricherCreateTest {
     assertThat(klb.buildItems())
         .hasSize(1)
         .first()
-        .isInstanceOf(Job.class);
+        .isInstanceOf(Job.class)
+        .hasFieldOrPropertyWithValue("spec.template.spec.restartPolicy", "OnFailure");
+  }
+
+  @Test
+  public void create_inKubernetesWithJobTypeAndConfiguredRestartPolicy_shouldCreateJobWithConfiguredRestartPolicy() {
+    // Given
+    when(buildContext.getConfiguration().getResource()).thenReturn(ResourceConfig.builder().restartPolicy("Never").build());
+    properties.put("jkube.enricher.jkube-controller.type", "Job");
+    // When
+    defaultControllerEnricher.create(PlatformMode.kubernetes, klb);
+    // Then
+    assertThat(klb.buildItems())
+        .hasSize(1)
+        .first()
+        .isInstanceOf(Job.class)
+        .hasFieldOrPropertyWithValue("spec.template.spec.restartPolicy", "Never");
   }
 
   @Test
   public void create_inKubernetesWithNoImages_shouldSkip() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      buildContext.getConfiguration().getImages(); result = null;
-    }};
-    // @formatter:on
+    when(buildContext.getConfiguration().getImages()).thenReturn(null);
     // When
     defaultControllerEnricher.create(PlatformMode.kubernetes, klb);
     // Then

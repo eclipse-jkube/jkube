@@ -64,7 +64,7 @@ public class DaemonSetHandler implements ControllerHandler<DaemonSet> {
 
   private DaemonSetSpec createDaemonSetSpec(ResourceConfig config, List<ImageConfiguration> images) {
     return new DaemonSetSpecBuilder()
-        .withTemplate(podTemplateHandler.getPodTemplate(config, images))
+        .withTemplate(podTemplateHandler.getPodTemplate(config, config.getRestartPolicy(), images))
         .build();
   }
 

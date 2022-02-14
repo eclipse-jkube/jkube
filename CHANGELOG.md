@@ -27,6 +27,7 @@ Usage:
 * Fix #1236: Add integration tests for DefaultControllerEnricher in gradle plugins
 * Fix #1237: Add gradle project integration test for DefaultMetadataEnricher
 * Fix #1240: Add documentation for DependencyEnricher
+* Fix #1278: Enricher with type Job does not generate mandatory `spec.template.spec.restartPolicy`
 
 ### 1.6.0 (2022-02-03)
 * Fix #1047: Gradle image build should use the Quarkus generator for Quarkus projects

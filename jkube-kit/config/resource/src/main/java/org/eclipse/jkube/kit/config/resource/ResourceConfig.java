@@ -74,6 +74,7 @@ public class ResourceConfig {
   private IngressConfig ingress;
   private OpenshiftBuildConfig openshiftBuildConfig;
   private String routeDomain;
+  private String restartPolicy;
 
   public static ResourceConfigBuilder toBuilder(ResourceConfig original) {
     return Optional.ofNullable(original).orElse(new ResourceConfig()).toBuilder();

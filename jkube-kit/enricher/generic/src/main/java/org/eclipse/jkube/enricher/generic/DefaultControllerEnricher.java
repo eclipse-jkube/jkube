@@ -119,12 +119,13 @@ public class DefaultControllerEnricher extends BaseEnricher {
   public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
     final String name = getConfig(Config.NAME,
         JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-    ResourceConfig xmlResourceConfig = Optional.ofNullable(getConfiguration().getResource())
+    ResourceConfig providedResourceConfig = Optional.ofNullable(getConfiguration().getResource())
         .orElse(ResourceConfig.builder().build());
-    ResourceConfig config = ResourceConfig.toBuilder(xmlResourceConfig)
-        .controllerName(getControllerName(xmlResourceConfig, name))
-        .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, getConfig(Config.PULL_POLICY)))
-        .replicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+    ResourceConfig config = ResourceConfig.toBuilder(providedResourceConfig)
+        .controllerName(getControllerName(providedResourceConfig, name))
+        .imagePullPolicy(getImagePullPolicy(providedResourceConfig, getConfig(Config.PULL_POLICY)))
+        .replicas(getReplicaCount(builder, providedResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+        .restartPolicy(providedResourceConfig.getRestartPolicy())
         .build();
 
     final List<ImageConfiguration> images = getImages();
@@ -144,5 +145,4 @@ public class DefaultControllerEnricher extends BaseEnricher {
   private static List<String> getContainersFromPodSpec(PodTemplateSpec spec) {
     return spec.getSpec().getContainers().stream().map(Container::getName).collect(Collectors.toList());
   }
-
 }

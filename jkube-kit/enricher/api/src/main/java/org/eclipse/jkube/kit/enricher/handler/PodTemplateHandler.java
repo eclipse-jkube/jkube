@@ -39,10 +39,10 @@ public class PodTemplateHandler {
         this.containerHandler = containerHandler;
     }
 
-    public PodTemplateSpec getPodTemplate(ResourceConfig config, List<ImageConfiguration> images)  {
+    public PodTemplateSpec getPodTemplate(ResourceConfig config, String restartPolicy, List<ImageConfiguration> images)  {
         return new PodTemplateSpecBuilder()
             .withMetadata(createPodMetaData())
-            .withSpec(createPodSpec(config, images))
+            .withSpec(createPodSpec(config, restartPolicy, images))
             .build();
     }
 
@@ -50,10 +50,11 @@ public class PodTemplateHandler {
         return new ObjectMetaBuilder().build();
     }
 
-    private PodSpec createPodSpec(ResourceConfig config, List<ImageConfiguration> images) {
+    private PodSpec createPodSpec(ResourceConfig config, String restartPolicy, List<ImageConfiguration> images) {
 
         return new PodSpecBuilder()
             .withServiceAccountName(config.getServiceAccount())
+            .withRestartPolicy(restartPolicy)
             .withContainers(containerHandler.getContainers(config,images))
             .withVolumes(getVolumes(config))
             .build();
