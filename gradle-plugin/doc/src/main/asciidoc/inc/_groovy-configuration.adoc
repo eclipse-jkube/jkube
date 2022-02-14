@@ -615,6 +615,11 @@ Here are the fields available in `resources` Groovy DSL configuration that would
 | `replicas`
 | Number of replicas to create
 
+| `restartPolicy`
+| Pod's restart policy.
+
+For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster} assumes it to be `Always`)
+
 | `serviceAccount`
 | ServiceAccount name which will be used by pods created by controller resources(e.g. `Deployment`, `ReplicaSet` etc)
 |===

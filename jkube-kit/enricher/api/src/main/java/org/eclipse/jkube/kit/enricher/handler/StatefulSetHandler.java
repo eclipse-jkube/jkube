@@ -75,7 +75,7 @@ public class StatefulSetHandler implements ControllerHandler<StatefulSet> {
     return new StatefulSetSpecBuilder()
         .withReplicas(config.getReplicas())
         .withServiceName(config.getControllerName())
-        .withTemplate(podTemplateHandler.getPodTemplate(config,images))
+        .withTemplate(podTemplateHandler.getPodTemplate(config, config.getRestartPolicy(), images))
         .build();
   }
 }

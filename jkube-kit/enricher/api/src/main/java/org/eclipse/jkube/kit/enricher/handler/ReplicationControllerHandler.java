@@ -74,7 +74,7 @@ public class ReplicationControllerHandler implements ControllerHandler<Replicati
   private ReplicationControllerSpec createRcSpec(ResourceConfig config, List<ImageConfiguration> images) {
     return new ReplicationControllerSpecBuilder()
         .withReplicas(config.getReplicas())
-        .withTemplate(podTemplateHandler.getPodTemplate(config, images))
+        .withTemplate(podTemplateHandler.getPodTemplate(config, config.getRestartPolicy(), images))
         .build();
   }
 }

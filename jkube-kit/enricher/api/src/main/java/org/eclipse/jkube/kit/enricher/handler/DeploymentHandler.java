@@ -68,7 +68,7 @@ public class DeploymentHandler implements ControllerHandler<Deployment> {
   private DeploymentSpec createDeploymentSpec(ResourceConfig config, List<ImageConfiguration> images) {
     return new DeploymentSpecBuilder()
         .withReplicas(config.getReplicas())
-        .withTemplate(podTemplateHandler.getPodTemplate(config,images))
+        .withTemplate(podTemplateHandler.getPodTemplate(config, config.getRestartPolicy(), images))
         .build();
   }
 }

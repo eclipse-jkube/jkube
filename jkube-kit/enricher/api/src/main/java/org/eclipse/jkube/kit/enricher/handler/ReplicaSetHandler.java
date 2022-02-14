@@ -72,7 +72,7 @@ public class ReplicaSetHandler implements ControllerHandler<ReplicaSet> {
   private ReplicaSetSpec createSpec(ResourceConfig config, List<ImageConfiguration> images) {
     return new ReplicaSetSpecBuilder()
         .withReplicas(config.getReplicas())
-        .withTemplate(podTemplateHandler.getPodTemplate(config, images))
+        .withTemplate(podTemplateHandler.getPodTemplate(config, config.getRestartPolicy(), images))
         .build();
   }
 }

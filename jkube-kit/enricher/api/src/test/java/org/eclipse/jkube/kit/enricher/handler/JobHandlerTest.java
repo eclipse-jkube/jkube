@@ -91,6 +91,7 @@ public class JobHandlerTest {
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
                 .serviceAccount("test-account")
+                .restartPolicy("OnFailure")
                 .volumes(volumes1)
                 .build();
 
@@ -104,6 +105,7 @@ public class JobHandlerTest {
         assertEquals("test-account",job.getSpec().getTemplate()
                 .getSpec().getServiceAccountName());
         assertFalse(job.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
+        assertEquals("OnFailure", job.getSpec().getTemplate().getSpec().getRestartPolicy());
         assertEquals("test",job.getSpec().getTemplate().getSpec().
                 getVolumes().get(0).getName());
         assertEquals("/test/path",job.getSpec().getTemplate()

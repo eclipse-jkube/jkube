@@ -28,6 +28,7 @@ Usage:
 * Fix #1237: Add gradle project integration test for DefaultMetadataEnricher
 * Fix #1238: Port DefaultNamespaceEnricher integration test and documentation to gradle plugins
 * Fix #1240: Add documentation for DependencyEnricher
+* Fix #1278: Enricher with type Job does not generate mandatory `spec.template.spec.restartPolicy`
 
 ### 1.6.0 (2022-02-03)
 * Fix #1047: Gradle image build should use the Quarkus generator for Quarkus projects
