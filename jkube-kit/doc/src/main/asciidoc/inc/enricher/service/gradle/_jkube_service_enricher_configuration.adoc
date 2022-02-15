@@ -1,0 +1,15 @@
+.Example
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+-----
+{pluginExtension} {
+  enricher {
+    config {
+      'jkube-service' {
+         name = 'my-service'
+         type = 'NodePort'
+         multiPort = true
+      }
+    }
+  }
+}
+-----

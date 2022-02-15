@@ -1,0 +1,16 @@
+.Example
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+-----
+{pluginExtension} {
+  enricher {
+    config {
+      'jkube-service' {
+         name = 'myservice'
+         port = '80:8080' //<1>
+      }
+    }
+  }
+}
+-----
+
+<1> 80 is the service port, 8080 the port opened in from the pod's images

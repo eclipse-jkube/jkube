@@ -3,7 +3,7 @@
 ==== jkube-service
 
 This enricher is used to ensure that a service is present.
-This can be either directly configured with fragments or with the XML configuration, but it can be also automatically inferred by looking at the ports exposed by an image configuration.
+This can be either directly configured with fragments or with the {plugin-configuration-type} configuration, but it can be also automatically inferred by looking at the ports exposed by an image configuration.
 An explicit configuration always takes precedence over auto detection. For enriching an existing service this enricher actually works only on a configured service which matches with the configured (or inferred) service name.
 
 The following configuration parameters can be used to influence the behaviour of this enricher:
@@ -15,7 +15,7 @@ The following configuration parameters can be used to influence the behaviour of
 | Element | Description | Property
 
 | *name*
-| Service name to enrich by default. If not given here or configured elsewhere, the artifactId is used.
+| Service name to enrich by default. If not given here or configured elsewhere, the artifactId/project name is used.
 | `jkube.enricher.jkube-service.name`
 
 | *headless*
@@ -80,30 +80,20 @@ Following is the Port mapping that comes in effect, when normalizePort option is
 
 You specify the properties like for any enricher within the enrichers configuration like in
 
-.Example
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
------
-<configuration>
-  <!-- ... -->
-  <enricher>
-    <config>
-      <jkube-service>
-        <name>my-service</name>
-        <type>NodePort</type>
-        <multiPort>true</multiPort>
-      </jkube-service>
-    </config>
-  </enricher>
-</configuration>
------
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_jkube_service_enricher_configuration.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_jkube_service_enricher_configuration.adoc[]
+endif::[]
 
 [[jkube-service-ports]]
 .Port specification
 
 With the option `port` you can influence the mapping how ports are mapped from the pod to the service.
-By default and if this option is not given the ports exposed are dictated by the ports exposed from the Docker images contained in the pods.
+By default, and if this option is not given the ports exposed are dictated by the ports exposed from the Docker images contained in the pods.
 Remember, each image configured can be part of the pod.
-However you can expose also completely different ports as the images meta data declare.
+However, you can expose also completely different ports as the images meta data declare.
 
 The property `port` can contain a comma separated list of mappings of the following format:
 
@@ -112,36 +102,35 @@ The property `port` can contain a comma separated list of mappings of the follow
 <servicePort1>:<targetPort1>/<protocol>,<servicePort2>:<targetPort2>/<protocol>,....
 -----
 
-where the `targetPort` and `<protocol>` specification is optional. These ports are overlayed over the ports exposed by the images, in the given order.
+where the `targetPort` and `protocol` specification is optional. These ports are overlayed over the ports exposed by the images, in the given order.
 
 This is best explained by some examples.
 
 For example if you have a pod which exposes a Microservice on port 8080 and you want to expose it as a service on port 80 (so that it can be accessed with `http://myservice`)  you can simply use the following enricher configuration:
 
-.Example
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
------
-<configuration>
-  <enricher>
-    <config>
-      <jkube-service>
-        <name>myservice</name>
-        <port>80:8080</port> <!--1-->
-      </jkube-service>
-    </config>
-  </enricher>
-</configuration>
------
-<1> 80 is the service port, 8080 the port opened in from the pod's images
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_jkube_service_enricher_port_example.adoc[]
 
 If your pod _exposes_ their ports (which e.g. all generator do), then you can even omit the 8080 here (i.e. `<port>80</port>`).
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_jkube_service_enricher_port_example.adoc[]
+
+If your pod _exposes_ their ports (which e.g. all generator do), then you can even omit the 8080 here (i.e. `port = 80`).
+endif::[]
 In this case the _first_ port exposed will be mapped to port 80, all other exposed ports will be omitted.
 
-By default an automatically generated service only exposes the first port, even when more ports are exposed.
-When you want to map multiple ports you need to set the config option `<multiPort>true</multiPort>`.
-In this case you can also provide multiple mappings as a comma separated list in the `<port>` specification where each element of the list are the mapping for the first, second, ... port.
+By default, an automatically generated service only exposes the first port, even when more ports are exposed.
+When you want to map multiple ports you need to set the config option `multiPort` to `true`.
+In this case you can also provide multiple mappings as a comma separated list in the `port` specification where each element of the list are the mapping for the first, second, ... port.
 
+ifeval::["{plugin-type}" == "gradle"]
+A more (and bit artificially constructed) specification could be `port = '80,9779:9779/udp,443'`.
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
 A more (and bit artificially constructed) specification could be `<port>80,9779:9779/udp,443</port>`.
+endif::[]
 Assuming that the image exposes ports `8080` and `8778` (either directly or via <<generators,generators>>) and we have switched on multiport mode, then the following service port mappings will be performed for the automatically generated service:
 
 * Pod port 8080 is mapped to service port 80.
@@ -157,23 +146,23 @@ This example shows also the mapping rules:
 
 Multiple ports are **only** mapped when _multiPort_ mode is enabled (which is switched off by default). If _multiPort_ mode is disabled, only the first port from the list of mapped ports calculated as above is taken.
 
-When you set `legacyPortMapping` to true than ports 8080 to 9090 are mapped to port 80 automatically if not explicitly mapped via `_port_`. I.e. when an image exposes port 8080 with a legacy mapping this mapped to a service port 80, not 8080. You _should not_ switch this on for any good reason. In fact it might be that this option can vanish anytime.
+When you set `legacyPortMapping` to true then ports 8080 to 9090 are mapped to port 80 automatically if not explicitly mapped via `_port_`. I.e. when an image exposes port 8080 with a legacy mapping this mapped to a service port 80, not 8080. You _should not_ switch this on for any good reason. In fact, it might be that this option can vanish anytime.
 
-This enricher is also used by `<resources>` XML configuration to generate Service configured via XML. Here are the fields supported in `<resources>` which work with this enricher:
+This enricher is also used by `resources` {plugin-configuration-type} configuration to generate Service configured via {plugin-configuration-type}. Here are the fields supported in `resources` which work with this enricher:
 
-.Fields supported in `<resources>`
+.Fields supported in `resources`
 [cols="1,5"]
 |===
 | Element | Description
-| <<service-xml-configuration, `services`>>
+| <<service-resource-configuration, `services`>>
 | Configuration element for generating Service resource
 |===
 
-[[service-xml-configuration]]
-===== Service XML Configuration
-`<services>` is a list of `<service>` configuration objects. Here are the supported options while providing `<service>` in XML configuration
+[[service-resource-configuration]]
+===== Service {plugin-configuration-type} Configuration
+`services` is a list of `service` configuration objects. Here are the supported options while providing `service` in {plugin-configuration-type} configuration
 
-.XML `<service>` configuration
+.{plugin-configuration-type} `service` configuration
 [cols="1,5"]
 |===
 | Element | Description
@@ -193,15 +182,15 @@ This enricher is also used by `<resources>` XML configuration to generate Servic
 | `normalizePort`
 | Whether to normalize service port numbering.
 
-| <<service-port-xml-configuration, `ports`>>
+| <<service-port-resource-configuration, `ports`>>
 | Ports to expose
 |===
 
-[[service-port-xml-configuration]]
-===== Service `<port>` Configuration
-`<ports>` is a list of `<port>` configuration objects. Here are the supported options while providing `<port>` in XML configuration
+[[service-port-resource-configuration]]
+===== Service `port` Configuration
+`ports` is a list of `port` configuration objects. Here are the supported options while providing `port` in {plugin-configuration-type} configuration
 
-.XML service port configuration
+.{plugin-configuration-type} service port configuration
 [cols="1,5"]
 |===
 | Element | Description
