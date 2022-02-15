@@ -27,6 +27,7 @@ Usage:
 * Fix #1236: Add integration tests for DefaultControllerEnricher in gradle plugins
 * Fix #1237: Add gradle project integration test for DefaultMetadataEnricher
 * Fix #1238: Port DefaultNamespaceEnricher integration test and documentation to gradle plugins
+* Fix #1239: Add documentation and integration test for DefaultServiceEnricher in gradle plugins
 * Fix #1240: Add documentation for DependencyEnricher
 * Fix #1278: Enricher with type Job does not generate mandatory `spec.template.spec.restartPolicy`
 
