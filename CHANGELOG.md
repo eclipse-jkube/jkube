@@ -26,6 +26,7 @@ Usage:
 * Fix #1214: Add integration test to verify `jkube.debug.enabled` flag works as expected
 * Fix #1236: Add integration tests for DefaultControllerEnricher in gradle plugins
 * Fix #1237: Add gradle project integration test for DefaultMetadataEnricher
+* Fix #1240: Add documentation for DependencyEnricher
 
 ### 1.6.0 (2022-02-03)
 * Fix #1047: Gradle image build should use the Quarkus generator for Quarkus projects

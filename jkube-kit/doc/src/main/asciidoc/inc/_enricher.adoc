@@ -60,15 +60,15 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-debug>>
 | Enables debug mode via a property or {plugin-configuration-type} configuration
 
+| <<jkube-dependency>>
+| Examine build dependencies for `kubernetes.yml`/`openshift.yml` and add the objects found therein.
+
 | <<jkube-metadata>>
 | Add labels/annotations to generated Kubernetes resources
 
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
-
-| <<jkube-dependency>>
-| Examine build dependencies for `kubernetes.yml` and add the objects found therein.
 
 | <<jkube-docker-registry-secret>>
 | Add a `Secret` for your Docker registry credentials.
@@ -142,15 +142,14 @@ include::enricher/javacontainerenvoptions/_jkube_container_env_java_options.adoc
 
 include::enricher/debug/_jkube_debug.adoc[]
 
+include::enricher/dependency/_jkube_dependency.adoc[]
+
 include::enricher/metadata/_jkube_metadata.adoc[]
 
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
 
-
-[[jkube-dependency]]
-==== jkube-dependency
 
 [[jkube-docker-registry-secret]]
 ==== jkube-docker-registry-secret
