@@ -72,6 +72,9 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-namespace>>
 | Set the _Namespace_ of the generated and processed Kubernetes resources metadata and optionally create a new Namespace
 
+| <<jkube-service>>
+| Create a default service if missing and extract ports from the Docker image configuration.
+
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
@@ -115,9 +118,6 @@ ifeval::["{plugin-type}" == "maven"]
 | <<jkube-secret-file>>
 | Add Secret elements defined as annotation.
 
-| <<jkube-service>>
-| Create a default service if missing and extract ports from the Docker image configuration.
-
 | <<jkube-serviceaccount>>
 | Add a ServiceAccount defined as {plugin-configuration-type} or mentioned in resource fragment.
 
@@ -149,6 +149,8 @@ include::enricher/git/_jkube_git.adoc[]
 include::enricher/metadata/_jkube_metadata.adoc[]
 
 include::enricher/namespace/_jkube_namespace.adoc[]
+
+include::enricher/service/_jkube_service.adoc[]
 
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
@@ -192,8 +194,6 @@ include::enricher/_jkube_replicas.adoc[]
 include::enricher/_jkube_revision_history.adoc[]
 
 include::enricher/_jkube_secret_file.adoc[]
-
-include::enricher/_jkube_service.adoc[]
 
 [[jkube-serviceaccount]]
 ==== jkube-serviceaccount

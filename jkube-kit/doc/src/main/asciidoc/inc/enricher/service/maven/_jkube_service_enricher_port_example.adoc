@@ -1,0 +1,16 @@
+.Example
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+-----
+<configuration>
+  <enricher>
+    <config>
+      <jkube-service>
+        <name>myservice</name>
+        <port>80:8080</port> <!--1-->
+      </jkube-service>
+    </config>
+  </enricher>
+</configuration>
+-----
+
+<1> 80 is the service port, 8080 the port opened in from the pod's images
