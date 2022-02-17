@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id 'war'
+    id 'org.eclipse.jkube.kubernetes' version '1.6.0'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+
+group 'org.eclipse.jkube.kubernetes'
+version '1.0.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+kubernetes {
+    generator {
+        config {
+            'webapp' {
+                from = "tomcat:jdk11-openjdk-slim"
+                targetDir = "/usr/local/tomcat/webapps"
+                cmd = "catalina.sh run"
+            }
+        }
+    }
+}
