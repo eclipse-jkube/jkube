@@ -1,0 +1,52 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.io/git-url: "@matches('(?:git|ssh|https?|git@[-\\w.]+):(\\/\\/)?(.*?)(\\.git)(\\/?|\\#[-\\d\\w._]+?)$')@"
+      jkube.io/git-commit: "@matches('\\b[0-9a-f]{5,40}\\b')@"
+      jkube.io/git-branch: "@assertThat(not(isEmptyString())@"
+    labels:
+      app: git-annotations
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: git-annotations
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: git-annotations
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+    template:
+      metadata:
+        annotations:
+          jkube.io/git-url: "@matches('(?:git|ssh|https?|git@[-\\w.]+):(\\/\\/)?(.*?)(\\.git)(\\/?|\\#[-\\d\\w._]+?)$')@"
+          jkube.io/git-commit: "@matches('\\b[0-9a-f]{5,40}\\b')@"
+          jkube.io/git-branch: "@assertThat(not(isEmptyString())@"
+        labels:
+          app: git-annotations
+          provider: jkube
+          version: "@ignore@"
+          group: org.eclipse.jkube.integration.tests.gradle
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: repository/git-annotations:latest
+          imagePullPolicy: IfNotPresent
+          name: repository-git-annotations
+          securityContext:
+            privileged: false
