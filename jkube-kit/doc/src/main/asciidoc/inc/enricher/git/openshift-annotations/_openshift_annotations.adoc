@@ -1,0 +1,5 @@
+| `app.openshift.io/vcs-ref`
+| Current Git Branch
+
+| `app.openshift.io/vcs-uri`
+| URL of your configured git remote

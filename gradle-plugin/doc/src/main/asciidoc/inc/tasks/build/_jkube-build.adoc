@@ -79,12 +79,13 @@ Also if the provided build strategy is different than the one defined in the exi
 
 This image stream created can then be directly referenced from
 https://docs.openshift.com/enterprise/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[Deployment Configuration]
-objects created by <<jkube:resource, {task-prefix}Resource>>.
+objects created by <<jkubeResource, {task-prefix}Resource>>.
 By default, image streams are created with a local lookup policy, so that they can be used also by other resources such as Deployments or StatefulSets.
 This behavior can be turned off by setting the `jkube.s2i.imageStreamLookupPolicyLocal` property to `false` when building the project.
 
 In order to be able to create these OpenShift resource objects access to an OpenShift installation is required.
-The access parameters are described in <<access-configuration, Access Configuration>>.
+// TODO: Add when support is complete
+//The access parameters are described in <<access-configuration, Access Configuration>>.
 
 Regardless of which build mode is used, the images are configured in the same way.
 

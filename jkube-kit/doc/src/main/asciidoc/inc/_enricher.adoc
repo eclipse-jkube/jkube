@@ -63,6 +63,9 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-dependency>>
 | Examine build dependencies for `kubernetes.yml`/`openshift.yml` and add the objects found therein.
 
+| <<jkube-git>>
+| Check local `.git` directory and add build information as annotations.
+
 | <<jkube-metadata>>
 | Add labels/annotations to generated Kubernetes resources
 
@@ -75,9 +78,6 @@ ifeval::["{plugin-type}" == "maven"]
 
 | <<jkube-docker-registry-secret>>
 | Add a `Secret` for your Docker registry credentials.
-
-| <<jkube-git>>
-| Check local `.git` directory and add build information as annotations.
 
 | <<jkube-image>>
 | Add the image name into a `PodSpec` of replication controller, replication sets and deployments, if missing.
@@ -144,6 +144,8 @@ include::enricher/debug/_jkube_debug.adoc[]
 
 include::enricher/dependency/_jkube_dependency.adoc[]
 
+include::enricher/git/_jkube_git.adoc[]
+
 include::enricher/metadata/_jkube_metadata.adoc[]
 
 include::enricher/namespace/_jkube_namespace.adoc[]
@@ -158,7 +160,6 @@ ifeval::["{plugin-type}" == "maven"]
 
 This enricher enables {goal-prefix}:resource Secret generation feature. You can read more about it <<resource-secrets, Secrets>>.
 
-include::enricher/_jkube_git.adoc[]
 
 [[jkube-image]]
 ==== jkube-image
