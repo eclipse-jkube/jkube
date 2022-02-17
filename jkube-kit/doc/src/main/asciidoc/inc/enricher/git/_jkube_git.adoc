@@ -1,0 +1,42 @@
+
+[[jkube-git]]
+==== jkube-git
+
+Enricher that adds info from `.git` directory as annotations. These are explained in the table below:
+
+.Annotations added via Git enricher
+[cols="1,1"]
+|===
+| Annotation | Description
+
+| `jkube.io/git-branch`
+| Current Git Branch
+
+| `jkube.io/git-commit`
+| Latest commit of current branch
+
+| `jkube.io/git-url`
+| URL of your configured git remote
+
+ifeval::["{goal-prefix}" == "oc"]
+include::openshift-annotations/_openshift_annotations.adoc[]
+endif::[]
+
+ifeval::["{task-prefix}" == "oc"]
+include::openshift-annotations/_openshift_annotations.adoc[]
+endif::[]
+
+|===
+
+
+.Supported Configuration options
+[cols="1,6,1"]
+|===
+| Option | Description | Property
+
+| *gitRemote*
+| Configures the git remote name, whose URL you want to annotate as 'git-url'.
+
+  Defaults to `origin`.
+| `jkube.remoteName`
+|===
