@@ -75,6 +75,9 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-namespace>>
 | Set the _Namespace_ of the generated and processed Kubernetes resources metadata and optionally create a new Namespace
 
+| <<jkube-secret-file>>
+| Add Secret elements defined as annotation.
+
 | <<jkube-service>>
 | Create a default service if missing and extract ports from the Docker image configuration.
 
@@ -115,9 +118,6 @@ ifeval::["{plugin-type}" == "maven"]
 | <<jkube-revision-history-enricher>>
 | Add revision history limit (https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit[Kubernetes doc]) as a deployment spec property to the Kubernetes/OpenShift resources.
 
-| <<jkube-secret-file>>
-| Add Secret elements defined as annotation.
-
 | <<jkube-serviceaccount>>
 | Add a ServiceAccount defined as {plugin-configuration-type} or mentioned in resource fragment.
 
@@ -151,6 +151,8 @@ include::enricher/ingress/_jkube_ingress.adoc[]
 include::enricher/metadata/_jkube_metadata.adoc[]
 
 include::enricher/namespace/_jkube_namespace.adoc[]
+
+include::enricher/secret-file/_jkube_secret_file.adoc[]
 
 include::enricher/service/_jkube_service.adoc[]
 
@@ -192,8 +194,6 @@ include::enricher/_jkube_prometheus.adoc[]
 include::enricher/_jkube_replicas.adoc[]
 
 include::enricher/_jkube_revision_history.adoc[]
-
-include::enricher/_jkube_secret_file.adoc[]
 
 [[jkube-serviceaccount]]
 ==== jkube-serviceaccount
