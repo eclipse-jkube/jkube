@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app: secret-file
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: secret-file
+    data:
+      application.properties: a2V5MSA9IHZhbHVlMQprZXkyID0gdmFsdWUyCmtleTMgPSB2YWx1ZTM=
