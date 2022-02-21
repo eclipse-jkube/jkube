@@ -66,6 +66,9 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-git>>
 | Check local `.git` directory and add build information as annotations.
 
+| <<jkube-image>>
+| Add the image name into a `PodSpec` of replication controller, replication sets and deployments, if missing.
+
 | <<jkube-ingress>>
 | Create a default Ingress if missing or configured from {plugin-configuration-type} configuration
 
@@ -87,9 +90,6 @@ ifeval::["{plugin-type}" == "maven"]
 
 | <<jkube-docker-registry-secret>>
 | Add a `Secret` for your Docker registry credentials.
-
-| <<jkube-image>>
-| Add the image name into a `PodSpec` of replication controller, replication sets and deployments, if missing.
 
 | <<jkube-maven-issue-mgmt-enricher>>
 | Add Maven Issue Management information as annotations to the kubernetes/openshift resources
@@ -146,6 +146,8 @@ include::enricher/dependency/_jkube_dependency.adoc[]
 
 include::enricher/git/_jkube_git.adoc[]
 
+include::enricher/image/_jkube_image.adoc[]
+
 include::enricher/ingress/_jkube_ingress.adoc[]
 
 include::enricher/metadata/_jkube_metadata.adoc[]
@@ -165,10 +167,6 @@ ifeval::["{plugin-type}" == "maven"]
 ==== jkube-docker-registry-secret
 
 This enricher enables {goal-prefix}:resource Secret generation feature. You can read more about it <<resource-secrets, Secrets>>.
-
-
-[[jkube-image]]
-==== jkube-image
 
 This enricher is responsible for generating Ingress resource during {goal-prefix}:resource goal. You can read more about it in <<ingress-generation, Ingress Generation>> section.
 
