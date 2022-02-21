@@ -66,6 +66,9 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-git>>
 | Check local `.git` directory and add build information as annotations.
 
+| <<jkube-ingress>>
+| Create a default Ingress if missing or configured from {plugin-configuration-type} configuration
+
 | <<jkube-metadata>>
 | Add labels/annotations to generated Kubernetes resources
 
@@ -84,9 +87,6 @@ ifeval::["{plugin-type}" == "maven"]
 
 | <<jkube-image>>
 | Add the image name into a `PodSpec` of replication controller, replication sets and deployments, if missing.
-
-| <<jkube-ingress>>
-| Create a default Ingress if missing or configured from {plugin-configuration-type} configuration
 
 | <<jkube-maven-issue-mgmt-enricher>>
 | Add Maven Issue Management information as annotations to the kubernetes/openshift resources
@@ -146,6 +146,8 @@ include::enricher/dependency/_jkube_dependency.adoc[]
 
 include::enricher/git/_jkube_git.adoc[]
 
+include::enricher/ingress/_jkube_ingress.adoc[]
+
 include::enricher/metadata/_jkube_metadata.adoc[]
 
 include::enricher/namespace/_jkube_namespace.adoc[]
@@ -165,8 +167,6 @@ This enricher enables {goal-prefix}:resource Secret generation feature. You can 
 
 [[jkube-image]]
 ==== jkube-image
-
-include::enricher/_jkube_ingress.adoc[]
 
 This enricher is responsible for generating Ingress resource during {goal-prefix}:resource goal. You can read more about it in <<ingress-generation, Ingress Generation>> section.
 
