@@ -29,6 +29,7 @@ Usage:
 * Fix #1238: Port DefaultNamespaceEnricher integration test and documentation to gradle plugins
 * Fix #1239: Add documentation and integration test for DefaultServiceEnricher in gradle plugins
 * Fix #1240: Add documentation for DependencyEnricher
+* Fix #1257: Add documentation for ImageEnricher
 * Fix #1278: Enricher with type Job does not generate mandatory `spec.template.spec.restartPolicy`
 * Fix #1294: Prometheus and Jolokia agents can be disabled by setting their port to `0`
 
