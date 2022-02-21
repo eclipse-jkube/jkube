@@ -1,9 +1,11 @@
 [[jkube-ingress]]
 ==== jkube-ingress
 
-Enricher responsible for creation of Ingress either using opinionated defaults or as per provided XML configuration.
+Enricher responsible for creation of Ingress either using opinionated defaults or as per provided {plugin-configuration-type} configuration.
 This enricher gets activated when `jkube.createExternalUrls` is set to `true`.
 JKube generates Ingress only for Services which have either `expose=true` or `exposeUrl=true` labels set.
+
+For more information, check out <<ingress-generation, Ingress Generation>> section.
 
 [[enricher-jkube-ingress]]
 .Ingress enricher
