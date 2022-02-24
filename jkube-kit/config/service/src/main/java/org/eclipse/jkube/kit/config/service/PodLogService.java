@@ -58,8 +58,8 @@ public class PodLogService {
     public static final String OPERATION_UNDEPLOY = "undeploy";
     public static final String OPERATION_STOP = "stop";
 
-    private PodLogServiceContext context;
-    private KitLogger log;
+    private final PodLogServiceContext context;
+    private final KitLogger log;
 
     private Watch podWatcher;
     private LogWatch logWatcher;
