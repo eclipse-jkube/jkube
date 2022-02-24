@@ -14,37 +14,36 @@
 package org.eclipse.jkube.micronaut.generator;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 
-import mockit.Expectations;
-import mockit.Mocked;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class MicronautGeneratorTest {
-  @Mocked
+
   private GeneratorContext ctx;
-
-  @Mocked
-  private JavaProject project;
-
   private MicronautGenerator micronautGenerator;
 
   @Before
   public void setUp() {
-    // @formatter:off
-    new Expectations() {{
-      ctx.getProject(); result = project;
-    }};
-    // @formatter:on
+    ctx = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
+    final Properties projectProperties = new Properties();
+    projectProperties.put("jkube.generator.micronaut.mainClass", "com.example.Main");
+    when(ctx.getProject().getProperties()).thenReturn(projectProperties);
+    when(ctx.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
     micronautGenerator = new MicronautGenerator(ctx);
   }
 
@@ -59,15 +58,11 @@ public class MicronautGeneratorTest {
   @Test
   public void isApplicableWithMavenPlugin() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
-          .groupId("io.micronaut.build")
-          .artifactId("micronaut-maven-plugin")
-          .build()
-      );
-    }};
-    // @formatter:on
+    when(ctx.getProject().getPlugins()).thenReturn(Collections.singletonList(Plugin.builder()
+        .groupId("io.micronaut.build")
+        .artifactId("micronaut-maven-plugin")
+        .build()
+    ));
     // When
     final boolean result = micronautGenerator.isApplicable(Collections.emptyList());
     // Then
@@ -77,15 +72,11 @@ public class MicronautGeneratorTest {
   @Test
   public void isApplicableWithGradlePlugin() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
-          .groupId("io.micronaut.application")
-          .artifactId("io.micronaut.application.gradle.plugin")
-          .build()
-      );
-    }};
-    // @formatter:on
+    when(ctx.getProject().getPlugins()).thenReturn(Collections.singletonList(Plugin.builder()
+        .groupId("io.micronaut.application")
+        .artifactId("io.micronaut.application.gradle.plugin")
+        .build()
+    ));
     // When
     final boolean result = micronautGenerator.isApplicable(Collections.emptyList());
     // Then
@@ -93,21 +84,19 @@ public class MicronautGeneratorTest {
   }
 
   @Test
-  public void extractPortsWebIsFirst() {
+  public void customize_webPortIsFirst() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getCompileClassPathElements(); result = Collections.emptyList();
-      project.getOutputDirectory(); result = new File("MOCK");
-    }};
-    // @formatter:on
+    when(ctx.getProject().getCompileClassPathElements()).thenReturn(Collections.emptyList());
+    when(ctx.getProject().getOutputDirectory()).thenReturn(new File("MOCK"));
+
     // When
-    final List<String> result = micronautGenerator.extractPorts();
+    final List<ImageConfiguration> result = micronautGenerator.customize(new ArrayList<>(), false);
     // Then
-    assertThat(result).containsExactly(
-        "8080",
-        "8778",
-        "9779"
-    );
+    assertThat(result).singleElement()
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .extracting(BuildConfiguration::getPorts)
+        .asList()
+        .containsExactly("8080", "8778", "9779");
   }
+
 }

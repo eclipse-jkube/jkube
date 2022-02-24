@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.micronaut.generator;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -37,13 +36,9 @@ public class MicronautGenerator extends JavaExecGenerator {
     }
 
     @Override
-    protected List<String> extractPorts() {
-        final List<String> ports = new ArrayList<>();
-        addPortIfValid(ports, getConfig(Config.WEB_PORT, extractPort(
-            getMicronautConfiguration(getClassLoader(getProject())), null
-        )));
-        addPortIfValid(ports, getConfig(Config.JOLOKIA_PORT));
-        addPortIfValid(ports, getConfig(Config.PROMETHEUS_PORT));
-        return ports;
+    protected String getDefaultWebPort() {
+        return extractPort(
+            getMicronautConfiguration(getClassLoader(getProject())), super.getDefaultWebPort()
+        );
     }
 }

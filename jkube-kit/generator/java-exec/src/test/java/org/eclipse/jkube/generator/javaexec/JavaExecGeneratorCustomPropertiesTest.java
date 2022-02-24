@@ -24,35 +24,36 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class JavaExecGeneratorCustomPropertiesTest {
 
-  @Mocked
-  @SuppressWarnings("unused")
   private GeneratorContext generatorContext;
+  private Properties projectProperties;
+
+  @Before
+  public void setUp() throws Exception {
+    generatorContext = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
+    projectProperties = new Properties();
+    when(generatorContext.getProject().getProperties()).thenReturn(projectProperties);
+    when(generatorContext.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
+  }
 
   @Test
   public void customizeWithOverriddenPropertiesShouldAddImageConfiguration() {
     // Given
     final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
-    final Properties projectProperties = new Properties();
     projectProperties.put("jkube.generator.java-exec.mainClass", "com.example.Main");
     projectProperties.put("jkube.generator.java-exec.webPort", "8082");
     projectProperties.put("jkube.generator.java-exec.jolokiaPort", "8780");
     projectProperties.put("jkube.generator.java-exec.targetDir", "/other-dir");
     projectProperties.put("jkube.generator.from", "custom-image");
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getVersion(); result = "1.33.7-SNAPSHOT";
-      generatorContext.getProject().getProperties(); result = projectProperties;
-    }};
-    // @formatter:on
     // When
     final List<ImageConfiguration> result = new JavaExecGenerator(generatorContext)
         .customize(originalImageConfigurations, false);
@@ -72,5 +73,37 @@ public class JavaExecGeneratorCustomPropertiesTest {
         .hasFieldOrPropertyWithValue("ports", Arrays.asList("8082", "8780", "9779"))
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", false);
+  }
+
+  @Test
+  public void customize_withDisabledJolokia_shouldRemovePortAndAddEnv() {
+    // Given
+    projectProperties.put("jkube.generator.java-exec.jolokiaPort", "0");
+    projectProperties.put("jkube.generator.java-exec.mainClass", "com.example.Main");
+    // When
+    final List<ImageConfiguration> result = new JavaExecGenerator(generatorContext)
+        .customize(new ArrayList<>(), false);
+    // Then
+    assertThat(result).singleElement()
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .hasFieldOrPropertyWithValue("ports", Arrays.asList("8080", "9779"))
+        .extracting(BuildConfiguration::getEnv)
+        .hasFieldOrPropertyWithValue("AB_JOLOKIA_OFF", "true");
+  }
+
+  @Test
+  public void customize_withDisabledPrometheus_shouldRemovePortAndAddEnv() {
+    // Given
+    projectProperties.put("jkube.generator.java-exec.prometheusPort", "0");
+    projectProperties.put("jkube.generator.java-exec.mainClass", "com.example.Main");
+    // When
+    final List<ImageConfiguration> result = new JavaExecGenerator(generatorContext)
+        .customize(new ArrayList<>(), false);
+    // Then
+    assertThat(result).singleElement()
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .hasFieldOrPropertyWithValue("ports", Arrays.asList("8080", "8778"))
+        .extracting(BuildConfiguration::getEnv)
+        .hasFieldOrPropertyWithValue("AB_PROMETHEUS_OFF", "true");
   }
 }

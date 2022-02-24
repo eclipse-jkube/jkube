@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -31,22 +30,23 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import com.google.common.base.Strings;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+
+import com.google.common.base.Strings;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID;
@@ -57,8 +57,6 @@ import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.
  * @author roland
  */
 public class SpringBootGenerator extends JavaExecGenerator {
-
-    private static final String DEFAULT_SERVER_PORT = "8080";
 
     @AllArgsConstructor
     public enum Config implements Configs.Config {
@@ -125,19 +123,13 @@ public class SpringBootGenerator extends JavaExecGenerator {
         }
         return super.isFatJar();
     }
-
     @Override
-    protected List<String> extractPorts() {
-        List<String> answer = new ArrayList<>();
+    protected String getDefaultWebPort() {
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
             SpringBootUtil.getSpringBootActiveProfile(getProject()),
             JKubeProjectUtil.getClassLoader(getProject()));
         SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getProject()));
-        String port = properties.getProperty(propertyHelper.getServerPortPropertyKey(), DEFAULT_SERVER_PORT);
-        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.WEB_PORT, port));
-        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.JOLOKIA_PORT));
-        addPortIfValid(answer, getConfig(JavaExecGenerator.Config.PROMETHEUS_PORT));
-        return answer;
+        return properties.getProperty(propertyHelper.getServerPortPropertyKey(), super.getDefaultWebPort());
     }
 
     // =============================================================================

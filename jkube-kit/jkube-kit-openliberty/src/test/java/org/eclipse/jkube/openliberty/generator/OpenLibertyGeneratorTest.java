@@ -14,7 +14,7 @@
 package org.eclipse.jkube.openliberty.generator;
 
 import java.io.File;
-import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -22,91 +22,78 @@ import java.util.Properties;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedConstruction;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unused", "unchecked"})
 public class OpenLibertyGeneratorTest {
 
-    @Mocked
-    KitLogger log;
-    @Mocked
-    private GeneratorContext context;
-    @Mocked
-    private JavaProject project;
+  private GeneratorContext context;
+  private Properties projectProperties;
 
   @Before
-  public void setUp() throws Exception {
-    // @formatter:off
-    new Expectations() {{
-      context.getProject(); result = project;
-      project.getBaseDirectory(); result = "basedirectory"; minTimes = 0;
-
-      String tempDir = Files.createTempDirectory("openliberty-test-project").toFile().getAbsolutePath();
-      project.getOutputDirectory(); result = tempDir; minTimes = 0;
-      project.getVersion(); result = "1.0.0"; minTimes = 0;
-    }};
-    // @formatter:on
+  public void setUp() {
+    context = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
+    projectProperties = new Properties();
+    when(context.getProject().getProperties()).thenReturn(projectProperties);
+    when(context.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
   }
 
   @Test
-  public void getEnvWithFatJar(@Mocked FatJarDetector fatJarDetector, @Mocked FatJarDetector.Result mockResult) {
-    // Given
-    // @formatter:off
-    new Expectations() {{
-      fatJarDetector.scan(); result = mockResult;
-      mockResult.getArchiveFile(); result = new File("/the/archive/file");
-      mockResult.getMainClass(); result = OpenLibertyGenerator.LIBERTY_SELF_EXTRACTOR;
-    }};
-    // @formatter:on
-    // When
-    final Map<String, String> result = new OpenLibertyGenerator(context).getEnv(false);
-    // Then
-    assertThat(result, hasKey(OpenLibertyGenerator.LIBERTY_RUNNABLE_JAR));
-    assertThat(result, hasKey(OpenLibertyGenerator.JAVA_APP_JAR));
+  public void getEnvWithFatJar() {
+    try (MockedConstruction<FatJarDetector> ignore = mockConstruction(FatJarDetector.class,
+        withSettings().defaultAnswer(RETURNS_DEEP_STUBS),
+        (mock, ctx) -> {
+          // Given
+          when(mock.scan().getArchiveFile()).thenReturn(new File("/the/archive/file.jar"));
+          when(mock.scan().getMainClass()).thenReturn("wlp.lib.extract.SelfExtractRun");
+        })) {
+      // When
+      final Map<String, String> result = new OpenLibertyGenerator(context).getEnv(false);
+      // Then
+      assertThat(result)
+          .hasSize(2)
+          .containsEntry("LIBERTY_RUNNABLE_JAR", "file.jar")
+          .containsEntry("JAVA_APP_JAR", "file.jar");
+    }
   }
 
   @Test
   public void getEnvWithoutFatJar() {
     // Given
-    final Properties properties = new Properties();
-    properties.put("jkube.generator.openliberty.mainClass", "com.example.MainClass");
-    properties.put("jkube.generator.java-exec.mainClass", "com.example.main");
-    // @formatter:off
-    new Expectations() {{
-      context.getProject().getProperties(); result = properties;
-    }};
-    // @formatter:on
+    projectProperties.put("jkube.generator.openliberty.mainClass", "com.example.MainClass");
+    projectProperties.put("jkube.generator.java-exec.mainClass", "com.example.MainNotApplicable");
     // When
     final Map<String, String> result = new OpenLibertyGenerator(context).getEnv(false);
     // Then
-    assertThat(result, not(hasKey(OpenLibertyGenerator.LIBERTY_RUNNABLE_JAR)));
-    assertThat(result, not(hasKey(OpenLibertyGenerator.JAVA_APP_JAR)));
-    assertThat(result, hasEntry("JAVA_MAIN_CLASS", "com.example.MainClass"));
+    assertThat(result)
+        .hasSize(1)
+        .containsEntry("JAVA_MAIN_CLASS", "com.example.MainClass");
   }
 
   @Test
-  public void testExtractPorts() {
+  public void getDefaultWebPort_overridesDefault() {
+    // Given
+    projectProperties.put("jkube.generator.openliberty.mainClass", "com.example.Main");
     // When
-    final List<String> ports = new OpenLibertyGenerator(context).extractPorts();
+    final List<ImageConfiguration> result = new OpenLibertyGenerator(context)
+        .customize(new ArrayList<>(), false);
     // Then
-    assertThat(ports, notNullValue());
-    assertThat(ports, hasItem("9080"));
+    assertThat(result).singleElement()
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .extracting(BuildConfiguration::getPorts)
+        .asList()
+        .containsExactly("9080", "8778", "9779");
   }
 
   @Test
@@ -114,10 +101,12 @@ public class OpenLibertyGeneratorTest {
     // When
     final List<AssemblyFileSet> result = new OpenLibertyGenerator(context).addAdditionalFiles();
     // Then
-    assertThat(result, containsInAnyOrder(
-        hasProperty("directory", equalTo(new File("src/main/jkube-includes"))),
-        hasProperty("directory", equalTo(new File("src/main/jkube-includes/bin"))),
-        hasProperty("directory", equalTo(new File("src/main/liberty/config")))
-    ));
+    assertThat(result)
+        .extracting(AssemblyFileSet::getDirectory)
+        .containsExactlyInAnyOrder(
+            new File("src/main/jkube-includes"),
+            new File("src/main/jkube-includes/bin"),
+            new File("src/main/liberty/config")
+        );
   }
 }

@@ -255,7 +255,7 @@ public class QuarkusGeneratorTest {
   @Test
   public void assembly_withFastJarInTarget_shouldReturnFastJarAssemblyInImage() throws IOException {
     // Given
-    withFastJarInTarget();
+    withFastJarInTarget(baseDir);
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
         .customize(new ArrayList<>(), false);
@@ -314,7 +314,7 @@ public class QuarkusGeneratorTest {
   @Test
   public void assembly_withNativeBinaryInTarget_shouldReturnNativeAssemblyInImage() throws IOException {
     // Given
-    withNativeBinaryInTarget();
+    withNativeBinaryInTarget(baseDir);
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
         .customize(new ArrayList<>(), false);
@@ -412,7 +412,7 @@ public class QuarkusGeneratorTest {
   public void assembly_withManualConfigAndFastJarAndLegacyInTarget_shouldReturnAssemblyForQuarkusAppInImage() throws IOException {
     // Given
     projectProps.put("quarkus.package.type", "fast-jar");
-    withFastJarInTarget();
+    withFastJarInTarget(baseDir);
     withLegacyJarInTarget();
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx)
@@ -467,8 +467,8 @@ public class QuarkusGeneratorTest {
         .containsExactly(baseImage);
   }
 
-  private void withNativeBinaryInTarget() throws IOException {
-    new File(baseDir, "sample-runner").createNewFile();
+  protected static void withNativeBinaryInTarget(File targetDir) throws IOException {
+    new File(targetDir, "sample-runner").createNewFile();
   }
 
   private void withUberJarInTarget() throws IOException {
@@ -482,8 +482,8 @@ public class QuarkusGeneratorTest {
     new File(lib, "dependency.jar");
   }
 
-  private void withFastJarInTarget() throws IOException {
-    final File quarkusApp = new File(baseDir, "quarkus-app");
+  protected static void withFastJarInTarget(File targetDir) throws IOException {
+    final File quarkusApp = new File(targetDir, "quarkus-app");
     FileUtils.forceMkdir(quarkusApp);
     FileUtils.forceMkdir(new File(quarkusApp, "app"));
     FileUtils.forceMkdir(new File(quarkusApp, "lib"));

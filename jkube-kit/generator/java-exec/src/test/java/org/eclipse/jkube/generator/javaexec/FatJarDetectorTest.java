@@ -17,14 +17,12 @@ import java.io.File;
 import java.net.URL;
 import java.nio.file.Paths;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FatJarDetectorTest {
 
@@ -34,11 +32,11 @@ public class FatJarDetectorTest {
   @Test
   public void scanDirectoryDoesntExist() {
     final File nonExistentDirectory = new File(temporaryFolder.getRoot(), "I-dont-exist");
-    assertThat(nonExistentDirectory.exists(), is(false));
     // When
     FatJarDetector.Result result = new FatJarDetector(nonExistentDirectory).scan();
     // Then
-    assertThat(result, nullValue());
+    assertThat(nonExistentDirectory).doesNotExist();
+    assertThat(result).isNull();
   }
 
   @Test
@@ -48,11 +46,14 @@ public class FatJarDetectorTest {
     // When
     FatJarDetector.Result result = new FatJarDetector(Paths.get(testDirUrl.toURI()).toFile()).scan();
     // Then
-    assertNotNull(result);
-    assertThat(result.getArchiveFile().exists(), is(true));
-    assertThat(result.getArchiveFile().getName(), is("test.jar"));
-    assertThat(result.getArchiveFile().getParentFile().getName(), is("fatjar-simple"));
-    assertThat(result.getMainClass(), is("org.springframework.boot.loader.JarLauncher"));
-    assertThat(result.getManifestEntry("Archiver-Version"), is("Plexus Archiver"));
+    assertThat(result)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("mainClass", "org.springframework.boot.loader.JarLauncher")
+        .extracting(FatJarDetector.Result::getArchiveFile)
+        .asInstanceOf(InstanceOfAssertFactories.FILE)
+        .exists()
+        .hasName("test.jar")
+        .hasParent(testDirUrl.getFile());
+    assertThat(result.getManifestEntry("Archiver-Version")).isEqualTo("Plexus Archiver");
   }
 }

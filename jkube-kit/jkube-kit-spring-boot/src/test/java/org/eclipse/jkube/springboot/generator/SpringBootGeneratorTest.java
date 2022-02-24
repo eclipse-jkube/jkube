@@ -14,26 +14,27 @@
 package org.eclipse.jkube.springboot.generator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -111,9 +112,14 @@ public class SpringBootGeneratorTest {
     // When
     final List<ImageConfiguration> configs = springBootGenerator.customize(new ArrayList<>(), true);
     // Then
-    assertEquals(1, configs.size());
-    Map<String, String> env = configs.get(0).getBuildConfiguration().getEnv();
-    assertNull(env.get("JAVA_OPTIONS"));
+    assertThat(configs)
+        .singleElement()
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .hasFieldOrPropertyWithValue("ports", Arrays.asList("8080", "8778", "9779"))
+        .extracting(BuildConfiguration::getEnv)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .hasSize(1)
+        .containsEntry("JAVA_APP_DIR", "/deployments");
   }
 
   private void withPlugins(List<Plugin> plugins) {
