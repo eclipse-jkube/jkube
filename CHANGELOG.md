@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.7.0-SNAPSHOT
+* Fix #1315: Pod Log Service works for Jobs with no selector
 * Fix #1126: Liveness and readiness TCP ports are not serialized as numbers when defined as numbers
 * Fix #1211: Port `java-options-env-merge` integration test and ContainerEnvJavaOptionsMergeEnricher documentation to gradle
 * Fix #1214: Add integration test to verify `jkube.debug.enabled` flag works as expected
