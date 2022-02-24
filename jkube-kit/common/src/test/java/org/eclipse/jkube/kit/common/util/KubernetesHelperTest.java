@@ -27,6 +27,10 @@ import java.util.Set;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -458,6 +462,43 @@ public class KubernetesHelperTest {
                 .satisfies(h -> assertThat(h).element(1)
                      .hasFieldOrPropertyWithValue("name", "User-Agent")
                      .hasFieldOrPropertyWithValue("value", "MyUserAgent"));
+    }
+
+    @Test
+    public void extractPodLabelSelector_withJobWithSelector_shouldReturnSelector() {
+        // Given
+        final KubernetesList list = new KubernetesListBuilder()
+            .addToItems(new JobBuilder()
+                .withNewSpec()
+                .withNewSelector().addToMatchLabels("selector", "label").endSelector()
+                .withNewTemplate().withNewMetadata().addToLabels("template", "label").endMetadata().endTemplate()
+                .endSpec()
+                .build())
+            .build();
+        // When
+        final LabelSelector result = KubernetesHelper.extractPodLabelSelector(list.getItems());
+        // Then
+        assertThat(result.getMatchLabels())
+            .hasSize(1)
+            .containsEntry("selector", "label");
+    }
+
+    @Test
+    public void extractPodLabelSelector_withJobWithNoSelector_shouldReturnTemplateLabels() {
+        // Given
+        final KubernetesList list = new KubernetesListBuilder()
+            .addToItems(new JobBuilder()
+                .withNewSpec()
+                .withNewTemplate().withNewMetadata().addToLabels("template", "label").endMetadata().endTemplate()
+                .endSpec()
+                .build())
+            .build();
+        // When
+        final LabelSelector result = KubernetesHelper.extractPodLabelSelector(list.getItems());
+        // Then
+        assertThat(result.getMatchLabels())
+            .hasSize(1)
+            .containsEntry("template", "label");
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {

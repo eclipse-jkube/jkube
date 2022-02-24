@@ -512,13 +512,29 @@ public class KubernetesHelper {
                 selector = spec.getSelector();
             }
         } else if (entity instanceof Job) {
-            Job resource = (Job) entity;
-            JobSpec spec = resource.getSpec();
-            if (spec != null) {
-                selector = spec.getSelector();
-            }
+            selector = toLabelSelector((Job) entity);
         }
         return selector;
+    }
+
+    private static LabelSelector toLabelSelector(Job job) {
+      LabelSelector ret = null;
+      final JobSpec spec = job.getSpec();
+      if (spec != null) {
+        if (spec.getSelector() != null) {
+          ret = spec.getSelector();
+        } else if (spec.getTemplate() != null) {
+          ret = toLabelSelector(spec.getTemplate().getMetadata());
+        }
+      }
+      return ret;
+    }
+
+    private static LabelSelector toLabelSelector(ObjectMeta metadata) {
+      if (metadata != null && metadata.getLabels() != null && !metadata.getLabels().isEmpty()) {
+          return toLabelSelector(metadata.getLabels());
+      }
+      return null;
     }
 
     private static LabelSelector toLabelSelector(Map<String, String> matchLabels) {
