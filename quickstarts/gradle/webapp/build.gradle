@@ -26,3 +26,15 @@ compileJava {
 compileTestJava {
     options.encoding = 'UTF-8'
 }
+
+/*
+kubernetes {
+    generator {
+        config {
+            'webapp' {
+                server = "jetty"
+            }
+        }
+    }
+}
+*/
