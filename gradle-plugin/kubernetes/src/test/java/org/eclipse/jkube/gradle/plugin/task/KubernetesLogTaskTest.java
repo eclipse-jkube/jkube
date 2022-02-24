@@ -56,7 +56,7 @@ public class KubernetesLogTaskTest {
 
     // Then
     verify(taskEnvironment.logger).lifecycle("k8s: Running in Kubernetes mode");
-    verify(taskEnvironment.logger).warn("k8s: No selector in deployment so cannot watch pods!");
+    verify(taskEnvironment.logger).warn("k8s: No selector detected and no Pod name specified, cannot watch Pods!");
   }
 
   @Test

@@ -63,8 +63,8 @@ public class PodLogService {
 
     private Watch podWatcher;
     private LogWatch logWatcher;
-    private Map<String, Pod> addedPods = new ConcurrentHashMap<>();
-    private CountDownLatch terminateLatch = new CountDownLatch(1);
+    private final Map<String, Pod> addedPods = new ConcurrentHashMap<>();
+    private final CountDownLatch terminateLatch = new CountDownLatch(1);
     private String watchingPodName;
     private CountDownLatch logWatchTerminateLatch;
 
@@ -79,7 +79,7 @@ public class PodLogService {
 
         LabelSelector selector = KubernetesHelper.extractPodLabelSelector(entities);
 
-        if (selector != null) {
+        if (selector != null || StringUtils.isNotBlank(context.getPodName())) {
             String ctrlCMessage = "stop tailing the log";
             if (StringUtils.isNotBlank(onExitOperation)) {
                 final String onExitOperationLower = onExitOperation.toLowerCase().trim();
@@ -113,18 +113,19 @@ public class PodLogService {
             }
             waitAndLogPods(kubernetes, namespace, selector, watchAddedPodsOnly, ctrlCMessage, followLog, ignorePodsOlderThan, waitInCurrentThread);
         } else {
-            log.warn("No selector in deployment so cannot watch pods!");
+            log.warn("No selector detected and no Pod name specified, cannot watch Pods!");
         }
     }
 
     private void waitAndLogPods(final KubernetesClient kubernetes, final String namespace, LabelSelector selector, final boolean watchAddedPodsOnly, final String ctrlCMessage, final boolean
             followLog, Date ignorePodsOlderThan, boolean waitInCurrentThread) {
-        FilterWatchListDeletable<Pod, PodList> pods = withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
-        if (context.getPodName() != null) {
+        final FilterWatchListDeletable<Pod, PodList> pods;
+        if (StringUtils.isNotBlank(context.getPodName())) {
             log.info("Watching pod with selector %s, and name %s waiting for a running pod...", selector, context.getPodName());
-            pods = pods.withField("metadata.name", context.getPodName());
+            pods = kubernetes.pods().inNamespace(namespace).withField("metadata.name", context.getPodName());
         } else {
             log.info("Watching pods with selector %s waiting for a running pod...", selector);
+            pods =  withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
         }
         Pod latestPod = null;
         boolean runningPod = false;
