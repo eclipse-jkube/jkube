@@ -30,6 +30,7 @@ Usage:
 * Fix #1239: Add documentation and integration test for DefaultServiceEnricher in gradle plugins
 * Fix #1240: Add documentation for DependencyEnricher
 * Fix #1278: Enricher with type Job does not generate mandatory `spec.template.spec.restartPolicy`
+* Fix #1294: Prometheus and Jolokia agents can be disabled by setting their port to `0`
 
 ### 1.6.0 (2022-02-03)
 * Fix #1047: Gradle image build should use the Quarkus generator for Quarkus projects

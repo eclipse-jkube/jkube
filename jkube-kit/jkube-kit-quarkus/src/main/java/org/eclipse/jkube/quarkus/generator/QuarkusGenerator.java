@@ -70,18 +70,24 @@ public class QuarkusGenerator extends JavaExecGenerator {
   }
 
   @Override
-  protected List<String> extractPorts() {
-    final List<String> ports = new ArrayList<>();
-    final String quarkusPort = extractPort(
-        getProject(),
-        getQuarkusConfiguration(getProject()),
-        null);
-    addPortIfValid(ports, getConfig(JavaExecGenerator.Config.WEB_PORT, quarkusPort));
-    if (!isNativeImage()) {
-      addPortIfValid(ports, getConfig(JavaExecGenerator.Config.JOLOKIA_PORT));
-      addPortIfValid(ports, getConfig(JavaExecGenerator.Config.PROMETHEUS_PORT));
+  protected String getDefaultWebPort() {
+    return extractPort(getProject(), getQuarkusConfiguration(getProject()), super.getDefaultWebPort());
+  }
+
+  @Override
+  protected String getDefaultJolokiaPort() {
+    if (isNativeImage()) {
+      return "0";
     }
-    return ports;
+    return super.getDefaultJolokiaPort();
+  }
+
+  @Override
+  protected String getDefaultPrometheusPort() {
+    if (isNativeImage()) {
+      return "0";
+    }
+    return super.getDefaultPrometheusPort();
   }
 
   @Override

@@ -54,6 +54,9 @@ public class JavaExecGenerator extends BaseGenerator {
     }
   }
 
+    private static final String WEB_PORT_DEFAULT = "8080";
+    private static final String JOLOKIA_PORT_DEFAULT = "8778";
+    private static final String PROMETHEUS_PORT_DEFAULT = "9779";
     // Environment variable used for specifying a main class
     static final String JAVA_MAIN_CLASS_ENV_VAR = "JAVA_MAIN_CLASS";
     protected static final String JAVA_OPTIONS = "JAVA_OPTIONS";
@@ -84,13 +87,13 @@ public class JavaExecGenerator extends BaseGenerator {
     @AllArgsConstructor
     public enum Config implements Configs.Config {
         // Webport to expose. Set to 0 if no port should be exposed
-        WEB_PORT("webPort", "8080"),
+        WEB_PORT("webPort", null),
 
         // Jolokia from the base image to expose. Set to 0 if no such port should be exposed
-        JOLOKIA_PORT("jolokiaPort", "8778"),
+        JOLOKIA_PORT("jolokiaPort", null),
 
         // Prometheus port from base image. Set to 0 if no required
-        PROMETHEUS_PORT("prometheusPort", "9779"),
+        PROMETHEUS_PORT("prometheusPort", null),
 
         // Basedirectory where to put the application data into (within the Docker image
         TARGET_DIR("targetDir", "/deployments"),
@@ -125,30 +128,35 @@ public class JavaExecGenerator extends BaseGenerator {
     @Override
     public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
         final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
-        final BuildConfiguration.BuildConfigurationBuilder buildBuilder = BuildConfiguration.builder();
-
-        buildBuilder.ports(extractPorts());
-
-        addSchemaLabels(buildBuilder, log);
-        addFrom(buildBuilder);
-        if (!prePackagePhase) {
-            // Only add assembly if not in a pre-package phase where the referenced files
-            // won't be available.
-            buildBuilder.assembly(createAssembly());
-        }
-        Map<String, String> envMap = getEnv(prePackagePhase);
-        envMap.put("JAVA_APP_DIR", getConfig(Config.TARGET_DIR));
-        buildBuilder.env(envMap);
-        addLatestTagIfSnapshot(buildBuilder);
-        buildBuilder.workdir(getBuildWorkdir());
-        buildBuilder.entryPoint(getBuildEntryPoint());
         imageBuilder
                 .name(getImageName())
                 .registry(getRegistry())
                 .alias(getAlias())
-                .build(buildBuilder.build());
+                .build(initImageBuildConfiguration(prePackagePhase).build());
         configs.add(imageBuilder.build());
         return configs;
+    }
+
+    protected BuildConfiguration.BuildConfigurationBuilder initImageBuildConfiguration(boolean prePackagePhase) {
+      final BuildConfiguration.BuildConfigurationBuilder buildBuilder = BuildConfiguration.builder();
+      addSchemaLabels(buildBuilder, log);
+      addFrom(buildBuilder);
+      if (!prePackagePhase) {
+        // Only add assembly if not in a pre-package phase where the referenced files
+        // won't be available.
+        buildBuilder.assembly(createAssembly());
+      }
+      getEnv(prePackagePhase).forEach(buildBuilder::putEnv);
+      buildBuilder.putEnv("JAVA_APP_DIR", getConfig(Config.TARGET_DIR));
+
+      addWebPort(buildBuilder);
+      addJolokiaPort(buildBuilder);
+      addPrometheusPort(buildBuilder);
+
+      addLatestTagIfSnapshot(buildBuilder);
+      buildBuilder.workdir(getBuildWorkdir());
+      buildBuilder.entryPoint(getBuildEntryPoint());
+      return buildBuilder;
     }
 
     /**
@@ -241,18 +249,45 @@ public class JavaExecGenerator extends BaseGenerator {
         return fatJarDetector.scan();
     }
 
-    protected List<String> extractPorts() {
-        List<String> answer = new ArrayList<>();
-        addPortIfValid(answer, getConfig(Config.WEB_PORT));
-        addPortIfValid(answer, getConfig(Config.JOLOKIA_PORT));
-        addPortIfValid(answer, getConfig(Config.PROMETHEUS_PORT));
-        return answer;
+    protected String getDefaultWebPort() {
+      return WEB_PORT_DEFAULT;
     }
 
-    protected static void addPortIfValid(List<String> list, String port) {
-        if (StringUtils.isNotBlank(port) && Integer.parseInt(port) > 0) {
-            list.add(port);
-        }
+    protected String getDefaultJolokiaPort() {
+      return JOLOKIA_PORT_DEFAULT;
+    }
+
+    protected String getDefaultPrometheusPort() {
+      return PROMETHEUS_PORT_DEFAULT;
+    }
+
+    private void addWebPort(BuildConfiguration.BuildConfigurationBuilder buildConfigBuilder) {
+      final String webPort = getConfig(Config.WEB_PORT, getDefaultWebPort());
+      if (isPortValid(webPort)) {
+        buildConfigBuilder.port(webPort);
+      }
+    }
+
+    private void addJolokiaPort(BuildConfiguration.BuildConfigurationBuilder buildConfigBuilder) {
+      final String jolokiaPort = getConfig(Config.JOLOKIA_PORT, getDefaultJolokiaPort());
+      if (isPortValid(jolokiaPort)) {
+        buildConfigBuilder.port(jolokiaPort);
+      } else {
+        buildConfigBuilder.putEnv("AB_JOLOKIA_OFF", "true");
+      }
+    }
+
+    private void addPrometheusPort(BuildConfiguration.BuildConfigurationBuilder buildConfigBuilder) {
+      final String jolokiaPort = getConfig(Config.PROMETHEUS_PORT, getDefaultPrometheusPort());
+      if (isPortValid(jolokiaPort)) {
+        buildConfigBuilder.port(jolokiaPort);
+      } else {
+        buildConfigBuilder.putEnv("AB_PROMETHEUS_OFF", "true");
+      }
+    }
+
+    protected static boolean isPortValid(String port) {
+      return StringUtils.isNotBlank(port) && port.matches("\\d+") && Integer.parseInt(port) > 0;
     }
 
     protected String getBuildWorkdir() {

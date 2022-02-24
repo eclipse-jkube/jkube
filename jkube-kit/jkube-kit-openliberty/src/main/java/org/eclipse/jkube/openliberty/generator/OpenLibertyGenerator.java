@@ -26,9 +26,9 @@ import java.util.Map;
 
 public class OpenLibertyGenerator extends JavaExecGenerator {
 
-    protected static final String LIBERTY_SELF_EXTRACTOR = "wlp.lib.extract.SelfExtractRun";
-    protected static final String LIBERTY_RUNNABLE_JAR = "LIBERTY_RUNNABLE_JAR";
-    protected static final String JAVA_APP_JAR = "JAVA_APP_JAR";
+    private static final String LIBERTY_SELF_EXTRACTOR = "wlp.lib.extract.SelfExtractRun";
+    private static final String LIBERTY_RUNNABLE_JAR = "LIBERTY_RUNNABLE_JAR";
+    private static final String JAVA_APP_JAR = "JAVA_APP_JAR";
 
     public OpenLibertyGenerator(GeneratorContext context) {
         super(context, "openliberty");
@@ -46,14 +46,9 @@ public class OpenLibertyGenerator extends JavaExecGenerator {
 
     }
 
-    // Override extractPorts so that we default to 9080 rather than 8080 for the web port.
     @Override
-    protected List<String> extractPorts() {
-        List<String> ret = new ArrayList<>();
-        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.WEB_PORT, "9080"));
-        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.JOLOKIA_PORT));
-        addPortIfValid(ret, getConfig(JavaExecGenerator.Config.PROMETHEUS_PORT));
-        return ret;
+    protected String getDefaultWebPort() {
+        return "9080";
     }
 
     @Override

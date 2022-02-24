@@ -14,15 +14,16 @@
 package org.eclipse.jkube.vertx.generator;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 /**
  * Vert.x Generator.
@@ -119,13 +120,13 @@ public class VertxGenerator extends JavaExecGenerator {
   }
 
   @Override
-  protected List<String> extractPorts() {
-    Map<String, Integer> extractedPorts = new VertxPortsExtractor(log).extract(getProject());
-    List<String> ports = new ArrayList<>();
-    for (Integer p : extractedPorts.values()) {
-      ports.add(String.valueOf(p));
+  protected BuildConfiguration.BuildConfigurationBuilder initImageBuildConfiguration(boolean prePackagePhase) {
+    final BuildConfiguration.BuildConfigurationBuilder buildConfig = super.initImageBuildConfiguration(prePackagePhase);
+    final Map<String, Integer> extractedPorts = new VertxPortsExtractor(log).extract(getProject());
+    if (!extractedPorts.isEmpty()) {
+      buildConfig.ports(extractedPorts.values().stream().map(String::valueOf).collect(Collectors.toList()));
     }
-    // If there are no specific vertx ports found, we reuse the ports from the JavaExecGenerator
-    return ports.isEmpty() ? super.extractPorts() : ports;
+    return buildConfig;
   }
+
 }
