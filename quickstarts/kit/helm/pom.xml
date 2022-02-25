@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.kit</groupId>
   <artifactId>helm</artifactId>
-  <version>1.6.0</version>
+  <version>1.7.0</version>
   <name>Eclipse JKube :: Quickstarts :: Kit :: Helm</name>
   <packaging>jar</packaging>
 

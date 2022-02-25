@@ -34,8 +34,4 @@ another with the next snapshot version.
    ./scripts/quickstarts.sh version
    ```
 0. Update documentation
-   0. Add new entry to compatibility matrices
-      0. [./kubernetes-maven-plugin/doc/src/main/asciidoc/inc/_compatibility.adoc](./kubernetes-maven-plugin/doc/src/main/asciidoc/inc/_compatibility.adoc)
-      0. [./kubernetes-maven-plugin/README.md](./kubernetes-maven-plugin/README.md)
-      0. [./openshift-maven-plugin/doc/src/main/asciidoc/inc/_compatibility.adoc](./openshift-maven-plugin/doc/src/main/asciidoc/inc/_compatibility.adoc)
    0. Set date and version in [CHANGELOG.md](./CHANGELOG.md) SNAPSHOT entry
