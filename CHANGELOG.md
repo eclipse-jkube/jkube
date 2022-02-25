@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.7.0-SNAPSHOT
+### 1.7.0 (2022-02-25)
 * Fix #1315: Pod Log Service works for Jobs with no selector
 * Fix #1126: Liveness and readiness TCP ports are not serialized as numbers when defined as numbers
 * Fix #1211: Port `java-options-env-merge` integration test and ContainerEnvJavaOptionsMergeEnricher documentation to gradle
