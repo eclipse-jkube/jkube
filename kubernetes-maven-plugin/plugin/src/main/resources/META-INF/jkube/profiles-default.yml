@@ -45,7 +45,6 @@
     # Route exposure
     - jkube-openshift-service-expose
     - jkube-openshift-route
-    - jkube-openshift-deploymentconfig
     - jkube-openshift-project
 
     # Ingress

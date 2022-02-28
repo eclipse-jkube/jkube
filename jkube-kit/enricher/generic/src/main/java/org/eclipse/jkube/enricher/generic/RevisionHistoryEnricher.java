@@ -54,32 +54,30 @@ public class RevisionHistoryEnricher extends BaseEnricher {
 
         log.info("Adding revision history limit to %s", maxRevisionHistories);
 
-        if(platformMode == PlatformMode.kubernetes) {
-            builder.accept(new TypedVisitor<io.fabric8.kubernetes.api.model.apps.DeploymentBuilder>() {
-                @Override
-                public void visit(io.fabric8.kubernetes.api.model.apps.DeploymentBuilder item) {
-                    item.editOrNewSpec()
-                            .withRevisionHistoryLimit(maxRevisionHistories)
-                            .endSpec();
-                }
-            });
-            builder.accept(new TypedVisitor<io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder>() {
-                @Override
-                public void visit(io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder item) {
-                    item.editOrNewSpec()
-                            .withRevisionHistoryLimit(maxRevisionHistories)
-                            .endSpec();
-                }
-            });
-        } else {
-            builder.accept(new TypedVisitor<DeploymentConfigBuilder>() {
-                @Override
-                public void visit(DeploymentConfigBuilder item) {
-                    item.editOrNewSpec()
-                            .withRevisionHistoryLimit(maxRevisionHistories)
-                            .endSpec();
-                }
-            });
-        }
+        builder.accept(new TypedVisitor<io.fabric8.kubernetes.api.model.apps.DeploymentBuilder>() {
+            @Override
+            public void visit(io.fabric8.kubernetes.api.model.apps.DeploymentBuilder item) {
+                item.editOrNewSpec()
+                    .withRevisionHistoryLimit(maxRevisionHistories)
+                    .endSpec();
+            }
+        });
+        builder.accept(new TypedVisitor<io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder>() {
+            @Override
+            public void visit(io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder item) {
+                item.editOrNewSpec()
+                    .withRevisionHistoryLimit(maxRevisionHistories)
+                    .endSpec();
+            }
+        });
+
+        builder.accept(new TypedVisitor<DeploymentConfigBuilder>() {
+            @Override
+            public void visit(DeploymentConfigBuilder item) {
+                item.editOrNewSpec()
+                    .withRevisionHistoryLimit(maxRevisionHistories)
+                    .endSpec();
+            }
+        });
     }
 }
