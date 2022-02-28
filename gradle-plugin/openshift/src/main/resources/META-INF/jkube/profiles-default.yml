@@ -42,11 +42,6 @@
     - jkube-configmap-file
     - jkube-secret-file
 
-    # Route exposure
-    - jkube-openshift-service-expose
-    - jkube-openshift-route
-    - jkube-openshift-deploymentconfig
-    - jkube-openshift-project
 
     # -----------------------------------------
     # TODO: Document and verify enrichers below
@@ -65,6 +60,12 @@
 
     # Value merge enrichers
     - jkube-container-env-java-options
+
+      # Route exposure
+    - jkube-openshift-service-expose
+    - jkube-openshift-route
+    - jkube-openshift-deploymentconfig
+    - jkube-openshift-project
 
     # Dependencies shouldn't be enriched anymore, therefore it's last in the list
     - jkube-dependency
