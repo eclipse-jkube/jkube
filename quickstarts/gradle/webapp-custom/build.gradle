@@ -33,7 +33,6 @@ kubernetes {
             'webapp' {
                 from = "tomcat:jdk11-openjdk-slim"
                 targetDir = "/usr/local/tomcat/webapps"
-                cmd = "catalina.sh run"
             }
         }
     }

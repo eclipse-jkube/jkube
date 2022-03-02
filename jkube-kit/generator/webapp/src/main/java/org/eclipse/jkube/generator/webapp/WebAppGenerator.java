@@ -108,8 +108,12 @@ public class WebAppGenerator extends BaseGenerator {
 
     buildBuilder.from(getFrom(handler))
         .ports(handler.exposedPorts())
-        .cmd(Arguments.builder().shell(getDockerRunCommand(handler)).build())
         .env(getEnv(handler));
+
+    String dockerRunCommand = getDockerRunCommand(handler);
+    if (dockerRunCommand != null) {
+      buildBuilder.cmd(Arguments.builder().shell(dockerRunCommand).build());
+    }
 
     handler.runCmds().forEach(buildBuilder::runCmd);
 
