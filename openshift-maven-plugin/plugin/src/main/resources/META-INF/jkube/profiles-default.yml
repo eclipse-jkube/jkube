@@ -12,11 +12,13 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-# Default profiles delivered with omp
+# Default profiles delivered with openshift-maven-plugin
 
 # tag::default[]
 # Default profile which is always activated
 - name: default
+  # This profile overrides the default profile in the Kubernetes plugin give a higher priority so it takes precedence
+  order: 10
   enricher:
     # The order given in "includes" is the order in which enrichers are called
     includes:
@@ -42,11 +44,6 @@
     - jkube-configmap-file
     - jkube-secret-file
 
-    # Route exposure
-    - jkube-openshift-service-expose
-    - jkube-openshift-route
-    - jkube-openshift-project
-
     # -----------------------------------------
     # TODO: Document and verify enrichers below
     # Health checks
@@ -59,14 +56,19 @@
     - jkube-healthcheck-docker
     - jkube-healthcheck-webapp
     - jkube-healthcheck-micronaut
+
+    # Route exposure
+    - jkube-openshift-service-expose
+    # DeploymentConfigEnricher converts Deployment into DeploymentConfig
+    - jkube-openshift-deploymentconfig
+    - jkube-openshift-route
+    - jkube-openshift-project
+
     - jkube-prometheus
     - jkube-service-discovery
 
     # Value merge enrichers
     - jkube-container-env-java-options
-
-    # DeploymentConfigEnricher converts Deployment into DeploymentConfig
-    - jkube-openshift-deploymentconfig
 
     # Dependencies shouldn't be enriched anymore, therefore it's last in the list
     - jkube-dependency
