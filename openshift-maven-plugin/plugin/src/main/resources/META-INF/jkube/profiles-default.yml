@@ -23,7 +23,6 @@
     # The order given in "includes" is the order in which enrichers are called
     includes:
     - jkube-metadata
-    - jkube-name
     - jkube-controller
     - jkube-controller-from-configuration
     - jkube-service
@@ -77,6 +76,7 @@
     - jkube-triggers-annotation
     - jkube-openshift-imageChangeTrigger
 
+    - jkube-name
       # ReplicaCountEnricher overrides .spec.replicas field of any resource (even dependencies)
     - jkube-replicas
 

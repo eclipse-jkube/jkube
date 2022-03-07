@@ -19,11 +19,9 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.api.Condition;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -34,21 +32,21 @@ import org.junit.Test;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NameEnricherTest {
 
-  @Mocked
   private JKubeEnricherContext context;
 
   private Properties properties;
-  private ProcessorConfig processorConfig;
   private KubernetesListBuilder klb;
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   @Before
   public void setUp() {
     properties = new Properties();
-    processorConfig = new ProcessorConfig();
+    ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
     // @formatter:off
     klb.addToItems(
@@ -58,12 +56,11 @@ public class NameEnricherTest {
         new ReplicationControllerBuilder().withNewMetadata().endMetadata().build(),
         new NamespaceBuilder().build()
     );
-    new Expectations() {{
-      context.getProperties(); result = properties;
-      context.getConfiguration().getProcessorConfig(); result = processorConfig;
-      context.getGav().getSanitizedArtifactId(); result = "artifact-id";
-    }};
     // @formatter:on
+    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+    when(context.getProperties()).thenReturn(properties);
+    when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
+    when(context.getGav().getSanitizedArtifactId()).thenReturn("artifact-id");
   }
 
   @Test
@@ -104,5 +101,32 @@ public class NameEnricherTest {
         .filteredOn(nonNull)
         .extracting(ObjectMeta::getName)
         .containsExactly("custom-name", "custom-name", "custom-name", "custom-name");
+  }
+
+  @Test
+  public void create_withAlreadyExistingName_shouldKeepExistingName() {
+    // Given
+    klb = new KubernetesListBuilder();
+    klb.addToItems(new ServiceBuilder().withNewMetadata().withName("existing-name").endMetadata().build());
+    // When
+    new NameEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertThat(klb.build().getItems())
+        .singleElement()
+        .hasFieldOrPropertyWithValue("metadata.name", "existing-name");
+  }
+
+  @Test
+  public void create_withCustomNameAndAlreadyExistingName_shouldOverrideExistingName() {
+    // Given
+    klb = new KubernetesListBuilder();
+    properties.put("jkube.enricher.jkube-name.name", "custom-name");
+    // When
+    klb.addToItems(new ServiceBuilder().withNewMetadata().withName("existing-name").endMetadata().build());
+    new NameEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertThat(klb.build().getItems())
+        .singleElement()
+        .hasFieldOrPropertyWithValue("metadata.name", "custom-name");
   }
 }
