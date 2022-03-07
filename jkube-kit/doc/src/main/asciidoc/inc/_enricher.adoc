@@ -78,6 +78,9 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-namespace>>
 | Set the _Namespace_ of the generated and processed Kubernetes resources metadata and optionally create a new Namespace
 
+| <<jkube-name>>
+| Add a default name to every object which misses a name.
+
 ifeval::["{goal-prefix}" == "oc"]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
 endif::[]
@@ -115,9 +118,6 @@ ifeval::["{plugin-type}" == "maven"]
 
 | <<jkube-maven-scm-enricher>>
 | Add Maven SCM information as annotations to the kubernetes/openshift resources
-
-| <<jkube-name>>
-| Add a default name to every object which misses a name.
 
 | <<jkube-prometheus>>
 | Add Prometheus annotations.
@@ -161,6 +161,8 @@ include::enricher/metadata/_jkube_metadata.adoc[]
 
 include::enricher/namespace/_jkube_namespace.adoc[]
 
+include::enricher/name/_jkube_name.adoc[]
+
 ifeval::["{goal-prefix}" == "oc"]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
 endif::[]
@@ -195,9 +197,6 @@ This enricher is responsible for generating Ingress resource during {goal-prefix
 include::enricher/_jkube_maven_scm_enricher.adoc[]
 
 include::enricher/_jkube_maven_issue_mgmt.adoc[]
-
-[[jkube-name]]
-==== jkube-name
 
 include::enricher/_jkube_openshift_autotls.adoc[]
 

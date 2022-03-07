@@ -1,0 +1,16 @@
+[[jkube-name]]
+==== jkube-name
+
+Enricher for adding a "name" to the metadata to various objects we create.
+
+.Supported Configuration options
+[cols="1,6,1"]
+|===
+| Option | Description | Property
+
+| *name*
+| Configures the `.metadata.name` of all generated Kubernetes manifests.
+
+| `jkube.enricher.jkube-name.name`
+|===
+
