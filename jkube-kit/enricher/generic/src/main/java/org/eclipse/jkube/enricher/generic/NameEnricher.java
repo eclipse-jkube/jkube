@@ -48,11 +48,14 @@ public class NameEnricher extends BaseEnricher {
 
   @Override
   public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-    final String defaultName = getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+    final String configuredName = getConfig(Config.NAME);
+    final String defaultName = JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId());
     builder.accept(new TypedVisitor<ObjectMetaBuilder>() {
       @Override
       public void visit(ObjectMetaBuilder resource) {
-        if (StringUtils.isBlank(resource.getName())) {
+        if (StringUtils.isNotBlank(configuredName)) {
+          resource.withName(configuredName);
+        } else if (StringUtils.isBlank(resource.getName())) {
           resource.withName(defaultName);
         }
       }
