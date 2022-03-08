@@ -81,6 +81,9 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-pod-annotation>>
 | Copy over annotations from a `Deployment` to a `Pod`
 
+| <<jkube-portname>>
+| Add a default portname for commonly known service.
+
 | <<jkube-project-label>>
 | Add {plugin-type} coordinates as labels to all objects.
 
@@ -105,9 +108,6 @@ ifeval::["{plugin-type}" == "maven"]
 
 | <<jkube-name>>
 | Add a default name to every object which misses a name.
-
-| <<jkube-portname>>
-| Add a default portname for commonly known service.
 
 | <<jkube-prometheus>>
 | Add Prometheus annotations.
@@ -156,6 +156,8 @@ include::enricher/namespace/_jkube_namespace.adoc[]
 
 include::enricher/pod-annotation/_jkube_pod_annotation.adoc[]
 
+include::enricher/port-name/_jkube_port_name.adoc[]
+
 include::enricher/project-label/_jkube_project_label.adoc[]
 
 include::enricher/secret-file/_jkube_secret_file.adoc[]
@@ -182,9 +184,6 @@ include::enricher/_jkube_maven_issue_mgmt.adoc[]
 ==== jkube-name
 
 include::enricher/_jkube_openshift_autotls.adoc[]
-
-[[jkube-portname]]
-==== jkube-portname
 
 include::enricher/_jkube_prometheus.adoc[]
 
