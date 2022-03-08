@@ -1,0 +1,5 @@
+.Example generator property config
+[source, sh, subs="+attributes"]
+----
+mvn -Djkube.generator.java-exec.webPort=8082
+----

@@ -1,0 +1,5 @@
+.Example generator property config
+[source, sh, subs="+attributes"]
+----
+gradle k8sBuild -Pjkube.generator.java-exec.webPort=8082
+----

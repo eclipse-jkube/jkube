@@ -30,7 +30,7 @@ include::inc/tasks/_index.adoc[]
 
 include::inc/_groovy-configuration.adoc[]
 
-include::inc/_generator.adoc[]
+include::{kitdoc-path}/inc/_generator.adoc[]
 
 include::{kitdoc-path}/inc/_enricher.adoc[]
 

@@ -30,10 +30,6 @@ All default generators examine the build information for certain aspects and gen
 | `vertx`
 | Generator for Vert.x applications
 
-| <<generator-karaf,Karaf>>
-| `karaf`
-| Generator for Karaf based apps
-
 | <<generator-webapp,Web applications>>
 | `webapps`
 | Generator for WAR based applications supporting Tomcat, Jetty and Wildfly base images
@@ -46,13 +42,23 @@ All default generators examine the build information for certain aspects and gen
 | `openliberty`
 | Generator for Open Liberty applications
 
+| <<generator-micronaut,Micronaut>>
+| `micronaut`
+| Generator for Micronaut based applications
+
+// TODO: At the moment only generators listed above have been tested and documented with gradle plugins. Adding the
+// rest of generators only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
+ifeval::["{plugin-type}" == "maven"]
+
+| <<generator-karaf,Karaf>>
+| `karaf`
+| Generator for Karaf based apps
+
 | <<generator-wildfly-jar,WildFly Bootable JAR>>
 | `wildfly-jar`
 | Generator for WildFly Bootable JAR applications
 
-| <<generator-micronaut,Micronaut>>
-| `micronaut`
-| Generator for Micronaut based applications
+endif::[]
 |===
 
 include::generator/_options_common.adoc[]
@@ -61,11 +67,15 @@ include::generator/_java_exec.adoc[]
 include::generator/_spring_boot.adoc[]
 include::generator/_thorntail_v2.adoc[]
 include::generator/_vertx.adoc[]
-include::generator/_karaf.adoc[]
 include::generator/_webapp.adoc[]
 include::generator/_quarkus.adoc[]
 include::generator/_openliberty.adoc[]
-include::generator/_wildfly_jar.adoc[]
 include::generator/_micronaut.adoc[]
 
+ifeval::["{plugin-type}" == "maven"]
+include::generator/_karaf.adoc[]
+include::generator/_wildfly_jar.adoc[]
+
 include::generator/_api.adoc[]
+endif::[]
+
