@@ -35,7 +35,10 @@ function gradleVersion() {
     -exec sed -i "s/id 'org.eclipse.jkube.kubernetes' version .*$/id 'org.eclipse.jkube.kubernetes' version '$JKUBE_VERSION'/g" {} \;            \
     -exec sed -i "s/id 'org.eclipse.jkube.openshift' version .*$/id 'org.eclipse.jkube.openshift' version '$JKUBE_VERSION'/g" {} \;              \
     -exec sed -i "s/id(\"org.eclipse.jkube.kubernetes\") version .*$/id(\"org.eclipse.jkube.kubernetes\") version \"${JKUBE_VERSION}\"/g" {} \;  \
-    -exec sed -i "s/id(\"org.eclipse.jkube.openshift\") version .*$/id(\"org.eclipse.jkube.openshift\") version \"${JKUBE_VERSION}\"/g" {} \;
+    -exec sed -i "s/id(\"org.eclipse.jkube.openshift\") version .*$/id(\"org.eclipse.jkube.openshift\") version \"${JKUBE_VERSION}\"/g" {} \;    \
+    -exec sed -i "s/\:org.eclipse.jkube.openshift.gradle.plugin\:.*$/\:org.eclipse.jkube.openshift.gradle.plugin\:$JKUBE_VERSION'/g" {} \;       \
+    -exec sed -i "s/\:org.eclipse.jkube.kubernetes.gradle.plugin\:.*$/:org.eclipse.jkube.kubernetes.gradle.plugin\:$JKUBE_VERSION'/g" {} \;
+
 }
 
 function version() {

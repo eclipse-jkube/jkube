@@ -23,6 +23,7 @@ Usage:
 ### 1.8.0-SNAPSHOT
 * Fix #1260: Add documentation for PodAnnotationEnricher
 * Fix #1295: Spring Boot actuator endpoints failed to generate automatically if `deployment.yml` resource fragment is used
+* Fix #1201: ThorntailV2Generator works with Gradle Plugins
 
 ### 1.7.0 (2022-02-25)
 * Fix #1315: Pod Log Service works for Jobs with no selector
