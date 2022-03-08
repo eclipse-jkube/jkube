@@ -23,6 +23,7 @@ Usage:
 ### 1.8.0-SNAPSHOT
 * Fix #1201: ThorntailV2Generator works with Gradle Plugins
 * Fix #1260: Add documentation for PodAnnotationEnricher
+* Fix #1262: Add docs + gradle integration test for ProjectLabelEnricher
 * Fix #1284: webapp custom generator should not require to set a CMD configuration
 * Fix #1295: Spring Boot actuator endpoints failed to generate automatically if `deployment.yml` resource fragment is used
 
