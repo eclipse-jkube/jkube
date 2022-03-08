@@ -1,0 +1,69 @@
+
+ifeval::["{plugin-type}" == "maven"]
+The usual way to define Docker images is with the plugin configuration as explained in <<jkube:build>>. This can either be done completely within the `pom.xml` or by referring to an external Dockerfile. Since {plugin} includes https://github.com/jkubeio/docker-maven-plugin[docker-maven-plugin] the way by which images are built is identical.
+
+However, this plugin provides an additional route for defining image configurations. This is done by so called _Generators_. A generator is a Java component providing an auto-detection mechanism for certain build types like a Spring Boot build or a plain Java build. As soon as a _Generator_ detects that it is applicable it will be called with the list of images configured in the `pom.xml`. Typically a generator only creates dynamically a new image configuration if this list is empty. But a generator is free to also add new images to an existing list or even change the current image list.
+
+You can easily create your own generator as explained in <<generators-api, Generator API>>. This section will focus on existing generators and how you can configure them.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+The usual way to define Docker images is with the plugin configuration as explained in <<jkubeBuild>>. This can either be done completely within the `build.gradle` or by referring to an external Dockerfile.
+
+However, this plugin provides an additional route for defining image configurations. This is done by so called _Generators_. A generator is a Java component providing an auto-detection mechanism for certain build types like a Spring Boot build or a plain Java build. As soon as a _Generator_ detects that it is applicable it will be called with the list of images configured in the `build.gradle`. Typically a generator only creates dynamically a new image configuration if this list is empty. But a generator is free to also add new images to an existing list or even change the current image list.
+endif::[]
+
+The included _Generators_ are enabled by default, but you can easily disable them or only select a certain set of generators. Each generator has a _name_, which is unique for a generator.
+
+The generator configuration is embedded in a `generator` configuration section:
+
+[[generator-example]]
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_overview_example_generator_configuration.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_overview_example_generator_configuration.adoc[]
+endif::[]
+The following sub-elements are supported:
+
+.Generator configuration
+[cols="1,6"]
+|===
+| Element | Description
+
+| `includes`
+| Contains one or more `include` elements with generator names which should be included. If given only this list of generators are included in this given order. The order is important because by default only the first matching generator kicks in. The generators from every active profile are included, too. However the generators listed here are moved to the front of the list, so that they are called first. Use the profile `raw` if you want to explicitly set the complete list of generators.
+
+| `excludes`
+| Holds one or more `exclude` elements with generator names to exclude. If set then all detected generators are used except the ones mentioned in this section.
+
+| `config`
+| Configuration for all generators. Each generator support a specific set of configuration values as described in the documentation. The subelements of this section are generator names to configure. E.g. for generator `spring-boot`, the sub-element is called `spring-boot`. This element then holds the specific generator configuration like `name` for specifying the final image name. See above for an example. Configuration coming from profiles are merged into this config, but not overriding the configuration specified here.
+|===
+
+Beside specifying generator configuration in the plugin's configuration it can be set directly with properties, too:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_overview_generator_property.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_overview_generator_property.adoc[]
+endif::[]
+
+The general scheme is a prefix `jkube.generator.` followed by the unique generator name and then the generator specific key.
+
+
+// TODO: Add when support is complete
+// https://github.com/eclipse/jkube/issues/1336
+ifeval::["{plugin-type}" == "maven"]
+In addition to the provided default _Generators_ described in the next section <<generators-default, Default Generators>>, custom generators can be easily added. There are two ways to include generators:
+
+.Plugin dependency
+
+You can declare the generator holding jars as dependency to this plugin as shown in this example
+
+include::maven/overview_generator_dependency.adoc[]
+
+.Compile time dependency
+
+Alternatively and if your application code comes with a custom generator you can set the global configuration option `useProjectClasspath` (property: `jkube.useProjectClasspath`) to true. In this case also the project artifact and its dependencies are looked up for _Generators_. See <<generators-api, Generator API>> for details how to write your own generators.
+endif::[]

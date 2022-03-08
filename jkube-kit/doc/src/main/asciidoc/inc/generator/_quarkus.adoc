@@ -1,7 +1,12 @@
 [[generator-quarkus]]
 === Quarkus
 
+ifeval::["{plugin-type}" == "maven"]
 The `Quarkus` generator tries to detect quarkus based projects looking at project `pom.xml`:
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+The `Quarkus` generator detects Quarkus based projects looking at project `build.gradle`:
+endif::[]
 
 The base images chosen are:
 [[generator-quarkus-from]]

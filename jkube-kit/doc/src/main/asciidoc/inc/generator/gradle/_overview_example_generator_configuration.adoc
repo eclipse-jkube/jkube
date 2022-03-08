@@ -1,0 +1,18 @@
+.Example for a generator configuration
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+  generator { //<1>
+    includes = ['spring-boot'] //<2>
+    config { //<3>
+      'spring-boot' { //<4>
+          alias = 'ping'
+      }
+    }
+  }
+}
+----
+<1> Start of generators' configuration.
+<2> Generators can be included and excluded. Includes have precedence, and the generators are called in the given order.
+<3> Configuration for individual generators.
+<4> The config is a map of supported config values. Each section is embedded in a tag named after the generator.

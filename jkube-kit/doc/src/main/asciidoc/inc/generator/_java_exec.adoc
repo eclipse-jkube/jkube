@@ -7,7 +7,7 @@ It knows how to deal with fat-jar applications where the application and all dep
 But also flat classpath applications, where the dependencies are separate jar files and a main class is given.
 
 If no main class is explicitly configured, the plugin first attempts to locate a fat jar.
-If the Gradle build creates a JAR file with a `META-INF/MANIFEST.MF` containing a `Main-Class` entry, then this is considered to be the fat jar to use.
+If the {plugin-type} build creates a JAR file with a `META-INF/MANIFEST.MF` containing a `Main-Class` entry, then this is considered to be the fat jar to use.
 If there are more than one of such files then the largest one is used.
 
 If a main class is configured (see below) then the image configuration will contain the application jar plus all dependency jars.
@@ -57,8 +57,16 @@ the following additional configuration options are recognized:
 | `jkube.generator.java-exec.jolokiaPort`
 
 | *mainClass*
-| Main class to call. If not given first a check is performed to detect a fat-jar (see above). Next a class is looked up
-  by scanning `build/classes` for a single class with a main method. If no such class is found or if more than one is
+| Main class to call. If not given first a check is performed to detect a fat-jar (see above).
+
+ifeval::["{plugin-type}" == "maven"]
+Next a class is looked up by scanning `target/classes` for a single class with a main method.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Next a class is looked up by scanning `build/classes` for a single class with a main method.
+endif::[]
+
+If no such class is found or if more than one is
   found, then this generator does nothing.
 | `jkube.generator.java-exec.mainClass`
 
@@ -77,8 +85,7 @@ the following additional configuration options are recognized:
 | `jkube.generator.java-exec.webPort`
 |===
 
-// TODO - Add when enrichers are added to documentation
-//The exposed ports are typically later on use by <<enrichers, Enrichers>> to create default Kubernetes or OpenShift services.
+The exposed ports are typically later on use by <<enrichers, Enrichers>> to create default Kubernetes or OpenShift services.
 
 You can add additional files to the target image within `baseDir` by placing files into `src/main/jkube-includes`.
 These will be added with mode `0644`, while everything in `src/main/jkube-includes/bin` will be added with `0755`.

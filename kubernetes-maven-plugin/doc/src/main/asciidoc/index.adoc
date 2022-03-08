@@ -29,7 +29,7 @@ include::inc/_installation.adoc[]
 
 include::inc/goals/_goals.adoc[]
 
-include::inc/_generator.adoc[]
+include::{kitdoc-path}/inc/_generator.adoc[]
 include::{kitdoc-path}/inc/_enricher.adoc[]
 include::inc/_profiles.adoc[]
 

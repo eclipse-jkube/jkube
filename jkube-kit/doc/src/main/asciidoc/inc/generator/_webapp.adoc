@@ -1,12 +1,23 @@
 [[generator-webapp]]
 === Web Applications
 
+ifeval::["{plugin-type}" == "maven"]
 The `webapp` generator tries to detect WAR builds and selects a base servlet container image based on the configuration found in the `pom.xml`:
 
 * A **Tomcat** base image is selected when a `tomcat6-maven-plugin`,
 `tomcat7-maven-plugin` or `tomcat8-maven-plugin` is present or when a `META-INF/context.xml` could be found in the classes directory.
 * A **Jetty** base image is selected when a `jetty-maven-plugin` is present or one of the files `WEB-INF/jetty-web.xml` or `WEB-INF/jetty-logging.properties` is found.
 * A **Wildfly** base image is chosen for a given `jboss-as-maven-plugin` or `wildfly-maven-plugin` or when a Wildfly specific deployment descriptor like `jboss-web.xml` is found.
+
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+The `webapp` generator tries to detect WAR builds and selects a base servlet container image based on the configuration found in the `build.gradle`:
+
+* A **Tomcat** base image is selected by default.
+* A **Jetty** base image is selected when one of the files `WEB-INF/jetty-web.xml` or `WEB-INF/jetty-logging.properties` is found.
+* A **Wildfly** base image is chosen when a Wildfly specific deployment descriptor like `jboss-web.xml` is found.
+
+endif::[]
 
 The base images chosen are:
 
@@ -41,15 +52,15 @@ In addition to the  <<generator-options-common, common generator options>> this 
 | `jkube.generator.webapp.server`
 
 | *targetDir*
-| Where to put the war file into the target image. By default its selected by the base image chosen but can be
+| Where to put the war file into the target image. By default, it's selected by the base image chosen but can be
   overwritten with this option.
 
   Defaults to `/deployments`.
 | `jkube.generator.webapp.targetDir`
 
 | *user*
-| User and/or group under which the files should be added. The syntax of this options is descriped in
-  <<config-image-build-assembly-user, Assembly Configuration>>.
+| User and/or group under which the files should be added. The syntax of this options is described in
+  <<config-image-build-assembly, Assembly Configuration>>.
 | `jkube.generator.webapp.user`
 
 | *path*
@@ -59,7 +70,7 @@ In addition to the  <<generator-options-common, common generator options>> this 
 | `jkube.generator.webapp.path`
 
 | *cmd*
-| Command to use to start the container. By default the base images startup command is used.
+| Command to use to start the container. By default, the base images startup command is used.
 | `jkube.generator.webapp.cmd`
 
 | *ports*

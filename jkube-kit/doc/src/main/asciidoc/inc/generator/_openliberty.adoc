@@ -1,10 +1,15 @@
 [[generator-openliberty]]
 === Open Liberty
 
-The Open Liberty generator runs when the Open Liberty plugin is enabled in the gradle build. It can done via two ways as specified in https://github.com/OpenLiberty/ci.gradle#usage[OpenLiberty Gradle Plugin docs]:
+The Open Liberty generator runs when the Open Liberty plugin is enabled in the {plugin-type} build.
+
+ifeval::["{plugin-type}" == "gradle"]
+It can done via two ways as specified in https://github.com/OpenLiberty/ci.gradle#usage[OpenLiberty Gradle Plugin docs]:
 
 - Within `apply plugin:` section as `liberty`
 - Within `plugins` section as `io.openliberty.tools.gradle.Liberty`
+
+endif::[]
 
 The generator is similar to the <<generator-java-exec,java-exec generator>>. It supports the  <<generator-options-common, common generator options>> and the <<generator-java-exec-options, `java-exec` options>>.
 

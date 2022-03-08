@@ -8,8 +8,14 @@ There are some configuration options which are shared by all generators:
 
 | *add*
 | When set to `true`, then the generator _adds_ to an existing image configuration. By default this is disabled, so
-  that a generator only kicks in when there are no other image configurations in the build, which are either configured
-  directly for a `{goal-prefix}:build` or already added by a generator which has been run previously.
+  that a generator only kicks in when there are no other image configurations in the build, which are either configured directly for a
+ifeval::["{plugin-type}" == "maven"]
+`{goal-prefix}:build`
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+`{task-prefix}Build`
+endif::[]
+or already added by a generator which has been run previously.
 | `jkube.generator.add`
 
 | *alias*
@@ -18,7 +24,7 @@ There are some configuration options which are shared by all generators:
 | `jkube.generator.alias`
 
 | *from*
-| This is the base image from where to start when creating the images. By default the generators make an opinionated
+| This is the base image from where to start when creating the images. By default, the generators make an opinionated
   decision for the base image which are described in the respective generator section.
 | `jkube.generator.from`
 
