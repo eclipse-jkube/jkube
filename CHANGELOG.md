@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.8.0-SNAPSHOT
+* Fix #1260: Add documentation for PodAnnotationEnricher
 * Fix #1295: Spring Boot actuator endpoints failed to generate automatically if `deployment.yml` resource fragment is used
 
 ### 1.7.0 (2022-02-25)
