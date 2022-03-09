@@ -14,6 +14,14 @@
 package org.eclipse.jkube.kit.enricher.handler;
 
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ReplicationController;
+import io.fabric8.kubernetes.api.model.apps.DaemonSet;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.openshift.api.model.DeploymentConfig;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 
@@ -100,5 +108,24 @@ public class HandlerHub {
 
     public ServiceHandler getServiceHandler() {
         return serviceHandler.get();
+    }
+
+    public <T extends HasMetadata> ControllerHandler getHandlerFor(T item) {
+        if (item instanceof Deployment) {
+            return getDeploymentHandler();
+        } else if (item instanceof DeploymentConfig) {
+            return getDeploymentConfigHandler();
+        } else if (item instanceof ReplicationController) {
+            return getReplicationControllerHandler();
+        } else if (item instanceof ReplicaSet) {
+            return getReplicaSetHandler();
+        } else if (item instanceof StatefulSet) {
+            return getStatefulSetHandler();
+        } else if (item instanceof DaemonSet) {
+            return getDaemonSetHandler();
+        } else if (item instanceof Job) {
+            return getJobHandler();
+        }
+        return null;
     }
 }

@@ -17,14 +17,12 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import io.fabric8.openshift.api.model.DeploymentConfig;
-import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.handler.ControllerHandler;
+import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 
 import java.util.List;
 
@@ -42,36 +40,19 @@ public class PodAnnotationEnricher extends BaseEnricher {
         super.enrich(platformMode, builder);
 
         List<HasMetadata> items = builder.buildItems();
+        HandlerHub handlerHub = new HandlerHub(getContext().getGav(), getContext().getProperties());
         for (HasMetadata item : items) {
-            if (platformMode == PlatformMode.kubernetes && item instanceof Deployment) {
-                Deployment deployment = (Deployment) item;
-                ObjectMeta metadata = deployment.getMetadata();
-                DeploymentSpec spec = deployment.getSpec();
-                if (metadata != null && spec != null) {
-                    PodTemplateSpec template = spec.getTemplate();
-                    if (template != null) {
-                        ObjectMeta templateMetadata = template.getMetadata();
-                        if (templateMetadata == null) {
-                            templateMetadata = new ObjectMeta();
-                            template.setMetadata(templateMetadata);
-                        }
-                        templateMetadata.setAnnotations(MapUtil.mergeMaps(templateMetadata.getAnnotations(), metadata.getAnnotations()));
+            ObjectMeta metadata = item.getMetadata();
+            ControllerHandler<HasMetadata> controllerHandler = handlerHub.getHandlerFor(item);
+            if (controllerHandler != null) {
+                PodTemplateSpec template = controllerHandler.getPodTemplate(item);
+                if (template != null) {
+                    ObjectMeta templateMetadata = template.getMetadata();
+                    if (templateMetadata == null) {
+                        templateMetadata = new ObjectMeta();
+                        template.setMetadata(templateMetadata);
                     }
-                }
-            } else if (platformMode == PlatformMode.openshift && item instanceof DeploymentConfig) {
-                DeploymentConfig deploymentConfig = (DeploymentConfig)item;
-                ObjectMeta metadata = deploymentConfig.getMetadata();
-                DeploymentConfigSpec spec = deploymentConfig.getSpec();
-                if (metadata != null && spec != null) {
-                    PodTemplateSpec templateSpec = spec.getTemplate();
-                    if(templateSpec != null) {
-                        ObjectMeta templateMetadata = templateSpec.getMetadata();
-                        if(templateMetadata == null) {
-                            templateMetadata = new ObjectMeta();
-                            templateSpec.setMetadata(templateMetadata);
-                        }
-                        templateMetadata.setAnnotations(MapUtil.mergeMaps(templateMetadata.getAnnotations(), metadata.getAnnotations()));
-                    }
+                    templateMetadata.setAnnotations(MapUtil.mergeMaps(templateMetadata.getAnnotations(), metadata.getAnnotations()));
                 }
             }
         }

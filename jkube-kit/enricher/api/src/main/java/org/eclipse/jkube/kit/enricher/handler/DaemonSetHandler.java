@@ -52,6 +52,11 @@ public class DaemonSetHandler implements ControllerHandler<DaemonSet> {
   }
 
   @Override
+  public PodTemplateSpec getPodTemplate(DaemonSet controller) {
+    return controller.getSpec().getTemplate();
+  }
+
+  @Override
   public void overrideReplicas(KubernetesListBuilder resources, int replicas) {
     // NOOP
   }

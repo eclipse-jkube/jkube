@@ -50,6 +50,11 @@ public class DeploymentHandler implements ControllerHandler<Deployment> {
   }
 
   @Override
+  public PodTemplateSpec getPodTemplate(Deployment controller) {
+    return controller.getSpec().getTemplate();
+  }
+
+  @Override
   public void overrideReplicas(KubernetesListBuilder resources, int replicas) {
     resources.accept(new TypedVisitor<DeploymentBuilder>() {
       @Override

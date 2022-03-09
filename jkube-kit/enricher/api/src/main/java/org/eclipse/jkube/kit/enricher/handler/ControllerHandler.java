@@ -27,5 +27,7 @@ public interface ControllerHandler<T extends HasMetadata> {
 
   PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images);
 
+  PodTemplateSpec getPodTemplate(T controller);
+
   void overrideReplicas(KubernetesListBuilder resources, int replicas);
 }

@@ -56,6 +56,11 @@ public class JobHandler implements ControllerHandler<Job> {
   }
 
   @Override
+  public PodTemplateSpec getPodTemplate(Job controller) {
+    return controller.getSpec().getTemplate();
+  }
+
+  @Override
   public void overrideReplicas(KubernetesListBuilder resources, int replicas) {
     // NOOP
   }

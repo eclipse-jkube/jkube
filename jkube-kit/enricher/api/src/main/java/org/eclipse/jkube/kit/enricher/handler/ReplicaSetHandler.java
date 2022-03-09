@@ -54,6 +54,11 @@ public class ReplicaSetHandler implements ControllerHandler<ReplicaSet> {
   }
 
   @Override
+  public PodTemplateSpec getPodTemplate(ReplicaSet controller) {
+    return controller.getSpec().getTemplate();
+  }
+
+  @Override
   public void overrideReplicas(KubernetesListBuilder resources, int replicas) {
     resources.accept(new TypedVisitor<ReplicaSetBuilder>() {
       @Override
