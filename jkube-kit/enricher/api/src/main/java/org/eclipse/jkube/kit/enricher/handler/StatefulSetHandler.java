@@ -56,6 +56,11 @@ public class StatefulSetHandler implements ControllerHandler<StatefulSet> {
   }
 
   @Override
+  public PodTemplateSpec getPodTemplate(StatefulSet controller) {
+    return controller.getSpec().getTemplate();
+  }
+
+  @Override
   public void overrideReplicas(KubernetesListBuilder resources, int replicas) {
     resources.accept(new TypedVisitor<StatefulSetBuilder>() {
       @Override
