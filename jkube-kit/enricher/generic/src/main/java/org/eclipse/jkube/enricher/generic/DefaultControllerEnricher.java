@@ -13,22 +13,28 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.ReplicationController;
+import io.fabric8.kubernetes.api.model.apps.DaemonSet;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.enricher.handler.ControllerHandler;
-import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -61,38 +67,13 @@ public class DefaultControllerEnricher extends BaseEnricher {
 
   public static final String ENRICHER_NAME = "jkube-controller";
 
-  private enum ControllerType {
-    DEPLOYMENT(HandlerHub::getDeploymentHandler),
-    STATEFUL_SET(HandlerHub::getStatefulSetHandler),
-    DAEMON_SET(HandlerHub::getDaemonSetHandler),
-    REPLICA_SET(HandlerHub::getReplicaSetHandler),
-    REPLICATION_CONTROLLER(HandlerHub::getReplicationControllerHandler),
-    JOB(HandlerHub::getJobHandler);
-
-    private final Function<HandlerHub, ControllerHandler<?>> handler;
-
-    ControllerType(Function<HandlerHub, ControllerHandler<?>> handler) {
-      this.handler = handler;
-    }
-
-    private static ControllerType fromType(String type) {
-      // There's no DEPLOYMENTCONFIG entry since it will be taken care of by DeploymentConfigEnricher
-      // where the resulting Deployment is converted to a DeploymentConfig
-      switch (Optional.ofNullable(type).orElse("").toUpperCase(Locale.ENGLISH)) {
-        case "STATEFULSET":
-          return STATEFUL_SET;
-        case "DAEMONSET":
-          return DAEMON_SET;
-        case "REPLICASET":
-          return REPLICA_SET;
-        case "REPLICATIONCONTROLLER":
-          return REPLICATION_CONTROLLER;
-        case "JOB":
-          return JOB;
-        default:
-          return DEPLOYMENT;
-      }
-    }
+  private static final Map<String, Class<? extends HasMetadata>> CONTROLLER_TYPES = new HashMap<>();
+  static {
+    CONTROLLER_TYPES.put("STATEFULSET", StatefulSet.class);
+    CONTROLLER_TYPES.put("DAEMONSET", DaemonSet.class);
+    CONTROLLER_TYPES.put("REPLICASET", ReplicaSet.class);
+    CONTROLLER_TYPES.put("REPLICATIONCONTROLLER", ReplicationController.class);
+    CONTROLLER_TYPES.put("JOB", Job.class);
   }
 
   @AllArgsConstructor
@@ -108,11 +89,8 @@ public class DefaultControllerEnricher extends BaseEnricher {
     protected String defaultValue;
   }
 
-  private final HandlerHub handlerHub;
-
-  public DefaultControllerEnricher(JKubeEnricherContext buildContext) {
+  public DefaultControllerEnricher(EnricherContext buildContext) {
     super(buildContext, ENRICHER_NAME);
-    handlerHub = new HandlerHub(getContext().getGav(), getContext().getProperties());
   }
 
   @Override
@@ -133,16 +111,23 @@ public class DefaultControllerEnricher extends BaseEnricher {
     // Check if at least a replica set is added. If not add a default one
     // At least one image must be present, otherwise the resulting config will be invalid
     if (!KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS) && !images.isEmpty()) {
-      final ControllerType ct = ControllerType.fromType(getConfig(Config.TYPE));
-      final HasMetadata resource = ct.handler.apply(handlerHub).get(config, images);
+      final ControllerHandler<? extends HasMetadata> ch = getContext().getHandlerHub()
+          .getHandlerFor(fromType(getConfig(Config.TYPE)));
+      final HasMetadata resource = ch.get(config, images);
       log.info("Adding a default %s", resource.getKind());
       builder.addToItems(resource);
       setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS,
-          getContainersFromPodSpec(ct.handler.apply(handlerHub).getPodTemplateSpec(config, images)));
+          getContainersFromPodSpec(ch.getPodTemplateSpec(config, images)));
     }
   }
 
   private static List<String> getContainersFromPodSpec(PodTemplateSpec spec) {
     return spec.getSpec().getContainers().stream().map(Container::getName).collect(Collectors.toList());
+  }
+
+  private static Class<? extends HasMetadata> fromType(String type) {
+    return CONTROLLER_TYPES.getOrDefault(
+        Optional.ofNullable(type).orElse("").toUpperCase(Locale.ENGLISH),
+        Deployment.class);
   }
 }

@@ -35,10 +35,11 @@ public class HandlerHubControllerTest {
   @Test
   public void getControllerHandlers_shouldReturnAllImplementationsOfControllerHandler() {
     // When
-    final List<? extends ControllerHandler<?>> result = handlerHub.getControllerHandlers();
+    final List<ControllerHandlerLazyBuilder<?>> result = handlerHub.getControllerHandlers();
     // Then
     assertThat(result)
         .hasSize(7)
+        .extracting(ControllerHandlerLazyBuilder::get)
         .flatExtracting(Object::getClass)
         .containsExactlyInAnyOrder(
             DaemonSetHandler.class,

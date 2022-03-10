@@ -25,6 +25,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
+import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 
 public interface EnricherContext {
 
@@ -47,7 +48,6 @@ public interface EnricherContext {
      * @return configuration to use
      */
     Configuration getConfiguration();
-
 
     Map<String, String> getProcessingInstructions();
 
@@ -128,4 +128,11 @@ public interface EnricherContext {
     String getProperty(String key);
 
     JavaProject getProject();
+
+    /**
+     * Returns the global Handler Hub to use with the enrichers.
+     *
+     * @return the Handler Hub instance.
+     */
+    HandlerHub getHandlerHub();
 }

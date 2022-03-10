@@ -13,39 +13,40 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.handler.ControllerHandler;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentFluent;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetFluent;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.kit.enricher.handler.DeploymentHandler;
-import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
-import org.eclipse.jkube.kit.enricher.handler.StatefulSetHandler;
-
-import java.util.Collections;
-import java.util.List;
 
 public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
     protected static final String[] POD_CONTROLLER_KINDS =
             { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job" };
 
-    private final DeploymentHandler deployHandler;
-    private final StatefulSetHandler statefulSetHandler;
+    private final ControllerHandler<Deployment> deployHandler;
+    private final ControllerHandler<StatefulSet> statefulSetHandler;
 
     @AllArgsConstructor
     private enum Config implements Configs.Config {
@@ -59,12 +60,10 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
         protected String defaultValue;
     }
 
-    public ControllerViaPluginConfigurationEnricher(JKubeEnricherContext context) {
+    public ControllerViaPluginConfigurationEnricher(EnricherContext context) {
         super(context, "jkube-controller-from-configuration");
-        HandlerHub handlers = new HandlerHub(
-                getContext().getGav(), getContext().getProperties());
-        deployHandler = handlers.getDeploymentHandler();
-        statefulSetHandler = handlers.getStatefulSetHandler();
+        deployHandler = context.getHandlerHub().getHandlerFor(Deployment.class);
+        statefulSetHandler = context.getHandlerHub().getHandlerFor(StatefulSet.class);
     }
 
     @Override

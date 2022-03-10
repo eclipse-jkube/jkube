@@ -42,6 +42,7 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 
 /**
  * The context given to each enricher from where it can extract build specific information.
@@ -59,19 +60,31 @@ public class JKubeEnricherContext implements EnricherContext {
      */
     private Configuration configuration;
     private List<RegistryServerConfiguration> settings;
-    private Map<String, String> processingInstruction;
+    private Map<String, String> processingInstructions;
     private JavaProject project;
     private KitLogger log;
+    @Getter(AccessLevel.NONE)
+    private ResourceConfig resources;
+    @Getter(AccessLevel.NONE)
+    private List<ImageConfiguration> images;
+    @Getter(AccessLevel.NONE)
+    private ProcessorConfig processorConfig;
+    private HandlerHub handlerHub;
 
-    @Builder
+
+    @Builder(toBuilder = true)
     public JKubeEnricherContext(
         @Singular  List<RegistryServerConfiguration> settings, @Singular Map<String, String> processingInstructions,
         JavaProject project, KitLogger log,
         ResourceConfig resources, @Singular List<ImageConfiguration> images, ProcessorConfig processorConfig) {
         this.settings = settings;
-        this.processingInstruction = processingInstructions;
+        this.processingInstructions = processingInstructions;
         this.project = project;
         this.log = log;
+        this.resources = resources;
+        this.images = images;
+        this.processorConfig = processorConfig;
+        this.handlerHub = new HandlerHub(getGav(), getProperties());
         this.configuration = Configuration.builder()
             .images(images)
             .resource(resources)
@@ -107,12 +120,12 @@ public class JKubeEnricherContext implements EnricherContext {
 
     @Override
     public Map<String, String> getProcessingInstructions() {
-        return processingInstruction;
+        return processingInstructions;
     }
 
     @Override
     public void setProcessingInstructions(Map<String, String> instruction) {
-        this.processingInstruction = instruction;
+        this.processingInstructions = instruction;
     }
 
     @Override

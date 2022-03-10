@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.api;
 
 import java.util.Collections;
 
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.EnricherManager;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -41,6 +42,7 @@ public class DefaultEnricherManagerTest {
     final ProcessorConfig processorConfig = new ProcessorConfig();
     processorConfig.setIncludes(Collections.singletonList("fake-enricher"));
     final EnricherContext enricherContext = JKubeEnricherContext.builder()
+        .project(JavaProject.builder().build())
         .log(logger)
         .processorConfig(processorConfig)
         .build();

@@ -28,9 +28,8 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 
 import java.util.Optional;
 
@@ -38,8 +37,6 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
 
     private static final String NAMESPACE = "namespace";
     protected static final String[] NAMESPACE_KINDS = {"Project", "Namespace" };
-
-    private final HandlerHub handlerHub;
 
     private final ResourceConfig config;
     @AllArgsConstructor
@@ -54,13 +51,10 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
         protected String defaultValue;
     }
 
-    public DefaultNamespaceEnricher(JKubeEnricherContext buildContext) {
+    public DefaultNamespaceEnricher(EnricherContext buildContext) {
         super(buildContext, "jkube-namespace");
 
         config = Optional.ofNullable(getConfiguration().getResource()).orElse(ResourceConfig.builder().build());
-
-        handlerHub = new HandlerHub(
-                getContext().getGav(), getContext().getProperties());
     }
 
     /**
@@ -159,10 +153,10 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
         if ("project".equalsIgnoreCase(type) || NAMESPACE.equalsIgnoreCase(type)) {
             if (platformMode == PlatformMode.kubernetes) {
                 log.info("Adding a default Namespace: %s", ns);
-                return handlerHub.getNamespaceHandler().getNamespace(ns);
+                return getContext().getHandlerHub().getNamespaceHandler().getNamespace(ns);
             } else {
                 log.info("Adding a default Project %s", ns);
-                return handlerHub.getProjectHandler().getProject(ns);
+                return getContext().getHandlerHub().getProjectHandler().getProject(ns);
             }
         }
         return null;
