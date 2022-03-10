@@ -16,8 +16,7 @@ package org.eclipse.jkube.enricher.generic;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 
@@ -27,19 +26,16 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
  */
 public class ReplicaCountEnricher extends BaseEnricher {
 
-  private final HandlerHub handlerHub;
-
-  public ReplicaCountEnricher(JKubeEnricherContext context) {
+  public ReplicaCountEnricher(EnricherContext context) {
     super(context, "jkube-replicas");
-    handlerHub = new HandlerHub(getContext().getGav(), getContext().getProperties());
   }
-
 
   @Override
   public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
     Integer replicas = Configs.asInteger(getValueFromConfig(JKUBE_ENFORCED_REPLICAS, null));
     if (replicas != null) {
-      handlerHub.getControllerHandlers().forEach(controller -> controller.overrideReplicas(builder, replicas));
+      getContext().getHandlerHub().getControllerHandlers()
+          .forEach(controller -> controller.get().overrideReplicas(builder, replicas));
     }
   }
 

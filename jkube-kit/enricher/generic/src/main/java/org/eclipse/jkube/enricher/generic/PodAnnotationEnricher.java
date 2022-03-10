@@ -20,9 +20,8 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.handler.ControllerHandler;
-import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
 
 import java.util.List;
 
@@ -31,28 +30,24 @@ import java.util.List;
  * container Pod spec.
  */
 public class PodAnnotationEnricher extends BaseEnricher {
-    public PodAnnotationEnricher(JKubeEnricherContext buildContext) {
+    public PodAnnotationEnricher(EnricherContext buildContext) {
         super(buildContext, "jkube-pod-annotations");
     }
 
     @Override
     public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
         super.enrich(platformMode, builder);
-
-        List<HasMetadata> items = builder.buildItems();
-        HandlerHub handlerHub = new HandlerHub(getContext().getGav(), getContext().getProperties());
+        final List<HasMetadata> items = builder.buildItems();
         for (HasMetadata item : items) {
-            ObjectMeta metadata = item.getMetadata();
-            ControllerHandler<HasMetadata> controllerHandler = handlerHub.getHandlerFor(item);
+            final ControllerHandler<HasMetadata> controllerHandler = getContext().getHandlerHub().getHandlerFor(item);
             if (controllerHandler != null) {
-                PodTemplateSpec template = controllerHandler.getPodTemplate(item);
+                final PodTemplateSpec template = controllerHandler.getPodTemplate(item);
                 if (template != null) {
-                    ObjectMeta templateMetadata = template.getMetadata();
-                    if (templateMetadata == null) {
-                        templateMetadata = new ObjectMeta();
-                        template.setMetadata(templateMetadata);
+                    if (template.getMetadata() == null) {
+                        template.setMetadata(new ObjectMeta());
                     }
-                    templateMetadata.setAnnotations(MapUtil.mergeMaps(templateMetadata.getAnnotations(), metadata.getAnnotations()));
+                    final ObjectMeta templateMetadata = template.getMetadata();
+                    templateMetadata.setAnnotations(MapUtil.mergeMaps(templateMetadata.getAnnotations(), item.getMetadata().getAnnotations()));
                 }
             }
         }

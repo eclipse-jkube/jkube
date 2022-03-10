@@ -27,7 +27,9 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,9 +37,6 @@ import org.junit.Test;
 import java.util.Properties;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class PodAnnotationEnricherTest {
   private KubernetesListBuilder klb;
@@ -47,8 +46,11 @@ public class PodAnnotationEnricherTest {
   public void setUp() {
     Properties properties = new Properties();
     klb = new KubernetesListBuilder();
-    JKubeEnricherContext context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-    when(context.getProperties()).thenReturn(properties);
+    EnricherContext context = JKubeEnricherContext.builder()
+        .project(JavaProject.builder()
+            .properties(properties)
+            .build())
+        .build();
     podAnnotationEnricher = new PodAnnotationEnricher(context);
   }
 

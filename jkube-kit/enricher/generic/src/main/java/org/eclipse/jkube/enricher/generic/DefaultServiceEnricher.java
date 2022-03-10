@@ -163,9 +163,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
     }
 
     private void addServices(KubernetesListBuilder builder, List<ServiceConfig> services) {
-        HandlerHub handlerHub = new HandlerHub(getContext().getGav(), getContext().getProperties());
-        ServiceHandler serviceHandler = handlerHub.getServiceHandler();
-        builder.addToServiceItems(toArray(serviceHandler.getServices(services)));
+        builder.addToServiceItems(toArray(getContext().getHandlerHub().getServiceHandler().getServices(services)));
     }
 
     // convert list to array, never returns null.

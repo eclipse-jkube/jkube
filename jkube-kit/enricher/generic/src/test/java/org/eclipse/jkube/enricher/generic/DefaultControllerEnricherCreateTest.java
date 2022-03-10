@@ -19,6 +19,8 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -28,38 +30,36 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.when;
 
 public class DefaultControllerEnricherCreateTest {
 
   private JKubeEnricherContext buildContext;
   private Properties properties;
-  private DefaultControllerEnricher defaultControllerEnricher;
   private KubernetesListBuilder klb;
 
   @Before
   public void setUp() throws Exception {
     properties = new Properties();
-    ResourceConfig resourceConfig = ResourceConfig.builder().build();
-    buildContext = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-    when(buildContext.getProperties()).thenReturn(properties);
-    when(buildContext.getConfiguration().getResource()).thenReturn(resourceConfig);
-    when(buildContext.getConfiguration().getImages()).thenReturn(Collections.singletonList(ImageConfiguration.builder().build()));
-    when(buildContext.getGav().getSanitizedArtifactId()).thenReturn("artifact-id");
-    defaultControllerEnricher = new DefaultControllerEnricher(buildContext);
+    buildContext = JKubeEnricherContext.builder()
+        .log(new KitLogger.SilentLogger())
+        .resources(ResourceConfig.builder().build())
+        .image(ImageConfiguration.builder().build())
+        .project(JavaProject.builder()
+            .properties(properties)
+            .groupId("group")
+            .artifactId("artifact-id")
+            .build())
+        .build();
     klb = new KubernetesListBuilder();
   }
 
   @Test
   public void create_inKubernetesNoType_shouldCreateDeployment() {
     // When
-    defaultControllerEnricher.create(PlatformMode.kubernetes, klb);
+    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
         .hasSize(1)
@@ -78,7 +78,7 @@ public class DefaultControllerEnricherCreateTest {
     // Given
     properties.put("jkube.enricher.jkube-controller.type", "DeploymentConfig");
     // When
-    defaultControllerEnricher.create(PlatformMode.openshift, klb);
+    new DefaultControllerEnricher(buildContext).create(PlatformMode.openshift, klb);
     // Then
     assertThat(klb.buildItems())
         .hasSize(1)
@@ -91,7 +91,7 @@ public class DefaultControllerEnricherCreateTest {
     // Given
     properties.put("jkube.enricher.jkube-controller.type", "StatefulSet");
     // When
-    defaultControllerEnricher.create(PlatformMode.kubernetes, klb);
+    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
         .hasSize(1)
@@ -104,7 +104,7 @@ public class DefaultControllerEnricherCreateTest {
     // Given
     properties.put("jkube.enricher.jkube-controller.type", "DAEMONSET");
     // When
-    defaultControllerEnricher.create(PlatformMode.kubernetes, klb);
+    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
         .hasSize(1)
@@ -117,7 +117,7 @@ public class DefaultControllerEnricherCreateTest {
     // Given
     properties.put("jkube.enricher.jkube-controller.type", "rePlicaSeT");
     // When
-    defaultControllerEnricher.create(PlatformMode.kubernetes, klb);
+    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
         .hasSize(1)
@@ -130,7 +130,7 @@ public class DefaultControllerEnricherCreateTest {
     // Given
     properties.put("jkube.enricher.jkube-controller.type", "ReplicationController");
     // When
-    defaultControllerEnricher.create(PlatformMode.kubernetes, klb);
+    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
         .hasSize(1)
@@ -143,7 +143,7 @@ public class DefaultControllerEnricherCreateTest {
     // Given
     properties.put("jkube.enricher.jkube-controller.type", "Job");
     // When
-    defaultControllerEnricher.create(PlatformMode.kubernetes, klb);
+    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
         .hasSize(1)
@@ -155,10 +155,10 @@ public class DefaultControllerEnricherCreateTest {
   @Test
   public void create_inKubernetesWithJobTypeAndConfiguredRestartPolicy_shouldCreateJobWithConfiguredRestartPolicy() {
     // Given
-    when(buildContext.getConfiguration().getResource()).thenReturn(ResourceConfig.builder().restartPolicy("Never").build());
+    buildContext = buildContext.toBuilder().resources(ResourceConfig.builder().restartPolicy("Never").build()).build();
     properties.put("jkube.enricher.jkube-controller.type", "Job");
     // When
-    defaultControllerEnricher.create(PlatformMode.kubernetes, klb);
+    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
         .hasSize(1)
@@ -170,9 +170,9 @@ public class DefaultControllerEnricherCreateTest {
   @Test
   public void create_inKubernetesWithNoImages_shouldSkip() {
     // Given
-    when(buildContext.getConfiguration().getImages()).thenReturn(null);
+    buildContext = buildContext.toBuilder().clearImages().build();
     // When
-    defaultControllerEnricher.create(PlatformMode.kubernetes, klb);
+    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems()).isEmpty();
   }

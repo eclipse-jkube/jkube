@@ -16,22 +16,23 @@ package org.eclipse.jkube.enricher.generic;
 import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TreeMap;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,14 +43,28 @@ import static org.junit.Assert.assertEquals;
  */
 public class DefaultControllerEnricherTest {
 
-    @Mocked
-    private JKubeEnricherContext context;
+    private Map<String, Map<String, Object>> config;
+    private EnricherContext context;
 
-    @Mocked
-    ImageConfiguration imageConfiguration;
-
-    @Mocked
-    JavaProject project;
+    @Before
+    public void setUp() throws Exception {
+        config = new HashMap<>();
+        context = JKubeEnricherContext.builder()
+            .processorConfig(new ProcessorConfig(null, null, config))
+            .log(new KitLogger.SilentLogger())
+            .resources(ResourceConfig.builder().build())
+            .image(ImageConfiguration.builder()
+                .name("helloworld")
+                .build(BuildConfiguration.builder()
+                    .port("8080")
+                    .build()).build())
+            .project(JavaProject.builder()
+                .properties(new Properties())
+                .groupId("group")
+                .artifactId("artifact-id")
+                .build())
+            .build();
+    }
 
     @Test
     public void checkReplicaCount() throws Exception {
@@ -62,15 +77,10 @@ public class DefaultControllerEnricherTest {
     }
 
     protected void enrichAndAssert(int replicaCount) throws Exception {
-        // Setup a sample docker build configuration
-        final BuildConfiguration buildConfig = BuildConfiguration.builder()
-            .port("8080")
-            .build();
-
         final Map<String, Object> controllerConfig = new TreeMap<>();
         controllerConfig.put("replicaCount", String.valueOf(replicaCount));
+        config.put("jkube-controller", controllerConfig);
 
-        setupExpectations(buildConfig, controllerConfig);
         // Enrich
         DefaultControllerEnricher controllerEnricher = new DefaultControllerEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -85,28 +95,4 @@ public class DefaultControllerEnricherTest {
         assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.replicas", Matchers.equalTo(replicaCount)));
     }
 
-    protected void setupExpectations(final BuildConfiguration buildConfig, final Map<String, Object> controllerConfig) {
-
-        new Expectations() {{
-
-            context.getGav();
-            result = new GroupArtifactVersion("", "jkube-controller-test", "0");
-
-            Configuration config =
-                Configuration.builder()
-                    .processorConfig(new ProcessorConfig(null, null,
-                                                         Collections.singletonMap("jkube-controller", controllerConfig)))
-                    .image(imageConfiguration)
-                    .build();
-            context.getConfiguration();
-            result = config;
-
-            imageConfiguration.getBuildConfiguration();
-            result = buildConfig;
-
-            imageConfiguration.getName();
-            result = "helloworld";
-
-        }};
-    }
 }

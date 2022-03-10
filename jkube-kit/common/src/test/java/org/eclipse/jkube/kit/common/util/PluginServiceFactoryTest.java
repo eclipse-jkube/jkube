@@ -66,8 +66,7 @@ public class PluginServiceFactoryTest {
         pluginServiceFactory.createServiceObjects("service/error-constructor-services"));
     // Then
     assertThat(result)
-        .hasMessageMatching("Cannot load service .*\\.PluginServiceFactoryTest\\$BadConstructor.*")
-        .hasCauseExactlyInstanceOf(NoSuchMethodException.class);
+        .hasMessageMatching("Cannot load service .*\\.PluginServiceFactoryTest\\$BadConstructor.*");
   }
 
   @Test

@@ -16,9 +16,11 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -132,7 +134,7 @@ public final class PluginServiceFactory<C> {
                 if (clazz == null) {
                     throw new ClassNotFoundException("Class " + entry.getClassName() + " could not be found");
                 }
-                T service = clazz.getConstructor(context.getClass()).newInstance(context);
+                T service = findConstructor(clazz).newInstance(context);
                 serviceMap.put(entry, service);
             }
         }
@@ -140,6 +142,20 @@ public final class PluginServiceFactory<C> {
 
     public void addAdditionalClassLoader(ClassLoader classLoader) {
         this.additionalClassLoaders.add(classLoader);
+    }
+
+    private <T> Constructor<T> findConstructor(Class<T> clazz) {
+        final List<Class<?>> types = new ArrayList<>();
+        types.add(context.getClass());
+        types.addAll(Arrays.asList(context.getClass().getInterfaces()));
+        for (Class<?> type : types) {
+            try {
+                return clazz.getConstructor(type);
+            } catch (NoSuchMethodException e) {
+                // ignore
+            }
+        }
+        throw new IllegalStateException("Cannot load service " + clazz.getName());
     }
 
     static class ServiceEntry implements Comparable<ServiceEntry> {

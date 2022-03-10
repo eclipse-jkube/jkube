@@ -13,17 +13,18 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,13 +34,6 @@ public class HandlerHubTest {
   @Parameterized.Parameters
   public static Collection<Function<HandlerHub, Supplier<Object>>> data() {
     return Arrays.asList(
-        hh -> hh::getDeploymentHandler,
-        hh -> hh::getDeploymentConfigHandler,
-        hh -> hh::getReplicaSetHandler,
-        hh -> hh::getReplicationControllerHandler,
-        hh -> hh::getStatefulSetHandler,
-        hh -> hh::getDaemonSetHandler,
-        hh -> hh::getJobHandler,
         hh -> hh::getNamespaceHandler,
         hh -> hh::getProjectHandler,
         hh -> hh::getServiceHandler
