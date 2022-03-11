@@ -97,6 +97,22 @@ jobs:
         paths:
         - ~/.m2
 
+  doc-preview-pr:
+    docker:
+      - image: cimg/openjdk:11.0
+    steps:
+    - checkout
+    - restore_cache:
+        key: jkube-kit-{{ checksum "pom.xml" }}
+    - run: |
+        if [ -n "${CIRCLE_PR_NUMBER}" ]; then
+          ./scripts/generateDoc.sh
+        else
+          echo "No Doc preview run as this is not a pull request"
+        fi
+    - store_artifacts:
+        path: ./docs-generated/
+
 workflows:
   version: 2
   all:
@@ -109,3 +125,4 @@ workflows:
         filters:
           branches:
             only: master
+    - doc-preview-pr
