@@ -18,8 +18,8 @@ import mockit.Mocked;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class ImageConfigurationTest {
 
@@ -36,7 +36,7 @@ public class ImageConfigurationTest {
                 .build(mockJKubeBuildConfiguration)
                 .build();
         // Then
-        assertThat(result.getName(), equalTo("1337"));
-        assertThat(result.getBuildConfiguration().getUser(), equalTo("super-user"));
+        assertThat(result.getName()).isEqualTo("1337");
+        assertThat(result.getBuildConfiguration().getUser()).isEqualTo("super-user");
     }
 }
