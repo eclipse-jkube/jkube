@@ -22,10 +22,7 @@ import org.junit.Test;
 import java.util.Date;
 import java.util.Properties;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
@@ -46,7 +43,7 @@ public class ImageNameFormatterTest {
 
     @Test
     public void simple() {
-        assertThat(formatter.format("bla"),equalTo("bla"));
+        assertThat(formatter.format("bla")).isEqualTo("bla");
     }
 
     @Test
@@ -55,7 +52,7 @@ public class ImageNameFormatterTest {
             formatter.format("bla %z");
             fail();
         });
-        assertThat("Doesnt match", result.getMessage(), containsString("%z"));
+        assertThat(result.getMessage()).as("Doesnt match").contains("%z");
     }
 
     @Test
@@ -79,7 +76,7 @@ public class ImageNameFormatterTest {
             }};
 
             String value = formatter.format("%g");
-            assertThat("Idx. " + i / 2,value, equalTo(data[i+1]));
+            assertThat(value).as("Idx. " + i / 2).isEqualTo(data[i+1]);
         }
     }
 
@@ -89,7 +86,7 @@ public class ImageNameFormatterTest {
             project.getArtifactId(); result = "Docker....Maven.....Plugin";
         }};
 
-        assertThat(formatter.format("--> %a <--"),equalTo("--> docker.maven.plugin <--"));
+        assertThat(formatter.format("--> %a <--")).isEqualTo("--> docker.maven.plugin <--");
     }
 
     @Test
@@ -105,7 +102,7 @@ public class ImageNameFormatterTest {
         // When
         final String result = formatter.format("%t");
         // Then
-        assertThat(result , equalTo("1.2.3"));
+        assertThat(result).isEqualTo("1.2.3");
     }
 
     @Test
@@ -116,9 +113,9 @@ public class ImageNameFormatterTest {
             project.getVersion(); result = "1.2.3-SNAPSHOT";
             project.getProperties(); result = new Properties();
         }};
-        assertThat(formatter.format("%g/%a:%l"), equalTo("fabric8/docker-maven-plugin:latest"));
-        assertThat(formatter.format("%g/%a:%v"), equalTo("fabric8/docker-maven-plugin:1.2.3-SNAPSHOT"));
-        assertThat(formatter.format("%g/%a:%t").matches(".*snapshot-[\\d-]+$"), is(true));
+        assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:latest");
+        assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3-SNAPSHOT");
+        assertThat(formatter.format("%g/%a:%t").matches(".*snapshot-[\\d-]+$")).isTrue();
     }
 
     @Test
@@ -130,9 +127,9 @@ public class ImageNameFormatterTest {
             project.getProperties(); result = new Properties();
         }};
 
-        assertThat(formatter.format("%g/%a:%l"), equalTo("fabric8/docker-maven-plugin:1.2.3"));
-        assertThat(formatter.format("%g/%a:%v"), equalTo("fabric8/docker-maven-plugin:1.2.3"));
-        assertThat(formatter.format("%g/%a:%t"), equalTo("fabric8/docker-maven-plugin:1.2.3"));
+        assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
+        assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
+        assertThat(formatter.format("%g/%a:%t")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
     }
 
     @Test
@@ -148,6 +145,6 @@ public class ImageNameFormatterTest {
         // When
         final String result = formatter.format("%g/name");
         // Then
-        assertThat(result ,equalTo("this.it..is/name"));
+        assertThat(result).isEqualTo("this.it..is/name");
     }
 }
