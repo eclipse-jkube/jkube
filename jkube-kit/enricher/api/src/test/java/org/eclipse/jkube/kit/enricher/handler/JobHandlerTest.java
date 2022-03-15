@@ -114,7 +114,7 @@ public class JobHandlerTest {
 
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(assertThrows = IllegalArgumentException.class)
     public void daemonTemplateHandlerWithInvalidNameTest() {
         // with invalid controller name
         ResourceConfig config = ResourceConfig.builder()
