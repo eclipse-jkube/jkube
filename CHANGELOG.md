@@ -28,6 +28,7 @@ Usage:
 * Fix #1262: Add docs + gradle integration test for ProjectLabelEnricher
 * Fix #1284: webapp custom generator should not require to set a CMD configuration
 * Fix #1295: Spring Boot actuator endpoints failed to generate automatically if `deployment.yml` resource fragment is used
+* Fix #1297: ReplicaCountEnricher documentation ported to Gradle plugins
 * Fix #1325: `jkube.enricher.jkube-name.name` doesn't modify `.metadata.name` for generated manifests
 
 ### 1.7.0 (2022-02-25)
