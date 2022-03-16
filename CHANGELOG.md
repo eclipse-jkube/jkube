@@ -29,6 +29,7 @@ Usage:
 * Fix #1284: webapp custom generator should not require to set a CMD configuration
 * Fix #1295: Spring Boot actuator endpoints failed to generate automatically if `deployment.yml` resource fragment is used
 * Fix #1297: ReplicaCountEnricher documentation ported to Gradle plugins
+* Fix #1298: Add integration test + documentation for RevisionHistoryEnricher in gradle plugins
 * Fix #1308: Add documentation for DeploymentConfigEnricher
 * Fix #1325: `jkube.enricher.jkube-name.name` doesn't modify `.metadata.name` for generated manifests
 
