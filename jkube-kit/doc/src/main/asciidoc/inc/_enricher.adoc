@@ -97,6 +97,9 @@ endif::[]
 | <<jkube-replicas>>
 | Override number of replicas for any controller processed by JKube.
 
+| <<jkube-revision-history-enricher>>
+| Add revision history limit (https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit[Kubernetes doc]) as a deployment spec property to the Kubernetes/OpenShift resources.
+
 | <<jkube-secret-file>>
 | Add Secret elements defined as annotation.
 
@@ -121,9 +124,6 @@ ifeval::["{plugin-type}" == "maven"]
 
 | <<jkube-prometheus>>
 | Add Prometheus annotations.
-
-| <<jkube-revision-history-enricher>>
-| Add revision history limit (https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit[Kubernetes doc]) as a deployment spec property to the Kubernetes/OpenShift resources.
 
 | <<jkube-serviceaccount>>
 | Add a ServiceAccount defined as {plugin-configuration-type} or mentioned in resource fragment.
@@ -176,6 +176,8 @@ include::enricher/project-label/_jkube_project_label.adoc[]
 
 include::enricher/replicacount/_jkube_replicacount.adoc[]
 
+include::enricher/revisionhistory/_jkube_revision_history.adoc[]
+
 include::enricher/secret-file/_jkube_secret_file.adoc[]
 
 include::enricher/service/_jkube_service.adoc[]
@@ -204,8 +206,6 @@ include::enricher/_jkube_openshift_autotls.adoc[]
 include::enricher/_jkube_prometheus.adoc[]
 
 include::enricher/_jkube_replicas.adoc[]
-
-include::enricher/_jkube_revision_history.adoc[]
 
 [[jkube-serviceaccount]]
 ==== jkube-serviceaccount
