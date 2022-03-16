@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -36,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
@@ -200,4 +202,46 @@ public class WebAppGeneratorTest {
         .hasFieldOrPropertyWithValue("env", Collections.singletonMap("DEPLOY_DIR", "/usr/local/tomcat/webapps"))
         .hasFieldOrPropertyWithValue("cmd", null);
   }
+
+  public void extractEnvVariables_withMultipleEnvVariableSpaceSeparator_shouldExtractThemAll() {
+    // Given
+    String envConfig = "GALLEON_PROVISION_LAYERS=web-server,ejb-lite,jsf,jpa,h2-driver IMAGE_STREAM_NAMESPACE=myproject";
+    // when
+    Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
+    // then
+    assertEquals("web-server,ejb-lite,jsf,jpa,h2-driver", extractedVariables.get("GALLEON_PROVISION_LAYERS"));
+    assertEquals("myproject", extractedVariables.get("IMAGE_STREAM_NAMESPACE"));
+  }
+
+  @Test
+  public void extractEnvVariables_withSingleEnvVariable_shouldExtractIt() {
+    // Given
+    String envConfig = "GALLEON_PROVISION_LAYERS=web-server,ejb-lite,jsf,jpa,h2-driver";
+    // when
+    Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
+    // then
+    assertEquals("web-server,ejb-lite,jsf,jpa,h2-driver", extractedVariables.get("GALLEON_PROVISION_LAYERS"));
+  }
+
+  @Test
+  public void extractEnvVariables_withMultipleEnvVariableCRSeparator_shouldExtractThemAll() {
+    // Given
+    String envConfig = "GALLEON_PROVISION_LAYERS=web-server,ejb-lite,jsf,jpa,h2-driver\nIMAGE_STREAM_NAMESPACE=myproject";
+    // when
+    Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
+    // then
+    assertEquals("web-server,ejb-lite,jsf,jpa,h2-driver", extractedVariables.get("GALLEON_PROVISION_LAYERS"));
+    assertEquals("myproject", extractedVariables.get("IMAGE_STREAM_NAMESPACE"));
+  }
+
+  @Test
+  public void extractEnvVariables_withEnvNull_shouldReturnAnEmptyMap() {
+    // Given
+    String envConfig = null;
+    // when
+    Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
+    // then
+    assertTrue(extractedVariables.isEmpty());
+  }
+
 }
