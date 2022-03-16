@@ -57,9 +57,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.assertj.core.api.Assertions.*;
 
 public class MavenUtilTest {
   @Rule
@@ -111,7 +114,7 @@ public class MavenUtilTest {
     // When
     final List<Dependency> dependencies = MavenUtil.getDependencies(mavenProject);
     // Then
-      assertThat(dependencies).hasSize(2);
+    assertThat(dependencies, hasSize(2));
   }
 
   @Test
@@ -128,10 +131,13 @@ public class MavenUtilTest {
     // When
     final List<Dependency> result = MavenUtil.getTransitiveDependencies(mavenProject);
     // Then
-    assertThat(result).hasSize(2);
-    assertThat(result).contains(Dependency.builder().groupId("org.eclipse.jkube").artifactId("foo-dependency").version("1.33.7")
-            .type("jar").scope("runtime").build(), Dependency.builder().groupId("org.eclipse.jkube").artifactId("bar-dependency").version("1.33.7")
-            .type("jar").scope("runtime").build());
+    assertThat(result, hasSize(2));
+    assertThat(result, contains(
+        equalTo(Dependency.builder().groupId("org.eclipse.jkube").artifactId("foo-dependency").version("1.33.7")
+            .type("jar").scope("runtime").build()),
+        equalTo(Dependency.builder().groupId("org.eclipse.jkube").artifactId("bar-dependency").version("1.33.7")
+            .type("jar").scope("runtime").build())
+    ));
   }
 
   @Test
