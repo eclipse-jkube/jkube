@@ -15,14 +15,18 @@ package org.eclipse.jkube.generator.webapp;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -67,7 +71,9 @@ public class WebAppGenerator extends BaseGenerator {
     PORTS("ports", "8080"),
 
     // If from base image supports S2I builds in OpenShift cluster
-    SUPPORTS_S2I_BUILD("supportsS2iBuild", "false");
+    SUPPORTS_S2I_BUILD("supportsS2iBuild", "false"),
+
+    ENV("env", null);
 
     @Getter
     protected String key;
@@ -154,7 +160,22 @@ public class WebAppGenerator extends BaseGenerator {
     Map<String, String> defaultEnv = new HashMap<>();
     defaultEnv.put("DEPLOY_DIR", getDeploymentDir(handler));
     defaultEnv.putAll(handler.getEnv());
+
+    defaultEnv.putAll(extractEnvVariables(getConfig(Config.ENV)));
+
     return defaultEnv;
+  }
+
+  public static Map<String, String> extractEnvVariables(String envConfigValue) {
+    if (StringUtils.isBlank(envConfigValue)) {
+      return Collections.emptyMap();
+    }
+
+    return Pattern.compile("\\s+").splitAsStream(envConfigValue) // "envName1=value1 envName2=value2"
+        .map(envNameValue -> envNameValue.split("=")) //
+        .filter(e -> e.length == 2) //
+        .collect(Collectors.toMap(e -> e[0], e -> e[1]));
+
   }
 
   private AssemblyConfiguration createAssembly(AppServerHandler handler) {
