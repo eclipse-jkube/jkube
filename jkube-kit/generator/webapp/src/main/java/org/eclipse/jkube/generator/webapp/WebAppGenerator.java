@@ -171,7 +171,7 @@ public class WebAppGenerator extends BaseGenerator {
       return Collections.emptyMap();
     }
 
-    return Pattern.compile("\\s+").splitAsStream(envConfigValue) // "envName1=value1 envName2=value2"
+    return Pattern.compile("\\n\\s*").splitAsStream(envConfigValue) // "envName1=value1\n   envName2=value2"
         .map(envNameValue -> envNameValue.split("=")) //
         .filter(e -> e.length == 2) //
         .collect(Collectors.toMap(e -> e[0], e -> e[1]));

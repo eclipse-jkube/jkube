@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.8.0-SNAPSHOT
 * Fix #1201: ThorntailV2Generator works with Gradle Plugins
+* Fix #1208: Allow env variables to be passed to a webapp generator s2i builder
 * Fix #1251: Generate a preview of jkube documentation for PR if needed
 * Fix #1259: Add integration test and docs for NameEnricher
 * Fix #1260: Add documentation for PodAnnotationEnricher

@@ -4,6 +4,13 @@ Demonstrates how to create a container image with an embedded WildFly server usi
 WildFly is used instead of Apache Tomcat because there is a WildFly persistence.xml and -ds.xml configuration.
 Eclipse JKube detects this file and chooses a WildFly specific base container image.
 
+We just added to the project
+- the plugins `kubernetes-gradle-plugin` (for vanilla Kubernetes) and `openshit-gradle-plugin` (for openshift)
+- `gradle.properties` file with `jkube.createExternalUrls=true` to create an Ingress or a Route.
+
+
+# Minikube
+
 ## Prerequisites
 You will need the following to run it with Minikube:
 - minikube installed and running on your computer
@@ -42,7 +49,7 @@ kubernetes/webapp-wildfly                               latest         622fa19f8
 
 ## Generate Kubernetes Manifests
 ```
-$ ./gradlew k8sResource -Djkube.createExternalUrls=true -Djkube.domain=$(minikube ip).nip.io
+$ ./gradlew k8sResource -Djkube.domain=$(minikube ip).nip.io
 > Task :k8sResource
 k8s: Running in Kubernetes mode
 k8s: Running generator webapp
@@ -117,3 +124,17 @@ $ lynx --dump webapp-wildfly.192.168.99.110.nip.io
    sunix        Sun        Tan
 ```
 
+# Red Hat Developer Sandbox
+
+## Prerequisites
+- Create an account here: https://developers.redhat.com/developer-sandbox/get-started
+- Install `oc`
+- Login with `oc` see https://developers.redhat.com/blog/2021/04/21/access-your-developer-sandbox-for-red-hat-openshift-from-the-command-line#
+
+## Adding the JKube plugin
+One line deploy:
+
+    $ ./gradlew clean build ocBuild ocResource ocApply
+
+
+Check in the `topology` view to retrieve the URL.

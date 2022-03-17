@@ -203,9 +203,11 @@ public class WebAppGeneratorTest {
         .hasFieldOrPropertyWithValue("cmd", null);
   }
 
-  public void extractEnvVariables_withMultipleEnvVariableSpaceSeparator_shouldExtractThemAll() {
+  @Test
+  public void extractEnvVariables_withMultipleEnvVariable_shouldExtractThemAll() {
     // Given
-    String envConfig = "GALLEON_PROVISION_LAYERS=web-server,ejb-lite,jsf,jpa,h2-driver IMAGE_STREAM_NAMESPACE=myproject";
+    String envConfig = "GALLEON_PROVISION_LAYERS=web-server,ejb-lite,jsf,jpa,h2-driver\n" + //
+        "\t\t\t\t\t\t\t IMAGE_STREAM_NAMESPACE=myproject";
     // when
     Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
     // then
@@ -224,14 +226,17 @@ public class WebAppGeneratorTest {
   }
 
   @Test
-  public void extractEnvVariables_withMultipleEnvVariableCRSeparator_shouldExtractThemAll() {
+  public void extractEnvVariables_withMultipleEnvVariableWithSpacesSemicolonAndCommas_shouldExtractThemAll() {
     // Given
-    String envConfig = "GALLEON_PROVISION_LAYERS=web-server,ejb-lite,jsf,jpa,h2-driver\nIMAGE_STREAM_NAMESPACE=myproject";
+    String envConfig = "ENV_WITH_SPACES=This is an environment variable with spaces\n" + //
+        "               ENV_WITH_SEMICOLON=/path;/other/path\n" + //
+        "               ENV_WITH_COMMAS=layer1,layer2";
     // when
     Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
     // then
-    assertEquals("web-server,ejb-lite,jsf,jpa,h2-driver", extractedVariables.get("GALLEON_PROVISION_LAYERS"));
-    assertEquals("myproject", extractedVariables.get("IMAGE_STREAM_NAMESPACE"));
+    assertEquals("This is an environment variable with spaces", extractedVariables.get("ENV_WITH_SPACES"));
+    assertEquals("/path;/other/path", extractedVariables.get("ENV_WITH_SEMICOLON"));
+    assertEquals("layer1,layer2", extractedVariables.get("ENV_WITH_COMMAS"));
   }
 
   @Test
