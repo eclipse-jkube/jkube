@@ -113,6 +113,9 @@ endif::[]
 | <<jkube-service>>
 | Create a default service if missing and extract ports from the Docker image configuration.
 
+| <<jkube-serviceaccount>>
+| Add a ServiceAccount defined as {plugin-configuration-type} or mentioned in resource fragment.
+
 | <<jkube-triggers-annotation>>
 | Add ImageStreamTag change triggers on {cluster} resources such as StatefulSets, ReplicaSets and DaemonSets using the `image.openshift.io/triggers` annotation.
 
@@ -131,9 +134,6 @@ ifeval::["{plugin-type}" == "maven"]
 
 | <<jkube-prometheus>>
 | Add Prometheus annotations.
-
-| <<jkube-serviceaccount>>
-| Add a ServiceAccount defined as {plugin-configuration-type} or mentioned in resource fragment.
 
 endif::[]
 
@@ -192,6 +192,8 @@ include::enricher/secret-file/_jkube_secret_file.adoc[]
 
 include::enricher/service/_jkube_service.adoc[]
 
+include::enricher/serviceaccount/_jkube_serviceaccount.adoc[]
+
 include::enricher/triggers-annotation/_jkube_triggers_annotation.adoc[]
 
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
@@ -213,11 +215,6 @@ include::enricher/_jkube_maven_issue_mgmt.adoc[]
 include::enricher/_jkube_prometheus.adoc[]
 
 include::enricher/_jkube_replicas.adoc[]
-
-[[jkube-serviceaccount]]
-==== jkube-serviceaccount
-
-This enricher is responsible for creating ServiceAccount resource. See <<serviceaccount-generation, ServiceAccount Generation>> for more details.
 
 include::enricher/_jkube_volume_permission.adoc[]
 
