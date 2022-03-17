@@ -1,7 +1,8 @@
 plugins {
     id 'java'
     id 'war'
-    id 'org.eclipse.jkube.kubernetes' version '1.7.0'
+    id 'org.eclipse.jkube.kubernetes' version '1.8.0-SNAPSHOT'
+    id 'org.eclipse.jkube.openshift' version '1.8.0-SNAPSHOT'
 }
 
 repositories {
@@ -35,4 +36,14 @@ compileJava {
 
 compileTestJava {
     options.encoding = 'UTF-8'
+}
+
+openshift {
+    generator {
+        config {
+            'webapp' {
+                env = "GALLEON_PROVISION_LAYERS=web-server,ejb-lite,jsf,jpa,h2-driver"
+            }
+        }
+    }
 }
