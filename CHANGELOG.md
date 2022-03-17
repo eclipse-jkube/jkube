@@ -31,6 +31,7 @@ Usage:
 * Fix #1295: Spring Boot actuator endpoints failed to generate automatically if `deployment.yml` resource fragment is used
 * Fix #1297: ReplicaCountEnricher documentation ported to Gradle plugins
 * Fix #1298: Add integration test + documentation for RevisionHistoryEnricher in gradle plugins
+* Fix #1299: Add gradle integration tests and documentation for ServiceAccountEnricher in gradle plugins.
 * Fix #1301: Improve documentation and gradle integration test for TriggersAnnotationEnricher
 * Fix #1303: Add gradle integration test and docs for AutoTLSEnricher
 * Fix #1308: Add documentation for DeploymentConfigEnricher
