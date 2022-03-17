@@ -1,0 +1,12 @@
+[source,xml]
+----
+<!-- ... -->
+<enricher>
+    <config>
+        <jkube-triggers-annotation>
+            <containers>container-name-1,c2</containers>
+        </jkube-triggers-annotation>
+    </config>
+</enricher>
+<!-- ... -->
+----
