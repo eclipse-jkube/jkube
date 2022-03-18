@@ -125,9 +125,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 ret.add("chmod");
                 ret.add(getConfig(Config.PERMISSION));
                 Set<String> uniqueNames = new LinkedHashSet<>(mountPoints.values());
-                for (String name : uniqueNames) {
-                    ret.add(name);
-                }
+                ret.addAll(uniqueNames);
                 return ret;
             }
 
