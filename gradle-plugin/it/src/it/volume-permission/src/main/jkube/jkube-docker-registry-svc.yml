@@ -1,0 +1,36 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  annotations:
+    jkube.io/iconUrl: "https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png"
+  labels:
+    provider: "jkube"
+    app: "${name}"
+    version: "${version}"
+    group: "org.eclipse.jkube.devops.apps"
+    expose: "true"
+  name: "jkube-docker-registry"
+spec:
+  ports:
+  - port: 80
+    protocol: "TCP"
+    targetPort: 5000
+  selector:
+    app: "jkube-docker-registry"
+    provider: "jkube"
+    group: "org.eclipse.jkube.devops.apps"
