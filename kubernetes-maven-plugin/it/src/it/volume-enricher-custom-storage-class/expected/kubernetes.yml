@@ -21,7 +21,7 @@ items:
   metadata:
     labels:
       provider: jkube
-      app: volume-enricher-storage-class-835
+      app: volume-enricher-custom-storage-class
       version: 0.1-SNAPSHOT
       group: org.eclipse.jkube.devops.apps
       expose: "true"
@@ -41,7 +41,7 @@ items:
     annotations:
       volume.beta.kubernetes.io/storage-class: cheese
     labels:
-      app: volume-enricher-storage-class-835
+      app: volume-enricher-custom-storage-class
       provider: jkube
       version: 0.1-SNAPSHOT
       group: org.eclipse.jkube
@@ -57,7 +57,7 @@ items:
   metadata:
     labels:
       provider: jkube
-      app: volume-enricher-storage-class-835
+      app: volume-enricher-custom-storage-class
       version: 0.1-SNAPSHOT
       group: org.eclipse.jkube.devops.apps
     name: jkube-docker-registry
@@ -67,13 +67,13 @@ items:
     selector:
       matchLabels:
         provider: jkube
-        app: volume-enricher-storage-class-835
+        app: volume-enricher-custom-storage-class
         group: org.eclipse.jkube.devops.apps
     template:
       metadata:
         labels:
           provider: jkube
-          app: volume-enricher-storage-class-835
+          app: volume-enricher-custom-storage-class
           version: 0.1-SNAPSHOT
           group: org.eclipse.jkube.devops.apps
       spec:
