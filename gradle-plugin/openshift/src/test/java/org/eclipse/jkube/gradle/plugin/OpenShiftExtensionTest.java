@@ -12,9 +12,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 package org.eclipse.jkube.gradle.plugin;
-
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,5 +31,13 @@ public class OpenShiftExtensionTest {
     final RuntimeMode result = partial.getRuntimeMode();
     // Then
     assertThat(result).isEqualTo(RuntimeMode.OPENSHIFT);
+  }
+
+  @Test
+  public void getPlatformMode_withDefaults_shouldReturnOpenShift() {
+    final OpenShiftExtension partial = mock(OpenShiftExtension.class);
+    when(partial.getPlatformMode()).thenCallRealMethod();
+    final PlatformMode result = partial.getPlatformMode();
+    assertThat(result).isEqualTo(PlatformMode.openshift);
   }
 }
