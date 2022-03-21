@@ -30,7 +30,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
 public class JobHandlerTest {
@@ -116,30 +118,26 @@ public class JobHandlerTest {
     @Test
     public void daemonTemplateHandlerWithInvalidNameTest() {
         // with invalid controller name
-        assertThrows(IllegalArgumentException.class, () -> {
-            ResourceConfig config = ResourceConfig.builder()
-                    .imagePullPolicy("IfNotPresent")
-                    .controllerName("TesTing")
-                    .serviceAccount("test-account")
-                    .volumes(volumes1)
-                    .build();
+      ResourceConfig config = ResourceConfig.builder()
+              .imagePullPolicy("IfNotPresent")
+              .controllerName("TesTing")
+              .serviceAccount("test-account")
+              .volumes(volumes1)
+              .build();
 
-            jobHandler.get(config, images);
-        });
+        assertThrows(IllegalArgumentException.class, () -> jobHandler.get(config, images));
     }
 
     @Test
     public void daemonTemplateHandlerWithoutControllerTest() {
         // without controller name
-        assertThrows(IllegalArgumentException.class, () -> {
-            ResourceConfig config = ResourceConfig.builder()
-                    .imagePullPolicy("IfNotPresent")
-                    .serviceAccount("test-account")
-                    .volumes(volumes1)
-                    .build();
+      ResourceConfig config = ResourceConfig.builder()
+              .imagePullPolicy("IfNotPresent")
+              .serviceAccount("test-account")
+              .volumes(volumes1)
+              .build();
 
-            jobHandler.get(config, images);
-        });
+        assertThrows(IllegalArgumentException.class, () -> jobHandler.get(config, images));
     }
 
     @Test
