@@ -115,7 +115,7 @@ public class ImageNameFormatterTest {
         }};
         assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:latest");
         assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3-SNAPSHOT");
-        assertThat(formatter.format("%g/%a:%t").matches(".*snapshot-[\\d-]+$")).isTrue();
+        assertThat(formatter.format("%g/%a:%t")).matches(".*snapshot-[\\d-]+$");
     }
 
     @Test
