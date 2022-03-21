@@ -82,9 +82,11 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | Add a default name to every object which misses a name.
 
 ifeval::["{goal-prefix}" == "oc"]
+include::enricher/autotls/_jkube_openshift_autotls_entry.adoc[]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
 endif::[]
 ifeval::["{task-prefix}" == "oc"]
+include::enricher/autotls/_jkube_openshift_autotls_entry.adoc[]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
 endif::[]
 
@@ -164,9 +166,11 @@ include::enricher/namespace/_jkube_namespace.adoc[]
 include::enricher/name/_jkube_name.adoc[]
 
 ifeval::["{goal-prefix}" == "oc"]
+include::enricher/autotls/_jkube_openshift_autotls.adoc[]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
 endif::[]
 ifeval::["{task-prefix}" == "oc"]
+include::enricher/autotls/_jkube_openshift_autotls.adoc[]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
 endif::[]
 
@@ -201,8 +205,6 @@ This enricher is responsible for generating Ingress resource during {goal-prefix
 include::enricher/_jkube_maven_scm_enricher.adoc[]
 
 include::enricher/_jkube_maven_issue_mgmt.adoc[]
-
-include::enricher/_jkube_openshift_autotls.adoc[]
 
 include::enricher/_jkube_prometheus.adoc[]
 
