@@ -52,7 +52,7 @@ public class ImageNameFormatterTest {
             formatter.format("bla %z");
             fail();
         });
-        assertThat(result.getMessage()).as("Doesnt match").contains("%z");
+        assertThat(result).hasMessageContaining("No image name format element '%z' known");
     }
 
     @Test
