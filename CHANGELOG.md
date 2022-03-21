@@ -33,6 +33,7 @@ Usage:
 * Fix #1298: Add integration test + documentation for RevisionHistoryEnricher in gradle plugins
 * Fix #1299: Add gradle integration tests and documentation for ServiceAccountEnricher in gradle plugins.
 * Fix #1301: Improve documentation and gradle integration test for TriggersAnnotationEnricher
+* Fix #1302: Port volume-permission maven integration tests + docs to gradle 
 * Fix #1303: Add gradle integration test and docs for AutoTLSEnricher
 * Fix #1308: Add documentation for DeploymentConfigEnricher
 * Fix #1310: Add documentation + gradle integration test for ImageChangeTriggerEnricher
