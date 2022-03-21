@@ -1,0 +1,2 @@
+| <<jkube-openshift-autotls>>
+| Enriches declarations with auto-TLS annotations, required secrets reference, mounted volumes and PEM to keystore converter init container.

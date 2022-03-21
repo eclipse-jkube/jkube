@@ -1,0 +1,28 @@
+
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+  <version>{version}</version>
+  <executions>
+    <execution>
+      <goals>
+        <goal>resource</goal>
+      </goals>
+    </execution>
+  </executions>
+  <configuration>
+    <enricher>
+      <includes>
+        <include>jkube-openshift-autotls</include>
+      </includes>
+      <config>
+        <jkube-openshift-autotls>
+          <!-- ... -->
+        </jkube-openshift-autotls>
+      </config>
+    </enricher>
+  </configuration>
+</plugin>
+----
