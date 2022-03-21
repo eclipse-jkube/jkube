@@ -1,0 +1,28 @@
+
+[[jkube-volume-permission]]
+==== jkube-volume-permission
+
+Enricher which fixes the permission of persistent volume mount with the help of an init container.
+
+.Supported properties
+[cols="1,6,1"]
+|===
+| Option | Description | Property
+
+| *imageName*
+| Image name for PersistentVolume init container
+
+  Defaults to `busybox`.
+
+| `jkube.enricher.jkube-volume-permission.imageName`
+
+| *permission*
+| PersistentVolume init container access mode
+
+Defaults to `777`.
+| `jkube.enricher.jkube-volume-permission.permission`
+
+| *defaultStorageClass*
+| PersistentVolume storage class.
+| `jkube.enricher.jkube-volume-permission.defaultStorageClass`
+|===

@@ -119,6 +119,9 @@ endif::[]
 | <<jkube-triggers-annotation>>
 | Add ImageStreamTag change triggers on {cluster} resources such as StatefulSets, ReplicaSets and DaemonSets using the `image.openshift.io/triggers` annotation.
 
+| <<jkube-volume-permission>>
+| Fixes the permission of persistent volume mount with the help of an init container.
+
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
@@ -196,6 +199,8 @@ include::enricher/serviceaccount/_jkube_serviceaccount.adoc[]
 
 include::enricher/triggers-annotation/_jkube_triggers_annotation.adoc[]
 
+include::enricher/volume-permission/_jkube_volume_permission.adoc[]
+
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
@@ -215,8 +220,6 @@ include::enricher/_jkube_maven_issue_mgmt.adoc[]
 include::enricher/_jkube_prometheus.adoc[]
 
 include::enricher/_jkube_replicas.adoc[]
-
-include::enricher/_jkube_volume_permission.adoc[]
 
 endif::[]
 
