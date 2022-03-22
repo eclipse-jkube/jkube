@@ -26,7 +26,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.calculateFilePermissions;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.isSelfPath;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 public class AssemblyFileSetUtilsTest {
 
   @Rule
@@ -114,9 +114,9 @@ public class AssemblyFileSetUtilsTest {
     // Then
     assertThat(result).hasSize(3);
     assertThat(result).containsExactlyInAnyOrder(
-        new AssemblyFileEntry(sourceDirectory, aDirectory, "040777"),
-        new AssemblyFileEntry(sourceSubdirectory, aSubdirectory, "040777"),
-        new AssemblyFileEntry(sourceFile, aFile, "0644")
+            new AssemblyFileEntry(sourceDirectory, aDirectory, "040777"),
+            new AssemblyFileEntry(sourceSubdirectory, aSubdirectory, "040777"),
+            new AssemblyFileEntry(sourceFile, aFile, "0644")
     );
   }
 
@@ -135,8 +135,8 @@ public class AssemblyFileSetUtilsTest {
     // Then
     assertThat(result).hasSize(2);
     assertThat(result).containsExactlyInAnyOrder(
-        new AssemblyFileEntry(sourceDirectory, aDirectory, "040775"),
-        new AssemblyFileEntry(sourceSubdirectory, aSubdirectory, "040775")
+            new AssemblyFileEntry(sourceDirectory, aDirectory, "040775"),
+            new AssemblyFileEntry(sourceSubdirectory, aSubdirectory, "040775")
     );
   }
 
@@ -159,9 +159,9 @@ public class AssemblyFileSetUtilsTest {
     // Then
     assertThat(result).hasSize(3);
     assertThat(result).containsExactlyInAnyOrder(
-        new AssemblyFileEntry(sourceDirectory, aDirectory, "040755"),
-        new AssemblyFileEntry(sourceSubdirectory, aSubdirectory, "040755"),
-        new AssemblyFileEntry(sourceFile, aFile, "0755")
+            new AssemblyFileEntry(sourceDirectory, aDirectory, "040755"),
+            new AssemblyFileEntry(sourceSubdirectory, aSubdirectory, "040755"),
+            new AssemblyFileEntry(sourceFile, aFile, "0755")
     );
   }
 }
