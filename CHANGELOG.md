@@ -34,6 +34,7 @@ Usage:
 * Fix #1301: Improve documentation and gradle integration test for TriggersAnnotationEnricher
 * Fix #1303: Add gradle integration test and docs for AutoTLSEnricher
 * Fix #1308: Add documentation for DeploymentConfigEnricher
+* Fix #1310: Add documentation + gradle integration test for ImageChangeTriggerEnricher
 * Fix #1325: `jkube.enricher.jkube-name.name` doesn't modify `.metadata.name` for generated manifests
 
 ### 1.7.0 (2022-02-25)

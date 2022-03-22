@@ -863,45 +863,6 @@ endif::[]
 |===
 | Element | Description | Property
 
-ifeval::["{goal-prefix}" == "oc"]
-| *enableAutomaticTrigger*
-| If the value is set to `false` then automatic deployments would be disabled.
-
-  Defaults to `true`.
-| `jkube.openshift.enableAutomaticTrigger`
-
-| *deployTimeoutSeconds*
-| The OpenShift deploy timeout in seconds.
-
-  Defaults to `3600`.
-| `jkube.openshift.deployTimeoutSeconds`
-
-| *imageChangeTriggers*
-| Add ImageChange triggers to DeploymentConfigs when on openshift.
-
-  Defaults to `true`.
-| `jkube.openshift.imageChangeTriggers`
-
-| *trimImageInContainerSpec*
-| If set to true it would set the container image reference to "", this is done to handle weird behavior of OpenShift
-  3.7 in which subsequent rollouts lead to ImagePullErr.
-
-  Defaults to `false`.
-| `jkube.openshift.trimImageInContainerSpec`
-
-| *enrichAllWithImageChangeTrigger*
-| Adds ImageChangeTriggers with respect to all containers specified inside DeploymentConfig.
-
-  Defaults to `false`.
-| `jkube.openshift.enrichAllWithImageChangeTrigger`
-
-| *switchToDeployment*
-| Generate `Deployment` instead of `DeploymentConfig` during resource generation phase.
-
-  Defaults to `false`
-| `jkube.build.switchToDeployment`
-endif::[]
-
 | *profile*
 | Profile to use. A profile contains the enrichers and generators to use as well as their configuration. Profiles are
   looked up in the classpath and can be provided as yaml files.
