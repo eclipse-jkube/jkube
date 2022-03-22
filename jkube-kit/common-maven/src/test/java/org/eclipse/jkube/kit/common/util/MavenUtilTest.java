@@ -57,12 +57,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MavenUtilTest {
   @Rule
@@ -90,7 +87,7 @@ public class MavenUtilTest {
     assertEquals(Collections.singletonList(org.eclipse.jkube.kit.common.Maintainer.builder()
         .name("Dev1")
         .email("dev1@eclipse.org")
-      .build()), project.getMaintainers());
+        .build()), project.getMaintainers());
   }
 
   @Test
@@ -114,7 +111,7 @@ public class MavenUtilTest {
     // When
     final List<Dependency> dependencies = MavenUtil.getDependencies(mavenProject);
     // Then
-    assertThat(dependencies, hasSize(2));
+    assertThat(dependencies).hasSize(2);
   }
 
   @Test
@@ -124,20 +121,20 @@ public class MavenUtilTest {
         "runtime", "jar", "", new DefaultArtifactHandler("jar"));
     final Artifact artifact2 = new DefaultArtifact("org.eclipse.jkube", "bar-dependency", "1.33.7",
         "runtime", "jar", "", new DefaultArtifactHandler("jar"));
-    new Expectations() {{
-      mavenProject.getArtifacts();
-      result = new HashSet<>(Arrays.asList(artifact1, artifact2));
-    }};
+    new Expectations() {
+      {
+        mavenProject.getArtifacts();
+        result = new HashSet<>(Arrays.asList(artifact1, artifact2));
+      }
+    };
     // When
     final List<Dependency> result = MavenUtil.getTransitiveDependencies(mavenProject);
     // Then
-    assertThat(result, hasSize(2));
-    assertThat(result, contains(
-        equalTo(Dependency.builder().groupId("org.eclipse.jkube").artifactId("foo-dependency").version("1.33.7")
-            .type("jar").scope("runtime").build()),
-        equalTo(Dependency.builder().groupId("org.eclipse.jkube").artifactId("bar-dependency").version("1.33.7")
-            .type("jar").scope("runtime").build())
-    ));
+    assertThat(result).hasSize(2)
+        .contains(Dependency.builder().groupId("org.eclipse.jkube").artifactId("foo-dependency").version("1.33.7")
+            .type("jar").scope("runtime").build(),
+            Dependency.builder().groupId("org.eclipse.jkube").artifactId("bar-dependency").version("1.33.7")
+                .type("jar").scope("runtime").build());
   }
 
   @Test
@@ -162,98 +159,105 @@ public class MavenUtilTest {
     assertEquals(Arrays.asList("resource", "build", "helm"), plugins.get(1).getExecutions());
   }
 
-    private MavenProject getMavenProject() {
-        MavenProject mavenProject = new MavenProject();
-        File baseDir = new File("test-project-base-dir");
-        mavenProject.setFile(baseDir);
-        mavenProject.setName("testProject");
-        mavenProject.setGroupId("org.eclipse.jkube");
-        mavenProject.setArtifactId("test-project");
-        mavenProject.setVersion("0.1.0");
-        mavenProject.setDescription("test description");
-        Build build = new Build();
-        org.apache.maven.model.Plugin plugin = new org.apache.maven.model.Plugin();
-        plugin.setGroupId("org.apache.maven.plugins");
-        plugin.setArtifactId("maven-help-plugin");
-        plugin.setVersion("3.2.0");
-        build.addPlugin(plugin);
-        build.setOutputDirectory("./target");
-        build.setDirectory(".");
-        mavenProject.setBuild(build);
-        DistributionManagement distributionManagement = new DistributionManagement();
-        Site site = new Site();
-        site.setUrl("https://www.eclipse.org/jkube/");
-        distributionManagement.setSite(site);
-        mavenProject.setDistributionManagement(distributionManagement);
-        mavenProject.setUrl("https://projects.eclipse.org/projects/ecd.jkube");
-        Developer developer = new Developer();
-        developer.setName("Dev1");
-        developer.setEmail("dev1@eclipse.org");
-        mavenProject.setDevelopers(Collections.singletonList(developer));
-        return mavenProject;
-    }
+  private MavenProject getMavenProject() {
+    MavenProject mavenProject = new MavenProject();
+    File baseDir = new File("test-project-base-dir");
+    mavenProject.setFile(baseDir);
+    mavenProject.setName("testProject");
+    mavenProject.setGroupId("org.eclipse.jkube");
+    mavenProject.setArtifactId("test-project");
+    mavenProject.setVersion("0.1.0");
+    mavenProject.setDescription("test description");
+    Build build = new Build();
+    org.apache.maven.model.Plugin plugin = new org.apache.maven.model.Plugin();
+    plugin.setGroupId("org.apache.maven.plugins");
+    plugin.setArtifactId("maven-help-plugin");
+    plugin.setVersion("3.2.0");
+    build.addPlugin(plugin);
+    build.setOutputDirectory("./target");
+    build.setDirectory(".");
+    mavenProject.setBuild(build);
+    DistributionManagement distributionManagement = new DistributionManagement();
+    Site site = new Site();
+    site.setUrl("https://www.eclipse.org/jkube/");
+    distributionManagement.setSite(site);
+    mavenProject.setDistributionManagement(distributionManagement);
+    mavenProject.setUrl("https://projects.eclipse.org/projects/ecd.jkube");
+    Developer developer = new Developer();
+    developer.setName("Dev1");
+    developer.setEmail("dev1@eclipse.org");
+    mavenProject.setDevelopers(Collections.singletonList(developer));
+    return mavenProject;
+  }
 
-    private MavenProject loadMavenProjectFromPom() throws IOException, XmlPullParserException {
-        MavenXpp3Reader mavenreader = new MavenXpp3Reader();
-        File pomfile = new File(getClass().getResource("/util/test-pom.xml").getFile());
-        final FileReader reader = new FileReader(pomfile);
-        final Model model  = mavenreader.read(reader);
-        model.setPomFile(pomfile);
-        model.getBuild().setOutputDirectory(temporaryFolder.newFolder("outputDirectory").getAbsolutePath());
-        model.getBuild().setDirectory(temporaryFolder.newFolder("build").getAbsolutePath());
-        return new MavenProject(model);
-    }
+  private MavenProject loadMavenProjectFromPom() throws IOException, XmlPullParserException {
+    MavenXpp3Reader mavenreader = new MavenXpp3Reader();
+    File pomfile = new File(getClass().getResource("/util/test-pom.xml").getFile());
+    final FileReader reader = new FileReader(pomfile);
+    final Model model = mavenreader.read(reader);
+    model.setPomFile(pomfile);
+    model.getBuild().setOutputDirectory(temporaryFolder.newFolder("outputDirectory").getAbsolutePath());
+    model.getBuild().setDirectory(temporaryFolder.newFolder("build").getAbsolutePath());
+    return new MavenProject(model);
+  }
 
-    private MavenSession getMavenSession() {
-        Settings settings = new Settings();
-        ArtifactRepository localRepository = new MavenArtifactRepository() {
-            public String getBasedir() {
-                return "repository";
-            }
-        };
+  private MavenSession getMavenSession() {
+    Settings settings = new Settings();
+    ArtifactRepository localRepository = new MavenArtifactRepository() {
+      public String getBasedir() {
+        return "repository";
+      }
+    };
 
-        Properties userProperties = new Properties();
-        userProperties.put("user.maven.home", "/home/user/.m2");
+    Properties userProperties = new Properties();
+    userProperties.put("user.maven.home", "/home/user/.m2");
 
-        Properties systemProperties = new Properties();
-        systemProperties.put("foo", "bar");
+    Properties systemProperties = new Properties();
+    systemProperties.put("foo", "bar");
 
-        return new MavenSession(null, settings, localRepository, null, null, Collections.<String>emptyList(), ".", systemProperties, userProperties, new Date(System.currentTimeMillis()));
-    }
+    return new MavenSession(null, settings, localRepository, null, null, Collections.<String> emptyList(), ".",
+        systemProperties, userProperties, new Date(System.currentTimeMillis()));
+  }
 
-    @Test
-    public void testCallMavenPluginWithGoal(@Mocked BuildPluginManager pluginManager) throws PluginConfigurationException, MojoFailureException, MojoExecutionException, PluginManagerException {
-        // Given
-        MavenProject mavenProject = getMavenProject();
-        MavenSession mavenSession = getMavenSession();
+  @Test
+  public void testCallMavenPluginWithGoal(@Mocked BuildPluginManager pluginManager)
+      throws PluginConfigurationException, MojoFailureException, MojoExecutionException, PluginManagerException {
+    // Given
+    MavenProject mavenProject = getMavenProject();
+    MavenSession mavenSession = getMavenSession();
 
-        // When
-        MavenUtil.callMavenPluginWithGoal(mavenProject, mavenSession, pluginManager, "org.apache.maven.plugins:maven-help-plugin:help", log);
+    // When
+    MavenUtil.callMavenPluginWithGoal(mavenProject, mavenSession, pluginManager,
+        "org.apache.maven.plugins:maven-help-plugin:help", log);
 
-        // Then
-        new Verifications() {{
-            pluginManager.executeMojo(mavenSession, (MojoExecution)any);
-            times = 1;
-        }};
-    }
+    // Then
+    new Verifications() {
+      {
+        pluginManager.executeMojo(mavenSession, (MojoExecution) any);
+        times = 1;
+      }
+    };
+  }
 
-    @Test
-    public void testgetRootProjectFolder(@Mocked MavenProject project) {
-        // Given
-        File projectBaseDir = new File("projectBaseDir");
-        new Expectations() {{
-            project.getBasedir();
-            result = projectBaseDir;
+  @Test
+  public void testgetRootProjectFolder(@Mocked MavenProject project) {
+    // Given
+    File projectBaseDir = new File("projectBaseDir");
+    new Expectations() {
+      {
+        project.getBasedir();
+        result = projectBaseDir;
 
-            project.getParent();
-            result = null;
-        }};
+        project.getParent();
+        result = null;
+      }
+    };
 
-        // When
-        File rootFolder = MavenUtil.getRootProjectFolder(project);
+    // When
+    File rootFolder = MavenUtil.getRootProjectFolder(project);
 
-        // Then
-        assertNotNull(rootFolder);
-        assertEquals("projectBaseDir", rootFolder.getName());
-    }
+    // Then
+    assertNotNull(rootFolder);
+    assertEquals("projectBaseDir", rootFolder.getName());
+  }
 }
