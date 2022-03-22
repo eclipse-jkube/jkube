@@ -78,6 +78,13 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-namespace>>
 | Set the _Namespace_ of the generated and processed Kubernetes resources metadata and optionally create a new Namespace
 
+ifeval::["{goal-prefix}" == "oc"]
+include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
+endif::[]
+ifeval::["{task-prefix}" == "oc"]
+include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
+endif::[]
+
 | <<jkube-pod-annotation>>
 | Copy over annotations from a `Deployment` to a `Pod`
 
@@ -153,6 +160,13 @@ include::enricher/ingress/_jkube_ingress.adoc[]
 include::enricher/metadata/_jkube_metadata.adoc[]
 
 include::enricher/namespace/_jkube_namespace.adoc[]
+
+ifeval::["{goal-prefix}" == "oc"]
+include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
+endif::[]
+ifeval::["{task-prefix}" == "oc"]
+include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
+endif::[]
 
 include::enricher/pod-annotation/_jkube_pod_annotation.adoc[]
 
