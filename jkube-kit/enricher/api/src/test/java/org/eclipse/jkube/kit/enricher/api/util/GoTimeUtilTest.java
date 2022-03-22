@@ -13,15 +13,13 @@
  */
 package org.eclipse.jkube.kit.enricher.api.util;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class GoTimeUtilTest {
 
@@ -33,28 +31,27 @@ public class GoTimeUtilTest {
         List<Integer> expectations = Arrays.asList(23, 0, 0, 0, 1, 123, 3663, 1810, -15, 30);
 
         for (int i = 0; i < inputs.size(); i++) {
-            // When
-            Optional<Integer> result = GoTimeUtil.durationSeconds(inputs.get(i));
-
-            // Then
-            assertTrue(result.isPresent());
-            Assertions.assertThat(result.get()).isEqualTo(expectations.get(i).intValue());
+            assertThat(GoTimeUtil.durationSeconds(inputs.get(i)))
+                    .contains(expectations.get(i));
         }
     }
 
     @Test
     public void testNull() {
-        assertEquals(Optional.empty(), GoTimeUtil.durationSeconds(null));
+        assertThat(Optional.empty())
+                .isEqualTo(GoTimeUtil.durationSeconds(null));
     }
 
     @Test
     public void testEmpty() {
-        assertEquals(Optional.empty(), GoTimeUtil.durationSeconds(""));
+        assertThat(Optional.empty())
+                .isEqualTo(GoTimeUtil.durationSeconds(""));
     }
 
     @Test
     public void testBlankSpace() {
-        assertEquals(Optional.empty(), GoTimeUtil.durationSeconds(" "));
+        assertThat(Optional.empty())
+                .isEqualTo(GoTimeUtil.durationSeconds(" "));
     }
 
     @Test(expected = IllegalArgumentException.class)
