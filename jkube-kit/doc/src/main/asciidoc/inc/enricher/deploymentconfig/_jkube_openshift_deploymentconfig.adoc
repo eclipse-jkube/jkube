@@ -1,0 +1,9 @@
+
+[[jkube-openshift-deploymentconfig]]
+==== jkube-openshift-deploymentconfig
+
+This enricher converts Kubernetes `Deployment` object(`extensions/v1beta1` or `apps/v1`) to OpenShift equivalent `DeploymentConfig`.
+
+It's applicable only for OpenShift.
+
+Note that this won't be enabled if you've set `jkube.build.switchToDeployment` to `true` or you've configured <<jkube-controller, DefaultControllerEnricher>> to generate a controller of type `DeploymentConfig`
