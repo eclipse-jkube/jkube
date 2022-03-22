@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.config.image.build;
 
 import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests the health check configuration
