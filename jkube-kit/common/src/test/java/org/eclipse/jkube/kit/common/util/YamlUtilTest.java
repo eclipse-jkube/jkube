@@ -23,12 +23,7 @@ import org.junit.Test;
 
 import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlString;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.splitYamlResource;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 public class YamlUtilTest {
@@ -40,8 +35,7 @@ public class YamlUtilTest {
     // When
     final Properties result = getPropertiesFromYamlString(yamlString);
     // Then
-    assertThat(result, notNullValue());
-    assertThat(result.size(), is(0));
+    assertThat(result).isNotNull().isEmpty();
   }
 
   @Test
@@ -49,8 +43,7 @@ public class YamlUtilTest {
     // When
     final Properties result = getPropertiesFromYamlString(null);
     // Then
-    assertThat(result, notNullValue());
-    assertThat(result.size(), is(0));
+    assertThat(result).isNotNull().isEmpty();
   }
 
   @Test(expected = JsonMappingException.class)
@@ -70,12 +63,11 @@ public class YamlUtilTest {
     // When
     final Properties result = getPropertiesFromYamlString(yamlString);
     // Then
-    assertThat(result, notNullValue());
-    assertThat(result.size(), is(4));
-    assertThat(result.getProperty("test"), is("1"));
-    assertThat(result.getProperty("list[0].name"), is("item 1"));
-    assertThat(result.getProperty("list[0].value"), is("value 1"));
-    assertThat(result.getProperty("still-test"), is("1"));
+    assertThat(result).isNotNull().hasSize(4);
+    assertThat(result.getProperty("test")).isEqualTo("1");
+    assertThat(result.getProperty("list[0].name")).isEqualTo("item 1");
+    assertThat(result.getProperty("list[0].value")).isEqualTo("value 1");
+    assertThat(result.getProperty("still-test")).isEqualTo("1");
   }
 
   // https://bugs.eclipse.org/bugs/show_bug.cgi?id=561261
@@ -86,9 +78,8 @@ public class YamlUtilTest {
     // When
     final Properties result = getPropertiesFromYamlString(yamlString);
     // Then
-    assertThat(result, notNullValue());
-    assertThat(result.size(), is(1));
-    assertThat(result.getProperty("maps[0][0][0][0]"), is("\\\"http://localhost:9000/\\\""));
+    assertThat(result).isNotNull().hasSize(1);
+    assertThat(result.getProperty("maps[0][0][0][0]")).isEqualTo("\\\"http://localhost:9000/\\\"");
   }
 
   @Test
@@ -98,10 +89,9 @@ public class YamlUtilTest {
     // When
     final List<String> result = splitYamlResource(resource);
     // Then
-    assertThat(result, notNullValue());
-    assertThat(result, hasSize(4));
-    assertThat(result.get(1), containsString("name: \"YAML --- 2\""));
-    assertThat(result.get(3), startsWith("---\nname: \"Edge case --- 1"));
+    assertThat(result).isNotNull().hasSize(4);
+    assertThat(result.get(1)).contains("name: \"YAML --- 2\"");
+    assertThat(result.get(3)).startsWith("---\nname: \"Edge case --- 1");
   }
 
 }

@@ -36,10 +36,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasEntry;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -238,10 +236,11 @@ public class BaseGeneratorTest {
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     // Then
     assertEquals("image:latest", builder.build().getFrom());
-    assertThat(builder.build().getFromExt(), allOf(
-        hasEntry("kind", "ImageStreamTag"),
-        hasEntry("name", "image:latest"),
-        hasEntry("namespace", "my")));
+    assertThat(builder.build().getFromExt()).contains(
+            entry("kind", "ImageStreamTag"),
+            entry("name", "image:latest"),
+            entry("namespace", "my")
+    );
   }
 
   @Test
@@ -254,10 +253,11 @@ public class BaseGeneratorTest {
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     // Then
     assertEquals("image:tag", builder.build().getFrom());
-    assertThat(builder.build().getFromExt(), allOf(
-        hasEntry("kind", "ImageStreamTag"),
-        hasEntry("name", "image:tag"),
-        hasEntry("namespace", "my")));
+    assertThat(builder.build().getFromExt()).contains(
+            entry("kind", "ImageStreamTag"),
+            entry("name", "image:tag"),
+            entry("namespace", "my")
+    );
   }
 
   @Test
@@ -269,10 +269,11 @@ public class BaseGeneratorTest {
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     // Then
     assertEquals("selectorIstagFromUpstream", builder.build().getFrom());
-    assertThat(builder.build().getFromExt(), allOf(
-        hasEntry("kind", "ImageStreamTag"),
-        hasEntry("name", "selectorIstagFromUpstream"),
-        hasEntry("namespace", "openshift")));
+    assertThat(builder.build().getFromExt()).contains(
+            entry("kind", "ImageStreamTag"),
+            entry("name", "selectorIstagFromUpstream"),
+            entry("namespace", "openshift")
+    );
   }
 
   @Test
@@ -287,7 +288,7 @@ public class BaseGeneratorTest {
       fail();
     });
     // Then
-    assertThat(ex.getMessage(), allOf(containsString("fromMode"), containsString("test-generator")));
+    assertThat(ex.getMessage()).contains("fromMode", "test-generator");;
   }
 
   @Test
@@ -346,7 +347,6 @@ public class BaseGeneratorTest {
     BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     BaseGenerator generator = createGenerator(null);
     generator.addLatestTagIfSnapshot(builder);
-    ;
     BuildConfiguration config = builder.build();
     List<String> tags = config.getTags();
     assertEquals(1, tags.size());

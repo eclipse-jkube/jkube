@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
@@ -22,16 +20,14 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.Collections;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RevisionHistoryEnricherTest {
 
@@ -39,7 +35,7 @@ public class RevisionHistoryEnricherTest {
     private JKubeEnricherContext context;
 
     @Test
-    public void testDefaultRevisionHistoryLimit() throws JsonProcessingException {
+    public void testDefaultRevisionHistoryLimit() {
         // Given
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());
 
@@ -53,7 +49,7 @@ public class RevisionHistoryEnricherTest {
     }
 
     @Test
-    public void testCustomRevisionHistoryLimit() throws JsonProcessingException {
+    public void testCustomRevisionHistoryLimit() {
 
         // Setup mock behaviour
         final String revisionNumber = "10";
@@ -82,12 +78,13 @@ public class RevisionHistoryEnricherTest {
                 Collections.singletonMap("limit",revisionNumber)));
       }
 
-    private void assertRevisionHistory(KubernetesList list, Integer revisionNumber) throws JsonProcessingException {
+    private void assertRevisionHistory(KubernetesList list, Integer revisionNumber) {
         assertEquals(1, list.getItems().size());
 
-        String kubeJson = ResourceUtil.toJson(list.getItems().get(0));
-        assertThat(kubeJson, JsonPathMatchers.isJson());
-        assertThat(kubeJson, JsonPathMatchers.hasJsonPath("$.spec.revisionHistoryLimit", Matchers.equalTo(revisionNumber)));
+        assertThat(list.getItems())
+                .hasSize(1)
+                .first()
+                .hasFieldOrPropertyWithValue("spec.revisionHistoryLimit",revisionNumber);
     }
 
 }

@@ -23,8 +23,7 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasEntry;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -43,8 +42,8 @@ public class AbstractPortsExtractorTest {
                 ".properties",
                 "++suffix.yaml"}) {
             Map<String, Integer> map = extractFromFile("vertx.config", getClass().getSimpleName() + path);
-            assertThat(map, hasEntry("http.port", 80));
-            assertThat(map, hasEntry("https.port", 443));
+            assertThat(map).containsEntry("http.port", 80);
+            assertThat(map).containsEntry("https.port", 443);
         }
     }
 

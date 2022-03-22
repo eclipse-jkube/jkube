@@ -24,9 +24,7 @@ import org.junit.rules.TemporaryFolder;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativeFilePath;
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayWithSize;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -128,10 +126,10 @@ public class FileUtilTest {
     // When
     FileUtil.copyDirectoryIfNotExists(new File(folder.getRoot(), "foo"), copyTarget);
     // Then
-    assertThat(copyTarget.exists(), is(true));
-    assertThat(copyTarget.list(), arrayWithSize(2));
-    assertThat(new File(copyTarget, "fileInFoo1").exists(), is(true));
-    assertThat(new File(copyTarget, "fileInFoo2").exists(), is(true));
+    assertThat(copyTarget).exists();
+    assertThat(copyTarget.list()).hasSize(2);
+    assertThat(new File(copyTarget, "fileInFoo1")).exists();
+    assertThat(new File(copyTarget, "fileInFoo2")).exists();
   }
 
   @Test
@@ -139,16 +137,16 @@ public class FileUtilTest {
     // Given
     prepareDirectory();
     File copyTarget = new File(folder.getRoot(), "copyTarget");
-    assertThat(copyTarget.mkdirs(), is(true));
-    assertThat(new File(copyTarget, "emptyFile").createNewFile(), is(true));
+    assertThat(copyTarget.mkdirs()).isTrue();
+    assertThat(new File(copyTarget, "emptyFile").createNewFile()).isTrue();
     // When
     FileUtil.copyDirectoryIfNotExists(new File(folder.getRoot(), "foo"), copyTarget);
     // Then
-    assertThat(copyTarget.exists(), is(true));
-    assertThat(copyTarget.list(), arrayWithSize(1));
-    assertThat(new File(copyTarget, "emptyFile").exists(), is(true));
-    assertThat(new File(copyTarget, "fileInFoo1").exists(), is(false));
-    assertThat(new File(copyTarget, "fileInFoo2").exists(), is(false));
+    assertThat(copyTarget).exists();
+    assertThat(copyTarget.list()).hasSize(1);
+    assertThat(new File(copyTarget, "emptyFile")).exists();
+    assertThat(new File(copyTarget, "fileInFoo1")).doesNotExist();
+    assertThat(new File(copyTarget, "fileInFoo2")).doesNotExist();
   }
 
   @Test
@@ -163,11 +161,11 @@ public class FileUtilTest {
 
   private void prepareDirectory() throws IOException {
     final File dir1 = folder.newFolder("foo");
-    assertThat(new File(dir1, "fileInFoo1").createNewFile(), is(true));
-    assertThat(new File(dir1, "fileInFoo2").createNewFile(), is(true));
+    assertThat(new File(dir1, "fileInFoo1").createNewFile()).isTrue();
+    assertThat(new File(dir1, "fileInFoo2").createNewFile()).isTrue();
     folder.newFile("something");
     final File dir2 = folder.newFolder("bar");
-    assertThat(new File(dir2, "fileInBar2").createNewFile(), is(true));
+    assertThat(new File(dir2, "fileInBar2").createNewFile()).isTrue();
   }
 
 }

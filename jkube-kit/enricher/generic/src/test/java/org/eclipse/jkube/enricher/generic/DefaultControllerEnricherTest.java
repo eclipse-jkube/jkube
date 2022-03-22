@@ -26,7 +26,6 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,7 +34,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -91,8 +90,10 @@ public class DefaultControllerEnricherTest {
         assertEquals(1, list.getItems().size());
 
         String json = ResourceUtil.toJson(list.getItems().get(0));
-        assertThat(json, JsonPathMatchers.isJson());
-        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.replicas", Matchers.equalTo(replicaCount)));
+        assertThat(list.getItems())
+                .hasSize(1)
+                .first()
+                .hasFieldOrPropertyWithValue("spec.replicas", replicaCount);
     }
 
 }
