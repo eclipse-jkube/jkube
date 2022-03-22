@@ -206,8 +206,9 @@ public class EnvUtilTest {
         //When
         List<String> result1 = EnvUtil.splitAtCommasAndTrim(strings1);
         //Then
-        assertThat(result1.size()).isEqualTo(2);
-        assertThat(result1.get(1)).isEqualTo("world");
+        assertThat(result1).hasSize(2)
+                .last()
+                .isEqualTo("world");
     }
 
     @Test
