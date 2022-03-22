@@ -38,8 +38,7 @@ public class GoTimeUtilTest {
 
     @Test
     public void testNull() {
-        assertThat(Optional.empty())
-                .isEqualTo(GoTimeUtil.durationSeconds(null));
+        assertThat(GoTimeUtil.durationSeconds(null)).isEmpty();
     }
 
     @Test
