@@ -100,12 +100,12 @@ public class AssemblyFileSetUtilsTest {
     final File sourceSubdirectory = new File(sourceDirectory, "subdirectory");
     FileUtils.forceMkdir(sourceSubdirectory);
     final File sourceFile = new File(sourceDirectory, "file.txt");
-    assertThat(sourceFile.createNewFile()).isEqualTo(true);
+    assertThat(sourceFile.createNewFile()).isTrue();
     final File aDirectory = temp.newFolder("just-a-directory");
     final File aSubdirectory = new File(aDirectory, "subdirectory");
     FileUtils.forceMkdir(aSubdirectory);
     final File aFile = new File(aDirectory, "file.txt");
-    assertThat(aFile.createNewFile()).isEqualTo(true);
+    assertThat(aFile.createNewFile()).isTrue();
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceDirectory, aDirectory, afs);
     // Then
@@ -143,12 +143,12 @@ public class AssemblyFileSetUtilsTest {
     final File sourceSubdirectory = new File(sourceDirectory, "subdirectory");
     FileUtils.forceMkdir(sourceSubdirectory);
     final File sourceFile = new File(sourceDirectory, "file.txt");
-    assertThat(sourceFile.createNewFile()).isEqualTo(true);
+    assertThat(sourceFile.createNewFile()).isTrue();
     final File aDirectory = temp.newFolder("just-a-directory");
     final File aSubdirectory = new File(aDirectory, "subdirectory");
     FileUtils.forceMkdir(aSubdirectory);
     final File aFile = new File(aDirectory, "file.txt");
-    assertThat(aFile.createNewFile()).isEqualTo(true);
+    assertThat(aFile.createNewFile()).isTrue();
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceDirectory, aDirectory, afs);
     // Then
