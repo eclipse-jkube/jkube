@@ -1,0 +1,34 @@
+[[jkube-openshift-imageChangeTrigger]]
+==== jkube-openshift-imageChangeTrigger
+
+This enricher is responsible for adding a DeploymentConfig trigger of type `ImageChange` based containers.
+
+It is only applicable in case of OpenShift.
+
+.Supported configuration options for this enricher
+[cols="1,6"]
+|===
+| Property | Description
+
+| `jkube.openshift.enableAutomaticTrigger`
+| Enable automatic deployment in generated ImageChange trigger.
+
+  Defaults to `true`.
+
+| `jkube.openshift.imageChangeTriggers`
+| Enable generation of ImageChange triggers to DeploymentConfigs.
+
+  Defaults to `true`.
+
+| `jkube.openshift.trimImageInContainerSpec`
+| Set the container image reference to "", this is done to handle weird behavior of OpenShift
+3.7 in which subsequent rollouts lead to ImagePullErr.
+
+  Defaults to `false`.
+
+| `jkube.openshift.enrichAllWithImageChangeTrigger`
+| Add ImageChange Triggers with respect to all containers specified inside DeploymentConfig.
+
+  Defaults to `false`.
+
+|===

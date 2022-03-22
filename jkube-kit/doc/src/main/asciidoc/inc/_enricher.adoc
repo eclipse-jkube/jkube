@@ -80,9 +80,11 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 
 ifeval::["{goal-prefix}" == "oc"]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
+include::enricher/imagechangetrigger/_jkube_openshift_imagechangetrigger_entry.adoc[]
 endif::[]
 ifeval::["{task-prefix}" == "oc"]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
+include::enricher/imagechangetrigger/_jkube_openshift_imagechangetrigger_entry.adoc[]
 endif::[]
 
 | <<jkube-pod-annotation>>
@@ -163,9 +165,11 @@ include::enricher/namespace/_jkube_namespace.adoc[]
 
 ifeval::["{goal-prefix}" == "oc"]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
+include::enricher/imagechangetrigger/_jkube_openshift_imagechangetrigger.adoc[]
 endif::[]
 ifeval::["{task-prefix}" == "oc"]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
+include::enricher/imagechangetrigger/_jkube_openshift_imagechangetrigger.adoc[]
 endif::[]
 
 include::enricher/pod-annotation/_jkube_pod_annotation.adoc[]
