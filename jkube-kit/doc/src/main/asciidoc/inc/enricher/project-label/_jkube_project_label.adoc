@@ -16,11 +16,19 @@ been replaced by the `app` label in newer versions of the plugin.
 
   Defaults to `false`.
 | `jkube.enricher.jkube-project-label.useProjectLabel`
-| *app*
-| Makes it possible to define a custom `app` label used in the generated resource files used for deployment. 
 
+| *app*
+| Makes it possible to define a custom `app` label used in the generated resource files used for deployment.
+
+ifeval::["{plugin-type}" == "maven"]
 Defaults to the Maven `project.artifactId` property.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Defaults to the Gradle Project `name` property.
+endif::[]
+
 | `jkube.enricher.jkube-project-label.app`
+
 | *provider*
 | Makes it possible to define a custom `provider` label used in the generated resource files used for deployment.
 

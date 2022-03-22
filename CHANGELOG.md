@@ -21,9 +21,17 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.8.0-SNAPSHOT
+* Fix #1201: ThorntailV2Generator works with Gradle Plugins
+* Fix #1251: Generate a preview of jkube documentation for PR if needed
 * Fix #1260: Add documentation for PodAnnotationEnricher
+* Fix #1261: Add documentation for PortNameEnricher
+* Fix #1262: Add docs + gradle integration test for ProjectLabelEnricher
+* Fix #1284: webapp custom generator should not require to set a CMD configuration
 * Fix #1295: Spring Boot actuator endpoints failed to generate automatically if `deployment.yml` resource fragment is used
 * Fix #1201: ThorntailV2Generator works with Gradle Plugins
+* Fix #1297: ReplicaCountEnricher documentation ported to Gradle plugins
+* Fix #1308: Add documentation for DeploymentConfigEnricher
+* Fix #1325: `jkube.enricher.jkube-name.name` doesn't modify `.metadata.name` for generated manifests
 * Fix #1362: VolumePermissionEnricher : Replace iteration with bulk Collection.addAll call 
 
 ### 1.7.0 (2022-02-25)

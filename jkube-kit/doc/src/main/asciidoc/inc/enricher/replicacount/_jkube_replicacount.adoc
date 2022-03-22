@@ -1,0 +1,4 @@
+[[jkube-replicas]]
+==== jkube-replicas
+
+This enricher fixes replica count for Kubernetes/Openshift resources whenever a `-Djkube.replicas=n` parameter is provided.

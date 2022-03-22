@@ -169,4 +169,35 @@ public class WebAppGeneratorTest {
         .extracting("inline.files").asList().extracting("destName")
         .containsExactly("some-context.war");
   }
+
+  @Test
+  public void customize_withFromTargetDirConfiguredAndNoCmd_shouldNotInitializeInvalidCmdArgument() throws IOException {
+    // Given
+    final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
+    final File buildDirectory = temporaryFolder.newFolder("build");
+    final File artifactFile = new File(buildDirectory, "artifact.war");
+    assertTrue(artifactFile.createNewFile());
+    final Properties projectProperties = new Properties();
+    projectProperties.put("jkube.generator.webapp.targetDir", "/usr/local/tomcat/webapps");
+    projectProperties.put("jkube.generator.webapp.from", "tomcat:jdk11-openjdk-slim");
+
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(buildDirectory);
+    when(generatorContext.getProject().getBuildFinalName()).thenReturn("artifact");
+    when(generatorContext.getProject().getPackaging()).thenReturn("war");
+    when(generatorContext.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
+    when(generatorContext.getProject().getProperties()).thenReturn(projectProperties);
+    // When
+    final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
+        .customize(originalImageConfigurations, false);
+    // Then
+    assertThat(result)
+        .isSameAs(originalImageConfigurations)
+        .hasSize(1)
+        .first()
+        .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .hasFieldOrPropertyWithValue("from", "tomcat:jdk11-openjdk-slim")
+        .hasFieldOrPropertyWithValue("env", Collections.singletonMap("DEPLOY_DIR", "/usr/local/tomcat/webapps"))
+        .hasFieldOrPropertyWithValue("cmd", null);
+  }
 }

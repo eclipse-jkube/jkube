@@ -78,8 +78,24 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-namespace>>
 | Set the _Namespace_ of the generated and processed Kubernetes resources metadata and optionally create a new Namespace
 
+ifeval::["{goal-prefix}" == "oc"]
+include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
+endif::[]
+ifeval::["{task-prefix}" == "oc"]
+include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
+endif::[]
+
 | <<jkube-pod-annotation>>
 | Copy over annotations from a `Deployment` to a `Pod`
+
+| <<jkube-portname>>
+| Add a default portname for commonly known service.
+
+| <<jkube-project-label>>
+| Add {plugin-type} coordinates as labels to all objects.
+
+| <<jkube-replicas>>
+| Override number of replicas for any controller processed by JKube.
 
 | <<jkube-secret-file>>
 | Add Secret elements defined as annotation.
@@ -103,17 +119,8 @@ ifeval::["{plugin-type}" == "maven"]
 | <<jkube-name>>
 | Add a default name to every object which misses a name.
 
-| <<jkube-portname>>
-| Add a default portname for commonly known service.
-
-| <<jkube-project-label>>
-| Add Maven coordinates as labels to all objects.
-
 | <<jkube-prometheus>>
 | Add Prometheus annotations.
-
-| <<jkube-replicas>>
-| Override number of replicas for any controller processed by JKube.
 
 | <<jkube-revision-history-enricher>>
 | Add revision history limit (https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit[Kubernetes doc]) as a deployment spec property to the Kubernetes/OpenShift resources.
@@ -154,7 +161,20 @@ include::enricher/metadata/_jkube_metadata.adoc[]
 
 include::enricher/namespace/_jkube_namespace.adoc[]
 
+ifeval::["{goal-prefix}" == "oc"]
+include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
+endif::[]
+ifeval::["{task-prefix}" == "oc"]
+include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
+endif::[]
+
 include::enricher/pod-annotation/_jkube_pod_annotation.adoc[]
+
+include::enricher/port-name/_jkube_port_name.adoc[]
+
+include::enricher/project-label/_jkube_project_label.adoc[]
+
+include::enricher/replicacount/_jkube_replicacount.adoc[]
 
 include::enricher/secret-file/_jkube_secret_file.adoc[]
 
@@ -180,11 +200,6 @@ include::enricher/_jkube_maven_issue_mgmt.adoc[]
 ==== jkube-name
 
 include::enricher/_jkube_openshift_autotls.adoc[]
-
-[[jkube-portname]]
-==== jkube-portname
-
-include::enricher/_jkube_project_label.adoc[]
 
 include::enricher/_jkube_prometheus.adoc[]
 

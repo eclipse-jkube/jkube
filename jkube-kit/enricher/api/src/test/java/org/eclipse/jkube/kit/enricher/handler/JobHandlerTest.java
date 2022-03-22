@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 public class JobHandlerTest {
 
@@ -114,29 +115,29 @@ public class JobHandlerTest {
 
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void daemonTemplateHandlerWithInvalidNameTest() {
         // with invalid controller name
-        ResourceConfig config = ResourceConfig.builder()
-                .imagePullPolicy("IfNotPresent")
-                .controllerName("TesTing")
-                .serviceAccount("test-account")
-                .volumes(volumes1)
-                .build();
+      ResourceConfig config = ResourceConfig.builder()
+              .imagePullPolicy("IfNotPresent")
+              .controllerName("TesTing")
+              .serviceAccount("test-account")
+              .volumes(volumes1)
+              .build();
 
-        jobHandler.get(config, images);
+        assertThrows(IllegalArgumentException.class, () -> jobHandler.get(config, images));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void daemonTemplateHandlerWithoutControllerTest() {
         // without controller name
-        ResourceConfig config = ResourceConfig.builder()
-                .imagePullPolicy("IfNotPresent")
-                .serviceAccount("test-account")
-                .volumes(volumes1)
-                .build();
+      ResourceConfig config = ResourceConfig.builder()
+              .imagePullPolicy("IfNotPresent")
+              .serviceAccount("test-account")
+              .volumes(volumes1)
+              .build();
 
-        jobHandler.get(config, images);
+        assertThrows(IllegalArgumentException.class, () -> jobHandler.get(config, images));
     }
 
     @Test

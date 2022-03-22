@@ -1,0 +1,26 @@
+[[jkube-portname]]
+==== jkube-portname
+
+This enricher uses a given set of well known ports:
+
+.Default Port Mappings
+[cols="1,1"]
+|===
+| Port Number
+| Name
+
+| `8080`
+| `http`
+
+| `8443`
+| `https`
+
+| `8778`
+| `jolokia`
+
+| `9779`
+| `prometheus`
+|===
+
+If not found, it creates container ports with names of IANA registered services.
+
