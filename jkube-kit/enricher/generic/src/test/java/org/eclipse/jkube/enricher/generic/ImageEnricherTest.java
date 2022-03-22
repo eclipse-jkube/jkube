@@ -14,7 +14,8 @@
 package org.eclipse.jkube.enricher.generic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jayway.jsonpath.matchers.JsonPathMatchers;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.ReadContext;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
@@ -30,13 +31,12 @@ import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -155,11 +155,15 @@ public class ImageEnricherTest {
         assertEquals(1, list.getItems().size());
 
         String json = ResourceUtil.toJson(list.getItems().get(0));
-        assertThat(json, JsonPathMatchers.isJson());
-        assertThat(json, JsonPathMatchers.hasJsonPath("$.kind", Matchers.equalTo(kind)));
+        ReadContext context = JsonPath.parse(json);
 
-        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0].env[0].name", Matchers.equalTo(expectedKey)));
-        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0].env[0].value", Matchers.equalTo(expectedValue)));
+        String kindProp = context.read("$.kind");
+        String envName = context.read("$.spec.template.spec.containers[0].env[0].name");
+        String envValue = context.read("$.spec.template.spec.containers[0].env[0].value");
+
+        assertThat(kindProp).isEqualTo(kind);
+        assertThat(envName).isEqualTo(expectedKey);
+        assertThat(envValue).isEqualTo(expectedValue);
     }
 
     private void givenResourceConfigWithEnvVar(String name, String value) {

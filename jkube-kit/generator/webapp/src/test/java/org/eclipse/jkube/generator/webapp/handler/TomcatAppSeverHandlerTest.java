@@ -26,11 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class TomcatAppSeverHandlerTest {
@@ -54,7 +50,7 @@ public class TomcatAppSeverHandlerTest {
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertThat(result, equalTo(true));
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -69,7 +65,7 @@ public class TomcatAppSeverHandlerTest {
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertThat(result, equalTo(false));
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -86,7 +82,7 @@ public class TomcatAppSeverHandlerTest {
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertThat(result, equalTo(true));
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -103,7 +99,7 @@ public class TomcatAppSeverHandlerTest {
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertThat(result, equalTo(false));
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -111,7 +107,7 @@ public class TomcatAppSeverHandlerTest {
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertThat(result, equalTo(false));
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -119,12 +115,12 @@ public class TomcatAppSeverHandlerTest {
     // When
     final TomcatAppSeverHandler handler = new TomcatAppSeverHandler(generatorContext);
     // Then
-    assertThat(handler.getFrom(), startsWith("quay.io/jkube/jkube-tomcat9:"));
-    assertThat(handler.exposedPorts(), contains("8080"));
-    assertThat(handler.getDeploymentDir(), equalTo("/deployments"));
-    assertThat(handler.getAssemblyName(), equalTo("deployments"));
-    assertThat(handler.getCommand(), equalTo("/usr/local/s2i/run"));
-    assertThat(handler.getUser(), nullValue());
-    assertThat(handler.supportsS2iBuild(), equalTo(true));
+    assertThat(handler.getFrom()).startsWith("quay.io/jkube/jkube-tomcat9:");
+    assertThat(handler.exposedPorts()).contains("8080");
+    assertThat(handler.getDeploymentDir()).isEqualTo("/deployments");
+    assertThat(handler.getAssemblyName()).isEqualTo("deployments");
+    assertThat(handler.getCommand()).isEqualTo("/usr/local/s2i/run");
+    assertThat(handler.getUser()).isNull();
+    assertThat(handler.supportsS2iBuild()).isTrue();
   }
 }

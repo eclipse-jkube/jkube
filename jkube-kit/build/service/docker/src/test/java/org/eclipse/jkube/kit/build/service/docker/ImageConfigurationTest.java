@@ -22,8 +22,7 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import mockit.Mocked;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ImageConfigurationTest {
 
@@ -46,6 +45,6 @@ public class ImageConfigurationTest {
     // When
     final String result = ConfigHelper.initAndValidate(nameFormatter, imageConfiguration);
     // Then
-    assertThat(result, is("13.37"));
+    assertThat(result).isEqualTo("13.37");
   }
 }

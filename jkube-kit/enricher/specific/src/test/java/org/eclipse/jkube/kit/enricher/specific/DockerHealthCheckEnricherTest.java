@@ -15,10 +15,12 @@ package org.eclipse.jkube.kit.enricher.specific;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jayway.jsonpath.matchers.JsonPathMatchers;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.ReadContext;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -34,10 +36,9 @@ import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -218,28 +219,35 @@ public class DockerHealthCheckEnricherTest {
 
     private void assertNoProbes(HasMetadata object) throws JsonProcessingException {
         String json = ResourceUtil.toJson(object);
-        assertThat(json, JsonPathMatchers.isJson());
-        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0]", Matchers.not(Matchers.hasKey("livenessProbe"))));
-        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0]", Matchers.not(Matchers.hasKey("readinessProbe"))));
+        ReadContext ctx = JsonPath.parse(json);
+        LinkedHashMap<String, Object> map = ctx.read("$.spec.template.spec.containers[0]");
+
+        assertThat(map).doesNotContainKey("livenessProbe");
+        assertThat(map).doesNotContainKey("readinessProbe");
     }
 
     private void assertHealthCheckMatching(HasMetadata object, String type, String command, Integer timeoutSeconds, Integer periodSeconds, Integer failureThreshold) throws JsonProcessingException {
         String json = ResourceUtil.toJson(object);
-        assertThat(json, JsonPathMatchers.isJson());
-        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0]", Matchers.hasKey(type)));
+        ReadContext ctx = JsonPath.parse(json);
+        LinkedHashMap<String, Object> map = ctx.read("$.spec.template.spec.containers[0]");
+
+        assertThat(map).containsKey(type);
 
         if (command != null) {
-            assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0]." + type + ".exec.command[0]", Matchers.equalTo(command)));
+            String cmd = ctx.read("$.spec.template.spec.containers[0]." + type + ".exec.command[0]");
+            assertThat(cmd).isEqualTo(command);
         }
         if (timeoutSeconds != null) {
-            assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0]." + type + ".timeoutSeconds", Matchers.equalTo(timeoutSeconds)));
+            Integer timeoutSec = ctx.read("$.spec.template.spec.containers[0]." + type + ".timeoutSeconds");
+            assertThat(timeoutSec).isEqualTo(timeoutSeconds);
         }
         if (periodSeconds != null) {
-            assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0]." + type + ".periodSeconds", Matchers.equalTo(periodSeconds)));
+            Integer periodSec = ctx.read("$.spec.template.spec.containers[0]." + type + ".periodSeconds");
+            assertThat(periodSec).isEqualTo(periodSeconds);
         }
         if (failureThreshold != null) {
-            assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.template.spec.containers[0]." + type + ".failureThreshold", Matchers.equalTo(failureThreshold)));
-        }
+            Integer threshold = ctx.read("$.spec.template.spec.containers[0]." + type + ".failureThreshold");
+            assertThat(failureThreshold).isEqualTo(threshold);        }
     }
 
 }

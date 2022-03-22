@@ -27,12 +27,10 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.Matchers.hasEntry;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DockerFileBuilderTest {
 
@@ -172,33 +170,33 @@ public class DockerFileBuilderTest {
     @Test
     public void testMaintainer() {
         String dockerfileContent = new DockerFileBuilder().maintainer("maintainer@example.com").content();
-        assertThat(dockerfileToMap(dockerfileContent), hasEntry("MAINTAINER", "maintainer@example.com"));
+        assertThat(dockerfileToMap(dockerfileContent)).containsEntry("MAINTAINER", "maintainer@example.com");
     }
 
     @Test
     public void testOptimise() {
         String dockerfileContent = new DockerFileBuilder().optimise().run(Arrays.asList("echo something", "echo two")).content();
-        assertThat(dockerfileToMap(dockerfileContent), hasEntry("RUN", "echo something && echo two"));
+        assertThat(dockerfileToMap(dockerfileContent)).containsEntry("RUN", "echo something && echo two");
     }
 
     @Test
     public void testOptimiseOnEmptyRunCommandListDoesNotThrowException() {
         final String result = new DockerFileBuilder().optimise().content();
-        assertThat(result, notNullValue());
+        assertThat(result).isNotNull();;
     }
 
     @Test
     public void testEntryPointShell() {
         Arguments a = Arguments.builder().shell("java -jar /my-app-1.1.1.jar server").build();
         String dockerfileContent = new DockerFileBuilder().entryPoint(a).content();
-        assertThat(dockerfileToMap(dockerfileContent), hasEntry("ENTRYPOINT", "java -jar /my-app-1.1.1.jar server"));
+        assertThat(dockerfileToMap(dockerfileContent)).containsEntry("ENTRYPOINT", "java -jar /my-app-1.1.1.jar server");
     }
 
     @Test
     public void testEntryPointParams() {
         Arguments a = Arguments.builder().execArgument("java").execArgument("-jar").execArgument("/my-app-1.1.1.jar").execArgument("server").build();
         String dockerfileContent = new DockerFileBuilder().entryPoint(a).content();
-        assertThat(dockerfileToMap(dockerfileContent), hasEntry("ENTRYPOINT", "[\"java\",\"-jar\",\"/my-app-1.1.1.jar\",\"server\"]"));
+        assertThat(dockerfileToMap(dockerfileContent)).containsEntry("ENTRYPOINT", "[\"java\",\"-jar\",\"/my-app-1.1.1.jar\",\"server\"]");
     }
 
     @Test
@@ -210,14 +208,14 @@ public class DockerFileBuilderTest {
             .retries(4)
             .build();
         String dockerfileContent = new DockerFileBuilder().healthCheck(hc).content();
-        assertThat(dockerfileToMap(dockerfileContent), hasEntry("HEALTHCHECK", "--interval=5s --timeout=3s --start-period=30s --retries=4 CMD echo hello"));
+        assertThat(dockerfileToMap(dockerfileContent)).containsEntry("HEALTHCHECK", "--interval=5s --timeout=3s --start-period=30s --retries=4 CMD echo hello");
     }
 
     @Test
     public void testHealthCheckNone() {
         HealthCheckConfiguration hc = HealthCheckConfiguration.builder().mode(HealthCheckMode.none).build();
         String dockerfileContent = new DockerFileBuilder().healthCheck(hc).content();
-        assertThat(dockerfileToMap(dockerfileContent), hasEntry("HEALTHCHECK", "NONE"));
+        assertThat(dockerfileToMap(dockerfileContent)).containsEntry("HEALTHCHECK", "NONE");
     }
 
     @Test

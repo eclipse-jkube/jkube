@@ -27,9 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings({"unused", "java:S3599", "java:S1171"})
 public class OpenshiftUndeployMojoTest {
@@ -69,16 +67,16 @@ public class OpenshiftUndeployMojoTest {
     // When
     final List<File> result = undeployMojo.getManifestsToUndeploy();
     // Then
-    assertThat(result, contains(openShiftManifestFile, openShiftISManifestFile));
+    assertThat(result).contains(openShiftManifestFile, openShiftISManifestFile);
   }
 
   @Test
   public void getRuntimeMode() {
-    assertThat(undeployMojo.getRuntimeMode(), equalTo(RuntimeMode.OPENSHIFT));
+    assertThat(undeployMojo.getRuntimeMode()).isEqualTo(RuntimeMode.OPENSHIFT);
   }
 
   @Test
   public void getLogPrefix() {
-    assertThat(undeployMojo.getLogPrefix(), equalTo("oc: "));
+    assertThat(undeployMojo.getLogPrefix()).isEqualTo("oc: ");
   }
 }

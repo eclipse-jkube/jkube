@@ -41,13 +41,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.endsWith;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 public class HelmMojoTest {
@@ -90,7 +84,7 @@ public class HelmMojoTest {
       @Mocked Scm scm, @Mocked Developer developer) throws Exception {
 
     // Given
-    assertThat(helmMojo.helm, nullValue());
+    assertThat(helmMojo.helm).isNull();
     // @formatter:off
     new Expectations() {{
       mavenProject.getArtifactId(); result = "artifact-id";
@@ -108,23 +102,23 @@ public class HelmMojoTest {
     // When
     helmMojo.execute();
     // Then
-    assertThat(helmMojo.helm, notNullValue());
-    assertThat(helmMojo.helm.getChart(), is("artifact-id"));
-    assertThat(helmMojo.helm.getChartExtension(), is("tar.gz"));
-    assertThat(helmMojo.helm.getVersion(), is("1337"));
-    assertThat(helmMojo.helm.getDescription(), is("A description from Maven"));
-    assertThat(helmMojo.helm.getHome(), is("https://project.url"));
-    assertThat(helmMojo.helm.getSources(), contains("https://scm.url"));
-    assertThat(helmMojo.helm.getMaintainers(), contains(
+    assertThat(helmMojo.helm).isNotNull();
+    assertThat(helmMojo.helm.getChart()).isEqualTo("artifact-id");
+    assertThat(helmMojo.helm.getChartExtension()).isEqualTo("tar.gz");
+    assertThat(helmMojo.helm.getVersion()).isEqualTo("1337");
+    assertThat(helmMojo.helm.getDescription()).isEqualTo("A description from Maven");
+    assertThat(helmMojo.helm.getHome()).isEqualTo("https://project.url");
+    assertThat(helmMojo.helm.getSources()).contains("https://scm.url");
+    assertThat(helmMojo.helm.getMaintainers()).contains(
         new Maintainer("John", "john@example.com")
-    ));
-    assertThat(helmMojo.helm.getIcon(), nullValue());
-    assertThat(helmMojo.helm.getAdditionalFiles(), empty());
-    assertThat(helmMojo.helm.getParameterTemplates(), empty());
-    assertThat(helmMojo.helm.getTypes(), contains(HelmConfig.HelmType.KUBERNETES));
-    assertThat(helmMojo.helm.getSourceDir(), is("target/classes/META-INF/jkube/"));
-    assertThat(helmMojo.helm.getOutputDir(), is("target/jkube/helm/artifact-id"));
-    assertThat(helmMojo.helm.getTarballOutputDir(), endsWith("/target"));
+    );
+    assertThat(helmMojo.helm.getIcon()).isNull();
+    assertThat(helmMojo.helm.getAdditionalFiles()).isEmpty();
+    assertThat(helmMojo.helm.getParameterTemplates()).isEmpty();
+    assertThat(helmMojo.helm.getTypes()).contains(HelmConfig.HelmType.KUBERNETES);
+    assertThat(helmMojo.helm.getSourceDir()).isEqualTo("target/classes/META-INF/jkube/");
+    assertThat(helmMojo.helm.getOutputDir()).isEqualTo("target/jkube/helm/artifact-id");
+    assertThat(helmMojo.helm.getTarballOutputDir()).endsWith("/target");
     new Verifications() {{
       helmService.generateHelmCharts(helmMojo.helm);
       times = 1;
@@ -161,7 +155,7 @@ public class HelmMojoTest {
     // When
     helmMojo.execute();
     // Then
-    assertThat(helmMojo.helm.getParameterTemplates(), contains(template));
+    assertThat(helmMojo.helm.getParameterTemplates()).contains(template);
   }
 
   @Test
@@ -181,7 +175,7 @@ public class HelmMojoTest {
     // When
     helmMojo.execute();
     // Then
-    assertThat(helmMojo.helm.getIcon(), is("https://my-icon"));
+    assertThat(helmMojo.helm.getIcon()).isEqualTo("https://my-icon");
   }
 
 }

@@ -32,14 +32,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class KarafGeneratorTest {
 
@@ -65,7 +58,7 @@ public class KarafGeneratorTest {
     // When
     final boolean result = new KarafGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
-    assertThat(result, equalTo(true));
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -85,7 +78,7 @@ public class KarafGeneratorTest {
     // When
     final boolean result = new KarafGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
-    assertThat(result, equalTo(false));
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -106,33 +99,33 @@ public class KarafGeneratorTest {
     final List<ImageConfiguration> result = new KarafGenerator(generatorContext)
         .customize(originalImageConfigurations, false);
     // Then
-    assertThat(originalImageConfigurations, sameInstance(result));
-    assertThat(result, hasSize(1));
+    assertThat(originalImageConfigurations).isSameAs(result);
+    assertThat(result).hasSize(1);
     final ImageConfiguration imageConfiguration = result.iterator().next();
-    assertThat(imageConfiguration.getName(), equalTo("%g/%a:%l"));
-    assertThat(imageConfiguration.getAlias(), equalTo("karaf"));
+    assertThat(imageConfiguration.getName()).isEqualTo("%g/%a:%l");
+    assertThat(imageConfiguration.getAlias()).isEqualTo("karaf");
     final BuildConfiguration bc = imageConfiguration.getBuildConfiguration();
-    assertThat(bc.getTags(), contains("latest"));
-    assertThat(bc.getPorts(), contains("8181", "8778"));
-    assertThat(bc.getEnv(), hasEntry("DEPLOYMENTS_DIR", "/deployments"));
-    assertThat(bc.getEnv(), hasEntry("KARAF_HOME", "/deployments/karaf"));
+    assertThat(bc.getTags()).contains("latest");
+    assertThat(bc.getPorts()).contains("8181", "8778");
+    assertThat(bc.getEnv()).containsEntry("DEPLOYMENTS_DIR", "/deployments");
+    assertThat(bc.getEnv()).containsEntry("KARAF_HOME", "/deployments/karaf");
     final AssemblyConfiguration ac = bc.getAssembly();
-    assertThat(ac.getName(), equalTo("deployments"));
-    assertThat(ac.isExcludeFinalOutputArtifact(), equalTo(false));
-    assertThat(ac.getLayers(), hasSize(1));
-    assertThat(ac.getLayers().iterator().next().getFileSets(), contains(
-        allOf(
-            hasProperty("directory", equalTo(new File(temporaryFolder.getRoot(), "assembly"))),
-            hasProperty("outputDirectory", equalTo(new File("karaf"))),
-            hasProperty("directoryMode", equalTo("0775"))
-        ),
-        allOf(
-            hasProperty("directory", equalTo(temporaryFolder.getRoot().toPath().resolve("assembly").resolve("bin").toFile())),
-            hasProperty("outputDirectory", equalTo(new File("karaf", "bin"))),
-            hasProperty("fileMode", equalTo("0777")),
-            hasProperty("directoryMode", equalTo("0775"))
-        )
-    ));
+    assertThat(ac.getName()).isEqualTo("deployments");
+    assertThat(ac.isExcludeFinalOutputArtifact()).isFalse();
+    assertThat(ac.getLayers()).hasSize(1);
+    assertThat(ac.getLayers().iterator().next().getFileSets())
+            .hasSize(2)
+            .first()
+            .hasFieldOrPropertyWithValue("directory", new File(temporaryFolder.getRoot(), "assembly"))
+            .hasFieldOrPropertyWithValue("outputDirectory", new File("karaf"))
+            .hasFieldOrPropertyWithValue("directoryMode", "0775");
+
+    assertThat(ac.getLayers().iterator().next().getFileSets())
+            .last()
+            .hasFieldOrPropertyWithValue("directory", temporaryFolder.getRoot().toPath().resolve("assembly").resolve("bin").toFile())
+            .hasFieldOrPropertyWithValue("outputDirectory", new File("karaf", "bin"))
+            .hasFieldOrPropertyWithValue("fileMode", "0777")
+            .hasFieldOrPropertyWithValue("directoryMode", "0775");
   }
 
   @Test
@@ -153,9 +146,9 @@ public class KarafGeneratorTest {
     final List<ImageConfiguration> result = new KarafGenerator(generatorContext)
         .customize(originalImageConfigurations, false);
     // Then
-    assertThat(result, hasSize(1));
+    assertThat(result).hasSize(1);
     final ImageConfiguration imageConfiguration = result.iterator().next();
-    assertThat(imageConfiguration.getBuildConfiguration().getPorts(), contains("8080", "8778"));
-    assertThat(imageConfiguration.getBuildConfiguration().getEnv(), hasEntry("DEPLOYMENTS_DIR", "/other-dir"));
+    assertThat(imageConfiguration.getBuildConfiguration().getPorts()).contains("8080", "8778");
+    assertThat(imageConfiguration.getBuildConfiguration().getEnv()).containsEntry("DEPLOYMENTS_DIR","/other-dir");
   }
 }
