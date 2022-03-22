@@ -128,8 +128,7 @@ public class MavenUtilTest {
         // When
         final List<Dependency> result = MavenUtil.getTransitiveDependencies(mavenProject);
         // Then
-        assertThat(result).hasSize(2);
-        assertThat(result).contains(Dependency.builder().groupId("org.eclipse.jkube").artifactId("foo-dependency").version("1.33.7")
+        assertThat(result).hasSize(2).contains(Dependency.builder().groupId("org.eclipse.jkube").artifactId("foo-dependency").version("1.33.7")
                 .type("jar").scope("runtime").build(), Dependency.builder().groupId("org.eclipse.jkube").artifactId("bar-dependency").version("1.33.7")
                 .type("jar").scope("runtime").build());
     }
