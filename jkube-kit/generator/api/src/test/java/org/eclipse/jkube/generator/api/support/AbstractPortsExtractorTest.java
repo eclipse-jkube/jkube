@@ -24,6 +24,7 @@ import mockit.Mocked;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -42,8 +43,10 @@ public class AbstractPortsExtractorTest {
                 ".properties",
                 "++suffix.yaml"}) {
             Map<String, Integer> map = extractFromFile("vertx.config", getClass().getSimpleName() + path);
-            assertThat(map).containsEntry("http.port", 80);
-            assertThat(map).containsEntry("https.port", 443);
+            assertThat(map).contains(
+                    entry("http.port", 80),
+                    entry("https.port", 443)
+            );
         }
     }
 
