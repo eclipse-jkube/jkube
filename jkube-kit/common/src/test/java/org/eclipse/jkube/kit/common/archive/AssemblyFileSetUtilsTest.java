@@ -37,7 +37,7 @@ public class AssemblyFileSetUtilsTest {
     // When
     boolean result = isSelfPath(null);
     // Then
-    assertThat(result).isEqualTo(true);
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -45,7 +45,7 @@ public class AssemblyFileSetUtilsTest {
     // When
     boolean result = isSelfPath("   ");
     // Then
-    assertThat(result).isEqualTo(true);
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -53,7 +53,7 @@ public class AssemblyFileSetUtilsTest {
     // When
     boolean result = isSelfPath(".");
     // Then
-    assertThat(result).isEqualTo(true);
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -65,8 +65,7 @@ public class AssemblyFileSetUtilsTest {
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceFile, aFile, afs);
     // Then
-    assertThat(result).hasSize(1);
-    assertThat(result).contains(new AssemblyFileEntry(sourceFile, aFile, "0644"));
+    assertThat(result).hasSize(1).contains(new AssemblyFileEntry(sourceFile, aFile, "0644"));
   }
 
   @Test
@@ -78,8 +77,7 @@ public class AssemblyFileSetUtilsTest {
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceFile, aFile, afs);
     // Then
-    assertThat(result).hasSize(1);
-    assertThat(result).contains(new AssemblyFileEntry(sourceFile, aFile, "0777"));
+    assertThat(result).hasSize(1).contains(new AssemblyFileEntry(sourceFile, aFile, "0777"));
   }
 
   @Test
@@ -91,8 +89,7 @@ public class AssemblyFileSetUtilsTest {
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceDirectory, aDirectory, afs);
     // Then
-    assertThat(result).hasSize(1);
-    assertThat(result).contains(new AssemblyFileEntry(sourceDirectory, aDirectory, "040755"));
+    assertThat(result).hasSize(1).contains(new AssemblyFileEntry(sourceDirectory, aDirectory, "040755"));
   }
 
   @Test
@@ -112,8 +109,7 @@ public class AssemblyFileSetUtilsTest {
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceDirectory, aDirectory, afs);
     // Then
-    assertThat(result).hasSize(3);
-    assertThat(result).containsExactlyInAnyOrder(
+    assertThat(result).hasSize(3).containsExactlyInAnyOrder(
             new AssemblyFileEntry(sourceDirectory, aDirectory, "040777"),
             new AssemblyFileEntry(sourceSubdirectory, aSubdirectory, "040777"),
             new AssemblyFileEntry(sourceFile, aFile, "0644")
@@ -133,8 +129,7 @@ public class AssemblyFileSetUtilsTest {
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceDirectory, aDirectory, afs);
     // Then
-    assertThat(result).hasSize(2);
-    assertThat(result).containsExactlyInAnyOrder(
+    assertThat(result).hasSize(2).containsExactlyInAnyOrder(
             new AssemblyFileEntry(sourceDirectory, aDirectory, "040775"),
             new AssemblyFileEntry(sourceSubdirectory, aSubdirectory, "040775")
     );
@@ -157,8 +152,7 @@ public class AssemblyFileSetUtilsTest {
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceDirectory, aDirectory, afs);
     // Then
-    assertThat(result).hasSize(3);
-    assertThat(result).containsExactlyInAnyOrder(
+    assertThat(result).hasSize(3).containsExactlyInAnyOrder(
             new AssemblyFileEntry(sourceDirectory, aDirectory, "040755"),
             new AssemblyFileEntry(sourceSubdirectory, aSubdirectory, "040755"),
             new AssemblyFileEntry(sourceFile, aFile, "0755")
