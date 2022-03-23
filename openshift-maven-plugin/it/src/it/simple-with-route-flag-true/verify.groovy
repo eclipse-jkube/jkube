@@ -14,9 +14,13 @@
 import org.eclipse.jkube.maven.it.Verify
 
 [ "openshift"   ].each {
+    File outputDir = new File(basedir, sprintf("/target/classes/META-INF/jkube/%s",it))
+    File outputFile = new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml",it))
     Verify.verifyResourceDescriptors(
-            new File(basedir, sprintf("/target/classes/META-INF/jkube/%s.yml",it)),
+            outputFile,
             new File(basedir, sprintf("/expected/%s.yml",it)))
+
+    assert outputDir.listFiles().length == 3
 }
 
 true
