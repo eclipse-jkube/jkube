@@ -1,0 +1,2 @@
+| <<jkube-openshift-project>>
+| Converts a Kubernetes Namespace resource to OpenShift Project.
