@@ -38,7 +38,8 @@ public class ProjectLabelIT {
   public static Collection<Object[]> data() {
     return Arrays.asList(
         new Object[] { "default" , new String[] {}},
-        new Object[] { "custom" , new String[] {"-Pjkube.enricher.jkube-project-label.useProjectLabel=true", "-Pjkube.enricher.jkube-project-label.provider=custom-provider"}}
+        new Object[] { "custom" , new String[] {"-Pjkube.enricher.jkube-project-label.useProjectLabel=true", "-Pjkube.enricher.jkube-project-label.provider=custom-provider"}},
+        new Object[] { "app" , new String[] {"-Pjkube.enricher.jkube-project-label.app=custom-app" }}
     );
   }
 
