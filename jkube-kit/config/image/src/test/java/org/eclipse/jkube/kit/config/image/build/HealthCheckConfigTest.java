@@ -12,7 +12,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 package org.eclipse.jkube.kit.config.image.build;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -92,65 +92,80 @@ public class HealthCheckConfigTest {
                 .validate();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testBadHealthCheck1() {
-        HealthCheckConfiguration.builder()
-                .mode(HealthCheckMode.none)
-                .interval("2s")
-                .build()
-                .validate();
+        Assert.assertThrows(IllegalArgumentException.class, () -> {
+            HealthCheckConfiguration.builder()
+            .mode(HealthCheckMode.none)
+            .interval("2s")
+            .build()
+            .validate();
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testBadHealthCheck2() {
-        HealthCheckConfiguration.builder()
+        Assert.assertThrows(IllegalArgumentException.class, () -> {
+            HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.none)
                 .retries(1)
                 .build()
                 .validate();
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testBadHealthCheck3() {
-        HealthCheckConfiguration.builder()
+        Assert.assertThrows(IllegalArgumentException.class, () -> {
+            HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.none)
                 .timeout("3s")
                 .build()
                 .validate();
+        });
+        
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testBadHealthCheck4() {
-        HealthCheckConfiguration.builder()
+        Assert.assertThrows(IllegalArgumentException.class, () -> {
+            HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.none)
                 .startPeriod("30s")
                 .cmd(Arguments.builder().shell("echo a").build())
                 .build()
                 .validate();
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testBadHealthCheck5() {
-        HealthCheckConfiguration.builder()
+        Assert.assertThrows(IllegalArgumentException.class, () -> {
+            HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.none)
                 .cmd(Arguments.builder().shell("echo a").build())
                 .build()
                 .validate();
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testBadHealthCheck6() {
-        HealthCheckConfiguration.builder()
+        Assert.assertThrows(IllegalArgumentException.class, () -> {
+            HealthCheckConfiguration.builder()
                 .build()
                 .validate();
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testBadHealthCheck7() {
-        HealthCheckConfiguration.builder()
+        Assert.assertThrows(IllegalArgumentException.class, () -> {
+            HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.cmd)
                 .build()
                 .validate();
+        });
     }
 
 }
