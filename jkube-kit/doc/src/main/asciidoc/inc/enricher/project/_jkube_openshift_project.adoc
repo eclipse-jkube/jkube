@@ -1,0 +1,7 @@
+
+[[jkube-openshift-project]]
+==== jkube-openshift-project
+
+Enricher that converts Kubernetes https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/[Namespace] resource into an OpenShift equivalent resource i.e. https://docs.openshift.com/container-platform/4.10/applications/projects/working-with-projects.html[Project].
+
+This is only applicable in case of OpenShift.
