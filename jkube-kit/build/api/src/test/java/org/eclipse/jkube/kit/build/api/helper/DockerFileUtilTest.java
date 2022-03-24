@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -182,12 +183,8 @@ public class DockerFileUtilTest {
     @Test
     public void testMultiStageWithArgs() throws Exception {
         File toTest = copyToTempDir("Dockerfile_multi_stage_with_args");
-        Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER, Collections.emptyMap())
-                .iterator();
-
-        assertEquals("fabric8/s2i-java:latest", fromClauses.next());
-        assertEquals("busybox:latest", fromClauses.next());
-        assertFalse(fromClauses.hasNext());
+        assertThat(DockerFileUtil.extractBaseImages(toTest, new Properties(), "${*}", Collections.emptyMap()))
+            .containsExactly("fabric8/s2i-java:latest", "busybox:latest", "docker.io/library/openjdk:latest");
     }
 
     @Test
@@ -213,6 +210,8 @@ public class DockerFileUtilTest {
         assertEquals("{MESSAGE=:message}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "MESSAGE=:message"}), Collections.emptyMap()).toString());
         assertEquals("{MYAPP_IMAGE=myorg/myapp:latest}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "MYAPP_IMAGE=myorg/myapp:latest"}), Collections.emptyMap()).toString());
         assertEquals("{busyboxVersion=latest}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "busyboxVersion"}), Collections.singletonMap("busyboxVersion", "latest")).toString());
+        assertEquals("{busyboxVersion=slim}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "busyboxVersion=latest"}), Collections.singletonMap("busyboxVersion", "slim")).toString());
+        assertEquals("{busyboxVersion=latest}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "busyboxVersion=latest"}), null).toString());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -232,8 +231,21 @@ public class DockerFileUtilTest {
 
     @Test
     public void testResolveArgValueFromStrContainingArgKey() {
-        assertEquals("latest", DockerFileUtil.resolveArgValueFromStrContainingArgKey("$VERSION", Collections.singletonMap("VERSION", "latest")));
-        assertEquals("test", DockerFileUtil.resolveArgValueFromStrContainingArgKey("${project.scope}", Collections.singletonMap("project.scope", "test")));
+        assertEquals("latest", DockerFileUtil.resolveImageTagFromArgs("$VERSION", Collections.singletonMap("VERSION", "latest")));
+        assertEquals("test", DockerFileUtil.resolveImageTagFromArgs("${project.scope}", Collections.singletonMap("project.scope", "test")));
+        assertEquals("test", DockerFileUtil.resolveImageTagFromArgs("$ad", Collections.singletonMap("ad", "test")));
+        assertEquals("blatest", DockerFileUtil.resolveImageTagFromArgs("bla$ad", Collections.singletonMap("ad", "test")));
+        assertEquals("testbar", DockerFileUtil.resolveImageTagFromArgs("${foo}bar", Collections.singletonMap("foo", "test")));
+        assertEquals("bartest", DockerFileUtil.resolveImageTagFromArgs("bar${foo}", Collections.singletonMap("foo", "test")));
+        assertEquals("$ad", DockerFileUtil.resolveImageTagFromArgs("$ad", Collections.emptyMap()));
+    }
+
+    @Test
+    public void testFindAllArgsDefinedInString() {
+        assertThat(DockerFileUtil.findAllArgs("$REPO_1/bar${IMAGE-1}foo:$VERSION"))
+            .containsExactlyInAnyOrder("REPO_1", "IMAGE-1", "VERSION");
+        assertThat(DockerFileUtil.findAllArgs("${invalidArg"))
+            .isEmpty();
     }
 
     @Test

@@ -46,7 +46,8 @@ import org.apache.commons.lang3.StringUtils;
  * @since 21/01/16
  */
 public class DockerFileUtil {
-    private static final String ARG_PATTERN_REGEX = "\\$(?:\\{(.*)\\}|(.*))";
+    private static final String ARG_PATTERN_REGEX = "\\$([\\w|\\-\\.]+)|\\$\\{([\\w\\-|\\.]+)\\}";
+
     private static final Pattern argPattern = Pattern.compile(ARG_PATTERN_REGEX);
 
     private DockerFileUtil() {}
@@ -160,34 +161,29 @@ public class DockerFileUtil {
         return result;
     }
 
-    private static String resolveImageTagFromArgs(String imageTagString, Map<String, String> args) {
-        if (imageTagString.startsWith("$")) { // FROM $IMAGE
-            String resolvedVal = resolveArgValueFromStrContainingArgKey(imageTagString, args);
-            if (resolvedVal != null) {
-                return resolvedVal;
-            }
-        } else { // FROM image:$TAG_ARG
-            String[] imageTagArr = imageTagString.split(":");
-            if (imageTagArr.length > 1) {
-                String tag = resolveArgValueFromStrContainingArgKey(imageTagArr[1], args);
-                if (tag != null) {
-                    return imageTagArr[0] + ":" + tag;
-                }
+    static String resolveImageTagFromArgs(String imageTagString, Map<String, String> args) {
+        String resolvedImageString = imageTagString;
+        Set<String> foundArgs = findAllArgs(imageTagString);
+        for (String foundArg : foundArgs) {
+            if (args.containsKey(foundArg)) {
+                resolvedImageString = resolvedImageString.replaceFirst(String.format("\\$\\{*%s\\}*", foundArg),
+                    args.get(foundArg));
             }
         }
-        return imageTagString;
+        return resolvedImageString;
     }
 
-    static String resolveArgValueFromStrContainingArgKey(String argString, Map<String, String> args) {
-        Matcher matcher = argPattern.matcher(argString);
-        if (matcher.matches()) {
-            if (matcher.group(1) != null) {
-                return args.get(matcher.group(1));
-            } else if (matcher.group(2) != null) {
-                return args.get(matcher.group(2));
+    static Set<String> findAllArgs(String imageTagString) {
+        Matcher m = argPattern.matcher(imageTagString);
+        Set<String> args = new HashSet<>();
+        while(m.find()){
+            if(m.group(1)!=null){
+                args.add(m.group(1));
+            }else if(m.group(2)!=null){
+                args.add(m.group(2));
             }
         }
-        return null;
+        return args;
     }
 
     public static JsonObject readDockerConfig() {
@@ -197,21 +193,6 @@ public class DockerFileUtil {
                 ? getFileReaderFromDir(new File(getHomeDir(),".docker/config.json"))
                 : getFileReaderFromDir(new File(dockerConfig,"config.json"));
         return reader != null ? new Gson().fromJson(reader, JsonObject.class) : null;
-    }
-
-    public static String[] extractDelimiters(String filter) {
-        if (filter == null ||
-                filter.equalsIgnoreCase("false") ||
-                filter.equalsIgnoreCase("none")) {
-            return new String[0];
-        }
-        if (filter.contains("*")) {
-            Matcher matcher = Pattern.compile("^(?<start>[^*]+)\\*(?<end>.*)$").matcher(filter);
-            if (matcher.matches()) {
-                return new String[] { matcher.group("start"), matcher.group("end") };
-            }
-        }
-        return new String[] { filter, filter };
     }
 
     public static boolean isSimpleDockerFileMode(File projectBaseDirectory) {
@@ -261,18 +242,27 @@ public class DockerFileUtil {
     private static void updateMapWithArgValue(Map<String, String> result, Map<String, String> args, String argString) {
         if (argString.contains("=") || argString.contains(":")) {
             String[] argStringParts = argString.split("[=:]");
-            String argStringValue = argString.substring(argStringParts[0].length() + 1);
+            String argStringKey = argStringParts[0];
+            String argStringValue = determineFinalArgValue(argString, argStringParts, args);
             if (argStringValue.startsWith("\"") || argStringValue.startsWith("'")) {
                 // Replaces surrounding quotes
-                argStringValue = trimSurroundingQuotes(argStringValue);
+                argStringValue = argStringValue.replaceAll("(^[\"'])|([\"']$)", "");
             } else {
                 validateArgValue(argStringValue);
             }
-            result.put(argStringParts[0], argStringValue);
+            result.put(argStringKey, argStringValue);
         } else {
             validateArgValue(argString);
             result.putAll(fetchArgsFromBuildConfiguration(argString, args));
         }
+    }
+
+    private static String determineFinalArgValue(String argString, String[] argStringParts, Map<String, String> args) {
+        String argStringValue = argString.substring(argStringParts[0].length() + 1);
+        if(args == null || args.get(argStringParts[0]) == null){
+            return argStringValue;
+        }
+        return args.getOrDefault(argStringParts[0], argStringValue);
     }
 
     private static Map<String, String> fetchArgsFromBuildConfiguration(String argString, Map<String, String> args) {
@@ -288,14 +278,6 @@ public class DockerFileUtil {
         if (argStringParts.length > 1) {
             throw new IllegalArgumentException("Dockerfile parse error: ARG requires exactly one argument. Provided : " + argStringParam);
         }
-    }
-
-    private static String trimSurroundingQuotes(String argStringValue) {
-        if ((argStringValue.startsWith("\"") && argStringValue.endsWith("\"") ||
-                argStringValue.startsWith("'") && argStringValue.endsWith("'"))) {
-            return argStringValue.substring(1, argStringValue.length() - 1);
-        }
-        return argStringValue;
     }
 
     static List<String> extractPorts(File dockerFile) {
