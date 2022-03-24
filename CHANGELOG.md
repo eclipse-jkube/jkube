@@ -43,6 +43,7 @@ Usage:
 * Fix #1325: `jkube.enricher.jkube-name.name` doesn't modify `.metadata.name` for generated manifests
 * Fix #1336: Add documentation and quickstart for using custom generators with Gradle Plugins
 * Fix #1362: VolumePermissionEnricher : Replace iteration with bulk Collection.addAll call
+* Fix #1382: Docker Build ARGS not replaced properly
 
 ### 1.7.0 (2022-02-25)
 * Fix #1315: Pod Log Service works for Jobs with no selector
