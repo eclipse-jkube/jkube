@@ -1,0 +1,31 @@
+[[jkube-openshift-route]]
+==== jkube-openshift-route
+
+This enricher adds an https://docs.openshift.com/container-platform/4.10/networking/routes/route-configuration.html[OpenShift Route] for existing Service.
+
+This is only applicable to OpenShift.
+
+.Supported configuration options for this enricher
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *generateRoute*
+| Generate Route for corresponding Service
+
+Defaults to `true`
+| `jkube.enricher.jkube-openshift-route.generateRoute`
+
+| *tlsTermination*
+| Add TLS termination of the route
+| `jkube.enricher.jkube-openshift-route.tlsTermination`
+
+| *tlsInsecureEdgeTerminationPolicy*
+| Add Edge TLS termination of the route
+| `jkube.enricher.jkube-openshift-route.tlsInsecureEdgeTerminationPolicy`
+
+|
+| Generate Route for corresponding Service. Note that this flag takes less precedence as compared to `generateRoute` enricher configuration option. When both flags are provided, only `generateRoute` would be considered.
+| `jkube.openshift.generateRoute`
+|===
+

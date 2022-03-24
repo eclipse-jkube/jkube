@@ -1,0 +1,2 @@
+| <<jkube-openshift-route>>
+| Adds OpenShift Route for existing Service
