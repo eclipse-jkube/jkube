@@ -31,7 +31,7 @@ Usage:
 * Fix #1297: ReplicaCountEnricher documentation ported to Gradle plugins
 * Fix #1308: Add documentation for DeploymentConfigEnricher
 * Fix #1325: `jkube.enricher.jkube-name.name` doesn't modify `.metadata.name` for generated manifests
-
+* Fix #1374: Replaced the expected annotation with Assert.assertThrows in HealthCheckConfigTest.java for exceptions verification
 ### 1.7.0 (2022-02-25)
 * Fix #1315: Pod Log Service works for Jobs with no selector
 * Fix #1126: Liveness and readiness TCP ports are not serialized as numbers when defined as numbers
