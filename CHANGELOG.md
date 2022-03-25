@@ -23,15 +23,20 @@ Usage:
 ### 1.8.0-SNAPSHOT
 * Fix #1201: ThorntailV2Generator works with Gradle Plugins
 * Fix #1251: Generate a preview of jkube documentation for PR if needed
+* Fix #1259: Add integration test and docs for NameEnricher
 * Fix #1260: Add documentation for PodAnnotationEnricher
 * Fix #1261: Add documentation for PortNameEnricher
 * Fix #1262: Add docs + gradle integration test for ProjectLabelEnricher
 * Fix #1284: webapp custom generator should not require to set a CMD configuration
 * Fix #1295: Spring Boot actuator endpoints failed to generate automatically if `deployment.yml` resource fragment is used
 * Fix #1297: ReplicaCountEnricher documentation ported to Gradle plugins
+* Fix #1298: Add integration test + documentation for RevisionHistoryEnricher in gradle plugins
+* Fix #1299: Add gradle integration tests and documentation for ServiceAccountEnricher in gradle plugins.
+* Fix #1301: Improve documentation and gradle integration test for TriggersAnnotationEnricher
+* Fix #1303: Add gradle integration test and docs for AutoTLSEnricher
 * Fix #1308: Add documentation for DeploymentConfigEnricher
+* Fix #1310: Add documentation + gradle integration test for ImageChangeTriggerEnricher
 * Fix #1325: `jkube.enricher.jkube-name.name` doesn't modify `.metadata.name` for generated manifests
-* Fix #1374: Replaced the expected annotation with Assert.assertThrows in HealthCheckConfigTest.java for exceptions verification
 
 ### 1.7.0 (2022-02-25)
 * Fix #1315: Pod Log Service works for Jobs with no selector

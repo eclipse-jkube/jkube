@@ -1,0 +1,14 @@
+
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+    enricher {
+        includes = ['jkube-openshift-autotls']
+        config {
+            'jkube-openshift-autotls' {
+                // ...
+            }
+        }
+    }
+}
+----

@@ -1,0 +1,16 @@
+
+[[jkube-triggers-annotation]]
+==== jkube-triggers-annotation
+
+OpenShift resources like BuildConfig and DeploymentConfig can be automatically triggered by changes to ImageStreamTags. However, plain Kubernetes resources don't have a way to support this kind of triggering. You can use `image.openshift.io/triggers` annotation in OpenShift to request triggering. Read OpenShift docs for more details : https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/images/triggering-updates-on-imagestream-changes[Triggering updates on ImageStream changes]
+
+This enricher adds ImageStreamTag change triggers on Kubernetes resources that support the `image.openshift.io/triggers` annotation, such as StatefulSets, ReplicaSets and DaemonSets.
+
+The trigger is added to all containers that apply, but can be restricted to a limited set of containers using the following configuration:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_jkube_triggers_annotation_config.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_jkube_triggers_annotation_config.adoc[]
+endif::[]

@@ -3,39 +3,20 @@
 ==== jkube-openshift-autotls
 
 Enricher which adds appropriate annotations and volumes to enable OpenShift's automatic
-https://docs.openshift.org/latest/dev_guide/secrets.html#service-serving-certificate-secrets[Service Serving Certificate Secrets].
+https://docs.openshift.com/container-platform/4.10/security/certificates/service-serving-certificate.html[Service Serving Certificate Secrets].
 This enricher adds an init container to convert the service serving certificates from PEM (the format that OpenShift generates them in) to
 a JKS-format Java keystore ready for consumption in Java services.
 
 This enricher is disabled by default. In order to use it, you must configure the {plugin} to use this enricher:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-<plugin>
-  <groupId>org.eclipse.jkube</groupId>
-  <artifactId>{plugin}</artifactId>
-  <version>{version}</version>
-  <executions>
-    <execution>
-      <goals>
-        <goal>resource</goal>
-      </goals>
-    </execution>
-  </executions>
-  <configuration>
-    <enricher>
-      <includes>
-        <include>jkube-openshift-autotls</include>
-      </includes>
-      <config>
-        <jkube-openshift-autotls>
-          <!-- ... -->
-        </jkube-openshift-autotls>
-      </config>
-    </enricher>
-  </configuration>
-</plugin>
-----
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_jkube_enable_openshift_autotls.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_jkube_enable_openshift_autotls.adoc[]
+endif::[]
+
 
 The auto-TLS enricher supports the following configuration options:
 
@@ -45,8 +26,13 @@ The auto-TLS enricher supports the following configuration options:
 
 | *tlsSecretName*
 | The name of the secret to be used to store the generated service serving certs.
+ifeval::["{plugin-type}" == "gradle"]
+Defaults to `<name>-tls`.
+endif::[]
 
-  Defaults to `<project.artifactId>-tls`.
+ifeval::["{plugin-type}" == "maven"]
+Defaults to `<project.artifactId>-tls`.
+endif::[]
 | `jkube.enricher.jkube-openshift-autotls.tlsSecretName`
 
 | *tlsSecretVolumeMountPoint*

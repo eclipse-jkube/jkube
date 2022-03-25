@@ -7,3 +7,19 @@ This enricher converts Kubernetes `Deployment` object(`extensions/v1beta1` or `a
 It's applicable only for OpenShift.
 
 Note that this won't be enabled if you've set `jkube.build.switchToDeployment` to `true` or you've configured <<jkube-controller, DefaultControllerEnricher>> to generate a controller of type `DeploymentConfig`
+
+.Supported configuration options for this enricher
+[cols="1,6"]
+|===
+| Property | Description
+
+| `jkube.openshift.deployTimeoutSeconds`
+| The OpenShift deploy timeout in seconds.
+
+  Defaults to `3600`.
+
+| `jkube.build.switchToDeployment`
+| Disable conversion of Deployment to DeploymentConfig.
+
+  Defaults to `false`
+|===

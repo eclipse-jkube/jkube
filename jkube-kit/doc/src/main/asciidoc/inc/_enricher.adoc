@@ -78,11 +78,18 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-namespace>>
 | Set the _Namespace_ of the generated and processed Kubernetes resources metadata and optionally create a new Namespace
 
+| <<jkube-name>>
+| Add a default name to every object which misses a name.
+
 ifeval::["{goal-prefix}" == "oc"]
+include::enricher/autotls/_jkube_openshift_autotls_entry.adoc[]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
+include::enricher/imagechangetrigger/_jkube_openshift_imagechangetrigger_entry.adoc[]
 endif::[]
 ifeval::["{task-prefix}" == "oc"]
+include::enricher/autotls/_jkube_openshift_autotls_entry.adoc[]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig_entry.adoc[]
+include::enricher/imagechangetrigger/_jkube_openshift_imagechangetrigger_entry.adoc[]
 endif::[]
 
 | <<jkube-pod-annotation>>
@@ -97,11 +104,20 @@ endif::[]
 | <<jkube-replicas>>
 | Override number of replicas for any controller processed by JKube.
 
+| <<jkube-revision-history-enricher>>
+| Add revision history limit (https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit[Kubernetes doc]) as a deployment spec property to the Kubernetes/OpenShift resources.
+
 | <<jkube-secret-file>>
 | Add Secret elements defined as annotation.
 
 | <<jkube-service>>
 | Create a default service if missing and extract ports from the Docker image configuration.
+
+| <<jkube-serviceaccount>>
+| Add a ServiceAccount defined as {plugin-configuration-type} or mentioned in resource fragment.
+
+| <<jkube-triggers-annotation>>
+| Add ImageStreamTag change triggers on {cluster} resources such as StatefulSets, ReplicaSets and DaemonSets using the `image.openshift.io/triggers` annotation.
 
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
@@ -116,20 +132,8 @@ ifeval::["{plugin-type}" == "maven"]
 | <<jkube-maven-scm-enricher>>
 | Add Maven SCM information as annotations to the kubernetes/openshift resources
 
-| <<jkube-name>>
-| Add a default name to every object which misses a name.
-
 | <<jkube-prometheus>>
 | Add Prometheus annotations.
-
-| <<jkube-revision-history-enricher>>
-| Add revision history limit (https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit[Kubernetes doc]) as a deployment spec property to the Kubernetes/OpenShift resources.
-
-| <<jkube-serviceaccount>>
-| Add a ServiceAccount defined as {plugin-configuration-type} or mentioned in resource fragment.
-
-| <<jkube-triggers-annotation>>
-| Add ImageStreamTag change triggers on {cluster} resources such as StatefulSets, ReplicaSets and DaemonSets using the `image.openshift.io/triggers` annotation.
 
 endif::[]
 
@@ -161,11 +165,17 @@ include::enricher/metadata/_jkube_metadata.adoc[]
 
 include::enricher/namespace/_jkube_namespace.adoc[]
 
+include::enricher/name/_jkube_name.adoc[]
+
 ifeval::["{goal-prefix}" == "oc"]
+include::enricher/autotls/_jkube_openshift_autotls.adoc[]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
+include::enricher/imagechangetrigger/_jkube_openshift_imagechangetrigger.adoc[]
 endif::[]
 ifeval::["{task-prefix}" == "oc"]
+include::enricher/autotls/_jkube_openshift_autotls.adoc[]
 include::enricher/deploymentconfig/_jkube_openshift_deploymentconfig.adoc[]
+include::enricher/imagechangetrigger/_jkube_openshift_imagechangetrigger.adoc[]
 endif::[]
 
 include::enricher/pod-annotation/_jkube_pod_annotation.adoc[]
@@ -176,9 +186,15 @@ include::enricher/project-label/_jkube_project_label.adoc[]
 
 include::enricher/replicacount/_jkube_replicacount.adoc[]
 
+include::enricher/revisionhistory/_jkube_revision_history.adoc[]
+
 include::enricher/secret-file/_jkube_secret_file.adoc[]
 
 include::enricher/service/_jkube_service.adoc[]
+
+include::enricher/serviceaccount/_jkube_serviceaccount.adoc[]
+
+include::enricher/triggers-annotation/_jkube_triggers_annotation.adoc[]
 
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
@@ -196,23 +212,9 @@ include::enricher/_jkube_maven_scm_enricher.adoc[]
 
 include::enricher/_jkube_maven_issue_mgmt.adoc[]
 
-[[jkube-name]]
-==== jkube-name
-
-include::enricher/_jkube_openshift_autotls.adoc[]
-
 include::enricher/_jkube_prometheus.adoc[]
 
 include::enricher/_jkube_replicas.adoc[]
-
-include::enricher/_jkube_revision_history.adoc[]
-
-[[jkube-serviceaccount]]
-==== jkube-serviceaccount
-
-This enricher is responsible for creating ServiceAccount resource. See <<serviceaccount-generation, ServiceAccount Generation>> for more details.
-
-include::enricher/_jkube_triggers_annotation.adoc[]
 
 include::enricher/_jkube_volume_permission.adoc[]
 

@@ -30,16 +30,15 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @RunWith(Parameterized.class)
-public class ProjectLabelIT {
+public class RevisionHistoryIT {
   @Rule
   public final ITGradleRunner gradleRunner = new ITGradleRunner();
 
-  @Parameterized.Parameters(name = "k8sResource {0} configured project-label ")
+  @Parameterized.Parameters(name = "k8sResource {0} configured limit = {1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(
-        new Object[] { "default" , new String[] {}},
-        new Object[] { "custom" , new String[] {"-Pjkube.enricher.jkube-project-label.useProjectLabel=true", "-Pjkube.enricher.jkube-project-label.provider=custom-provider"}},
-        new Object[] { "app" , new String[] {"-Pjkube.enricher.jkube-project-label.app=custom-app" }}
+        new Object[] { "default", new String[] {}},
+        new Object[] { "configured", new String[] {"-Pjkube.enricher.jkube-revision-history.limit=10" }}
     );
   }
 
@@ -50,12 +49,12 @@ public class ProjectLabelIT {
   public String[] arguments;
 
   @Test
-  public void k8sResource_whenRun_generatesK8sManifestsWithProjectLabels() throws IOException, ParseException {
+  public void k8sResource_whenRun_generatesK8sManifestsWithRevisionHistory() throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("k8sResource");
     gradleArgs.add("--stacktrace");
-    final BuildResult result = gradleRunner.withITProject("project-label")
+    final BuildResult result = gradleRunner.withITProject("revisionhistory")
         .withArguments(gradleArgs.toArray(new String[0]))
         .build();
     // Then
@@ -65,17 +64,17 @@ public class ProjectLabelIT {
         .contains("Running in Kubernetes mode")
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
-        .contains("Adding revision history limit to 2")
+        .contains("Adding revision history limit to ")
         .contains("validating");
   }
 
   @Test
-  public void ocResource_whenRun_generatesOpenShiftManifestsWithProjectLabels() throws IOException, ParseException {
+  public void ocResource_whenRun_generatesOpenShiftManifestsWithRevisionHistory() throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("ocResource");
     gradleArgs.add("--stacktrace");
-    final BuildResult result = gradleRunner.withITProject("project-label")
+    final BuildResult result = gradleRunner.withITProject("revisionhistory")
         .withArguments(gradleArgs.toArray(new String[0]))
         .build();
     // Then
@@ -85,7 +84,7 @@ public class ProjectLabelIT {
         .contains("Running in OpenShift mode")
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
-        .contains("Adding revision history limit to 2")
+        .contains("Adding revision history limit to ")
         .contains("validating");
   }
 }

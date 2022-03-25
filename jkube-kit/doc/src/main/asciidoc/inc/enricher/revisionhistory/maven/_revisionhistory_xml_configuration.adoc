@@ -1,0 +1,13 @@
+[source,xml]
+----
+<!-- ... -->
+<enricher>
+    <config>
+        <jkube-revision-history>
+            <limit>8</limit>
+        </jkube-revision-history>
+    </config>
+</enricher>
+<!-- ... -->
+----
+

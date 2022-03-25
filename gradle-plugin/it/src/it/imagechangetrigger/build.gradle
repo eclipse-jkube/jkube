@@ -1,0 +1,24 @@
+plugins {
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+openshift {
+    offline = true
+    images {
+        image {
+            name = 'repository/imagechangetrigger:latest'
+            build {
+                from = 'quay.io/jkube/jkube-java-11'
+            }
+        }
+    }
+}

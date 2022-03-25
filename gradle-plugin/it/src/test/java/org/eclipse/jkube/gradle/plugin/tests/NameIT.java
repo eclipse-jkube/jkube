@@ -22,24 +22,21 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @RunWith(Parameterized.class)
-public class ProjectLabelIT {
+public class NameIT {
   @Rule
   public final ITGradleRunner gradleRunner = new ITGradleRunner();
 
-  @Parameterized.Parameters(name = "k8sResource {0} configured project-label ")
+  @Parameterized.Parameters(name = "k8sResource {0} configured name = {1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(
-        new Object[] { "default" , new String[] {}},
-        new Object[] { "custom" , new String[] {"-Pjkube.enricher.jkube-project-label.useProjectLabel=true", "-Pjkube.enricher.jkube-project-label.provider=custom-provider"}},
-        new Object[] { "app" , new String[] {"-Pjkube.enricher.jkube-project-label.app=custom-app" }}
+        new Object[] { "default", "" },
+        new Object[] { "custom-name", "configured-name"}
     );
   }
 
@@ -47,16 +44,13 @@ public class ProjectLabelIT {
   public String expectedDir;
 
   @Parameterized.Parameter (1)
-  public String[] arguments;
+  public String nameFromEnricherConfig;
 
   @Test
-  public void k8sResource_whenRun_generatesK8sManifestsWithProjectLabels() throws IOException, ParseException {
+  public void k8sResource_whenRun_generatesK8sManifestsWithDefaultName() throws IOException, ParseException {
     // When
-    List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
-    gradleArgs.add("k8sResource");
-    gradleArgs.add("--stacktrace");
-    final BuildResult result = gradleRunner.withITProject("project-label")
-        .withArguments(gradleArgs.toArray(new String[0]))
+    final BuildResult result = gradleRunner.withITProject("name")
+        .withArguments("-Pjkube.enricher.jkube-name.name=" + nameFromEnricherConfig, "k8sResource", "--stacktrace")
         .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
@@ -70,13 +64,10 @@ public class ProjectLabelIT {
   }
 
   @Test
-  public void ocResource_whenRun_generatesOpenShiftManifestsWithProjectLabels() throws IOException, ParseException {
+  public void ocResource_whenRun_generatesOpenShiftManifestsWithDefaultName() throws IOException, ParseException {
     // When
-    List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
-    gradleArgs.add("ocResource");
-    gradleArgs.add("--stacktrace");
-    final BuildResult result = gradleRunner.withITProject("project-label")
-        .withArguments(gradleArgs.toArray(new String[0]))
+    final BuildResult result = gradleRunner.withITProject("name")
+        .withArguments("-Pjkube.enricher.jkube-name.name=" + nameFromEnricherConfig, "ocResource", "--stacktrace")
         .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
@@ -88,4 +79,5 @@ public class ProjectLabelIT {
         .contains("Adding revision history limit to 2")
         .contains("validating");
   }
+
 }
