@@ -92,7 +92,7 @@ public class HealthCheckConfigTest {
                 .validate();
     }
 
-    @Test()
+    @Test
     public void testBadHealthCheck1() {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.none)
@@ -101,7 +101,7 @@ public class HealthCheckConfigTest {
         Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
     }
 
-    @Test()
+    @Test
     public void testBadHealthCheck2() {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.none)
@@ -110,7 +110,7 @@ public class HealthCheckConfigTest {
         Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
     }
 
-    @Test()
+    @Test
     public void testBadHealthCheck3() {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.none)
@@ -120,7 +120,7 @@ public class HealthCheckConfigTest {
         
     }
 
-    @Test()
+    @Test
     public void testBadHealthCheck4() {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.none)
@@ -130,7 +130,7 @@ public class HealthCheckConfigTest {
         Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
     }
 
-    @Test()
+    @Test
     public void testBadHealthCheck5() {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.none)
@@ -139,14 +139,14 @@ public class HealthCheckConfigTest {
         Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
     }
 
-    @Test()
+    @Test
     public void testBadHealthCheck6() {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .build();
         Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
     }
 
-    @Test()
+    @Test
     public void testBadHealthCheck7() {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.cmd)
