@@ -77,4 +77,12 @@ In addition to the  <<generator-options-common, common generator options>> this 
 | Comma separated list of ports to expose in the image and which eventually are translated later to Kubernetes services.
   The ports depend on the base image and are selected automatically. But they can be overridden here.
 | `jkube.generator.webapp.ports`
+
+| *env*
+| Environment variable to be set to the image builder environment. Should be set in the format `ENV_NAME=environment value`. You can inject multiple env variables by adding a new line for each variable.
+ifeval::["{goal-prefix}" == "oc"]
+
+This may be required for Wildfly webapp s2i build to compose a `WildFly` server with Galleon layers. See https://docs.wildfly.org/21/Galleon_Guide.html#wildfly_foundational_galleon_layers and https://github.com/wildfly/wildfly-s2i#environment-variables-to-be-used-at-s2i-build-time/.
+endif::[]
+| `jkube.generator.webapp.env`
 |===
