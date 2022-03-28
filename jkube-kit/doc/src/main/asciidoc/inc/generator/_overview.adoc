@@ -52,18 +52,19 @@ endif::[]
 The general scheme is a prefix `jkube.generator.` followed by the unique generator name and then the generator specific key.
 
 
-// TODO: Add when support is complete
-// https://github.com/eclipse/jkube/issues/1336
-ifeval::["{plugin-type}" == "maven"]
 In addition to the provided default _Generators_ described in the next section <<generators-default, Default Generators>>, custom generators can be easily added. There are two ways to include generators:
 
 .Plugin dependency
 
 You can declare the generator holding jars as dependency to this plugin as shown in this example
 
+ifeval::["{plugin-type}" == "maven"]
 include::maven/overview_generator_dependency.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/overview_generator_dependency.adoc[]
+endif::[]
 
 .Compile time dependency
 
 Alternatively and if your application code comes with a custom generator you can set the global configuration option `useProjectClasspath` (property: `jkube.useProjectClasspath`) to true. In this case also the project artifact and its dependencies are looked up for _Generators_. See <<generators-api, Generator API>> for details how to write your own generators.
-endif::[]

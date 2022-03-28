@@ -1,6 +1,5 @@
 [[generators-api]]
 == Generator API
 
-WARNING: The API is still a bit in flux and will be documented later. Please refer to the
-         https://github.com/eclipse/jkube/blob/master/jkube-kit/generator/api/src/main/java/org/eclipse/jkube/generator/api/Generator.java[Generator]
-         Interface in the meantime.
+It's possible to extend Eclipse JKube's Generator API to define your own custom Generators as per use case. Please refer to the https://github.com/eclipse/jkube/blob/master/jkube-kit/generator/api/src/main/java/org/eclipse/jkube/generator/api/Generator.java[Generator]
+Interface; You can create new generators by implementing this interface. Please check out https://github.com/eclipse/jkube/blob/master/quickstarts/kit/custom-foo-generator/foo-generator[Custom Foo generator] quickstart for detailed example.
