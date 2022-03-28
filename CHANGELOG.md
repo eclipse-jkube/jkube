@@ -39,6 +39,7 @@ Usage:
 * Fix #1308: Add documentation for DeploymentConfigEnricher
 * Fix #1310: Add documentation + gradle integration test for ImageChangeTriggerEnricher
 * Fix #1325: `jkube.enricher.jkube-name.name` doesn't modify `.metadata.name` for generated manifests
+* Fix #1336: Add documentation and quickstart for using custom generators with Gradle Plugins
 * Fix #1362: VolumePermissionEnricher : Replace iteration with bulk Collection.addAll call
 
 ### 1.7.0 (2022-02-25)

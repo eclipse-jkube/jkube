@@ -1,0 +1,11 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+buildscript {
+    repositories {
+        mavenLocal()
+    }
+    dependencies {
+        classpath('io.acme:mygenerator:1.0')
+    }
+}
+----
