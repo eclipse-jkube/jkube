@@ -180,7 +180,7 @@ public class WebAppGenerator extends BaseGenerator {
 
   private AssemblyConfiguration createAssembly(AppServerHandler handler) {
     final File sourceFile = Objects.requireNonNull(JKubeProjectUtil.getFinalOutputArtifact(getProject()),
-        "Final output artifact file was not detected");
+        "Final output artifact file was not detected. The project may have not been built. HINT: try to compile and package your application prior to running the container image build task."); 
     final String targetFilename;
     final String extension = FilenameUtils.getExtension(sourceFile.getName());
     final String path = getConfig(Config.PATH);
