@@ -690,18 +690,6 @@ public class KubernetesResourceUtil {
         return SIMPLE_FIELD_TYPES.contains(type);
     }
 
-    public static String getSourceUrlAnnotation(HasMetadata item) {
-        return KubernetesHelper.getOrCreateAnnotations(item).get(Constants.RESOURCE_SOURCE_URL_ANNOTATION);
-    }
-
-    public static void setSourceUrlAnnotationIfNotSet(HasMetadata item, String sourceUrl) {
-        Map<String, String> annotations = KubernetesHelper.getOrCreateAnnotations(item);
-        annotations.computeIfAbsent(Constants.RESOURCE_SOURCE_URL_ANNOTATION, s -> {
-            item.getMetadata().setAnnotations(annotations);
-            return sourceUrl;
-        });
-    }
-
     public static boolean isAppCatalogResource(HasMetadata templateOrConfigMap) {
         String catalogAnnotation = KubernetesHelper.getOrCreateAnnotations(templateOrConfigMap).get(Constants.RESOURCE_APP_CATALOG_ANNOTATION);
         return "true".equals(catalogAnnotation);
@@ -759,8 +747,7 @@ public class KubernetesResourceUtil {
             cm1OrCopy = new ConfigMapBuilder(cm1OrCopy).build();
         }
 
-        log.info("Merging 2 resources for " + KubernetesHelper.getKind(cm1OrCopy) + " " + KubernetesHelper.getName(cm1OrCopy) + " from " + getSourceUrlAnnotation(cm1OrCopy) + " and " + getSourceUrlAnnotation(cm2) +
-                " and removing " + getSourceUrlAnnotation(cm1OrCopy));
+        log.info("Merging 2 resources for " + KubernetesHelper.getKind(cm1OrCopy) + " " + KubernetesHelper.getName(cm1OrCopy));
         cm1OrCopy.setData(mergeMapsAndRemoveEmptyStrings(cm2.getData(), cm1OrCopy.getData()));
         mergeMetadata(cm1OrCopy, cm2);
         return cm1OrCopy;
@@ -827,7 +814,7 @@ public class KubernetesResourceUtil {
                 }
             }
         }
-        log.info("Merging 2 resources for " + KubernetesHelper.getKind(resource1OrCopy) + " " + KubernetesHelper.getName(resource1OrCopy) + " from " + getSourceUrlAnnotation(resource1OrCopy) + " and " + getSourceUrlAnnotation(resource2) + " and removing " + getSourceUrlAnnotation(resource1OrCopy));
+        log.info("Merging 2 resources for " + KubernetesHelper.getKind(resource1OrCopy) + " " + KubernetesHelper.getName(resource1OrCopy));
         return resource1OrCopy;
     }
 
