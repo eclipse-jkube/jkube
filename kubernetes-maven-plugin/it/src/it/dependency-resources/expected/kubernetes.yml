@@ -73,8 +73,6 @@ items:
         role: web
     template:
       metadata:
-        annotations:
-          maven.jkube.io/source-url: "@ignore@"
         labels:
           role: web
       spec:

@@ -214,7 +214,6 @@ public class DependencyEnricher extends BaseEnricher {
                     }
                 }
                 for (HasMetadata item : items) {
-                    KubernetesResourceUtil.setSourceUrlAnnotationIfNotSet(item, uri.toString());
                     log.debug("  found %s  %s", KubernetesHelper.getKind(item), KubernetesHelper.getName(item));
                 }
                 function.apply(items);

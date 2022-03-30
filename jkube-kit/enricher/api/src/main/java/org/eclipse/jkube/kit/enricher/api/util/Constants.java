@@ -22,11 +22,6 @@ public class Constants {
      * @deprecated Use annotations with <code>jkube.eclipse.org</code> prefix instead
      */
     @Deprecated
-    public static final String RESOURCE_SOURCE_URL_ANNOTATION = "maven.jkube.io/source-url";
-    /**
-     * @deprecated Use annotations with <code>jkube.eclipse.org</code> prefix instead
-     */
-    @Deprecated
     public static final String RESOURCE_APP_CATALOG_ANNOTATION = "maven.jkube.io/app-catalog";
 
     private Constants() { }

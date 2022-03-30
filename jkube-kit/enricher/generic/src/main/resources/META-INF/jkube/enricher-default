@@ -47,9 +47,6 @@ org.eclipse.jkube.enricher.generic.VolumePermissionEnricher
 # Add an enricher for enabling debug information
 org.eclipse.jkube.enricher.generic.DebugEnricher
 
-# Add an enricher for removing build related annotations
-org.eclipse.jkube.enricher.generic.RemoveBuildAnnotationsEnricher
-
 # Add an enricher for adding Maven SCM metadata based on pom.xml scm details
 org.eclipse.jkube.enricher.generic.MavenScmEnricher
 
