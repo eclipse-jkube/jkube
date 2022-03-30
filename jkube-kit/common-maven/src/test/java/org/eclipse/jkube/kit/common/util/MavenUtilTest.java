@@ -16,14 +16,9 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
-import mockit.Verifications;
+
 import org.apache.maven.model.Developer;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecution;
@@ -36,8 +31,7 @@ import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 
-import mockit.Expectations;
-import mockit.Mocked;
+
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -56,16 +50,25 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.assertj.core.api.Assertions.assertThat;
-
+@RunWith(MockitoJUnitRunner.class)
 public class MavenUtilTest {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
-  @Mocked
+  @Mock
   private KitLogger log;
+  @Mock
+  MavenProject mavenProject;
+  @Mock
+  BuildPluginManager pluginManager;
+  @Mock
+  MavenSession session;
 
   @Test
   public void testJKubeProjectConversion() throws DependencyResolutionRequiredException {
@@ -91,7 +94,7 @@ public class MavenUtilTest {
   }
 
   @Test
-  public void testGetDependencies(@Mocked MavenProject mavenProject) {
+  public void testGetDependencies() {
     // Given
     final org.apache.maven.model.Dependency dep1 = new org.apache.maven.model.Dependency();
     dep1.setGroupId("org.eclipse.jkube");
@@ -102,12 +105,10 @@ public class MavenUtilTest {
     final org.apache.maven.model.Dependency dep2 = dep1.clone();
     dep2.setArtifactId("artifact2");
     dep2.setType("jar");
-    new Expectations() {
-      {
-        mavenProject.getDependencies();
-        result = Arrays.asList(dep1, dep2);
-      }
-    };
+    List<org.apache.maven.model.Dependency> dependenciesList=new ArrayList<>();
+    dependenciesList.add(dep1);
+    dependenciesList.add(dep2);
+    Mockito.when(mavenProject.getDependencies()).thenReturn(dependenciesList);
     // When
     final List<Dependency> dependencies = MavenUtil.getDependencies(mavenProject);
     // Then
@@ -115,18 +116,16 @@ public class MavenUtilTest {
   }
 
   @Test
-  public void testGetTransitiveDependencies(@Mocked MavenProject mavenProject) {
+  public void testGetTransitiveDependencies() {
     // Given
     final Artifact artifact1 = new DefaultArtifact("org.eclipse.jkube", "foo-dependency", "1.33.7",
         "runtime", "jar", "", new DefaultArtifactHandler("jar"));
     final Artifact artifact2 = new DefaultArtifact("org.eclipse.jkube", "bar-dependency", "1.33.7",
         "runtime", "jar", "", new DefaultArtifactHandler("jar"));
-    new Expectations() {
-      {
-        mavenProject.getArtifacts();
-        result = new HashSet<>(Arrays.asList(artifact1, artifact2));
-      }
-    };
+    Set<Artifact> artifactSet= new HashSet<Artifact>();
+    artifactSet.add(artifact1);
+    artifactSet.add(artifact2);
+    Mockito.when(mavenProject.getArtifacts()).thenReturn(artifactSet);
     // When
     final List<Dependency> result = MavenUtil.getTransitiveDependencies(mavenProject);
     // Then
@@ -220,7 +219,7 @@ public class MavenUtilTest {
   }
 
   @Test
-  public void testCallMavenPluginWithGoal(@Mocked BuildPluginManager pluginManager)
+  public void testCallMavenPluginWithGoal()
       throws PluginConfigurationException, MojoFailureException, MojoExecutionException, PluginManagerException {
     // Given
     MavenProject mavenProject = getMavenProject();
@@ -231,30 +230,18 @@ public class MavenUtilTest {
         "org.apache.maven.plugins:maven-help-plugin:help", log);
 
     // Then
-    new Verifications() {
-      {
-        pluginManager.executeMojo(mavenSession, (MojoExecution) any);
-        times = 1;
-      }
-    };
+    Mockito.verify(pluginManager,Mockito.times(1)).executeMojo(mavenSession,Mockito.any(MojoExecution.class));
   }
 
   @Test
-  public void testgetRootProjectFolder(@Mocked MavenProject project) {
+  public void testgetRootProjectFolder() {
     // Given
     File projectBaseDir = new File("projectBaseDir");
-    new Expectations() {
-      {
-        project.getBasedir();
-        result = projectBaseDir;
-
-        project.getParent();
-        result = null;
-      }
-    };
+    Mockito.when(mavenProject.getBasedir()).thenReturn(projectBaseDir);
+    Mockito.when(mavenProject.getParent()).thenReturn(null);
 
     // When
-    File rootFolder = MavenUtil.getRootProjectFolder(project);
+    File rootFolder = MavenUtil.getRootProjectFolder(mavenProject);
 
     // Then
     assertNotNull(rootFolder);
