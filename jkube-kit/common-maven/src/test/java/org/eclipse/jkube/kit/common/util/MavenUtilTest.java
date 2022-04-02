@@ -52,11 +52,14 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
 @RunWith(MockitoJUnitRunner.class)
 public class MavenUtilTest {
   @Rule
@@ -105,10 +108,8 @@ public class MavenUtilTest {
     final org.apache.maven.model.Dependency dep2 = dep1.clone();
     dep2.setArtifactId("artifact2");
     dep2.setType("jar");
-    List<org.apache.maven.model.Dependency> dependenciesList=new ArrayList<>();
-    dependenciesList.add(dep1);
-    dependenciesList.add(dep2);
-    Mockito.when(mavenProject.getDependencies()).thenReturn(dependenciesList);
+    List<org.apache.maven.model.Dependency> dependenciesList=Arrays.asList(dep1, dep2);
+    when(mavenProject.getDependencies()).thenReturn(dependenciesList);
     // When
     final List<Dependency> dependencies = MavenUtil.getDependencies(mavenProject);
     // Then
@@ -125,7 +126,7 @@ public class MavenUtilTest {
     Set<Artifact> artifactSet= new HashSet<Artifact>();
     artifactSet.add(artifact1);
     artifactSet.add(artifact2);
-    Mockito.when(mavenProject.getArtifacts()).thenReturn(artifactSet);
+    when(mavenProject.getArtifacts()).thenReturn(artifactSet);
     // When
     final List<Dependency> result = MavenUtil.getTransitiveDependencies(mavenProject);
     // Then
@@ -219,26 +220,24 @@ public class MavenUtilTest {
   }
 
   @Test
-  public void testCallMavenPluginWithGoal()
-      throws PluginConfigurationException, MojoFailureException, MojoExecutionException, PluginManagerException {
-    // Given
-    MavenProject mavenProject = getMavenProject();
-    MavenSession mavenSession = getMavenSession();
+  public void testCallMavenPluginWithGoal() {
+    MockedConstruction<MojoExecutionService> mojoExecutionServiceMocked = Mockito.mockConstruction(MojoExecutionService.class);
+      // Given
+      MavenProject mavenProject = getMavenProject();
+      MavenSession mavenSession = getMavenSession();
+      // When
+      MavenUtil.callMavenPluginWithGoal(mavenProject, mavenSession, pluginManager,
+              "org.apache.maven.plugins:maven-help-plugin:help", log);
+      // Then
+      Mockito.verify(mojoExecutionServiceMocked.constructed().iterator().next(), Mockito.times(1)).callPluginGoal("org.apache.maven.plugins:maven-help-plugin:help");
 
-    // When
-    MavenUtil.callMavenPluginWithGoal(mavenProject, mavenSession, pluginManager,
-        "org.apache.maven.plugins:maven-help-plugin:help", log);
-
-    // Then
-    Mockito.verify(pluginManager,Mockito.times(1)).executeMojo(mavenSession,Mockito.any(MojoExecution.class));
   }
-
   @Test
   public void testgetRootProjectFolder() {
     // Given
     File projectBaseDir = new File("projectBaseDir");
-    Mockito.when(mavenProject.getBasedir()).thenReturn(projectBaseDir);
-    Mockito.when(mavenProject.getParent()).thenReturn(null);
+    when(mavenProject.getBasedir()).thenReturn(projectBaseDir);
+    when(mavenProject.getParent()).thenReturn(null);
 
     // When
     File rootFolder = MavenUtil.getRootProjectFolder(mavenProject);
