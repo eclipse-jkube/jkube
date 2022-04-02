@@ -21,11 +21,6 @@ import java.util.*;
 
 import org.apache.maven.model.Developer;
 import org.apache.maven.plugin.BuildPluginManager;
-import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.PluginConfigurationException;
-import org.apache.maven.plugin.PluginManagerException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -59,7 +54,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 @RunWith(MockitoJUnitRunner.class)
 public class MavenUtilTest {
   @Rule
@@ -108,8 +104,7 @@ public class MavenUtilTest {
     final org.apache.maven.model.Dependency dep2 = dep1.clone();
     dep2.setArtifactId("artifact2");
     dep2.setType("jar");
-    List<org.apache.maven.model.Dependency> dependenciesList=Arrays.asList(dep1, dep2);
-    when(mavenProject.getDependencies()).thenReturn(dependenciesList);
+    when(mavenProject.getDependencies()).thenReturn(Arrays.asList(dep1, dep2));
     // When
     final List<Dependency> dependencies = MavenUtil.getDependencies(mavenProject);
     // Then
@@ -229,7 +224,7 @@ public class MavenUtilTest {
       MavenUtil.callMavenPluginWithGoal(mavenProject, mavenSession, pluginManager,
               "org.apache.maven.plugins:maven-help-plugin:help", log);
       // Then
-      Mockito.verify(mojoExecutionServiceMocked.constructed().iterator().next(), Mockito.times(1)).callPluginGoal("org.apache.maven.plugins:maven-help-plugin:help");
+      verify(mojoExecutionServiceMocked.constructed().iterator().next(), times(1)).callPluginGoal("org.apache.maven.plugins:maven-help-plugin:help");
 
   }
   @Test
