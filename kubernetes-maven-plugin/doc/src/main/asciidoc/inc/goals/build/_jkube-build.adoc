@@ -265,7 +265,7 @@ the URL is:
 | `jkube.profile`
 
 ifeval::["{goal-prefix}" == "oc"]
-| *pullSecret*
+| *openshiftPullSecret*
 | The name to use for naming pullSecret to be created to pull the base image in case pulling from a private registry
    which requires authentication for OpenShift.
 
@@ -274,7 +274,7 @@ ifeval::["{goal-prefix}" == "oc"]
 endif::[]
 
 ifeval::["{goal-prefix}" == "oc"]
-| *pushSecret*
+| *openshiftPushSecret*
 | The name of pushSecret to be used to push the final image in case pushing from a
   protected registry which requires authentication.
 
@@ -283,7 +283,7 @@ endif::[]
 
 
 ifeval::["{goal-prefix}" == "oc"]
-| *jkube.build.buildOutput.kind*
+| *buildOutputKind*
 |  Allow to specify in which registry to push the container image at the end of the build.
    If the output kind is ImageStreamTag, then the image will be pushed to the internal OpenShift registry.
    If the output is of type DockerImage, then the name of the output reference will be used as a Docker push specification.
