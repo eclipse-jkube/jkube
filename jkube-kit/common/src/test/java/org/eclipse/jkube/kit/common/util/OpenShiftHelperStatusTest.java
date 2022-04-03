@@ -26,7 +26,7 @@ public class OpenShiftHelperStatusTest {
     @DisplayName("test Finished")
     @ParameterizedTest()
     @ValueSource(strings = { "Complete", "Error","Cancelled" })
-    public void testIsFinishedTrue(String status) {
+     void testIsFinishedTrue(String status) {
         //when
         boolean result = OpenshiftHelper.isFinished(status);
         //Then

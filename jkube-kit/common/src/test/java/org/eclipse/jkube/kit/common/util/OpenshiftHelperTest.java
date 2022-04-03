@@ -157,105 +157,105 @@ public class OpenshiftHelperTest {
         assertNull(result);
     }
 
-//    @Test
-//    public void testIsCancelledTrue() {
-//        assertTrue(OpenshiftHelper.isCancelled("Cancelled"));
-//    }
-//
-//    @Test
-//    public void testIsCancelledFalse() {
-//        assertFalse(OpenshiftHelper.isCancelled("not Cancelled"));
-//    }
-//
-//    @Test
-//    public void testIsFailedTrueWithFail() {
-//        //Given
-//        String status = "Fail";
-//        //when
-//        boolean result = OpenshiftHelper.isFailed(status);
-//        //Then
-//        assertTrue(result);
-//    }
-//
-//    @Test
-//    public void testIsFailedTrueWithError() {
-//        //Given
-//        String status = "Error";
-//        //when
-//        boolean result = OpenshiftHelper.isFailed(status);
-//        //Then
-//        assertTrue(result);
-//    }
-//
-//    @Test
-//    public void testIsFailedFalse() {
-//        //Given
-//        String status = null;
-//        //when
-//        boolean result = OpenshiftHelper.isFailed(status);
-//        //Then
-//        assertFalse(result);
-//    }
-//
-//    @Test
-//    public void testIsCompletedTrue() {
-//        //Given
-//        String status = "Complete";
-//        //when
-//        boolean result = OpenshiftHelper.isCompleted(status);
-//        //Then
-//        assertTrue(result);
-//    }
-//
-//    @Test
-//    public void testIsCompletedFalse() {
-//        //Given
-//        String status = "not Complete";
-//        //when
-//        boolean result = OpenshiftHelper.isCompleted(status);
-//        //Then
-//        assertFalse(result);
-//    }
-//
-//    @Test
-//    public void testIsFinishedComplete() {
-//        //Given
-//        String status = "Complete";
-//        //when
-//        boolean result = OpenshiftHelper.isFinished(status);
-//        //Then
-//        assertTrue(result);
-//    }
-//
-//    @Test
-//    public void testIsFinishedFailed() {
-//        //Given
-//        String status = "Error";
-//        //when
-//        boolean result = OpenshiftHelper.isFinished(status);
-//        //Then
-//        assertTrue(result);
-//    }
-//
-//    @Test
-//    public void testIsFinishedCancelled() {
-//        //Given
-//        String status = "Cancelled";
-//        //when
-//        boolean result = OpenshiftHelper.isFinished(status);
-//        //Then
-//        assertTrue(result);
-//    }
-//
-//    @Test
-//    public void testIsFinishedFalse() {
-//        //Given
-//        String status = "not Complete";
-//        //when
-//        boolean result = OpenshiftHelper.isFinished(status);
-//        //Then
-//        assertFalse(result);
-//    }
+    @Test
+    public void testIsCancelledTrue() {
+        assertTrue(OpenshiftHelper.isCancelled("Cancelled"));
+    }
+
+    @Test
+    public void testIsCancelledFalse() {
+        assertFalse(OpenshiftHelper.isCancelled("not Cancelled"));
+    }
+
+    @Test
+    public void testIsFailedTrueWithFail() {
+        //Given
+        String status = "Fail";
+        //when
+        boolean result = OpenshiftHelper.isFailed(status);
+        //Then
+        assertTrue(result);
+    }
+
+    @Test
+    public void testIsFailedTrueWithError() {
+        //Given
+        String status = "Error";
+        //when
+        boolean result = OpenshiftHelper.isFailed(status);
+        //Then
+        assertTrue(result);
+    }
+
+    @Test
+    public void testIsFailedFalse() {
+        //Given
+        String status = null;
+        //when
+        boolean result = OpenshiftHelper.isFailed(status);
+        //Then
+        assertFalse(result);
+    }
+
+    @Test
+    public void testIsCompletedTrue() {
+        //Given
+        String status = "Complete";
+        //when
+        boolean result = OpenshiftHelper.isCompleted(status);
+        //Then
+        assertTrue(result);
+    }
+
+    @Test
+    public void testIsCompletedFalse() {
+        //Given
+        String status = "not Complete";
+        //when
+        boolean result = OpenshiftHelper.isCompleted(status);
+        //Then
+        assertFalse(result);
+    }
+
+    @Test
+    public void testIsFinishedComplete() {
+        //Given
+        String status = "Complete";
+        //when
+        boolean result = OpenshiftHelper.isFinished(status);
+        //Then
+        assertTrue(result);
+    }
+
+    @Test
+    public void testIsFinishedFailed() {
+        //Given
+        String status = "Error";
+        //when
+        boolean result = OpenshiftHelper.isFinished(status);
+        //Then
+        assertTrue(result);
+    }
+
+    @Test
+    public void testIsFinishedCancelled() {
+        //Given
+        String status = "Cancelled";
+        //when
+        boolean result = OpenshiftHelper.isFinished(status);
+        //Then
+        assertTrue(result);
+    }
+
+    @Test
+    public void testIsFinishedFalse() {
+        //Given
+        String status = "not Complete";
+        //when
+        boolean result = OpenshiftHelper.isFinished(status);
+        //Then
+        assertFalse(result);
+    }
 
 
     @Test
