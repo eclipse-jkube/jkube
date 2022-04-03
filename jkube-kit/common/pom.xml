@@ -139,6 +139,18 @@
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
     </dependency>
+      <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-params</artifactId>
+          <version>5.8.2</version>
+          <scope>test</scope>
+      </dependency>
+    <dependency>
+      <groupId>org.gradle</groupId>
+      <artifactId>gradle-core-api</artifactId>
+      <version>6.1.1</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 </project>
