@@ -218,47 +218,6 @@ public class OpenshiftHelperTest {
     }
 
     @Test
-    public void testIsFinishedComplete() {
-        //Given
-        String status = "Complete";
-        //when
-        boolean result = OpenshiftHelper.isFinished(status);
-        //Then
-        assertTrue(result);
-    }
-
-    @Test
-    public void testIsFinishedFailed() {
-        //Given
-        String status = "Error";
-        //when
-        boolean result = OpenshiftHelper.isFinished(status);
-        //Then
-        assertTrue(result);
-    }
-
-    @Test
-    public void testIsFinishedCancelled() {
-        //Given
-        String status = "Cancelled";
-        //when
-        boolean result = OpenshiftHelper.isFinished(status);
-        //Then
-        assertTrue(result);
-    }
-
-    @Test
-    public void testIsFinishedFalse() {
-        //Given
-        String status = "not Complete";
-        //when
-        boolean result = OpenshiftHelper.isFinished(status);
-        //Then
-        assertFalse(result);
-    }
-
-
-    @Test
     public void testCombineTemplates() {
         //Given
         Template template = new TemplateBuilder()
