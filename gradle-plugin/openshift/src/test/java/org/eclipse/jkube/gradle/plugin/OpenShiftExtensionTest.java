@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 public class OpenShiftExtensionTest {
 
   @Test
-  public void getRuntimeMode_withDefaults_shouldReturnKubernetes() {
+  public void getRuntimeMode_withDefaults_shouldReturnOpenShift() {
     // Given
     final OpenShiftExtension partial = mock(OpenShiftExtension.class);
     when(partial.getRuntimeMode()).thenCallRealMethod();
