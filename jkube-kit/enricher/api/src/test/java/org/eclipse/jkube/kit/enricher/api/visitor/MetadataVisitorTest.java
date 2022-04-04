@@ -34,6 +34,7 @@ import io.fabric8.openshift.api.model.BuildBuilder;
 import io.fabric8.openshift.api.model.BuildConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
+import io.fabric8.openshift.api.model.RouteBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,6 +55,7 @@ public class MetadataVisitorTest {
         .replicaSet(new Properties())
         .service(new Properties())
         .serviceAccount(new Properties())
+        .route(new Properties())
         .build();
     annotations.getAll().put("this-is-all", 1);
     annotations.getDeployment().put("deployment", "Yay");
@@ -62,6 +64,7 @@ public class MetadataVisitorTest {
     annotations.getReplicaSet().put("replica-set", "Yay");
     annotations.getService().put("service", "Yay");
     annotations.getServiceAccount().put("service-account", "Yay");
+    annotations.getRoute().put("route", "Yay");
     final Properties labelsAll = (Properties) annotations.getAll().clone();
     labelsAll.put("super-label", "S");
     final MetaDataConfig labels = annotations.toBuilder()
@@ -333,5 +336,16 @@ public class MetadataVisitorTest {
     // Then
     assertThat(sa.build().getMetadata().getAnnotations()).containsOnly( entry("service-account", "Yay"));
     assertThat(sa.build().getMetadata().getLabels()).containsOnly(entry("service-account", "Yay"));
+  }
+
+  @Test
+  public void route() {
+    // Given
+    final RouteBuilder route = new RouteBuilder();
+    // When
+    MetadataVisitor.route(resourceConfig).visit(route);
+    // Then
+    assertThat(route.build().getMetadata().getAnnotations()).containsOnly( entry("route", "Yay"));
+    assertThat(route.build().getMetadata().getLabels()).containsOnly(entry("route", "Yay"));
   }
 }

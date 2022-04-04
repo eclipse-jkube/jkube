@@ -66,4 +66,9 @@ public class MetaDataConfig {
    * Labels or annotations for Service Account
    */
   private Properties serviceAccount;
+
+  /**
+   * Labels or annotations for OpenShift routes
+   */
+  private Properties route;
 }

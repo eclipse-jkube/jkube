@@ -49,6 +49,7 @@ public class DefaultMetadataEnricher extends BaseEnricher {
             MetadataVisitor.ingressV1beta1(resourceConfig),
             MetadataVisitor.ingressV1(resourceConfig),
             MetadataVisitor.serviceAccount(resourceConfig),
+            MetadataVisitor.route(resourceConfig),
             // Apply last: Other MetadataVisitor might initiate the metadata field for the item
             MetadataVisitor.metadata(resourceConfig)
         };

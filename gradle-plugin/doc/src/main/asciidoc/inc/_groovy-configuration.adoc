@@ -567,6 +567,11 @@ endif::[]
 
 | *serviceAccount*
 | Labels and annotations applied to `ServiceAccount` objects.
+ifeval::["{task-prefix}" == "oc"]
+
+| *route*
+| Labels and annotations applied to `Route` objects.
+endif::[]
 |===
 
 [[controller-resource-groovy-configuration]]

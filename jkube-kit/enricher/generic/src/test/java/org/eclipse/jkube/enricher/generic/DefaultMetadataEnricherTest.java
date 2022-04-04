@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder;
+import io.fabric8.openshift.api.model.RouteBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
@@ -47,6 +48,7 @@ public class DefaultMetadataEnricherTest {
   private io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder ingressV1;
   private io.fabric8.kubernetes.api.model.networking.v1beta1.IngressBuilder ingressV1beta1;
   private ServiceAccountBuilder serviceAccount;
+  private RouteBuilder route;
   private KubernetesListBuilder klb;
 
   @Before
@@ -58,12 +60,14 @@ public class DefaultMetadataEnricherTest {
                 .deployment(properties("deployment", "Deployment"))
                 .ingress(properties("ingress", "Ingress"))
                 .serviceAccount(properties("service-account", "ServiceAccount"))
+                .route(properties("route", "Route"))
                 .build())
             .labels(MetaDataConfig.builder()
                 .all(properties("all-label", 10L))
                 .deployment(properties("deployment-label", "Deployment"))
                 .ingress(properties("ingress-label", "Ingress"))
                 .serviceAccount(properties("service-account-label", "ServiceAccount"))
+                .route(properties("route-label", "Route"))
                 .build())
             .build())
         .build();
@@ -79,9 +83,10 @@ public class DefaultMetadataEnricherTest {
     ingressV1 = new io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder();
     ingressV1beta1 = new io.fabric8.kubernetes.api.model.networking.v1beta1.IngressBuilder();
     serviceAccount = new ServiceAccountBuilder();
+    route = new RouteBuilder();
     klb = new KubernetesListBuilder().addToItems(configMap).addToItems(deployment)
         .addToItems(genericResource).addToItems(ingressV1).addToItems(ingressV1beta1)
-        .addToItems(serviceAccount);
+        .addToItems(serviceAccount).addToItems(route);
 
   }
 
@@ -145,6 +150,17 @@ public class DefaultMetadataEnricherTest {
         .containsOnly(entry("all-annotation", "1"), entry("service-account", "ServiceAccount"));
     assertThat(serviceAccount.build().getMetadata().getLabels())
         .containsOnly(entry("all-label", "10"), entry("service-account-label", "ServiceAccount"));
+  }
+
+  @Test
+  public void route() {
+    // When
+    defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
+    // Then
+    assertThat(route.build().getMetadata().getAnnotations())
+        .containsOnly(entry("all-annotation", "1"), entry("route", "Route"));
+    assertThat(route.build().getMetadata().getLabels())
+        .containsOnly(entry("all-label", "10"), entry("route-label", "Route"));
   }
 
   private static Properties properties(Object... keyValuePairs) {
