@@ -105,6 +105,11 @@ endif::[]
 
 | *serviceAccount*
 | Labels and annotations applied to `ServiceAccount` objects.
+ifeval::["{goal-prefix}" == "oc"]
+
+| *route*
+| Labels and annotations applied to `Route` objects.
+endif::[]
 |===
 
 [[controller-resource-generation]]

@@ -70,6 +70,9 @@ import io.fabric8.openshift.api.model.DeploymentConfigFluentImpl;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.ImageStreamFluent;
 import io.fabric8.openshift.api.model.ImageStreamFluentImpl;
+import io.fabric8.openshift.api.model.RouteBuilder;
+import io.fabric8.openshift.api.model.RouteFluent;
+import io.fabric8.openshift.api.model.RouteFluentImpl;
 import lombok.AllArgsConstructor;
 
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
@@ -256,6 +259,12 @@ public class MetadataVisitor<T extends VisitableBuilder> extends TypedVisitor<T>
         ServiceAccountBuilder.class,
         getAnnotations(resourceConfig)::getServiceAccount, getLabels(resourceConfig)::getServiceAccount,
         ServiceAccountFluentImpl::editOrNewMetadata, omf -> ((ServiceAccountFluent.MetadataNested<?>) omf)::endMetadata);
+  }
+
+  public static MetadataVisitor<RouteBuilder> route(ResourceConfig resourceConfig) {
+    return new MetadataVisitor<>(RouteBuilder.class, 
+        getAnnotations(resourceConfig)::getRoute, getLabels(resourceConfig)::getRoute,
+        RouteFluentImpl::editOrNewMetadata, omf -> ((RouteFluent.MetadataNested<?>) omf)::endMetadata);
   }
 
 }

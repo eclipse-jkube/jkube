@@ -129,9 +129,11 @@ items:
       app.openshift.io/vcs-uri: "@ignore@"
       jkube.io/git-commit: "@ignore@"
       keyinall: valueinall
+      keyinroute: valueinroute
       jkube.io/git-branch: "@ignore@"
     labels:
       keyinall: valueinall
+      keyinroute: valueinroute
       app: metadata
       provider: jkube
       version: "@ignore@"

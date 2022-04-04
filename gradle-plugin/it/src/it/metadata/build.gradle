@@ -110,6 +110,9 @@ openshift {
             serviceAccount {
                 keyinserviceaccount = 'valueinserviceaccount'
             }
+            route {
+                keyinroute = 'valueinroute'
+            }
         }
         annotations {
             all {
@@ -132,6 +135,9 @@ openshift {
             }
             serviceAccount {
                 keyinserviceaccount = 'valueinserviceaccount'
+            }
+            route {
+                keyinroute = 'valueinroute'
             }
         }
         serviceAccounts = [{
