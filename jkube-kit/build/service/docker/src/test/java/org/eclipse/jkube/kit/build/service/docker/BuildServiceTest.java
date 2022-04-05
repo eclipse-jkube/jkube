@@ -70,7 +70,7 @@ public class BuildServiceTest {
     buildService.buildImage(imageConfiguration, mockedImagePullManager, mockedJKubeConfiguration);
 
     // Then
-    verify(mockedDockerAccess, times(1))
+    verify(mockedDockerAccess)
         .buildImage(eq("image-name"), any(), any());
   }
 
@@ -94,8 +94,8 @@ public class BuildServiceTest {
     buildService.tagImage("image-name", imageConfiguration);
 
     // Then
-    verify(mockedDockerAccess, times(1))
-        .tag(eq("image-name"), eq("image-name:latest"), eq(true));
+    verify(mockedDockerAccess)
+        .tag("image-name", "image-name:latest", true);
   }
 
 }
