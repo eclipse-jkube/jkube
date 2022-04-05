@@ -16,16 +16,24 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 
+import org.apache.maven.model.Build;
 import org.apache.maven.model.Developer;
-import org.apache.maven.plugin.BuildPluginManager;
-import org.eclipse.jkube.kit.common.JavaProject;
+import org.apache.maven.model.DistributionManagement;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.Site;
 import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
-
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -34,11 +42,9 @@ import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.MavenArtifactRepository;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Build;
-import org.apache.maven.model.DistributionManagement;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Site;
+
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -50,12 +56,14 @@ import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+
+
 @RunWith(MockitoJUnitRunner.class)
 public class MavenUtilTest {
   @Rule
@@ -213,20 +221,23 @@ public class MavenUtilTest {
     return new MavenSession(null, settings, localRepository, null, null, Collections.<String> emptyList(), ".",
         systemProperties, userProperties, new Date(System.currentTimeMillis()));
   }
-
   @Test
   public void testCallMavenPluginWithGoal() {
-    MockedConstruction<MojoExecutionService> mojoExecutionServiceMocked = Mockito.mockConstruction(MojoExecutionService.class);
+    try (MockedConstruction<MojoExecutionService> mojoExecutionServiceMocked = Mockito.mockConstruction(MojoExecutionService.class)) {
       // Given
       MavenProject mavenProject = getMavenProject();
       MavenSession mavenSession = getMavenSession();
+
       // When
       MavenUtil.callMavenPluginWithGoal(mavenProject, mavenSession, pluginManager,
               "org.apache.maven.plugins:maven-help-plugin:help", log);
-      // Then
-      verify(mojoExecutionServiceMocked.constructed().iterator().next(), times(1)).callPluginGoal("org.apache.maven.plugins:maven-help-plugin:help");
 
+      // Then
+      verify(mojoExecutionServiceMocked.constructed().iterator().next(), times(1))
+              .callPluginGoal("org.apache.maven.plugins:maven-help-plugin:help");
+    }
   }
+
   @Test
   public void testgetRootProjectFolder() {
     // Given
