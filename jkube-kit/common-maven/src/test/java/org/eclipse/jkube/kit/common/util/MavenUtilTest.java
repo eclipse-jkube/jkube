@@ -126,10 +126,7 @@ public class MavenUtilTest {
         "runtime", "jar", "", new DefaultArtifactHandler("jar"));
     final Artifact artifact2 = new DefaultArtifact("org.eclipse.jkube", "bar-dependency", "1.33.7",
         "runtime", "jar", "", new DefaultArtifactHandler("jar"));
-    Set<Artifact> artifactSet= new HashSet<Artifact>();
-    artifactSet.add(artifact1);
-    artifactSet.add(artifact2);
-    when(mavenProject.getArtifacts()).thenReturn(artifactSet);
+    when(mavenProject.getArtifacts()).thenReturn(new HashSet<>(Arrays.asList(artifact1, artifact2)));
     // When
     final List<Dependency> result = MavenUtil.getTransitiveDependencies(mavenProject);
     // Then
