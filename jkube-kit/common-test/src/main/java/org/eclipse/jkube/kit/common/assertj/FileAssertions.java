@@ -42,7 +42,7 @@ public class FileAssertions extends AbstractFileAssert<FileAssertions> {
   public AbstractListAssert<ListAssert<String>, List<? extends String>, String, ObjectAssert<String>> fileTree()
       throws IOException {
 
-    final Path actualPath = actual.toPath().normalize();
+    final Path actualPath = actual.toPath().normalize().toRealPath();
     final List<String> paths = new ArrayList<>();
     try (Stream<Path> pathStream = Files.walk(actualPath)) {
       for (Path temp : pathStream
