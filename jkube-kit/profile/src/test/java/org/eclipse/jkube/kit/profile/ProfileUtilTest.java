@@ -29,7 +29,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
 /**
  * @author roland
@@ -86,14 +86,16 @@ public class ProfileUtilTest {
     }
 
     @Test
-    public void findProfile() throws URISyntaxException, IOException {
+    public void findProfile_whenValidProfileArg_returnsValidProfile() throws URISyntaxException, IOException {
+
         assertNotNull(ProfileUtil.findProfile("simple", getProfileDir()));
-        try {
-            ProfileUtil.findProfile("not-there", getProfileDir());
-            fail();
-        } catch (IllegalArgumentException exp) {
-            assertTrue(exp.getMessage().contains("not-there"));
-        }
+
+    }
+
+    @Test
+    public void findProfile_whenNonExistentProfileArg_throwsException () throws URISyntaxException {
+
+        assertTrue(assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("not-there", getProfileDir())).getMessage().contains("not-there"));
 
     }
 
