@@ -80,9 +80,6 @@ public class FileDataSecretEnricherTest {
 
         final Map<String, String> data = secret.getData();
         assertThat(data)
-            .containsKey(TEST_APPLICATION_PROPERTIES);
-
-        assertThat(data)
             .containsEntry(TEST_APPLICATION_PROPERTIES, Base64Util
                 .encodeToString(Files.readAllBytes(Paths.get(TEST_APPLICATION_PROPERTIES_PATH))));
 
