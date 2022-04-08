@@ -14,7 +14,6 @@ items:
       app: volume-permission
       provider: jkube
       version: "@ignore@"
-      expose: "true"
       group: org.eclipse.jkube.devops.apps
     name: jkube-docker-registry
   spec:

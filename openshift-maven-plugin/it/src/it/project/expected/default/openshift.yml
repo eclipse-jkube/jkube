@@ -25,7 +25,6 @@ items:
         jkube.io/git-branch: "@ignore@"
         prometheus.io/port: "9779"
       labels:
-        expose: "true"
         app: project
         provider: jkube
         version: "@ignore@"

@@ -139,6 +139,9 @@ public class IngressEnricher extends BaseEnricher {
      * @return true if we should create an Ingress for this service.
      */
     static boolean shouldCreateExternalURLForService(ServiceBuilder service, KitLogger log) {
+        if (service.buildMetadata() == null) {
+            return false;
+        }
         String serviceName = service.buildMetadata().getName();
         ServiceSpec spec = service.buildSpec();
         if (spec != null && !isKubernetesSystemService(serviceName)) {

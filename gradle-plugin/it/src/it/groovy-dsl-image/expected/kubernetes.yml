@@ -10,7 +10,6 @@ items:
       jkube.io/git-commit: "@ignore@"
       jkube.io/git-branch: "@ignore@"
     labels:
-      expose: "true"
       app: groovy-dsl-image
       provider: jkube
       version: "@ignore@"

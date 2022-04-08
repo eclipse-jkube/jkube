@@ -47,7 +47,6 @@ import static org.eclipse.jkube.enricher.generic.IngressEnricher.getIngressMetad
 import static org.eclipse.jkube.enricher.generic.IngressEnricher.hasIngress;
 import static org.eclipse.jkube.enricher.generic.IngressEnricher.resolveIngressHost;
 import static org.eclipse.jkube.enricher.generic.IngressEnricher.shouldCreateExternalURLForService;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isExposedService;
 
 public class NetworkingV1IngressGenerator {
     private NetworkingV1IngressGenerator() { }
@@ -57,7 +56,7 @@ public class NetworkingV1IngressGenerator {
         if (serviceMetadata == null) {
             log.info("No Metadata for service! ");
         }
-        if (isExposedService(serviceMetadata) && shouldCreateExternalURLForService(serviceBuilder, log)) {
+        if (shouldCreateExternalURLForService(serviceBuilder, log)) {
             Objects.requireNonNull(serviceMetadata);
             String serviceName = serviceMetadata.getName();
             if (!hasIngress(listBuilder, serviceName)) {
