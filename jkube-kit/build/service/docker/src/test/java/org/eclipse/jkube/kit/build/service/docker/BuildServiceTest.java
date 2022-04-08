@@ -95,7 +95,7 @@ public class BuildServiceTest {
 
     // Then
     verify(mockedDockerAccess, times(1))
-        .tag(eq("image-name"), eq("image-name:latest"), eq(true));
+            .tag("image-name", "image-name:latest", true);
   }
 
 }
