@@ -13,7 +13,6 @@ items:
       jkube.io/git-url: "@ignore@"
       jkube.io/git-commit: "@ignore@"
     labels:
-      expose: "true"
       app: spring-boot-with-fragment
       provider: jkube
       version: "@ignore@"

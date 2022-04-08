@@ -41,7 +41,6 @@
       - jkube-secret-file
 
       # Route exposure
-      - jkube-openshift-service-expose
       - jkube-openshift-route
       - jkube-openshift-project
 
@@ -134,7 +133,6 @@
       - jkube-controller-from-configuration
       - jkube-openshift-deploymentconfig
       - jkube-openshift-project
-      - jkube-openshift-service-expose
       - jkube-openshift-route
   # Only dependencies, no build, use other resources raw
 - name: aggregate
@@ -154,5 +152,4 @@
   generator:
     excludes: []
   enricher:
-    excludes:
-      - jkube-openshift-service-expose
+    excludes: []

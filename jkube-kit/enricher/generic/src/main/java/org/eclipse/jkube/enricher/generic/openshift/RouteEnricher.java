@@ -41,7 +41,6 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isExposedService;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeMetadata;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeSimpleFields;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
@@ -104,7 +103,7 @@ public class RouteEnricher extends BaseEnricher {
         ObjectMeta serviceMetadata = serviceBuilder.buildMetadata();
 
         if (serviceMetadata != null && StringUtils.isNotBlank(serviceMetadata.getName())
-                && hasExactlyOneServicePort(serviceBuilder, serviceMetadata.getName()) && isExposedService(serviceMetadata)) {
+                && hasExactlyOneServicePort(serviceBuilder, serviceMetadata.getName())) {
             String name = serviceMetadata.getName();
             updateRouteDomainPostFixBasedOnServiceName(name);
             Route opinionatedRoute = createOpinionatedRouteFromService(serviceBuilder, routeDomainPostfix,

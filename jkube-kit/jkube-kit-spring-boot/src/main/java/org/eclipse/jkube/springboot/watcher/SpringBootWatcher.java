@@ -39,7 +39,6 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
@@ -104,11 +103,7 @@ public class SpringBootWatcher extends BaseWatcher {
             namespace,
             resources, false, null, true, null, false);
 
-        String url = getServiceExposeUrl(kubernetes, resources);
-        if (url == null) {
-            url = getPortForwardUrl(kubernetes, resources);
-        }
-
+        String url = getPortForwardUrl(kubernetes, resources);
         if (url != null) {
             runRemoteSpringApplication(url);
         } else {
@@ -139,17 +134,6 @@ public class SpringBootWatcher extends BaseWatcher {
         String scheme = StringUtils.isNotBlank(properties.getProperty(propertyHelper.getServerKeystorePropertyKey())) ? "https://" : "http://";
         String contextPath = properties.getProperty(propertyHelper.getServerContextPathPropertyKey(), "");
         return scheme + "localhost:" + localPort + contextPath;
-    }
-
-    private String getServiceExposeUrl(NamespacedKubernetesClient kubernetes, Collection<HasMetadata> resources) throws InterruptedException {
-        long serviceUrlWaitTimeSeconds = Configs.asInt(getConfig(Config.SERVICE_URL_WAIT_TIME_SECONDS));
-        String url = KubernetesHelper.getServiceExposeUrl(kubernetes, resources, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
-        if (StringUtils.isNotBlank(url)) {
-            return url;
-        }
-
-        log.info("No exposed service found for connecting the dev tools");
-        return null;
     }
 
     private void runRemoteSpringApplication(String url) {

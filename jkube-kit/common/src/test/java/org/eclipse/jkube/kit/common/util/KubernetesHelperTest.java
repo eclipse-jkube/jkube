@@ -284,53 +284,6 @@ class KubernetesHelperTest {
     }
 
     @Test
-    void testGetServiceExposeUrlReturnsUrlFromAnnotation() throws InterruptedException {
-        // Given
-        Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
-        Set<HasMetadata> entities = new HashSet<>();
-        entities.add(svc);
-        final NamespacedKubernetesClient kubernetesClient = mock(NamespacedKubernetesClient.class);
-        final MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class);
-        when(kubernetesClient.services()).thenReturn(svcMixedOp);
-        final ServiceResource<Service> svcResource = mock(ServiceResource.class);
-        when(svcMixedOp.withName("svc1")).thenReturn(svcResource);
-        when(svcResource.get()).thenReturn(new ServiceBuilder()
-            .withNewMetadata()
-            .withName("svc1")
-            .addToAnnotations("exposeUrl", "https://example.com")
-            .endMetadata()
-            .build());
-        // When
-        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, 3, "exposeUrl");
-        // Then
-        assertThat(result).isEqualTo("https://example.com");
-    }
-
-    @Test
-    void testGetServiceExposeUrlReturnsNull() throws InterruptedException {
-        // Given
-        Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
-        Set<HasMetadata> entities = new HashSet<>();
-        entities.add(svc);
-        final NamespacedKubernetesClient kubernetesClient = mock(NamespacedKubernetesClient.class);
-        final MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class);
-        when(kubernetesClient.services()).thenReturn(svcMixedOp);
-        final ServiceResource<Service> svcResource = mock(ServiceResource.class);
-        when(svcMixedOp.withName("svc1")).thenReturn(svcResource);
-        when(svcResource.get()).thenReturn(new ServiceBuilder()
-                .withNewMetadata()
-                .withName("svc1")
-                .endMetadata()
-                .build());
-        // When
-        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, 1, "exposeUrl");
-        // Then
-        assertThat(result).isNull();
-        verify(kubernetesClient, times(1)).services();
-        verify(svcResource,times(1)).get();
-    }
-
-    @Test
     void testGetFullyQualifiedApiGroupWithKind() {
         // Given
         GenericKubernetesResource cr1 = new GenericKubernetesResourceBuilder()
