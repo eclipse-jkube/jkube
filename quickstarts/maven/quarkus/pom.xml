@@ -32,7 +32,7 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <version.quarkus>1.13.4.Final</version.quarkus>
+    <version.quarkus>2.8.1.Final</version.quarkus>
     <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
   </properties>
 
@@ -100,12 +100,6 @@
     </plugins>
   </build>
   <profiles>
-    <profile>
-      <id>dev</id>
-      <properties>
-        <quarkus.profile>dev</quarkus.profile>
-      </properties>
-    </profile>
     <profile>
       <id>native-docker</id>
       <activation>
