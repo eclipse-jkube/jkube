@@ -31,8 +31,9 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
@@ -52,7 +53,7 @@ public class ImageEnricherTest {
 
     private ImageEnricher imageEnricher;
 
-    @Before
+    @BeforeEach
     public void prepareMock() {
         // Setup mock behaviour
         givenResourceConfigWithEnvVar("MY_KEY", "MY_VALUE");
@@ -152,7 +153,7 @@ public class ImageEnricherTest {
     }
 
     private void assertCorrectlyGeneratedResources(KubernetesList list, String kind, String expectedKey, String expectedValue) throws JsonProcessingException {
-        assertEquals(1, list.getItems().size());
+        Assertions.assertEquals(1, list.getItems().size());
 
         String json = ResourceUtil.toJson(list.getItems().get(0));
         assertThat(json, JsonPathMatchers.isJson());
