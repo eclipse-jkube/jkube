@@ -9,7 +9,7 @@ endif::[]
 ifeval::["{plugin-type}" == "maven"]
 The `webapp` generator tries to detect WAR builds and selects a base servlet container image based on the configuration found in the `pom.xml`:
 
-* A **Tomcat** base image is selected when a `tomcat6-maven-plugin`,
+* A **Tomcat** base image is selected by default,
 `tomcat7-maven-plugin` or `tomcat8-maven-plugin` is present or when a `META-INF/context.xml` could be found in the classes directory.
 * A **Jetty** base image is selected when a `jetty-maven-plugin` is present or one of the files `WEB-INF/jetty-web.xml` or `WEB-INF/jetty-logging.properties` is found.
 * A **Wildfly** base image is chosen for a given `jboss-as-maven-plugin` or `wildfly-maven-plugin` or when a Wildfly specific deployment descriptor like `jboss-web.xml` is found.
@@ -91,3 +91,18 @@ This may be required for Wildfly webapp s2i build to compose a `WildFly` server 
 endif::[]
 | `jkube.generator.webapp.env`
 |===
+
+
+==== JakartaEE and retrocompatibility with JavaEE in Tomcat
+From Tomcat 10, only JakartaEE compliant projects are supported. However, legacy JavaEE projects can automatically be migrated by deploying the war in `${CATALINA_HOME}/webapps-javaee`. By default, the webapp generator is based on a Tomcat 10+ image and will copy the war file to `${CATALINA_HOME}/webapps-javaee`.
+
+If the project is already JakartaEE compliant, it is recommanded to set the webapp directory to `${CATALINA_HOME}/webapps`. This can be done by setting the property `jkube.generator.webapp.env` to `TOMCAT_WEBAPPS_DIR=webapps`.
+
+To keep using Tomcat 9, set the properties:
+
+* `jkube.generator.webapp.from` to `quay.io/jkube/jkube-tomcat9:0.0.15`
+* `jkube.generator.webapp.cmd` to `/usr/local/s2i/run`
+ifdef::doc-openshift[]
+* `jkube.generator.webapp.supportsS2iBuild` to `true`
+endif::[]
+

@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -120,7 +121,12 @@ public class WebAppGeneratorTest {
         .extracting(ImageConfiguration::getBuildConfiguration)
         .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
         .hasFieldOrPropertyWithValue("ports", Collections.singletonList("8080"))
-        .hasFieldOrPropertyWithValue("env", Collections.singletonMap("DEPLOY_DIR", "/deployments"))
+        .hasFieldOrPropertyWithValue("env", new HashMap<String, String>() {
+          {
+            put("DEPLOY_DIR", "/deployments");
+            put("TOMCAT_WEBAPPS_DIR", "webapps-javaee");
+          }
+        })
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
         .extracting("inline.files").asList().extracting("destName")

@@ -163,6 +163,11 @@ public class WebAppGenerator extends BaseGenerator {
 
     defaultEnv.putAll(extractEnvVariables(getConfig(Config.ENV)));
 
+    if ("webapps-javaee".equals(defaultEnv.get("TOMCAT_WEBAPPS_DIR"))) {
+      log.info(
+          "[[B]]HINT:[[B]] Tomcat webapps dir is set to `webapps-javaee` by default for retrocompatibility. If your project is already JakartaEE compliant, set `jkube.generator.webapp.env` to `TOMCAT_WEBAPPS_DIR=webapps` for a faster startup.");
+    }
+
     return defaultEnv;
   }
 

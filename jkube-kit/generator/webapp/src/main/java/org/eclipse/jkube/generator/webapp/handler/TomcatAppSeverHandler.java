@@ -14,6 +14,8 @@
 package org.eclipse.jkube.generator.webapp.handler;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -64,5 +66,15 @@ public class TomcatAppSeverHandler extends AbstractAppServerHandler {
   @Override
   public boolean supportsS2iBuild() {
     return true;
+  }
+
+  @Override
+  public Map<String, String> getEnv() {
+    // Setting Tomcat webapps dir to `webapps-javaee` by default for
+    // retrocompatibility.
+    // If the project is already JakartaEE compliant, user should override
+    // `jkube.generator.webapp.env` to `TOMCAT_WEBAPPS_DIR=webapps` for a faster
+    // startup.
+    return Collections.singletonMap("TOMCAT_WEBAPPS_DIR", "webapps-javaee");
   }
 }
