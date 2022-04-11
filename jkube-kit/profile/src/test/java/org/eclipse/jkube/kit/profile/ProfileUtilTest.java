@@ -95,7 +95,11 @@ public class ProfileUtilTest {
     @Test
     public void findProfile_whenNonExistentProfileArg_throwsException () throws URISyntaxException {
 
-        assertTrue(assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("not-there", getProfileDir())).getMessage().contains("not-there"));
+        File profileDir = getProfileDir();
+
+        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("not-there", profileDir));
+
+        assertTrue(illegalArgumentException.getMessage().contains("not-there"));
 
     }
 
