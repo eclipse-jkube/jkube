@@ -70,7 +70,7 @@
     <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
 
     <!-- =======================================================  -->
-    <version.image.jkube-images>0.0.13</version.image.jkube-images>
+    <version.image.jkube-images>0.0.15</version.image.jkube-images>
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
     <version.image.java.upstream.docker>${version.image.jkube-images}</version.image.java.upstream.docker>
@@ -109,7 +109,7 @@
     <image.karaf.upstream.istag>jkube-karaf:${version.image.karaf.upstream.s2i}</image.karaf.upstream.istag>
 
     <!-- webapp -->
-    <image.tomcat.upstream>quay.io/jkube/jkube-tomcat9:${version.image.tomcat.upstream}</image.tomcat.upstream>
+    <image.tomcat.upstream>quay.io/jkube/jkube-tomcat:${version.image.tomcat.upstream}</image.tomcat.upstream>
     <image.jetty.upstream>quay.io/jkube/jkube-jetty9:${version.image.jetty.upstream}</image.jetty.upstream>
     <image.wildfly.upstream.docker>jboss/wildfly:${version.image.wildfly.upstream.docker}</image.wildfly.upstream.docker>
     <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
