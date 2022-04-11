@@ -33,8 +33,8 @@ The base images chosen are:
 | | Docker Build | S2I Build
 
 | *Tomcat*
-| `quay.io/jkube/jkube-tomcat9`
-| `quay.io/jkube/jkube-tomcat9`
+| `quay.io/jkube/jkube-tomcat`
+| `quay.io/jkube/jkube-tomcat`
 
 | *Jetty*
 | `quay.io/jkube/jkube-jetty9`
