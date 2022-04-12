@@ -15,10 +15,12 @@ package org.eclipse.jkube.generator.karaf;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Plugin;
@@ -33,6 +35,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class KarafGeneratorTest {
 
@@ -100,32 +104,38 @@ public class KarafGeneratorTest {
         .customize(originalImageConfigurations, false);
     // Then
     assertThat(originalImageConfigurations).isSameAs(result);
-    assertThat(result).hasSize(1);
-    final ImageConfiguration imageConfiguration = result.iterator().next();
-    assertThat(imageConfiguration.getName()).isEqualTo("%g/%a:%l");
-    assertThat(imageConfiguration.getAlias()).isEqualTo("karaf");
-    final BuildConfiguration bc = imageConfiguration.getBuildConfiguration();
-    assertThat(bc.getTags()).contains("latest");
-    assertThat(bc.getPorts()).contains("8181", "8778");
-    assertThat(bc.getEnv()).containsEntry("DEPLOYMENTS_DIR", "/deployments");
-    assertThat(bc.getEnv()).containsEntry("KARAF_HOME", "/deployments/karaf");
-    final AssemblyConfiguration ac = bc.getAssembly();
-    assertThat(ac.getName()).isEqualTo("deployments");
-    assertThat(ac.isExcludeFinalOutputArtifact()).isFalse();
-    assertThat(ac.getLayers()).hasSize(1);
-    assertThat(ac.getLayers().iterator().next().getFileSets())
-            .hasSize(2)
-            .first()
-            .hasFieldOrPropertyWithValue("directory", new File(temporaryFolder.getRoot(), "assembly"))
-            .hasFieldOrPropertyWithValue("outputDirectory", new File("karaf"))
-            .hasFieldOrPropertyWithValue("directoryMode", "0775");
-
-    assertThat(ac.getLayers().iterator().next().getFileSets())
-            .last()
-            .hasFieldOrPropertyWithValue("directory", temporaryFolder.getRoot().toPath().resolve("assembly").resolve("bin").toFile())
-            .hasFieldOrPropertyWithValue("outputDirectory", new File("karaf", "bin"))
-            .hasFieldOrPropertyWithValue("fileMode", "0777")
-            .hasFieldOrPropertyWithValue("directoryMode", "0775");
+    assertThat(result)
+        .singleElement()
+        .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
+        .hasFieldOrPropertyWithValue("alias", "karaf")
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
+        .hasFieldOrPropertyWithValue("ports", Arrays.asList("8181", "8778"))
+        .extracting(BuildConfiguration::getEnv)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsOnly(
+            entry("DEPLOYMENTS_DIR", "/deployments"),
+            entry("KARAF_HOME", "/deployments/karaf")
+        );
+    assertThat(result.iterator().next().getBuildConfiguration().getAssembly())
+        .hasFieldOrPropertyWithValue("name", "deployments")
+        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", false)
+        .extracting(AssemblyConfiguration::getLayers).asList()
+        .singleElement()
+        .extracting("fileSets").asList()
+        .extracting("directory", "outputDirectory", "directoryMode", "fileMode")
+        .containsExactly(
+            tuple(
+                new File(temporaryFolder.getRoot(), "assembly"),
+                new File("karaf"),
+                "0775",
+                null),
+            tuple(
+                temporaryFolder.getRoot().toPath().resolve("assembly").resolve("bin").toFile(),
+                new File("karaf", "bin"),
+                "0775",
+                "0777")
+        );
   }
 
   @Test

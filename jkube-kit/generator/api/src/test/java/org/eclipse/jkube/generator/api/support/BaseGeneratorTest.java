@@ -288,7 +288,7 @@ public class BaseGeneratorTest {
       fail();
     });
     // Then
-    assertThat(ex.getMessage()).contains("fromMode", "test-generator");;
+    assertThat(ex).hasMessageContaining("Invalid 'fromMode' in generator configuration for 'test-generator'");;
   }
 
   @Test
