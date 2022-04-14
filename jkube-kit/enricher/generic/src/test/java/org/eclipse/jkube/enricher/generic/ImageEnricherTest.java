@@ -14,8 +14,6 @@
 package org.eclipse.jkube.enricher.generic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.ReadContext;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
@@ -28,7 +26,6 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Before;
@@ -37,7 +34,6 @@ import org.junit.Test;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author nicola
@@ -152,18 +148,21 @@ public class ImageEnricherTest {
     }
 
     private void assertCorrectlyGeneratedResources(KubernetesList list, String kind, String expectedKey, String expectedValue) throws JsonProcessingException {
-        assertEquals(1, list.getItems().size());
+        assertThat(list.getItems())
+                .hasSize(1)
+                .first()
+                .hasFieldOrPropertyWithValue("kind", kind);
 
-        String json = ResourceUtil.toJson(list.getItems().get(0));
-        ReadContext context = JsonPath.parse(json);
-
-        String kindProp = context.read("$.kind");
-        String envName = context.read("$.spec.template.spec.containers[0].env[0].name");
-        String envValue = context.read("$.spec.template.spec.containers[0].env[0].value");
-
-        assertThat(kindProp).isEqualTo(kind);
-        assertThat(envName).isEqualTo(expectedKey);
-        assertThat(envValue).isEqualTo(expectedValue);
+        assertThat(list.getItems())
+                .extracting("spec.template.spec.containers")
+                .first()
+                .asList()
+                .extracting("env")
+                .first()
+                .asList()
+                .first()
+                .hasFieldOrPropertyWithValue("name", expectedKey)
+                .hasFieldOrPropertyWithValue("value", expectedValue);
     }
 
     private void givenResourceConfigWithEnvVar(String name, String value) {
