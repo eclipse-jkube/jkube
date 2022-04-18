@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.8.0-SNAPSHOT
+* Fix #1194: jkube controller name configuration ignored when using resource fragments
 * Fix #1201: ThorntailV2Generator works with Gradle Plugins
 * Fix #1208: Allow env variables to be passed to a webapp generator s2i builder
 * Fix #1251: Generate a preview of jkube documentation for PR if needed
