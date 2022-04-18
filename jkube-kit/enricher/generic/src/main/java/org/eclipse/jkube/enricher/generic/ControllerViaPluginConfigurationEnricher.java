@@ -86,6 +86,9 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
                     builder.accept(new TypedVisitor<StatefulSetBuilder>() {
                         @Override
                         public void visit(StatefulSetBuilder statefulSetBuilder) {
+                            if (statefulSetBuilder.buildMetadata() == null || statefulSetBuilder.buildMetadata().getName() == null) {
+                                statefulSetBuilder.editOrNewMetadata().withName(name).endMetadata();
+                            }
                             statefulSetBuilder.editOrNewSpec().editOrNewTemplate().editOrNewSpec().endSpec().endTemplate().endSpec();
                             mergeStatefulSetSpec(statefulSetBuilder, spec);
                         }
@@ -110,6 +113,9 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
                     builder.accept(new TypedVisitor<DeploymentBuilder>() {
                         @Override
                         public void visit(DeploymentBuilder deploymentBuilder) {
+                            if (deploymentBuilder.buildMetadata() == null || deploymentBuilder.buildMetadata().getName() == null) {
+                                deploymentBuilder.editOrNewMetadata().withName(name).endMetadata();
+                            }
                             deploymentBuilder.editOrNewSpec().editOrNewTemplate().editOrNewSpec().endSpec().endTemplate().endSpec();
                             mergeDeploymentSpec(deploymentBuilder, spec);
                         }
