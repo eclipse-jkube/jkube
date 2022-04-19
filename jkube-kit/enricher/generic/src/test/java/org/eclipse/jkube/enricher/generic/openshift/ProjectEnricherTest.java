@@ -13,7 +13,9 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
-import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.openshift.api.model.Project;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -36,7 +38,7 @@ public class ProjectEnricherTest {
     }
 
     @Test
-    public void convertNamespaceResourceToProject() {
+    public void create_whenKubernetesListHasNamespace_thenNamespaceConvertedToProject() {
         // Given
         Properties properties = new Properties();
         setExpectations(properties, new ResourceConfig());
