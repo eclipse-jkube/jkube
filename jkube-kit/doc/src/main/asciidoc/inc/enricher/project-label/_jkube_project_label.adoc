@@ -34,6 +34,28 @@ endif::[]
 
 Defaults to `jkube`.
 | `jkube.enricher.jkube-project-label.provider`
+
+| *group*
+| Makes it possible to define a custom `group` label used in the generated resource files used for deployment.
+
+ifeval::["{plugin-type}" == "maven"]
+Defaults to the Maven `project.groupId` property.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Defaults to the Gradle Project `group` property.
+endif::[]
+| `jkube.enricher.jkube-project-label.group`
+
+| *version*
+| Makes it possible to define a custom `version` label used in the generated resource files used for deployment.
+
+ifeval::["{plugin-type}" == "maven"]
+Defaults to the Maven `project.version` property.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Defaults to the Gradle Project `version` property.
+endif::[]
+| `jkube.enricher.jkube-project-label.version`
 |===
 
 The project labels which are already specified in the input fragments are not overridden by the enricher.

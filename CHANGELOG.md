@@ -28,6 +28,7 @@ Usage:
 * Fix #1260: Add documentation for PodAnnotationEnricher
 * Fix #1261: Add documentation for PortNameEnricher
 * Fix #1262: Add docs + gradle integration test for ProjectLabelEnricher
+* Fix #1268: ProjectLabelEnricher group and version labels should be configurable
 * Fix #1284: webapp custom generator should not require to set a CMD configuration
 * Fix #1295: Spring Boot actuator endpoints failed to generate automatically if `deployment.yml` resource fragment is used
 * Fix #1297: ReplicaCountEnricher documentation ported to Gradle plugins

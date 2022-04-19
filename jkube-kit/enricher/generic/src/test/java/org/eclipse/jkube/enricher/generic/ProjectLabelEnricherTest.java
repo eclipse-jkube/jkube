@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -20,6 +21,12 @@ import static org.junit.Assert.assertNull;
 import java.util.Map;
 import java.util.Properties;
 
+import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -186,6 +193,80 @@ public class ProjectLabelEnricherTest {
     Deployment deployment = (Deployment) builder.buildFirstItem();
     Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
     assertEquals("jkube", selectors.get("provider"));
+  }
+
+  @Test
+  public void create_withNoConfiguredGroup_shouldAddDefaultGroupInSelector() {
+    // Given
+    KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
+
+    // When
+    projectLabelEnricher.create(PlatformMode.kubernetes, builder);
+
+    // Then
+    Deployment deployment = (Deployment) builder.buildFirstItem();
+    assertThat(deployment)
+        .extracting(Deployment::getSpec)
+        .extracting(DeploymentSpec::getSelector)
+        .extracting(LabelSelector::getMatchLabels)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsEntry("group", "groupId");
+  }
+
+  @Test
+  public void create_withConfiguredGroup_shouldAddConfiguredGroupInSelector() {
+    // Given
+    properties.setProperty("jkube.enricher.jkube-project-label.group", "org.example.test");
+    KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
+
+    // When
+    projectLabelEnricher.create(PlatformMode.kubernetes, builder);
+
+    // Then
+    Deployment deployment = (Deployment) builder.buildFirstItem();
+    assertThat(deployment)
+        .extracting(Deployment::getSpec)
+        .extracting(DeploymentSpec::getSelector)
+        .extracting(LabelSelector::getMatchLabels)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsEntry("group", "org.example.test");
+  }
+
+  @Test
+  public void create_withNoConfiguredVersion_shouldAddDefaultVersionInSelector() {
+    // Given
+    KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new StatefulSetBuilder().build());
+
+    // When
+    projectLabelEnricher.create(PlatformMode.kubernetes, builder);
+
+    // Then
+    StatefulSet statefulSet = (StatefulSet) builder.buildFirstItem();
+    assertThat(statefulSet)
+        .extracting(StatefulSet::getSpec)
+        .extracting(StatefulSetSpec::getSelector)
+        .extracting(LabelSelector::getMatchLabels)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsEntry("version", "version");
+  }
+
+  @Test
+  public void create_withConfiguredVersion_shouldAddConfiguredVersionInSelector() {
+    // Given
+    properties.setProperty("jkube.enricher.jkube-project-label.version", "0.0.1");
+    KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new StatefulSetBuilder().build());
+
+    // When
+    projectLabelEnricher.create(PlatformMode.kubernetes, builder);
+
+    // Then
+    StatefulSet statefulSet = (StatefulSet) builder.buildFirstItem();
+    assertThat(statefulSet)
+        .extracting(StatefulSet::getSpec)
+        .extracting(StatefulSetSpec::getSelector)
+        .extracting(LabelSelector::getMatchLabels)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsEntry("version", "0.0.1");
   }
 
   private KubernetesListBuilder createListWithDeploymentConfig() {
