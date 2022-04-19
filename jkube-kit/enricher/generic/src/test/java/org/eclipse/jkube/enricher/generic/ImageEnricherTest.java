@@ -153,7 +153,7 @@ public class ImageEnricherTest {
     }
 
     private void assertCorrectlyGeneratedResources(KubernetesList list, String kind, String expectedKey, String expectedValue) throws JsonProcessingException {
-        Assertions.assertEquals(1, list.getItems().size());
+        assertEquals(1, list.getItems().size());
 
         String json = ResourceUtil.toJson(list.getItems().get(0));
         assertThat(json, JsonPathMatchers.isJson());
