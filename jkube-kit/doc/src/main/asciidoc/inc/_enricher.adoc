@@ -257,8 +257,19 @@ include::enricher/_jkube_healthcheck_wildfly_jar.adoc[]
 include::enricher/_jkube_service_discovery.adoc[]
 
 include::enricher/_jkube_healthcheck_quarkus.adoc[]
+endif::[]
 
 == Enricher API
 
 _How to write your own enrichers and install them._
+
+It's possible to extend Eclipse JKube's Enricher API to define your own custom Enrichers as per use case. Please refer to the https://github.com/eclipse/jkube/blob/master/jkube-kit/enricher/api/src/main/java/org/eclipse/jkube/kit/enricher/api/Enricher.java[Enricher]
+Interface; You can create new enrichers by implementing this interface.
+
+
+ifeval::["{plugin-type}" == "gradle"]
+Please check out https://github.com/eclipse/jkube/blob/master/quickstarts/kit/custom-istio-enricher-gradle/istio-enricher/[Custom Istio Enricher Gradle] quickstart for detailed example.
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
+Please check out https://github.com/eclipse/jkube/blob/master/quickstarts/kit/custom-istio-enricher/istio-enricher/[Custom Istio Enricher Maven] quickstart for detailed example.
 endif::[]
