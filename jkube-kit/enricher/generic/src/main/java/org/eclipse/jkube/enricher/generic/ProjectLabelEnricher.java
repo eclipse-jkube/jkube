@@ -65,9 +65,11 @@ public class ProjectLabelEnricher extends BaseEnricher {
 
     @AllArgsConstructor
     private enum Config implements Configs.Config {
-      USE_PROJECT_LABEL("useProjectLabel", "false"),
-      APP("app", null),
-      PROVIDER("provider", "jkube");
+        USE_PROJECT_LABEL("useProjectLabel", "false"),
+        APP("app", null),
+        GROUP("group", null),
+        VERSION("version", null),
+        PROVIDER("provider", "jkube");
 
         @Getter
         protected String key;
@@ -199,10 +201,10 @@ public class ProjectLabelEnricher extends BaseEnricher {
             ret.put("app", getConfig(Config.APP, groupArtifactVersion.getArtifactId()));
         }
 
-        ret.put("group", groupArtifactVersion.getGroupId());
+        ret.put("group", getConfig(Config.GROUP, groupArtifactVersion.getGroupId()));
         ret.put(LABEL_PROVIDER, getConfig(Config.PROVIDER));
         if (!withoutVersion) {
-            ret.put("version", groupArtifactVersion.getVersion());
+            ret.put("version", getConfig(Config.VERSION, groupArtifactVersion.getVersion()));
         }
         return ret;
     }
