@@ -75,6 +75,14 @@ public abstract class AbstractHealthCheckEnricher extends BaseEnricher {
                     container.withLivenessProbe(probe);
                 }
             }
+
+            if (Boolean.FALSE.equals(container.hasStartupProbe())) {
+                Probe probe = getStartupProbe(container);
+                if (probe != null) {
+                    log.info("Adding startup " + describe(probe));
+                    container.withStartupProbe(probe);
+                }
+            }
         }
     }
 
@@ -182,4 +190,11 @@ public abstract class AbstractHealthCheckEnricher extends BaseEnricher {
         return null;
     }
 
+    protected Probe getStartupProbe(ContainerBuilder containerBuilder) {
+        return getStartupProbe();
+    }
+
+    protected Probe getStartupProbe() {
+        return null;
+    }
 }

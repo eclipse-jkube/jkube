@@ -49,6 +49,7 @@ public class ResourceConfig {
   private ConfigMap configMap;
   private ProbeConfig liveness;
   private ProbeConfig readiness;
+  private ProbeConfig startup;
   private MetricsConfig metrics;
 
   /**
