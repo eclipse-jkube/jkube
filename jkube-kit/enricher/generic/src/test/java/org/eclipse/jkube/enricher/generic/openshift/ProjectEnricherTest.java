@@ -97,4 +97,23 @@ public class ProjectEnricherTest {
                 .isInstanceOf(Project.class)
                 .hasFieldOrPropertyWithValue("status.phase", "Complete");
     }
+
+    @Test
+    public void create_whenKubernetesListDoesNotHasNamespace_thenDoesNotNamespaceConvertedToProject() {
+        // Given
+        Properties properties = new Properties();
+        setExpectations(properties, new ResourceConfig());
+        final KubernetesListBuilder klb = new KubernetesListBuilder();
+        klb.addToItems(new NamespaceBuilder().withNewMetadata().endMetadata());
+        // When
+        new ProjectEnricher((JKubeEnricherContext) context).create(PlatformMode.openshift, klb);
+        // Then
+        assertThat(klb.build())
+                .extracting(KubernetesList::getItems)
+                .asList()
+                .hasSize(1)
+                .first()
+                .isInstanceOf(Project.class)
+                .hasFieldOrPropertyWithValue("metadata.name", null);
+    }
 }
