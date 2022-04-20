@@ -321,7 +321,12 @@ An extract of the plugin configuration is shown below:
       <initialDelaySeconds>3</initialDelaySeconds>
       <timeoutSeconds>3</timeoutSeconds>
     </liveness>
-    <remotes> <!--14-->
+    <startup> <!--14-->
+      <failureThreshold>30</failureThreshold>
+      <periodSeconds>10</periodSeconds>
+      <getUrl>http://:8080/actuator/health</getUrl>
+    </startup>
+    <remotes> <!--15-->
        <remote>https://gist.githubusercontent.com/lordofthejars/ac2823cec7831697d09444bbaa76cd50/raw/e4b43f1b6494766dfc635b5959af7730c1a58a93/deployment.yaml</remote>
     </remotes>
   </resources>
@@ -340,7 +345,8 @@ An extract of the plugin configuration is shown below:
 <11> ConfigMap data entry as a string key value pair
 <12> ConfigMap data entry with value as file path, file's contents are loaded into ConfigMap as key value
 <13> Liveness Probe to be added in PodTemplateSpec of Controller resource
-<14> Remote files used as resource fragments.
+<14> Startup Probe to be added in PodTemplateSpec of Controller resource
+<15> Remote files used as resource fragments.
 
 The XML resource configuration is based on plain Kubernetes resource objects. When targeting OpenShift, Kubernetes resource descriptors will be automatically converted to their OpenShift counterparts, e.g. a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] will be converted to an OpenShift https://docs.openshift.com/container-platform/4.1/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are[DeploymentConfig].
 

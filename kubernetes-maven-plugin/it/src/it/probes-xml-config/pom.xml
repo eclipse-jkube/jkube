@@ -74,6 +74,11 @@
                 <User-agent>MyUserAgent</User-agent>
               </httpHeaders>
             </readiness>
+            <startup>
+              <failureThreshold>30</failureThreshold>
+              <periodSeconds>10</periodSeconds>
+              <getUrl>http://:8080/actuator/health</getUrl>
+            </startup>
           </resources>
         </configuration>
       </plugin>

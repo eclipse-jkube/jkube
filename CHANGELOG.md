@@ -43,6 +43,7 @@ Usage:
 * Fix #1310: Add documentation + gradle integration test for ImageChangeTriggerEnricher
 * Fix #1311: Add documentation for OpenShift ProjectEnricher
 * Fix #1312: Add documentation + gradle integration test for RouteEnricher
+* Fix #1322: Support for Startup probes via XML/DSL configuration
 * Fix #1325: `jkube.enricher.jkube-name.name` doesn't modify `.metadata.name` for generated manifests
 * Fix #1328: Provide guidance when the final project packaged file is not found
 * Fix #1336: Add documentation and quickstart for using custom generators with Gradle Plugins

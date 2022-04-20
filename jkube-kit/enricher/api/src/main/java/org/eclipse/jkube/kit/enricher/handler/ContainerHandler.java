@@ -64,6 +64,7 @@ public class ContainerHandler {
             if (imageConfig.getBuildConfiguration() != null) {
                 Probe livenessProbe = probeHandler.getProbe(config.getLiveness());
                 Probe readinessProbe = probeHandler.getProbe(config.getReadiness());
+                Probe startupProbe = probeHandler.getProbe(config.getStartup());
 
                 Container container = new ContainerBuilder()
                     .withName(KubernetesResourceUtil.extractContainerName(this.groupArtifactVersion, imageConfig))
@@ -75,6 +76,7 @@ public class ContainerHandler {
                     .withVolumeMounts(getVolumeMounts(config))
                     .withLivenessProbe(livenessProbe)
                     .withReadinessProbe(readinessProbe)
+                    .withStartupProbe(startupProbe)
                     .build();
                 ret.add(container);
             }

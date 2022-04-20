@@ -67,6 +67,7 @@ public class AbstractHealthCheckEnricherTest {
             public void visit(ContainerBuilder container) {
                 assertNotNull(container.build().getLivenessProbe());
                 assertNotNull(container.build().getReadinessProbe());
+                assertNotNull(container.build().getStartupProbe());
                 containerFound.incrementAndGet();
             }
         });
@@ -102,10 +103,12 @@ public class AbstractHealthCheckEnricherTest {
                 if (container.getName().equals("app")) {
                     assertNotNull(container.build().getLivenessProbe());
                     assertNotNull(container.build().getReadinessProbe());
+                    assertNotNull(container.build().getStartupProbe());
                     containerFound.incrementAndGet();
                 } else if (container.getName().equals("sidecar")) {
                     assertNull(container.build().getLivenessProbe());
                     assertNull(container.build().getReadinessProbe());
+                    assertNull(container.build().getStartupProbe());
                     containerFound.incrementAndGet();
                 }
             }
@@ -150,12 +153,14 @@ public class AbstractHealthCheckEnricherTest {
                     case "app":
                         assertNull(container.build().getLivenessProbe());
                         assertNull(container.build().getReadinessProbe());
+                        assertNull(container.build().getStartupProbe());
                         containerFound.incrementAndGet();
                         break;
                     case "app2":
                     case "app3":
                         assertNotNull(container.build().getLivenessProbe());
                         assertNotNull(container.build().getReadinessProbe());
+                        assertNotNull(container.build().getStartupProbe());
                         containerFound.incrementAndGet();
                         break;
                 }
@@ -196,10 +201,12 @@ public class AbstractHealthCheckEnricherTest {
                 if (container.getName().equals("app")) {
                     assertNotNull(container.build().getLivenessProbe());
                     assertNotNull(container.build().getReadinessProbe());
+                    assertNotNull(container.build().getStartupProbe());
                     containerFound.incrementAndGet();
                 } else if (container.getName().equals("app2")) {
                     assertNotNull(container.build().getLivenessProbe());
                     assertNotNull(container.build().getReadinessProbe());
+                    assertNotNull(container.build().getStartupProbe());
                     containerFound.incrementAndGet();
                 }
             }
@@ -224,6 +231,11 @@ public class AbstractHealthCheckEnricherTest {
         AbstractHealthCheckEnricher enricher = new AbstractHealthCheckEnricher(context, "basic") {
             @Override
             protected Probe getLivenessProbe() {
+                return getReadinessProbe();
+            }
+
+            @Override
+            protected Probe getStartupProbe() {
                 return getReadinessProbe();
             }
 
