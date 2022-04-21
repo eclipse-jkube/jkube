@@ -27,6 +27,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -947,18 +949,6 @@ public class ApplyService {
         }
     }
 
-    public boolean deleteNamespace(String namespaceName) {
-        if (!checkNamespace(namespaceName)) {
-            return false;
-        }
-        OpenShiftClient openshiftClient = getOpenShiftClient();
-        if (openshiftClient != null) {
-            return openshiftClient.projects().withName(namespaceName).delete();
-        } else {
-            return kubernetesClient.namespaces().withName(namespaceName).delete();
-        }
-    }
-
     public void applyNamespace(String namespaceName) {
         applyNamespace(namespaceName, null);
 
@@ -1092,7 +1082,10 @@ public class ApplyService {
                         }
                     }
                     log.info("rollingUpgradePreserveScale " + rollingUpgradePreserveScale + " new replicas is " + (newSpec != null ? newSpec.getReplicas() : "<null>"));
-                    kubernetesClient.replicationControllers().inNamespace(currentNamespace).withName(id).rolling().replace(replicationController);
+                    kubernetesClient.replicationControllers()
+                        .inNamespace(currentNamespace).withName(id)
+                        .rolling()
+                        .patch(PatchContext.of(PatchType.SERVER_SIDE_APPLY), replicationController);
                 } else if (isRecreateMode()) {
                     log.info("Deleting ReplicationController: " + id);
                     kubernetesClient.replicationControllers().inNamespace(currentNamespace).withName(id).delete();

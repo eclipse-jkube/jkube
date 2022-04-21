@@ -52,7 +52,8 @@ public class OpenShiftUndeployTaskTest {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       final OpenShiftClient openShiftClient = mock(OpenShiftClient.class);
       when(mock.createDefaultClient()).thenReturn(openShiftClient);
-      when(openShiftClient.isAdaptable(OpenShiftClient.class)).thenReturn(true);
+      when(openShiftClient.adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
+      when(openShiftClient.isSupported()).thenReturn(true);
     });
     openshiftUndeployServiceMockedConstruction = mockConstruction(OpenshiftUndeployService.class);
     extension = new TestOpenShiftExtension();

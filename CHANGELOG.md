@@ -24,6 +24,7 @@ Usage:
 * Fix #777: `k8s:build` with Dockerfile throws `Connection reset by peer` error on old docker daemons
 * Fix #1279: Remove redundant log messages regarding plugin modes
 * Fix #1438: Add configuration option in ServiceAccountEnricher to skip creating ServiceAccounts
+* Fix #1464: Bump Fabric8 Kubernetes Client to 6.0.0
 * Fix #1468: Add startup probe in QuarkusHealthCheckEnricher
 * Fix #1473: Add OpenLibertyHealthCheckEnricher to automatically add health checks in OpenLiberty projects
 * Fix #1537: Registry not set up in `oc:build`

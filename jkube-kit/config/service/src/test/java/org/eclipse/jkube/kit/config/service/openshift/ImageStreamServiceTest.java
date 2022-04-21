@@ -26,11 +26,12 @@ import java.util.Set;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
+import io.fabric8.openshift.api.model.ImageStreamList;
 import io.fabric8.openshift.api.model.TagEvent;
 import io.fabric8.openshift.client.OpenShiftClient;
 import mockit.Expectations;
@@ -52,7 +53,7 @@ public class ImageStreamServiceTest {
     OpenShiftClient client;
 
     @Mocked
-    BaseOperation imageStreamsOp;
+    MixedOperation<ImageStream, ImageStreamList, Resource<ImageStream>> imageStreamsOp;
 
     @Mocked
     Resource resource;

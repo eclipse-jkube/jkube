@@ -35,6 +35,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,15 +44,18 @@ public class ClusterAccessTest {
 
   private KitLogger logger;
   private MockedConstruction<DefaultKubernetesClient> kubernetesClientMockedConstruction;
-  private Consumer<DefaultKubernetesClient> onInstantiate;
+  private Consumer<OpenShiftClient> onInstantiate;
 
   @Before
   public void setUp() throws Exception {
-    logger = mock(KitLogger.class);
-    onInstantiate = kc -> {
+    logger = spy(new KitLogger.SilentLogger());
+    onInstantiate = oc -> {
     };
-    kubernetesClientMockedConstruction = mockConstruction(DefaultKubernetesClient.class,
-        (mock, ctx) -> onInstantiate.accept(mock));
+    kubernetesClientMockedConstruction = mockConstruction(DefaultKubernetesClient.class, (mock, ctx) -> {
+      final OpenShiftClient oc = mock(OpenShiftClient.class);
+      when(mock.adapt(OpenShiftClient.class)).thenReturn(oc);
+      onInstantiate.accept(oc);
+    });
   }
 
   @After
@@ -62,7 +66,7 @@ public class ClusterAccessTest {
   @Test
   public void isOpenShiftOpenShiftClusterShouldReturnTrue() {
     // Given
-    onInstantiate = kc -> when(kc.isAdaptable(OpenShiftClient.class)).thenReturn(true);
+    onInstantiate = oc -> when(oc.isSupported()).thenReturn(true);
     // When
     final boolean result = new ClusterAccess(logger, null).isOpenShift();
     // Then
@@ -72,7 +76,7 @@ public class ClusterAccessTest {
   @Test
   public void isOpenShiftKubernetesClusterShouldReturnFalse() {
     // Given
-    onInstantiate = kc -> when(kc.isAdaptable(OpenShiftClient.class)).thenReturn(false);
+    onInstantiate = oc -> when(oc.isSupported()).thenReturn(false);
     // When
     final boolean result = new ClusterAccess(logger, null).isOpenShift();
     // Then
@@ -82,7 +86,7 @@ public class ClusterAccessTest {
   @Test
   public void isOpenShiftThrowsExceptionShouldReturnFalse() {
     // Given
-    onInstantiate = kc -> when(kc.isAdaptable(OpenShiftClient.class))
+    onInstantiate = oc -> when(oc.isSupported())
         .thenThrow(new KubernetesClientException("ERROR", new UnknownHostException()));
     // When
     final boolean result = new ClusterAccess(logger, null).isOpenShift();
@@ -104,7 +108,7 @@ public class ClusterAccessTest {
   @Test
   public void createDefaultClientInOpenShiftShouldReturnOpenShiftClient() {
     // Given
-    onInstantiate = kc -> when(kc.isAdaptable(OpenShiftClient.class)).thenReturn(true);
+    onInstantiate = oc -> when(oc.isSupported()).thenReturn(true);;
     // When
     final KubernetesClient result = new ClusterAccess(logger, null).createDefaultClient();
     // Then

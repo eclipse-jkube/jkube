@@ -25,7 +25,6 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
-import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.dsl.Execable;
 import io.fabric8.kubernetes.client.dsl.TtyExecable;
 import io.fabric8.kubernetes.client.dsl.internal.core.v1.PodOperationsImpl;
@@ -126,7 +125,7 @@ public class PodExecutorTest {
   private void listenableCloseWithCode(int code) {
     new MockUp<PodOperationsImpl>() {
       @Mock
-      public Execable<String, ExecWatch> usingListener(ExecListener execListener) {
+      public Execable usingListener(ExecListener execListener) {
         execListener.onClose(code, "Closed by mock");
         return podOperations;
       }
@@ -136,7 +135,7 @@ public class PodExecutorTest {
   private void withErrorChannelResponse(String response) {
     new MockUp<PodOperationsImpl>() {
       @Mock
-      public TtyExecable<String, ExecWatch> writingErrorChannel(OutputStream errChannel) {
+      public TtyExecable writingErrorChannel(OutputStream errChannel) {
         try {
           IOUtils.write(response, errChannel, StandardCharsets.UTF_8);
         } catch (IOException e) {

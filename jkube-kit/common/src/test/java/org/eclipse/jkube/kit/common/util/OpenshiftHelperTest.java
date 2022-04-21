@@ -23,6 +23,7 @@ import io.fabric8.openshift.api.model.TemplateBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -36,7 +37,10 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+
 @RunWith(MockitoJUnitRunner.class)
 public class OpenshiftHelperTest {
 
@@ -49,21 +53,17 @@ public class OpenshiftHelperTest {
     @Test
     public void testAsOpenShiftClientWithNoOpenShift() {
         // Given
-        KubernetesClient client = kc;
-        when(kc.adapt(OpenShiftClient.class)).thenThrow( new KubernetesClientException(""));
+        doThrow(new KubernetesClientException("")).when(kc).adapt(OpenShiftClient.class);
         //When
-        OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(client);
-
+        OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(kc);
         //Then
         assertNull(result);
     }
 
-
-
     @Test
     public void testOpenShiftClientWithAdaptableToOpenShift() {
         // Given
-        when(kc.adapt(OpenShiftClient.class)).thenReturn(oc);
+        doReturn(oc).when(kc).adapt(OpenShiftClient.class);
         //When
         OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(kc);
         //Then
@@ -79,9 +79,10 @@ public class OpenshiftHelperTest {
     }
 
     @Test
-    public void testIsOpenShiftWhenAdaptable() {
+    public void testIsOpenShiftWhenSupported() {
         // Given
-        when(kc.isAdaptable(OpenShiftClient.class)).thenReturn(true);
+        doReturn(oc).when(kc).adapt(OpenShiftClient.class);
+        when(oc.isSupported()).thenReturn(true);
         //When
         boolean result = OpenshiftHelper.isOpenShift(kc);
         //Then
@@ -89,7 +90,10 @@ public class OpenshiftHelperTest {
     }
 
     @Test
-    public void testIsOpenShiftNotAdaptable() {
+    public void testIsOpenShiftNotSupported() {
+        // Given
+        doReturn(oc).when(kc).adapt(OpenShiftClient.class);
+        when(oc.isSupported()).thenReturn(false);
         //When
         boolean result = OpenshiftHelper.isOpenShift(kc);
         //Then

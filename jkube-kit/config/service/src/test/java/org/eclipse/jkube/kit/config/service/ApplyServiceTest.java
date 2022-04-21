@@ -284,7 +284,7 @@ public class ApplyServiceTest {
         // Then
         collector.assertEventsRecordedInOrder("get-cr-gateway", "post-cr-gateway", "put-cr-gateway",
              "get-cr-virtualservice", "post-cr-virtualservice");
-        assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertEquals(7, mockServer.getOpenShiftMockServer().getRequestCount());
     }
 
     @Test
@@ -340,7 +340,7 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder( "delete-cr-gateway", "post-cr-gateway", "delete-cr-virtualservice", "post-cr-virtualservice");
-        assertEquals(8, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertEquals(10, mockServer.getOpenShiftMockServer().getRequestCount());
         applyService.setRecreateMode(false);
     }
 

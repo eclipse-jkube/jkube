@@ -54,6 +54,7 @@ public class OpenShiftWatchTaskTest {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       final OpenShiftClient openShiftClient = mock(OpenShiftClient.class);
       when(openShiftClient.getMasterUrl()).thenReturn(new URL("http://openshiftapps.com:6443"));
+      when(openShiftClient.adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
       when(mock.createDefaultClient()).thenReturn(openShiftClient);
     });
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);

@@ -46,18 +46,23 @@ public class OpenshiftUndeployMojoTest {
     kubernetesManifestFile = temporaryFolder.newFile();
     openShiftManifestFile = temporaryFolder.newFile();
     openShiftISManifestFile = temporaryFolder.newFile();
+    // @formatter:off
     undeployMojo = new OpenshiftUndeployMojo() {{
       kubernetesManifest = kubernetesManifestFile;
       openshiftManifest = openShiftManifestFile;
       openshiftImageStreamManifest = openShiftISManifestFile;
       jkubeServiceHub = mockServiceHub;
     }};
+    // @formatter:on
   }
 
   @Test
   public void getManifestsToUndeploy() {
     // Given
-    when(mockServiceHub.getClient().isAdaptable(OpenShiftClient.class)).thenReturn(true);
+    final OpenShiftClient client = mock(OpenShiftClient.class);
+    when(mockServiceHub.getClient()).thenReturn(client);
+    when(client.adapt(OpenShiftClient.class)).thenReturn(client);
+    when(client.isSupported()).thenReturn(true);
     // When
     final List<File> result = undeployMojo.getManifestsToUndeploy();
     // Then
@@ -74,3 +79,4 @@ public class OpenshiftUndeployMojoTest {
     assertThat(undeployMojo.getLogPrefix()).isEqualTo("oc: ");
   }
 }
+

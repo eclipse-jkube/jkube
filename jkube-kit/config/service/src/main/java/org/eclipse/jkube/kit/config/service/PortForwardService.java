@@ -22,6 +22,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.service.portforward.PortForwardTask;
@@ -196,7 +197,7 @@ public class PortForwardService {
     }
 
     private Pod getNewestPod(String namespace, LabelSelector selector) {
-        FilterWatchListDeletable<Pod, PodList> pods =
+        FilterWatchListDeletable<Pod, PodList, PodResource> pods =
                 KubernetesHelper.withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
 
         PodList list = pods.list();

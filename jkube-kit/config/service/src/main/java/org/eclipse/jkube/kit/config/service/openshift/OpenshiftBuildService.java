@@ -434,7 +434,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
 
         if (builder.hasItems()) {
             KubernetesList k8sList = builder.build();
-            client.lists().inNamespace(applicableOpenShiftNamespace).create(k8sList);
+            client.resourceList(k8sList).inNamespace(applicableOpenShiftNamespace).create();
         }
     }
 

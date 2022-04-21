@@ -39,11 +39,14 @@ import static org.mockito.Mockito.when;
 public class JKubeServiceHubTest {
 
   private JKubeServiceHub.JKubeServiceHubBuilder jKubeServiceHubBuilder;
+  private OpenShiftClient openShiftClient;
 
   @Before
   public void setUp() throws Exception {
     final ClusterAccess clusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
-    when(clusterAccess.createDefaultClient()).thenReturn(mock(OpenShiftClient.class, RETURNS_DEEP_STUBS));
+    openShiftClient = mock(OpenShiftClient.class);
+    when(clusterAccess.createDefaultClient()).thenReturn(openShiftClient);
+    when(openShiftClient.adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
     jKubeServiceHubBuilder = JKubeServiceHub.builder()
         .platformMode(RuntimeMode.KUBERNETES)
         .configuration(mock(JKubeConfiguration.class, RETURNS_DEEP_STUBS))
@@ -136,7 +139,7 @@ public class JKubeServiceHubTest {
   public void testGetUndeployServiceInOpenShiftWithInvalidClient() {
     // Given
     JKubeServiceHub hub = jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT).build();
-    when(hub.getClient().isAdaptable(OpenShiftClient.class)).thenReturn(false);
+    when(openShiftClient.isSupported()).thenReturn(true);
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
@@ -149,7 +152,7 @@ public class JKubeServiceHubTest {
   public void testGetUndeployServiceInOpenShiftWithValidClient() {
     // Given
     JKubeServiceHub hub = jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT).build();
-    when(hub.getClient().isAdaptable(OpenShiftClient.class)).thenReturn(true);
+    when(openShiftClient.isSupported()).thenReturn(true);
     // When
     final UndeployService result = hub.getUndeployService();
     // Then
