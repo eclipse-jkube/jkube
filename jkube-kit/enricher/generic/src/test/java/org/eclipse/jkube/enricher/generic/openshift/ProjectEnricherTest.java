@@ -13,107 +13,93 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.openshift.api.model.Project;
-import io.fabric8.openshift.api.model.ProjectStatusBuilder;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.enricher.api.EnricherContext;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Properties;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
 public class ProjectEnricherTest {
 
-    private EnricherContext context;
+    private JKubeEnricherContext context;
 
-    public void setExpectations(Properties properties, ResourceConfig resourceConfig) {
-        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+    @Before
+    public void setExpectations() {
+        context = mock(JKubeEnricherContext.class);
     }
-
     @Test
     public void create_whenKubernetesListHasNamespace_thenNamespaceConvertedToProject() {
         // Given
-        Properties properties = new Properties();
-        setExpectations(properties, new ResourceConfig());
-        final KubernetesListBuilder klb = new KubernetesListBuilder();
-        klb.addToItems(new NamespaceBuilder().withNewMetadata().withName("foo").endMetadata());
+        final KubernetesListBuilder klb = new KubernetesListBuilder()
+            .addToItems(new NamespaceBuilder().withNewMetadata().withName("foo").endMetadata());
         // When
-        new ProjectEnricher((JKubeEnricherContext) context).create(PlatformMode.openshift, klb);
+        new ProjectEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build())
-                .extracting(KubernetesList::getItems)
-                .asList()
-                .hasSize(1)
-                .first()
-                .isInstanceOf(Project.class)
-                .hasFieldOrPropertyWithValue("metadata.name", "foo");
+            .extracting(KubernetesList::getItems)
+            .asList()
+            .singleElement()
+            .isInstanceOf(Project.class)
+            .hasFieldOrPropertyWithValue("metadata.name", "foo");
     }
 
     @Test
     public void create_whenKubernetesListHasNamespaceWithSpec_thenNamespaceConvertedToProject() {
         // Given
-        Properties properties = new Properties();
-        setExpectations(properties, new ResourceConfig());
-        final KubernetesListBuilder klb = new KubernetesListBuilder();
-        klb.addToItems(new NamespaceBuilder().withNewMetadata().withName("foo").endMetadata()
+        final KubernetesListBuilder klb = new KubernetesListBuilder()
+            .addToItems(new NamespaceBuilder().withNewMetadata().withName("foo").endMetadata()
                 .withNewSpec().addNewFinalizer("hoo").endSpec());
         // When
-        new ProjectEnricher((JKubeEnricherContext) context).create(PlatformMode.openshift, klb);
+        new ProjectEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build())
-                .extracting(KubernetesList::getItems)
-                .asList()
-                .hasSize(1)
-                .first()
-                .isInstanceOf(Project.class)
-                .extracting("spec.finalizers")
-                .asList().first().isEqualTo("hoo");
+            .extracting(KubernetesList::getItems)
+            .asList()
+            .singleElement()
+            .isInstanceOf(Project.class)
+            .extracting("spec.finalizers")
+            .asList().first().isEqualTo("hoo");
     }
 
     @Test
     public void create_whenKubernetesListHasNamespaceWithStatus_thenNamespaceConvertedToProject() {
         // Given
-        Properties properties = new Properties();
-        setExpectations(properties, new ResourceConfig());
-        final KubernetesListBuilder klb = new KubernetesListBuilder();
-        klb.addToItems(new NamespaceBuilder().withNewMetadata().withName("foo").endMetadata()
+        final KubernetesListBuilder klb = new KubernetesListBuilder()
+            .addToItems(new NamespaceBuilder().withNewMetadata().withName("foo").endMetadata()
                 .withNewStatus().withPhase("Complete").endStatus());
         // When
-        new ProjectEnricher((JKubeEnricherContext) context).create(PlatformMode.openshift, klb);
+        new ProjectEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build())
-                .extracting(KubernetesList::getItems)
-                .asList()
-                .hasSize(1)
-                .first()
-                .isInstanceOf(Project.class)
-                .hasFieldOrPropertyWithValue("status.phase", "Complete");
+            .extracting(KubernetesList::getItems)
+            .asList()
+            .singleElement()
+            .isInstanceOf(Project.class)
+            .hasFieldOrPropertyWithValue("status.phase", "Complete");
     }
 
     @Test
     public void create_whenKubernetesListDoesNotHasNamespace_thenDoesNotNamespaceConvertedToProject() {
         // Given
-        Properties properties = new Properties();
-        setExpectations(properties, new ResourceConfig());
-        final KubernetesListBuilder klb = new KubernetesListBuilder();
-        klb.addToItems(new NamespaceBuilder().withNewMetadata().endMetadata());
+        final KubernetesListBuilder klb = new KubernetesListBuilder()
+            .addToItems(new ServiceBuilder().withNewMetadata().endMetadata());
         // When
-        new ProjectEnricher((JKubeEnricherContext) context).create(PlatformMode.openshift, klb);
+        new ProjectEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build())
-                .extracting(KubernetesList::getItems)
-                .asList()
-                .hasSize(1)
-                .first()
-                .isInstanceOf(Project.class)
-                .hasFieldOrPropertyWithValue("metadata.name", null);
+            .extracting(KubernetesList::getItems)
+            .asList()
+            .singleElement()
+            .isInstanceOf(Service.class)
+            .hasFieldOrPropertyWithValue("metadata.name", null);
     }
 }
