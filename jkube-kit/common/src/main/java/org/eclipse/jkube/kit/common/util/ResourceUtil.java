@@ -23,14 +23,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -80,6 +81,7 @@ public class ResourceUtil {
         try (InputStream fis = Files.newInputStream(manifest.toPath())) {
             kubernetesResources.addAll(split(Serialization.unmarshal(fis, Collections.emptyMap())));
         }
+        kubernetesResources.sort(new HasMetadataComparator());
         return kubernetesResources;
     }
 

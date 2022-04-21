@@ -22,7 +22,9 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.ScalableResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
@@ -39,7 +41,6 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.Scaleable;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.apache.commons.lang3.StringUtils;
@@ -54,46 +55,46 @@ public class KubernetesClientUtil {
 
     private KubernetesClientUtil() { }
 
-    public static void resizeApp(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> entities, int replicas, KitLogger log) {
+    public static void resizeApp(NamespacedKubernetesClient kubernetes, Collection<HasMetadata> entities, int replicas, KitLogger log) {
         for (HasMetadata entity : entities) {
             String name = KubernetesHelper.getName(entity);
-            Scaleable<?> scalable = null;
+            ScalableResource<?> scalable = null;
             if (entity instanceof Deployment) {
-                scalable = kubernetes.apps().deployments().inNamespace(namespace).withName(name);
+                scalable = kubernetes.apps().deployments().withName(name);
             } else if (entity instanceof ReplicaSet) {
-                scalable = kubernetes.apps().replicaSets().inNamespace(namespace).withName(name);
+                scalable = kubernetes.apps().replicaSets().withName(name);
             } else if (entity instanceof ReplicationController) {
-                scalable = kubernetes.replicationControllers().inNamespace(namespace).withName(name);
+                scalable = kubernetes.replicationControllers().withName(name);
             } else if (entity instanceof DeploymentConfig) {
                 OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(kubernetes);
                 if (openshiftClient == null) {
                     log.warn("Ignoring DeploymentConfig %s as not connected to an OpenShift cluster", name);
                     continue;
                 }
-                scalable = openshiftClient.deploymentConfigs().inNamespace(namespace).withName(name);
+                scalable = openshiftClient.deploymentConfigs().withName(name);
             }
             if (scalable != null) {
-                log.info("Scaling " + KubernetesHelper.getKind(entity) + " " + namespace + "/" + name + " to replicas: " + replicas);
+                log.info("Scaling " + KubernetesHelper.getKind(entity) + " " + kubernetes.getNamespace() + "/" + name + " to replicas: " + replicas);
                 scalable.scale(replicas, true);
             }
         }
     }
 
-    public static void deleteEntities(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> entities, KitLogger log) {
+    public static void deleteEntities(NamespacedKubernetesClient kc, Collection<HasMetadata> entities, KitLogger log) {
         List<HasMetadata> list = new ArrayList<>(entities);
 
         // lets delete in reverse order
         Collections.reverse(list);
 
         for (HasMetadata entity : list) {
-            log.info("Deleting resource " + KubernetesHelper.getKind(entity) + " " + namespace + "/" + KubernetesHelper.getName(entity));
-            kubernetes.resource(entity).inNamespace(namespace).withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+            log.info("Deleting resource " + KubernetesHelper.getKind(entity) + " " + kc.getNamespace() + "/" + KubernetesHelper.getName(entity));
+            kc.resource(entity).withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
         }
     }
 
-    public static void deleteOpenShiftEntities(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> entities, String s2iBuildNameSuffix, KitLogger log) {
+    public static void deleteOpenShiftEntities(NamespacedKubernetesClient kc, Collection<HasMetadata> entities, String s2iBuildNameSuffix, KitLogger log) {
         // For OpenShift cluster, also delete s2i buildconfig
-        OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(kubernetes);
+        OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(kc);
         if (openshiftClient == null) {
             return;
         }
@@ -101,9 +102,9 @@ public class KubernetesClientUtil {
             if ("ImageStream".equals(KubernetesHelper.getKind(entity))) {
                 ImageName imageName = new ImageName(entity.getMetadata().getName());
                 String buildName = getS2IBuildName(imageName, s2iBuildNameSuffix);
-                log.info("Deleting resource BuildConfig %s/%s and Builds", namespace, buildName);
-                openshiftClient.builds().inNamespace(namespace).withLabel("buildconfig", buildName).delete();
-                openshiftClient.buildConfigs().inNamespace(namespace).withName(buildName).delete();
+                log.info("Deleting resource BuildConfig %s/%s and Builds", kc.getNamespace(), buildName);
+                openshiftClient.builds().withLabel("buildconfig", buildName).delete();
+                openshiftClient.buildConfigs().withName(buildName).delete();
             }
         }
     }

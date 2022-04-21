@@ -422,8 +422,8 @@ public class KubernetesHelper {
         return "";
     }
 
-    public static FilterWatchListDeletable<Pod, PodList> withSelector(NonNamespaceOperation<Pod, PodList, PodResource<Pod>> pods, LabelSelector selector, KitLogger log) {
-        FilterWatchListDeletable<Pod, PodList> answer = pods;
+    public static FilterWatchListDeletable<Pod, PodList, PodResource> withSelector(NonNamespaceOperation<Pod, PodList, PodResource> pods, LabelSelector selector, KitLogger log) {
+        FilterWatchListDeletable<Pod, PodList, PodResource> answer = pods;
         Map<String, String> matchLabels = selector.getMatchLabels();
         if (matchLabels != null && !matchLabels.isEmpty()) {
             answer = answer.withLabels(matchLabels);
@@ -743,7 +743,12 @@ public class KubernetesHelper {
 
     public static String getNewestApplicationPodName(KubernetesClient client, String namespace, Collection<HasMetadata> resources) {
         LabelSelector selector = extractPodLabelSelector(resources);
-        PodList pods = client.pods().inNamespace(namespace).withLabelSelector(selector).list();
+        final PodList pods;
+        if (namespace != null) {
+            pods = client.pods().inNamespace(namespace).withLabelSelector(selector).list();
+        } else {
+            pods = client.pods().withLabelSelector(selector).list();
+        }
         Pod newestPod = KubernetesHelper.getNewestPod(pods.getItems());
         if (newestPod != null) {
             return newestPod.getMetadata().getName();
@@ -761,7 +766,12 @@ public class KubernetesHelper {
             if (entity instanceof Service) {
                 Service service = (Service) entity;
                 String name = KubernetesHelper.getName(service);
-                Resource<Service> serviceResource = kubernetes.services().inNamespace(namespace).withName(name);
+                final Resource<Service> serviceResource;
+                if (namespace != null) {
+                    serviceResource = kubernetes.services().inNamespace(namespace).withName(name);
+                } else {
+                    serviceResource = kubernetes.services().withName(name);
+                }
                 String url = pollServiceForExposeUrl(serviceUrlWaitTimeSeconds, service, serviceResource, exposeServiceAnnotationKey);
 
                 // let's not wait for other services

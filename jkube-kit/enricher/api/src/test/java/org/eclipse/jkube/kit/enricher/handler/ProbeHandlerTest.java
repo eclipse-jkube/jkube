@@ -153,7 +153,6 @@ public class ProbeHandlerTest {
         assertNull(probe.getHttpGet());
         assertNotNull(probe.getTcpSocket());
         assertEquals(80,probe.getTcpSocket().getPort().getIntVal().intValue());
-        assertEquals(0, probe.getTcpSocket().getPort().getKind().intValue());
         assertNull(probe.getTcpSocket().getHost());
         assertNull(probe.getExec());
         assertEquals(5,probe.getInitialDelaySeconds().intValue());
@@ -201,7 +200,6 @@ public class ProbeHandlerTest {
         assertNotNull(probe.getTcpSocket());
         assertNull(probe.getExec());
         assertEquals(80, probe.getTcpSocket().getPort().getIntVal().intValue());
-        assertEquals(0, probe.getTcpSocket().getPort().getKind().intValue());
         assertEquals("www.healthcheck.com",probe.getTcpSocket().getHost());
         assertEquals(5,probe.getInitialDelaySeconds().intValue());
         assertEquals(5,probe.getTimeoutSeconds().intValue());
@@ -227,7 +225,6 @@ public class ProbeHandlerTest {
         assertNotNull(probe.getTcpSocket());
         assertNull(probe.getExec());
         assertEquals("httpPort", probe.getTcpSocket().getPort().getStrVal());
-        assertEquals(1, probe.getTcpSocket().getPort().getKind().intValue());
         assertEquals("www.healthcheck.com",probe.getTcpSocket().getHost());
         assertEquals(5,probe.getInitialDelaySeconds().intValue());
         assertEquals(5,probe.getTimeoutSeconds().intValue());

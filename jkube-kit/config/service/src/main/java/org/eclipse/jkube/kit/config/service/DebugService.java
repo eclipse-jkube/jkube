@@ -23,6 +23,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import org.eclipse.jkube.kit.common.DebugConstants;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -203,7 +204,7 @@ public class DebugService {
 
     private String waitForRunningPodWithEnvVar(final String namespace, LabelSelector selector, final Map<String, String> envVars, KitLogger podWaitLog) {
         //  wait for the newest pod to be ready with the given env var
-        FilterWatchListDeletable<Pod, PodList> pods = withSelector(kubernetesClient.pods().inNamespace(namespace), selector, log);
+        FilterWatchListDeletable<Pod, PodList, PodResource> pods = withSelector(kubernetesClient.pods().inNamespace(namespace), selector, log);
         PodList list = pods.list();
         if (list != null) {
             Pod latestPod = KubernetesHelper.getNewestPod(list.getItems());

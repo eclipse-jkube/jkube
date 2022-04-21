@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
+import io.fabric8.openshift.client.OpenShiftClient;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.junit.After;
@@ -36,6 +37,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -59,7 +61,11 @@ public class DebugMojoTest {
   @Before
   public void setUp() throws IOException {
     jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
-        withSettings().defaultAnswer(RETURNS_DEEP_STUBS));
+        withSettings().defaultAnswer(RETURNS_DEEP_STUBS), (mock, context) -> {
+          final OpenShiftClient oc = mock(OpenShiftClient.class, RETURNS_DEEP_STUBS);
+          doReturn(oc).when(oc).adapt(OpenShiftClient.class);
+          when(mock.getClient()).thenReturn(oc);
+        });
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class);
     kubernetesManifestFile = temporaryFolder.newFile("kubernetes.yml");
     mavenProject = mock(MavenProject.class);

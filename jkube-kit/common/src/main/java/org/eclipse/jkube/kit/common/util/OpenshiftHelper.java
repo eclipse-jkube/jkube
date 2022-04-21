@@ -52,7 +52,7 @@ public class OpenshiftHelper {
     }
 
     public static boolean isOpenShift(KubernetesClient client) {
-        return client.isAdaptable(OpenShiftClient.class);
+        return client.adapt(OpenShiftClient.class).isSupported();
     }
 
 

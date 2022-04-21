@@ -356,7 +356,7 @@ public class RouteEnricherTest {
                 .withNewMetadata().withName("test-svc").endMetadata()
                 .withNewSpec()
                 .withNewPort()
-                .withNewTargetPort().withIntVal(8080).endTargetPort()
+                .withNewTargetPort().withValue(8080).endTargetPort()
                 .endPort()
                 .withHost("example.com")
                 .withNewTo().withKind("Service").withName("test-svc").endTo()
