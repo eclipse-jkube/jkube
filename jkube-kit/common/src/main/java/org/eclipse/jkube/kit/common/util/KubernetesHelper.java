@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HTTPHeader;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -761,17 +762,12 @@ public class KubernetesHelper {
         return expose != null && expose.equalsIgnoreCase("true");
     }
 
-    public static String getServiceExposeUrl(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> resources, long serviceUrlWaitTimeSeconds, String exposeServiceAnnotationKey) throws InterruptedException {
+    public static String getServiceExposeUrl(NamespacedKubernetesClient kubernetes, Collection<HasMetadata> resources, long serviceUrlWaitTimeSeconds, String exposeServiceAnnotationKey) throws InterruptedException {
         for (HasMetadata entity : resources) {
             if (entity instanceof Service) {
                 Service service = (Service) entity;
                 String name = KubernetesHelper.getName(service);
-                final Resource<Service> serviceResource;
-                if (namespace != null) {
-                    serviceResource = kubernetes.services().inNamespace(namespace).withName(name);
-                } else {
-                    serviceResource = kubernetes.services().withName(name);
-                }
+                final Resource<Service> serviceResource = kubernetes.services().withName(name);
                 String url = pollServiceForExposeUrl(serviceUrlWaitTimeSeconds, service, serviceResource, exposeServiceAnnotationKey);
 
                 // let's not wait for other services

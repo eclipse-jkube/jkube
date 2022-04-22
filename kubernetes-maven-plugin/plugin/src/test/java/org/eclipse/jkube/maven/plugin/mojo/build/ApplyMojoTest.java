@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
 
+import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
@@ -25,7 +26,6 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
@@ -39,6 +39,7 @@ import org.mockito.MockSettings;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -54,7 +55,7 @@ public class ApplyMojoTest {
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private File kubernetesManifestFile;
   private MavenProject mavenProject;
-  private OpenShiftClient defaultKubernetesClient;
+  private NamespacedOpenShiftClient defaultKubernetesClient;
   private String kubeConfigNamespace;
 
   private ApplyMojo applyMojo;
@@ -72,8 +73,8 @@ public class ApplyMojoTest {
     kubernetesManifestFile = temporaryFolder.newFile("kubernetes.yml");
     mavenProject = mock(MavenProject.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
-    defaultKubernetesClient = mock(OpenShiftClient.class);
-    when(defaultKubernetesClient.adapt(OpenShiftClient.class)).thenReturn(defaultKubernetesClient);
+    defaultKubernetesClient = mock(NamespacedOpenShiftClient.class);
+    when(defaultKubernetesClient.adapt(any())).thenReturn(defaultKubernetesClient);
     when(defaultKubernetesClient.getMasterUrl()).thenReturn(URI.create("https://www.example.com").toURL());
     // @formatter:off
     applyMojo = new ApplyMojo() {{

@@ -33,8 +33,8 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -50,7 +50,6 @@ import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.junit.Before;
@@ -64,7 +63,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
 public class KubernetesHelperTest {
@@ -291,27 +289,21 @@ public class KubernetesHelperTest {
         Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
         Set<HasMetadata> entities = new HashSet<>();
         entities.add(svc);
-        ServiceResource svcResource = mock(ServiceResource.class,RETURNS_DEEP_STUBS);
-        KubernetesClient kubernetesClient = mock(KubernetesClient.class);
-        NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> svcNonNamespaceOp = mock(NonNamespaceOperation.class, RETURNS_DEEP_STUBS);
-        MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class, RETURNS_DEEP_STUBS);
+        final NamespacedKubernetesClient kubernetesClient = mock(NamespacedKubernetesClient.class);
+        final MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class);
         when(kubernetesClient.services()).thenReturn(svcMixedOp);
-        when(svcMixedOp.inNamespace("ns1")).thenReturn(svcNonNamespaceOp);
-        when(svcNonNamespaceOp.withName("svc1")).thenReturn((ServiceResource<Service>) svcResource);
-        when(svcResource.get()).thenReturn( new ServiceBuilder()
-                .withNewMetadata()
-                .withName("svc1")
-                .addToAnnotations("exposeUrl", "http://example.com")
-                .endMetadata()
-                .build());
-
+        final ServiceResource<Service> svcResource = mock(ServiceResource.class);
+        when(svcMixedOp.withName("svc1")).thenReturn(svcResource);
+        when(svcResource.get()).thenReturn(new ServiceBuilder()
+            .withNewMetadata()
+            .withName("svc1")
+            .addToAnnotations("exposeUrl", "https://example.com")
+            .endMetadata()
+            .build());
         // When
-        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, "ns1", entities, 3, "exposeUrl");
-
+        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, 3, "exposeUrl");
         // Then
-        assertEquals("http://example.com", result);
-        verify(kubernetesClient, times(1)).services();
-        verify(svcResource,times(1)).get();
+        assertEquals("https://example.com", result);
     }
 
     @Test
@@ -320,21 +312,18 @@ public class KubernetesHelperTest {
         Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
         Set<HasMetadata> entities = new HashSet<>();
         entities.add(svc);
-        ServiceResource svcResource = mock(ServiceResource.class,RETURNS_DEEP_STUBS);
-        KubernetesClient kubernetesClient = mock(KubernetesClient.class);
-        NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> svcNonNamespaceOp = mock(NonNamespaceOperation.class, RETURNS_DEEP_STUBS);
-        MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class, RETURNS_DEEP_STUBS);
+        final NamespacedKubernetesClient kubernetesClient = mock(NamespacedKubernetesClient.class);
+        final MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class);
         when(kubernetesClient.services()).thenReturn(svcMixedOp);
-        when(svcMixedOp.inNamespace("ns1")).thenReturn(svcNonNamespaceOp);
-        when(svcNonNamespaceOp.withName("svc1")).thenReturn((ServiceResource<Service>) svcResource);        when(svcResource.get()).thenReturn(new ServiceBuilder()
+        final ServiceResource<Service> svcResource = mock(ServiceResource.class);
+        when(svcMixedOp.withName("svc1")).thenReturn(svcResource);
+        when(svcResource.get()).thenReturn(new ServiceBuilder()
                 .withNewMetadata()
                 .withName("svc1")
                 .endMetadata()
                 .build());
-
         // When
-        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, "ns1", entities, 1, "exposeUrl");
-
+        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, entities, 1, "exposeUrl");
         // Then
         assertNull(result);
         verify(kubernetesClient, times(1)).services();

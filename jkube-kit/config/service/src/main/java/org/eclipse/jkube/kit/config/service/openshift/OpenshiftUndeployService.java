@@ -37,6 +37,7 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.asOpenShiftClient;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
 
 public class OpenshiftUndeployService extends KubernetesUndeployService {
 
@@ -49,14 +50,15 @@ public class OpenshiftUndeployService extends KubernetesUndeployService {
     final Consumer<HasMetadata> standardDeleter = super.resourceDeleter(namespace, fallbackNamespace);
     final OpenShiftClient oc = asOpenShiftClient(getjKubeServiceHub().getClient());
     return entity -> {
+      final String undeployNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
       final List<String> isTags = imageStreamTags(entity);
       if (oc != null && !isTags.isEmpty()) {
         for (String isTag  : isTags) {
-          oc.builds().inNamespace(namespace).list().getItems().stream()
+          oc.builds().inNamespace(undeployNamespace).list().getItems().stream()
               .filter(labelMatcherFilter(entity))
               .filter(bc -> Objects.equals(bc.getSpec().getOutput().getTo().getName(), isTag))
               .forEach(standardDeleter);
-          oc.buildConfigs().inNamespace(namespace).list().getItems().stream()
+          oc.buildConfigs().inNamespace(undeployNamespace).list().getItems().stream()
               .filter(labelMatcherFilter(entity))
               .filter(bc -> Objects.equals(bc.getSpec().getOutput().getTo().getName(), isTag))
               .forEach(standardDeleter);

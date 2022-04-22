@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -142,7 +143,8 @@ public class ApplyService {
     }
 
     public boolean isAlreadyApplied(HasMetadata resource) {
-        return kubernetesClient.resource(resource).inNamespace(namespace).fromServer().get() != null;
+        return kubernetesClient.resource(resource)
+            .inNamespace(applicableNamespace(resource, namespace, fallbackNamespace)).fromServer().get() != null;
     }
 
     /**
@@ -1351,7 +1353,9 @@ public class ApplyService {
     }
 
     private void logExposeServiceUrl(Collection<HasMetadata> entities, KitLogger serviceLogger, long serviceUrlWaitTimeSeconds) throws InterruptedException {
-        String url = KubernetesHelper.getServiceExposeUrl(kubernetesClient, namespace, entities, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
+        String url = KubernetesHelper.getServiceExposeUrl(
+            kubernetesClient.adapt(NamespacedKubernetesClient.class).inNamespace(applicableNamespace(null, namespace, fallbackNamespace)),
+            entities, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
         if (url != null) {
             serviceLogger.info("ExposeController Service URL: %s", url);
         }

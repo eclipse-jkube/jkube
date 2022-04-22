@@ -149,7 +149,7 @@ public class JKubeServiceHub implements Closeable {
         });
         portForwardService = new LazyBuilder<>(() -> {
             validateIfConnectedToCluster();
-            return new PortForwardService(client, log);
+            return new PortForwardService(log);
         });
         debugService = new LazyBuilder<>(() -> {
             validateIfConnectedToCluster();
