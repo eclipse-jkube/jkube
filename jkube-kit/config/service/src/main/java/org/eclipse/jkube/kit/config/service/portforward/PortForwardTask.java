@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.kit.config.service.portforward;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.LocalPortForward;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
 import lombok.AllArgsConstructor;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -25,9 +25,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @AllArgsConstructor
 public class PortForwardTask implements Runnable, AutoCloseable {
-  private final KubernetesClient kubernetesClient;
+  private final NamespacedKubernetesClient kubernetesClient;
   private final String podName;
-  private final String namespace;
   private final LocalPortForward localPortForward;
   private final KitLogger logger;
   private final CountDownLatch podAvailableLatch = new CountDownLatch(1);
@@ -42,7 +41,7 @@ public class PortForwardTask implements Runnable, AutoCloseable {
       }
     }));
     try(
-        Watch ignore = kubernetesClient.pods().inNamespace(namespace)
+        Watch ignore = kubernetesClient.pods()
             .watch(new PortForwardMonitor(logger, podName, podAvailableLatch))
     ) {
       podAvailableLatch.await();

@@ -16,9 +16,9 @@ package org.eclipse.jkube.kit.config.service.portforward;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.LocalPortForward;
 import mockit.Mocked;
 import mockit.Verifications;
@@ -27,7 +27,7 @@ import org.junit.Test;
 
 public class PortForwardTaskTest {
   @Mocked
-  private KubernetesClient kubernetesClient;
+  private NamespacedKubernetesClient kubernetesClient;
   @Mocked
   private LocalPortForward localPortForward;
   @Mocked
@@ -38,7 +38,7 @@ public class PortForwardTaskTest {
   @Before
   public void setUp() {
     portForwardTask = new PortForwardTask(
-        kubernetesClient, "pod-name", "namespace", localPortForward, logger);
+        kubernetesClient, "pod-name", localPortForward, logger);
   }
 
   @Test

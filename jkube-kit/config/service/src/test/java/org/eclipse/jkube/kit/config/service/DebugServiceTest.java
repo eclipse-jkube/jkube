@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpecBuilder;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
@@ -43,7 +44,6 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpecBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import mockit.Mocked;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.config.service.portforward.PortForwardPodWatcher;
@@ -60,7 +60,7 @@ public class DebugServiceTest {
   private KitLogger logger;
 
   @Mocked
-  private KubernetesClient kubernetesClient;
+  private NamespacedKubernetesClient kubernetesClient;
 
   @Mocked
   private PortForwardService portForwardService;
@@ -227,7 +227,7 @@ public class DebugServiceTest {
     new Verifications() {{
       logger.info("No Active debug pod with provided selector and environment variables found! Waiting for pod to be ready...");
       times = 1;
-      portForwardService.startPortForward(anyString, "namespace", 5005, localDebugPort);
+      portForwardService.startPortForward(kubernetesClient, anyString, 5005, localDebugPort);
       times = 1;
     }};
     // @formatter:on
