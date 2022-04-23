@@ -159,13 +159,13 @@ final class UnixSocket extends Socket {
     }
 
     @Override
-    public synchronized void setSoTimeout(int timeout) {
-        channel.setSoTimeout(timeout);
+    public synchronized void setSoTimeout(int timeout) throws SocketException {
+        channel.socket().setSoTimeout(timeout);
     }
 
     @Override
-    public synchronized int getSoTimeout() {
-        return channel.getSoTimeout();
+    public synchronized int getSoTimeout() throws SocketException {
+        return channel.socket().getSoTimeout();
     }
 
     @Override
@@ -213,13 +213,13 @@ final class UnixSocket extends Socket {
     }
 
     @Override
-    public void setKeepAlive(boolean on) {
-        channel.setKeepAlive(on);
+    public void setKeepAlive(boolean on) throws SocketException {
+        channel.socket().setKeepAlive(on);
     }
 
     @Override
-    public boolean getKeepAlive() {
-        return channel.getKeepAlive();
+    public boolean getKeepAlive() throws SocketException {
+        return channel.socket().getKeepAlive();
     }
 
     @Override

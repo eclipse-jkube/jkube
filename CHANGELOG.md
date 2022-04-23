@@ -52,6 +52,7 @@ Usage:
 * Fix #1382: Docker Build ARGS not replaced properly
 * Fix #1324: Support legacy javaee as well as jakartaee projects in the Tomcat webapp generator
 * Fix #1460: Route doesn't use the service "normalizePort"
+* Fix #1470: Add support for Apple M1 CPUs
 * Fix #1482: Quarkus Generator and Enricher should be compatible with the Red Hat build
 * Fix #1483: Assembly files with unnormalized paths don't get fileMode changes
 * Fix #1489: Align BaseGenerator's `add` and `tags` config options to work with `jkube.generator.*` properties
