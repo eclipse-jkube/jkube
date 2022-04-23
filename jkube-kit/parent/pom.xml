@@ -46,7 +46,7 @@
     <version.jansi>2.3.3</version.jansi>
     <version.javassist>3.20.0-GA</version.javassist>
     <version.jgit>5.12.0.202106070339-r</version.jgit>
-    <version.jnr-unixsocket>0.12</version.jnr-unixsocket>
+    <version.jnr-unixsocket>0.38.17</version.jnr-unixsocket>
     <version.json-smart>2.2.1</version.json-smart> <!-- Transitive dependency from com.consol.citrus:citrus-core -->
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.1.1</version.JUnitParams>
@@ -66,6 +66,7 @@
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
     <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
+    <version.ow2.asm>5.0.3</version.ow2.asm>
 
     <!-- =======================================================  -->
     <version.image.jkube-images>0.0.15</version.image.jkube-images>
@@ -558,6 +559,12 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${version.slf4j-api}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm</artifactId>
+        <version>${version.ow2.asm}</version>
       </dependency>
 
       <!-- == maven ===================================== -->
