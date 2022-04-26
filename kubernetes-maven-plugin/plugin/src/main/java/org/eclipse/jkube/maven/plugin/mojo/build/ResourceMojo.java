@@ -182,7 +182,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     protected MavenProjectHelper projectHelper;
 
     // resourceDir when environment has been applied
-    private File realResourceDir;
+    private List<File> realResourceDirs;
 
 
 
@@ -230,10 +230,10 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     @Override
     protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder(JavaProject javaProject) {
-        realResourceDir = ResourceUtil.getFinalResourceDir(resourceDir, environment);
+        realResourceDirs = ResourceUtil.getFinalResourceDirs(resourceDir, environment);
         final ResourceServiceConfig resourceServiceConfig = ResourceServiceConfig.builder()
             .project(javaProject)
-            .resourceDir(realResourceDir)
+            .resourceDirs(realResourceDirs)
             .targetDir(targetDir)
             .resourceFileType(resourceFileType)
             .resourceConfig(resources)
@@ -310,11 +310,11 @@ public class ResourceMojo extends AbstractJKubeMojo {
     }
 
     private ProcessorConfig extractEnricherConfig() throws IOException {
-        return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile, realResourceDir, enricher);
+        return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile, realResourceDirs, enricher);
     }
 
     private ProcessorConfig extractGeneratorConfig() throws IOException {
-        return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, realResourceDir, generator);
+        return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, realResourceDirs, generator);
     }
 
     // ==================================================================================
@@ -370,7 +370,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     }
 
     private boolean hasJKubeDir() {
-        return realResourceDir.isDirectory();
+        return !realResourceDirs.isEmpty() && realResourceDirs.get(0).isDirectory();
     }
 
     private boolean isPomProject() {

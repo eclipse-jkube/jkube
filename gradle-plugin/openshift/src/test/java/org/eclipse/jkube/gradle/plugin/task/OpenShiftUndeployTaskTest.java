@@ -15,6 +15,7 @@ package org.eclipse.jkube.gradle.plugin.task;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Collections;
 
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
@@ -91,8 +92,8 @@ public class OpenShiftUndeployTaskTest {
     assertThat(openshiftUndeployServiceMockedConstruction.constructed()).hasSize(1);
     verify(openshiftUndeployServiceMockedConstruction.constructed().iterator().next(), times(1))
       .undeploy(
-            taskEnvironment.getRoot().toPath().resolve(Paths.get("src", "main", "jkube"))
-                .toFile(),
+            Collections.singletonList(taskEnvironment.getRoot().toPath().resolve(Paths.get("src", "main", "jkube"))
+                .toFile()),
             ResourceConfig.builder().build(), taskEnvironment.getRoot().toPath()
                 .resolve(Paths.get("build", "classes", "java", "main", "META-INF", "jkube", "openshift.yml")).toFile(),
             taskEnvironment.getRoot().toPath().resolve(Paths.get("build", "test-project-is.yml")).toFile()

@@ -15,6 +15,7 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.util.MavenUtil;
@@ -95,7 +96,7 @@ public class UndeployMojoTest {
   private void assertUndeployServiceUndeployWasCalled() throws Exception {
     // @formatter:off
     new Verifications() {{
-      jKubeServiceHub.getUndeployService().undeploy(mockResourceDir, withNotNull(), mockManifest);
+      jKubeServiceHub.getUndeployService().undeploy(Collections.singletonList(mockResourceDir), withNotNull(), mockManifest);
       times = 1;
     }};
     // @formatter:on

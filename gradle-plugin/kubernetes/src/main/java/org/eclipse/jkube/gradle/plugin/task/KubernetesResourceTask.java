@@ -56,7 +56,7 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
     }
     final ResourceServiceConfig resourceServiceConfig = ResourceServiceConfig.builder()
         .project(kubernetesExtension.javaProject)
-        .resourceDir(resolveResourceSourceDirectory())
+        .resourceDirs(resolveResourceSourceDirectory())
         .targetDir(kubernetesExtension.getResourceTargetDirectoryOrDefault())
         .resourceFileType(kubernetesExtension.getResourceFileTypeOrDefault())
         .resourceConfig(resourceConfig)

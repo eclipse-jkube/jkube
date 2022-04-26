@@ -14,7 +14,6 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import javax.inject.Inject;
@@ -41,10 +40,9 @@ public class KubernetesUndeployTask extends AbstractJKubeTask {
           .filter(s -> !s.isEmpty())
           .orElse(null))
         .build();
-      final File environmentResourceDir = ResourceUtil.getFinalResourceDir(resolveResourceSourceDirectory(),
-          kubernetesExtension.getResourceEnvironmentOrNull());
+      final List<File> environmentResourceDirs = resolveResourceSourceDirectory();
       jKubeServiceHub.getUndeployService()
-        .undeploy(environmentResourceDir, resources, findManifestsToUndeploy().toArray(new File[0]));
+        .undeploy(environmentResourceDirs, resources, findManifestsToUndeploy().toArray(new File[0]));
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
     }

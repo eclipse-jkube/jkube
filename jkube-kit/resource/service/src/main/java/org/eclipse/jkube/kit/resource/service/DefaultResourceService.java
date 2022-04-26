@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.resource.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.validation.ConstraintViolationException;
@@ -81,10 +82,8 @@ public class DefaultResourceService implements ResourceService {
       throws IOException {
 
     final ResourceConfig resourceConfig = resourceServiceConfig.getResourceConfig();
-    final File resourceDir = resourceServiceConfig.getResourceDir();
     try {
-      File[] resourceFiles = listResourceFragments(resourceDir, resourceConfig !=null ? resourceConfig.getRemotes() : null, log);
-      log.info("Using resource templates from %s", resourceDir);
+      File[] resourceFiles = aggregateResourceFragments(resourceServiceConfig.getResourceDirs(), resourceConfig, log);
       final File[] processedResource = processResourceFiles(resourceFiles);
       KubernetesListBuilder builder = processResourceFragments(platformMode, processedResource);
 
@@ -115,19 +114,21 @@ public class DefaultResourceService implements ResourceService {
       PlatformMode platformMode, EnricherManager enricherManager) throws IOException {
 
     final List<HasMetadata> ret = new ArrayList<>();
-    final File resourceDir = resourceServiceConfig.getResourceDir();
-    File[] profileDirs = resourceDir.listFiles(File::isDirectory);
-    if (profileDirs != null) {
-      for (File profileDir : profileDirs) {
-        Profile foundProfile = ProfileUtil.findProfile(profileDir.getName(), resourceDir);
-        ProcessorConfig enricherConfig = foundProfile.getEnricherConfig();
-        File[] resourceFiles = listResourceFragments(profileDir);
-        final File[] processedResources = processResourceFiles(resourceFiles);
-        if (processedResources.length > 0) {
-          KubernetesListBuilder profileBuilder = readResourceFragments(platformMode, processedResources);
-          enricherManager.createDefaultResources(platformMode, enricherConfig, profileBuilder);
-          enricherManager.enrich(platformMode, enricherConfig, profileBuilder);
-          ret.addAll(profileBuilder.buildItems());
+    final List<File> resourceDirs = resourceServiceConfig.getResourceDirs();
+    for (File resourceDir : resourceDirs) {
+      File[] profileDirs = resourceDir.listFiles(File::isDirectory);
+      if (profileDirs != null) {
+        for (File profileDir : profileDirs) {
+          Profile foundProfile = ProfileUtil.findProfile(profileDir.getName(), resourceDir);
+          ProcessorConfig enricherConfig = foundProfile.getEnricherConfig();
+          File[] resourceFiles = listResourceFragments(profileDir);
+          final File[] processedResources = processResourceFiles(resourceFiles);
+          if (processedResources.length > 0) {
+            KubernetesListBuilder profileBuilder = readResourceFragments(platformMode, processedResources);
+            enricherManager.createDefaultResources(platformMode, enricherConfig, profileBuilder);
+            enricherManager.enrich(platformMode, enricherConfig, profileBuilder);
+            ret.addAll(profileBuilder.buildItems());
+          }
         }
       }
     }
@@ -149,5 +150,16 @@ public class DefaultResourceService implements ResourceService {
     return resourceFiles;
   }
 
+  private File[] aggregateResourceFragments(List<File> resourceDirs, ResourceConfig resourceConfig, KitLogger log) {
+    List<File> fragments = new ArrayList<>();
+    for (File resourceDir : resourceDirs) {
+      log.info("Using resource templates from %s", resourceDir);
+      File[] resourceFiles = listResourceFragments(resourceDir, resourceConfig !=null ? resourceConfig.getRemotes() : null, log);
+      if (resourceFiles != null && resourceFiles.length > 0) {
+        fragments.addAll(Arrays.asList(resourceFiles));
+      }
+    }
+    return fragments.toArray(new File[0]);
+  }
 
 }

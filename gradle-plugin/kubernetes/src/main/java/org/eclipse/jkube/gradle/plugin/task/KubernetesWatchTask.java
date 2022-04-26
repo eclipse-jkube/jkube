@@ -91,7 +91,7 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
 
   private ProcessorConfig extractWatcherConfig() {
     try {
-      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.WATCHER_CONFIG, kubernetesExtension.getProfileOrNull(), ResourceUtil.getFinalResourceDir(kubernetesExtension.getResourceSourceDirectoryOrDefault(), kubernetesExtension.getResourceEnvironmentOrNull()), kubernetesExtension.watcher);
+      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.WATCHER_CONFIG, kubernetesExtension.getProfileOrNull(), ResourceUtil.getFinalResourceDirs(kubernetesExtension.getResourceSourceDirectoryOrDefault(), kubernetesExtension.getResourceEnvironmentOrNull()), kubernetesExtension.watcher);
     } catch (IOException e) {
       throw new IllegalArgumentException("Cannot extract watcher config: " + e, e);
     }

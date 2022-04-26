@@ -72,9 +72,9 @@ public class UndeployMojo extends AbstractJKubeMojo implements ManifestProvider 
   }
 
   protected void undeploy() throws IOException {
-    final File environmentResourceDir = ResourceUtil.getFinalResourceDir(resourceDir, environment);
+    final List<File> environmentResourceDirs = ResourceUtil.getFinalResourceDirs(resourceDir, environment);
     jkubeServiceHub.getUndeployService()
-        .undeploy(environmentResourceDir, resources, getManifestsToUndeploy().toArray(new File[0]));
+        .undeploy(environmentResourceDirs, resources, getManifestsToUndeploy().toArray(new File[0]));
   }
 
   protected List<File> getManifestsToUndeploy() {

@@ -712,7 +712,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     // Get generator config
     protected ProcessorConfig extractGeneratorConfig() {
         try {
-            return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDir(resourceDir, environment), generator);
+            return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), generator);
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
         }
@@ -721,7 +721,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     // Get enricher config
     protected ProcessorConfig extractEnricherConfig() {
         try {
-            return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile, ResourceUtil.getFinalResourceDir(resourceDir, environment), enricher);
+            return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), enricher);
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot extract enricher config: " + e, e);
         }
