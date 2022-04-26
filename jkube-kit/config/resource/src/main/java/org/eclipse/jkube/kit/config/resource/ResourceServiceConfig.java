@@ -14,7 +14,9 @@
 package org.eclipse.jkube.kit.config.resource;
 
 import java.io.File;
+import java.util.List;
 
+import lombok.Singular;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 
@@ -35,7 +37,8 @@ import lombok.NoArgsConstructor;
 public class ResourceServiceConfig {
 
   private JavaProject project;
-  private File resourceDir;
+  @Singular
+  private List<File> resourceDirs;
   private File targetDir;
   private ResourceFileType resourceFileType;
   private ResourceConfig resourceConfig;

@@ -163,15 +163,15 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         System.getProperties(), kubernetesExtension.javaProject.getProperties()).build();
   }
 
-  protected final File resolveResourceSourceDirectory() {
-    return ResourceUtil.getFinalResourceDir(kubernetesExtension.getResourceSourceDirectoryOrDefault(),
+  protected final List<File> resolveResourceSourceDirectory() {
+    return ResourceUtil.getFinalResourceDirs(kubernetesExtension.getResourceSourceDirectoryOrDefault(),
         kubernetesExtension.getResourceEnvironmentOrNull());
   }
 
 
   protected ProcessorConfig extractGeneratorConfig() {
     try {
-      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfileOrNull(), kubernetesExtension.getResourceTargetDirectoryOrDefault(), kubernetesExtension.generator);
+      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfileOrNull(), ResourceUtil.getFinalResourceDirs(kubernetesExtension.getResourceSourceDirectoryOrDefault(), kubernetesExtension.getResourceEnvironmentOrNull()), kubernetesExtension.generator);
     } catch (IOException e) {
       throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
     }

@@ -52,29 +52,49 @@ public class ProfileUtil {
      * Find a profile. Profiles are looked up at various locations:
      *
      * <ul>
-     *     <li>A given directory with the name profiles.yml (and variations, {@link #findProfile(String, File)}</li>
+     *     <li>A given directory with the name profiles.yml (and variations, {@link #findProfile(String, List)}</li>
      * </ul>
      * @param profileArg the profile's name
-     * @param resourceDir a directory to check for profiles.
+     * @param resourceDirs a directory to check for profiles.
      * @return the profile found or the default profile if none of this name is given
      * @throws IOException
      */
+    public static Profile findProfile(String profileArg, List<File> resourceDirs) throws IOException {
+        if (resourceDirs != null) {
+            for (File resourceDir : resourceDirs) {
+                Profile profile = findProfile(profileArg, resourceDir);
+                if (profile != null) {
+                    return profile;
+                }
+            }
+        }
+        String profile = profileArg == null ? DEFAULT_PROFILE : profileArg;
+        Profile defaultLookupProfile = lookup(profile, null);
+        defaultLookupProfile = checkParentProfileAndInherit(defaultLookupProfile, null);
+        if (defaultLookupProfile != null) {
+            return defaultLookupProfile;
+        }
+
+        throw new IllegalArgumentException("No profile '" + profile + "' defined");
+    }
+
     public static Profile findProfile(String profileArg, File resourceDir) throws IOException {
         try {
             String profile = profileArg == null ? DEFAULT_PROFILE : profileArg;
             Profile profileFound = lookup(profile, resourceDir);
-            if (profileFound != null) {
-                if(profileFound.getParentProfile() != null) {
-                    profileFound = inheritFromParentProfile(profileFound, resourceDir);
-                    log.info(profileFound + " inheriting resources from " + profileFound.getParentProfile());
-                }
-                return profileFound;
-            } else {
-                throw new IllegalArgumentException("No profile '" + profile + "' defined");
-            }
+            profileFound = checkParentProfileAndInherit(profileFound, resourceDir);
+            return profileFound;
         } catch (IOException e) {
             throw new IOException("Error while looking up profile " + profileArg + ": " + e.getMessage(),e);
         }
+    }
+
+    private static Profile checkParentProfileAndInherit(Profile profile, File resourceDir) throws IOException {
+        if (profile != null && profile.getParentProfile() != null) {
+            profile = inheritFromParentProfile(profile, resourceDir);
+            log.info("%s inheriting resources from %s", profile, profile.getParentProfile());
+        }
+        return profile;
     }
 
     private static Profile inheritFromParentProfile(Profile aProfile, File resourceDir) throws IOException {
@@ -94,17 +114,17 @@ public class ProfileUtil {
      *
      * @param configExtractor how to extract the config from a profile when found
      * @param profile the profile name (can be null, then no profile is used)
-     * @param resourceDir resource directory where to lookup the profile (in addition to a classpath lookup)
+     * @param resourceDirs resource directory where to lookup the profile (in addition to a classpath lookup)
      * @return the merged configuration which can be empty if no profile is given
      * @param config the provided configuration
      * @throws IOException
      */
     public static ProcessorConfig blendProfileWithConfiguration(ProcessorConfigurationExtractor configExtractor,
                                                                 String profile,
-                                                                File resourceDir,
+                                                                List<File> resourceDirs,
                                                                 ProcessorConfig config) throws IOException {
         // Get specified profile or the default profile
-        ProcessorConfig profileConfig = extractProcesssorConfiguration(configExtractor, profile, resourceDir);
+        ProcessorConfig profileConfig = extractProcesssorConfiguration(configExtractor, profile, resourceDirs);
 
         return ProcessorConfig.mergeProcessorConfigs(config, profileConfig);
     }
@@ -140,8 +160,8 @@ public class ProfileUtil {
 
     private static ProcessorConfig extractProcesssorConfiguration(ProcessorConfigurationExtractor extractor,
                                                                  String profile,
-                                                                 File resourceDir) throws IOException {
-        Profile profileFound = findProfile(profile, resourceDir);
+                                                                 List<File> resourceDirs) throws IOException {
+        Profile profileFound = findProfile(profile, resourceDirs);
         return extractor.extract(profileFound);
     }
 

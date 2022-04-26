@@ -17,8 +17,9 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public interface UndeployService {
 
-  void undeploy(File resourceDir, ResourceConfig resourceConfig, File... manifestFiles) throws IOException;
+  void undeploy(List<File> resourceDir, ResourceConfig resourceConfig, File... manifestFiles) throws IOException;
 }

@@ -111,7 +111,7 @@ endif::[]
 
 | *environment*
 | Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the
-  default one, jkube will look at `src/main/jkube/dev`.
+  default one, jkube will look at `src/main/jkube/dev`.  Multiple environments can also be provided in form of comma separated strings. Resource fragments in these directories will be combined while generating resources.
 
   Defaults to `null`.
 | `jkube.environment`

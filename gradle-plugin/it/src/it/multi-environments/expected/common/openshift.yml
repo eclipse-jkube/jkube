@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    labels:
+      app: multi-environments
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: common
+  data:
+    type: common

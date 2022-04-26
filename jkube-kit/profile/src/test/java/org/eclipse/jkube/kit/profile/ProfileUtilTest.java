@@ -42,7 +42,7 @@ public class ProfileUtilTest {
         assertNotNull(is);
         List<Profile> profiles = ProfileUtil.fromYaml(is);
         assertNotNull(profiles);
-        assertEquals(3, profiles.size());
+        assertEquals(4, profiles.size());
         Profile profile = profiles.get(0);
         assertEquals("simple", profile.getName());
         ProcessorConfig config = profile.getEnricherConfig();
@@ -95,9 +95,9 @@ public class ProfileUtilTest {
     @Test
     public void findProfile_whenNonExistentProfileArg_throwsException () throws URISyntaxException {
 
-        File profileDir = getProfileDir();
+        List<File> profileDirs = Collections.singletonList(getProfileDir());
 
-        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("not-there", profileDir));
+        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("not-there", profileDirs));
 
         assertTrue(illegalArgumentException.getMessage().contains("not-there"));
 
@@ -115,18 +115,18 @@ public class ProfileUtilTest {
 
         ProcessorConfig origConfig = new ProcessorConfig(Arrays.asList("i1", "i2"), Collections.singleton("spring.swarm"), null);
         ProcessorConfig mergeConfig = ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG,
-                                                                                "simple",
-                                                                                getProfileDir(),
-                                                                                origConfig);
+            "simple",
+            Collections.singletonList(getProfileDir()),
+            origConfig);
         assertTrue(mergeConfig.use("base"));
         assertTrue(mergeConfig.use("i1"));
         assertEquals("http://jolokia.org", mergeConfig.getConfig().get("base").get("url"));
 
 
         mergeConfig = ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG,
-                                                                "simple",
-                                                                getProfileDir(),
-                                                                origConfig);
+            "simple",
+            Collections.singletonList(getProfileDir()),
+            origConfig);
         assertTrue(mergeConfig.use("i2"));
         assertFalse(mergeConfig.use("spring.swarm"));
 
@@ -143,5 +143,17 @@ public class ProfileUtilTest {
         assertTrue(aProfile.getEnricherConfig().use("default.service"));
         assertTrue(aProfile.getGeneratorConfig().use("spring.swarm"));
         assertFalse(aProfile.getGeneratorConfig().use("java.app"));
+    }
+
+    @Test
+    public void findProfile_whenProfileUsedWithInvalidParent_thenThrowsException() throws URISyntaxException {
+        // Given
+        File profileDir = getProfileDir();
+
+        // When
+        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("invalid-parent", profileDir));
+
+        // Then
+        assertEquals("No parent profile 'i-dont-exist' defined", illegalArgumentException.getMessage());
     }
 }

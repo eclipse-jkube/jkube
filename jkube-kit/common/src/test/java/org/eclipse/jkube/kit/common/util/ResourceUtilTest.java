@@ -277,4 +277,46 @@ public class ResourceUtilTest {
         assertThat(file).hasSameTextualContentAs(
             new File(ResourceUtilTest.class.getResource( "/util/resource-util/expected/config-map-placeholders.yml").getFile()));
     }
+
+    @Test
+    public void getFinalResourceDirs_withMultipleEnvs_shouldReturnEnvResourceDirList() throws IOException {
+        // Given
+        File resourceDir = temporaryFolder.newFolder("src", "main", "jkube");
+
+        // When
+        List<File> finalResourceDirs = ResourceUtil.getFinalResourceDirs(resourceDir, "common,dev");
+
+        // Then
+        assertThat(finalResourceDirs)
+            .hasSize(2)
+            .containsExactlyInAnyOrder(new File(resourceDir, "common"), new File(resourceDir, "dev"));
+    }
+
+    @Test
+    public void getFinalResourceDirs_withNullEnv_shouldReturnResourceDir() throws IOException {
+        // Given
+        File resourceDir = temporaryFolder.newFolder("src", "main", "jkube");
+
+        // When
+        List<File> finalResourceDirs = ResourceUtil.getFinalResourceDirs(resourceDir, null);
+
+        // Then
+        assertThat(finalResourceDirs)
+            .hasSize(1)
+            .containsExactly(resourceDir);
+    }
+
+    @Test
+    public void getFinalResourceDirs_withEmptyEnv_shouldReturnResourceDir() throws IOException {
+        // Given
+        File resourceDir = temporaryFolder.newFolder("src", "main", "jkube");
+
+        // When
+        List<File> finalResourceDirs = ResourceUtil.getFinalResourceDirs(resourceDir, "");
+
+        // Then
+        assertThat(finalResourceDirs)
+            .hasSize(1)
+            .containsExactly(resourceDir);
+    }
 }

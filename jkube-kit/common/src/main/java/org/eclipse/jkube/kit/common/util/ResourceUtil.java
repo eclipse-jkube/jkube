@@ -134,11 +134,18 @@ public class ResourceUtil {
                 .disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
     }
 
-    public static File getFinalResourceDir(File resourceDir, String environment) {
-        if (resourceDir != null && StringUtils.isNotEmpty(environment)) {
-            return new File(resourceDir, environment);
+    public static List<File> getFinalResourceDirs(File resourceDir, String environmentAsCommaSeparateStr) {
+        List<File> resourceDirs = new ArrayList<>();
+
+        if (resourceDir != null && StringUtils.isNotEmpty(environmentAsCommaSeparateStr)) {
+            String[] environments = environmentAsCommaSeparateStr.split(",");
+            for (String environment : environments) {
+                resourceDirs.add(new File(resourceDir, environment.trim()));
+            }
+        } else if (StringUtils.isBlank(environmentAsCommaSeparateStr)) {
+            resourceDirs.add(resourceDir);
         }
-        return resourceDir;
+        return resourceDirs;
     }
 
 

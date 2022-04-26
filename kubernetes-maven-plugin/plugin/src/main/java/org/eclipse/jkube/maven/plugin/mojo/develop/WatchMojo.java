@@ -154,7 +154,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     // Get watcher config
     private ProcessorConfig extractWatcherConfig() {
         try {
-            return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.WATCHER_CONFIG, profile, ResourceUtil.getFinalResourceDir(resourceDir, environment), watcher);
+            return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.WATCHER_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), watcher);
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot extract watcher config: " + e, e);
         }
