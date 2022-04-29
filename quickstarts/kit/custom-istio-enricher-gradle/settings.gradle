@@ -6,4 +6,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'jkube-gradle-sample-custom-istio-enricher-app'
+rootProject.name = 'eclipse-jkube-sample-custom-enricher-gradle-parent'
+include 'app', 'compile-time-enricher'

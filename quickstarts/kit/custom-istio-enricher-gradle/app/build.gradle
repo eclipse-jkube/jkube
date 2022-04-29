@@ -11,41 +11,26 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-
-buildscript {
-    repositories {
-        mavenLocal()
-    }
-    dependencies {
-        classpath('org.eclipse.jkube.quickstarts.kit.enricher.istio:istio-enricher:1.8.0-SNAPSHOT')
-    }
-}
-
 plugins {
-    id 'org.eclipse.jkube.kubernetes' version '1.7.0'
-    id 'org.eclipse.jkube.openshift' version '1.7.0'
+    id 'org.eclipse.jkube.kubernetes' version '1.8.0-SNAPSHOT'
+    id 'org.eclipse.jkube.openshift' version '1.8.0-SNAPSHOT'
     id 'org.springframework.boot' version '2.5.2'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
 }
 
-group = 'org.eclipse.jkube.quickstarts.kit'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation project(':compile-time-enricher')
 }
 
 kubernetes {
     offline = false
+    useProjectClassPath = true
     enricher {
-        includes = ['istio-enricher']
+        includes = ['istio-enricher', 'compile-time-enricher']
+        excludes = ['**']
         config {
             'istio-enricher' {
                 name = "${project.name}"
