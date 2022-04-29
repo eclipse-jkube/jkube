@@ -85,17 +85,19 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     ImageConfigResolver imageConfigResolver = new ImageConfigResolver();
     try {
       resolvedImages = resolveImages(imageConfigResolver);
-
-      enricherManager = new DefaultEnricherManager(JKubeEnricherContext.builder()
+      final JKubeEnricherContext context = JKubeEnricherContext.builder()
           .project(kubernetesExtension.javaProject)
           .processorConfig(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG,
               kubernetesExtension.getProfileOrNull(),
               resolveResourceSourceDirectory(),
               kubernetesExtension.enricher))
-        .images(resolvedImages)
-        .resources(kubernetesExtension.resources)
-        .log(kitLogger)
-        .build());
+          .images(resolvedImages)
+          .resources(kubernetesExtension.resources)
+          .log(kitLogger)
+          .build();
+      final List<String> extraClasspathElements = kubernetesExtension.getUseProjectClassPathOrDefault() ?
+          kubernetesExtension.javaProject.getCompileClassPathElements() : Collections.emptyList();
+      enricherManager = new DefaultEnricherManager(context, extraClasspathElements);
     } catch (IOException exception) {
       kitLogger.error("Error in fetching Build timestamps: " + exception.getMessage());
     }
