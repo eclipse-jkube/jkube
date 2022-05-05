@@ -41,24 +41,25 @@ public class KubernetesPushTask extends AbstractJKubeTask {
   @Override
   public void run() {
     try {
-      jKubeServiceHub.getBuildService().push(resolvedImages, kubernetesExtension.getPushRetriesOrDefault(), initRegistryConfig(kubernetesExtension.getPushRegistry().getOrNull()), kubernetesExtension.getSkipTagOrDefault());
+      jKubeServiceHub.getBuildService()
+          .push(resolvedImages, kubernetesExtension.getPushRetriesOrDefault(), initRegistryConfig(), kubernetesExtension.getSkipTagOrDefault());
     } catch (JKubeServiceException e) {
       throw new IllegalStateException("Error in pushing image: " + e.getMessage(), e);
     }
   }
-
 
   @Override
   protected boolean canExecute() {
     return super.canExecute() && !kubernetesExtension.getSkipPushOrDefault();
   }
 
-  private RegistryConfig initRegistryConfig(String specificRegistry) {
+  private RegistryConfig initRegistryConfig() {
+    final String specificRegistry = kubernetesExtension.getPushRegistryOrNull();
     return RegistryConfig.builder()
       .settings(Collections.emptyList())
       .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
       .skipExtendedAuth(kubernetesExtension.getSkipExtendedAuthOrDefault())
-      .registry(specificRegistry != null ? specificRegistry : kubernetesExtension.getRegistry().getOrNull())
+      .registry(specificRegistry != null ? specificRegistry : kubernetesExtension.getRegistryOrDefault())
       .passwordDecryptionMethod(password -> password).build();
   }
 

@@ -74,6 +74,7 @@ public class KubernetesExtensionPropertyTest {
             true },
         new Object[] { "getRollingUpgradePreserveScaleOrDefault", "jkube.rolling.preserveScale", "true", true, false },
         new Object[] { "getSkipPushOrDefault", "jkube.skip.push", "true", true, false },
+        new Object[] { "getPushRegistryOrNull", "jkube.docker.push.registry", "https://custom:5000", "https://custom:5000", null },
         new Object[] { "getSkipTagOrDefault", "jkube.skip.tag", "true", true, false },
         new Object[] { "getPushRetriesOrDefault", "jkube.docker.push.retries", "1337", 1337, 0 },
         new Object[] { "getSkipExtendedAuthOrDefault", "jkube.docker.skip.extendedAuth", "true", true, false },
