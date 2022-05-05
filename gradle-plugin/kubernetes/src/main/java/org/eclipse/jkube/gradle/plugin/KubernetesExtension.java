@@ -525,6 +525,10 @@ public abstract class KubernetesExtension {
     return getOrDefaultBoolean("jkube.skip.push", this::getSkipPush, false);
   }
 
+  public String getPushRegistryOrNull() {
+    return getOrDefaultString("jkube.docker.push.registry", this::getPushRegistry, null);
+  }
+
   public boolean getSkipTagOrDefault() {
     return getOrDefaultBoolean("jkube.skip.tag", this::getSkipTag, false);
   }
