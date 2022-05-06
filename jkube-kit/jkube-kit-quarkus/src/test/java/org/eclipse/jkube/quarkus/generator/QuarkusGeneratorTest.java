@@ -136,6 +136,24 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
+  public void isApplicable_withRedHatBuildOfQuarkusGroupIdPlugin_shouldReturnTrue() {
+    // Given
+    // @formatter:off
+    new Expectations() {{
+      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
+          .groupId("com.redhat.quarkus.platform")
+          .artifactId("quarkus-maven-plugin")
+          .version("2.2.5.SP2-redhat-0003")
+          .build());
+    }};
+    // @formatter:on
+    // When
+    final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
   public void isApplicable_withQuarkusGradlePlugin_shouldReturnTrue() {
     // Given
     // @formatter:off
