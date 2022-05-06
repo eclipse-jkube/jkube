@@ -35,6 +35,7 @@ import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlRe
 public class QuarkusUtils {
 
   public static final String QUARKUS_GROUP_ID = "io.quarkus";
+  private static final String RED_HAT_QUARKUS_BUILD_GROUP_ID = "com.redhat.quarkus.platform";
   public static final String QUARKUS_PLATFORM_GROUP_ID = "io.quarkus.platform";
   private static final String QUARKUS_HTTP_PORT = "quarkus.http.port";
   private static final String QUARKUS_PACKAGE_RUNNER_SUFFIX = "quarkus.package.runner-suffix";
@@ -43,6 +44,7 @@ public class QuarkusUtils {
   private static final String QUARKUS_SMALLRYE_HEALTH_ROOT_PATH = "quarkus.smallrye-health.root-path";
   private static final String QUARKUS_SMALLRYE_HEALTH_READINESS_PATH = "quarkus.smallrye-health.readiness-path";
   private static final String QUARKUS_SMALLRYE_HEALTH_LIVENESS_PATH = "quarkus.smallrye-health.liveness-path";
+  private static final String QUARKUS_MAVEN_PLUGIN_ARTIFACTID = "quarkus-maven-plugin";
   private static final int QUARKUS_MAJOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE = 1;
   private static final int QUARKUS_MINOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE = 11;
   private static final int QUARKUS2_MAJOR_VERSION = 2;
@@ -141,8 +143,9 @@ public class QuarkusUtils {
   }
 
   public static boolean hasQuarkusPlugin(JavaProject javaProject) {
-    return JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_GROUP_ID, "quarkus-maven-plugin") ||
-           JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_PLATFORM_GROUP_ID, "quarkus-maven-plugin") ||
+    return JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_GROUP_ID, QUARKUS_MAVEN_PLUGIN_ARTIFACTID) ||
+           JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_PLATFORM_GROUP_ID, QUARKUS_MAVEN_PLUGIN_ARTIFACTID) ||
+           JKubeProjectUtil.hasPlugin(javaProject, RED_HAT_QUARKUS_BUILD_GROUP_ID, QUARKUS_MAVEN_PLUGIN_ARTIFACTID) ||
            JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_GROUP_ID, "io.quarkus.gradle.plugin");
   }
 
