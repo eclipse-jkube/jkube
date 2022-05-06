@@ -109,6 +109,22 @@ public class AssemblyFileUtilsTest {
   }
 
   @Test
+  public void getAssemblyFileOutputDirectory_withOutputDirectory_shouldReturnNormalizedDir() throws IOException {
+    // Given
+    final AssemblyFile af = AssemblyFile.builder().outputDirectory(new File("build/./camel-quarkus-demo-1.0.0-runner")).build();
+    final File outputDirectoryForRelativePaths = temporaryFolder.newFile("output");
+    final Assembly layer = Assembly.builder().id("layer-1").build();
+    final AssemblyConfiguration ac = AssemblyConfiguration.builder().targetDir("/project").build();
+
+    // When
+    final File result = getAssemblyFileOutputDirectory(af, outputDirectoryForRelativePaths, layer, ac);
+
+    // Then
+    assertEquals(new File(outputDirectoryForRelativePaths, "layer-1/project/build/camel-quarkus-demo-1.0.0-runner").getAbsolutePath(),
+        result.getAbsolutePath());
+  }
+
+  @Test
   public void resolveSourceFileAbsoluteFileShouldReturnSame() throws IOException {
     // Given
     assumeFalse(isWindows());

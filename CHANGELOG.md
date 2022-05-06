@@ -51,6 +51,7 @@ Usage:
 * Fix #1362: VolumePermissionEnricher : Replace iteration with bulk Collection.addAll call
 * Fix #1382: Docker Build ARGS not replaced properly
 * Fix #1324: Support legacy javaee as well as jakartaee projects in the Tomcat webapp generator
+* Fix #1483: Assembly files with unnormalized paths don't get fileMode changes
 
 ### 1.7.0 (2022-02-25)
 * Fix #1315: Pod Log Service works for Jobs with no selector
