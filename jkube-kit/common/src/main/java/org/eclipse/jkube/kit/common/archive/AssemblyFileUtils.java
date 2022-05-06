@@ -46,7 +46,7 @@ public class AssemblyFileUtils {
           .resolve(assemblyFile.getOutputDirectory().toPath())
           .toFile();
     }
-    return outputDirectory;
+    return outputDirectory.toPath().normalize().toFile();
   }
 
   public static File resolveSourceFile(File baseDirectory, AssemblyFile assemblyFile) {
