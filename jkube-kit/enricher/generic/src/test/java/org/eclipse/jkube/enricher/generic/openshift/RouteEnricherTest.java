@@ -301,6 +301,35 @@ public class RouteEnricherTest {
                 .contains("Allow","edge");
     }
 
+    @Test
+    public void testRouteTargetPortFromServicePort() {
+        // Given
+        ServiceBuilder serviceBuilder = new ServiceBuilder()
+                .editOrNewMetadata()
+                .withName("test-svc")
+                .addToLabels("expose", "true")
+                .endMetadata()
+                .editOrNewSpec()
+                .addNewPort()
+                .withName("http")
+                .withPort(8080)
+                .withProtocol("TCP")
+                .withTargetPort(new IntOrString(8080))
+                .endPort()
+                .addToSelector("group", "test")
+                .withType("LoadBalancer")
+                .editMatchingPort(e -> Boolean.TRUE).withPort(80).endPort().endSpec();
+
+        // When
+        Route route = RouteEnricher.createOpinionatedRouteFromService(serviceBuilder, "example.com", "edge", "Allow", false);
+
+        // Then
+        assertNotNull(route);
+        assertThat(route)
+                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+                .contains("test-svc", "example.com", "Service", "test-svc", 80);
+    }
+
     private ServiceBuilder getMockServiceBuilder() {
         // @formatter:off
         return new ServiceBuilder()
