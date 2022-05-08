@@ -146,7 +146,7 @@ items:
     name: jkube-docker-registry
   spec:
     port:
-      targetPort: 5000
+      targetPort: 80
     to:
       kind: Service
       name: jkube-docker-registry
