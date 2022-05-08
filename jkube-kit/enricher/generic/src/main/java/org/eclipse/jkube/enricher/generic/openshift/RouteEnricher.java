@@ -133,10 +133,10 @@ public class RouteEnricher extends BaseEnricher {
             if (ports != null && !ports.isEmpty()) {
                 ServicePort servicePort = ports.get(0);
                 if (servicePort != null) {
-                    IntOrString targetPort = servicePort.getTargetPort();
-                    if (targetPort != null) {
+                    Integer servicePortNumber = servicePort.getPort();
+                    if (servicePortNumber != null) {
                         routePort = new RoutePort();
-                        routePort.setTargetPort(targetPort);
+                        routePort.setTargetPort(new IntOrString(servicePortNumber));
                     }
                 }
             }
