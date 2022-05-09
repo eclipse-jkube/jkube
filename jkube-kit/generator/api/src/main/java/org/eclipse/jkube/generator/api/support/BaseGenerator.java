@@ -221,7 +221,7 @@ public abstract class BaseGenerator implements Generator {
             return false;
         }
         if (containsBuildConfiguration(configs)) {
-            return Configs.asBoolean(getConfig(Config.ADD));
+            return Boolean.parseBoolean(getConfigWithFallback(Config.ADD, "jkube.generator.add", "false"));
         }
         return true;
     }
@@ -233,7 +233,7 @@ public abstract class BaseGenerator implements Generator {
     }
 
     protected void addTagsFromConfig(BuildConfiguration.BuildConfigurationBuilder buildConfigurationBuilder) {
-        String commaSeparatedTags = getConfig(Config.TAGS);
+        String commaSeparatedTags = getConfigWithFallback(Config.TAGS, "jkube.generator.tags", null);
         if (StringUtils.isNotBlank(commaSeparatedTags)) {
             List<String> tags = Arrays.stream(commaSeparatedTags.split(","))
                 .map(String::trim)
