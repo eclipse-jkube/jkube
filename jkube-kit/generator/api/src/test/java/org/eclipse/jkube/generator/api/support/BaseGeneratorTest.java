@@ -335,6 +335,41 @@ public class BaseGeneratorTest {
   }
 
   @Test
+  public void shouldAddGeneratedImageConfiguration_whenAddEnabledViaConfig_shouldReturnTrue() {
+    // Given
+    new Expectations() {{
+      ctx.getProject();
+      result = project;
+    }};
+    properties.put("jkube.generator.test-generator.add", "true");
+    BaseGenerator generator = createGenerator(null);
+
+    // When
+    boolean result = generator.shouldAddGeneratedImageConfiguration(createNewImageConfigurationList());
+
+    // Then
+    assertTrue(result);
+  }
+
+
+  @Test
+  public void shouldAddGeneratedImageConfiguration_whenAddEnabledViaProperty_shouldReturnTrue() {
+    // Given
+    new Expectations() {{
+      ctx.getProject();
+      result = project;
+    }};
+    properties.put("jkube.generator.add", "true");
+    BaseGenerator generator = createGenerator(null);
+
+    // When
+    boolean result = generator.shouldAddGeneratedImageConfiguration(createNewImageConfigurationList());
+
+    // Then
+    assertTrue(result);
+  }
+
+  @Test
   public void addLatestTagIfSnapshot() {
     new Expectations() {
       {
@@ -361,6 +396,22 @@ public class BaseGeneratorTest {
     }};
     BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     properties.put("jkube.generator.test-generator.tags", " tag-1, tag-2 , other-tag");
+    BaseGenerator generator = createGenerator(null);
+    generator.addTagsFromConfig(builder);
+    BuildConfiguration config = builder.build();
+    assertThat(config.getTags())
+        .hasSize(3)
+        .containsExactlyInAnyOrder("tag-1", "tag-2", "other-tag");
+  }
+
+  @Test
+  public void addTagsFromProperty() {
+    new Expectations() {{
+      ctx.getProject();
+      result = project;
+    }};
+    BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+    properties.put("jkube.generator.tags", " tag-1, tag-2 , other-tag");
     BaseGenerator generator = createGenerator(null);
     generator.addTagsFromConfig(builder);
     BuildConfiguration config = builder.build();
@@ -425,5 +476,12 @@ public class BaseGeneratorTest {
     protected String getIstagFrom() {
       return "selectorIstagFromUpstream";
     }
+  }
+
+  private List<ImageConfiguration> createNewImageConfigurationList() {
+    return Collections.singletonList(ImageConfiguration.builder()
+        .name("test:latest")
+        .build(BuildConfiguration.builder().from("foo:latest").build())
+        .build());
   }
 }
