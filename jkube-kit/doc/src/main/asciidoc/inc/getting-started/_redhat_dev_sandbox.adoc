@@ -1,0 +1,91 @@
+[[devsandbox-gettingstarted]]
+== Red Hat Developer Sandbox
+
+This is an example of how you can use the JKube zero configuration to build and deploy your Java application with Red Hat OpenShift Developer Sandbox.
+
+[[devsandbox-gettingstarted-prerequisites]]
+*Prerequisites*
+
+You will need the following for the scenario:
+
+* The https://developers.redhat.com/blog/2021/04/21/access-your-developer-sandbox-for-red-hat-openshift-from-the-command-line#first_stop__the_openshift_dashboard[OpenShift command-line interface (CLI)], which offers the oc command.
+* A https://adoptopenjdk.net/[Java Development Kit] (JDK)
+
+[[devsandbox-provision]]
+*Provision your DevSandbox*
+
+https://developers.redhat.com/developer-sandbox[The Developer Sandbox for Red Hat OpenShift] is a free OpenShift cluster that gives you experience of working with a Kubernetes Cluster. Once you've created an account and logged into console, you can copy login command and paste it into your terminal:
+
+[source,sh,subs="attributes+"]
+----
+$ oc login --token=sha256~%TOKEN% --server=https://%SERVER%:6443
+Logged into "https://%SERVER%:6443" as "%USERNAME%" using the token provided.
+
+You have access to the following projects and can switch between them with 'oc project <projectname>':
+
+  * %USERNAME%-dev
+    %USERNAME%-stage
+
+Using project "%USERNAME-dev".
+Welcome! See 'oc help' to get started.
+----
+
+[[devsandbox-jkubeplugin]]
+*Adding {plugin} to your project*
+
+We'll be using https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/spring-boot[quickstarts/gradle/spring-boot] for this demonstration. If you have your own gradle project set up, you can follow instructions mentioned below.
+
+You can add {plugin} to plugins section:
+
+include::_add_plugin.adoc[]
+
+[[devsandbox-jkubedeploy]]
+*Deploying application to Red Hat OpenShift*
+
+Make sure you've compiled the application:
+
+ifeval::["{plugin-type}" == "maven"]
+[source,sh,subs="attributes+"]
+----
+$ ./mvnw clean install
+----
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[source,sh,subs="attributes+"]
+----
+$ ./gradlew clean build
+----
+endif::[]
+
+
+Run JKube gradle tasks to deploy the application:
+ifeval::["{plugin-type}" == "maven"]
+[source,sh,subs="attributes+"]
+----
+$ ./mvnw oc:build oc:resource oc:apply
+----
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[source,sh,subs="attributes+"]
+----
+$ ./gradlew ocBuild ocResource ocApply
+----
+endif::[]
+
+
+[[devsandbox-disableroute]]
+*How to disable routes*
+
+{plugin} automatically generates a Route to expose your application. You can disable it with `jkube.openshift.generateRoute` flag:
+ifeval::["{plugin-type}" == "maven"]
+[source,sh,subs="attributes+"]endif::[]
+----
+$ ./mvnw oc:resource -Djkube.openshift.generateRoute=false
+----
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[source,sh,subs="attributes+"]endif::[]
+----
+$ ./gradlew ocResource -Djkube.openshift.generateRoute=false
+----
+endif::[]

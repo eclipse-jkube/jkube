@@ -25,6 +25,8 @@ ifdef::basebackend-html[toc::[]]
 
 include::inc/_introduction.adoc[]
 
+include::{kitdoc-path}/inc/getting-started/_index.adoc[]
+
 include::inc/_installation.adoc[]
 
 include::inc/goals/_goals.adoc[]
