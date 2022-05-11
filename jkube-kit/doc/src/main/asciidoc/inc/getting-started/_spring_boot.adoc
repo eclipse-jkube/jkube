@@ -1,0 +1,38 @@
+[[spring-boot-getting-started]]
+== Spring Boot
+
+{plugin} works with any Spring Boot project without any configuration. It automatically detects your project dependencies and generated opinionated container image and {cluster} manifests.
+
+include::_generic_gettingstarted_scenario.adoc[]
+
+*How to add a liveness and readiness probe?*
+
+{plugin} automatically adds {cluster} liveness and readiness probes in generated {cluster} manifests in presence of https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/actuator.html[Spring Boot Actuator] dependency.
+
+To add actuator to your project, add the following dependency:
+
+ifeval::["{plugin-type}" == "maven"]
+[source,xml,subs="attributes+"]
+----
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+</dependencies>
+----
+
+Once you run {goal-prefix}:resource goal again, you should be able to see liveness and readiness probes added in generated manifests.
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,gradle,subs="attributes+"]
+----
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+}
+----
+Once you run {task-prefix}Resource task again, you should be able to see liveness and readiness probes added in generated manifests.
+endif::[]
+
+

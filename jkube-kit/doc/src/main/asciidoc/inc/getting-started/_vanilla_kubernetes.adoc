@@ -1,0 +1,15 @@
+[[vanilla-kubernetes]]
+== Vanilla Kubernetes Cluster
+
+This is an example of how you can use the {plugin} to build and deploy your Java application to any Kubernetes Cluster.
+
+[[vanilla-kubernetes-prerequisites]]
+*Prerequisites*
+
+You will need the following for the scenario:
+
+* Kubernetes Cluster
+* Access to a Container registry (Docker Hub/Quay.io)
+* A https://adoptopenjdk.net/[Java Development Kit] (JDK)
+
+include::_generic_gettingstarted_scenario.adoc[]

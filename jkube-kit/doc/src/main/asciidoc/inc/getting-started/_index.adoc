@@ -1,0 +1,31 @@
+
+[[getting-started]]
+= Getting Started
+
+When working with {plugin}, you'll probably be facing similar situations and following
+the same patterns other users do. These are some of the most common scenarios and
+configuration modes:
+
+
+ifeval::["{goal-prefix}" == "k8s"]
+include::_minikube.adoc[]
+
+include::_vanilla_kubernetes.adoc[]
+endif::[]
+ifeval::["{task-prefix}" == "k8s"]
+include::_minikube.adoc[]
+
+include::_vanilla_kubernetes.adoc[]
+endif::[]
+
+ifeval::["{task-prefix}" == "oc"]
+include::_redhat_dev_sandbox.adoc[]
+endif::[]
+ifeval::["{goal-prefix}" == "oc"]
+include::_redhat_dev_sandbox.adoc[]
+endif::[]
+
+include::_spring_boot.adoc[]
+include::_vertx.adoc[]
+include::_quarkus.adoc[]
+include::_dockerfile.adoc[]

@@ -1,0 +1,77 @@
+*Building and pushing image to Container registry*
+
+Once you've set up your project and tested it, You can create a container image for your application using {plugin}. If you've access to a docker daemon try running this command:
+
+ifeval::["{plugin-type}" == "maven"]
+[source,sh,subs="attributes+"]
+----
+$ ./mvnw {goal-prefix}:build
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,sh,subs="attributes+"]
+----
+$ ./gradlew k8sBuild
+----
+endif::[]
+
+If you don't have access to any docker daemon, you can configure {plugin} to use JIB mode as well:
+
+ifeval::["{plugin-type}" == "maven"]
+[source,sh,subs="attributes+"]
+----
+$ ./mvnw {goal-prefix}:build -Djkube.build.strategy=jib
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,sh,subs="attributes+"]
+----
+$ ./gradlew {task-prefix}Build -Pjkube.build.strategy=jib
+----
+endif::[]
+
+After running this command you'll see {plugin} created a container image with opinionated defaults by inspecting your project dependencies. However, you would want to configure the name of the container image.
+
+Let's say you want to push your image to Quay.io with username foo. You can configure image name by running this command:
+
+ifeval::["{plugin-type}" == "maven"]
+[source,sh,subs="attributes+"]
+----
+$ ./mvnw {goal-prefix}:build -Djkube.generator.name="quay.io/foo/%a:%l"
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,sh,subs="attributes+"]
+----
+$ ./gradlew {task-prefix}Build -Pjkube.generator.name="quay.io/foo/%a:%l"
+----
+endif::[]
+
+
+Once you've created a container image of your application, you need to push it to some container registry. Make sure you've already created account on some public/private container registry. You can provide your credentials either via environment variables or plugin configuration. {plugin} also tries to read `~/.docker/config.json` that gets created after `docker login`. You can read more about this in <<authentication, Authentication>> section.
+
+Log into your container registry:
+
+[source,sh,subs="attributes+"]
+----
+$ docker login quay.io
+----
+
+Run this command to instruct {plugin} to push container image you built in previous step to your container registry:
+
+ifeval::["{plugin-type}" == "maven"]
+[source,sh,subs="attributes+"]
+----
+$ ./mvnw {goal-prefix}:push -Djkube.generator.name="quay.io/foo/%a:%l"
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,sh,subs="attributes+"]
+----
+$ ./gradlew {task-prefix}Push -Pjkube.generator.name="quay.io/foo/%a:%l"
+----
+endif::[]
