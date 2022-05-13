@@ -13,10 +13,7 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
-import com.jayway.jsonpath.ReadContext;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -26,18 +23,15 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -56,141 +50,159 @@ public class DefaultServiceEnricherTest {
     GroupArtifactVersion groupArtifactVersion;
 
     @Test
-    public void checkDefaultConfiguration() throws Exception {
+    public void checkDefaultConfiguration() {
         setupExpectations("type", "LoadBalancer");
 
-        String json = enrich();
-        ReadContext ctx = JsonPath.parse(json);
+        HasMetadata object = enrich();
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .hasSize(1);
 
-        String specType = ctx.read("$.spec.type");
-        List<String> ports = ctx.read( "$.spec.ports[*]");
+        assertThat(object)
+                .hasFieldOrPropertyWithValue("spec.type", "LoadBalancer");
 
-        assertThat(specType).isEqualTo("LoadBalancer");
-        assertPort(json, 0, 80, 80, "http", "TCP");
-        assertThat(ports).hasSize(1);
+        assertPort(object, 0, 80, 80, "http", "TCP");
     }
 
     @Test
-    public void portOverride() throws JsonProcessingException {
+    public void portOverride() {
         setupExpectations("port", "8080", "multiPort", "true");
 
-        String json = enrich();
-        List<String> ports = JsonPath.read(json,"$.spec.ports[*]");
+        HasMetadata object = enrich();
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .hasSize(2);
 
-        assertPort(json, 0, 8080, 80, "http", "TCP");
-        assertPort(json, 1, 53, 53, "domain", "UDP");
-        assertThat(ports).hasSize(2);
+        assertPort(object, 0, 8080, 80, "http", "TCP");
+        assertPort(object, 1, 53, 53, "domain", "UDP");
     }
 
     @Test
-    public void portOverrideWithMapping() throws JsonProcessingException {
+    public void portOverrideWithMapping() {
         setupExpectations("port", "443:8181/udp", "multiPort", "true", "normalizePort", "true");
 
-        String json = enrich();
-        List<String> ports = JsonPath.read(json, "$.spec.ports[*]");
+        HasMetadata object = enrich();
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .hasSize(2);
 
-        assertPort(json, 0, 80, 8181, "https", "UDP");
-        assertPort(json, 1, 53, 53, "domain", "UDP");
-        assertThat(ports).hasSize(2);
+        assertPort(object, 0, 80, 8181, "https", "UDP");
+        assertPort(object, 1, 53, 53, "domain", "UDP");
     }
 
     @Test
-    public void portConfigWithMultipleMappings() throws Exception {
+    public void portConfigWithMultipleMappings() {
         setupExpectations("port", "443:81,853:53", "multiPort", "true");
 
-        String json = enrich();
-        List<String> ports = JsonPath.read(json, "$.spec.ports[*]");
+        HasMetadata object = enrich();
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .hasSize(2);
 
-        assertPort(json, 0, 443, 81, "https", "TCP");
-        assertPort(json, 1, 853, 53, "domain-s", "TCP");
-        assertThat(ports).hasSize(2);
+        assertPort(object, 0, 443, 81, "https", "TCP");
+        assertPort(object, 1, 853, 53, "domain-s", "TCP");
     }
 
     @Test
-    public void portConfigWithMultipleMapping1() throws JsonProcessingException {
+    public void portConfigWithMultipleMapping1() {
         setupExpectations("port", "8080:8081,8443:8443", "multiPort", "true", "normalizePort", "true");
 
-        String json = enrich();
-        List<String> ports = JsonPath.read(json, "$.spec.ports[*]");
+        HasMetadata object = enrich();
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .hasSize(2);
 
-        assertPort(json, 0, 80, 8081, "http", "TCP");
-        assertPort(json, 1, 443, 8443, "https", "TCP");
-        assertThat(ports).hasSize(2);
+        assertPort(object, 0, 80, 8081, "http", "TCP");
+        assertPort(object, 1, 443, 8443, "https", "TCP");
     }
 
 
     @Test
-    public void portConfigWithMultipleMappingsNoMultiPort() throws Exception {
+    public void portConfigWithMultipleMappingsNoMultiPort() {
         setupExpectations("port", "443:81,853:53", "multiPort", "false");
 
-        String json = enrich();
-        List<String> ports = JsonPath.read(json, "$.spec.ports[*]");
+        HasMetadata object = enrich();
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .hasSize(1);
 
-        assertPort(json, 0, 443, 81, "https", "TCP");
-        assertThat(ports).hasSize(1);
+        assertPort(object, 0, 443, 81, "https", "TCP");
     }
 
     @Test
-    public void portConfigWithMultipleMappingsNoMultiPortNoImagePort() throws Exception {
+    public void portConfigWithMultipleMappingsNoMultiPortNoImagePort() {
         setupExpectations(false, "port", "443:81,853:53", "multiPort", "false");
 
-        String json = enrich();
-        List<String> ports = JsonPath.read(json, "$.spec.ports[*]");
+        HasMetadata object = enrich();
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .hasSize(1);
 
-        assertPort(json, 0, 443, 81, "https", "TCP");
-        assertThat(ports).hasSize(1);
+        assertPort(object, 0, 443, 81, "https", "TCP");
     }
 
     @Test
-    public void portConfigWithMortPortsThanImagePorts() throws Exception {
+    public void portConfigWithMortPortsThanImagePorts() {
         setupExpectations("port", "443:81,853:53,22/udp", "multiPort", "true");
 
-        String json = enrich();
-        List<String> ports = JsonPath.read(json, "$.spec.ports[*]");
+        HasMetadata object = enrich();
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .hasSize(3);
 
-        assertPort(json, 0, 443, 81, "https", "TCP");
-        assertPort(json, 1, 853, 53, "domain-s", "TCP");
-        assertPort(json, 2, 22, 22, "ssh", "UDP");
-        assertThat(ports).hasSize(3);
-
+        assertPort(object, 0, 443, 81, "https", "TCP");
+        assertPort(object, 1, 853, 53, "domain-s", "TCP");
+        assertPort(object, 2, 22, 22, "ssh", "UDP");
     }
 
     @Test
-    public void portConfigWithMortPortsThanImagePortsAndNoMultiPort() throws Exception {
+    public void portConfigWithMortPortsThanImagePortsAndNoMultiPort() {
         setupExpectations("port", "443:81,853:53,22");
 
-        String json = enrich();
-        List<String> ports = JsonPath.read(json, "$.spec.ports[*]");
+        HasMetadata object = enrich();
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .hasSize(1);
 
-        assertPort(json, 0, 443, 81, "https", "TCP");
-        assertThat(ports).hasSize(1);
+        assertPort(object, 0, 443, 81, "https", "TCP");
     }
 
     @Test
-    public void portConfigWithoutPortsFromImageConfig() throws Exception {
+    public void portConfigWithoutPortsFromImageConfig() {
         setupExpectations(false, "port", "443:81,853:53/UdP,22/TCP", "multiPort", "true");
 
-        String json = enrich();
-        List<String> ports = JsonPath.read(json, "$.spec.ports[*]");
+        HasMetadata object = enrich();
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .hasSize(3);
 
-        assertPort(json, 0, 443, 81, "https", "TCP");
-        assertPort(json, 1, 853, 53, "domain-s", "UDP");
-        assertPort(json, 2, 22, 22, "ssh", "TCP");
-        assertThat(ports).hasSize(3);
+        assertPort(object, 0, 443, 81, "https", "TCP");
+        assertPort(object, 1, 853, 53, "domain-s", "UDP");
+        assertPort(object, 2, 22, 22, "ssh", "TCP");
     }
 
     @Test
-    public void headlessServicePositive() throws Exception {
+    public void headlessServicePositive() {
         setupExpectations(false, "headless", "true");
-        String json = enrich();
-        ReadContext ctx = JsonPath.parse(json);
+        HasMetadata object = enrich();
 
-        String clusterIP = ctx.read("$.spec.clusterIP");
+        assertThat(object)
+                .hasFieldOrPropertyWithValue("spec.clusterIP", "None");
 
-        assertThat(clusterIP).isEqualTo("None");
-        assertThatExceptionOfType(PathNotFoundException.class)
-                .isThrownBy(() -> ctx.read("$.spec.ports[*]"));
-
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .isEmpty();
     }
 
     @Test
@@ -206,23 +218,18 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void miscConfiguration() throws Exception {
+    public void miscConfiguration() {
         setupExpectations("headless", "true", "type", "NodePort", "expose", "true");
-        String json = enrich();
-        ReadContext ctx = JsonPath.parse(json);
+        HasMetadata object = enrich();
 
-        String specType = ctx.read("$.spec.type");
-        String metadataLabel = ctx.read("$.metadata.labels.expose");
-
-        assertThat(specType).isEqualTo("NodePort");
-        assertThat(metadataLabel).isEqualTo("true");
-        assertThatExceptionOfType(PathNotFoundException.class)
-                .isThrownBy(() -> ctx.read("$.spec.clusterIP"));
-
+        assertThat(object)
+                .hasFieldOrPropertyWithValue("spec.type", "NodePort")
+                .hasFieldOrPropertyWithValue("metadata.labels.expose", "true")
+                .hasFieldOrPropertyWithValue("spec.clusterIP", null);
     }
 
     @Test
-    public void serviceImageLabelEnrichment() throws Exception {
+    public void serviceImageLabelEnrichment() {
         ImageConfiguration imageConfigurationWithLabels = ImageConfiguration.builder()
                 .name("test-label")
                 .alias("test")
@@ -250,13 +257,13 @@ public class DefaultServiceEnricherTest {
                     .build();
         }};
 
-        String json = enrich();
-        assertPort(json, 0, 9090, 9090, "http", "TCP");
+        HasMetadata object = enrich();
+        assertPort(object, 0, 9090, 9090, "http", "TCP");
     }
 
     // ======================================================================================================
 
-    private String enrich() throws JsonProcessingException {
+    private HasMetadata enrich(){
         // Enrich
         DefaultServiceEnricher serviceEnricher = new DefaultServiceEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -265,23 +272,18 @@ public class DefaultServiceEnricherTest {
         // Validate that the generated resource contains
         KubernetesList list = builder.build();
         assertEquals(1, list.getItems().size());
-
-        return ResourceUtil.toJson(list.getItems().get(0));
+        return list.getItems().get(0);
     }
 
-
-    private void assertPort(String json, int idx, int port, int targetPort, String name, String protocol) {
-        ReadContext ctx = JsonPath.parse(json);
-
-        int localPort = ctx.read("$.spec.ports[" + idx + "].port");
-        int tarPort = ctx.read("$.spec.ports[" + idx + "].targetPort");
-        String portName = ctx.read("$.spec.ports[" + idx + "].name");
-        String protocolName = ctx.read("$.spec.ports[" + idx + "].protocol");
-
-        assertThat(localPort).isEqualTo(port);
-        assertThat(tarPort).isEqualTo(targetPort);
-        assertThat(portName).isEqualTo(name);
-        assertThat(protocolName).isEqualTo(protocol);
+    private void assertPort(HasMetadata object, int idx, int port, int targetPort, String name, String protocol) {
+        assertThat(object)
+                .extracting("spec.ports")
+                .asList()
+                .element(idx)
+                .hasFieldOrPropertyWithValue("port", port)
+                .hasFieldOrPropertyWithValue("targetPort.IntVal", targetPort)
+                .hasFieldOrPropertyWithValue("name", name)
+                .hasFieldOrPropertyWithValue("protocol", protocol);
     }
 
     private void setupExpectations(String ... configParams) {
@@ -318,6 +320,4 @@ public class DefaultServiceEnricherTest {
         }
         return builder.build();
     }
-
-
 }
