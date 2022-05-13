@@ -15,12 +15,8 @@ package org.eclipse.jkube.kit.enricher.specific;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.ReadContext;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -33,7 +29,6 @@ import org.eclipse.jkube.kit.config.image.build.HealthCheckMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
@@ -50,7 +45,7 @@ public class DockerHealthCheckEnricherTest {
     private JKubeEnricherContext context;
 
     @Test
-    public void testEnrichFromSingleImage() throws Exception {
+    public void testEnrichFromSingleImage() {
         // Setup mock behaviour
         new Expectations() {{
             List<ImageConfiguration> images =  Arrays.asList(ImageConfiguration.builder()
@@ -93,7 +88,7 @@ public class DockerHealthCheckEnricherTest {
     }
 
     @Test
-    public void testEnrichFromDoubleImage() throws Exception {
+    public void testEnrichFromDoubleImage() {
         // Setup mock behaviour
         new Expectations() {{
             List<ImageConfiguration> images = Arrays.asList(ImageConfiguration.builder()
@@ -141,7 +136,7 @@ public class DockerHealthCheckEnricherTest {
     }
 
     @Test
-    public void testInvalidHealthCheck() throws Exception {
+    public void testInvalidHealthCheck() {
         // Setup mock behaviour
         new Expectations() {{
             final ImageConfiguration image = ImageConfiguration.builder()
@@ -167,7 +162,7 @@ public class DockerHealthCheckEnricherTest {
     }
 
     @Test
-    public void testUnmatchingHealthCheck() throws Exception {
+    public void testUnmatchingHealthCheck() {
         // Setup mock behaviour
         new Expectations() {{
             final ImageConfiguration image = ImageConfiguration.builder()
@@ -217,37 +212,56 @@ public class DockerHealthCheckEnricherTest {
             .build());
     }
 
-    private void assertNoProbes(HasMetadata object) throws JsonProcessingException {
-        String json = ResourceUtil.toJson(object);
-        ReadContext ctx = JsonPath.parse(json);
-        LinkedHashMap<String, Object> map = ctx.read("$.spec.template.spec.containers[0]");
-
-        assertThat(map).doesNotContainKey("livenessProbe");
-        assertThat(map).doesNotContainKey("readinessProbe");
+    private void assertNoProbes(HasMetadata object) {
+        assertThat(object)
+                .extracting("spec.template.spec.containers")
+                .asList()
+                .first()
+                .hasFieldOrPropertyWithValue("livenessProbe", null)
+                .hasFieldOrPropertyWithValue("readinessProbe", null);
     }
 
-    private void assertHealthCheckMatching(HasMetadata object, String type, String command, Integer timeoutSeconds, Integer periodSeconds, Integer failureThreshold) throws JsonProcessingException {
-        String json = ResourceUtil.toJson(object);
-        ReadContext ctx = JsonPath.parse(json);
-        LinkedHashMap<String, Object> map = ctx.read("$.spec.template.spec.containers[0]");
+    private void assertHealthCheckMatching(HasMetadata object, String type, String command, Integer timeoutSeconds, Integer periodSeconds, Integer failureThreshold) {
+        assertThat(object)
+                .extracting("spec.template.spec.containers")
+                .asList()
+                .first()
+                .hasFieldOrProperty(type);
 
-        assertThat(map).containsKey(type);
-
-        if (command != null) {
-            String cmd = ctx.read("$.spec.template.spec.containers[0]." + type + ".exec.command[0]");
-            assertThat(cmd).isEqualTo(command);
+        if (command != null){
+            assertThat(object)
+                    .extracting("spec.template.spec.containers")
+                    .asList()
+                    .first()
+                    .extracting(type + ".exec.command")
+                    .asList()
+                    .first()
+                    .isEqualTo(command);
         }
-        if (timeoutSeconds != null) {
-            Integer timeoutSec = ctx.read("$.spec.template.spec.containers[0]." + type + ".timeoutSeconds");
-            assertThat(timeoutSec).isEqualTo(timeoutSeconds);
+        if (timeoutSeconds != null){
+            assertThat(object)
+                    .extracting("spec.template.spec.containers")
+                    .asList()
+                    .first()
+                    .extracting(type)
+                    .hasFieldOrPropertyWithValue("timeoutSeconds", timeoutSeconds);
         }
-        if (periodSeconds != null) {
-            Integer periodSec = ctx.read("$.spec.template.spec.containers[0]." + type + ".periodSeconds");
-            assertThat(periodSec).isEqualTo(periodSeconds);
+        if (periodSeconds != null){
+            assertThat(object)
+                    .extracting("spec.template.spec.containers")
+                    .asList()
+                    .first()
+                    .extracting(type)
+                    .hasFieldOrPropertyWithValue("periodSeconds", periodSeconds);
         }
-        if (failureThreshold != null) {
-            Integer threshold = ctx.read("$.spec.template.spec.containers[0]." + type + ".failureThreshold");
-            assertThat(failureThreshold).isEqualTo(threshold);        }
+        if (failureThreshold != null){
+          assertThat(object)
+              .extracting("spec.template.spec.containers")
+              .asList()
+              .first()
+              .extracting(type)
+              .hasFieldOrPropertyWithValue("failureThreshold", failureThreshold);
+        }
     }
 
 }
