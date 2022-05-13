@@ -266,7 +266,7 @@ public class BuildConfiguration implements Serializable {
     if (contextDir != null) {
       return new File(contextDir);
     }
-    return Optional.ofNullable(getDockerFile().getParentFile()).orElse(new File("."));
+    return Optional.ofNullable(getDockerFile()).map(File::getParentFile).orElse(new File("."));
   }
 
   public String getContextDirRaw() {
