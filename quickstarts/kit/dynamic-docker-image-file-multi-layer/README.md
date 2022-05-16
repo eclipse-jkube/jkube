@@ -1,3 +1,9 @@
+---
+name: "Kit :: Docker Image from Multilayer Dockerfile"
+description: |
+  Eclipse JKube Kit example showing how to Dynamically generate a Docker image.
+  The generated image contains multiple COPY statements which allows the generation of a multilayered container image.
+---
 # JKube Kit - Docker Image Build  from Dynamic multilayered Dockerfile Example
 
 This [quickstart](../../../quickstarts) will generate a Docker image using JKube Kit API.

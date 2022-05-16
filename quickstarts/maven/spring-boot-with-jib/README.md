@@ -1,3 +1,9 @@
+---
+name: "Maven :: Spring Boot JIB"
+description: |
+  Spring Boot application with a single REST endpoint.
+  Demonstrates how to build a project using Eclipse JKube JIB build strategy.
+---
 # Spring Boot Sample with JIB Build Mode
 
 This is also a Spring Boot application to demonstrate how Eclipse JKube handles Kubernetes/OpenShift workflows by 

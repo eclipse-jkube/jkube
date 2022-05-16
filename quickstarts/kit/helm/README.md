@@ -1,3 +1,8 @@
+---
+name: "Kit :: Helm"
+description: |
+  Eclipse JKube Kit example showing how to generate a Helm Charts using Eclipse JKube in standalone mode.
+---
 # JKube Kit - Docker Image Build  from Dynamic multilayered Dockerfile Example
 
 This [quickstart](../../../quickstarts) will generate Helm charts using JKube Kit API.

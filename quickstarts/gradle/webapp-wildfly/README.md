@@ -1,3 +1,11 @@
+---
+name: "Gradle :: Webapp :: Wildfly"
+description: |
+   Java Web Application with a static index.html resource.
+   Demonstrates how to create a container image with an embedded WildFly server using Eclipse JKube.
+   WildFly is used instead of Apache Tomcat because there is a WildFly persistence.xml and -ds.xml configuration.
+   Eclipse JKube detects this file and chooses a WildFly specific base container image.
+---
 # Eclipse JKube Webapp Wildfly Sample
 This quick start showcases how to use Eclipse JKube with a Wildfly war project.
 Demonstrates how to create a container image with an embedded WildFly server using Eclipse JKube.

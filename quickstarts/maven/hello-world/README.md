@@ -1,3 +1,9 @@
+---
+name: "Maven :: Hello World"
+description: |
+  Demo project for getting started with Eclipse JKube.
+  It just prints "Hello World" on command line and exits.
+---
 # JKube Hello World Sample
 
 This is a demo project for getting started with Eclipse JKube. It just prints "Hello World" on command

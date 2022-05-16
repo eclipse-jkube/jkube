@@ -1,3 +1,9 @@
+---
+name: "Kit :: Custom Istio Enricher Parent"
+description: |
+  Eclipse JKube Kit example to build and use a Custom Enricher in a SpringBoot Application.
+  It will demonstrate how you can extend Eclipse JKube Kit's Enricher API to make your own enricher and use it to enrich or generate manifests as per your requirements.
+---
 # JKube Kit - Custom Enricher Using Eclipse JKube Enricher API
 
 This example demonstrates how you can extend Eclipse JKube Kit's Enricher API to make your own enricher and use it to enrich or generate manifests as per your requirements. This is a multi module project which contains these modules:

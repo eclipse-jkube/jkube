@@ -1,3 +1,9 @@
+---
+name: "Gradle :: Webapp"
+description: |
+  Java Web Application with a static index.html resource.
+  Demonstrates how to create a container image with an embedded Apache Tomcat server using Eclipse JKube.
+---
 # Eclipse JKube Webapp
 This quick start showcases how to use Eclipse JKube with a war project to build a container image. 
 The webapp generator tries to detect WAR builds and selects a base servlet container image based on the configuration found in the `build.gradle`. A Tomcat base image is selected by default.

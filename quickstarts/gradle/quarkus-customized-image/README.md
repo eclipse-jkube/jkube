@@ -1,3 +1,10 @@
+---
+name: "Gradle :: Quarkus Customized Image"
+description: |
+  Quarkus application with a single JAX-RS endpoint.
+  Demonstrates how to build a Quarkus container image based on a Red Hat container image private registry.
+  Uses a pull secret from Red Hat Registry Service Accounts to authenticate.
+---
 # Eclipse JKube Quarkus with Customized Image Quickstart
 
 A simple REST application demonstrating usage of Eclipse JKube with Quarkus

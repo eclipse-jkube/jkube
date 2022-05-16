@@ -1,3 +1,7 @@
+---
+name: "Maven :: Thorntail"
+description: Java web application with a single JAX-RS endpoint packaged with Thorntail.
+---
 # Thorntail Sample
 
 This is a sample project to use Eclipse JKube plugins.

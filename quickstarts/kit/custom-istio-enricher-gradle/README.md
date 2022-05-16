@@ -1,3 +1,9 @@
+---
+name: "Kit :: Gradle :: Custom Istio Enricher"
+description: |
+  Eclipse JKube Kit example to build and use a Custom Enricher in a SpringBoot Gradle Application.
+  It will demonstrate how you can extend Eclipse JKube Kit's Enricher API to make your own enricher and use it to enrich or generate manifests as per your requirements.
+---
 # JKube Kit - Custom Enricher Using Eclipse JKube Enricher API in Gradle
 
 This example demonstrates how you can extend Eclipse JKube Kit's Enricher API to make your own enricher and use it to enrich or generate manifests as per your requirements.

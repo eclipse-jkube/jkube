@@ -1,3 +1,10 @@
+---
+name: "Maven :: External Resources"
+description: |
+  Simple Spring Boot application which demonstrates how you can use Eclipse JKube's resource fragments.
+  Fragments in `src/main/jkube` directory are detected and picked up by JKube.
+  These fragments are then merged with the JKube generated cluster configuration manifests (YAML).
+---
 # Eclipse JKube External Resources Quickstart
 
 This is a simple SpringBoot application which demonstrates how you can use Eclipse JKube's

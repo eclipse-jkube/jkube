@@ -1,3 +1,9 @@
+---
+name: "Gradle :: Custom Webapp"
+description: |
+  Java Web Application with a static index.html resource.
+  Demonstrates how to use Eclipse JKube with a war project to build a container image based on a custom image instead of the defaults Tomcat/Jetty/Wildfly. 
+---
 # Eclipse JKube Webapp custom
 This quick start showcases how to use Eclipse JKube with a war project to build a container image based on a custom image instead of the defaults Tomcat/Jetty/Wildfly.
 

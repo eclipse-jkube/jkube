@@ -1,3 +1,10 @@
+---
+name: "Gradle :: Webapp :: Jetty"
+description: |
+  Java Web Application with a static index.html resource.
+  Demonstrates building container image with war project.
+  It also tries to detect WAR builds and select container image based on configuration specified in build.gradle
+---
 # Eclipse JKube Webapp - Jetty
 This quick start showcases how to use Eclipse JKube with a war project to build a container image. 
 The webapp generator tries to detect WAR builds and selects a base servlet container image based on the configuration found in the `build.gradle`. A Tomcat base image is selected by default.

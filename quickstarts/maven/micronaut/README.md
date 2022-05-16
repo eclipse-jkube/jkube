@@ -1,3 +1,8 @@
+---
+name: "Maven :: Micronaut"
+description: |
+  Micronaut application featuring REST endpoints (micronaut-http) with validation (micronaut-validation).
+---
 # Eclipse JKube Micronaut quickstart
 
 Micronaut application featuring REST endpoints (micronaut-http) with validation (micronaut-validation).

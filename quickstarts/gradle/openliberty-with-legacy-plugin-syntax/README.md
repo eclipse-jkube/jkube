@@ -1,3 +1,9 @@
+---
+name: "Gradle :: Open Liberty with Legacy Plugin syntax"
+description: |
+  JAX-RS application deployed with OpenLiberty and Eclipse JKube using old style Gradle syntax for plugin declaration.
+  The application contains a single endpoint (/hello) that prints 'Hello, World.'.
+---
 # Eclipse JKube OpenLiberty Gradle Quickstart
 
 This is a demo gradle application based on OpenLiberty framework which can be deployed to Kubernetes with the help of Kubernetes Gradle Plugin. 

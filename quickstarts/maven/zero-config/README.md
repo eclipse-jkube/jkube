@@ -1,3 +1,10 @@
+---
+name: "Maven :: Zero-Config"
+description: |
+  Spring Boot application with a single REST endpoint.
+  Demonstrates Eclipse JKube Zero Configuration capabilities.
+  All configurations to create the container image and resource manifests are inferred from the project and its dependencies.
+---
 # Spring Boot Sample With Zero Config
 
 This is a sample project to use Eclipse JKube plugins.
