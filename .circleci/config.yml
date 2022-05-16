@@ -105,8 +105,6 @@ jobs:
       - image: cimg/openjdk:11.0
     steps:
     - checkout
-    - restore_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
     - run: |
         if [ -n "${CIRCLE_PR_NUMBER}" ]; then
           ./scripts/generateDoc.sh
