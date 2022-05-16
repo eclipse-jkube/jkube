@@ -1,3 +1,9 @@
+---
+name: "Maven :: Open Liberty &amp; MicroProfile"
+description: |
+  How to integrate Eclipse JKube into an OpenLiberty-MicroProfile project as downloaded from start.microprofile.io.
+  Includes a JAX-RS endpoint, sample CDI injected configuration, and Liveness and Readiness probes.
+---
 # Eclipse JKube OpenLiberty MicroProfile Quickstart
 
 This example shows how to integrate Eclipse JKube in an OpenLiberty-MicroProfile application as downloaded from

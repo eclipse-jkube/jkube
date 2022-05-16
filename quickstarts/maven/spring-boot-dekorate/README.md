@@ -1,3 +1,9 @@
+---
+name: "Maven :: Spring Boot - Dekorate"
+description: |
+  Spring Boot application with Dekorate integration.
+  Eclipse JKube uses Dekorate generated cluster configuration manifests.
+---
 # Spring Boot with Dekorate integration Quickstart
 
 This examples shows how Eclipse JKube can work together with [Dekorate](https://github.com/dekorateio/dekorate) annotations

@@ -1,3 +1,10 @@
+---
+name: "Maven :: Quarkus"
+description: |
+  Quarkus application with a single JAX-RS endpoint.
+  Demonstrates how to package the project using JVM mode or Native image mode.
+  Demonstrates how to build a Quarkus project container with Eclipse JKube's S2I, Docker and JIB build strategies.
+---
 # Eclipse JKube Quarkus Quickstart
 
 A simple REST application demonstrating usage of Eclipse JKube with Quarkus.

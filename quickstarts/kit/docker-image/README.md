@@ -1,3 +1,8 @@
+---
+name: "Kit :: Docker Image"
+description: |
+  Eclipse JKube Kit example showing how to generate a Docker image by using Eclipse JKube in standalone mode.
+---
 # JKube Kit - Docker Image Build Example
 
 This [quickstart](../../../quickstarts) will generate a Docker image using JKube Kit API.

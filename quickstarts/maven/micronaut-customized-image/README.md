@@ -1,3 +1,11 @@
+---
+name: "Maven :: Micronaut customized Image"
+description: |
+  Micronaut application featuring REST endpoints (micronaut-http) with validation (micronaut-validation).
+  Includes configuration to enable health check probes (livenessProbe &amp; readinessProbe) using JKube's
+  powerful resource fragments and micronaut-management feature.
+  XML based image configuration compatible with OpenShift and Kubernetes.
+---
 # Eclipse JKube Micronaut customized image quickstart
 
 Micronaut application featuring REST endpoints (micronaut-http) with validation (micronaut-validation).

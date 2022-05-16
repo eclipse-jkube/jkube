@@ -23,7 +23,7 @@
   <packaging>war</packaging>
 
   <description>
-    Java Web Application that uses an embeded h2 database.
+    Java Web Application that uses an embedded h2 database.
     Demonstrates how to create a container image with an embedded WildFly server using Eclipse JKube.
     WildFly is used instead of Apache Tomcat because there is a WildFly persistence.xml and -ds.xml configuration.
     Eclipse JKube detects this file and chooses a WildFly specific base container image.

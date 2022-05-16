@@ -1,3 +1,8 @@
+---
+name: "Gradle :: Vertx Web"
+description: |
+  Eclipse Vert.x example application declaring a Simple AbstractVerticle.
+---
 # Vertx sample for Eclipse JKube gradle plugins
 This is a sample project to use Eclipse JKube plugins.
 

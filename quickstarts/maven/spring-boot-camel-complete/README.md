@@ -1,3 +1,10 @@
+---
+name: "Maven :: Spring Boot - Camel"
+description: |
+  Spring Boot application with Camel Spring Boot integration.
+  Programmatically (RouteBuilder) declares 2 routes to log messages and process orders.
+  Declares an Apache Camel servlet REST endpoint.
+---
 # Eclipse JKube Spring Boot with Camel integration Quick start
 
 This is a quickstart project to use Eclipse JKube plugin with [Apache Camel](https://camel.apache.org/).

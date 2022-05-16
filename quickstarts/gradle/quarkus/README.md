@@ -1,3 +1,10 @@
+---
+name: "Gradle :: Quarkus"
+description: |
+  Quarkus application with a single JAX-RS endpoint.
+  Demonstrates how to package the project using JVM mode or Native image mode.
+  Demonstrates how to build a Quarkus project container with Eclipse JKube's S2I, Docker and JIB build strategies.
+---
 # Eclipse JKube Quarkus Quickstart
 
 A simple REST application demonstrating usage of Eclipse JKube with Quarkus.
@@ -90,7 +97,15 @@ On invoking this, you can see it in browser:
 ```shell
 $ eval $(minikube -p minikube docker-env)
 $ ./gradlew clean build -Pquarkus.package.type=native -Pquarkus.native.remote-container-build=true
-$ ./gradlew k8sBuild
-$ ./gradlew build k8sResource
-$ ./gradlew k8sApply
+$ ./gradlew k8sBuild k8sResource k8sApply
+```
+
+### JIB
+
+```shell
+$ eval $(minikube -p minikube docker-env)
+$ ./gradlew clean build -Pquarkus.package.type=native -Pquarkus.native.remote-container-build=true
+$ ./gradlew k8sBuild -Pjkube.build.strategy=jib
+$ docker load -i ./build/docker/gradle/quarkus/1.7.0/tmp/docker-build.tar
+$ ./gradlew k8sResource k8sApply
 ```

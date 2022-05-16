@@ -1,3 +1,7 @@
+---
+name: "Maven :: Wildfly JAR"
+description: Java web application with a single JAX-RS endpoint packaged with WildFly Jar Maven Plugin.
+---
 # Wildfly JAR Sample
 
 This is a sample project to use Eclipse JKube plugins.

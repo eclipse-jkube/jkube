@@ -1,3 +1,9 @@
+---
+name: "Gradle :: Open Liberty"
+description: |
+  JAX-RS application deployed with OpenLiberty and Eclipse JKube.
+  The application contains a single endpoint (/hello) that prints 'Hello, World.'.
+---
 # Eclipse JKube OpenLiberty Gradle Quickstart
 
 This is a demo gradle application based on OpenLiberty framework which can be deployed to 

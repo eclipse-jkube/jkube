@@ -1,3 +1,10 @@
+---
+name: "Maven :: JavaEE 8 WebProfile"
+description: |
+  Demo project for Jakarta EE 8 WebProfile, IBM WebSphere Liberty is used as a Jakarta EE implementation.
+  On Windows or Mac if VirtualBox is used, run the tests using:
+  $ mvn clean verify -DtestProxyHost=192.168.99.100
+---
 ## A WebSphere Liberty Java EE 8 based application prepared for development using Eclipse JKube Kubernetes Maven Plugin
 
 **WebSphere Liberty** is a fast, dynamic, and easy-to-use Java application server, built on the open source 

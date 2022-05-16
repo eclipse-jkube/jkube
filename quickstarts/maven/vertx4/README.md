@@ -1,3 +1,7 @@
+---
+name: "Maven :: Vertx 4 Web"
+description: Eclipse Vert.x 4 example application declaring a Simple AbstractVerticle.
+---
 # Eclipse JKube Vert.x 4 Web Quickstart
 Eclipse Vert.x 4 Web example application declaring a Simple AbstractVerticle.
 

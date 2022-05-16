@@ -1,3 +1,10 @@
+---
+name: "Maven :: Docker File Provided"
+description: |
+  Spring Boot Web application with a single @RestController.
+  Shows how to deploy Spring Boot applications to Kubernetes using existing Dockerfile with Eclipse JKube.
+  Also provides example on how to configure Docker Context directory, assembly name etc. under different profiles.
+---
 # JKube externally provided Dockerfile example
 This quick start showcases how to use Eclipse JKube with external Docker files.
 
