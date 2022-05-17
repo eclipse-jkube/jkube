@@ -16,7 +16,8 @@ version: 2
 
 jobs:
   test:
-    machine: true
+    machine:
+      image: ubuntu-2004:202201-02
     steps:
     - checkout
     - restore_cache:
@@ -33,7 +34,8 @@ jobs:
         - ~/.m2
 
   build:
-    machine: true
+    machine:
+      image: ubuntu-2004:202201-02
     steps:
     - checkout
     - restore_cache:
@@ -48,7 +50,8 @@ jobs:
         - ~/.m2
 
   javadoc:
-    machine: true
+    machine:
+      image: ubuntu-2004:202201-02
     steps:
     - checkout
     - restore_cache:
