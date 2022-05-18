@@ -46,7 +46,8 @@ public class OpenshiftHelperStatusTest {
 
         @Test
         public void testIsFinishedUsingParametrizedTest() {
-            assertThat(OpenshiftHelper.isFinished(input)).isEqualTo(expected);
+            boolean result = OpenshiftHelper.isFinished(input);
+            assertThat(result).isEqualTo(expected);
         }
     }
     @RunWith(Parameterized.class)
@@ -68,7 +69,8 @@ public class OpenshiftHelperStatusTest {
 
         @Test
         public void testIsCancelledUsingParametrizedTest() {
-            assertThat(OpenshiftHelper.isCancelled(input)).isEqualTo(expected);
+            boolean result = OpenshiftHelper.isCancelled(input);
+            assertThat(result).isEqualTo(expected);
         }
     }
     @RunWith(Parameterized.class)
@@ -91,7 +93,8 @@ public class OpenshiftHelperStatusTest {
 
         @Test
         public void testIsFailedUsingParametrizedTest() {
-            assertThat(OpenshiftHelper.isFailed(input)).isEqualTo(expected);
+            boolean result = OpenshiftHelper.isFailed(input);
+            assertThat(result).isEqualTo(expected);
         }
     }
     @RunWith(Parameterized.class)
@@ -99,7 +102,7 @@ public class OpenshiftHelperStatusTest {
         @Parameterized.Parameters(name = "{0}: isCompleted({1})={2}")
         public static Collection<Object[]> data() {
             return Arrays.asList(new Object[][]{
-                    {"IsCompleteTue", "Complete", true},
+                    {"IsCompleteTrue", "Complete", true},
                     {"IsNotCompleteFalse", "not Complete", false}
             });
         }
@@ -113,9 +116,8 @@ public class OpenshiftHelperStatusTest {
 
         @Test
         public void testIsCompletedUsingParametrizedTest() {
-            assertThat(OpenshiftHelper.isCompleted(input)).isEqualTo(expected);
+            boolean result = OpenshiftHelper.isCompleted(input);
+            assertThat(result).isEqualTo(expected);
         }
     }
-
-
 }
