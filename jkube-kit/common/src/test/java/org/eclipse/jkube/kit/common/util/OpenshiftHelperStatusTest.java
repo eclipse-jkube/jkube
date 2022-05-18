@@ -13,111 +13,60 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Enclosed.class)
+@RunWith(Parameterized.class)
 public class OpenshiftHelperStatusTest {
-    @RunWith(Parameterized.class)
-    public static class Finished {
-        @Parameterized.Parameters(name = "{0}: isFinished({1})={2}")
-        public static Collection<Object[]> data() {
-            return Arrays.asList(new Object[][]{
-                    {"IsCompleteTrue", "Complete", true},
-                    {"IsErrorTrue", "Error", true},
-                    {"IsCancelledTrue", "Cancelled", true},
-                    {"IsNotCompleteFalse", "not Complete", false}
-            });
-        }
+  @Parameterized.Parameters(name = "OpenShift Status: ''{0}''")
+  public static Collection<Object[]> data() {
+    return Arrays.asList(
+        // input, isFinished, isCancelled, isFailed, isCompleted
+        new Object[] { "Complete", true, false, false, true },
+        new Object[] { "Error", true, false, true, false },
+        new Object[] { "Cancelled", true, true, false, false },
+        new Object[] { "not Complete", false, false, false, false },
+        new Object[] { null, false, false, false, false });
+  }
 
-        @Parameterized.Parameter
-        public String description;
-        @Parameterized.Parameter(1)
-        public String input;
-        @Parameterized.Parameter(2)
-        public Boolean expected;
+  @Parameterized.Parameter
+  public String input;
+  @Parameterized.Parameter(1)
+  public boolean isFinished;
+  @Parameterized.Parameter(2)
+  public boolean isCancelled;
+  @Parameterized.Parameter(3)
+  public boolean isFailed;
+  @Parameterized.Parameter(4)
+  public boolean isCompleted;
 
-        @Test
-        public void testIsFinishedUsingParametrizedTest() {
-            boolean result = OpenshiftHelper.isFinished(input);
-            assertThat(result).isEqualTo(expected);
-        }
-    }
-    @RunWith(Parameterized.class)
-    public static class Cancelled {
-        @Parameterized.Parameters(name = "{0}: isCancelled({1})={2}")
-        public static Collection<Object[]> data() {
-            return Arrays.asList(new Object[][]{
-                    {"IsCancelledTrue", "Cancelled", true},
-                    {"IsNotCancelledFalse", "not Cancelled", false}
-            });
-        }
+  @Test
+  public void testIsFinished() {
+    boolean result = OpenshiftHelper.isFinished(input);
+    assertThat(result).isEqualTo(isFinished);
+  }
 
-        @Parameterized.Parameter
-        public String description;
-        @Parameterized.Parameter(1)
-        public String input;
-        @Parameterized.Parameter(2)
-        public Boolean expected;
+  @Test
+  public void testIsCancelled() {
+    boolean result = OpenshiftHelper.isCancelled(input);
+    assertThat(result).isEqualTo(isCancelled);
+  }
 
-        @Test
-        public void testIsCancelledUsingParametrizedTest() {
-            boolean result = OpenshiftHelper.isCancelled(input);
-            assertThat(result).isEqualTo(expected);
-        }
-    }
-    @RunWith(Parameterized.class)
-    public static class Failed {
-        @Parameterized.Parameters(name = "{0}: isFailed({1})={2}")
-        public static Collection<Object[]> data() {
-            return Arrays.asList(new Object[][]{
-                    {"IsFailTrue", "Fail", true},
-                    {"IsErrorTrue", "Error", true},
-                    {"IsNullFalse", "null",false}
-            });
-        }
+  @Test
+  public void testIsFailed() {
+    boolean result = OpenshiftHelper.isFailed(input);
+    assertThat(result).isEqualTo(isFailed);
+  }
 
-        @Parameterized.Parameter
-        public String description;
-        @Parameterized.Parameter(1)
-        public String input;
-        @Parameterized.Parameter(2)
-        public Boolean expected;
-
-        @Test
-        public void testIsFailedUsingParametrizedTest() {
-            boolean result = OpenshiftHelper.isFailed(input);
-            assertThat(result).isEqualTo(expected);
-        }
-    }
-    @RunWith(Parameterized.class)
-    public static class Completed {
-        @Parameterized.Parameters(name = "{0}: isCompleted({1})={2}")
-        public static Collection<Object[]> data() {
-            return Arrays.asList(new Object[][]{
-                    {"IsCompleteTrue", "Complete", true},
-                    {"IsNotCompleteFalse", "not Complete", false}
-            });
-        }
-
-        @Parameterized.Parameter
-        public String description;
-        @Parameterized.Parameter(1)
-        public String input;
-        @Parameterized.Parameter(2)
-        public Boolean expected;
-
-        @Test
-        public void testIsCompletedUsingParametrizedTest() {
-            boolean result = OpenshiftHelper.isCompleted(input);
-            assertThat(result).isEqualTo(expected);
-        }
-    }
+  @Test
+  public void testIsCompleted() {
+    boolean result = OpenshiftHelper.isCompleted(input);
+    assertThat(result).isEqualTo(isCompleted);
+  }
 }
