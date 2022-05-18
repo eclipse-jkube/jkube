@@ -80,7 +80,7 @@ public class OpenshiftHelperStatusTest {
             return Arrays.asList(new Object[][]{
                     {"IsFailTrue", "Fail", true},
                     {"IsErrorTrue", "Error", true},
-                    {"IsNullFalse","null",false}
+                    {"IsNullFalse", "null",false}
             });
         }
 
