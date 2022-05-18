@@ -47,7 +47,6 @@
     <version.javassist>3.20.0-GA</version.javassist>
     <version.jgit>5.12.0.202106070339-r</version.jgit>
     <version.jnr-unixsocket>0.12</version.jnr-unixsocket>
-    <version.json-path-assert>2.2.0</version.json-path-assert>
     <version.json-smart>2.2.1</version.json-smart> <!-- Transitive dependency from com.consol.citrus:citrus-core -->
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.1.1</version.JUnitParams>
@@ -719,13 +718,6 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${version.mockito}</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>com.jayway.jsonpath</groupId>
-        <artifactId>json-path-assert</artifactId>
-        <version>${version.json-path-assert}</version>
         <scope>test</scope>
       </dependency>
 
