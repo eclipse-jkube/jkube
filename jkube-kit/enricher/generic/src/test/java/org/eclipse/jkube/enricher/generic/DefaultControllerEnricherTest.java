@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
