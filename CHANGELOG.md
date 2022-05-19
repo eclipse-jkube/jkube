@@ -23,6 +23,7 @@ Usage:
 ### 1.9.0-SNAPSHOT
 * Fix #777: `k8s:build` with Dockerfile throws `Connection reset by peer` error on old docker daemons
 * Fix #1279: Remove redundant log messages regarding plugin modes
+* Fix #1358: Improvement to add skipUndeploy flag for undeploy goal
 * Fix #1361: VolumePermissionEnricher : Use `.spec.storageClassName` instead of annotation to set PersistentVolume class
 * Fix #1411: Add support for adding additional ImageStreamTags in OpenShift S2I builds
 * Fix #1438: Add configuration option in ServiceAccountEnricher to skip creating ServiceAccounts

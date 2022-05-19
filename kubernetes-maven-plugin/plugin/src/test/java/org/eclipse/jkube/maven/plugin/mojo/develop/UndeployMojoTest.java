@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Properties;
 
+import org.apache.maven.plugin.MojoExecution;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
@@ -47,6 +49,10 @@ public class UndeployMojoTest {
   private MavenProject mavenProject;
   @Mocked
   private Settings mavenSettings;
+  @Mocked
+  private KitLogger mockedKitLogger;
+  @Mocked
+  private MojoExecution mockedMojoExecution;
   private File mockManifest;
   private File mockResourceDir;
   private UndeployMojo undeployMojo;
@@ -61,6 +67,8 @@ public class UndeployMojoTest {
       kubernetesManifest = mockManifest;
       project = mavenProject;
       settings = mavenSettings;
+      log = mockedKitLogger;
+      mojoExecution = mockedMojoExecution;
     }};
     new Expectations() {{
       mavenProject.getProperties(); result = new Properties();
@@ -82,6 +90,21 @@ public class UndeployMojoTest {
   }
 
   @Test
+  public void execute_whenSkipUndeployEnabled_thenUndeployServiceNotCalled() throws Exception {
+    // Given
+    undeployMojo.skipUndeploy = true;
+    new Expectations() {{
+      mockedMojoExecution.getMojoDescriptor().getFullGoalName(); result = "k8s:undeploy";
+    }};
+
+    // When
+    undeployMojo.execute();
+
+    // Then
+    assertUndeployServiceUndeployWasNotCalled();
+  }
+
+  @Test
   public void executeWithCustomProperties() throws Exception {
     // Given
     undeployMojo.namespace = "  custom-namespace  ";
@@ -98,6 +121,15 @@ public class UndeployMojoTest {
     new Verifications() {{
       jKubeServiceHub.getUndeployService().undeploy(Collections.singletonList(mockResourceDir), withNotNull(), mockManifest);
       times = 1;
+    }};
+    // @formatter:on
+  }
+
+  private void assertUndeployServiceUndeployWasNotCalled() {
+    // @formatter:off
+    new Verifications() {{
+      jKubeServiceHub.getUndeployService();
+      times = 0;
     }};
     // @formatter:on
   }
