@@ -23,35 +23,32 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Mocked;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class VertxGeneratorTest {
-
-  @Injectable
-  private KitLogger logger;
 
   @Rule
   public TemporaryFolder folder = new TemporaryFolder();
 
-  @Mocked
   private JavaProject project;
 
   private GeneratorContext context;
   private Dependency dropwizard;
   private Dependency core;
-  private Dependency infinispan;
 
   @Before
   public void init() throws IOException {
@@ -59,8 +56,8 @@ public class VertxGeneratorTest {
         .type("jar").scope("compile").file(folder.newFile("vertx-dropwizard-metrics.jar")).build();
     core = Dependency.builder().groupId("io.vertx").artifactId("vertx-core").version("3.4.2").type("jar")
         .scope("compile").file(folder.newFile("vertx-core.jar")).build();
-    infinispan = Dependency.builder().groupId("io.vertx").artifactId("vertx-infinispan").version("3.4.2")
-        .type("jar").scope("compile").file(folder.newFile("vertx-infinispan.jar")).build();
+    project = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+    KitLogger logger = mock(KitLogger.class, RETURNS_DEEP_STUBS);
     context = GeneratorContext.builder()
         .logger(logger)
         .project(project)
@@ -70,11 +67,7 @@ public class VertxGeneratorTest {
   @Test
   public void testDefaultOptions() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
-    }};
-    // @formatter:on
+    when(project.getOutputDirectory()).thenReturn(new File("target/tmp/target"));
     // When
     List<String> list = new VertxGenerator(context).getExtraJavaOptions();
     // Then
@@ -84,11 +77,7 @@ public class VertxGeneratorTest {
   @Test
   public void testWithMetrics() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getDependencies(); result = Arrays.asList(dropwizard, core);
-    }};
-    // @formatter:on
+    when(project.getDependencies()).thenReturn(Arrays.asList(dropwizard, core));
     // When
     List<String> list = new VertxGenerator(context).getExtraJavaOptions();
     // Then
@@ -101,20 +90,23 @@ public class VertxGeneratorTest {
 
     @Test
     public void testWithInfinispanClusterManager() {
-      // Given
-      // @formatter:off
-      new Expectations() {{
-        project.getOutputDirectory(); result = new File("target/tmp/target").getAbsolutePath();
-        project.getDependencies(); result = Arrays.asList(infinispan, core);
-      }};
-      // @formatter:on
-      // When
-      Map<String, String> env = new VertxGenerator(context).getEnv(true);
-      // Then
-      assertThat(env)
-              .containsEntry("JAVA_OPTIONS", "-Dvertx.cacheDirBase=/tmp/vertx-cache -Dvertx.disableDnsResolver=true " +
-                      // Force IPv4
-                      "-Djava.net.preferIPv4Stack=true")
-              .containsEntry("JAVA_ARGS", "-cluster");
+      try (MockedStatic<JKubeProjectUtil> mockedJKubeProjectUtil = mockStatic(JKubeProjectUtil.class)) {
+        // Given
+        mockedJKubeProjectUtil
+            .when(() -> JKubeProjectUtil.hasResource(project, "META-INF/services/io.vertx.core.spi.cluster.ClusterManager"))
+            .thenReturn(true);
+        mockedJKubeProjectUtil
+            .when(() -> JKubeProjectUtil.hasDependency(project, "io.vertx", "vertx-infinispan"))
+            .thenReturn(true);
+        when(project.getOutputDirectory()).thenReturn(new File("target/tmp/target"));
+        // When
+        Map<String, String> env = new VertxGenerator(context).getEnv(true);
+        // Then
+        assertThat(env)
+            .containsEntry("JAVA_OPTIONS", "-Dvertx.cacheDirBase=/tmp/vertx-cache -Dvertx.disableDnsResolver=true " +
+                // Force IPv4
+                "-Djava.net.preferIPv4Stack=true")
+            .containsEntry("JAVA_ARGS", "-cluster");
+      }
     }
 }

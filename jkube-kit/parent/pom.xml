@@ -65,7 +65,6 @@
     <version.plexus-utils>3.0.24</version.plexus-utils>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
-    <version.vertx-infinispan>3.4.2</version.vertx-infinispan>
     <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
 
     <!-- =======================================================  -->
@@ -559,12 +558,6 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${version.slf4j-api}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.vertx</groupId>
-        <artifactId>vertx-infinispan</artifactId>
-        <version>${version.vertx-infinispan}</version>
       </dependency>
 
       <!-- == maven ===================================== -->
