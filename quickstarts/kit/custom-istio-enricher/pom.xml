@@ -56,9 +56,9 @@
         <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>me.snowdrop</groupId>
+        <groupId>io.fabric8</groupId>
         <artifactId>istio-client</artifactId>
-        <version>${istio-client.version}</version>
+        <version>5.12.2</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
