@@ -21,7 +21,7 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-test-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run:
         command: |
           # Run maven build
@@ -29,7 +29,7 @@ jobs:
           # Run codeocov analysis
           bash <(curl -s https://codecov.io/bash)
     - save_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-test-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
 
@@ -39,13 +39,13 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-build-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run:
         command: |
           # Run maven build
           ./mvnw clean install
     - save_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-build-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
 
@@ -55,13 +55,13 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-javadoc-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run:
         command: |
           # Run Maven build with javadoc jar generation
           ./mvnw clean install javadoc:jar -DskipTests -Pjavadoc
     - save_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-javadoc-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
 
@@ -71,11 +71,11 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: cachev1-jkube-kit-sonar-{{ checksum "pom.xml" }}
+        key: maven-sonar-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run: |
         MAVEN_OPTS="-Xmx3000m" ./mvnw -B -Pjacoco,sonar clean install
     - save_cache:
-        key: cachev1-jkube-kit-sonar-{{ checksum "pom.xml" }}
+        key: maven-sonar-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
 
@@ -85,7 +85,7 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: jkube-sonar-pr-{{ checksum "pom.xml" }}
+        key: maven-sonar-pr-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run: |
         if [ -n "${CIRCLE_PR_NUMBER}" ]; then
           MAVEN_OPTS="-Xmx3000m" ./mvnw -B -Pjacoco,sonar clean install \
@@ -96,7 +96,7 @@ jobs:
           echo "No Sonar PR analysis as this is not a pull request"
         fi
     - save_cache:
-        key: jkube-kit-sonar-pr-{{ checksum "pom.xml" }}
+        key: maven-sonar-pr-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
 
