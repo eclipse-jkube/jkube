@@ -55,6 +55,7 @@ Usage:
 * Fix #1482: Quarkus Generator and Enricher should be compatible with the Red Hat build
 * Fix #1483: Assembly files with unnormalized paths don't get fileMode changes
 * Fix #1489: Align BaseGenerator's `add` and `tags` config options to work with `jkube.generator.*` properties
+* Fix #1512: Gradle plugins are graduated
 
 ### 1.7.0 (2022-02-25)
 * Fix #1315: Pod Log Service works for Jobs with no selector
