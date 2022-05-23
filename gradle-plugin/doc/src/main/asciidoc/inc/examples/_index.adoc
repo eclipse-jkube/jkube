@@ -4,8 +4,6 @@ Let's have a look at some code. The following examples will demonstrate all avai
 
 include::_groovy.adoc[]
 
-include::_dockerfile.adoc[]
-
 include::_fragments.adoc[]
 
 include::_zero-config.adoc[]
