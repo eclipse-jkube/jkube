@@ -14,7 +14,6 @@
 package org.eclipse.jkube.enricher.generic.openshift;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -41,6 +40,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
+import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isExposedService;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeMetadata;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeSimpleFields;
@@ -127,19 +127,10 @@ public class RouteEnricher extends BaseEnricher {
 
     private static RoutePort createRoutePort(ServiceBuilder serviceBuilder) {
         RoutePort routePort = null;
-        ServiceSpec spec = serviceBuilder.buildSpec();
-        if (spec != null) {
-            List<ServicePort> ports = spec.getPorts();
-            if (ports != null && !ports.isEmpty()) {
-                ServicePort servicePort = ports.get(0);
-                if (servicePort != null) {
-                    Integer servicePortNumber = servicePort.getPort();
-                    if (servicePortNumber != null) {
-                        routePort = new RoutePort();
-                        routePort.setTargetPort(new IntOrString(servicePortNumber));
-                    }
-                }
-            }
+        final Integer servicePort = getPortToExpose(serviceBuilder);
+        if (servicePort != null) {
+            routePort = new RoutePort();
+            routePort.setTargetPort(new IntOrString(servicePort));
         }
         return routePort;
     }

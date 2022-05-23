@@ -42,8 +42,8 @@ import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
 import java.util.List;
 import java.util.Objects;
 
+import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
 import static org.eclipse.jkube.enricher.generic.IngressEnricher.getIngressMetadata;
-import static org.eclipse.jkube.enricher.generic.IngressEnricher.getServicePort;
 import static org.eclipse.jkube.enricher.generic.IngressEnricher.hasIngress;
 import static org.eclipse.jkube.enricher.generic.IngressEnricher.resolveIngressHost;
 import static org.eclipse.jkube.enricher.generic.IngressEnricher.shouldCreateExternalURLForService;
@@ -61,7 +61,7 @@ public class NetworkingV1IngressGenerator {
             Objects.requireNonNull(serviceMetadata);
             String serviceName = serviceMetadata.getName();
             if (!hasIngress(listBuilder, serviceName)) {
-                Integer servicePort = getServicePort(serviceBuilder);
+                Integer servicePort = getPortToExpose(serviceBuilder);
                 if (servicePort != null) {
                     return new IngressBuilder()
                             .withMetadata(getIngressMetadata(serviceMetadata))

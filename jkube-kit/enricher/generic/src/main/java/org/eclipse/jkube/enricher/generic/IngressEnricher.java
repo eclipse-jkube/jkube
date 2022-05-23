@@ -104,25 +104,6 @@ public class IngressEnricher extends BaseEnricher {
         return ingressMetadataBuilder.build();
     }
 
-    static Integer getServicePort(ServiceBuilder serviceBuilder) {
-        ServiceSpec spec = serviceBuilder.buildSpec();
-        if (spec != null) {
-            List<ServicePort> ports = spec.getPorts();
-            if (ports != null && !ports.isEmpty()) {
-                for (ServicePort port : ports) {
-                    if (port.getName().equals("http") || port.getProtocol().equals("http")) {
-                        return port.getPort();
-                    }
-                }
-                ServicePort servicePort = ports.get(0);
-                if (servicePort != null) {
-                    return servicePort.getPort();
-                }
-            }
-        }
-        return 0;
-    }
-
     /**
      * Returns true if we already have an ingress created for the given name
      */

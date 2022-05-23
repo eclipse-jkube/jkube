@@ -38,9 +38,8 @@ import org.eclipse.jkube.kit.config.resource.ServiceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.enricher.handler.HandlerHub;
-import org.eclipse.jkube.kit.enricher.handler.ServiceHandler;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -613,5 +612,24 @@ public class DefaultServiceEnricher extends BaseEnricher {
             return "TCP";
         }
         return protocol;
+    }
+
+    public static Integer getPortToExpose(ServiceBuilder serviceBuilder) {
+        ServiceSpec spec = serviceBuilder.buildSpec();
+        if (spec != null) {
+            final List<ServicePort> ports = spec.getPorts();
+            if (ports != null && !ports.isEmpty()) {
+                for (ServicePort port : ports) {
+                    if (Objects.equals(port.getName(), "http") || Objects.equals(port.getProtocol(), "http") ) {
+                        return port.getPort();
+                    }
+                }
+                ServicePort servicePort = ports.iterator().next();
+                if (servicePort.getPort() != null) {
+                    return servicePort.getPort();
+                }
+            }
+        }
+        return null;
     }
 }
