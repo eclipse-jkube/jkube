@@ -2,8 +2,6 @@
 [[introduction]]
 = Introduction
 
-IMPORTANT: *This is a preview feature to get early feedback.  Only the set of documented features are available to users.*
-
 The *{plugin}* brings your Gradle Java applications on to
 ifeval::["{task-prefix}" == "k8s"]
 http://kubernetes.io/[Kubernetes].
