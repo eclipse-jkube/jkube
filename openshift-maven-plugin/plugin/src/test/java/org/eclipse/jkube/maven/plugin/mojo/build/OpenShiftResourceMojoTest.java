@@ -30,6 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -50,13 +51,17 @@ public class OpenShiftResourceMojoTest {
   private OpenshiftResourceMojo openShiftResourceMojo;
 
   @Before
-  public void setUp() {
+  public void setUp() throws IOException {
     mockedClusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
     mockedImageConfigResolver = mock(ImageConfigResolver.class, RETURNS_DEEP_STUBS);
-    MavenProject mockedMavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
-    JavaProject mockedJavaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
-    JKubeServiceHub mockedJKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     Properties properties = new Properties();
+    MavenProject mockedMavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
+    JavaProject javaProject = JavaProject.builder()
+        .artifactId("test-project")
+        .groupId("org.eclipse.jkube")
+        .properties(properties)
+        .build();
+    JKubeServiceHub mockedJKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
 
     this.openShiftResourceMojo = new OpenshiftResourceMojo();
     this.openShiftResourceMojo.project = mockedMavenProject;
@@ -67,13 +72,12 @@ public class OpenShiftResourceMojoTest {
     this.openShiftResourceMojo.skipResourceValidation = true;
     this.openShiftResourceMojo.projectHelper = mock(MavenProjectHelper.class, RETURNS_DEEP_STUBS);
     this.openShiftResourceMojo.imageConfigResolver = mockedImageConfigResolver;
-    this.openShiftResourceMojo.javaProject = mockedJavaProject;
+    this.openShiftResourceMojo.javaProject = javaProject;
+    this.openShiftResourceMojo.interpolateTemplateParameters = true;
+    this.openShiftResourceMojo.resourceDir = temporaryFolder.newFolder("src", "main", "jkube");
 
     when(mockedMavenProject.getProperties()).thenReturn(properties);
-    when(mockedJavaProject.getArtifactId()).thenReturn("test-project");
-    when(mockedJavaProject.getGroupId()).thenReturn("org.eclipse.jkube");
-    when(mockedJavaProject.getProperties()).thenReturn(properties);
-    when(mockedJKubeServiceHub.getConfiguration().getProject()).thenReturn(mockedJavaProject);
+    when(mockedJKubeServiceHub.getConfiguration().getProject()).thenReturn(javaProject);
     when(mockedJKubeServiceHub.getConfiguration().getBasedir()).thenReturn(temporaryFolder.getRoot());
   }
 
@@ -89,8 +93,10 @@ public class OpenShiftResourceMojoTest {
     when(mockedClusterAccess.getNamespace()).thenReturn("test-custom-namespace");
     when(mockedImageConfigResolver.resolve(eq(imageConfiguration), any())).thenReturn(Collections.singletonList(imageConfiguration));
     this.openShiftResourceMojo.images = Collections.singletonList(imageConfiguration);
+    openShiftResourceMojo.skip = true;
 
     // When
+    openShiftResourceMojo.initJKubeServiceHubBuilder(openShiftResourceMojo.javaProject);
     openShiftResourceMojo.executeInternal();
 
     // Then
@@ -99,7 +105,7 @@ public class OpenShiftResourceMojoTest {
   }
 
   @Test
-  public void executeInternal_resolvesGroupInImageNameToNamespaceSetViaConfiguration_whenNoNamespaceDetected() throws MojoExecutionException, MojoFailureException {
+  public void executeInternal_resolvesGroupInImageNameToNamespaceSetViaConfiguration_whenNoNamespaceDetected() throws Exception {
     // Given
     ImageConfiguration imageConfiguration = ImageConfiguration.builder()
       .name("%g/%a")
@@ -108,10 +114,12 @@ public class OpenShiftResourceMojoTest {
         .build())
       .build();
     when(mockedImageConfigResolver.resolve(eq(imageConfiguration), any())).thenReturn(Collections.singletonList(imageConfiguration));
-    this.openShiftResourceMojo.images = Collections.singletonList(imageConfiguration);
-    this.openShiftResourceMojo.namespace = "namespace-configured-via-plugin";
+    openShiftResourceMojo.images = Collections.singletonList(imageConfiguration);
+    openShiftResourceMojo.namespace = "namespace-configured-via-plugin";
+    openShiftResourceMojo.skip = true;
 
     // When
+    openShiftResourceMojo.initJKubeServiceHubBuilder(openShiftResourceMojo.javaProject);
     openShiftResourceMojo.executeInternal();
 
     // Then

@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.resource.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.validation.ConstraintViolationException;
@@ -83,7 +82,10 @@ public class DefaultResourceService implements ResourceService {
 
     final ResourceConfig resourceConfig = resourceServiceConfig.getResourceConfig();
     try {
-      File[] resourceFiles = aggregateResourceFragments(resourceServiceConfig.getResourceDirs(), resourceConfig, log);
+      File[] resourceFiles = listResourceFragments(
+          resourceConfig != null ? resourceConfig.getRemotes() : null, log, resourceServiceConfig.getResourceDirs());
+      resourceServiceConfig.getResourceDirs()
+          .forEach(resourceDir -> log.info("Using resource templates from %s", resourceDir));
       final File[] processedResource = processResourceFiles(resourceFiles);
       KubernetesListBuilder builder = processResourceFragments(platformMode, processedResource);
 
@@ -148,18 +150,6 @@ public class DefaultResourceService implements ResourceService {
       return resourceServiceConfig.getResourceFilesProcessor().processResources(resourceFiles);
     }
     return resourceFiles;
-  }
-
-  private File[] aggregateResourceFragments(List<File> resourceDirs, ResourceConfig resourceConfig, KitLogger log) {
-    List<File> fragments = new ArrayList<>();
-    for (File resourceDir : resourceDirs) {
-      log.info("Using resource templates from %s", resourceDir);
-      File[] resourceFiles = listResourceFragments(resourceDir, resourceConfig !=null ? resourceConfig.getRemotes() : null, log);
-      if (resourceFiles != null && resourceFiles.length > 0) {
-        fragments.addAll(Arrays.asList(resourceFiles));
-      }
-    }
-    return fragments.toArray(new File[0]);
   }
 
 }

@@ -13,16 +13,18 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
+
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.MockedConstruction;
-
-import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertThrows;
@@ -57,7 +59,9 @@ public class KubernetesHelmTaskTest {
 
     // Then
     assertThat(illegalStateException)
-      .hasMessageContaining("META-INF/jkube/kubernetes (No such file or directory)");
+      .hasMessageContaining("META-INF/jkube/kubernetes")
+        .getCause()
+        .isInstanceOf(NoSuchFileException.class);
   }
 
   @Test

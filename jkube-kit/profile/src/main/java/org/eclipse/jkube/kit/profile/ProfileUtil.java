@@ -22,10 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,53 +48,38 @@ public class ProfileUtil {
     // Default profile which will be always there
     public static final String DEFAULT_PROFILE = "default";
 
+    public static Profile findProfile(String profileArg, List<File> resourceDirs) throws IOException {
+        return findProfile(profileArg, resourceDirs == null ? new File[0] : resourceDirs.toArray(new File[0]));
+    }
+
     /**
      * Find a profile. Profiles are looked up at various locations:
      *
      * <ul>
-     *     <li>A given directory with the name profiles.yml (and variations, {@link #findProfile(String, List)}</li>
+     *     <li>A given directory with the name profiles.yml (and variations, {@link #findProfile(String, File[])}</li>
      * </ul>
      * @param profileArg the profile's name
-     * @param resourceDirs a directory to check for profiles.
+     * @param resourceDirs directories to check for profiles.
      * @return the profile found or the default profile if none of this name is given
-     * @throws IOException
+     * @throws IOException if there's a problem while performing IO operations.
      */
-    public static Profile findProfile(String profileArg, List<File> resourceDirs) throws IOException {
-        if (resourceDirs != null) {
+    public static Profile findProfile(String profileArg, File... resourceDirs) throws IOException {
+        try {
+            final String profile = profileArg == null ? DEFAULT_PROFILE : profileArg;
             for (File resourceDir : resourceDirs) {
-                Profile profile = findProfile(profileArg, resourceDir);
-                if (profile != null) {
-                    return profile;
+                Profile profileFound = lookup(profile, resourceDir);
+                if (profileFound != null) {
+                    if (profileFound.getParentProfile() != null) {
+                        profileFound = inheritFromParentProfile(profileFound, resourceDir);
+                        log.info("{} inheriting resources from {}", profileFound, profileFound.getParentProfile());
+                    }
+                    return profileFound;
                 }
             }
-        }
-        String profile = profileArg == null ? DEFAULT_PROFILE : profileArg;
-        Profile defaultLookupProfile = lookup(profile, null);
-        defaultLookupProfile = checkParentProfileAndInherit(defaultLookupProfile, null);
-        if (defaultLookupProfile != null) {
-            return defaultLookupProfile;
-        }
-
-        throw new IllegalArgumentException("No profile '" + profile + "' defined");
-    }
-
-    public static Profile findProfile(String profileArg, File resourceDir) throws IOException {
-        try {
-            String profile = profileArg == null ? DEFAULT_PROFILE : profileArg;
-            Profile profileFound = lookup(profile, resourceDir);
-            profileFound = checkParentProfileAndInherit(profileFound, resourceDir);
-            return profileFound;
+            throw new IllegalArgumentException("No profile '" + profile + "' defined");
         } catch (IOException e) {
             throw new IOException("Error while looking up profile " + profileArg + ": " + e.getMessage(),e);
         }
-    }
-
-    private static Profile checkParentProfileAndInherit(Profile profile, File resourceDir) throws IOException {
-        if (profile != null && profile.getParentProfile() != null) {
-            profile = inheritFromParentProfile(profile, resourceDir);
-            log.info("%s inheriting resources from %s", profile, profile.getParentProfile());
-        }
-        return profile;
     }
 
     private static Profile inheritFromParentProfile(Profile aProfile, File resourceDir) throws IOException {
@@ -145,7 +130,7 @@ public class ProfileUtil {
 
         File profileFile = findProfileYaml(directory);
         if (profileFile != null) {
-            List<Profile> fileProfiles = fromYaml(new FileInputStream(profileFile));
+            List<Profile> fileProfiles = fromYaml(Files.newInputStream(profileFile.toPath()));
             for (Profile profile : fileProfiles) {
                 if (profile.getName().equals(name)) {
                     profiles.add(profile);
