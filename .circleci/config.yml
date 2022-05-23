@@ -25,7 +25,7 @@ jobs:
     - run:
         command: |
           # Run maven build
-          ./mvnw test verify -B -Pjacoco
+          ./mvnw -B -Pjacoco clean install
           # Run codeocov analysis
           bash <(curl -s https://codecov.io/bash)
     - save_cache:
