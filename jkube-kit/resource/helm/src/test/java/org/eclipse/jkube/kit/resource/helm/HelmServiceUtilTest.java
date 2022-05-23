@@ -22,7 +22,6 @@ import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Maintainer;
-import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -52,7 +51,9 @@ public class HelmServiceUtilTest {
   public void setUp() throws Exception {
     final File baseDir = temporaryFolder.newFolder("test-project");
     final File buildDir = new File(baseDir, "target");
-    manifest = new File(buildDir, "classes/META-INF/jkube/kubernetes.yml");
+    manifest = buildDir.toPath().resolve("classes").resolve("META-INF").resolve("jkube")
+        .resolve("kubernetes.yml").toFile();
+    FileUtils.forceMkdir(manifest.getParentFile());
     templateDir = new File(buildDir, "jkube");
     FileUtils.forceMkdir(templateDir);
     javaProject = JavaProject.builder()
@@ -203,33 +204,32 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void findIconUrl_fromProvidedFile_returnsValidUrl(@Mocked File kubernetesManifest, @Mocked ResourceUtil resourceUtil, @Mocked HasMetadata listEntry) throws IOException {
+  public void findIconUrl_fromProvidedFile_returnsValidUrl(@Mocked ResourceUtil resourceUtil, @Mocked HasMetadata listEntry) throws IOException {
     // Given
+    manifest.createNewFile();
     new Expectations() {{
-      kubernetesManifest.isFile();
-      result = true;
-      ResourceUtil.load(kubernetesManifest, KubernetesResource.class);
+      ResourceUtil.load(manifest, KubernetesResource.class);
       result = new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null);
       listEntry.getMetadata().getAnnotations();
       result = Collections.singletonMap("jkube.io/iconUrl", "https://my-icon");
     }};
     // When
-    String url = HelmServiceUtil.findIconURL(kubernetesManifest);
+    String url = HelmServiceUtil.findIconURL(manifest);
     // Then
     assertThat(url).isEqualTo("https://my-icon");
   }
 
   @Test
   public void findTemplatesFromProvidedFile(
-    @Mocked File kubernetesTemplate, @Mocked ResourceUtil resourceUtil, @Mocked Template template) throws Exception {
+    @Mocked ResourceUtil resourceUtil, @Mocked Template template) throws Exception {
 
     // Given
     new Expectations() {{
-      ResourceUtil.load(kubernetesTemplate, KubernetesResource.class);
+      ResourceUtil.load(manifest, KubernetesResource.class);
       result = template;
     }};
     // When
-    List<Template> templateList = HelmServiceUtil.findTemplates(kubernetesTemplate);
+    List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
     // Then
     assertThat(templateList)
       .hasSize(1)
