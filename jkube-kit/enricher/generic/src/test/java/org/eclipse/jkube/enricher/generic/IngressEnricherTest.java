@@ -17,11 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
-import io.fabric8.kubernetes.api.model.networking.v1.IngressTLSBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.IngressConfig;
@@ -33,18 +28,22 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressTLSBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -220,52 +219,6 @@ public class IngressEnricherTest {
             .element(1).asInstanceOf(InstanceOfAssertFactories.type(Ingress.class))
             .isEqualTo(providedIngress)
             .isNotSameAs(providedIngress);
-    }
-
-    @Test
-    public void testGetServicePortWithHttpPort() {
-        // Given
-        ServiceBuilder serviceBuilder = initTestService();
-
-        // When
-        int port = IngressEnricher.getServicePort(serviceBuilder);
-
-        // Then
-        assertThat(port).isEqualTo(8080);
-    }
-
-    @Test
-    public void testGetServiceWithNoHttpPort() {
-        // Given
-        ServiceBuilder serviceBuilder = initTestService()
-                .editSpec()
-                .withPorts(new ServicePortBuilder()
-                        .withName("p1")
-                        .withProtocol("TCP")
-                        .withPort(9001)
-                        .build())
-                .endSpec();
-
-        // When
-        int port = IngressEnricher.getServicePort(serviceBuilder);
-
-        // Then
-        assertThat(port).isEqualTo(9001);
-    }
-
-    @Test
-    public void testGetServiceWithNoPort() {
-        // Given
-        ServiceBuilder serviceBuilder = initTestService()
-                .editSpec()
-                .withPorts(Collections.emptyList())
-                .endSpec();
-
-        // When
-        int port = IngressEnricher.getServicePort(serviceBuilder);
-
-        // Then
-        assertThat(port).isZero();
     }
 
     @Test

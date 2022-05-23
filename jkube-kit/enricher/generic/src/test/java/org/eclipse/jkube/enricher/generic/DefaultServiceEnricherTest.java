@@ -13,25 +13,28 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.TreeMap;
+
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.TreeMap;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -259,6 +262,46 @@ public class DefaultServiceEnricherTest {
 
         HasMetadata object = enrich();
         assertPort(object, 0, 9090, 9090, "http", "TCP");
+    }
+
+    @Test
+    public void getPortToExpose_withHttpPort() {
+        // Given
+        final ServiceBuilder serviceBuilder = new ServiceBuilder()
+            .withNewSpec()
+            .addNewPort().withPort(443).withNewTargetPort(8443).withName("https").endPort()
+            .addNewPort().withPort(80).withNewTargetPort(8080).withName("http").endPort()
+            .addNewPort().withPort(8778).withNewTargetPort(8778).withName("jolokia").endPort()
+            .endSpec();
+        // When
+        final Integer result = getPortToExpose(serviceBuilder);
+        // Then
+        assertThat(result).isEqualTo(80);
+    }
+
+    @Test
+    public void getPortToExpose_withNoHttpPort() {
+        // Given
+        final ServiceBuilder serviceBuilder = new ServiceBuilder()
+            .withNewSpec()
+            .addNewPort().withPort(443).withNewTargetPort(8443).withName("https").endPort()
+            .addNewPort().withPort(9001).withNewTargetPort(9001).withName("p1").withProtocol("TCP").endPort()
+            .addNewPort().withPort(8778).withNewTargetPort(8778).withName("jolokia").endPort()
+            .endSpec();
+        // When
+        final Integer result = getPortToExpose(serviceBuilder);
+        // Then
+        assertThat(result).isEqualTo(443);
+    }
+
+    @Test
+    public void getPortToExpose_withNoPort() {
+        // Given
+        final ServiceBuilder serviceBuilder = new ServiceBuilder().withNewSpec().endSpec();
+        // When
+        final Integer result = getPortToExpose(serviceBuilder);
+        // Then
+        assertThat(result).isNull();
     }
 
     // ======================================================================================================
