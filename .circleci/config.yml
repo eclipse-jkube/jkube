@@ -16,8 +16,8 @@ version: 2
 
 jobs:
   test:
-    machine:
-      image: ubuntu-2004:202201-02
+    docker:
+      - image: cimg/openjdk:11.0
     steps:
     - checkout
     - restore_cache:
