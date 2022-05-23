@@ -14,9 +14,9 @@
 package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -77,7 +77,7 @@ public class ResourceUtil {
             return Collections.emptyList();
         }
         final List<HasMetadata> kubernetesResources = new ArrayList<>();
-        try (InputStream fis = new FileInputStream(manifest)) {
+        try (InputStream fis = Files.newInputStream(manifest.toPath())) {
             kubernetesResources.addAll(split(Serialization.unmarshal(fis, Collections.emptyMap())));
         }
         return kubernetesResources;
@@ -104,7 +104,7 @@ public class ResourceUtil {
     }
 
     public static <T extends KubernetesResource> T load(File file, Class<T> clazz) throws IOException {
-        return Serialization.unmarshal(new FileInputStream(file), clazz);
+        return Serialization.unmarshal(Files.newInputStream(file.toPath()), clazz);
     }
 
     public static File save(File file, Object data) throws IOException {
@@ -137,7 +137,7 @@ public class ResourceUtil {
     public static List<File> getFinalResourceDirs(File resourceDir, String environmentAsCommaSeparateStr) {
         List<File> resourceDirs = new ArrayList<>();
 
-        if (resourceDir != null && StringUtils.isNotEmpty(environmentAsCommaSeparateStr)) {
+        if (resourceDir != null && StringUtils.isNotBlank(environmentAsCommaSeparateStr)) {
             String[] environments = environmentAsCommaSeparateStr.split(",");
             for (String environment : environments) {
                 resourceDirs.add(new File(resourceDir, environment.trim()));

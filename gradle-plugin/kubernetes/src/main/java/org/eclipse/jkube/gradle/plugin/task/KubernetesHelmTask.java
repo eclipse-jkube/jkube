@@ -41,7 +41,7 @@ public class KubernetesHelmTask extends AbstractJKubeTask {
         kubernetesExtension.helm).build();
       jKubeServiceHub.getHelmService().generateHelmCharts(helm);
     } catch (IOException exception) {
-      throw new IllegalStateException(exception.getMessage());
+      throw new IllegalStateException(exception.getMessage(), exception);
     }
   }
 

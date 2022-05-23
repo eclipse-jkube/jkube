@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.mockito.MockedConstruction;
 
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertThrows;
@@ -56,7 +57,9 @@ public class OpenShiftHelmTaskTest {
 
     // Then
     assertThat(illegalStateException)
-      .hasMessageContaining("META-INF/jkube/openshift (No such file or directory)");
+        .hasMessageContaining("META-INF/jkube/openshift")
+        .getCause()
+        .isInstanceOf(NoSuchFileException.class);
   }
 
   @Test

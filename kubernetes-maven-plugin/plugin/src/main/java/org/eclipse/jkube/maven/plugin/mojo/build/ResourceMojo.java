@@ -93,7 +93,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
      * Folder where to find project specific files
      */
     @Parameter(property = "jkube.resourceDir", defaultValue = "${basedir}/src/main/jkube")
-    private File resourceDir;
+    protected File resourceDir;
 
     /**
      * Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, plugin will look at src/main/jkube/dev
@@ -176,7 +176,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
     private Boolean mergeWithDekorate;
 
     @Parameter(property="jkube.interpolateTemplateParameters", defaultValue = "true")
-    private Boolean interpolateTemplateParameters;
+    protected Boolean interpolateTemplateParameters;
 
     @Component
     protected MavenProjectHelper projectHelper;

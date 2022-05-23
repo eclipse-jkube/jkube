@@ -87,9 +87,7 @@ public class ProfileUtilTest {
 
     @Test
     public void findProfile_whenValidProfileArg_returnsValidProfile() throws URISyntaxException, IOException {
-
         assertNotNull(ProfileUtil.findProfile("simple", getProfileDir()));
-
     }
 
     @Test
@@ -100,7 +98,16 @@ public class ProfileUtilTest {
         IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("not-there", profileDirs));
 
         assertTrue(illegalArgumentException.getMessage().contains("not-there"));
+    }
 
+    @Test
+    public void findProfile_whenProfileUsedWithInvalidParent_thenThrowsException() throws URISyntaxException {
+        // Given
+        File profileDir = getProfileDir();
+        // When
+        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("invalid-parent", profileDir));
+        // Then
+        assertEquals("No parent profile 'i-dont-exist' defined", illegalArgumentException.getMessage());
     }
 
     @Test
@@ -143,17 +150,5 @@ public class ProfileUtilTest {
         assertTrue(aProfile.getEnricherConfig().use("default.service"));
         assertTrue(aProfile.getGeneratorConfig().use("spring.swarm"));
         assertFalse(aProfile.getGeneratorConfig().use("java.app"));
-    }
-
-    @Test
-    public void findProfile_whenProfileUsedWithInvalidParent_thenThrowsException() throws URISyntaxException {
-        // Given
-        File profileDir = getProfileDir();
-
-        // When
-        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("invalid-parent", profileDir));
-
-        // Then
-        assertEquals("No parent profile 'i-dont-exist' defined", illegalArgumentException.getMessage());
     }
 }

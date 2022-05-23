@@ -81,7 +81,7 @@ public class KubernetesHelperTest {
         File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
 
         // When & Then
-        assertLocalFragments(KubernetesHelper.listResourceFragments(localResourceDir, null, logger), 2);
+        assertLocalFragments(KubernetesHelper.listResourceFragments(null, logger, localResourceDir), 2);
     }
 
     @Test
@@ -91,7 +91,7 @@ public class KubernetesHelperTest {
         File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
 
         // When
-        File[] fragments = KubernetesHelper.listResourceFragments(localResourceDir, remoteStrList, logger);
+        File[] fragments = KubernetesHelper.listResourceFragments(remoteStrList, logger, localResourceDir);
 
         // Then
         assertLocalFragments(fragments, 4);

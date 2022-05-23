@@ -85,7 +85,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -672,13 +671,9 @@ public class KubernetesHelper {
      * @return file if present or null
      */
     public static File getResourceFragmentFromSource(File resourceDirFinal, List<String> remotes, String resourceNameSuffix, KitLogger log) {
-        File[] resourceFiles = listResourceFragments(resourceDirFinal, remotes, log);
-
-        if (resourceFiles != null) {
-            for (File file : resourceFiles) {
-                if (file.getName().endsWith(resourceNameSuffix)) {
-                    return file;
-                }
+        for (File file : listResourceFragments(remotes, log, resourceDirFinal)) {
+            if (file.getName().endsWith(resourceNameSuffix)) {
+                return file;
             }
         }
         return null;
@@ -700,16 +695,26 @@ public class KubernetesHelper {
         return stringQuantityMap;
     }
 
-    public static File[] listResourceFragments(File localResourceDir, List<String> remotes, KitLogger log) {
-        File[] resourceFiles = listResourceFragments(localResourceDir);
+    public static File[] listResourceFragments(List<String> remotes, KitLogger log, List<File> resourceDirs) {
+        return listResourceFragments(remotes, log, resourceDirs.stream().filter(Objects::nonNull).toArray(File[]::new));
+    }
+
+    public static File[] listResourceFragments(List<String> remotes, KitLogger log, File... resourceDirs) {
+        final List<File> resourceFiles = new ArrayList<>();
+        for (File resourceDir : resourceDirs) {
+            final File[] resourceFragments = listResourceFragments(resourceDir);
+            if (resourceFragments != null) {
+                Collections.addAll(resourceFiles, resourceFragments);
+            }
+        }
 
         if(remotes != null) {
             File[] remoteResourceFiles = listRemoteResourceFragments(remotes, log);
             if (remoteResourceFiles.length > 0) {
-                resourceFiles = ArrayUtils.addAll(resourceFiles, remoteResourceFiles);
+                Collections.addAll(resourceFiles, remoteResourceFiles);
             }
         }
-        return resourceFiles;
+        return resourceFiles.toArray(new File[0]);
     }
 
     public static File[] listResourceFragments(File resourceDir) {
