@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.8.0-SNAPSHOT
+### 1.8.0 (2022-05-24)
 * Fix #1188: Add support for specifying multiple tags in Zero configuration mode
 * Fix #1194: jkube controller name configuration ignored when using resource fragments
 * Fix #1201: ThorntailV2Generator works with Gradle Plugins

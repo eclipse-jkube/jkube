@@ -26,7 +26,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>spring-boot-helm</artifactId>
-  <version>1.7.0</version>
+  <version>1.8.0</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot - Helm</name>
   <packaging>jar</packaging>
 
