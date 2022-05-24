@@ -13,12 +13,13 @@
  */
 package org.eclipse.jkube.quickstart.kit.enricher.istio;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import me.snowdrop.istio.api.networking.v1alpha3.GatewayBuilder;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
+import io.fabric8.istio.api.networking.v1alpha3.GatewayBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 
 public class IstioEnricher extends BaseEnricher {
 

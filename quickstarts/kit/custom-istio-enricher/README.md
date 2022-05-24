@@ -43,7 +43,7 @@ app : $ mvn k8s:resource
 ```
 After running resource goal, you should be able to see a dummy `Gateway` manifest in target directory:
 ```
-app : $ cat target/classes/META-INF/jkube/kubernetes/eclipse-jkube-sample-custom-enricher-app.yml 
+app : $ cat target/classes/META-INF/jkube/kubernetes/eclipse-jkube-sample-custom-enricher-app-cr.yml
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway

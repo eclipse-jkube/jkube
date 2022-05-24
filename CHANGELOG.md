@@ -21,7 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.9.0-SNAPSHOT
-
+* Fix #1505: (Quickstarts) Update the Custom Istio Enricher (Maven) quickstart to use Fabric8 Istio Extension
 
 ### 1.8.0 (2022-05-24)
 * Fix #1188: Add support for specifying multiple tags in Zero configuration mode
