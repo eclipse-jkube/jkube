@@ -47,7 +47,7 @@
     <version.javassist>3.20.0-GA</version.javassist>
     <version.jgit>5.12.0.202106070339-r</version.jgit>
     <version.jnr-unixsocket>0.38.17</version.jnr-unixsocket>
-    <version.json-smart>2.2.1</version.json-smart> <!-- Transitive dependency from com.consol.citrus:citrus-core -->
+    <version.json-smart>2.4.8</version.json-smart> <!-- Transitive dependency from com.consol.citrus:citrus-core -->
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.1.1</version.JUnitParams>
     <version.kubernetes-client>5.11.2</version.kubernetes-client>
