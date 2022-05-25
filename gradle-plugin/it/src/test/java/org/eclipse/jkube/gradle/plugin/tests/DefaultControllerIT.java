@@ -37,7 +37,6 @@ public class DefaultControllerIT {
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
         gradleRunner.resolveFile("expected", "default", "kubernetes.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in Kubernetes mode")
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
@@ -54,7 +53,6 @@ public class DefaultControllerIT {
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
         gradleRunner.resolveFile("expected", "default", "openshift.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in OpenShift mode")
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")

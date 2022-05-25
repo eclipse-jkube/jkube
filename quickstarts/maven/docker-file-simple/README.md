@@ -29,7 +29,6 @@ $ mvn package k8s:build
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:build (default-cli) @ docker-file-simple ---
-[INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: [jkube/docker-file-simple:latest]: Created docker-build.tar in 261 milliseconds
 [INFO] k8s: [jkube/docker-file-simple:latest]: Built image sha256:52d46

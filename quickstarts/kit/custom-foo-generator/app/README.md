@@ -41,7 +41,6 @@ If you'll run `gradle k8sBuild`, you'll see generator kicks in during the build:
 ```
 $ gradle k8sBuild
 > Task :k8sBuild
-k8s: Running in Kubernetes mode
 k8s: Running generator foo
 k8s: Add Environment variable to ImageConfigurations
 

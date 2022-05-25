@@ -22,7 +22,6 @@ You will need the following to run it with Minikube:
 $ ./gradlew build k8sBuild
 
 > Task :k8sBuild
-k8s: Running in Kubernetes mode
 k8s: Running generator webapp
 k8s: webapp: Using quay.io/jkube/jkube-tomcat9:0.0.13 as base image for webapp
 k8s: Building container image in Kubernetes mode
@@ -58,7 +57,6 @@ Run
 $ ./gradlew build k8sBuild
 
 > Task :k8sBuild
-k8s: Running in Kubernetes mode
 k8s: Running generator webapp
 k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.13 as base image for webapp
 k8s: Building container image in Kubernetes mode
@@ -77,7 +75,6 @@ It is now using `quay.io/jkube/jkube-jetty9:0.0.13` as base image!
 ```
 $ ./gradlew k8sResource -Djkube.domain=$(minikube ip).nip.io
 > Task :k8sResource
-k8s: Running in Kubernetes mode
 k8s: Running generator webapp
 k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.13 as base image for webapp
 k8s: Using resource templates from /home/sunix/github/eclipse/jkube/quickstarts/gradle/webapp/src/main/jkube
@@ -107,7 +104,6 @@ webapp-deployment.yml  webapp-ingress.yml  webapp-service.yml
 ./gradlew k8sApply
 
 > Task :k8sApply
-k8s: Running in Kubernetes mode
 k8s: Running generator webapp
 k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.13 as base image for webapp
 k8s: Using Kubernetes at https://192.168.99.115:8443/ in namespace null with manifest /home/sunix/github/eclipse/jkube/quickstarts/gradle/webapp/build/classes/java/main/META-INF/jkube/kubernetes.yml 

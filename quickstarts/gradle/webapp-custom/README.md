@@ -22,7 +22,6 @@ You will need the following to run it with Minikube:
 $ ./gradlew build k8sBuild
 
 > Task :k8sBuild
-k8s: Running in Kubernetes mode
 k8s: Running generator webapp
 k8s: webapp: Using tomcat:jdk11-openjdk-slim as base image for webapp
 k8s: Building container image in Kubernetes mode
@@ -42,7 +41,6 @@ kubernetes/webapp-custom                                latest               7d4
 ```
 $ ./gradlew k8sResource -Djkube.createExternalUrls=true -Djkube.domain=$(minikube ip).nip.io
 > Task :k8sResource
-k8s: Running in Kubernetes mode
 k8s: Running generator webapp
 k8s: webapp: Using tomcat:jdk11-openjdk-slim as base image for webapp
 k8s: Using resource templates from /home/sunix/github/eclipse/jkube/quickstarts/gradle/webapp-custom/src/main/jkube
@@ -72,7 +70,6 @@ webapp-custom-deployment.yml  webapp-custom-ingress.yml  webapp-custom-service.y
 ./gradlew k8sApply
 
 > Task :k8sApply
-k8s: Running in Kubernetes mode
 k8s: Running generator webapp
 k8s: webapp: Using tomcat:jdk11-openjdk-slim as base image for webapp
 k8s: Using Kubernetes at https://192.168.99.113:8443/ in namespace null with manifest /home/sunix/github/eclipse/jkube/quickstarts/gradle/webapp-custom/build/classes/java/main/META-INF/jkube/kubernetes.yml 

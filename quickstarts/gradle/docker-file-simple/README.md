@@ -18,7 +18,6 @@ docker-file-simple : $ gradle build k8sBUild
 
 > Task :k8sBuild
 k8s: Cannot access cluster for detecting mode: Unknown host kubernetes.default.svc: Name or service not known
-k8s: Running in Kubernetes mode
 k8s: Building Docker image in Kubernetes mode
 k8s: Pulling from jkube/jkube-java-binary-s2i
 k8s: Digest: sha256:dd5c9f44a86e19438662d293e180acc8d864887cf19c165c1b24ae703b16c2d4

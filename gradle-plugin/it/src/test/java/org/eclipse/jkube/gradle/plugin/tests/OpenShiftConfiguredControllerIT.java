@@ -58,7 +58,6 @@ public class OpenShiftConfiguredControllerIT {
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
         gradleRunner.resolveFile("expected", controllerType.toLowerCase(Locale.ROOT), "openshift.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in OpenShift mode")
         .contains("Using resource templates from")
         .contains("Adding a default " + controllerType)
         .contains("Adding revision history limit to 2")

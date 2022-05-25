@@ -40,7 +40,6 @@ public class DependencyResourcesIT {
             "META-INF", "jkube", "kubernetes.yml"),
         gradleRunner.resolveFile("expected", "kubernetes-defaults.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in Kubernetes mode")
         .contains("Using resource templates from")
         .contains("Adding revision history limit to 2")
         .contains("validating");
@@ -58,7 +57,6 @@ public class DependencyResourcesIT {
             "META-INF", "jkube", "kubernetes.yml"),
         gradleRunner.resolveFile("expected", "kubernetes-with-replica-override.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in Kubernetes mode")
         .contains("Using resource templates from")
         .contains("Adding revision history limit to 2")
         .contains("validating");

@@ -56,7 +56,6 @@ Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 [INFO] Installing /home/rohaan/work/repos/jkube/quickstarts/maven/hello-world/pom.xml to /home/rohaan/.m2/repository/org/eclipse/jkube/samples/jkube-sample-helloworld/0.1.1-SNAPSHOT/jkube-sample-helloworld-0.1.1-SNAPSHOT.pom
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:0.1.1-SNAPSHOT:build (default-cli) @ jkube-sample-helloworld ---
-[INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: [helloworld-java:0.1.1-SNAPSHOT] "hello-world": Created docker-build.tar in 34 milliseconds
 [INFO] k8s: [helloworld-java:0.1.1-SNAPSHOT] "hello-world": Built image sha256:9baee

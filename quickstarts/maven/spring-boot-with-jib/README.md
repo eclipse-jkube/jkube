@@ -32,7 +32,6 @@ To build project issue this command:
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:build (default-cli) @ eclipse-jkube-sample-spring-boot-jib ---
-[INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator spring-boot
 [INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
@@ -86,7 +85,6 @@ Once we add this property we need to do `mvn k8s:build -PJib-Zero-Config` again 
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:build (default-cli) @ eclipse-jkube-sample-spring-boot-jib ---
 [WARNING] k8s: Cannot access cluster for detecting mode: Unknown host kubernetes.default.svc: Name or service not known
-[INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator spring-boot
 [INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
@@ -122,7 +120,6 @@ JIB> [==============================] 100.0% complete
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:push (default-cli) @ eclipse-jkube-sample-spring-boot-jib ---
 [WARNING] k8s: Cannot access cluster for detecting mode: Unknown host kubernetes.default.svc: Name or service not known
-[INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator spring-boot
 [INFO] k8s: spring-boot: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
@@ -258,7 +255,6 @@ Now to build you need to issue same build goal but with different profile, build
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:build (default-cli) @ eclipse-jkube-sample-spring-boot-jib ---
-[INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: JIB image build started
 JIB> Base image 'fabric8/java-centos-openjdk8-jdk:1.5.6' does not use a specific image digest - build may not be reproducible
@@ -306,7 +302,6 @@ Pushing image to docker hub in this case, you can provide registry credentials i
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:push (default-cli) @ eclipse-jkube-sample-spring-boot-jib ---
-[INFO] k8s: Running in Kubernetes mode
 JIB> Containerizing application with the following files:                                                                    
 JIB> Retrieving registry credentials for registry-1.docker.io...                                                             
 JIB> Container program arguments set to [java, -jar, /deployments/eclipse-jkube-sample-spring-boot-jib-1.0.0-SNAPSHOT.jar] (inherited from base image)

@@ -29,7 +29,6 @@ Once the project is built, you can generate the cluster manifests by executing t
 If everything is successful, you should see the following output:
 ```
 > Task :app:k8sResource
-k8s: Running in Kubernetes mode
 k8s: istio-enricher: Added dummy networking.istio.io/v1alpha3 Gateway
 k8s: istio-enricher: Exiting Istio Enricher
 k8s: compile-time-enricher: This is the compile-time-enricher running
