@@ -17,7 +17,7 @@ package org.eclipse.jkube.kit.config.service;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -82,17 +82,22 @@ public class ApplyServiceTest {
     @Test
     public void testApplyEntities() throws Exception {
         // Given
-        final Set<HasMetadata> entities = new HashSet<>(Arrays.asList(
+        final Set<HasMetadata> entities = new LinkedHashSet<>(Arrays.asList(
             new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata().build(),
             new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build(),
             new ConfigMapBuilder().withNewMetadata().withName("c1").endMetadata().build(),
             new PodBuilder().withNewMetadata().withName("p1").endMetadata().build(),
             new ReplicationControllerBuilder().withNewMetadata().withName("rc1").endMetadata().build(),
+            new NamespaceBuilder().withNewMetadata().withName("ns1").endMetadata().build(),
             new NetworkPolicyBuilder().withNewMetadata().withName("npv1").endMetadata().build(),
             new io.fabric8.kubernetes.api.model.extensions.NetworkPolicyBuilder().withNewMetadata().withName("np-ext").endMetadata().build()
         ));
         String fileName = "foo.yml";
         WebServerEventCollector collector = new WebServerEventCollector();
+        mockServer.expect().post()
+            .withPath("/apis/apps/v1/namespaces/default/deployments")
+            .andReply(collector.record("new-deploy").andReturn(HTTP_CREATED, ""))
+            .once();
         mockServer.expect().post()
                 .withPath("/api/v1/namespaces/default/services")
                 .andReply(collector.record("new-service").andReturn(HTTP_CREATED, ""))
@@ -102,16 +107,16 @@ public class ApplyServiceTest {
                 .andReply(collector.record("new-configmap").andReturn(HTTP_CREATED, ""))
                 .once();
         mockServer.expect().post()
-                .withPath("/apis/apps/v1/namespaces/default/deployments")
-                .andReply(collector.record("new-deploy").andReturn(HTTP_CREATED, ""))
-                .once();
-        mockServer.expect().post()
                 .withPath("/api/v1/namespaces/default/pods")
                 .andReply(collector.record("new-pod").andReturn(HTTP_CREATED, ""))
                 .once();
         mockServer.expect().post()
                 .withPath("/api/v1/namespaces/default/replicationcontrollers")
                 .andReply(collector.record("new-rc").andReturn(HTTP_CREATED, ""))
+                .once();
+        mockServer.expect().post()
+                .withPath("/api/v1/namespaces")
+                .andReply(collector.record("new-ns").andReturn(HTTP_CREATED, ""))
                 .once();
         mockServer.expect().post()
             .withPath("/apis/networking.k8s.io/v1/namespaces/default/networkpolicies")
@@ -126,7 +131,7 @@ public class ApplyServiceTest {
         applyService.applyEntities(fileName, entities, log, 5);
 
         // Then
-        collector.assertEventsRecordedInOrder("new-rc", "new-configmap", "new-service", "new-deploy", "new-pod");
+        collector.assertEventsRecordedInOrder("new-ns", "new-service", "new-configmap", "new-deploy", "new-pod", "new-rc");
         collector.assertEventsRecorded("new-np-v1", "new-np-extensions");
     }
 
@@ -409,7 +414,7 @@ public class ApplyServiceTest {
         applyService.applyEntities(null, entities, log, 5);
 
         // Then
-        collector.assertEventsRecordedInOrder("configmap-ns1-create", "serviceaccount-default-create", "ingress-ns2-create");
+        collector.assertEventsRecordedInOrder("serviceaccount-default-create", "configmap-ns1-create", "ingress-ns2-create");
         assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
         applyService.setFallbackNamespace(null);
         applyService.setNamespace(configuredNamespace);
@@ -441,7 +446,7 @@ public class ApplyServiceTest {
         applyService.applyEntities(null, entities, log, 5);
 
         // Then
-        collector.assertEventsRecordedInOrder("configmap-default-ns-create", "serviceaccount-default-ns-create", "ingress-default-ns-create");
+        collector.assertEventsRecordedInOrder("serviceaccount-default-ns-create", "configmap-default-ns-create", "ingress-default-ns-create");
         assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
         applyService.setFallbackNamespace(null);
     }
