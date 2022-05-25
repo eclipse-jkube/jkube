@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
@@ -1379,7 +1380,7 @@ public class ApplyService {
     }
 
     public static List<HasMetadata> getK8sListWithNamespaceFirst(Collection<HasMetadata> k8sList) {
-        return k8sList.stream().sorted((k1, k2) -> {
+        return k8sList.stream().sorted(new HasMetadataComparator()).sorted((k1, k2) -> {
             if (isNamespaceOrProject(k1)) {
                 return -1;
             } else if (isNamespaceOrProject(k2)) {
