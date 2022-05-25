@@ -114,7 +114,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
   private List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
-    kitLogger.info("Running in [[B]]%s[[B]] mode", kubernetesExtension.getRuntimeMode().getLabel());
     return GeneratorManager.generate(configs, initGeneratorContextBuilder().build(), false);
   }
 

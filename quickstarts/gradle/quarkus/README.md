@@ -28,7 +28,6 @@ Generate the cluster manifests by executing the following command:
 $ ./gradlew build k8sResource
 
 > Task :k8sResource
-k8s: Running in Kubernetes mode
 k8s: Running generator quarkus
 k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
 k8s: Using resource templates from /home/anurag/Work/jkube/quickstarts/gradle/quarkus/src/main/jkube
@@ -48,7 +47,6 @@ Start docker build  by hitting the build task.
 $ ./gradlew k8sBuild
 
 > Task :k8sBuild
-k8s: Running in Kubernetes mode
 k8s: Running generator quarkus
 k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
 k8s: Building container image in Kubernetes mode
@@ -66,7 +64,6 @@ Deploy your application on Kubernetes cluster.
 $ ./gradlew k8sApply
 
 > Task :k8sApply
-k8s: Running in Kubernetes mode
 k8s: Running generator quarkus7s]
 k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
 k8s: Using Kubernetes at https://192.168.49.2:8443/ in namespace null with manifest /home/anurag/Work/jkube/quickstarts/gradle/quarkus/build/classes/java/main/META-INF/jkube/kubernetes.yml k8sApply

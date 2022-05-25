@@ -106,7 +106,6 @@ $ mvn -P'integration-tests' clean verify -DtestProxyHost=$(minikube ip)
 [INFO] Building war: /home/user/00-MN/projects/forks/jkube/quickstarts/maven/ibm-javaee8-webprofile-liberty/javaee8-webprofile-liberty-app/target/javaee8-webprofile-liberty-app.war
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:build (build-images) @ javaee8-webprofile-liberty-app ---
-[INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: [jkube/javaee8-webprofile-liberty-app:1.0.0-SNAPSHOT] "meeting-reservation-service": Created docker-build.tar in 57 milliseconds
 [INFO] k8s: [jkube/javaee8-webprofile-liberty-app:1.0.0-SNAPSHOT] "meeting-reservation-service": Built image sha256:b53cf
@@ -148,7 +147,6 @@ $ mvn -P'integration-tests' clean verify -DtestProxyHost=$(minikube ip)
 [INFO] Building jar: /home/user/00-MN/projects/forks/jkube/quickstarts/maven/ibm-javaee8-webprofile-liberty/javaee8-webprofile-liberty-app-it/target/javaee8-webprofile-liberty-app-it-1.0.0-SNAPSHOT.jar
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:build (build-images) @ javaee8-webprofile-liberty-app-it ---
-[INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.0.0-SNAPSHOT:apply (integration-test) @ javaee8-webprofile-liberty-app-it ---

@@ -37,7 +37,6 @@ public class SpringBootWithFragmentIT {
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
         gradleRunner.resolveFile("expected", "kubernetes.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in Kubernetes mode")
         .contains("Running generator spring-boot")
         .contains("jkube-service: Adding a default service")
         .contains("jkube-healthcheck-spring-boot: Adding readiness probe on port 8080")
@@ -56,7 +55,6 @@ public class SpringBootWithFragmentIT {
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
         gradleRunner.resolveFile("expected", "openshift.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in OpenShift mode")
         .contains("Running generator spring-boot")
         .contains("jkube-service: Adding a default service")
         .contains("jkube-openshift-deploymentconfig: Converting Deployment to DeploymentConfig")

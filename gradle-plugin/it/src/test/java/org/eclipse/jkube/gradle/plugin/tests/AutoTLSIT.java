@@ -35,7 +35,6 @@ public class AutoTLSIT {
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
         gradleRunner.resolveFile("expected", "openshift.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in OpenShift mode")
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")

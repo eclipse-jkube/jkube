@@ -52,26 +52,22 @@ public class MultiEnvironmentsIT {
   @Test
   public void k8sResource_whenRun_generatesK8sManifestsContainingConfigMap() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject("multi-environments")
+    gradleRunner.withITProject("multi-environments")
         .withArguments("build", "-Pjkube.environment=" + environment, "k8sResource", "--stacktrace")
         .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
         gradleRunner.resolveFile("expected", expectedDirectory, "kubernetes.yml"));
-    assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in Kubernetes mode");
   }
 
   @Test
   public void ocResource_whenRun_generatesOpenShiftManifestsContainingConfigMap() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject("multi-environments")
+    gradleRunner.withITProject("multi-environments")
         .withArguments("build", "-Pjkube.environment=" + environment, "ocResource", "--stacktrace")
         .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
         gradleRunner.resolveFile("expected", expectedDirectory, "openshift.yml"));
-    assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in OpenShift mode");
   }
 }

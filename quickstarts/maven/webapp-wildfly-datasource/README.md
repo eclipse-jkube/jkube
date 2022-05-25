@@ -67,7 +67,6 @@ WARNING: All illegal access operations will be denied in a future release
 [INFO] Building war: /home/sunix/github/eclipse/jkube/quickstarts/maven/webapp-wildfly-2/target/webapp-wildfly-datasource.war
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.6.0:build (default-cli) @ webapp-wildfly-datasource ---
-[INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator webapp
 [INFO] k8s: webapp: Using jboss/wildfly:25.0.0.Final as base image for webapp

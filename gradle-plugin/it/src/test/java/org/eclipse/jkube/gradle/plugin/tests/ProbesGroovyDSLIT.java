@@ -54,7 +54,6 @@ public class ProbesGroovyDSLIT {
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
         gradleRunner.resolveFile("expected", probeConfigMode, "kubernetes.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in Kubernetes mode")
         .contains("Running generator spring-boot")
         .contains("jkube-controller: Adding a default Deployment")
         .contains("jkube-service: Adding a default service")
@@ -72,7 +71,6 @@ public class ProbesGroovyDSLIT {
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
         gradleRunner.resolveFile("expected", probeConfigMode, "openshift.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in OpenShift mode")
         .contains("Running generator spring-boot")
         .contains("jkube-controller: Adding a default Deployment")
         .contains("jkube-service: Adding a default service")

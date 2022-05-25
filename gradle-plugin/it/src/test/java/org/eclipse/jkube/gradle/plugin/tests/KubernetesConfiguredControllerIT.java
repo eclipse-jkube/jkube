@@ -58,7 +58,6 @@ public class KubernetesConfiguredControllerIT {
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
         gradleRunner.resolveFile("expected", controllerType.toLowerCase(Locale.ROOT), "kubernetes.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Running in Kubernetes mode")
         .contains("Using resource templates from")
         .contains("Adding a default " + controllerType)
         .contains("Adding revision history limit to 2")

@@ -36,7 +36,6 @@ $ mvn package k8s:build
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- kubernetes-maven-plugin:1.3.0:build (default-cli) @ quarkus ---
-[INFO] k8s: Running in Kubernetes mode
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator quarkus
 [INFO] k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder

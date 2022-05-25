@@ -67,7 +67,6 @@ $ mvn clean package oc:build oc:resource oc:apply
 [INFO] 
 [INFO] --- openshift-maven-plugin:1.0.0-SNAPSHOT:build (default-cli) @ quarkus-customized-image ---
 [INFO] oc: Using OpenShift build with strategy S2I
-[INFO] oc: Running in OpenShift mode
 [INFO] oc: [org.eclipse.jkube.quickstarts.maven/quarkus-customized-image:latest]: Created docker source tar /home/user/00-MN/projects/forks/jkube/quickstarts/maven/quarkus-customized-image/target/docker/org.eclipse.jkube.quickstarts.maven/quarkus-customized-image/tmp/docker-build.tar
 [INFO] oc: Adding to Secret 12819530-ocp42-exposed-env-pull-secret-pull-secret
 [INFO] oc: Using Secret 12819530-ocp42-exposed-env-pull-secret-pull-secret
