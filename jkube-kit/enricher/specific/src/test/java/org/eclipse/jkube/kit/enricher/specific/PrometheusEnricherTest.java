@@ -110,7 +110,7 @@ public class PrometheusEnricherTest {
     // When
     prometheusEnricher.create(PlatformMode.kubernetes, builder);
     // Then
-    assertThat(builder.buildFirstItem().getMetadata().getAnnotations()).isNull();
+    assertThat(builder.buildFirstItem().getMetadata().getAnnotations()).isNullOrEmpty();
   }
 
   @Test
