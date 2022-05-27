@@ -35,6 +35,7 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.findQuarkusVersion;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivenessPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusStartupPath;
 
 public class QuarkusUtilsTest {
 
@@ -280,6 +281,19 @@ public class QuarkusUtilsTest {
 
     // Then
     assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("liveness");
+  }
+
+  @Test
+  public void resolveQuarkusStartupPath_withStartupPathSet_shouldReturnValidPath() {
+    // Given
+    Properties properties = new Properties();
+    properties.setProperty("quarkus.smallrye-health.startup-path", "startup");
+    javaProject.setProperties(properties);
+    // When
+    String resolvedStartupPath = resolveQuarkusStartupPath(javaProject);
+    // Then
+    assertThat(resolvedStartupPath).isNotEmpty()
+            .isEqualTo("startup");
   }
 
   @Test

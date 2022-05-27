@@ -45,6 +45,7 @@ public class QuarkusUtils {
   private static final String QUARKUS_SMALLRYE_HEALTH_ROOT_PATH = "quarkus.smallrye-health.root-path";
   private static final String QUARKUS_SMALLRYE_HEALTH_READINESS_PATH = "quarkus.smallrye-health.readiness-path";
   private static final String QUARKUS_SMALLRYE_HEALTH_LIVENESS_PATH = "quarkus.smallrye-health.liveness-path";
+  private static final String QUARKUS_SMALLRYE_HEALTH_STARTUP_PATH = "quarkus.smallrye-health.startup-path";
   private static final String QUARKUS_MAVEN_PLUGIN_ARTIFACTID = "quarkus-maven-plugin";
   private static final int QUARKUS_MAJOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE = 1;
   private static final int QUARKUS_MINOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE = 11;
@@ -56,6 +57,7 @@ public class QuarkusUtils {
   private static final String DEFAULT_HEALTH_ROOT_PATH = "health";
   private static final String DEFAULT_READINESS_SUBPATH = "ready";
   private static final String DEFAULT_LIVENESS_SUBPATH = "live";
+  private static final String DEFAULT_STARTUP_SUBPATH = "started";
 
   private QuarkusUtils() {}
 
@@ -141,6 +143,17 @@ public class QuarkusUtils {
   public static String resolveQuarkusLivenessPath(JavaProject javaProject) {
     return getQuarkusConfiguration(javaProject)
         .getProperty(QUARKUS_SMALLRYE_HEALTH_LIVENESS_PATH, DEFAULT_LIVENESS_SUBPATH);
+  }
+
+  /**
+   * Get Quarkus SmallRye Health startup path from Quarkus Configuration
+   *
+   * @param javaProject {@link JavaProject} project for which health startup path is required
+   * @return a string containing the startup path
+   */
+  public static String resolveQuarkusStartupPath(JavaProject javaProject) {
+    return getQuarkusConfiguration(javaProject)
+            .getProperty(QUARKUS_SMALLRYE_HEALTH_STARTUP_PATH, DEFAULT_STARTUP_SUBPATH);
   }
 
   public static boolean hasQuarkusPlugin(JavaProject javaProject) {

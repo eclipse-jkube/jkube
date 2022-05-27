@@ -40,6 +40,7 @@ import java.util.Properties;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class QuarkusHealthCheckEnricherTest {
 
   @Mocked
@@ -52,7 +53,6 @@ public class QuarkusHealthCheckEnricherTest {
   private ProcessorConfig processorConfig;
   private KubernetesListBuilder klb;
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   @Before
   public void setUp() {
     properties = new Properties();
@@ -90,7 +90,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/my-custom-path/live", "HTTP", "/my-custom-path/ready"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/my-custom-path/live", "HTTP", "/my-custom-path/ready", "HTTP", "/my-custom-path/started"));
   }
 
   @Test
@@ -101,7 +101,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/ready"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/ready", "HTTP", "/health/started"));
   }
 
   @Test
@@ -112,7 +112,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/q/health/live", "HTTP", "/q/health/ready"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/q/health/live", "HTTP", "/q/health/ready", "HTTP", "/q/health/started"));
   }
 
   @Test
@@ -125,10 +125,11 @@ public class QuarkusHealthCheckEnricherTest {
     properties.put("quarkus.smallrye-health.root-path", "health");
     properties.put("quarkus.smallrye-health.readiness-path", "im-ready");
     properties.put("quarkus.smallrye-health.liveness-path", "im-alive");
+    properties.put("quarkus.smallrye-health.startup-path", "im-started");
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/not-app/health/im-alive", "HTTP", "/not-app/health/im-ready"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/not-app/health/im-alive", "HTTP", "/not-app/health/im-ready", "HTTP", "/not-app/health/im-started"));
   }
 
   @Test
@@ -143,7 +144,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/root/q/health/liveness", "HTTP", "/root/q/health/ready"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/root/q/health/liveness", "HTTP", "/root/q/health/ready", "HTTP", "/root/q/health/started"));
   }
 
   @Test
@@ -158,7 +159,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/absolute/health/liveness", "HTTP", "/absolute/health/ready"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/absolute/health/liveness", "HTTP", "/absolute/health/ready", "HTTP", "/absolute/health/started"));
   }
 
   @Test
@@ -170,7 +171,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/absolute/liveness", "HTTP", "/q/health/ready"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/absolute/liveness", "HTTP", "/q/health/ready", "HTTP", "/q/health/started"));
   }
 
   @Test
@@ -182,7 +183,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/q/health/live", "HTTP", "/absolute/readiness"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/q/health/live", "HTTP", "/absolute/readiness", "HTTP", "/q/health/started"));
   }
 
   @Test
@@ -194,7 +195,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/health/absolute/liveness", "HTTP", "/health/ready"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/absolute/liveness", "HTTP", "/health/ready", "HTTP", "/health/started"));
   }
 
   @Test
@@ -206,7 +207,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/absolute/readiness"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/absolute/readiness", "HTTP", "/health/started"));
   }
 
   @Test
@@ -220,7 +221,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/absolute/health/live", "HTTP", "/absolute/health/ready"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/absolute/health/live", "HTTP", "/absolute/health/ready", "HTTP", "/absolute/health/started"));
   }
 
   @Test
@@ -233,7 +234,31 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessProbes(klb, tuple("HTTP", "/not-ignored/absolute/live", "HTTP", "/not-ignored/absolute/ready"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/not-ignored/absolute/live", "HTTP", "/not-ignored/absolute/ready", "HTTP", "/not-ignored/absolute/started"));
+  }
+
+  @Test
+  public void create_withQuarkus1_0AndAbsoluteStartupPathProperty_shouldIgnoreLeadingSlash() {
+    // Given
+    withSmallryeDependency();
+    withQuarkus("1.0.0.Final");
+    properties.put("quarkus.smallrye-health.startup-path", "/absolute/startup");
+    // When
+    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/ready", "HTTP", "/health/absolute/startup"));
+  }
+
+  @Test
+  public void create_withQuarkus3_AndAbsoluteStartupPathProperty_shouldReturnAbsoluteCustomizedPaths() {
+    // Given
+    withSmallryeDependency();
+    withQuarkus("3.333.3.Final");
+    properties.put("quarkus.smallrye-health.startup-path", "/absolute/startup");
+    // When
+    new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/q/health/live", "HTTP", "/q/health/ready", "HTTP", "/absolute/startup"));
   }
 
   @Test
@@ -243,8 +268,8 @@ public class QuarkusHealthCheckEnricherTest {
     // Then
     assertContainers(klb)
         .extracting(
-            "livenessProbe", "readinessProbe")
-        .containsExactly(tuple(null, null));
+            "livenessProbe", "readinessProbe", "startupProbe")
+        .containsExactly(tuple(null, null, null));
   }
 
   private AbstractListAssert<?, List<? extends Container>, Container, ObjectAssert<Container>> assertContainers(
@@ -257,15 +282,15 @@ public class QuarkusHealthCheckEnricherTest {
         .flatExtracting(PodSpec::getContainers);
   }
 
-  private void assertLivenessReadinessProbes(KubernetesListBuilder kubernetesListBuilder, Tuple... values) {
+  private void assertLivenessReadinessStartupProbes(KubernetesListBuilder kubernetesListBuilder, Tuple... values) {
     assertContainers(kubernetesListBuilder)
             .extracting(
                     "livenessProbe.httpGet.scheme", "livenessProbe.httpGet.path",
-                    "readinessProbe.httpGet.scheme", "readinessProbe.httpGet.path")
+                    "readinessProbe.httpGet.scheme", "readinessProbe.httpGet.path",
+                    "startupProbe.httpGet.scheme", "startupProbe.httpGet.path")
             .containsExactly(values);
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   private void withQuarkus(String version) {
     // @formatter:off
     new Expectations() {{
