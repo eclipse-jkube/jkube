@@ -49,7 +49,8 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         FAILURE_THRESHOLD("failureThreshold", "3"),
         SUCCESS_THRESHOLD("successThreshold", "1"),
         LIVENESS_INITIAL_DELAY("livenessInitialDelay", null),
-        READINESS_INTIAL_DELAY("readinessIntialDelay", null),
+        READINESS_INITIAL_DELAY("readinessInitialDelay", null),
+        STARTUP_INITIAL_DELAY("startupInitialDelay", null),
         HEALTH_PATH("path", null);
 
         @Getter
@@ -60,7 +61,7 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     @Override
     protected Probe getReadinessProbe() {
-        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.READINESS_INTIAL_DELAY, "5")),
+        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.READINESS_INITIAL_DELAY, "5")),
             QuarkusUtils::resolveQuarkusReadinessPath);
     }
 
@@ -68,6 +69,12 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
     protected Probe getLivenessProbe() {
         return discoverQuarkusHealthCheck(asInteger(getConfig(Config.LIVENESS_INITIAL_DELAY, "10")),
             QuarkusUtils::resolveQuarkusLivenessPath);
+    }
+    
+    @Override
+    protected Probe getStartupProbe() {
+        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.STARTUP_INITIAL_DELAY, "5")),
+                QuarkusUtils::resolveQuarkusStartupPath);
     }
 
     private Probe discoverQuarkusHealthCheck(int initialDelay, Function<JavaProject, String> pathResolver) {
