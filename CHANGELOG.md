@@ -43,6 +43,7 @@ Usage:
 * Fix #1670: Bump Quarkus native base image to ubi-minimal:8.6
 * Fix #1679: Bump jib-core to 0.21.0
 * Fix #1689: Bump JKube maintained base images to 0.0.16
+* Fix #1712: Port JKube Plugin Maven quickstart to gradle and add documentation for jkube plugin in asciidocs
 * Fix #1736: Bump Fabric8 Kubernetes Client to 6.1.1
 
 _**Note**_:

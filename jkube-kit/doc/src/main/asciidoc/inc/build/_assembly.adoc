@@ -1,9 +1,11 @@
 
-The `<assembly>` element within `<build>` element has an XML structure and defines how build artifacts and other files
-can be added to the Docker image.
+The `assembly` element within `build` element defines how build artifacts and other files
+can be added to the Docker image. The files which are supposed to be added via `assembly` should be
+present in project directory. It's also possible to add file from external source using your own custom
+logic (see <<jkube-plugin, JKube Plugin>> for more details).
 
 [[config-image-build-assembly]]
-.Assembly Configuration (<<config-image, <image> >> : <<config-image-build, <build> >>)
+.Assembly Configuration (<<config-image, image >> : <<config-image-build, build >>)
 [cols="1,5"]
 |===
 | Element | Description
@@ -15,7 +17,7 @@ can be added to the Docker image.
 
 | *targetDir*
 | Directory under which the files and artifacts contained in the assembly will be copied within the container.
-  The default value for this is `/<assembly name>`, so `/maven` if *name* is not set to a different value.
+  The default value for this is `${assembly.name}`, so `/maven` if *name* is not set to a different value.
 
 | <<build-assembly-layer, *inline*>>
 | _Deprecated: Use layers instead_
@@ -35,16 +37,14 @@ can be added to the Docker image.
   artifact should be excluded from the assembly.
 
 | *mode*
-a| Mode how the how the assembled files should be collected:
+a| Mode how the assembled files should be collected:
 
 * `dir` : Files are simply copied (default),
 * `tar` : Transfer via tar archive
 * `tgz` : Transfer via compressed tar archive
 * `zip` : Transfer via ZIP archive
 
-The archive formats have the advantage that file permission can be preserved better (since the copying is independent
-from the underlying files systems), but might triggers internal bugs from the Maven assembler (as it has been reported
-in https://github.com/fabric8io/docker-maven-plugin/issues/171[#171])
+The archive formats have the advantage that file permission can be preserved better (since the copying is independent from the underlying files systems)
 
 | *permissions*
 a| Permission of the files to add:
@@ -74,12 +74,27 @@ For example, the image `jboss/wildfly` use a "jboss" user under which all comman
 In the event you do not need to include any artifacts with the image, you may safely omit this element from the configuration.
 
 [[build-assembly-layer]]
-==== Assembly - Inline/Layer
+=== Assembly - Inline/Layer
 
 Inlined assembly description with a format very similar to
 https://maven.apache.org/plugins/maven-assembly-plugin/assembly.html[Maven Assembly Plugin].
 
 .Partial configuration example of an inline/layer element
+ifeval::["{plugin-type}" == "gradle"]
+[source,groovy,subs="attributes+"]
+----
+assembly {
+    targetDir = "/deployments"
+    layers = [{
+        fileSets = [{
+            directory = file("${project.rootDir}/build/dependencies")
+            outputDirectory = "static"
+       }]
+    }]
+}
+----
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <assembly>
@@ -97,11 +112,13 @@ https://maven.apache.org/plugins/maven-assembly-plugin/assembly.html[Maven Assem
   </layers>
 </assembly>
 ----
+endif::[]
 
-The `<layers>` element within the `<assembly>` element can have one or more
-`<layer>` elements with an XML structure that supports the following configuration options:
 
-.Assembly - Inline/Layer (<<config-image, <image> >> : <<config-image-build, <build> >> : <<config-image-build-assembly, <assembly> >>)
+The `layers` element within the `assembly` element can have one or more
+`layer` elements with a {plugin-configuration-type} structure that supports the following configuration options:
+
+.Assembly - Inline/Layer (<<config-image, image >> : <<config-image-build, build >> : <<config-image-build-assembly, assembly >>)
 [cols="1,5"]
 |===
 | Element | Description
