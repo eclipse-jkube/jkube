@@ -482,6 +482,9 @@
                 <!-- JaCoCo runtime must know where to dump coverage: -->
                 <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
               </systemPropertyVariables>
+              <environmentVariables>
+                <LC_ALL>en_EN.UTF-8</LC_ALL>
+              </environmentVariables>
             </configuration>
           </plugin>
 

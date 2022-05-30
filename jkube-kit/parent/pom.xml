@@ -874,6 +874,9 @@
             <argLine>
               -javaagent:"${settings.localRepository}/org/jmockit/jmockit/${version.jmockit}/jmockit-${version.jmockit}.jar"
             </argLine>
+            <environmentVariables>
+              <LC_ALL>en_EN.UTF-8</LC_ALL>
+           </environmentVariables>
           </configuration>
           <dependencies>
             <dependency>
