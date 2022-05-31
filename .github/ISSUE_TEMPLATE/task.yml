@@ -1,0 +1,60 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+name: Task 🔧
+description: Internal things, technical debt, and to-do tasks to be performed
+labels: [kind/task]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Suggesting a new task 🔧
+        🔍  Before opening a new issue please search existing issues at https://github.com/eclipse/jkube/issues
+
+        🤔  To make it easier for us to help you, please include as much useful information as possible.
+
+        Useful Links:
+
+          - 📄  Documentation: https://www.eclipse.org/jkube/docs/
+          - 📝  Contributing: https://www.eclipse.org/jkube/contributing
+
+  - type: dropdown
+    id: component 
+    attributes:
+      label: Component
+      description: Component
+      options:
+        - "Kubernetes Maven Plugin"
+        - "Kubernetes Gradle Plugin"
+        - "OpenShift Maven Plugin"
+        - "OpenShift Gradle Plugin"
+        - "JKube Kit"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Task description
+      description: Step by step details on how to proceed with task.
+      value: |
+        ### Description
+
+
+        ### Expected Behavior
+
+
+        ### Acceptance Criteria
+        - [ ] AC1

@@ -1,0 +1,74 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+name: Enhancement💡
+description: Suggest a enhancement for Eclipse JKube
+labels: [enhancement]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Suggesting a new enhancement💡
+        🔍  Before opening a new issue please search existing issues at https://github.com/eclipse/jkube/issues
+
+        🤔  To make it easier for us to help you, please include as much useful information as possible.
+
+        Useful Links:
+
+          - 📄  Documentation: https://www.eclipse.org/jkube/docs/
+          - 📝  Contributing: https://www.eclipse.org/jkube/contributing
+
+
+  - type: dropdown
+    id: component 
+    attributes:
+      label: Component
+      description: Component
+      options:
+        - "Kubernetes Maven Plugin"
+        - "Kubernetes Gradle Plugin"
+        - "OpenShift Maven Plugin"
+        - "OpenShift Gradle Plugin"
+        - "JKube Kit"
+    validations:
+      required: false
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your enhancement related to a problem? Please describe
+      description: A clear and concise description of what the problem is.
+      placeholder: I'm always frustrated when [...]
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions or features you've considered.
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context or screenshots about the enhancement here.
