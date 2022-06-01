@@ -22,7 +22,9 @@ Usage:
 ```
 ### 1.9.0-SNAPSHOT
 * Fix #1279: Remove redundant log messages regarding plugin modes
+* Fix #1438: Add configuration option in ServiceAccountEnricher to skip creating ServiceAccounts
 * Fix #1468: Add startup probe in QuarkusHealthCheckEnricher
+
 
 ### 1.8.0 (2022-05-24)
 * Fix #1188: Add support for specifying multiple tags in Zero configuration mode
