@@ -54,6 +54,7 @@
     - jkube-healthcheck-docker
     - jkube-healthcheck-webapp
     - jkube-healthcheck-micronaut
+    - jkube-healthcheck-openliberty
 
     # Route exposure
     - jkube-openshift-service-expose
