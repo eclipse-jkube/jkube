@@ -53,7 +53,7 @@ public class UserConfigurationCompareTest {
     @Test
     public void testConfigEqualWhenMapAndString() {
         //Given
-        Object entity1 = Collections.EMPTY_MAP;
+        Object entity1 = Collections.emptyMap();
         Object entity2 = "Hello";
 
         //When
@@ -65,8 +65,8 @@ public class UserConfigurationCompareTest {
     @Test
     public void testConfigEqualWhenMapAndEqual() {
         //Given
-        Map<String, String> entity1 = new HashMap();
-        Map<String, String> entity2 = new HashMap();
+        Map<String, String> entity1 = new HashMap<>();
+        Map<String, String> entity2 = new HashMap<>();
         entity1.put("item1", "code");
         entity2.put("item1", "code");
         //When
@@ -78,8 +78,8 @@ public class UserConfigurationCompareTest {
     @Test
     public void testConfigEqualWhenMapAndNotEqual() {
         //Given
-        Map<String, String> entity1 = new HashMap();
-        Map<String, String> entity2 = new HashMap();
+        Map<String, String> entity1 = new HashMap<>();
+        Map<String, String> entity2 = new HashMap<>();
         entity1.put("item", "code");
         entity2.put("item1", "code");
         //When
