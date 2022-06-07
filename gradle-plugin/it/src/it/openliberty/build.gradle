@@ -1,0 +1,82 @@
+plugins {
+    id 'war'
+    id 'io.openliberty.tools.gradle.Liberty' version '3.3.1'
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+}
+
+version '1.0-SNAPSHOT'
+group 'org.eclipse.jkube.integration.tests.gradle.openliberty'
+
+sourceCompatibility = '11'
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    providedCompile 'org.eclipse.microprofile:microprofile:4.1'
+}
+
+liberty {
+    server {
+        name = 'openliberty'
+        looseApplication = true
+        stripVersion = true
+        bootstrapProperties = [
+                'default.http.port':project.property('http.port'),
+                'default.https.port':project.property('https.port'),
+                'app.context.root':'/'
+        ]
+        packageLiberty {
+            packageName = 'openliberty'
+            packageType = 'jar'
+            include = 'runnable'
+        }
+    }
+}
+
+kubernetes {
+    images {
+        image {
+            name = 'repository/openliberty:latest'
+            build {
+                from = 'alpine'
+                assembly {
+                    targetDir = '/config'
+                    layers = [{
+                                  fileSets = [{
+                                                  directory = file('src/main/liberty/config')
+                                                  outputDirectory = file('.')
+                                              }]
+                              }]
+                }
+                ports = [project.property('http.port')]
+            }
+        }
+    }
+}
+
+openshift {
+    images {
+        image {
+            name = 'repository/openliberty:latest'
+            build {
+                from = 'alpine'
+                assembly {
+                    targetDir = '/config'
+                    layers = [{
+                                  fileSets = [{
+                                                  directory = file('src/main/liberty/config')
+                                                  outputDirectory = file('.')
+                                              }]
+                              }]
+                }
+                ports = [project.property('http.port')]
+            }
+        }
+    }
+}
