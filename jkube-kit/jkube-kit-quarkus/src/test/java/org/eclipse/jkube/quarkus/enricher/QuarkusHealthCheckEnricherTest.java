@@ -90,7 +90,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/my-custom-path/live", "HTTP", "/my-custom-path/ready", "HTTP", "/my-custom-path/started"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/my-custom-path/live", "HTTP", "/my-custom-path/ready", null, null));
   }
 
   @Test
@@ -101,7 +101,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/ready", "HTTP", "/health/started"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/ready", null, null));
   }
 
   @Test
@@ -112,7 +112,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/q/health/live", "HTTP", "/q/health/ready", "HTTP", "/q/health/started"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/q/health/live", "HTTP", "/q/health/ready", null, null));
   }
 
   @Test
@@ -129,7 +129,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/not-app/health/im-alive", "HTTP", "/not-app/health/im-ready", "HTTP", "/not-app/health/im-started"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/not-app/health/im-alive", "HTTP", "/not-app/health/im-ready", null, null));
   }
 
   @Test
@@ -144,7 +144,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/root/q/health/liveness", "HTTP", "/root/q/health/ready", "HTTP", "/root/q/health/started"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/root/q/health/liveness", "HTTP", "/root/q/health/ready", null, null));
   }
 
   @Test
@@ -195,7 +195,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/absolute/liveness", "HTTP", "/health/ready", "HTTP", "/health/started"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/absolute/liveness", "HTTP", "/health/ready", null, null));
   }
 
   @Test
@@ -207,7 +207,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/absolute/readiness", "HTTP", "/health/started"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/absolute/readiness", null, null));
   }
 
   @Test
@@ -221,7 +221,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/absolute/health/live", "HTTP", "/absolute/health/ready", "HTTP", "/absolute/health/started"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/absolute/health/live", "HTTP", "/absolute/health/ready", null, null));
   }
 
   @Test
@@ -234,7 +234,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/not-ignored/absolute/live", "HTTP", "/not-ignored/absolute/ready", "HTTP", "/not-ignored/absolute/started"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/not-ignored/absolute/live", "HTTP", "/not-ignored/absolute/ready", null, null));
   }
 
   @Test
@@ -246,7 +246,7 @@ public class QuarkusHealthCheckEnricherTest {
     // When
     new QuarkusHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/ready", "HTTP", "/health/absolute/startup"));
+    assertLivenessReadinessStartupProbes(klb, tuple("HTTP", "/health/live", "HTTP", "/health/ready", null, null));
   }
 
   @Test

@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.QUARKUS_GROUP_ID;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.isStartupEndpointSupported;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
 
 /**
@@ -73,8 +74,11 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
     
     @Override
     protected Probe getStartupProbe() {
-        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.STARTUP_INITIAL_DELAY, "5")),
+        if (isStartupEndpointSupported(getContext().getProject())) {
+            return discoverQuarkusHealthCheck(asInteger(getConfig(Config.STARTUP_INITIAL_DELAY, "5")),
                 QuarkusUtils::resolveQuarkusStartupPath);
+        }
+        return null;
     }
 
     private Probe discoverQuarkusHealthCheck(int initialDelay, Function<JavaProject, String> pathResolver) {
