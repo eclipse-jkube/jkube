@@ -87,7 +87,7 @@ public class UndeployMojo extends AbstractJKubeMojo implements ManifestProvider 
   }
 
   @Override
-  protected boolean canExecute() {
-    return super.canExecute() && !skipUndeploy;
+  protected boolean shouldSkip() {
+    return super.shouldSkip() || skipUndeploy;
   }
 }
