@@ -4,13 +4,12 @@
 This enricher adds kubernetes _readiness_, _liveness_ and _startup_ probes with Quarkus. This requires the following dependency
 to be added to your Quarkus project:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-<dependency>
-  <groupId>io.quarkus</groupId>
-  <artifactId>quarkus-smallrye-health</artifactId>
-</dependency>
-----
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_smallrye_dependency.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_smallrye_dependency.adoc[]
+endif::[]
 
 The enricher will try to discover the settings from the `application.properties` / `application.yaml`
 configuration file. JKube uses the following properties to resolve the health check URLs:
@@ -40,23 +39,11 @@ The enricher will use the following settings by default:
 * `startupPath` : `q/health/started`
 
 These values can be configured by the enricher in the `{plugin}` configuration as shown below:
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-      <plugin>
-        <groupId>org.eclipse.jkube</groupId>
-        <artifactId>{plugin}</artifactId>
-        <version>{version}</version>
-        <configuration>
-          <enricher>
-            <config>
-              <jkube-healthcheck-quarkus>
-                <failureThreshold>3</failureThreshold>
-                <successThreshold>1</successThreshold>
-                <livenessInitialDelay>5</livenessInitialDelay>
-              </jkube-healthcheck-quarkus>
-            </config>
-          </enricher>
-        </configuration>
-      </plugin>
-----
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_configuration.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_configuration.adoc[]
+endif::[]
 

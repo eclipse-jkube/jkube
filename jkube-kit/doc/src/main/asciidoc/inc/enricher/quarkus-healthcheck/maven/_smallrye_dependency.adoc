@@ -1,0 +1,7 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<dependency>
+  <groupId>io.quarkus</groupId>
+  <artifactId>quarkus-smallrye-health</artifactId>
+</dependency>
+----

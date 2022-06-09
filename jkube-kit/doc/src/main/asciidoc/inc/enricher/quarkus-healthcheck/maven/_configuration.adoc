@@ -1,0 +1,19 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>{plugin}</artifactId>
+        <version>{version}</version>
+        <configuration>
+          <enricher>
+            <config>
+              <jkube-healthcheck-quarkus>
+                <failureThreshold>3</failureThreshold>
+                <successThreshold>1</successThreshold>
+                <livenessInitialDelay>5</livenessInitialDelay>
+              </jkube-healthcheck-quarkus>
+            </config>
+          </enricher>
+        </configuration>
+      </plugin>
+----
