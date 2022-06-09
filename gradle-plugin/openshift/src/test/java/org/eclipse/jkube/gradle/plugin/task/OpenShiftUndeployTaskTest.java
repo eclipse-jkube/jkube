@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 
+import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
@@ -24,6 +25,8 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.provider.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -99,5 +102,24 @@ public class OpenShiftUndeployTaskTest {
                 .resolve(Paths.get("build", "classes", "java", "main", "META-INF", "jkube", "openshift.yml")).toFile(),
             taskEnvironment.getRoot().toPath().resolve(Paths.get("build", "test-project-is.yml")).toFile()
       );
+  }
+
+  @Test
+  public void runTask_withSkipUndeploy_shouldDoNothing() {
+    // Given
+    extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkipUndeploy() {
+        return new DefaultProperty<>(Boolean.class).value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftUndeployTask openShiftUndeployTask = new OpenShiftUndeployTask(OpenShiftExtension.class);
+
+    // When
+    openShiftUndeployTask.runTask();
+
+    // Then
+    assertThat(openshiftUndeployServiceMockedConstruction.constructed()).isEmpty();
   }
 }

@@ -371,6 +371,12 @@ Defaults to `5`.
 Defaults to `false`.
 | `jkube.skip.apply`
 
+| *skipUndeploy*
+| If set no applied resources would be deleted from connected {cluster} cluster.
+
+Defaults to `false`.
+| `jkube.skip.undeploy`
+
 | *skipBuild*
 | If set not images will be build (which implies also _skip.tag_) with `{task-prefix}Build`.
 | `jkube.skip.build`

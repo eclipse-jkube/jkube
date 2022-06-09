@@ -50,8 +50,6 @@ public class UndeployMojoTest {
   @Mocked
   private Settings mavenSettings;
   @Mocked
-  private KitLogger mockedKitLogger;
-  @Mocked
   private MojoExecution mockedMojoExecution;
   private File mockManifest;
   private File mockResourceDir;
@@ -67,7 +65,7 @@ public class UndeployMojoTest {
       kubernetesManifest = mockManifest;
       project = mavenProject;
       settings = mavenSettings;
-      log = mockedKitLogger;
+      log = new KitLogger.SilentLogger();
       mojoExecution = mockedMojoExecution;
     }};
     new Expectations() {{
