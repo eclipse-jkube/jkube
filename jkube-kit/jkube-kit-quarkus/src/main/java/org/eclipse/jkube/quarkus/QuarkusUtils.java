@@ -49,6 +49,8 @@ public class QuarkusUtils {
   private static final String QUARKUS_MAVEN_PLUGIN_ARTIFACTID = "quarkus-maven-plugin";
   private static final int QUARKUS_MAJOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE = 1;
   private static final int QUARKUS_MINOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE = 11;
+  private static final int QUARKUS_MAJOR_VERSION_SINCE_STARTUP_CHANGE = 2;
+  private static final int QUARKUS_MINOR_VERSION_SINCE_STARTUP_CHANGE = 1;
   private static final int QUARKUS2_MAJOR_VERSION = 2;
   private static final int QUARKUS2_MINOR_VERSION = 0;
   private static final String DEFAULT_ROOT_PATH = "/";
@@ -201,6 +203,17 @@ public class QuarkusUtils {
       }
     }
     return ret;
+  }
+
+  /**
+   * Check whether given Quarkus version supports startup endpoint or not by checking
+   * Quarkus version is greater than 2.1.
+   *
+   * @param javaProject current project
+   * @return boolean value indicating whether it's supported or not.
+   */
+  public static boolean isStartupEndpointSupported(JavaProject javaProject) {
+    return isVersionAtLeast(QUARKUS_MAJOR_VERSION_SINCE_STARTUP_CHANGE, QUARKUS_MINOR_VERSION_SINCE_STARTUP_CHANGE, findQuarkusVersion(javaProject));
   }
 
   private static String resolveQuarkusNonApplicationRootPath(String quarkusVersion, Properties quarkusProperties) {

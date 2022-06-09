@@ -33,6 +33,7 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.findQuarkusVersion;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.isStartupEndpointSupported;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivenessPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusStartupPath;
@@ -294,6 +295,30 @@ public class QuarkusUtilsTest {
     // Then
     assertThat(resolvedStartupPath).isNotEmpty()
             .isEqualTo("startup");
+  }
+
+  @Test
+  public void isStartupEndpointSupported_withQuarkusVersionBefore2_1_shouldReturnFalse() {
+    // Given
+    javaProject.setDependencies(quarkusDependencyWithVersion("2.0.3.Final"));
+
+    // When
+    boolean result = isStartupEndpointSupported(javaProject);
+
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void isStartupEndpointSupported_withQuarkusVersionAfter2_1_shouldReturnTrue() {
+    // Given
+    javaProject.setDependencies(quarkusDependencyWithVersion("2.9.2.Final"));
+
+    // When
+    boolean result = isStartupEndpointSupported(javaProject);
+
+    // Then
+    assertThat(result).isTrue();
   }
 
   @Test
