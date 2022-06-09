@@ -24,6 +24,7 @@ Usage:
 * Fix #1279: Remove redundant log messages regarding plugin modes
 * Fix #1438: Add configuration option in ServiceAccountEnricher to skip creating ServiceAccounts
 * Fix #1468: Add startup probe in QuarkusHealthCheckEnricher
+* Fix #1473: Add OpenLibertyHealthCheckEnricher to automatically add health checks in OpenLiberty projects
 
 
 ### 1.8.0 (2022-05-24)

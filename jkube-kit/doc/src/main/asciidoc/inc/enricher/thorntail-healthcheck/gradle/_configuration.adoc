@@ -1,0 +1,16 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+  enricher {
+    config {
+      'jkube-healthcheck-thorntail' {
+         port = '4444'
+         scheme = 'HTTPS'
+         path = 'health/myapp'
+         failureThreshold = '3'
+         successThreshold = '1'
+      }
+    }
+  }
+}
+----

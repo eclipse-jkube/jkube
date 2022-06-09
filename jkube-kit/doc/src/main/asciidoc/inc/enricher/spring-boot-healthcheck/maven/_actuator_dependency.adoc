@@ -1,0 +1,7 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+   <dependency>
+     <groupId>org.springframework.boot</groupId>
+     <artifactId>spring-boot-starter-actuator</artifactId>
+   </dependency>
+----

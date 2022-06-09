@@ -1,0 +1,4 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+implementation 'io.quarkus:quarkus-smallrye-health'
+----
