@@ -30,6 +30,7 @@ import static org.eclipse.jkube.kit.common.util.FileUtil.stripPrefix;
 import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
+import static org.eclipse.jkube.kit.common.util.SemanticVersionUtil.isVersionAtLeast;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
 
 public class QuarkusUtils {
@@ -206,27 +207,6 @@ public class QuarkusUtils {
   static String findQuarkusVersion(JavaProject javaProject) {
     return Optional.ofNullable(JKubeProjectUtil.getAnyDependencyVersionWithGroupId(javaProject, QUARKUS_GROUP_ID))
         .orElse(null);
-  }
-
-  static boolean isVersionAtLeast(int majorVersion, int minorVersion, String version) {
-    if (StringUtils.isNotBlank(version) && version.contains(".")) {
-      final String[] versionParts = version.split("\\.");
-      final int parsedMajorVersion = parseInt(versionParts[0]);
-      if (parsedMajorVersion > majorVersion) {
-        return true;
-      } else if (parsedMajorVersion == majorVersion) {
-        return parseInt(versionParts[1]) >= minorVersion;
-      }
-    }
-    return false;
-  }
-
-  private static int parseInt(String toParse) {
-    try {
-      return Integer.parseInt(toParse);
-    } catch (NumberFormatException ex) {
-      return -1;
-    }
   }
 
   private static boolean isAbsolutePath(String path) {

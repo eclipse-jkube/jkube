@@ -33,7 +33,6 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.findQuarkusVersion;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.isVersionAtLeast;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivenessPath;
 
@@ -281,36 +280,6 @@ public class QuarkusUtilsTest {
 
     // Then
     assertThat(resolvedHealthPath).isNotEmpty().isEqualTo("liveness");
-  }
-
-  @Test
-  public void isVersionAtLeast_withLargerMajorVersion_shouldBeFalse() {
-    assertThat(isVersionAtLeast(2, 1, "1.13.7.Final")).isFalse();
-  }
-
-  @Test
-  public void isVersionAtLeast_withSameMajorAndLargerMinorVersion_shouldBeFalse() {
-    assertThat(isVersionAtLeast(1, 14, "1.13.7.Final")).isFalse();
-  }
-
-  @Test
-  public void isVersionAtLeast_withSameMajorAndMinorVersion_shouldBeTrue() {
-    assertThat(isVersionAtLeast(1, 13, "1.13.7.Final")).isTrue();
-  }
-
-  @Test
-  public void isVersionAtLeast_withSameMajorAndSmallerMinorVersion_shouldBeTrue() {
-    assertThat(isVersionAtLeast(1, 12, "1.13.7.Final")).isTrue();
-  }
-
-  @Test
-  public void isVersionAtLeast_withSmallerMajorMinorVersion_shouldBeTrue() {
-    assertThat(isVersionAtLeast(0, 12, "1.13.7.Final")).isTrue();
-  }
-
-  @Test
-  public void isVersionAtLeast_withSmallerMajorAndIncompleteVersion_shouldBeTrue() {
-    assertThat(isVersionAtLeast(0, 12, "1.Final")).isTrue();
   }
 
   @Test
