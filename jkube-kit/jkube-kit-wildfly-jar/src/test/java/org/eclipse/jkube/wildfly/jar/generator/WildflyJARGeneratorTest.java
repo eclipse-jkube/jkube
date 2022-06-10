@@ -14,13 +14,6 @@
 package org.eclipse.jkube.wildfly.jar.generator;
 
 import java.io.File;
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,23 +22,29 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_DIST;
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_REPO;
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.PLUGIN_OPTIONS;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 /**
  * @author roland
  */
+
+@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class WildflyJARGeneratorTest {
 
     @Mocked
@@ -57,7 +56,7 @@ public class WildflyJARGeneratorTest {
     @Test
     public void notApplicable() throws IOException {
         WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
-        assertFalse(generator.isApplicable(Collections.emptyList()));
+        assertThat(generator.isApplicable(Collections.emptyList())).isFalse();
     }
 
     // To be revisited if we enable jolokia and prometheus.
@@ -65,23 +64,21 @@ public class WildflyJARGeneratorTest {
     public void getEnv() throws IOException {
         WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
         Map<String, String> extraEnv = generator.getEnv(true);
-        assertNotNull(extraEnv);
-        assertEquals(4, extraEnv.size());
+        assertThat(extraEnv).isNotNull().hasSize(4);
     }
     
     @Test
     public void getExtraOptions() throws IOException {
         WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
         List<String> extraOptions = generator.getExtraJavaOptions();
-        assertNotNull(extraOptions);
-        assertEquals(1, extraOptions.size());
-        assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
+        assertThat(extraOptions).isNotNull()
+                .singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
     }
     
     @Test
     public void slimServer(@Mocked final JavaProject project) throws IOException {
         Map<String, Object> options = new HashMap<>();
-        Map<String, String> pluginOptions = new HashMap();
+        Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_DIST, null);
         pluginOptions.put(JBOSS_MAVEN_REPO, "target" + File.separator + "myrepo");
@@ -94,16 +91,15 @@ public class WildflyJARGeneratorTest {
             GeneratorContext ctx = contextForSlimServer(project, options, tmpDir);
             WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
             List<String> extraOptions = generator.getExtraJavaOptions();
-            assertNotNull(extraOptions);
-            assertEquals(2, extraOptions.size());
-            assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
-            assertEquals("-Dmaven.repo.local=/deployments/myrepo", extraOptions.get(1));
+            assertThat(extraOptions).isNotNull()
+                    .hasSize(2)
+                    .first().isEqualTo("-Djava.net.preferIPv4Stack=true");
+            assertThat(extraOptions.get(1)).isEqualTo("-Dmaven.repo.local=/deployments/myrepo");
             List<AssemblyFileSet> files = generator.addAdditionalFiles();
-            assertFalse(files.isEmpty());
+            assertThat(files).isNotEmpty();
             AssemblyFileSet set = files.get(files.size() - 1);
-            assertEquals(targetDir.toFile(), set.getDirectory());
-            assertEquals(1, set.getIncludes().size());
-            assertEquals("myrepo", set.getIncludes().get(0));
+            assertThat(set.getDirectory()).isEqualTo(targetDir.toFile());
+            assertThat(set.getIncludes()).singleElement().isEqualTo("myrepo");
         } finally {
             Files.delete(repoDir);
             Files.delete(targetDir);
@@ -114,7 +110,7 @@ public class WildflyJARGeneratorTest {
     @Test
     public void slimServerAbsoluteDir(@Mocked final JavaProject project) throws IOException {
         Map<String, Object> options = new HashMap<>();
-        Map<String, String> pluginOptions = new HashMap();
+        Map<String, String> pluginOptions = new HashMap<>();
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-project2");
         Path targetDir = tmpDir.resolve("target");
         Path repoDir = targetDir.resolve("myrepo");
@@ -126,16 +122,14 @@ public class WildflyJARGeneratorTest {
             GeneratorContext ctx = contextForSlimServer(project, options, null);
             WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
             List<String> extraOptions = generator.getExtraJavaOptions();
-            assertNotNull(extraOptions);
-            assertEquals(2, extraOptions.size());
-            assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
-            assertEquals("-Dmaven.repo.local=/deployments/myrepo", extraOptions.get(1));
+            assertThat(extraOptions).isNotNull().hasSize(2)
+                    .first().isEqualTo("-Djava.net.preferIPv4Stack=true");
+            assertThat(extraOptions.get(1)).isEqualTo("-Dmaven.repo.local=/deployments/myrepo");
             List<AssemblyFileSet> files = generator.addAdditionalFiles();
-            assertFalse(files.isEmpty());
+            assertThat(files).isNotEmpty();
             AssemblyFileSet set = files.get(files.size() - 1);
-            assertEquals(targetDir.toFile(), set.getDirectory());
-            assertEquals(1, set.getIncludes().size());
-            assertEquals("myrepo", set.getIncludes().get(0));
+            assertThat(set.getDirectory()).isEqualTo(targetDir.toFile());
+            assertThat(set.getIncludes()).singleElement().isEqualTo("myrepo");
         } finally {
             Files.delete(repoDir);
             Files.delete(targetDir);
@@ -146,7 +140,7 @@ public class WildflyJARGeneratorTest {
     @Test
     public void slimServerNoDir(@Mocked final JavaProject project) throws Exception {
         Map<String, Object> options = new HashMap<>();
-        Map<String, String> pluginOptions = new HashMap();
+        Map<String, String> pluginOptions = new HashMap<>();
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-project2");
         Path targetDir = tmpDir.resolve("target");
         Path repoDir = targetDir.resolve("myrepo");
@@ -157,84 +151,77 @@ public class WildflyJARGeneratorTest {
             GeneratorContext ctx = contextForSlimServer(project, options, null);
             WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
             List<String> extraOptions = generator.getExtraJavaOptions();
-            assertNotNull(extraOptions);
-            assertEquals(2, extraOptions.size());
-            assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
-            assertEquals("-Dmaven.repo.local=/deployments/myrepo", extraOptions.get(1));
+            assertThat(extraOptions).isNotNull().hasSize(2)
+                    .first().isEqualTo("-Djava.net.preferIPv4Stack=true");
+            assertThat(extraOptions.get(1)).isEqualTo("-Dmaven.repo.local=/deployments/myrepo");
             Exception result = assertThrows(Exception.class, () -> {
                 generator.addAdditionalFiles();
                 fail("Test should have failed, no directory for maven repo");
             });
-            assertEquals("Error, WildFly bootable JAR generator can't retrieve "
-                    + "generated maven local cache, directory " + repoDir + " doesn't exist.", result.getMessage());
+            assertThat(result).hasMessage("Error, WildFly bootable JAR generator can't retrieve "
+                    + "generated maven local cache, directory " + repoDir + " doesn't exist.");
         } finally {
             Files.delete(tmpDir);
         }
     }
     
     @Test
-    public void slimServerNoRepo(@Mocked final JavaProject project) throws IOException {
+    public void slimServerNoRepo(@Mocked final JavaProject project) {
         Map<String, Object> options = new HashMap<>();
-        Map<String, String> pluginOptions = new HashMap();
+        Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_DIST, null);
         GeneratorContext ctx = contextForSlimServer(project, options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
-        assertNotNull(extraOptions);
-        assertEquals(1, extraOptions.size());
-        assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
+        assertThat(extraOptions).isNotNull()
+                .singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
     }
     
     @Test
-    public void slimServerNoDist(@Mocked final JavaProject project) throws IOException {
+    public void slimServerNoDist(@Mocked final JavaProject project) {
         Map<String, Object> options = new HashMap<>();
-        Map<String, String> pluginOptions = new HashMap();
+        Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_REPO, "myrepo");
         GeneratorContext ctx = contextForSlimServer(project, options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
-        assertNotNull(extraOptions);
-        assertEquals(1, extraOptions.size());
-        assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
+        assertThat(extraOptions).isNotNull().singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
     }
     
     @Test
-    public void slimServerFalseDist(@Mocked final JavaProject project) throws IOException {
+    public void slimServerFalseDist(@Mocked final JavaProject project) {
         Map<String, Object> options = new HashMap<>();
-        Map<String, String> pluginOptions = new HashMap();
+        Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_REPO, "myrepo");
         pluginOptions.put(JBOSS_MAVEN_DIST, "false");
         GeneratorContext ctx = contextForSlimServer(project, options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
-        assertNotNull(extraOptions);
-        assertEquals(1, extraOptions.size());
-        assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
+        assertThat(extraOptions).isNotNull().singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
     }
     
     @Test
-    public void slimServerTrueDist(@Mocked final JavaProject project) throws IOException {
+    public void slimServerTrueDist(@Mocked final JavaProject project) {
         Map<String, Object> options = new HashMap<>();
-        Map<String, String> pluginOptions = new HashMap();
+        Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_REPO, "myrepo");
         pluginOptions.put(JBOSS_MAVEN_DIST, "true");
         GeneratorContext ctx = contextForSlimServer(project, options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
-        assertNotNull(extraOptions);
-        assertEquals(2, extraOptions.size());
-        assertEquals("-Djava.net.preferIPv4Stack=true", extraOptions.get(0));
-        assertEquals("-Dmaven.repo.local=/deployments/myrepo", extraOptions.get(1));
+        assertThat(extraOptions).isNotNull().hasSize(2)
+                .first().isEqualTo("-Djava.net.preferIPv4Stack=true");
+        assertThat(extraOptions.get(1)).isEqualTo("-Dmaven.repo.local=/deployments/myrepo");
     }
     
     private GeneratorContext contextForSlimServer(JavaProject project, Map<String, Object> bootableJarconfig, Path dir) {
         Plugin plugin
-                = Plugin.builder().artifactId(WildflyJARHealthCheckEnricher.BOOTABLE_JAR_ARTIFACT_ID).
-                        groupId(WildflyJARHealthCheckEnricher.BOOTABLE_JAR_GROUP_ID).configuration(bootableJarconfig).build();
+                = Plugin.builder().artifactId("wildfly-jar-maven-plugin").
+                        groupId("org.wildfly.plugins").configuration(bootableJarconfig).build();
         List<Plugin> lst = new ArrayList<>();
         lst.add(plugin);
         ProcessorConfig c = new ProcessorConfig(null, null, Collections.emptyMap());
