@@ -40,7 +40,6 @@ public class KindFilenameMapperUtilTest {
         final Map<String, List<String>> propertiesMappings = propertiesMappingParser.parse(new ByteArrayInputStream(MAPPING_PROPERTIES.getBytes()));
 
         // when
-        new SystemMock().put("jkube.mapping", "/META-INF/jkube/validile.properties");
         Map<String, List<String>> defaultMappings = KindFilenameMapperUtil.loadMappings();
 
         // then
