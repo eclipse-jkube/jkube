@@ -21,20 +21,23 @@ import java.util.function.Consumer;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 
-import mockit.Mocked;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
+@RunWith(MockitoJUnitRunner.class)
 public class MigrateServiceTest {
-  @Mocked
+  @Mock
   KitLogger logger;
 
   @Rule

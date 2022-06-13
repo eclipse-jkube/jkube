@@ -29,6 +29,8 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -38,7 +40,7 @@ import static org.eclipse.jkube.kit.common.util.EnvUtil.loadTimestamp;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
-
+@RunWith(MockitoJUnitRunner.class)
 public class EnvUtilTest {
 
   @Rule
@@ -397,21 +399,27 @@ public class EnvUtilTest {
     @Test
     public  void testIsWindowsFalse(){
         //Given
-        new SystemMock().put("os.name", "random");
+        String oldOsName = System.getProperty("os.name");
+        System.setProperty("os.name", "random");
+        // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
         //When
         boolean result= EnvUtil.isWindows();
         //Then
         assertThat(result).isFalse();
+        System.setProperty("os.name", oldOsName);
     }
 
     @Test
     public  void testIsWindows(){
         //Given
-        new SystemMock().put("os.name", "windows");
+        String oldOsName = System.getProperty("os.name");
+        System.setProperty("os.name", "windows");
+        // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
         //When
         boolean result= EnvUtil.isWindows();
         //Then
         assertThat(result).isTrue();
+        System.setProperty("os.name", oldOsName);
     }
 
     @Test
