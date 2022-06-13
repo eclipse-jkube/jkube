@@ -21,10 +21,10 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -36,17 +36,21 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
+import static org.mockito.Mockito.when;
+@RunWith(MockitoJUnitRunner.class)
 public class OpenshiftHelperTest {
 
+    @Mock
+    KubernetesClient kc;
+
+    @Mock
+    OpenShiftClient oc;
+
     @Test
-    public void testAsOpenShiftClientWithNoOpenShift(@Mocked KubernetesClient kc) {
+    public void testAsOpenShiftClientWithNoOpenShift() {
         // Given
         KubernetesClient client = kc;
-        new Expectations() {{
-            kc.adapt(OpenShiftClient.class);
-            result = new KubernetesClientException("");
-        }};
+        when(kc.adapt(OpenShiftClient.class)).thenThrow( new KubernetesClientException(""));
         //When
         OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(client);
 
@@ -54,13 +58,12 @@ public class OpenshiftHelperTest {
         assertNull(result);
     }
 
+
+
     @Test
-    public void testOpenShiftClientWithAdaptableToOpenShift(@Mocked KubernetesClient kc, @Mocked OpenShiftClient oc) {
+    public void testOpenShiftClientWithAdaptableToOpenShift() {
         // Given
-        new Expectations() {{
-            kc.adapt(OpenShiftClient.class);
-            result = oc;
-        }};
+        when(kc.adapt(OpenShiftClient.class)).thenReturn(oc);
         //When
         OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(kc);
         //Then
@@ -68,7 +71,7 @@ public class OpenshiftHelperTest {
     }
 
     @Test
-    public void testOpenShiftClientWithOpenShift(@Mocked OpenShiftClient oc) {
+    public void testOpenShiftClientWithOpenShift() {
         //When
         OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(oc);
         //Then
@@ -76,12 +79,9 @@ public class OpenshiftHelperTest {
     }
 
     @Test
-    public void testIsOpenShiftWhenAdaptable(@Mocked KubernetesClient kc) {
+    public void testIsOpenShiftWhenAdaptable() {
         // Given
-        new Expectations() {{
-            kc.isAdaptable(OpenShiftClient.class);
-            result = true;
-        }};
+        when(kc.isAdaptable(OpenShiftClient.class)).thenReturn(true);
         //When
         boolean result = OpenshiftHelper.isOpenShift(kc);
         //Then
@@ -89,7 +89,7 @@ public class OpenshiftHelperTest {
     }
 
     @Test
-    public void testIsOpenShiftNotAdaptable(@Mocked KubernetesClient kc) {
+    public void testIsOpenShiftNotAdaptable() {
         //When
         boolean result = OpenshiftHelper.isOpenShift(kc);
         //Then

@@ -114,37 +114,43 @@ public class ConfigsTest {
   @Test
   public void getFromSystemPropertyWithPropertiesAsFallbackHasKeyInSystemShouldReturnSystemValue() {
     // Given
-    new SystemMock().put("key", "systemValue");
+    System.setProperty("key", "systemValue");
+    // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
     final Properties fallback = new Properties();
     fallback.put("key", "fallbackValue");
     // When
     final String result = Configs.getFromSystemPropertyWithPropertiesAsFallback(fallback, "key");
     // Then
     assertThat(result).isEqualTo("systemValue");
+    System.clearProperty("key");
   }
 
   @Test
   public void getFromSystemPropertyWithPropertiesAsFallbackHasNotKeyInSystemShouldReturnSystemValue() {
     // Given
-    new SystemMock().put("not-the-key", "systemValue");
+    System.setProperty("not-the-key", "systemValue");
+    // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
     final Properties fallback = new Properties();
     fallback.put("key", "fallbackValue");
     // When
     final String result = Configs.getFromSystemPropertyWithPropertiesAsFallback(fallback, "key");
     // Then
     assertThat(result).isEqualTo("fallbackValue");
+    System.clearProperty("not-the-key");
   }
 
   @Test
   public void getFromSystemPropertyWithPropertiesAsFallbackHasNotKeyShouldReturnNull() {
     // Given
-    new SystemMock().put("not-the-key", "systemValue");
+    System.setProperty("not-the-key", "systemValue");
+    // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
     final Properties fallback = new Properties();
     fallback.put("not-the-key-either", "fallbackValue");
     // When
     final String result = Configs.getFromSystemPropertyWithPropertiesAsFallback(fallback, "key");
     // Then
     assertThat(result).isNull();
+    System.clearProperty("not-the-key");
   }
 
 }
