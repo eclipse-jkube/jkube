@@ -15,41 +15,41 @@ package org.eclipse.jkube.kit.common;
 
 import java.io.File;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.eclipse.jkube.kit.common.ResourceVerify.verifyResourceDescriptors;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ResourceVerifyTest {
+class ResourceVerifyTest {
 
   @Test
-  public void verifyResourceDescriptors_withSameFile_shouldComplete() {
+  void verifyResourceDescriptors_withSameFile_shouldComplete() {
     assertThatCode(() -> verifyResourceDescriptors(file("original.yaml"), file("original.yaml")))
         .doesNotThrowAnyException();
   }
 
   @Test
-  public void verifyResourceDescriptors_withMatchingFile_shouldComplete() {
+  void verifyResourceDescriptors_withMatchingFile_shouldComplete() {
     assertThatCode(() -> verifyResourceDescriptors(file("original.yaml"), file("matching.yaml")))
         .doesNotThrowAnyException();
   }
 
   @Test
-  public void verifyResourceDescriptors_withPartiallyMatchingFile_shouldComplete() {
+  void verifyResourceDescriptors_withPartiallyMatchingFile_shouldComplete() {
     assertThatCode(() -> verifyResourceDescriptors(file("original.yaml"), file("partially-matching.yaml")))
         .doesNotThrowAnyException();
   }
 
   @Test
-  public void verifyResourceDescriptors_withMatchingFileAndStrict_shouldComplete() {
+  void verifyResourceDescriptors_withMatchingFileAndStrict_shouldComplete() {
     assertThatCode(() -> verifyResourceDescriptors(file("original.yaml"), file("matching.yaml"), true))
         .doesNotThrowAnyException();
   }
 
   @Test
-  public void verifyResourceDescriptors_withPartiallyMatchingFileAndStrict_shouldFail() {
+  void verifyResourceDescriptors_withPartiallyMatchingFileAndStrict_shouldFail() {
     final File original = file("original.yaml");
     final File partiallyMatching = file("partially-matching.yaml");
     final IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
