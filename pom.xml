@@ -109,7 +109,7 @@
     <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
     <version.mockito>3.11.2</version.mockito>
     <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
-    <version.slf4j-api>1.7.25</version.slf4j-api>
+    <version.slf4j-api>1.7.36</version.slf4j-api>
     <version.license-maven-plugin>3.0</version.license-maven-plugin>
     <project.build.outputTimestamp>2022-05-24T08:06:45Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
