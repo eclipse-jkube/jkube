@@ -73,8 +73,8 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
   }
 
   @Override
-  protected boolean canExecute() {
-    return super.canExecute() && !kubernetesExtension.getSkipApplyOrDefault();
+  protected boolean shouldSkip() {
+    return super.shouldSkip() || kubernetesExtension.getSkipApplyOrDefault();
   }
 
   private void applyEntities(String fileName, final Collection<HasMetadata> entities) throws InterruptedException {

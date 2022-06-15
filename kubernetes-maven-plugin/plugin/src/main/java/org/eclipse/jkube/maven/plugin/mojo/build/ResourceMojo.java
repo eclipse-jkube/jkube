@@ -187,8 +187,8 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
 
     @Override
-    protected boolean canExecute() {
-        return super.canExecute() && !skipResource;
+    protected boolean shouldSkip() {
+        return super.shouldSkip() || skipResource;
     }
 
     @Override

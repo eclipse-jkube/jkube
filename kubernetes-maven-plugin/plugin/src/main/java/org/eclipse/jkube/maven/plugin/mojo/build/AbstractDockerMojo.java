@@ -416,7 +416,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
         init();
-        if (!canExecute()) {
+        if (shouldSkip()) {
             log.info("`%s` goal is skipped.", mojoExecution.getMojoDescriptor().getFullGoalName());
             return;
         }
@@ -432,8 +432,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         runtimeMode = getConfiguredRuntimeMode();
     }
 
-    protected boolean canExecute() {
-        return !skip;
+    protected boolean shouldSkip() {
+        return skip;
     }
 
     protected void doExecute() throws MojoExecutionException {

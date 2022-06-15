@@ -36,7 +36,7 @@ public class DeployMojo extends ApplyMojo {
     protected boolean skipDeploy;
 
     @Override
-    protected boolean canExecute() {
-        return super.canExecute() && !skipDeploy;
+    protected boolean shouldSkip() {
+        return super.shouldSkip() || skipDeploy;
     }
 }

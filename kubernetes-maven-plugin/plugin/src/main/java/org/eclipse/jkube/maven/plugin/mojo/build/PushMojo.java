@@ -45,8 +45,8 @@ public class PushMojo extends AbstractDockerMojo {
     private int retries;
 
     @Override
-    protected boolean canExecute() {
-        return super.canExecute() && !skipPush;
+    protected boolean shouldSkip() {
+        return super.shouldSkip() || skipPush;
     }
 
     @Override

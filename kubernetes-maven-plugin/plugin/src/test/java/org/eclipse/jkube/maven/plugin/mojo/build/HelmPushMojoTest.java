@@ -213,13 +213,13 @@ public class HelmPushMojoTest {
   }
 
   @Test
-  public void canExecute_withSkip_shouldReturnFalse() {
+  public void shouldSkip_withSkip_shouldReturnTrue() {
     // Given
     helmPushMojo.skip = true;
     // When
-    final boolean result = helmPushMojo.canExecute();
+    final boolean result = helmPushMojo.shouldSkip();
     // Then
-    assertThat(result).isFalse();
+    assertThat(result).isTrue();
   }
 
   private void assertHelmServiceUpload() throws Exception {
