@@ -98,8 +98,8 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
 
 
   @Override
-  protected boolean canExecute() {
-    return super.canExecute() && !kubernetesExtension.getSkipResourceOrDefault();
+  protected boolean shouldSkip() {
+    return super.shouldSkip() || kubernetesExtension.getSkipResourceOrDefault();
   }
 
   private void validateIfRequired(File resourceDir, ResourceClassifier classifier) {

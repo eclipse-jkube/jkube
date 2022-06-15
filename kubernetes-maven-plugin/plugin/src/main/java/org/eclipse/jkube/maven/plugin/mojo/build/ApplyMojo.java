@@ -144,8 +144,8 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
     protected ApplyService applyService;
 
     @Override
-    protected boolean canExecute() {
-        return super.canExecute() && !skipApply;
+    protected boolean shouldSkip() {
+        return super.shouldSkip() || skipApply;
     }
 
     @Override

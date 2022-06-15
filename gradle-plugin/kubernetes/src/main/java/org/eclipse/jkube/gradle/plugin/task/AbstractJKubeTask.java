@@ -67,7 +67,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   @TaskAction
   public final void runTask() {
     init();
-    if (!canExecute()) {
+    if (shouldSkip()) {
         kitLogger.info("`%s` task is skipped.", this.getName());
         return;
     }
@@ -103,8 +103,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     }
   }
 
-  protected boolean canExecute() {
-    return !kubernetesExtension.getSkipOrDefault();
+  protected boolean shouldSkip() {
+    return kubernetesExtension.getSkipOrDefault();
   }
 
   @Internal

@@ -104,7 +104,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
             init();
-            if (!canExecute()) {
+            if (shouldSkip()) {
                 log.info("`%s` goal is skipped.", mojoExecution.getMojoDescriptor().getFullGoalName());
                 return;
             }
@@ -122,8 +122,8 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         resources = updateResourceConfigNamespace(namespace, resources);
     }
 
-    protected boolean canExecute() {
-        return !skip;
+    protected boolean shouldSkip() {
+        return skip;
     }
 
     public abstract void executeInternal() throws MojoExecutionException, MojoFailureException;
