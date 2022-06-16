@@ -24,9 +24,11 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
@@ -34,9 +36,10 @@ import static org.junit.Assert.assertThrows;
 /**
  * @author roland
  */
+@RunWith(MockitoJUnitRunner.class)
 public class SystemPropertyRegistryAuthHandlerTest {
 
-  @Mocked
+  @Mock
   KitLogger log;
 
   SystemPropertyRegistryAuthHandler handler;
