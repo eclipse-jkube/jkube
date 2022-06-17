@@ -39,7 +39,7 @@
     </dependency>
     <dependency>
       <groupId>com.consol.citrus</groupId>
-      <artifactId>citrus-core</artifactId>
+      <artifactId>citrus-validation-json</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>

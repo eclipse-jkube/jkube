@@ -14,16 +14,18 @@
 package org.eclipse.jkube.kit.common;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 
 import com.consol.citrus.context.TestContext;
+import com.consol.citrus.spi.SimpleReferenceResolver;
 import com.consol.citrus.validation.json.JsonMessageValidationContext;
 import com.consol.citrus.validation.json.JsonTextMessageValidator;
-import com.consol.citrus.validation.matcher.ValidationMatcherConfig;
+import com.consol.citrus.validation.matcher.DefaultValidationMatcherLibrary;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
@@ -32,6 +34,7 @@ import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 import org.springframework.util.FileCopyUtils;
 
+import static com.jayway.jsonpath.Option.REQUIRE_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -59,7 +62,7 @@ public class ResourceVerify {
     validator.setStrict(strict);
 
     DocumentContext actualContext = JsonPath.parse(actualText);
-    validator.validateJson(newMessage(actualText),
+    validator.validateJson("", newMessage(actualText),
         newMessage(expectedText),
         new JsonMessageValidationContext(),
         createTestContext(),
@@ -81,18 +84,19 @@ public class ResourceVerify {
 
   public static Object readWithPath(File file, String path) throws IOException {
     String json = asJson(readFile(file));
-    return JsonPath.parse(json).read(path);
+    return JsonPath.parse(json, Configuration.builder().options(REQUIRE_PROPERTIES).build()).read(path);
   }
 
   private static String readFile(File path) throws IOException {
-    return new String(FileCopyUtils.copyToByteArray(new FileInputStream(path)), Charset.defaultCharset());
+    return new String(FileCopyUtils.copyToByteArray(Files.newInputStream(path.toPath())), Charset.defaultCharset());
   }
 
   public static TestContext createTestContext() {
     TestContext context = new TestContext();
     context.getValidationMatcherRegistry()
         .getValidationMatcherLibraries()
-        .add(new ValidationMatcherConfig().getValidationMatcherLibrary());
+        .add(new DefaultValidationMatcherLibrary());
+    context.setReferenceResolver(new SimpleReferenceResolver());
     return context;
   }
 
