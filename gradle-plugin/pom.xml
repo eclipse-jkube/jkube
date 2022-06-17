@@ -36,7 +36,6 @@
   <modules>
     <module>kubernetes</module>
     <module>openshift</module>
-    <module>it</module>
     <module>doc</module>
   </modules>
 
@@ -175,4 +174,15 @@
     </pluginManagement>
   </build>
 
+  <profiles>
+    <profile>
+      <id>java-11</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+      <modules>
+        <module>it</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>

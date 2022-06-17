@@ -84,7 +84,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.asciidoctor-maven-plugin>2.2.1</version.asciidoctor-maven-plugin>
     <version.asciidoctorj>2.2.0</version.asciidoctorj>
-    <version.citrus-core>2.6.2</version.citrus-core>
+    <version.citrus>3.2.1</version.citrus>
     <version.commons-io>2.8.0</version.commons-io>
     <version.gradle>6.1.1</version.gradle>
     <version.groovy>2.4.7</version.groovy>
@@ -92,6 +92,7 @@
     <version.jackson>2.12.4</version.jackson>
     <version.jacoco>0.8.8</version.jacoco>
     <version.jmockit>1.49</version.jmockit>
+    <version.json-smart>2.4.8</version.json-smart> <!-- Transitive dependency  required by citrus -->
     <version.junit5>5.8.2</version.junit5>
     <version.junit>4.13.2</version.junit>
     <version.assertj-core>3.18.0</version.assertj-core>

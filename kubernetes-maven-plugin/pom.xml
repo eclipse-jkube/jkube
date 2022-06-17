@@ -35,7 +35,6 @@
 
   <modules>
     <module>plugin</module>
-    <module>it</module>
     <module>doc</module>
   </modules>
 
@@ -114,5 +113,17 @@
       </plugins>
     </pluginManagement>
   </build>
+
+  <profiles>
+    <profile>
+      <id>java-11</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+      <modules>
+        <module>it</module>
+      </modules>
+    </profile>
+  </profiles>
 
 </project>

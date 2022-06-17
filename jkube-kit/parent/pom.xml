@@ -47,7 +47,6 @@
     <version.javassist>3.20.0-GA</version.javassist>
     <version.jgit>6.2.0.202206071550-r</version.jgit>
     <version.jnr-unixsocket>0.38.17</version.jnr-unixsocket>
-    <version.json-smart>2.2.1</version.json-smart> <!-- Transitive dependency from com.consol.citrus:citrus-core -->
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.1.1</version.JUnitParams>
     <version.kubernetes-client>5.11.2</version.kubernetes-client>
@@ -310,44 +309,17 @@
       <!-- == libs ====================================== -->
       <dependency>
         <groupId>com.consol.citrus</groupId>
-        <artifactId>citrus-core</artifactId>
-        <version>${version.citrus-core}</version>
+        <artifactId>citrus-validation-json</artifactId>
+        <version>${version.citrus}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.consol.citrus</groupId>
+        <artifactId>citrus-validation-hamcrest</artifactId>
+        <version>${version.citrus}</version>
         <exclusions>
           <exclusion>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-xml</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-json</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-jsr223</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.springframework.retry</groupId>
-            <artifactId>spring-retry</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.springframework.ws</groupId>
-            <artifactId>spring-xml</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>xalan</groupId>
-            <artifactId>xalan</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
