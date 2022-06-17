@@ -19,42 +19,41 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.kit.common.util.MapUtil.getFlattenedMap;
 import static org.eclipse.jkube.kit.common.util.MapUtil.getNestedMap;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author roland
  */
-public class MapUtilTest {
+class MapUtilTest {
 
     @Test
-    public void testMergeIfAbsent() {
+    void testMergeIfAbsent() {
         Map<String, String> origMap = createMap("eins", "one", "zwei", "two");
         Map<String, String> toMergeMap = createMap("zwei", "deux", "drei", "trois");
         Map<String, String> expected = createMap("eins", "one", "zwei", "two", "drei", "trois");
         MapUtil.mergeIfAbsent(origMap, toMergeMap);
-        assertEquals(expected, origMap);
+        assertThat(origMap).isEqualTo(expected);
     }
 
     @Test
-    public void testMergeMaps() {
+    void testMergeMaps() {
         Map<String, String> mapA = createMap("eins", "one", "zwei", "two");
         Map<String, String> mapB = createMap("zwei", "deux", "drei", "trois");
         Map<String, String> expectedA = createMap("eins", "one", "zwei", "two", "drei", "trois");
         Map<String, String> expectedB = createMap("eins", "one", "zwei", "deux", "drei", "trois");
 
-        assertEquals(expectedA, MapUtil.mergeMaps(mapA, mapB));
-        assertEquals(expectedB, MapUtil.mergeMaps(mapB, mapA));
+        assertThat(MapUtil.mergeMaps(mapA, mapB)).isEqualTo(expectedA);
+        assertThat(MapUtil.mergeMaps(mapB, mapA)).isEqualTo(expectedB);
     }
 
     @Test
-    public void testGetFlattenedMap() {
+    void testGetFlattenedMap() {
         // Given
         final Map<String, Object> originalMap = new LinkedHashMap<>();
         originalMap.put("one", "1");
@@ -91,7 +90,7 @@ public class MapUtilTest {
     }
 
     @Test
-    public void getNestedMap_withFlattenedMap_shouldReturnNested() {
+    void getNestedMap_withFlattenedMap_shouldReturnNested() {
         // Given
         final Map<String, Object> flattenedMap = new LinkedHashMap<>();
         flattenedMap.put("key", "top-level-value");
@@ -112,7 +111,7 @@ public class MapUtilTest {
     }
 
     @Test
-    public void getNestedMap_withInvalidFlattenedMap_shouldThrowKeyOverlapsException() {
+    void getNestedMap_withInvalidFlattenedMap_shouldThrowKeyOverlapsException() {
         // Given
         final Map<String, Object> flattenedMap = new LinkedHashMap<>();
         flattenedMap.put("first.second.third.key", "the-value-3");
@@ -125,7 +124,7 @@ public class MapUtilTest {
     }
 
     @Test
-    public void getNestedMap_withInvalidFlattenedMap_shouldThrowNodeOverlapsException() {
+    void getNestedMap_withInvalidFlattenedMap_shouldThrowNodeOverlapsException() {
         // Given
         final Map<String, Object> flattenedMap = new LinkedHashMap<>();
         flattenedMap.put("first.second", "the-value-2");

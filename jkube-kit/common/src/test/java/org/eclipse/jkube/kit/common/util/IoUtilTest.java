@@ -16,38 +16,40 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.IOException;
 import java.net.ServerSocket;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class IoUtilTest {
+class IoUtilTest {
 
     @Test
-    public void findOpenPort() throws IOException {
+    void findOpenPort() throws IOException {
         int port = IoUtil.getFreeRandomPort();
         try (ServerSocket ss = new ServerSocket(port)) {
+            assertThat(ss).isNotNull();
         }
     }
 
     @Test
-    public void findOpenPortWhenPortsAreBusy() throws IOException {
+    void findOpenPortWhenPortsAreBusy() throws IOException {
         int port = IoUtil.getFreeRandomPort(49152, 60000, 100);
         try (ServerSocket ss = new ServerSocket(port)) {
+            assertThat(ss).isNotNull();
         }
         int port2 = IoUtil.getFreeRandomPort(port, 65535, 100);
         try (ServerSocket ss = new ServerSocket(port2)) {
+            assertThat(ss).isNotNull();
         }
-        assertTrue(port2 > port);
+        assertThat(port2 > port).isTrue();
+        assertThat(port2).isGreaterThan(port);
     }
 
     @Test
-    public void testSanitizeFileName() {
-        assertNull(IoUtil.sanitizeFileName(null));
-        assertEquals("Hello-World", IoUtil.sanitizeFileName("Hello/&%World"));
-        assertEquals("-H-e-l-l-o-", IoUtil.sanitizeFileName(" _H-.-e-.-l-l--.//o()"));
-        assertEquals("s2i-env-docker-io-fabric8-java-latest", IoUtil.sanitizeFileName("s2i-env-docker.io/fabric8/java:latest"));
+    void testSanitizeFileName() {
+        assertThat(IoUtil.sanitizeFileName(null)).isNull();
+        assertThat(IoUtil.sanitizeFileName("Hello/&%World")).isEqualTo("Hello-World");
+        assertThat(IoUtil.sanitizeFileName(" _H-.-e-.-l-l--.//o()")).isEqualTo("-H-e-l-l-o-");
+        assertThat(IoUtil.sanitizeFileName("s2i-env-docker.io/fabric8/java:latest")).isEqualTo("s2i-env-docker-io-fabric8-java-latest");
     }
 
 }

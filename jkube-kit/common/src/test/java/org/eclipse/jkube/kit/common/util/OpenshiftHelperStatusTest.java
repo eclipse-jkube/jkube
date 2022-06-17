@@ -13,60 +13,58 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.util.Arrays;
-import java.util.Collection;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Parameterized.class)
-public class OpenshiftHelperStatusTest {
-  @Parameterized.Parameters(name = "OpenShift Status: ''{0}''")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        // input, isFinished, isCancelled, isFailed, isCompleted
-        new Object[] { "Complete", true, false, false, true },
-        new Object[] { "Error", true, false, true, false },
-        new Object[] { "Cancelled", true, true, false, false },
-        new Object[] { "not Complete", false, false, false, false },
-        new Object[] { null, false, false, false, false });
-  }
+@SuppressWarnings("unused")
+class OpenshiftHelperStatusTest {
 
-  @Parameterized.Parameter
-  public String input;
-  @Parameterized.Parameter(1)
-  public boolean isFinished;
-  @Parameterized.Parameter(2)
-  public boolean isCancelled;
-  @Parameterized.Parameter(3)
-  public boolean isFailed;
-  @Parameterized.Parameter(4)
-  public boolean isCompleted;
-
-  @Test
-  public void testIsFinished() {
+  @DisplayName("OpenshiftHelper isFinished tests")
+  @ParameterizedTest(name = "OpenshiftHelper with status ''{0}'' should return ''{4}''")
+  @MethodSource("data")
+  void testIsFinished(String input, boolean isFinished, boolean isCancelled, boolean isFailed, boolean isCompleted) {
     boolean result = OpenshiftHelper.isFinished(input);
     assertThat(result).isEqualTo(isFinished);
   }
 
-  @Test
-  public void testIsCancelled() {
+  @DisplayName("OpenshiftHelper isCancelled tests")
+  @ParameterizedTest(name = "OpenshiftHelper with status ''{0}'' should return ''{4}''")
+  @MethodSource("data")
+  void testIsCancelled(String input, boolean isFinished, boolean isCancelled, boolean isFailed, boolean isCompleted) {
     boolean result = OpenshiftHelper.isCancelled(input);
     assertThat(result).isEqualTo(isCancelled);
   }
 
-  @Test
-  public void testIsFailed() {
+  @DisplayName("OpenshiftHelper isFailed tests")
+  @ParameterizedTest(name = "OpenshiftHelper with status ''{0}'' should return ''{4}''")
+  @MethodSource("data")
+  void testIsFailed(String input, boolean isFinished, boolean isCancelled, boolean isFailed, boolean isCompleted) {
     boolean result = OpenshiftHelper.isFailed(input);
     assertThat(result).isEqualTo(isFailed);
   }
 
-  @Test
-  public void testIsCompleted() {
+  @DisplayName("OpenshiftHelper isCompleted tests")
+  @ParameterizedTest(name = "OpenshiftHelper with status ''{0}'' should return ''{4}''")
+  @MethodSource("data")
+  void testIsCompleted(String input, boolean isFinished, boolean isCancelled, boolean isFailed, boolean isCompleted) {
     boolean result = OpenshiftHelper.isCompleted(input);
     assertThat(result).isEqualTo(isCompleted);
+  }
+
+  public static Stream<Arguments> data() {
+    return Stream.of(
+            // input, isFinished, isCancelled, isFailed, isCompleted
+            Arguments.arguments("Complete", true, false, false, true),
+            Arguments.arguments("Error", true, false, true, false),
+            Arguments.arguments("Cancelled", true, true, false, false),
+            Arguments.arguments("not Complete", false, false, false, false),
+            Arguments.arguments(null, false, false, false, false)
+    );
   }
 }

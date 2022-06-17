@@ -14,17 +14,21 @@
 package org.eclipse.jkube.kit.common;
 
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ConfigsTest {
+class ConfigsTest {
 
   public enum ConfigWithDefaults implements Configs.Config {
     ONE, TWO;
@@ -42,39 +46,20 @@ public class ConfigsTest {
   }
 
   @Test
-  public void configInterfaceWithDefaults() {
-    assertThat(ConfigWithDefaults.ONE.getKey()).isEqualTo("ONE");
-    assertThat(ConfigWithDefaults.ONE.getDefaultValue()).isNull();
-    assertThat(ConfigWithDefaults.TWO.getKey()).isEqualTo("TWO");
-    assertThat(ConfigWithDefaults.TWO.getDefaultValue()).isNull();
-  }
-
-  @Test
-  public void configInterfaceWithImplementations() {
-    assertThat(ConfigWithImplementations.ONE.getKey()).isEqualTo("one");
-    assertThat(ConfigWithImplementations.ONE.getDefaultValue()).isEqualTo("this is the default value one");
-    assertThat(ConfigWithImplementations.TWO.getKey()).isEqualTo("two");
-    assertThat(ConfigWithImplementations.TWO.getDefaultValue()).isEqualTo("default for two");
-  }
-
-  @Test
-  public void asIntValueWithValidStringShouldReturnParsed() {
+  void asIntValueWithValidStringShouldReturnParsed() {
     // When
     final int result = Configs.asInt("2");
     // Then
     assertThat(result).isEqualTo(2);
   }
 
-  @Test(expected = NumberFormatException.class)
-  public void asIntValueWithInvalidStringShouldThrowException() {
-    // When
-    Configs.asInt("2.15");
-    // Then
-    fail();
+  @Test
+  void asIntValueWithInvalidStringShouldThrowException() {
+    assertThrows(NumberFormatException.class, () -> Configs.asInt("2.15"));
   }
 
   @Test
-  public void asIntValueWithNullShouldReturnZero() {
+  void asIntValueWithNullShouldReturnZero() {
     // When
     final int result = Configs.asInt(null);
     // Then
@@ -82,23 +67,20 @@ public class ConfigsTest {
   }
 
   @Test
-  public void asIntegerValueWithValidStringShouldReturnParsed() {
+  void asIntegerValueWithValidStringShouldReturnParsed() {
     // When
     final Integer result = Configs.asInteger("2");
     // Then
     assertThat(result).isEqualTo(2);
   }
 
-  @Test(expected = NumberFormatException.class)
-  public void asIntegerValueWithInvalidStringShouldThrowException() {
-    // When
-    Configs.asInteger("2.15");
-    // Then
-    fail();
+  @Test
+  void asIntegerValueWithInvalidStringShouldThrowException() {
+    assertThrows(NumberFormatException.class, () -> Configs.asInteger("2.15"));
   }
 
   @Test
-  public void asIntegerValueWithNullShouldReturnNull() {
+  void asIntegerValueWithNullShouldReturnNull() {
     // When
     final Integer result = Configs.asInteger(null);
     // Then
@@ -106,60 +88,65 @@ public class ConfigsTest {
   }
 
   @Test
-  public void getStringValueTest() {
+  void getStringValueTest() {
     String test = RandomStringUtils.randomAlphabetic(10);
-    assertEquals(test, Configs.asString(test));
+    assertThat(Configs.asString(test)).isEqualTo(test);
   }
 
-  @Test
-  public void getFromSystemPropertyWithPropertiesAsFallbackHasKeyInSystemShouldReturnSystemValue() {
+  @DisplayName("System Properties tests")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("propertyTestData")
+  void propertyTest(String testDesc, String systemKey, String systemValue, String fallbackKey, String fallbackValue, String expected) {
     // Given
     try {
-      System.setProperty("key", "systemValue");
+      System.setProperty(systemKey, systemValue);
       // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
       final Properties fallback = new Properties();
-      fallback.put("key", "fallbackValue");
+      fallback.put(fallbackKey, fallbackValue);
       // When
       final String result = Configs.getFromSystemPropertyWithPropertiesAsFallback(fallback, "key");
       // Then
-      assertThat(result).isEqualTo("systemValue");
+      assertThat(result).isEqualTo(expected);
     } finally {
-      System.clearProperty("key");
+      System.clearProperty(systemKey);
     }
   }
 
-  @Test
-  public void getFromSystemPropertyWithPropertiesAsFallbackHasNotKeyInSystemShouldReturnSystemValue() {
-    // Given
-    try {
-      System.setProperty("not-the-key", "systemValue");
-      // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
-      final Properties fallback = new Properties();
-      fallback.put("key", "fallbackValue");
-      // When
-      final String result = Configs.getFromSystemPropertyWithPropertiesAsFallback(fallback, "key");
-      // Then
-      assertThat(result).isEqualTo("fallbackValue");
-    } finally {
-      System.clearProperty("not-the-key");
-    }
+  public static Stream<Arguments> propertyTestData() {
+    return Stream.of(
+            Arguments.arguments("System Property with Properties as Fallback has Key in System should return system value", "key", "systemValue", "key", "fallbackValue", "systemValue"),
+            Arguments.arguments("System Property with Properties as Fallback has not key in System should return fallback value", "not-the-key", "systemValue", "key", "fallbackValue", "fallbackValue"),
+            Arguments.arguments("System Property with Properties as Fallback has not key should return null", "not-the-key", "systemValue", "not-the-key-either", "fallbackValue", null)
+    );
   }
 
-  @Test
-  public void getFromSystemPropertyWithPropertiesAsFallbackHasNotKeyShouldReturnNull() {
-    // Given
-    try {
-      System.setProperty("not-the-key", "systemValue");
-      // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
-      final Properties fallback = new Properties();
-      fallback.put("not-the-key-either", "fallbackValue");
-      // When
-      final String result = Configs.getFromSystemPropertyWithPropertiesAsFallback(fallback, "key");
-      // Then
-      assertThat(result).isNull();
-    } finally {
-      System.clearProperty("not-the-key");
-    }
+  @DisplayName("Config interface tests without implementation")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("configInterfaceWithDefaultsTestData")
+  void configInterfaceWithDefaultsTest(String testDesc, ConfigWithDefaults config, String key, String defaultValue) {
+    assertThat(config.getKey()).isEqualTo(key);
+    assertThat(config.getDefaultValue()).isEqualTo(defaultValue);
   }
 
+  public static Stream<Arguments> configInterfaceWithDefaultsTestData() {
+    return Stream.of(
+            Arguments.arguments("ONE's key must be ONE and default value must be null", ConfigWithDefaults.ONE, "ONE", null),
+            Arguments.arguments("TWO's key must be TWO and default value must be null", ConfigWithDefaults.TWO, "TWO", null)
+    );
+  }
+
+  @DisplayName("Config interface tests with implementation")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("configInterfaceWithImplementationsTestData")
+  void configInterfaceWithImplementationsTest(String testDesc, ConfigWithImplementations config, String key, String defaultValue) {
+    assertThat(config.getKey()).isEqualTo(key);
+    assertThat(config.getDefaultValue()).isEqualTo(defaultValue);
+  }
+
+  public static Stream<Arguments> configInterfaceWithImplementationsTestData() {
+    return Stream.of(
+            Arguments.arguments("ONE's key must be one and default value must be \"this is the default value one\"", ConfigWithImplementations.ONE, "one", "this is the default value one"),
+            Arguments.arguments("TWO's key must be two and default value must be \"default for two\"", ConfigWithImplementations.TWO, "two", "default for two")
+    );
+  }
 }

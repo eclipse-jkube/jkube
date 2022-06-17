@@ -23,31 +23,27 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class AssemblyConfigurationTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class AssemblyConfigurationTest {
 
   @Test
-  public void testDefaultPermissions() {
+  void testDefaultPermissions() {
     assertThat(new AssemblyConfiguration().getPermissions()).isEqualTo(AssemblyConfiguration.PermissionMode.keep);
   }
 
   @Test
-  public void testDefaultMode() {
+  void testDefaultMode() {
     assertThat(new AssemblyConfiguration().getMode()).isEqualTo(AssemblyMode.dir);
   }
 
   @Test
   @Deprecated
-  public void getInline_withInlineAndLayers_shouldReturnInline() {
+  void getInline_withInlineAndLayers_shouldReturnInline() {
     // Given
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder()
         .layer(Assembly.builder().id("inline-1").build())
@@ -62,7 +58,7 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getLayers_withNoInlineAndNoLayers_shouldReturnEmptyList() {
+  void getLayers_withNoInlineAndNoLayers_shouldReturnEmptyList() {
     // Given
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder()
         .user("test");
@@ -73,7 +69,7 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getLayers_withNoInlineAndLayers_shouldReturnInlines() {
+  void getLayers_withNoInlineAndLayers_shouldReturnInlines() {
     // Given
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder()
         .user("test")
@@ -87,7 +83,7 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getLayers_withInlineAndNoLayers_shouldReturnInline() {
+  void getLayers_withInlineAndNoLayers_shouldReturnInline() {
     // Given
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder()
         .user("test")
@@ -101,7 +97,7 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getLayers_withInlineAndLayers_shouldReturnInlinesAndInlineLast() {
+  void getLayers_withInlineAndLayers_shouldReturnInlinesAndInlineLast() {
     // Given
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder()
         .user("test")
@@ -118,7 +114,7 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getProcessedLayers_withFlat_shouldReturnOriginalLayers() {
+  void getProcessedLayers_withFlat_shouldReturnOriginalLayers() {
     // Given
     final JKubeConfiguration configuration = JKubeConfiguration.builder().project(JavaProject.builder().build()).build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
@@ -135,7 +131,7 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getProcessedLayers_withSingleNoIdLayer_shouldAddIdToLayer() {
+  void getProcessedLayers_withSingleNoIdLayer_shouldAddIdToLayer() {
     // Given
     final JKubeConfiguration configuration = JKubeConfiguration.builder().project(JavaProject.builder().build()).build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
@@ -151,7 +147,7 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getProcessedLayers_withMultipleNoIdLayer_shouldReturnUnmodifiedLayers() {
+  void getProcessedLayers_withMultipleNoIdLayer_shouldReturnUnmodifiedLayers() {
     // Given
     final JKubeConfiguration configuration = JKubeConfiguration.builder().project(JavaProject.builder().build()).build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder()
@@ -168,9 +164,9 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getProcessedLayers_withSingleNoIdLayerAndArtifact_shouldReturnOriginalAndArtifactLayers() throws IOException {
+  void getProcessedLayers_withSingleNoIdLayerAndArtifact_shouldReturnOriginalAndArtifactLayers(@TempDir File temporaryFolder) throws IOException {
     // Given
-    final File buildDirectory = temporaryFolder.newFolder("target");
+    final File buildDirectory = new File(temporaryFolder, "target");
     FileUtils.touch(new File(buildDirectory, "final-artifact.jar"));
     final JKubeConfiguration configuration = JKubeConfiguration.builder()
         .project(JavaProject.builder()
@@ -197,7 +193,7 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getFlattenedClone_withAlreadyFlattened_shouldThrowException() {
+  void getFlattenedClone_withAlreadyFlattened_shouldThrowException() {
     // Given
     final JKubeConfiguration configuration = JKubeConfiguration.builder().project(JavaProject.builder().build()).build();
     final AssemblyConfiguration alreadyFlat = AssemblyConfiguration.builder().build().getFlattenedClone(configuration);
@@ -210,7 +206,7 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getFlattenedClone_withNoInlineAndNoLayers_shouldReturnEmpty() {
+  void getFlattenedClone_withNoInlineAndNoLayers_shouldReturnEmpty() {
     // Given
     final JKubeConfiguration configuration = JKubeConfiguration.builder().project(JavaProject.builder().build()).build();
     // When
@@ -225,7 +221,7 @@ public class AssemblyConfigurationTest {
   }
 
   @Test
-  public void getFlattenedClone_withInlineAndLayers_shouldReturnInlinesAndInlineLast() {
+  void getFlattenedClone_withInlineAndLayers_shouldReturnInlinesAndInlineLast() {
     // Given
     final JKubeConfiguration configuration = JKubeConfiguration.builder().project(JavaProject.builder().build()).build();
     final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder()
@@ -262,7 +258,7 @@ public class AssemblyConfigurationTest {
    * Especially designed to catch problems if Enum names are changed.
    */
   @Test
-  public void rawDeserialization() throws IOException {
+  void rawDeserialization() throws IOException {
     // Given
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(MapperFeature.USE_ANNOTATIONS, false);
