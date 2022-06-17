@@ -66,17 +66,22 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesHelperTest {
 
     private KitLogger logger;
 
     @Mock
-    KubernetesClient kubernetesClient;
+    private KubernetesClient kubernetesClient;
 
     @Mock
-    Resource<Service> svcResource;
+    private Resource<Service> svcResource;
 
     @Before
     public void setUp() throws Exception {

@@ -17,17 +17,13 @@ package org.eclipse.jkube.kit.common.util;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.SystemMock;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Incubating;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
@@ -38,7 +34,7 @@ import java.util.Properties;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
+
 @RunWith(MockitoJUnitRunner.class)
 public class JKubeProjectUtilTest {
 
@@ -60,13 +56,11 @@ public class JKubeProjectUtilTest {
   @Test
   public void hasDependencyWithGroupIdWithDependency() {
     // Given
-    // @formatter:off
     when(project.getDependencies()).thenReturn(Arrays.asList(
             Dependency.builder().groupId("io.dep").build(),
             Dependency.builder().groupId("io.dep").artifactId("artifact").version("1.3.37").build(),
             Dependency.builder().groupId("io.other").artifactId("artifact").version("1.3.37").build()
     ));
-    // @formatter:on
     // When
     final boolean result = JKubeProjectUtil.hasDependencyWithGroupId(project, "io.dep");
     // Then
@@ -76,13 +70,11 @@ public class JKubeProjectUtilTest {
   @Test
   public void hasDependencyWithGroupIdWithNoDependency() {
     // Given
-    // @formatter:off
     when(project.getDependencies()).thenReturn(Arrays.asList(
             Dependency.builder().groupId("io.dep").build(),
             Dependency.builder().groupId("io.dep").artifactId("artifact").version("1.3.37").build(),
             Dependency.builder().groupId("io.other").artifactId("artifact").version("1.3.37").build()
     ));
-    // @formatter:on
     // When
     final boolean result = JKubeProjectUtil.hasDependencyWithGroupId(project, "io.nothere");
     // Then
