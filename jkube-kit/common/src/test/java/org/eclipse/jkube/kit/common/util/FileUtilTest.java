@@ -15,48 +15,42 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativeFilePath;
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
 
-public class FileUtilTest {
+class FileUtilTest {
 
-  @Rule
-  public TemporaryFolder folder = new TemporaryFolder();
+  @TempDir
+  File folder;
 
   /**
    * Taken from
    * https://github.com/sonatype/plexus-utils/blob/5ba6cfcca911200b5b9d2b313bb939e6d7cbbac6/src/test/java/org/codehaus/plexus/util/PathToolTest.java#L90
    */
   @Test
-  public void testGetRelativeFilePathWindows() {
-    assumeTrue(isWindows());
-    assertEquals("", getRelativeFilePath(null, null));
-    assertEquals("", getRelativeFilePath(null, "\\usr\\local\\java\\bin"));
-    assertEquals("", getRelativeFilePath("\\usr\\local", null));
-    assertEquals("java\\bin", getRelativeFilePath("\\usr\\local", "\\usr\\local\\java\\bin"));
-    assertEquals("java\\bin\\", getRelativeFilePath("\\usr\\local", "\\usr\\local\\java\\bin\\"));
-    assertEquals("..\\..\\", getRelativeFilePath("\\usr\\local\\java\\bin", "\\usr\\local\\"));
-    assertEquals("java\\bin\\java.sh",
-      getRelativeFilePath("\\usr\\local\\", "\\usr\\local\\java\\bin\\java.sh"));
-    assertEquals("..\\..\\..\\",
-      getRelativeFilePath("\\usr\\local\\java\\bin\\java.sh", "\\usr\\local\\"));
-    assertEquals("..\\..\\bin", getRelativeFilePath("\\usr\\local\\", "\\bin"));
-    assertEquals("..\\usr\\local", getRelativeFilePath("\\bin", "\\usr\\local"));
-    assertEquals("", getRelativeFilePath("\\bin", "\\bin"));
+  @EnabledOnOs(OS.WINDOWS)
+  void testGetRelativeFilePathWindows() {
+    assertThat(getRelativeFilePath(null, null)).isEmpty();
+    assertThat(getRelativeFilePath(null, "\\usr\\local\\java\\bin")).isEmpty();
+    assertThat(getRelativeFilePath("\\usr\\local", null)).isEmpty();
+    assertThat(getRelativeFilePath("\\usr\\local", "\\usr\\local\\java\\bin")).isEqualTo("java\\bin");
+    assertThat(getRelativeFilePath("\\usr\\local", "\\usr\\local\\java\\bin\\")).isEqualTo("java\\bin\\");
+    assertThat(getRelativeFilePath("\\usr\\local\\java\\bin", "\\usr\\local\\")).isEqualTo("..\\..\\");
+    assertThat(getRelativeFilePath("\\usr\\local\\", "\\usr\\local\\java\\bin\\java.sh")).isEqualTo("java\\bin\\java.sh");
+    assertThat(getRelativeFilePath("\\usr\\local\\java\\bin\\java.sh", "\\usr\\local\\")).isEqualTo("..\\..\\..\\");
+    assertThat(getRelativeFilePath("\\usr\\local\\", "\\bin")).isEqualTo("..\\..\\bin");
+    assertThat(getRelativeFilePath("\\bin", "\\usr\\local")).isEqualTo("..\\usr\\local");
+    assertThat(getRelativeFilePath("\\bin", "\\bin")).isEmpty();
   }
 
     /**
@@ -64,67 +58,65 @@ public class FileUtilTest {
      * https://github.com/sonatype/plexus-utils/blob/5ba6cfcca911200b5b9d2b313bb939e6d7cbbac6/src/test/java/org/codehaus/plexus/util/PathToolTest.java#L90
      */
     @Test
-    public void testGetRelativeFilePathUnix() {
-      assumeFalse(isWindows());
-      assertEquals("", getRelativeFilePath(null, null));
-      assertEquals("", getRelativeFilePath(null, "/usr/local/java/bin"));
-      assertEquals("", getRelativeFilePath("/usr/local", null));
-      assertEquals("java/bin", getRelativeFilePath("/usr/local", "/usr/local/java/bin"));
-      assertEquals("java/bin/", getRelativeFilePath("/usr/local", "/usr/local/java/bin/"));
-      assertEquals("../../", getRelativeFilePath("/usr/local/java/bin", "/usr/local/"));
-      assertEquals("java/bin/java.sh",
-        getRelativeFilePath("/usr/local/", "/usr/local/java/bin/java.sh"));
-      assertEquals("../../../", getRelativeFilePath("/usr/local/java/bin/java.sh", "/usr/local/"));
-      assertEquals("../../bin", getRelativeFilePath("/usr/local/", "/bin"));
-      assertEquals("../usr/local", getRelativeFilePath("/bin", "/usr/local"));
-      assertEquals("", getRelativeFilePath("/bin", "/bin"));
+    @DisabledOnOs(OS.WINDOWS)
+    void testGetRelativeFilePathUnix() {
+      assertThat(getRelativeFilePath(null, null)).isEmpty();
+      assertThat(getRelativeFilePath(null, "/usr/local/java/bin")).isEmpty();
+      assertThat(getRelativeFilePath("/usr/local", null)).isEmpty();
+      assertThat(getRelativeFilePath("/usr/local", "/usr/local/java/bin")).isEqualTo("java/bin");
+      assertThat(getRelativeFilePath("/usr/local", "/usr/local/java/bin/")).isEqualTo("java/bin/");
+      assertThat(getRelativeFilePath("/usr/local/java/bin", "/usr/local/")).isEqualTo("../../");
+      assertThat(getRelativeFilePath("/usr/local/", "/usr/local/java/bin/java.sh")).isEqualTo("java/bin/java.sh");
+      assertThat(getRelativeFilePath("/usr/local/java/bin/java.sh", "/usr/local/")).isEqualTo("../../../");
+      assertThat(getRelativeFilePath("/usr/local/", "/bin")).isEqualTo("../../bin");
+      assertThat(getRelativeFilePath("/bin", "/usr/local")).isEqualTo("../usr/local");
+      assertThat(getRelativeFilePath("/bin", "/bin")).isEmpty();
   }
 
   @Test
-  public void testCreateDirectory() throws IOException {
-    File newDirectory = new File(folder.getRoot(), "firstdirectory");
+  void testCreateDirectory() throws IOException {
+    File newDirectory = new File(folder, "firstdirectory");
     FileUtil.createDirectory(newDirectory);
-    assertTrue(newDirectory.exists());
+    assertThat(newDirectory).exists();
   }
 
   // https://github.com/eclipse/jkube/issues/895
   @Test
-  public void createDirectory_withTrailingSlash_shouldNotFail() throws IOException {
-    final File toCreate = new File(folder.getRoot().toPath().resolve("first").resolve("second").toFile(),
+  void createDirectory_withTrailingSlash_shouldNotFail() throws IOException {
+    final File toCreate = new File(folder.toPath().resolve("first").resolve("second").toFile(),
         File.separator);
     FileUtil.createDirectory(toCreate);
-    assertTrue(toCreate.exists());
+    assertThat(toCreate).exists();
   }
 
   @Test
-  public void testListFilesRecursively() throws IOException {
+  void testListFilesRecursively() throws IOException {
     prepareDirectory();
-    List<File> fileList = FileUtil.listFilesAndDirsRecursivelyInDirectory(folder.getRoot());
-    assertNotNull(fileList);
-    assertEquals(6, fileList.size());
+    List<File> fileList = FileUtil.listFilesAndDirsRecursivelyInDirectory(folder);
+    assertThat(fileList).isNotNull().hasSize(5);
   }
 
   @Test
-  public void testCleanDirectory() throws IOException {
+  void testCleanDirectory() throws IOException {
     prepareDirectory();
-    List<File> fileList = FileUtil.listFilesAndDirsRecursivelyInDirectory(folder.getRoot());
-    assertEquals(6, fileList.size());
-    FileUtil.cleanDirectory(folder.getRoot());
-    assertFalse(folder.getRoot().exists());
+    List<File> fileList = FileUtil.listFilesAndDirsRecursivelyInDirectory(folder);
+    assertThat(fileList).hasSize(5);
+    FileUtil.cleanDirectory(folder);
+    assertThat(folder).doesNotExist();
   }
 
   @Test
-  public void trimWildCardCharactersFromPath() {
-    assertEquals("lib", FileUtil.trimWildcardCharactersFromPath("lib/**"));
+  void trimWildCardCharactersFromPath() {
+    assertThat(FileUtil.trimWildcardCharactersFromPath("lib/**")).isEqualTo("lib");
   }
 
   @Test
-  public void testCopyDirectoryIfNotExists() throws IOException {
+  void testCopyDirectoryIfNotExists() throws IOException {
     // Given
     prepareDirectory();
-    File copyTarget = new File(folder.getRoot(), "copyTarget");
+    File copyTarget = new File(folder, "copyTarget");
     // When
-    FileUtil.copyDirectoryIfNotExists(new File(folder.getRoot(), "foo"), copyTarget);
+    FileUtil.copyDirectoryIfNotExists(new File(folder, "foo"), copyTarget);
     // Then
     assertThat(copyTarget).exists();
     assertThat(copyTarget.list()).hasSize(2);
@@ -133,14 +125,14 @@ public class FileUtilTest {
   }
 
   @Test
-  public void testCopyDirectoryIfNotExistsWithExistingDirectory() throws IOException {
+  void testCopyDirectoryIfNotExistsWithExistingDirectory() throws IOException {
     // Given
     prepareDirectory();
-    File copyTarget = new File(folder.getRoot(), "copyTarget");
+    File copyTarget = new File(folder, "copyTarget");
     assertThat(copyTarget.mkdirs()).isTrue();
     assertThat(new File(copyTarget, "emptyFile").createNewFile()).isTrue();
     // When
-    FileUtil.copyDirectoryIfNotExists(new File(folder.getRoot(), "foo"), copyTarget);
+    FileUtil.copyDirectoryIfNotExists(new File(folder, "foo"), copyTarget);
     // Then
     assertThat(copyTarget).exists();
     assertThat(copyTarget.list()).hasSize(1);
@@ -150,21 +142,21 @@ public class FileUtilTest {
   }
 
   @Test
-  public void testGetRelativePath() throws IOException {
+  void testGetRelativePath() throws IOException {
     prepareDirectory();
-    File relativeFile = getRelativePath(folder.getRoot(), new File(folder.getRoot(), "foo"));
-    assertEquals("foo", relativeFile.getPath());
-    relativeFile = getRelativePath(folder.getRoot(),
-        new File(folder.getRoot().getAbsolutePath() + File.separator + "foo" + File.separator + "fileInFoo1"));
-    assertEquals("foo" + File.separator + "fileInFoo1", relativeFile.getPath());
+    File relativeFile = getRelativePath(folder, new File(folder, "foo"));
+    assertThat(relativeFile.getPath()).isEqualTo("foo");
+    relativeFile = getRelativePath(folder,
+        new File(folder.getAbsolutePath() + File.separator + "foo" + File.separator + "fileInFoo1"));
+    assertThat(relativeFile.getPath()).isEqualTo("foo" + File.separator + "fileInFoo1");
   }
 
   private void prepareDirectory() throws IOException {
-    final File dir1 = folder.newFolder("foo");
+    final File dir1 = Files.createDirectories(folder.toPath().resolve("foo")).toFile();
     assertThat(new File(dir1, "fileInFoo1").createNewFile()).isTrue();
     assertThat(new File(dir1, "fileInFoo2").createNewFile()).isTrue();
-    folder.newFile("something");
-    final File dir2 = folder.newFolder("bar");
+    new File(folder, "something");
+    final File dir2 = Files.createDirectories(folder.toPath().resolve("bar")).toFile();
     assertThat(new File(dir2, "fileInBar2").createNewFile()).isTrue();
   }
 

@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -26,10 +26,10 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class LazyBuilderTest {
+class LazyBuilderTest {
 
   @Test
-  public void getShouldInvokeSupplierOnce() {
+  void getShouldInvokeSupplierOnce() {
     // Given
     final AtomicInteger count = new AtomicInteger(0);
     final Supplier<Integer> build = () -> {
@@ -45,7 +45,7 @@ public class LazyBuilderTest {
   }
 
   @Test
-  public void getConcurrentShouldInvokeSupplierTwice() throws Exception {
+  void getConcurrentShouldInvokeSupplierTwice() throws Exception {
     // Given
     final AtomicInteger count = new AtomicInteger(0);
     final CountDownLatch cdl = new CountDownLatch(1);

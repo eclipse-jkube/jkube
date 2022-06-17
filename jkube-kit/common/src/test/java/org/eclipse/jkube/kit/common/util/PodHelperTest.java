@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,10 +28,10 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PodHelperTest {
+class PodHelperTest {
 
   @Test
-  public void firstContainerHasEnvVarsWithoutContainedEnvVarsShouldReturnFalse() {
+  void firstContainerHasEnvVarsWithoutContainedEnvVarsShouldReturnFalse() {
     // Given
     final Pod pod = initPod(
         Collections.singletonList(envVar("VAR1", "VAL1")),
@@ -47,7 +47,7 @@ public class PodHelperTest {
   }
 
   @Test
-  public void firstContainerHasEnvVarsWithContainedEnvVarsShouldReturnTrue() {
+  void firstContainerHasEnvVarsWithContainedEnvVarsShouldReturnTrue() {
     // Given
     final Pod pod = initPod(
         Arrays.asList(envVar("VAR1", "VAL1"), envVar("VAR2", "VAL2")),
@@ -63,7 +63,7 @@ public class PodHelperTest {
   }
 
   @Test
-  public void firstContainerHasEnvVarsWithEmptyPodShouldReturnFalse() {
+  void firstContainerHasEnvVarsWithEmptyPodShouldReturnFalse() {
     // Given
     final Pod pod = new Pod();
     final Map<String, String> desiredVars = Collections.singletonMap("VAR1", "VAL1");
@@ -74,7 +74,7 @@ public class PodHelperTest {
   }
 
   @Test
-  public void firstContainerHasEnvVarsWithEmptyPodSpecShouldReturnFalse() {
+  void firstContainerHasEnvVarsWithEmptyPodSpecShouldReturnFalse() {
     // Given
     final Pod pod = new PodBuilder().withNewSpec().endSpec().build();
     final Map<String, String> desiredVars = Collections.singletonMap("VAR1", "VAL1");

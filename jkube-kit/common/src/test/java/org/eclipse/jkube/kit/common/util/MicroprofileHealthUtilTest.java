@@ -15,13 +15,13 @@ package org.eclipse.jkube.kit.common.util;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class MicroprofileHealthUtilTest {
+class MicroprofileHealthUtilTest {
   @Test
-  public void hasMicroProfileHealthDependency_withMicroProfileInInvalidGroup_shouldReturnTrue() {
+  void hasMicroProfileHealthDependency_withMicroProfileInInvalidGroup_shouldReturnTrue() {
     // Given
     JavaProject javaProject = createNewJavaProjectDependency("org.wildfly.swarm", "microprofile", "2018.5.0");
 
@@ -33,7 +33,7 @@ public class MicroprofileHealthUtilTest {
   }
 
   @Test
-  public void hasMicroProfileDependency_withMicroProfile_shouldReturnTrue() {
+  void hasMicroProfileDependency_withMicroProfile_shouldReturnTrue() {
     // Given
     JavaProject javaProject = createNewJavaProjectDependency("org.eclipse.microprofile", "microprofile", "5.0");
 
@@ -45,7 +45,7 @@ public class MicroprofileHealthUtilTest {
   }
 
   @Test
-  public void hasMicroProfileHealthDependency_withMicroProfileHealth_shouldReturnTrue() {
+  void hasMicroProfileHealthDependency_withMicroProfileHealth_shouldReturnTrue() {
     // Given
     JavaProject javaProject = createNewJavaProjectDependency("org.eclipse.microprofile", "microprofile-health", "5.0");
 
@@ -57,7 +57,7 @@ public class MicroprofileHealthUtilTest {
   }
 
   @Test
-  public void isStartupEndpointSupported_withNoDependency_shouldReturnFalse() {
+  void isStartupEndpointSupported_withNoDependency_shouldReturnFalse() {
     // Given
     JavaProject javaProject = JavaProject.builder().build();
 
@@ -69,7 +69,7 @@ public class MicroprofileHealthUtilTest {
   }
 
   @Test
-  public void isStartupEndpointSupported_withMicroprofileBefore3_1_shouldReturnFalse() {
+  void isStartupEndpointSupported_withMicroprofileBefore3_1_shouldReturnFalse() {
     // Given
     JavaProject javaProject = createNewJavaProjectDependency("org.eclipse.microprofile", "microprofile", "2.2");
 
@@ -81,7 +81,7 @@ public class MicroprofileHealthUtilTest {
   }
 
   @Test
-  public void isStartupEndpointSupported_withMicroprofileAfter3_1_shouldReturnTrue() {
+  void isStartupEndpointSupported_withMicroprofileAfter3_1_shouldReturnTrue() {
     // Given
     JavaProject javaProject = createNewJavaProjectDependency("org.eclipse.microprofile", "microprofile", "5.0");
 
@@ -93,7 +93,7 @@ public class MicroprofileHealthUtilTest {
   }
 
   @Test
-  public void isStartupEndpointSupported_withMicroprofileHealthAfter3_1_shouldReturnTrue() {
+  void isStartupEndpointSupported_withMicroprofileHealthAfter3_1_shouldReturnTrue() {
     // Given
     JavaProject javaProject = createNewJavaProjectDependency("org.eclipse.microprofile", "microprofile-health", "5.0");
 

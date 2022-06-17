@@ -21,88 +21,82 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Answers;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class OpenshiftHelperTest {
+class OpenshiftHelperTest {
+    private KubernetesClient kc;
+    private OpenShiftClient oc;
 
-    @Mock
-    KubernetesClient kc;
-
-    @Mock
-    OpenShiftClient oc;
+    @BeforeEach
+    public void setUp() {
+        kc = mock(KubernetesClient.class);
+        oc = mock(OpenShiftClient.class);
+    }
 
     @Test
-    public void testAsOpenShiftClientWithNoOpenShift() {
+    void testAsOpenShiftClientWithNoOpenShift() {
         // Given
         doThrow(new KubernetesClientException("")).when(kc).adapt(OpenShiftClient.class);
         //When
         OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(kc);
         //Then
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
-    public void testOpenShiftClientWithAdaptableToOpenShift() {
+    void testOpenShiftClientWithAdaptableToOpenShift() {
         // Given
         doReturn(oc).when(kc).adapt(OpenShiftClient.class);
         //When
         OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(kc);
         //Then
-        assertNotNull(result);
+        assertThat(result).isNotNull();
     }
 
     @Test
-    public void testOpenShiftClientWithOpenShift() {
+    void testOpenShiftClientWithOpenShift() {
         //When
         OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(oc);
         //Then
-        assertNotNull(result);
+        assertThat(result).isNotNull();
     }
 
     @Test
-    public void testIsOpenShiftWhenSupported() {
+    void testIsOpenShiftWhenSupported() {
         // Given
         doReturn(oc).when(kc).adapt(OpenShiftClient.class);
         when(oc.isSupported()).thenReturn(true);
         //When
         boolean result = OpenshiftHelper.isOpenShift(kc);
         //Then
-        assertTrue(result);
+        assertThat(result).isTrue();
     }
 
     @Test
-    public void testIsOpenShiftNotSupported() {
+    void testIsOpenShiftNotSupported() {
         // Given
         doReturn(oc).when(kc).adapt(OpenShiftClient.class);
         when(oc.isSupported()).thenReturn(false);
         //When
         boolean result = OpenshiftHelper.isOpenShift(kc);
         //Then
-        assertFalse(result);
+        assertThat(result).isFalse();
     }
 
 
     @Test
-    public void testProcessTemplatesLocallyNotNull() throws IOException {
+    void testProcessTemplatesLocallyNotNull() throws IOException {
         //Given
         Template template = new TemplateBuilder()
                 .withNewMetadata().withName("redis-template").endMetadata()
@@ -135,15 +129,20 @@ public class OpenshiftHelperTest {
         //When
         KubernetesList result = OpenshiftHelper.processTemplatesLocally(template, failOnMissingParameterValue);
         //Then
-        assertEquals(1, result.getItems().size());
-        assertTrue(result.getItems().get(0) instanceof Pod);
+        assertThat(result)
+            .isNotNull()
+            .extracting(KubernetesList::getItems)
+            .asList()
+            .singleElement()
+            .isInstanceOf(Pod.class);
+
         Pod item = (Pod) result.getItems().get(0);
-        assertEquals("REDIS_PASSWORD", item.getSpec().getContainers().get(0).getEnv().get(0).getName());
-        assertNotEquals("${REDIS_PASSWORD}", item.getSpec().getContainers().get(0).getEnv().get(0).getValue());
+        assertThat(item.getSpec().getContainers().get(0).getEnv().get(0).getName()).isEqualTo("REDIS_PASSWORD");
+        assertThat(item.getSpec().getContainers().get(0).getEnv().get(0).getValue()).isNotEqualTo("${REDIS_PASSWORD}");
     }
 
     @Test
-    public void testProcessTemplatesLocallyNull() throws IOException {
+    void testProcessTemplatesLocallyNull() throws IOException {
         //Given
         Template template = new TemplateBuilder()
                 .withNewMetadata().withName("redis-template").endMetadata()
@@ -158,11 +157,11 @@ public class OpenshiftHelperTest {
         //When
         KubernetesList result = OpenshiftHelper.processTemplatesLocally(template, failOnMissingParameterValue);
         //Then
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
-    public void testCombineTemplates() {
+    void testCombineTemplates() {
         //Given
         Template template = new TemplateBuilder()
                 .withNewMetadata().withName("redis-template").endMetadata()
@@ -192,7 +191,7 @@ public class OpenshiftHelperTest {
                 .endParameter()
                 .build();
 
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         map.put("app", "java");
         template.getMetadata().setAnnotations(map);
 
@@ -203,8 +202,8 @@ public class OpenshiftHelperTest {
         //When
         Template result = OpenshiftHelper.combineTemplates(first_template, template);
         //Then
-        assertEquals("redis-copy", result.getMetadata().getName());
-        assertEquals("this is displayName", result.getParameters().get(0).getDisplayName());
+        assertThat(result.getMetadata().getName()).isEqualTo("redis-copy");
+        assertThat(result.getParameters().get(0).getDisplayName()).isEqualTo("this is displayName");
     }
 
 }

@@ -17,24 +17,26 @@ package org.eclipse.jkube.kit.common.util.validator;
 import org.assertj.core.api.Condition;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
-@RunWith(MockitoJUnitRunner.class)
-public class ResourceValidatorTest {
-  @Mock
-  KitLogger logger;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+class ResourceValidatorTest {
+  private KitLogger logger;
+
+  @BeforeEach
+  public void setUp() {
+    logger = new KitLogger.SilentLogger();
+  }
 
   @Test
-  public void validateWithValidResource() throws Exception {
+  void validateWithValidResource() throws Exception {
     // Given
     final ResourceValidator validator = new ResourceValidator(
         Paths.get(ResourceValidatorTest.class.getResource("/util/validator/valid-service.yml").toURI()).toFile(),
@@ -48,7 +50,7 @@ public class ResourceValidatorTest {
   }
 
   @Test
-  public void validateWithInvalidResource() throws Exception {
+  void validateWithInvalidResource() throws Exception {
     // Given
     final ResourceValidator validator = new ResourceValidator(
         Paths.get(ResourceValidatorTest.class.getResource("/util/validator/invalid-deployment.yml").toURI()).toFile(),

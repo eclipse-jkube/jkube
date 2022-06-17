@@ -20,38 +20,33 @@ import java.nio.file.Files;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.common.util.XMLUtil.stream;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
-public class XMLUtilTest {
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+class XMLUtilTest {
 
     @Test
-    public void testReadXML() throws Exception {
+    void testReadXML() throws Exception {
         // Given
         File sampleXML = new File(getClass().getResource("/util/xml-util.xml").toURI());
         // When
         Document document = XMLUtil.readXML(sampleXML);
         // Then
-        assertNotNull(document);
-        assertEquals(1, document.getElementsByTagName("root").getLength());
+        assertThat(document).isNotNull();
+        assertThat(document.getElementsByTagName("root").getLength()).isEqualTo(1);
     }
 
     @Test
-    public void testXMLWrite() throws IOException, ParserConfigurationException, TransformerException {
+    void testXMLWrite(@TempDir File folder) throws IOException, ParserConfigurationException, TransformerException {
         // Given
-        File cloneXML = folder.newFile("pom-clone.xml");
+        File cloneXML = new File(folder, "pom-clone.xml");
         Document dom = XMLUtil.createNewDocument();
         Element rootElement = dom.createElement("project");
         rootElement.appendChild(createSimpleTextNode(dom, "groupId", "org.eclipse.jkube"));
@@ -63,31 +58,32 @@ public class XMLUtilTest {
         XMLUtil.writeXML(dom, cloneXML);
 
         // Then
-        assertTrue(cloneXML.exists());
-        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?><project><groupId>org.eclipse.jkube</groupId><artifactId>jkube-kit</artifactId><version>1.0.0</version></project>", new String(Files.readAllBytes(cloneXML.toPath())));
+        assertThat(cloneXML).exists();
+        assertThat(new String(Files.readAllBytes(cloneXML.toPath()))).isEqualTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?><project><groupId>org.eclipse.jkube</groupId><artifactId>jkube-kit</artifactId><version>1.0.0</version></project>");
     }
 
     @Test
-    public void testEvaluateExpressionForItem() throws Exception {
+    void testEvaluateExpressionForItem() throws Exception {
         // Given
         File sampleXML = new File(getClass().getResource("/util/xml-util.xml").toURI());
         Document document = XMLUtil.readXML(sampleXML);
         // When
         final NodeList result = XMLUtil.evaluateExpressionForItem(document, "/root");
         // Then
-        assertNotNull(document);
-        assertEquals(1, result.getLength());
-        assertEquals("root", result.item(0).getNodeName());
+        assertThat(document).isNotNull();
+        assertThat(result.getLength()).isEqualTo(1);
+        assertThat(result.item(0).getNodeName()).isEqualTo("root");
     }
 
     @Test
-    public void testStream() throws Exception {
+    void testStream() throws Exception {
         // Given
         final Document document = XMLUtil.readXML(new File(getClass().getResource("/util/xml-util.xml").toURI()));
         // When
         final boolean result = stream(document.getChildNodes()).anyMatch(node -> node.getNodeName().equals("root"));
         // Then
-        assertTrue(result);
+        assertThat(result).isTrue();
     }
 
     private Node createSimpleTextNode(Document doc, String name, String value) {

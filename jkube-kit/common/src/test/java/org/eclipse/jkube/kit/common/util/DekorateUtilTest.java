@@ -15,36 +15,36 @@ package org.eclipse.jkube.kit.common.util;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Stream;
 
-public class DekorateUtilTest {
-  @Test
-  public void useDekorate_withNoDekorateDependency_returnsFalse() {
-    // Given
-    JavaProject javaProject = JavaProject.builder().build();
+import static org.assertj.core.api.Assertions.assertThat;
 
-    // When
-    boolean result = DekorateUtil.useDekorate(javaProject);
+class DekorateUtilTest {
 
-    // Then
-    assertThat(result).isFalse();
-  }
-
-  @Test
-  public void useDekorate_withDekorateDependency_returnsTrue() {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("data")
+  void useDekorate(String testDesc, List<Dependency> dependencies, boolean expected) {
     // Given
     JavaProject javaProject = JavaProject.builder()
-      .dependency(Dependency.builder()
-        .groupId("io.dekorate").artifactId("kubernetes-annotations").version("0.10.5")
-        .build())
-      .build();
-
+            .dependencies(dependencies)
+            .build();
     // When
     boolean result = DekorateUtil.useDekorate(javaProject);
+    //Then
+    assertThat(result).isEqualTo(expected);
+  }
 
-    // Then
-    assertThat(result).isTrue();
+  public static Stream<Arguments> data() {
+    return Stream.of(
+            Arguments.arguments("without dekorate dependency should be false", Collections.emptyList(), false),
+            Arguments.arguments("with dekorate dependency should be true", Collections.singletonList(
+                    Dependency.builder().groupId("io.dekorate").artifactId("kubernetes-annotations").version("0.10.5").build()), true)
+    );
   }
 }

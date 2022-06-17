@@ -13,35 +13,29 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-
-
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-@RunWith(MockitoJUnitRunner.class)
-public class Slf4jKitLoggerTest {
 
-  @Mock
+class Slf4jKitLoggerTest {
+
   private Logger logger;
-
   private KitLogger kitLogger;
 
-
-  @Before
+  @BeforeEach
   public void setUp() {
+    logger = mock(Logger.class);
     kitLogger = new Slf4jKitLogger(logger);
   }
 
   @Test
-  public void debug() {
+  void debug() {
     // When
     kitLogger.debug("Something to debug %s", "replaced");
     // Then
@@ -49,7 +43,7 @@ public class Slf4jKitLoggerTest {
   }
 
   @Test
-  public void info() {
+  void info() {
     // When
     kitLogger.info("Something to info %-1.1s", "replaced");
     // Then
@@ -57,7 +51,7 @@ public class Slf4jKitLoggerTest {
   }
 
   @Test
-  public void warn() {
+  void warn() {
     // When
     kitLogger.warn("Something to warn %-2.2s", "r");
     // Then
@@ -65,7 +59,7 @@ public class Slf4jKitLoggerTest {
   }
 
   @Test
-  public void error() {
+  void error() {
     // When
     kitLogger.error("Something to error %-2.2s", "replaced");
     // Then
@@ -73,12 +67,12 @@ public class Slf4jKitLoggerTest {
   }
 
   @Test
-  public void isDebugEnabled() {
+  void isDebugEnabled() {
     // Given
     when(logger.isDebugEnabled()).thenReturn(true);
     // When
     final boolean result = kitLogger.isDebugEnabled();
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 }

@@ -14,8 +14,8 @@
 package org.eclipse.jkube.kit.common.archive;
 
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,11 +25,11 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AssemblyFileSetUtilsExcludesTest {
+class AssemblyFileSetUtilsExcludesTest {
 
   private List<Path> paths;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     paths = Arrays.asList(
         Paths.get("usr", "bin"),
@@ -40,7 +40,7 @@ public class AssemblyFileSetUtilsExcludesTest {
   }
 
   @Test
-  public void isNotExcluded_withNoExcludes() {
+  void isNotExcluded_withNoExcludes() {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().build();
     // When
@@ -57,7 +57,7 @@ public class AssemblyFileSetUtilsExcludesTest {
   }
 
   @Test
-  public void isNotExcluded_withExcludes() {
+  void isNotExcluded_withExcludes() {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .exclude("**/.git/**")

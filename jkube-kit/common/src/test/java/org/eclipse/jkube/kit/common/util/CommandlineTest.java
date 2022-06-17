@@ -13,77 +13,66 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class CommandlineTest {
+class CommandlineTest {
 
-    List<String> result = new ArrayList<>();
-    List<String> expected = new ArrayList<>();
+    private List<String> result;
 
     @Test
-    public void simpleEmptyTest(){
+    void simpleEmptyTest(){
         result = CommandLine.translateCommandline("");
-        assertEquals(expected,result);
+        assertThat(result).isEmpty();
     }
 
     @Test
-    public void simpleNullTest(){
+    void simpleNullTest(){
         result = CommandLine.translateCommandline(null);
-        assertEquals(expected,result);
+        assertThat(result).isEmpty();
     }
 
     @Test
-    public void simpleCommandTest(){
-        expected.clear();
-        expected.add("cd");
-        expected.add("/tmp");
-        result = CommandLine.translateCommandline("cd /tmp");
-        assertEquals(expected,result);
-    }
-
-    @Test
-    public void CommandWithDoubleQuoteTest(){
-        expected.clear();
-        expected.add("echo");
-        expected.add("Hello! World");
-        result = CommandLine.translateCommandline("echo \"Hello! World\"");
-        assertEquals(expected,result);
-    }
-
-    @Test
-    public void commandWithBothTypeofQuotesTest(){
-        expected.clear();
-        expected.add("echo");
-        expected.add("Hello! World");
-        expected.add("Hello Java Folks");
+    void commandWithBothTypeofQuotesTest(){
         result = CommandLine.
                 translateCommandline("echo \"Hello! World\" 'Hello Java Folks'");
-        assertEquals(expected,result);
+        assertThat(result).containsExactly("echo", "Hello! World", "Hello Java Folks");
     }
 
     @Test
-    public void commandWithNestedQuotesTest(){
-        expected.clear();
-        expected.add("echo");
-        expected.add("Hello! World 'Hello Java Folks'");
-        result = CommandLine.
-                translateCommandline("echo \"Hello! World 'Hello Java Folks'\"");
-        assertEquals(expected,result);
+    void invalidDoubleQuoteCommandTest(){
+        assertThrows(IllegalArgumentException.class, () -> result = CommandLine.
+                translateCommandline("echo \"Hello! World\" 'Hello Java Folks"));
+    }
+    @Test
+    void invalidSingleQuoteCommandTest(){
+        assertThrows(IllegalArgumentException.class, () -> result = CommandLine.
+                translateCommandline("echo \"Hello! World 'Hello Java Folks'"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void invalidDoubleQuoteCommandTest(){
-        result = CommandLine.
-                translateCommandline("echo \"Hello! World\" 'Hello Java Folks");
+    @DisplayName("Command Translation Tests")
+    @ParameterizedTest(name = "{0} ''{1}'' should return ''{2}''")
+    @MethodSource("translateCmdTestData")
+    void translateCmd(String testDesc, String toProcess, List<String> expected){
+        result = CommandLine.translateCommandline(toProcess);
+        assertThat(result).isEqualTo(expected);
     }
-    @Test(expected = IllegalArgumentException.class)
-    public void invalidSingleQuoteCommandTest(){
-        result = CommandLine.
-                translateCommandline("echo \"Hello! World 'Hello Java Folks'");
+
+    public static Stream<Arguments> translateCmdTestData(){
+        return Stream.of(
+                Arguments.of("simpleCommand", "cd /tmp", Arrays.asList("cd", "/tmp")),
+                Arguments.of("commandWithDoubleQuote", "echo \"Hello! World\"", Arrays.asList("echo", "Hello! World")),
+                Arguments.of("commandWithNestedQuotes", "echo \"Hello! World 'Hello Java Folks'\"", Arrays.asList("echo", "Hello! World 'Hello Java Folks'"))
+        );
     }
 }
