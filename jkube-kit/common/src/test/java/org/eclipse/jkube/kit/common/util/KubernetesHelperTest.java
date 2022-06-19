@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,19 +78,19 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void testListResourceFragments() {
+    public void testListResourceFragments() throws URISyntaxException {
         // Given
-        File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
+        File localResourceDir = resourceTestFile("/util/fragments");
 
         // When & Then
         assertLocalFragments(KubernetesHelper.listResourceFragments(null, logger, localResourceDir), 2);
     }
 
     @Test
-    public void testResourceFragmentsWithRemotes() {
+    public void testResourceFragmentsWithRemotes() throws URISyntaxException {
         // Given
         List<String> remoteStrList = getRemoteFragments();
-        File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
+        File localResourceDir = resourceTestFile("/util/fragments");
 
         // When
         File[] fragments = KubernetesHelper.listResourceFragments(remoteStrList, logger, localResourceDir);
@@ -100,9 +102,9 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void testGetResourceFragmentFromSourceWithSomeResourceDirAndNullRemotes() {
+    public void testGetResourceFragmentFromSourceWithSomeResourceDirAndNullRemotes() throws URISyntaxException {
         // Given
-        File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
+        File localResourceDir = resourceTestFile("/util/fragments");
 
         // When
         File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(localResourceDir, Collections.emptyList(), "service.yml", logger);
@@ -133,9 +135,9 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void testGetResourceFragmentFromSourceWithSomeResourceDirAndSomeRemotes() {
+    public void testGetResourceFragmentFromSourceWithSomeResourceDirAndSomeRemotes() throws URISyntaxException {
         // Given
-        File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
+        File localResourceDir = resourceTestFile("/util/fragments");
         List<String> remotes = getRemoteFragments();
 
         // When
@@ -311,7 +313,6 @@ public class KubernetesHelperTest {
             kubernetesClient.services().inNamespace("ns1").withName("svc1");
             times = 1;
             svcResource.get();
-            times = 1;
         }};
     }
 
@@ -341,7 +342,6 @@ public class KubernetesHelperTest {
             kubernetesClient.services().inNamespace("ns1").withName("svc1");
             times = 1;
             svcResource.get();
-            times = 1;
         }};
     }
 
@@ -415,10 +415,10 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void loadResourcesWithNestedTemplateAndDuplicateResources() throws IOException {
+    public void loadResourcesWithNestedTemplateAndDuplicateResources() throws IOException, URISyntaxException {
         // Given
-        final File manifest = new File(KubernetesHelperTest.class.getResource(
-            "/util/kubernetes-helper/list-with-duplicates-and-template.yml").getFile());
+        final File manifest = resourceTestFile(
+            "/util/kubernetes-helper/list-with-duplicates-and-template.yml");
         // When
         final List<HasMetadata> result = KubernetesHelper.loadResources(manifest);
         // Then
@@ -430,10 +430,10 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void loadResourcesWithDuplicateAndSameNameCustomResources() throws IOException {
+    public void loadResourcesWithDuplicateAndSameNameCustomResources() throws IOException, URISyntaxException {
         // Given
-        final File manifest = new File(KubernetesHelperTest.class.getResource(
-            "/util/kubernetes-helper/list-with-duplicates-and-same-name-custom-resource.yml").getFile());
+        final File manifest = resourceTestFile(
+                "/util/kubernetes-helper/list-with-duplicates-and-same-name-custom-resource.yml");
         // When
         final List<HasMetadata> result = KubernetesHelper.loadResources(manifest);
         // Then
@@ -522,5 +522,12 @@ public class KubernetesHelperTest {
         remoteStrList.add("https://gist.githubusercontent.com/lordofthejars/ac2823cec7831697d09444bbaa76cd50/raw/e4b43f1b6494766dfc635b5959af7730c1a58a93/deployment.yaml");
         remoteStrList.add("https://gist.githubusercontent.com/rohanKanojia/c4ac4ae5533f0bf0dd77d13c905face7/raw/8a7de1e27c1f437c1ccbd186ed247efd967953ee/sa.yml");
         return remoteStrList;
+    }
+
+    private static File resourceTestFile(String path) throws URISyntaxException {
+        final URL fileUrl = KubernetesHelperTest.class.getResource(path);
+        assertThat(fileUrl).isNotNull();
+
+        return new File(fileUrl.toURI());
     }
 }

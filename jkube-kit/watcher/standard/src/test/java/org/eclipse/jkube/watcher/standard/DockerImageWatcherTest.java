@@ -89,7 +89,7 @@ public class DockerImageWatcherTest {
     // @formatter:off
     new Verifications() {{
       new PodExecutor(watcherContext.getJKubeServiceHub().getClusterAccess(), Duration.ofMinutes(1)); times = 1;
-      podExecutor.executeCommandInPod(null, "the command"); times = 1;
+      podExecutor.executeCommandInPod(null, "the command");
     }};
     // @formatter:on
   }
@@ -118,11 +118,11 @@ public class DockerImageWatcherTest {
     final PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
     // When
     DockerImageWatcher.uploadFilesRunnable(
-        new File(DockerImageWatcherTest.class.getResource("/file.txt").toURI().getPath()),
+        new File(DockerImageWatcherTest.class.getResource("/file.txt").toURI()),
         pipedOutputStream,
         watcherContext.getLogger()
     ).run();
     assertThat(IOUtils.toString(pipedInputStream, StandardCharsets.UTF_8))
-      .isEqualTo("base64 -d << EOF | tar --no-overwrite-dir -C / -xf - && exit 0 || exit 1\nQSBmaWxl\nEOF\n");
+      .isEqualTo(String.join(System.lineSeparator(), "base64 -d << EOF | tar --no-overwrite-dir -C / -xf - && exit 0 || exit 1", "QSBmaWxl", "EOF", ""));
   }
 }

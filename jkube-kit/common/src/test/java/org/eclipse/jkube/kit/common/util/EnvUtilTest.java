@@ -387,7 +387,7 @@ public class EnvUtilTest {
     @Test
     public void testLoadTimestampShouldLoadFromFile() throws Exception {
         // Given
-        final File file = new File(EnvUtilTest.class.getResource("/util/loadTimestamp.timestamp").getFile());
+        final File file = new File(EnvUtilTest.class.getResource("/util/loadTimestamp.timestamp").toURI());
         // When
         final Date timestamp = loadTimestamp(file);
         // Then

@@ -15,6 +15,8 @@
 package org.eclipse.jkube.kit.config.service;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -32,6 +34,7 @@ import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
 import io.fabric8.openshift.client.server.mock.OpenShiftServer;
+import org.assertj.core.api.Assertions;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
 
@@ -215,8 +218,8 @@ public class ApplyServiceTest {
     @Test
     public void testApplyGenericKubernetesResource() throws Exception {
         // Given
-        File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
-        File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
+        File gatewayFragment = resourceTestFile("/gateway-cr.yml");
+        File virtualServiceFragment = resourceTestFile("/virtualservice-cr.yml");
         GenericKubernetesResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericKubernetesResource.class);
         GenericKubernetesResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericKubernetesResource.class);
         WebServerEventCollector collector = new WebServerEventCollector();
@@ -246,8 +249,8 @@ public class ApplyServiceTest {
     @Test
     public void testProcessCustomEntitiesReplaceCustomResources() throws Exception {
         // Given
-        File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
-        File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
+        File gatewayFragment = resourceTestFile("/gateway-cr.yml");
+        File virtualServiceFragment = resourceTestFile("/virtualservice-cr.yml");
         GenericKubernetesResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericKubernetesResource.class);
         GenericKubernetesResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericKubernetesResource.class);
         WebServerEventCollector collector = new WebServerEventCollector();
@@ -290,8 +293,8 @@ public class ApplyServiceTest {
     @Test
     public void testProcessCustomEntitiesRecreateModeTrue() throws Exception {
         // Given
-        File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
-        File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
+        File gatewayFragment = resourceTestFile("/gateway-cr.yml");
+        File virtualServiceFragment = resourceTestFile("/virtualservice-cr.yml");
         GenericKubernetesResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericKubernetesResource.class);
         GenericKubernetesResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericKubernetesResource.class);
         WebServerEventCollector collector = new WebServerEventCollector();
@@ -480,5 +483,12 @@ public class ApplyServiceTest {
             .withKind("VirtualService")
             .withSingularName("virtualservice")
             .build();
+    }
+
+    private static File resourceTestFile(String path) throws URISyntaxException {
+        final URL fileUrl = ApplyServiceTest.class.getResource(path);
+        Assertions.assertThat(fileUrl).isNotNull();
+
+        return new File(fileUrl.toURI());
     }
 }

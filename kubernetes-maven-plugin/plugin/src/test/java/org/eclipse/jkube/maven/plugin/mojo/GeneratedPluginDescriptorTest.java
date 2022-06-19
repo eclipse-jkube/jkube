@@ -25,6 +25,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,10 +46,10 @@ public class GeneratedPluginDescriptorTest {
   public String expectedPhase;
 
   @Before
-  public void setUp() {
+  public void setUp() throws URISyntaxException {
     URL pluginDescriptorUrl = getClass().getResource("/META-INF/maven/plugin.xml");
     assertThat(pluginDescriptorUrl).isNotNull();
-    pluginDescriptor = new File(pluginDescriptorUrl.getFile());
+    pluginDescriptor = new File(pluginDescriptorUrl.toURI());
   }
 
   @Parameterized.Parameters(name = "{index} {0}, should have {1} requiresDependencyResolution and {2} phase")

@@ -17,7 +17,10 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.apache.commons.io.FilenameUtils;
 import org.assertj.core.api.Condition;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -139,19 +142,19 @@ public class JibBuildServiceBuildIntegrationTest {
             "VOLUME [\"/deployments\"]");
     FileAssertions.assertThat(resolveDockerBuildDirs().resolve("build").toFile())
         .fileTree()
-        .containsExactlyInAnyOrder(
-            "Dockerfile",
-            "deployments-layer",
-            "deployments-layer/deployments",
-            "deployments-layer/deployments/to-deployments.txt",
-            "other-layer",
-            "other-layer/deployments",
-            "other-layer/deployments/other",
-            "other-layer/deployments/other/to-other.txt",
-            "jkube-generated-layer-final-artifact",
-            "jkube-generated-layer-final-artifact/deployments",
-            "jkube-generated-layer-final-artifact/deployments/final-artifact.jar",
-            "deployments"
+        .containsExactlyInAnyOrderElementsOf(
+                Stream.of("Dockerfile",
+                        "deployments-layer",
+                        "deployments-layer/deployments",
+                        "deployments-layer/deployments/to-deployments.txt",
+                        "other-layer",
+                        "other-layer/deployments",
+                        "other-layer/deployments/other",
+                        "other-layer/deployments/other/to-other.txt",
+                        "jkube-generated-layer-final-artifact",
+                        "jkube-generated-layer-final-artifact/deployments",
+                        "jkube-generated-layer-final-artifact/deployments/final-artifact.jar",
+                        "deployments").map(FilenameUtils::separatorsToSystem).collect(Collectors.toList())
         );
     ArchiveAssertions.assertThat(resolveDockerBuildDirs().resolve("tmp").resolve("docker-build.tar").toFile())
       .fileTree()

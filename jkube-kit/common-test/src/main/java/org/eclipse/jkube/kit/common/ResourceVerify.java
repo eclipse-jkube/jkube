@@ -33,6 +33,8 @@ import net.minidev.json.parser.ParseException;
 import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.SPLIT_LINES;
+
 
 /**
  * @author roland
@@ -67,7 +69,7 @@ public class ResourceVerify {
   }
 
   public static void verifyContentEquals(File actualPath, File expectedPath) throws IOException {
-    assertThat(readFile(actualPath)).isEqualTo(readFile(expectedPath));
+    assertThat(readFile(actualPath)).isEqualToNormalizingNewlines(readFile(expectedPath));
   }
 
   public static void verifyAbsent(File file, String path) throws IOException {
@@ -101,8 +103,11 @@ public class ResourceVerify {
   }
 
   public static String asJson(String txt) throws IOException {
-    Object obj = new ObjectMapper(new YAMLFactory()).readValue(jsonCompatibleYaml(txt), Object.class);
-    return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+    final YAMLFactory yamlFactory = YAMLFactory.builder().disable(SPLIT_LINES).build();
+    Object obj = new ObjectMapper(yamlFactory).readValue(jsonCompatibleYaml(txt), Object.class);
+    return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(obj)
+            // The conversion from YAML to JSON produces the pattern we're here replacing on Windows for ConfigMaps.
+            .replace("\\r\\n", "\\n");
   }
 
   public static String jsonCompatibleYaml(String txt) {

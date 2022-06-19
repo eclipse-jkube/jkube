@@ -15,6 +15,7 @@ package org.eclipse.jkube.quarkus.generator;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -23,12 +24,14 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
+import org.eclipse.jkube.quarkus.QuarkusUtilsTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.quarkus.TestUtils.getResourceTestFilePath;
 import static org.eclipse.jkube.quarkus.generator.QuarkusGeneratorTest.withFastJarInTarget;
 import static org.eclipse.jkube.quarkus.generator.QuarkusGeneratorTest.withNativeBinaryInTarget;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -89,11 +92,12 @@ public class QuarkusGeneratorExposedPortsTest {
   }
 
   @Test
-  public void withApplicationProperties_shouldAddConfigured() throws IOException {
+  public void withApplicationProperties_shouldAddConfigured() throws IOException, URISyntaxException {
     // Given
     withFastJarInTarget(target);
     compileClassPathElements.add(
-        QuarkusGeneratorExposedPortsTest.class.getResource("/generator-extract-ports").getPath());
+            getResourceTestFilePath(QuarkusGeneratorExposedPortsTest.class, "/generator-extract-ports")
+    );
     // When
     final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), false);
     // Then
@@ -105,12 +109,13 @@ public class QuarkusGeneratorExposedPortsTest {
   }
 
   @Test
-  public void withApplicationPropertiesAndProfile_shouldAddConfiguredProfile() throws IOException {
+  public void withApplicationPropertiesAndProfile_shouldAddConfiguredProfile() throws IOException, URISyntaxException {
     // Given
     withFastJarInTarget(target);
     projectProperties.put("quarkus.profile", "dev");
     compileClassPathElements.add(
-        QuarkusGeneratorExposedPortsTest.class.getResource("/generator-extract-ports").getPath());
+            getResourceTestFilePath(QuarkusGeneratorExposedPortsTest.class, "/generator-extract-ports")
+    );
     // When
     final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), false);
     // Then

@@ -33,7 +33,7 @@ public class ProjectClassLoadersTest {
     private URLClassLoader compileClassLoader;
     @Before
     public void setUp() throws Exception {
-        File applicationProp =  new File(getClass().getResource("/util/spring-boot-application.properties").getPath());
+        File applicationProp =  new File(getClass().getResource("/util/spring-boot-application.properties").toURI());
         File targetFolder = temporaryFolder.newFolder("target");
         File classesInTarget = new File(targetFolder, "classes");
         File applicationPropertiesInsideTarget = new File(classesInTarget, "application.properties");
@@ -42,7 +42,7 @@ public class ProjectClassLoadersTest {
     }
 
     @Test
-    public void testIsClassInCompileClasspathWhenTrue() throws  Exception {
+    public void testIsClassInCompileClasspathWhenTrue() {
         //Given
         boolean all = true;
         ProjectClassLoaders obj = new ProjectClassLoaders(compileClassLoader);
@@ -54,7 +54,7 @@ public class ProjectClassLoadersTest {
         assertTrue(result);
     }
     @Test
-    public void testIsClassInCompileClasspathWhenFalse() throws  Exception {
+    public void testIsClassInCompileClasspathWhenFalse() {
         //Given
         boolean all = false;
         ProjectClassLoaders obj = new ProjectClassLoaders(compileClassLoader);
@@ -67,7 +67,7 @@ public class ProjectClassLoadersTest {
     }
 
     @Test
-    public void testIsClassInCompileClasspathWhenHasAllClassesTrue() throws  Exception {
+    public void testIsClassInCompileClasspathWhenHasAllClassesTrue() {
         //Given
         boolean all = true;
         ProjectClassLoaders obj = new ProjectClassLoaders(compileClassLoader);
@@ -80,7 +80,7 @@ public class ProjectClassLoadersTest {
     }
 
     @Test
-    public void testIsClassInCompileClasspathWhenHasAllClassesFalse() throws  Exception {
+    public void testIsClassInCompileClasspathWhenHasAllClassesFalse() {
         //Given
         boolean all = false;
         ProjectClassLoaders obj = new ProjectClassLoaders(compileClassLoader);

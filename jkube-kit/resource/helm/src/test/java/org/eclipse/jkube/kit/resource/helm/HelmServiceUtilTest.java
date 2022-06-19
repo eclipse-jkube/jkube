@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
@@ -35,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -92,8 +94,8 @@ public class HelmServiceUtilTest {
       .hasFieldOrPropertyWithValue("additionalFiles", Collections.emptyList())
       .hasFieldOrPropertyWithValue("parameterTemplates", Collections.emptyList())
       .hasFieldOrProperty("icon");
-    assertThat(result.getSourceDir()).endsWith("target/classes/META-INF/jkube/");
-    assertThat(result.getOutputDir()).endsWith("target/jkube/helm/artifact-id");
+    assertThat(separatorsToSystem(result.getSourceDir())).endsWith(separatorsToSystem("target/classes/META-INF/jkube/"));
+    assertThat(separatorsToSystem(result.getOutputDir())).endsWith(separatorsToSystem("target/jkube/helm/artifact-id"));
     assertThat(result.getTarballOutputDir()).endsWith("target");
   }
 

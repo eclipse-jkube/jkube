@@ -16,12 +16,17 @@ package org.eclipse.jkube.kit.build.api.assembly;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
@@ -48,7 +53,9 @@ import static org.junit.Assert.assertTrue;
 
 public class AssemblyManagerCreateDockerTarArchiveTest {
 
-  private static final String DOCKERFILE_DEFAULT_FALLBACK_CONTENT = "FROM busybox\nCOPY /jkube-generated-layer-final-artifact/maven /maven/\nVOLUME [\"/maven\"]";
+  private static final String DOCKERFILE_DEFAULT_FALLBACK_CONTENT = Stream
+      .of("FROM busybox", "COPY /jkube-generated-layer-final-artifact/maven /maven/", "VOLUME [\"/maven\"]")
+      .collect(Collectors.joining(System.lineSeparator()));
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -68,7 +75,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void createChangedFilesArchive() throws IOException {
+  public void createChangedFilesArchive() throws IOException, URISyntaxException {
     // Given
     final JKubeConfiguration jKubeConfiguration = createJKubeConfiguration();
     final List<AssemblyFileEntry> entries = new ArrayList<>();
@@ -89,7 +96,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withoutDockerfile() throws IOException {
+  public void withoutDockerfile() throws IOException, URISyntaxException {
     // Given
     final JKubeConfiguration jKubeConfiguration = createJKubeConfiguration();
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder().build();
@@ -105,17 +112,15 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
         .hasName("docker-build.tar")
         .hasSameContentAsDirectory(getExpectedDirectory("without-dockerfile"));
     assertDockerFile("test-image").hasContent(DOCKERFILE_DEFAULT_FALLBACK_CONTENT);
-    assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
-        "Dockerfile",
-        "jkube-generated-layer-final-artifact",
-        "jkube-generated-layer-final-artifact/maven",
-        "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
-        "maven"
-    );
+    assertBuildDockerFileTreeContent("test-image", "Dockerfile",
+            "jkube-generated-layer-final-artifact",
+            "jkube-generated-layer-final-artifact/maven",
+            "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+            "maven");
   }
 
   @Test
-  public void withoutDockerfileAndFinalCustomizer() throws IOException {
+  public void withoutDockerfileAndFinalCustomizer() throws IOException, URISyntaxException {
     // Given
     final JKubeConfiguration jKubeConfiguration = createJKubeConfiguration();
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder().build();
@@ -136,7 +141,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
         .hasName("docker-build.tar")
         .hasSameContentAsDirectory(getExpectedDirectory("without-dockerfile-and-final-customizer"));
     assertDockerFile("no-docker-file-and-customizer").hasContent(DOCKERFILE_DEFAULT_FALLBACK_CONTENT);
-    assertBuildDirectoryFileTree("no-docker-file-and-customizer").containsExactlyInAnyOrder(
+    assertBuildDockerFileTreeContent("no-docker-file-and-customizer",
         "Dockerfile",
         "jkube-generated-layer-final-artifact",
         "jkube-generated-layer-final-artifact/maven",
@@ -146,7 +151,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withoutDockerfileAndAlreadyExistingFileInAssemblyGetsOverwritten() throws IOException {
+  public void withoutDockerfileAndAlreadyExistingFileInAssemblyGetsOverwritten() throws IOException, URISyntaxException {
     final JKubeConfiguration jKubeConfiguration = createJKubeConfiguration();
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder().build();
     File dockerArchiveFile;
@@ -164,22 +169,22 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
     ArchiveAssertions.assertThat(dockerArchiveFile)
         .isFile()
         .hasName("docker-build.tar")
-        .hasSameContentAsDirectory(getExpectedDirectory("without-dockerfile-and-already-existing-file-in-assembly-gets-overwritten"));
+        .hasSameContentAsDirectory(
+            getExpectedDirectory("without-dockerfile-and-already-existing-file-in-assembly-gets-overwritten"));
     assertDockerFile("modified-image").hasContent(DOCKERFILE_DEFAULT_FALLBACK_CONTENT);
-    assertBuildDirectoryFileTree("modified-image").containsExactlyInAnyOrder(
-        "Dockerfile",
-        "jkube-generated-layer-final-artifact",
-        "jkube-generated-layer-final-artifact/maven",
-        "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
-        "maven");
+    assertBuildDockerFileTreeContent("modified-image", "Dockerfile",
+            "jkube-generated-layer-final-artifact",
+            "jkube-generated-layer-final-artifact/maven",
+            "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+            "maven");
     assertThat(resolveDockerBuild("modified-image")
         .resolve("jkube-generated-layer-final-artifact").resolve("maven").resolve("test-0.1.0.jar"))
-        .exists().isRegularFile()
-        .hasContent("Modified content");
+            .exists().isRegularFile()
+            .hasContent("Modified content");
   }
 
   @Test
-  public void withDockerfileInBaseDirectory() throws IOException {
+  public void withDockerfileInBaseDirectory() throws IOException, URISyntaxException {
     // Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
     writeLineToFile(dockerFile, "FROM openjdk:jre");
@@ -188,7 +193,8 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
         .dockerFileFile(dockerFile).dockerFile(dockerFile.getPath()).build();
 
     // When
-    File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+    File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration,
+        prefixedLogger, null);
 
     // Then
     assertTargetHasDockerDirectories("test-image");
@@ -197,7 +203,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
         .hasName("docker-build.tar")
         .hasSameContentAsDirectory(getExpectedDirectory("with-dockerfile-in-base-directory"));
     assertDockerFile("test-image").hasContent("FROM openjdk:jre\n");
-    assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
+    assertBuildDockerFileTreeContent("test-image",
         "Dockerfile",
         "maven",
         "maven/Dockerfile",
@@ -207,7 +213,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withDockerfileInBaseDirectoryAndAssemblyFile() throws IOException {
+  public void withDockerfileInBaseDirectoryAndAssemblyFile() throws IOException, URISyntaxException {
     // Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
     writeLineToFile(dockerFile, "FROM busybox");
@@ -238,7 +244,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
         .hasName("docker-build.tar")
         .hasSameContentAsDirectory(getExpectedDirectory("with-dockerfile-in-base-directory-and-assembly-file"));
     assertDockerFile("dockerfile-and-assembly-file").hasContent("FROM busybox\n");
-    assertBuildDirectoryFileTree("dockerfile-and-assembly-file").containsExactlyInAnyOrder(
+    assertBuildDockerFileTreeContent("dockerfile-and-assembly-file",
         "Dockerfile",
         "maven",
         "maven/Dockerfile",
@@ -249,7 +255,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withDockerfileInBaseDirectoryAndDockerinclude() throws IOException {
+  public void withDockerfileInBaseDirectoryAndDockerinclude() throws IOException, URISyntaxException {
     // Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
     writeLineToFile(dockerFile, "FROM openjdk:jre");
@@ -271,16 +277,15 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
         .hasName("docker-build.tar")
         .hasSameContentAsDirectory(getExpectedDirectory("with-dockerfile-in-base-directory-and-dockerinclude"));
     assertDockerFile("test-image").hasContent("FROM openjdk:jre\n");
-    assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
-        "Dockerfile",
-        "maven",
-        "maven/test-0.1.0.jar",
-        "maven/target",
-        "maven/target/ill-be-included.txt");
+    assertBuildDockerFileTreeContent("test-image", "Dockerfile",
+            "maven",
+            "maven/test-0.1.0.jar",
+            "maven/target",
+            "maven/target/ill-be-included.txt");
   }
 
   @Test
-  public void withDockerfileInBaseDirectoryAndDockerexclude() throws IOException {
+  public void withDockerfileInBaseDirectoryAndDockerexclude() throws IOException, URISyntaxException {
     // Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
     writeLineToFile(dockerFile, "FROM openjdk:jre");
@@ -302,7 +307,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
         .hasName("docker-build.tar")
         .hasSameContentAsDirectory(getExpectedDirectory("with-dockerfile-in-base-directory-and-dockerexclude"));
     assertDockerFile("test-image").hasContent("FROM openjdk:jre\n");
-    assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
+    assertBuildDockerFileTreeContent("test-image",
         "Dockerfile",
         "maven",
         "maven/Dockerfile",
@@ -313,7 +318,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withDockerfileInBaseDirectoryAndDockerignore() throws IOException {
+  public void withDockerfileInBaseDirectoryAndDockerignore() throws IOException, URISyntaxException {
     // Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
     writeLineToFile(dockerFile, "FROM openjdk:jre");
@@ -326,7 +331,8 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
         .dockerFileFile(dockerFile).dockerFile(dockerFile.getPath()).build();
 
     // When
-    File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+    File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration,
+        prefixedLogger, null);
 
     // Then
     assertTargetHasDockerDirectories("test-image");
@@ -335,7 +341,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
         .hasName("docker-build.tar")
         .hasSameContentAsDirectory(getExpectedDirectory("with-dockerfile-in-base-directory-and-dockerignore"));
     assertDockerFile("test-image").hasContent("FROM openjdk:jre\n");
-    assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
+    assertBuildDockerFileTreeContent("test-image",
         "Dockerfile",
         "maven",
         "maven/Dockerfile",
@@ -343,6 +349,11 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
         "maven/target",
         "maven/target/test-0.1.0.jar",
         "maven/target/i-wont-be-ignored");
+  }
+
+  private void assertBuildDockerFileTreeContent(String imageDirName, String... content) throws IOException {
+    assertBuildDirectoryFileTree(imageDirName).containsExactlyInAnyOrderElementsOf(
+        Stream.of(content).map(FilenameUtils::separatorsToSystem).collect(Collectors.toList()));
   }
 
   private void assertTargetHasDockerDirectories(String imageDirName) {
@@ -399,9 +410,11 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
     return emptyArtifact;
   }
 
-  private static File getExpectedDirectory(String dir) {
-    return new File(AssemblyManagerCreateDockerTarArchiveTest.class.getResource(
-        String.format("/assembly/assembly-manager-create-docker-tar-archive/%s", dir)).getFile()
-    );
+  private static File getExpectedDirectory(String dir) throws URISyntaxException {
+    final URL directoryUrl = AssemblyManagerCreateDockerTarArchiveTest.class.getResource(
+        String.format("/assembly/assembly-manager-create-docker-tar-archive/%s", dir));
+    assertThat(directoryUrl).isNotNull();
+
+    return new File(directoryUrl.toURI());
   }
 }

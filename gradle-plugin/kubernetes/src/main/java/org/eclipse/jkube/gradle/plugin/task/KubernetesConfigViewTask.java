@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
+import static com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.USE_PLATFORM_LINE_BREAKS;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,7 +36,7 @@ import org.gradle.api.provider.Property;
 
 public class KubernetesConfigViewTask extends AbstractJKubeTask {
 
-  private static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
+  private static final ObjectMapper MAPPER = new ObjectMapper(YAMLFactory.builder().enable(USE_PLATFORM_LINE_BREAKS).build());
   static {
     MAPPER.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
   }

@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.9.0-SNAPSHOT
+* Fix #1338: Make the tests correctly run also on Windows
 * Fix #1279: Remove redundant log messages regarding plugin modes
 
 

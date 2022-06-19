@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -74,9 +75,9 @@ public class ConfigHelperTest {
   }
 
   @Test
-  public void initImageConfiguration_withSimpleDockerFileInProjectBaseDir_shouldCreateImageConfiguration() {
+  public void initImageConfiguration_withSimpleDockerFileInProjectBaseDir_shouldCreateImageConfiguration() throws URISyntaxException {
     List<ImageConfiguration> images = new ArrayList<>();
-    File dockerFile = new File(getClass().getResource("/dummy-javaproject/Dockerfile").getFile());
+    File dockerFile = new File(getClass().getResource("/dummy-javaproject/Dockerfile").toURI());
     when(jKubeConfiguration.getBasedir()).thenReturn(dockerFile.getParentFile());
     when(javaProject.getProperties()).thenReturn(new Properties());
     when(javaProject.getGroupId()).thenReturn("org.eclipse.jkube");
@@ -97,13 +98,13 @@ public class ConfigHelperTest {
   }
 
   @Test
-  public void initImageConfiguration_withSimpleDockerFileModeEnabledAndImageConfigurationWithNoBuild_shouldModifyExistingImageConfiguration() {
+  public void initImageConfiguration_withSimpleDockerFileModeEnabledAndImageConfigurationWithNoBuild_shouldModifyExistingImageConfiguration() throws URISyntaxException {
     ImageConfiguration dummyImageConfiguration = ImageConfiguration.builder()
         .name("imageconfiguration-no-build:latest")
         .build();
     List<ImageConfiguration> images = new ArrayList<>();
     images.add(dummyImageConfiguration);
-    File dockerFile = new File(getClass().getResource("/dummy-javaproject/Dockerfile").getFile());
+    File dockerFile = new File(getClass().getResource("/dummy-javaproject/Dockerfile").toURI());
     when(imageConfigResolver.resolve(dummyImageConfiguration, javaProject)).thenReturn(images);
     when(jKubeConfiguration.getBasedir()).thenReturn(dockerFile.getParentFile());
     when(javaProject.getProperties()).thenReturn(new Properties());

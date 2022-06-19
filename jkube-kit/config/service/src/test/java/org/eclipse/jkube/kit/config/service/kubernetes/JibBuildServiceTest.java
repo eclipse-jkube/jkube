@@ -35,7 +35,9 @@ import org.eclipse.jkube.kit.service.jib.JibServiceUtil;
 import com.google.cloud.tools.jib.api.Credential;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
@@ -59,6 +61,9 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JibBuildServiceTest {
+    @Rule
+    public TemporaryFolder tempDir = new TemporaryFolder();
+
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private KitLogger mockedLogger;
 
@@ -72,7 +77,9 @@ public class JibBuildServiceTest {
     private MockedStatic<JibServiceUtil> jibServiceUtilMockedStatic;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
+        // Deep stubs of Files can't be converted to Paths, therefore let's use a temporary directory as base directory
+        when(mockedServiceHub.getConfiguration().getProject().getBaseDirectory()).thenReturn(tempDir.getRoot());
         when(mockedServiceHub.getLog()).thenReturn(mockedLogger);
         jibServiceUtilMockedStatic = mockStatic(JibServiceUtil.class);
         imageConfiguration = ImageConfiguration.builder()
@@ -188,7 +195,7 @@ public class JibBuildServiceTest {
 
     @Test
     public void testPushWithConfiguration() throws Exception {
-        try (MockedConstruction<AuthConfigFactory> authConfigFactoryMockedConstruction = mockAuthConfig(true)) {
+        try (MockedConstruction<AuthConfigFactory> ignored = mockAuthConfig(true)) {
             // When
             new JibBuildService(mockedServiceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
             // Then

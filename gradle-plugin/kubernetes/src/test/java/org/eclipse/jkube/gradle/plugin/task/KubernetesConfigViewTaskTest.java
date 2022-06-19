@@ -22,14 +22,22 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class KubernetesConfigViewTaskTest {
-
   @Rule
   public TaskEnvironment taskEnvironment = new TaskEnvironment();
 
@@ -50,7 +58,6 @@ public class KubernetesConfigViewTaskTest {
     // When
     configViewTask.runTask();
     // Then
-    verify(taskEnvironment.logger, times(1))
-        .lifecycle(matches("k8s: \n---\noffline: true\nbuildStrategy: \"s2i\""));
+    verify(taskEnvironment.logger, times(1)).lifecycle(matches("k8s: \r?\n---\r?\noffline: true\r?\nbuildStrategy: \"s2i\""));;
   }
 }

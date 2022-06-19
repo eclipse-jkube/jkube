@@ -25,6 +25,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.AbstractFileAssert;
 import org.assertj.core.api.AbstractListAssert;
@@ -107,8 +108,8 @@ public class ArchiveAssertions extends AbstractFileAssert<ArchiveAssertions> {
     final List<String> actualEntries = new ArrayList<>();
     processArchive(actual, (entry, tis) -> {
       // Remove last separator for directory entries -> Required for fileTree assertion
-      actualEntries.add(entry.isDirectory() ?
-          entry.getName().substring(0, entry.getName().length() - 1) : entry.getName());
+      actualEntries.add(FilenameUtils.separatorsToSystem(entry.isDirectory() ?
+          entry.getName().substring(0, entry.getName().length() - 1) : entry.getName()));
       final File expected = new File(directory, entry.getName());
       if (!expected.exists()) {
         throw failures.failure(info, new BasicErrorMessageFactory("%nExpecting archive <%s>%nnot to contain entry:%n <%s>%n",

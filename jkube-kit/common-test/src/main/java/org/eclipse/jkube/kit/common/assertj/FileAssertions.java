@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,15 +42,12 @@ public class FileAssertions extends AbstractFileAssert<FileAssertions> {
       throws IOException {
 
     final Path actualPath = actual.toPath().normalize();
-    final List<String> paths = new ArrayList<>();
     try (Stream<Path> pathStream = Files.walk(actualPath)) {
-      for (Path temp : pathStream
-          .filter(p -> !p.equals(actualPath))
-          .filter(p -> !p.toFile().getName().equals(GIT_KEEP_FILE))
-          .collect(Collectors.toList())) {
-        paths.add(actualPath.relativize(temp.normalize().toRealPath()).toString());
-      }
+      return org.assertj.core.api.Assertions.assertThat(pathStream
+              .filter(p -> !p.equals(actualPath) && !p.getFileName().toString().equals(GIT_KEEP_FILE))
+              .map(p -> actualPath.relativize(p.normalize()).toString())
+              .collect(Collectors.toList())
+      );
     }
-    return org.assertj.core.api.Assertions.assertThat(paths);
   }
 }

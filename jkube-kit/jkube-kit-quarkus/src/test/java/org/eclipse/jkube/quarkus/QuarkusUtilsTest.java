@@ -13,19 +13,19 @@
  */
 package org.eclipse.jkube.quarkus;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -35,6 +35,7 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.findQuarkusVersion;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivenessPath;
+import static org.eclipse.jkube.quarkus.TestUtils.getResourceTestFilePath;
 
 public class QuarkusUtilsTest {
 
@@ -96,12 +97,12 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void getQuarkusConfiguration_propertiesAndYamlProjectProperties_shouldUseProjectProperties() {
+  public void getQuarkusConfiguration_propertiesAndYamlProjectProperties_shouldUseProjectProperties() throws URISyntaxException {
     // Given
     javaProject.getProperties().put("quarkus.http.port", "42");
     javaProject.setCompileClassPathElements(Arrays.asList(
-        QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/").getPath(),
-        QuarkusUtilsTest.class.getResource("/utils-test/config/properties/").getPath()
+            getResourceTestFilePath(QuarkusUtilsTest.class, "/utils-test/config/yaml/"),
+            getResourceTestFilePath(QuarkusUtilsTest.class, "/utils-test/config/properties/")
     ));
     // When
     final Properties props = getQuarkusConfiguration(javaProject);
@@ -112,11 +113,11 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void getQuarkusConfiguration_propertiesAndYaml_shouldUseProperties() {
+  public void getQuarkusConfiguration_propertiesAndYaml_shouldUseProperties() throws URISyntaxException {
     // Given
     javaProject.setCompileClassPathElements(Arrays.asList(
-        QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/").getPath(),
-        QuarkusUtilsTest.class.getResource("/utils-test/config/properties/").getPath()
+            getResourceTestFilePath(QuarkusUtilsTest.class, "/utils-test/config/yaml/"),
+            getResourceTestFilePath(QuarkusUtilsTest.class, "/utils-test/config/properties/")
     ));
     // When
     final Properties props = getQuarkusConfiguration(javaProject);
@@ -127,10 +128,10 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void getQuarkusConfiguration_yamlOnly_shouldUseYaml() {
+  public void getQuarkusConfiguration_yamlOnly_shouldUseYaml() throws URISyntaxException {
     // Given
     javaProject.setCompileClassPathElements(Collections.singletonList(
-        QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/").getPath()
+            getResourceTestFilePath(QuarkusUtilsTest.class, "/utils-test/config/yaml/")
     ));
     // When
     final Properties props = getQuarkusConfiguration(javaProject);
@@ -141,10 +142,10 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void getQuarkusConfiguration_noConfigFiles_shouldReturnEmpty() {
+  public void getQuarkusConfiguration_noConfigFiles_shouldReturnEmpty() throws URISyntaxException, URISyntaxException {
     // Given
     javaProject.setCompileClassPathElements(Collections.singletonList(
-        QuarkusUtilsTest.class.getResource("/").getPath()
+            getResourceTestFilePath(QuarkusUtilsTest.class, "/")
     ));
     // When
     final Properties props = getQuarkusConfiguration(javaProject);

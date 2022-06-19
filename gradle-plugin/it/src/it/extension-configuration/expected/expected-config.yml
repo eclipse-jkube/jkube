@@ -2,11 +2,11 @@ skip: false
 usecolor: true
 offline: true
 buildStrategy: "jib"
-resourcetargetdirectory: "@endsWith('extension-configuration/build/META-INF/jkube')@"
-resourcesourcedirectory: "@endsWith('extension-configuration/src/main/jkube')@"
+resourcetargetdirectory: "@matches('.+extension-configuration[\\\\/]build[\\\\/]META-INF[\\\\/]jkube')@"
+resourcesourcedirectory: "@matches('.+extension-configuration[\\\\/]src[\\\\/]main[\\\\/]jkube')@"
 resourceenvironment: "dev"
 useprojectclasspath: false
-workdirectory: "@endsWith('extension-configuration/build/jkube')@"
+workdirectory: "@matches('.+extension-configuration[\\\\/]build[\\\\/]jkube')@"
 skipresourcevalidation: false
 failonvalidationerror: false
 profile: "default"
@@ -22,7 +22,7 @@ failonnokubernetesjson: false
 servicesonly: false
 ignoreservices: false
 deletepodsonreplicationcontrollerupdate: false
-jsonlogdir: "@endsWith('extension-configuration/build/jkube/applyJson')@"
+jsonlogdir: "@matches('.+extension-configuration[\\\\/]build[\\\\/]jkube[\\\\/]applyJson$')@"
 serviceurlwaittimeseconds: 10
 skippush: true
 skiptag: true
@@ -30,7 +30,7 @@ skipbuild: true
 skipresource: true
 pushregistry: quay.io
 pushretries: 5
-kubernetestemplate: "@endsWith('extension-configuration/build/META-INF/jkube/kubernetes')@"
+kubernetestemplate: "@matches('.+extension-configuration[\\\\/]build[\\\\/]META-INF[\\\\/]jkube[\\\\/]kubernetes')@"
 watchMode: "copy"
 watchinterval: 1000
 watchkeeprunning: true
@@ -71,14 +71,14 @@ images:
   description: "[registry/extension-configuration:0.0.1-SNAPSHOT]"
 - name: "registry/image:tag"
   build:
-    contextDir: "@endsWith('extension-configuration/src/main/context-dir')@"
-    dockerFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
+    contextDir: "@matches('.+extension-configuration[\\\\/]src[\\\\/]main[\\\\/]context-dir')@"
+    dockerFile: "@matches('.+extension-configuration[\\\\/]src[\\\\/]main[\\\\/]context-dir[\\\\/]Dockerfile')@"
     from: "busybox"
     skip: false
     compression: "none"
-    dockerFileFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
+    dockerFileFile: "@matches('.+extension-configuration[\\\\/]src[\\\\/]main[\\\\/]context-dir[\\\\/]Dockerfile')@"
     dockerFileMode: true
-    contextDirRaw: "@endsWith('extension-configuration/src/main/context-dir')@"
+    contextDirRaw: "@matches('.+extension-configuration[\\\\/]src[\\\\/]main[\\\\/]context-dir')@"
   runConfiguration:
     restartPolicy:
       retry: 0
@@ -86,14 +86,14 @@ images:
       standardNetwork: false
     default: true
   buildConfiguration:
-    contextDir: "@endsWith('extension-configuration/src/main/context-dir')@"
-    dockerFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
+    contextDir: "@matches('.+extension-configuration[\\\\/]src[\\\\/]main[\\\\/]context-dir')@"
+    dockerFile: "@matches('.+extension-configuration[\\\\/]src[\\\\/]main[\\\\/]context-dir[\\\\/]Dockerfile')@"
     from: "busybox"
     skip: false
     compression: "none"
-    dockerFileFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
+    dockerFileFile: "@matches('.+extension-configuration[\\\\/]src[\\\\/]main[\\\\/]context-dir[\\\\/]Dockerfile')@"
     dockerFileMode: true
-    contextDirRaw: "@endsWith('extension-configuration/src/main/context-dir')@"
+    contextDirRaw: "@matches('.+extension-configuration[\\\\/]src[\\\\/]main[\\\\/]context-dir')@"
   description: "[registry/image:tag]"
 mappings:
 - kind: "Var"

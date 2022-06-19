@@ -14,7 +14,10 @@
 package org.eclipse.jkube.kit.build.service.docker.access;
 
 import java.io.FileNotFoundException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
@@ -47,10 +50,10 @@ public class KeyStoreUtilTest {
     assertThat(exception).hasMessageContaining("Cannot generate private key");
   }
 
-  static String getFile(String path) throws FileNotFoundException {
+  static String getFile(String path) throws FileNotFoundException, URISyntaxException {
     URL fileURL = KeyStoreUtilTest.class.getResource(path);
     if (fileURL == null)
       throw new FileNotFoundException("Required private key : '" + path + "' not found it test resource directory");
-    return fileURL.getFile();
+    return Paths.get(fileURL.toURI()).toString();
   }
 }

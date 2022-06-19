@@ -24,6 +24,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,10 +40,10 @@ public class SpringBootUtilTest {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
-    public void testGetSpringBootApplicationProperties() throws IOException {
+    public void testGetSpringBootApplicationProperties() throws IOException, URISyntaxException {
 
         //Given
-        File applicationProp =  new File(getClass().getResource("/util/spring-boot-application.properties").getPath());
+        File applicationProp =  new File(getClass().getResource("/util/spring-boot-application.properties").toURI());
         String springActiveProfile = null;
         File targetFolder = temporaryFolder.newFolder("target");
         File classesInTarget = new File(targetFolder, "classes");
@@ -52,7 +53,7 @@ public class SpringBootUtilTest {
         URLClassLoader urlClassLoader = ClassUtil.createClassLoader(Arrays.asList(classesInTarget.getAbsolutePath(), applicationProp.getAbsolutePath()), classesInTarget.getAbsolutePath());
 
         //When
-        Properties result =  SpringBootUtil.getSpringBootApplicationProperties(springActiveProfile ,urlClassLoader);
+        Properties result = SpringBootUtil.getSpringBootApplicationProperties(springActiveProfile ,urlClassLoader);
 
         //Then
         assertTrue(isTargetClassesCreated);

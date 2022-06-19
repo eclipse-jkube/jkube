@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -385,7 +387,17 @@ public class EnvUtil {
         if (file.isAbsolute()) {
             return file;
         }
-        return new File(new File(projectBaseDir, directory), path);
+        if(projectBaseDir == null) {
+            return new File(directory, path);
+        }
+
+        final Path projectBaseDirPath = Paths.get(projectBaseDir);
+        final Path directoryPath = Paths.get(directory);
+        final Path jointPath = projectBaseDirPath.isAbsolute() && directoryPath.isAbsolute() && directoryPath.startsWith(projectBaseDirPath) ?
+                projectBaseDirPath.relativize(directoryPath) :
+                projectBaseDirPath.resolve(directoryPath);
+
+        return jointPath.resolve(path).normalize().toFile();
     }
 
     /**

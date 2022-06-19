@@ -41,6 +41,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -116,9 +117,9 @@ public class HelmMojoTest {
     assertThat(helmMojo.helm.getAdditionalFiles()).isEmpty();
     assertThat(helmMojo.helm.getParameterTemplates()).isEmpty();
     assertThat(helmMojo.helm.getTypes()).contains(HelmConfig.HelmType.KUBERNETES);
-    assertThat(helmMojo.helm.getSourceDir()).isEqualTo("target/classes/META-INF/jkube/");
-    assertThat(helmMojo.helm.getOutputDir()).isEqualTo("target/jkube/helm/artifact-id");
-    assertThat(helmMojo.helm.getTarballOutputDir()).endsWith("/target");
+    assertThat(separatorsToSystem(helmMojo.helm.getSourceDir())).isEqualTo(separatorsToSystem("target/classes/META-INF/jkube/"));
+    assertThat(separatorsToSystem(helmMojo.helm.getOutputDir())).isEqualTo(separatorsToSystem("target/jkube/helm/artifact-id"));
+    assertThat(helmMojo.helm.getTarballOutputDir()).endsWith(separatorsToSystem("/target"));
     new Verifications() {{
       helmService.generateHelmCharts(helmMojo.helm);
       times = 1;

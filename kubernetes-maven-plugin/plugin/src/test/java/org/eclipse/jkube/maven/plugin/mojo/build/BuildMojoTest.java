@@ -15,6 +15,7 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -63,6 +64,6 @@ public class BuildMojoTest {
         assertThat(buildServiceConfig.getResourceConfig().getOpenshiftBuildConfig()).isNotNull();
         assertThat(buildServiceConfig.getResourceConfig().getOpenshiftBuildConfig().getLimits()).containsEntry("cpu", "200m");
         assertThat(buildServiceConfig.getResourceConfig().getOpenshiftBuildConfig().getRequests()).containsEntry("memory", "1Gi");
-        assertThat(buildServiceConfig.getResourceDir().getPath()).isEqualTo("src/main/jkube");
+        assertThat(buildServiceConfig.getResourceDir().getPath()).isEqualTo(FilenameUtils.separatorsToSystem("src/main/jkube"));
     }
 }

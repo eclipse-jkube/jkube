@@ -14,14 +14,15 @@
 package org.eclipse.jkube.gradle.plugin.tests;
 
 import net.minidev.json.parser.ParseException;
-import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.io.FileUtils.readFileToString;
 
 public class KubernetesExtensionIT {
 
@@ -38,7 +39,7 @@ public class KubernetesExtensionIT {
     final String output = result.getOutput();
     ResourceVerify.verifyResourceDescriptors(
         output.substring(output.indexOf("---"), output.indexOf("BUILD SUCCESSFUL in")),
-        FileUtils.readFileToString(gradleRunner.resolveFile("expected", "expected-config.yml"), StandardCharsets.UTF_8),
+        readFileToString(gradleRunner.resolveFile("expected", "expected-config.yml"), UTF_8),
         false);
   }
 }

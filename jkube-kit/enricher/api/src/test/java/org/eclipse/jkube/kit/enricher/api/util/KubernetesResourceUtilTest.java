@@ -35,6 +35,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +56,9 @@ public class KubernetesResourceUtilTest {
   private static File fragmentsDir;
 
   @BeforeClass
-  public static void initPath() {
+  public static void initPath() throws URISyntaxException {
     fragmentsDir = new File(Objects.requireNonNull(KubernetesResourceUtilTest.class.getResource(
-        "/kubernetes-resource-util/simple-rc.yaml")).getFile()).getParentFile();
+        "/kubernetes-resource-util/simple-rc.yaml")).toURI()).getParentFile();
   }
 
   @Before
@@ -179,7 +180,12 @@ public class KubernetesResourceUtilTest {
     // Then
     assertThat(result)
         .hasMessageContaining("I-Dont-EXIST.yaml")
-        .hasMessageContaining("No such file or directory")
+            .satisfiesAnyOf(
+                    // *nix error message
+                    ex -> assertThat(ex).hasMessageContaining("No such file or directory"),
+                    // Windows error message
+                    ex -> assertThat(ex).hasMessageContaining("The system cannot find the file specified")
+            )
         .getCause()
         .isInstanceOf(FileNotFoundException.class);
   }

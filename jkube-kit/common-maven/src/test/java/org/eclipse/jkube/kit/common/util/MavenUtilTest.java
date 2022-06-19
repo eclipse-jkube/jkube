@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -190,9 +191,9 @@ public class MavenUtilTest {
     return mavenProject;
   }
 
-  private MavenProject loadMavenProjectFromPom() throws IOException, XmlPullParserException {
+  private MavenProject loadMavenProjectFromPom() throws IOException, XmlPullParserException, URISyntaxException {
     MavenXpp3Reader mavenreader = new MavenXpp3Reader();
-    File pomfile = new File(getClass().getResource("/util/test-pom.xml").getFile());
+    File pomfile = new File(getClass().getResource("/util/test-pom.xml").toURI());
     final FileReader reader = new FileReader(pomfile);
     final Model model = mavenreader.read(reader);
     model.setPomFile(pomfile);

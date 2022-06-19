@@ -14,6 +14,8 @@
 package org.eclipse.jkube.kit.common;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +51,7 @@ class ResourceVerifyTest {
   }
 
   @Test
-  void verifyResourceDescriptors_withPartiallyMatchingFileAndStrict_shouldFail() {
+  void verifyResourceDescriptors_withPartiallyMatchingFileAndStrict_shouldFail() throws URISyntaxException {
     final File original = file("original.yaml");
     final File partiallyMatching = file("partially-matching.yaml");
     final IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
@@ -57,7 +59,10 @@ class ResourceVerifyTest {
     assertThat(result).hasMessageContaining("JSONArray size mismatch for JSON entry 'items'");
   }
 
-  private static File file(String path) {
-    return new File(ResourceVerifyTest.class.getResource("/resource-verify/" + path).getFile());
+  private static File file(String path) throws URISyntaxException {
+    final URL fileUrl = ResourceVerifyTest.class.getResource("/resource-verify/" + path);
+    assertThat(fileUrl).isNotNull();
+
+    return new File(fileUrl.toURI());
   }
 }

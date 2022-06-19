@@ -42,9 +42,9 @@ public class FatJarDetectorTest {
   @Test
   public void scanJarExists() throws Exception {
     // Given
-    final URL testDirUrl = getClass().getResource("/fatjar-simple");
+    final File testDirUrl = new File(getClass().getResource("/fatjar-simple").toURI());
     // When
-    FatJarDetector.Result result = new FatJarDetector(Paths.get(testDirUrl.toURI()).toFile()).scan();
+    FatJarDetector.Result result = new FatJarDetector(testDirUrl).scan();
     // Then
     assertThat(result)
         .isNotNull()
@@ -53,7 +53,7 @@ public class FatJarDetectorTest {
         .asInstanceOf(InstanceOfAssertFactories.FILE)
         .exists()
         .hasName("test.jar")
-        .hasParent(testDirUrl.getFile());
+        .hasParent(testDirUrl);
     assertThat(result.getManifestEntry("Archiver-Version")).isEqualTo("Plexus Archiver");
   }
 }

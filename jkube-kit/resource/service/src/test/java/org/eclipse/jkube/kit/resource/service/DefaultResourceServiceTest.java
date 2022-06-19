@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.resource.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -84,10 +85,10 @@ public class DefaultResourceServiceTest {
   }
 
   @Test
-  public void generateResources_withResources_shouldReturnKubernetesResourceList() throws IOException {
+  public void generateResources_withResources_shouldReturnKubernetesResourceList() throws IOException, URISyntaxException {
     // Given
-    File resourceDir1 = new File(Objects.requireNonNull(getClass().getResource("/jkube/common")).getFile());
-    File resourceDir2 = new File(Objects.requireNonNull(getClass().getResource("/jkube/dev")).getFile());
+    File resourceDir1 = new File(Objects.requireNonNull(getClass().getResource("/jkube/common")).toURI());
+    File resourceDir2 = new File(Objects.requireNonNull(getClass().getResource("/jkube/dev")).toURI());
     List<File> resourceDirs = Arrays.asList(resourceDir1, resourceDir2);
     resourceServiceConfig = resourceServiceConfig.toBuilder().resourceDirs(resourceDirs).build();
     defaultResourceService = new DefaultResourceService(resourceServiceConfig);

@@ -14,13 +14,17 @@
 package org.eclipse.jkube.kit.build.api.helper;
 
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Test;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -36,6 +40,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author roland
@@ -80,9 +85,10 @@ public class DockerFileUtilTest {
     private File copyToTempDir(String resource) throws IOException {
         File dir = Files.createTempDirectory("d-m-p").toFile();
         File ret = new File(dir, "Dockerfile");
-        try (OutputStream os = new FileOutputStream(ret)) {
-            FileUtils.copyFile(new File(getClass().getResource(resource).getPath()), os);
-        }
+        InputStream resourceToCopy = DockerFileUtilTest.class.getResourceAsStream(resource);
+        assertNotNull(resourceToCopy);
+        Files.copy(resourceToCopy, ret.toPath());
+
         return ret;
     }
 
@@ -105,17 +111,17 @@ public class DockerFileUtilTest {
     }
 
     @Test
-    public void interpolateWithNullFilterShouldPickDefaultFilter() throws IOException {
+    public void interpolateWithNullFilterShouldPickDefaultFilter() throws IOException, URISyntaxException {
         // Given
         Properties properties = new Properties();
         properties.put("project.base-image.uri", "openjdk:latest");
-        File givenDockerfile = new File(getClass().getResource("/interpolate/Dockerfile_with_params").getFile());
+        File givenDockerfile = resourceTestFile("/interpolate/Dockerfile_with_params");
 
         // When
         String result = DockerFileUtil.interpolate(givenDockerfile, properties, null);
 
         // Then
-        String[] lines = result.split("\n");
+        String[] lines = result.split(System.lineSeparator());
         assertNotNull(result);
         assertEquals(2, lines.length);
         assertEquals("FROM openjdk:latest", lines[0]);
@@ -155,12 +161,12 @@ public class DockerFileUtilTest {
     }
 
     @Test
-    public void testCustomInterpolation() throws IOException {
+    public void testCustomInterpolation() throws IOException, URISyntaxException {
         // Given
         Map<File, String> input = new HashMap<>();
-        input.put(new File(getClass().getResource("/interpolate/at/Dockerfile_1").getFile()), "@");
-        input.put(new File(getClass().getResource("/interpolate/var/Dockerfile_1").getFile()), "${*}");
-        input.put(new File(getClass().getResource("/interpolate/none/Dockerfile_1").getFile()), "false");
+        input.put(resourceTestFile("/interpolate/at/Dockerfile_1"), "@");
+        input.put(resourceTestFile("/interpolate/var/Dockerfile_1"), "${*}");
+        input.put(resourceTestFile("/interpolate/none/Dockerfile_1"), "false");
         Properties projectProperties = new Properties();
         projectProperties.put("base", "java");
         projectProperties.put("name", "guenther");
@@ -249,9 +255,9 @@ public class DockerFileUtilTest {
     }
 
     @Test
-    public void testCreateSimpleDockerfileConfigWithPorts() {
+    public void testCreateSimpleDockerfileConfigWithPorts() throws URISyntaxException {
         // Given
-        File dockerFile = new File(getClass().getResource("/docker/Dockerfile_expose_ports").getFile());
+        File dockerFile = resourceTestFile("/docker/Dockerfile_expose_ports");
         // When
         ImageConfiguration imageConfiguration1 = DockerFileUtil.createSimpleDockerfileConfig(dockerFile, null);
         // Then
@@ -296,9 +302,16 @@ public class DockerFileUtilTest {
         assertEquals("@*@", DockerFileUtil.resolveDockerfileFilter("@*@"));
     }
 
-    private File getDockerfilePath(String dir) {
+    private File getDockerfilePath(String dir) throws URISyntaxException {
         ClassLoader classLoader = getClass().getClassLoader();
         return new File(Objects.requireNonNull(classLoader.getResource(
-                String.format("%s/Dockerfile_1", dir))).getFile());
+                String.format("%s/Dockerfile_1", dir))).toURI());
+    }
+
+    private static File resourceTestFile(String path) throws URISyntaxException {
+        final URL fileUrl = DockerFileUtilTest.class.getResource(path);
+        Assertions.assertThat(fileUrl).isNotNull();
+
+        return new File(fileUrl.toURI());
     }
 }
