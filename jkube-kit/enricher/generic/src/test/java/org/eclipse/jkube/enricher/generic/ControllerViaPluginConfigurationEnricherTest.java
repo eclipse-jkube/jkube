@@ -27,12 +27,14 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.handler.DeploymentHandler;
 import org.eclipse.jkube.kit.enricher.handler.StatefulSetHandler;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Properties;
 
@@ -40,16 +42,25 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ControllerViaPluginConfigurationEnricherTest {
   private ControllerViaPluginConfigurationEnricher controllerViaPluginConfigurationEnricher;
   private KubernetesListBuilder kubernetesListBuilder;
   private EnricherContext context;
+  private DeploymentHandler mockedDeploymentHandler;
 
   @Before
   public void setUp() {
     context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+    mockedDeploymentHandler = mock(DeploymentHandler.class, RETURNS_DEEP_STUBS);
+    StatefulSetHandler mockedStatefulSetHandler = mock(StatefulSetHandler.class, RETURNS_DEEP_STUBS);
+    when(context.getHandlerHub().getHandlerFor(Deployment.class)).thenReturn(mockedDeploymentHandler);
+    when(mockedDeploymentHandler.get(any(), any())).thenReturn(createOpinionatedDeployment());
+    when(context.getHandlerHub().getHandlerFor(StatefulSet.class)).thenReturn(mockedStatefulSetHandler);
+    when(mockedStatefulSetHandler.get(any(), any())).thenReturn(createOpinionatedStatefulSet());
     when(context.getGav().getSanitizedArtifactId()).thenReturn("test-project");
     kubernetesListBuilder = new KubernetesListBuilder();
   }
@@ -57,7 +68,6 @@ public class ControllerViaPluginConfigurationEnricherTest {
   @Test
   public void create_withDeploymentFragment_shouldMergeOpinionatedDefaultsWithFragment() {
     // Given
-    mockDeploymentHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
     kubernetesListBuilder.addToItems(createNewDeploymentBuilder());
 
@@ -71,7 +81,6 @@ public class ControllerViaPluginConfigurationEnricherTest {
   @Test
   public void create_withDeploymentFragmentAndConfiguredControllerName_shouldConsiderConfiguredNameInMergedResource() {
     // Given
-    mockDeploymentHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
     Properties properties = new Properties();
     properties.put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
@@ -88,7 +97,6 @@ public class ControllerViaPluginConfigurationEnricherTest {
   @Test
   public void create_withDeploymentFragmentWithExistingNameAndConfiguredControllerName_shouldConsiderExistingNameInMergedResource() {
     // Given
-    mockDeploymentHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
     Properties properties = new Properties();
     properties.put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
@@ -108,7 +116,6 @@ public class ControllerViaPluginConfigurationEnricherTest {
   @Test
   public void create_withStatefulSetFragment_shouldMergeOpinionatedDefaultsWithFragment() {
     // Given
-    mockStatefulSetHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
     kubernetesListBuilder.addToItems(createNewStatefulSetBuilder());
 
@@ -122,7 +129,6 @@ public class ControllerViaPluginConfigurationEnricherTest {
   @Test
   public void create_withStatefulSetFragmentAndConfiguredControllerName_shouldConsiderConfiguredNameInMergedResource() {
     // Given
-    mockStatefulSetHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
     Properties properties = new Properties();
     properties.put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
@@ -139,7 +145,6 @@ public class ControllerViaPluginConfigurationEnricherTest {
   @Test
   public void create_withStatefulSetFragmentWithExistingNameAndConfiguredControllerName_shouldConsiderExistingNameInMergedResource() {
     // Given
-    mockStatefulSetHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
     Properties properties = new Properties();
     properties.put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
@@ -154,6 +159,27 @@ public class ControllerViaPluginConfigurationEnricherTest {
 
     // Then
     assertGeneratedListContainsStatefulSetWithNameAndEnvVar(kubernetesListBuilder, "existing-name");
+  }
+
+  @Test
+  public void create_withDeploymentFragmentAndImagePullPolicyPropertySet_shouldSendConfiguredPolicyToDeploymentHandler() {
+    // Given
+    ArgumentCaptor<ResourceConfig> resourceConfigArgumentCaptor = ArgumentCaptor.forClass(ResourceConfig.class);
+    controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
+    when(context.getProperty("jkube.imagePullPolicy")).thenReturn("Never");
+    DeploymentBuilder deploymentFragment = createNewDeploymentBuilder().withNewMetadata()
+        .withName("existing-name")
+        .endMetadata();
+    kubernetesListBuilder.addToItems(deploymentFragment);
+
+    // When
+    controllerViaPluginConfigurationEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
+
+    // Then
+    verify(mockedDeploymentHandler, times(1))
+        .get(resourceConfigArgumentCaptor.capture(), any());
+    assertThat(resourceConfigArgumentCaptor.getValue())
+        .hasFieldOrPropertyWithValue("imagePullPolicy", "Never");
   }
 
   private void assertGeneratedListContainsDeploymentWithNameAndEnvVar(KubernetesListBuilder kubernetesListBuilder, String name) {
@@ -194,18 +220,6 @@ public class ControllerViaPluginConfigurationEnricherTest {
         .extracting(Container::getEnv)
         .asList()
         .contains(new EnvVarBuilder().withName("FOO").withValue("bar").build());
-  }
-
-  private void mockDeploymentHandler() {
-    DeploymentHandler mockedDeploymentHandler = mock(DeploymentHandler.class, RETURNS_DEEP_STUBS);
-    when(context.getHandlerHub().getHandlerFor(Deployment.class)).thenReturn(mockedDeploymentHandler);
-    when(mockedDeploymentHandler.get(any(), any())).thenReturn(createOpinionatedDeployment());
-  }
-
-  private void mockStatefulSetHandler() {
-    StatefulSetHandler mockedStatefulSetHandler = mock(StatefulSetHandler.class, RETURNS_DEEP_STUBS);
-    when(context.getHandlerHub().getHandlerFor(StatefulSet.class)).thenReturn(mockedStatefulSetHandler);
-    when(mockedStatefulSetHandler.get(any(), any())).thenReturn(createOpinionatedStatefulSet());
   }
 
   private DeploymentBuilder createNewDeploymentBuilder() {

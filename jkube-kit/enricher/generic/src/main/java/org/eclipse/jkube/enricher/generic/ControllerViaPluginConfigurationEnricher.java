@@ -51,7 +51,11 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
     @AllArgsConstructor
     private enum Config implements Configs.Config {
         NAME("name", null),
-        PULL_POLICY("pullPolicy", "IfNotPresent"),
+        /**
+         * @deprecated in favor of <code>jkube.imagePullPolicy</code> property
+         */
+        @Deprecated
+        PULL_POLICY("pullPolicy", JKUBE_DEFAULT_IMAGE_PULL_POLICY),
         REPLICA_COUNT("replicaCount", "1");
 
         @Getter
