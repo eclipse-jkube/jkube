@@ -51,15 +51,10 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -72,16 +67,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
+
 public class KubernetesHelperTest {
 
     private KitLogger logger;
-
-    @Mock
-    private KubernetesClient kubernetesClient;
-
-    @Mock
-    private Resource<Service> svcResource;
 
     @Before
     public void setUp() throws Exception {
@@ -303,7 +292,8 @@ public class KubernetesHelperTest {
         Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
         Set<HasMetadata> entities = new HashSet<>();
         entities.add(svc);
-        svcResource = mock(ServiceResource.class,RETURNS_DEEP_STUBS);
+        ServiceResource svcResource = mock(ServiceResource.class,RETURNS_DEEP_STUBS);
+        KubernetesClient kubernetesClient = mock(KubernetesClient.class);
         NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> svcNonNamespaceOp = mock(NonNamespaceOperation.class, RETURNS_DEEP_STUBS);
         MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class, RETURNS_DEEP_STUBS);
         when(kubernetesClient.services()).thenReturn(svcMixedOp);
@@ -331,7 +321,8 @@ public class KubernetesHelperTest {
         Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
         Set<HasMetadata> entities = new HashSet<>();
         entities.add(svc);
-        svcResource = mock(ServiceResource.class,RETURNS_DEEP_STUBS);
+        ServiceResource svcResource = mock(ServiceResource.class,RETURNS_DEEP_STUBS);
+        KubernetesClient kubernetesClient = mock(KubernetesClient.class);
         NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> svcNonNamespaceOp = mock(NonNamespaceOperation.class, RETURNS_DEEP_STUBS);
         MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class, RETURNS_DEEP_STUBS);
         when(kubernetesClient.services()).thenReturn(svcMixedOp);

@@ -42,7 +42,7 @@ public class SpringBootUtilTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
     @Mock
-    JavaProject maven_project;
+    JavaProject mavenProject;
 
 
     @Test
@@ -72,10 +72,10 @@ public class SpringBootUtilTest {
 
         //Given
         Dependency p = Dependency.builder().groupId("org.springframework.boot").version("1.6.3").build();
-        when(maven_project.getDependencies()).thenReturn(Collections.singletonList(p));
+        when(mavenProject.getDependencies()).thenReturn(Collections.singletonList(p));
 
         //when
-        Optional<String> result = SpringBootUtil.getSpringBootDevToolsVersion(maven_project);
+        Optional<String> result = SpringBootUtil.getSpringBootDevToolsVersion(mavenProject);
 
         //Then
         assertTrue(result.isPresent());
@@ -89,10 +89,10 @@ public class SpringBootUtilTest {
 
         //Given
         Dependency p = Dependency.builder().groupId("org.springframework.boot").version("1.6.3").build();
-        when(maven_project.getDependencies()).thenReturn(Collections.singletonList(p));
+        when(mavenProject.getDependencies()).thenReturn(Collections.singletonList(p));
 
         //when
-        Optional<String> result = SpringBootUtil.getSpringBootVersion(maven_project);
+        Optional<String> result = SpringBootUtil.getSpringBootVersion(mavenProject);
 
         //Then
         assertTrue(result.isPresent());
@@ -106,10 +106,10 @@ public class SpringBootUtilTest {
         //Given
         Properties p = new Properties();
         p.put("spring.profiles.active","spring-boot");
-        when(maven_project.getProperties()).thenReturn(p);
+        when(mavenProject.getProperties()).thenReturn(p);
 
         // When
-        String result = SpringBootUtil.getSpringBootActiveProfile(maven_project);
+        String result = SpringBootUtil.getSpringBootActiveProfile(mavenProject);
 
         //Then
         assertEquals("spring-boot",result);

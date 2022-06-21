@@ -22,16 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-
-import org.eclipse.jkube.kit.common.SystemMock;
-
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
@@ -40,7 +34,6 @@ import static org.eclipse.jkube.kit.common.util.EnvUtil.loadTimestamp;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
-@RunWith(MockitoJUnitRunner.class)
 public class EnvUtilTest {
 
   @Rule

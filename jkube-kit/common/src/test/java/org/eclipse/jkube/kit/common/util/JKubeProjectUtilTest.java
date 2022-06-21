@@ -177,16 +177,19 @@ public class JKubeProjectUtilTest {
   @Test
   public void getProperty_whenSystemPropertyPresent_returnsSystemProperty() {
     // Given
-    System.setProperty("jkube.testProperty", "true");
-    // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
-    JavaProject javaProject = JavaProject.builder().build();
+    try {
+      System.setProperty("jkube.testProperty", "true");
+      // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
+      JavaProject javaProject = JavaProject.builder().build();
 
-    // When
-    String result = JKubeProjectUtil.getProperty("jkube.testProperty", javaProject);
+      // When
+      String result = JKubeProjectUtil.getProperty("jkube.testProperty", javaProject);
 
-    // Then
-    assertThat(result).isEqualTo("true");
-    System.clearProperty("jkube.testProperty");
+      // Then
+      assertThat(result).isEqualTo("true");
+    } finally {
+      System.clearProperty("jkube.testProperty");
+    }
   }
 
   @Test
