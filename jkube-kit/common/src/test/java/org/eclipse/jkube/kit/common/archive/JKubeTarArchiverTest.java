@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
@@ -193,6 +195,32 @@ public class JKubeTarArchiverTest {
         .containsExactlyInAnyOrder(
             tuple("file.txt", 12L, defaultFileMode),
             tuple("nested/directory/" + LONG_FILE_NAME, 19L, defaultFileMode)
+        );
+  }
+
+  @Test
+  public void createTarBall_defaultCompressionWithFileModes_createsTarWithCorrectEntrySizeAndModeForFiles() throws Exception {
+    // Given
+    final int defaultDirMode = Integer.parseInt("040755", 8); // 16877
+    final File outputFile = temporaryFolder.newFile("target.noExtension");
+    Map<File, String> fileModeMap = new HashMap<>();
+    fileModeMap.put(new File(toCompress, "nested"), "040755");
+    fileModeMap.put(new File(toCompress, "nested/directory"), "040755");
+
+    // When
+    final File result = JKubeTarArchiver.createTarBall(outputFile, toCompress, FileUtil.listFilesAndDirsRecursivelyInDirectory(toCompress), fileModeMap, ArchiveCompression.none);
+
+    // Then
+    ArchiveAssertions.assertThat(result)
+        .isSameAs(outputFile)
+        .isNotEmpty()
+        .entries()
+        .filteredOn(TarArchiveEntry::isDirectory)
+        .hasSize(2)
+        .extracting("name", "size", "mode")
+        .containsExactlyInAnyOrder(
+            tuple("nested/", 0L, defaultDirMode),
+            tuple("nested/directory/", 0L, defaultDirMode)
         );
   }
 }
