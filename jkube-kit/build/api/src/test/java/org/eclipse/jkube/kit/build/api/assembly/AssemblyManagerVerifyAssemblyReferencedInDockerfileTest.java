@@ -20,8 +20,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 
 @RunWith(Parameterized.class)
-public class AssemblyManagerParameterizedTest {
+public class AssemblyManagerVerifyAssemblyReferencedInDockerfileTest {
 
     KitLogger logger;
     @Before

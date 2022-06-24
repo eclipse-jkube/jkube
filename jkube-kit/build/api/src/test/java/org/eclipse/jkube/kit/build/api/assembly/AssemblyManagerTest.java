@@ -27,9 +27,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -38,12 +35,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-@RunWith(MockitoJUnitRunner.class)
 public class AssemblyManagerTest {
   KitLogger logger;
-  @Mock
   JKubeConfiguration configuration;
-  @Mock
   JavaProject project;
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -56,6 +50,8 @@ public class AssemblyManagerTest {
     assemblyManager = AssemblyManager.getInstance();
     targetDirectory = temporaryFolder.newFolder("target");
     logger = mock(KitLogger.class);
+    configuration = mock(JKubeConfiguration.class);
+    project = mock(JavaProject.class);
   }
 
   @Test
