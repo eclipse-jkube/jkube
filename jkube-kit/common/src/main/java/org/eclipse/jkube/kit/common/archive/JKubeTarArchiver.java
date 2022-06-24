@@ -80,8 +80,10 @@ public class JKubeTarArchiver {
         if (fileModeMap.containsKey(currentFile)) {
           tarEntry.setMode(Integer.parseInt(fileModeMap.get(currentFile), 8));
         } else if (currentFile.isDirectory()) {
-          tarEntry.setSize(0L);
           tarEntry.setMode(TarArchiveEntry.DEFAULT_DIR_MODE);
+        }
+        if (currentFile.isDirectory()) {
+          tarEntry.setSize(0L);
         }
         Optional.ofNullable(tarArchiveEntryCustomizer).ifPresent(tac -> tac.accept(tarEntry));
         tarArchiveOutputStream.putArchiveEntry(tarEntry);

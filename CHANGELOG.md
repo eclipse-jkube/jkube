@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.9.0-SNAPSHOT
+* Fix #777: `k8s:build` with Dockerfile throws `Connection reset by peer` error on old docker daemons
 * Fix #1279: Remove redundant log messages regarding plugin modes
 * Fix #1438: Add configuration option in ServiceAccountEnricher to skip creating ServiceAccounts
 * Fix #1468: Add startup probe in QuarkusHealthCheckEnricher
