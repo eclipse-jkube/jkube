@@ -39,14 +39,13 @@ import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
 import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
 import com.google.cloud.tools.jib.api.buildplan.Port;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
+import static org.mockito.Mockito.*;
 
 public class JibServiceUtilTest {
 
@@ -73,24 +72,20 @@ public class JibServiceUtilTest {
     }
 
     @Test
-    public void testContainerFromImageConfiguration(@Mocked JibContainerBuilder containerBuilder)  throws Exception{
+    public void testContainerFromImageConfiguration()  throws Exception{
         // Given
         ImageConfiguration imageConfiguration = getSampleImageConfiguration();
         // When
         JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(imageConfiguration, null);
         // Then
-        // @formatter:off
-        new Verifications() {{
-            jibContainerBuilder.addLabel("foo", "bar"); times = 1;
-            jibContainerBuilder.setEntrypoint(Arrays.asList("java", "-jar", "foo.jar")); times = 1;
-            jibContainerBuilder.setExposedPorts(new HashSet<>(Collections.singletonList(Port.tcp(8080)))); times = 1;
-            jibContainerBuilder.setUser("root"); times = 1;
-            jibContainerBuilder.setWorkingDirectory(AbsoluteUnixPath.get("/home/foo")); times = 1;
-            jibContainerBuilder.setVolumes(new HashSet<>(Collections.singletonList(AbsoluteUnixPath.get("/mnt/volume1"))));
-            times = 1;
-            jibContainerBuilder.setFormat(ImageFormat.Docker); times = 1;
-        }};
-        // @formatter:on
+        verify(jibContainerBuilder, times(1)).addLabel("foo", "bar");
+        verify(jibContainerBuilder, times(1)).setEntrypoint(Arrays.asList("java", "-jar", "foo.jar"));
+        verify(jibContainerBuilder, times(1)).setExposedPorts(new HashSet<>(Collections.singletonList(Port.tcp(8080))));;
+        verify(jibContainerBuilder, times(1)).setUser("root");
+        verify(jibContainerBuilder, times(1)).setWorkingDirectory(AbsoluteUnixPath.get("/home/foo"));;
+        verify(jibContainerBuilder, times(1)).setVolumes(new HashSet<>(Collections.singletonList(AbsoluteUnixPath.get("/mnt/volume1"))));;
+        verify(jibContainerBuilder, times(1)).setFormat(ImageFormat.Docker);
+
     }
 
     @Test
