@@ -14,8 +14,15 @@ be provided too. The configurations can be overridden using project's properties
 
 ===== Using the jkube-healthcheck-vertx enricher
 
+ifeval::["{plugin-type}" == "maven"]
 The enricher is automatically executed if your project uses the `vertx-maven-plugin` or depends on `io.vertx:vertx-core`.
 However, by default, no health check will be added to your deployment unless configured explicitly.
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+The enricher is automatically executed if your project uses the `io.vertx.vertx-plugin` or depends on `io.vertx:vertx-core`.
+However, by default, no health check will be added to your deployment unless configured explicitly.
+endif::[]
 
 ===== Minimal configuration
 

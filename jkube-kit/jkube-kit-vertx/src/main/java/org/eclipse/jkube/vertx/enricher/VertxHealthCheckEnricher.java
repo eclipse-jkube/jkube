@@ -57,7 +57,11 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
     private static final String LIVENESS = "liveness";
     private static final String VERTX_MAVEN_PLUGIN_GROUP = "io.reactiverse";
     private static final String VERTX_MAVEN_PLUGIN_ARTIFACT = "vertx-maven-plugin";
-    static final String VERTX_GROUPID = "io.vertx";
+
+    private static final String VERTX_GRADLE_PLUGIN_GROUP = "io.vertx";
+
+    private static final String VERTX_GRADLE_PLUGIN_ARTIFACT = "io.vertx.vertx-plugin";
+    private static final String VERTX_GROUPID = "io.vertx";
 
     private static final int DEFAULT_MANAGEMENT_PORT = 8080;
     private static final String SCHEME_HTTP = "HTTP";
@@ -107,6 +111,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     private boolean isApplicable() {
         return getContext().hasPlugin(VERTX_MAVEN_PLUGIN_GROUP, VERTX_MAVEN_PLUGIN_ARTIFACT)
+                || getContext().hasPlugin(VERTX_GRADLE_PLUGIN_GROUP, VERTX_GRADLE_PLUGIN_ARTIFACT)
                || hasDependencyWithGroupId(getContext().getProject(), VERTX_GROUPID);
     }
 
