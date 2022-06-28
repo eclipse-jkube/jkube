@@ -60,18 +60,7 @@ public class VertxHealthCheckEnricherTest {
         context = JKubeEnricherContext.builder()
             .log(new KitLogger.SilentLogger())
             .processorConfig(processorConfig)
-            .project(JavaProject.builder()
-                .properties(properties)
-                .plugin(Plugin.builder()
-                    .groupId("io.reactiverse")
-                    .artifactId("vertx-maven-plugin")
-                    .build())
-                .plugin(Plugin.builder()
-                    .groupId("org.eclipse.jkube")
-                    .artifactId("kubernetes-maven-plugin")
-                    .configuration(jKubePluginConfiguration)
-                    .build())
-                .build())
+            .project(createNewJavaProjectWithVertxPlugin("io.reactiverse", "vertx-maven-plugin"))
             .build();
     }
 
@@ -699,6 +688,21 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @Test
+    public void testApplicableProjectWithGradle() {
+        properties.put("vertx.health.path", "/ping");
+        context = context.toBuilder()
+            .project(createNewJavaProjectWithVertxPlugin("io.vertx", "io.vertx.vertx-plugin"))
+            .build();
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+
+
+        Probe probe = enricher.getLivenessProbe();
+        assertThat(probe).isNotNull();
+        probe = enricher.getReadinessProbe();
+        assertThat(probe).isNotNull();
+    }
+
+    @Test
     public void testThatWeCanUSeDifferentTypesForLivenessAndReadiness() throws Exception {
         final String config = "{\"liveness\":{" +
                         "\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}" +
@@ -860,6 +864,21 @@ public class VertxHealthCheckEnricherTest {
         assertThat(probe.getHttpGet()).isNull();
         assertThat(probe.getTcpSocket()).isNotNull();
         assertThat(probe.getTcpSocket().getPort().getIntVal()).isEqualTo(1236);
+    }
+
+    private JavaProject createNewJavaProjectWithVertxPlugin(String vertxGroup, String vertxArtifact) {
+        return JavaProject.builder()
+            .properties(properties)
+            .plugin(Plugin.builder()
+                .groupId(vertxGroup)
+                .artifactId(vertxArtifact)
+                .build())
+            .plugin(Plugin.builder()
+                .groupId("org.eclipse.jkube")
+                .artifactId("kubernetes-maven-plugin")
+                .configuration(jKubePluginConfiguration)
+                .build())
+            .build();
     }
 
 }
