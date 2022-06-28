@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.cloud.tools.jib.api.Jib;
+import com.google.cloud.tools.jib.api.RegistryImage;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -42,10 +44,17 @@ import com.google.cloud.tools.jib.api.buildplan.Port;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
-import static org.mockito.Mockito.*;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class JibServiceUtilTest {
 
@@ -72,19 +81,24 @@ public class JibServiceUtilTest {
     }
 
     @Test
-    public void testContainerFromImageConfiguration()  throws Exception{
-        // Given
-        ImageConfiguration imageConfiguration = getSampleImageConfiguration();
-        // When
-        JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(imageConfiguration, null);
-        // Then
-        verify(jibContainerBuilder, times(1)).addLabel("foo", "bar");
-        verify(jibContainerBuilder, times(1)).setEntrypoint(Arrays.asList("java", "-jar", "foo.jar"));
-        verify(jibContainerBuilder, times(1)).setExposedPorts(new HashSet<>(Collections.singletonList(Port.tcp(8080))));;
-        verify(jibContainerBuilder, times(1)).setUser("root");
-        verify(jibContainerBuilder, times(1)).setWorkingDirectory(AbsoluteUnixPath.get("/home/foo"));;
-        verify(jibContainerBuilder, times(1)).setVolumes(new HashSet<>(Collections.singletonList(AbsoluteUnixPath.get("/mnt/volume1"))));;
-        verify(jibContainerBuilder, times(1)).setFormat(ImageFormat.Docker);
+    public void testContainerFromImageConfiguration()  throws Exception {
+        try (MockedStatic<Jib> jibMockedStatic = mockStatic(Jib.class)) {
+            // Given
+            JibContainerBuilder jibContainerBuilder = mock(JibContainerBuilder.class, RETURNS_DEEP_STUBS);
+            jibMockedStatic.when(() -> Jib.from((RegistryImage) any())).thenReturn(jibContainerBuilder);
+            when(jibContainerBuilder.setFormat(ImageFormat.Docker)).thenReturn(jibContainerBuilder);
+            ImageConfiguration imageConfiguration = getSampleImageConfiguration();
+            // When
+            containerFromImageConfiguration(imageConfiguration, null);
+            // Then
+            verify(jibContainerBuilder, times(1)).addLabel("foo", "bar");
+            verify(jibContainerBuilder, times(1)).setEntrypoint(Arrays.asList("java", "-jar", "foo.jar"));
+            verify(jibContainerBuilder, times(1)).setExposedPorts(new HashSet<>(Collections.singletonList(Port.tcp(8080))));
+            verify(jibContainerBuilder, times(1)).setUser("root");
+            verify(jibContainerBuilder, times(1)).setWorkingDirectory(AbsoluteUnixPath.get("/home/foo"));
+            verify(jibContainerBuilder, times(1)).setVolumes(new HashSet<>(Collections.singletonList(AbsoluteUnixPath.get("/mnt/volume1"))));
+            verify(jibContainerBuilder, times(1)).setFormat(ImageFormat.Docker);
+        }
 
     }
 
