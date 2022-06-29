@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.9.0-SNAPSHOT
 * Fix #1279: Remove redundant log messages regarding plugin modes
+* Fix #1411: Add support for adding additional ImageStreamTags in OpenShift S2I builds
 * Fix #1438: Add configuration option in ServiceAccountEnricher to skip creating ServiceAccounts
 * Fix #1468: Add startup probe in QuarkusHealthCheckEnricher
 * Fix #1473: Add OpenLibertyHealthCheckEnricher to automatically add health checks in OpenLiberty projects

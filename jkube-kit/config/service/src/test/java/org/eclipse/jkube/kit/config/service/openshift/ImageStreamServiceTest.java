@@ -38,6 +38,7 @@ import mockit.Mocked;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -166,5 +167,29 @@ public class ImageStreamServiceTest {
 
         // THEN
         Assert.assertEquals(first, resultedTag);
+    }
+
+    @Test
+    public void resolveImageStreamTagName_withTagInImageName_shouldReturnImageStreamTagNameSameAsImageName() {
+        // Given
+        ImageName imageName = new ImageName("quay.io/foo/bar:1.0");
+
+        // When
+        String imageStreamTagName = ImageStreamService.resolveImageStreamTagName(imageName);
+
+        // Then
+        assertThat(imageStreamTagName).isEqualTo("bar:1.0");
+    }
+
+    @Test
+    public void resolveImageStreamTagName_withNoTag_shouldReturnImageStreamTagNameSameLatest() {
+        // Given
+        ImageName imageName = new ImageName("quay.io/foo/bar");
+
+        // When
+        String imageStreamTagName = ImageStreamService.resolveImageStreamTagName(imageName);
+
+        // Then
+        assertThat(imageStreamTagName).isEqualTo("bar:latest");
     }
 }

@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.openshift.api.model.ImageStreamTag;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -78,10 +79,13 @@ import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDo
 
 import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
 import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamName;
+import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamTagName;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.computeS2IBuildName;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createAdditionalTagsIfPresent;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildArchive;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildOutput;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildStrategy;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.getAdditionalTagsToCreate;
 
 /**
  * @author nicola
@@ -156,6 +160,8 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
 
                 // Create a file with generated image streams
                 addImageStreamToFile(getImageStreamFile(), imageName, client);
+
+                createAdditionalTags(imageConfig, imageName);
             } else {
                 applyBuild(buildName, dockerTar, builder);
             }
@@ -609,6 +615,16 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
     private void addImageStreamToFile(File imageStreamFile, ImageName imageName, OpenShiftClient client) throws IOException {
         ImageStreamService imageStreamHandler = new ImageStreamService(client, applicableOpenShiftNamespace, log);
         imageStreamHandler.appendImageStreamResource(imageName, imageStreamFile);
+    }
+
+    private void createAdditionalTags(ImageConfiguration imageConfig, ImageName imageName) {
+        List<String> additionalTagsToCreate = getAdditionalTagsToCreate(imageConfig);
+        if (!additionalTagsToCreate.isEmpty()) {
+            ImageStreamTag imageStreamTag = client.imageStreamTags().inNamespace(applicableOpenShiftNamespace).withName(resolveImageStreamTagName(imageName)).get();
+            List<ImageStreamTag> imageStreamTags = createAdditionalTagsIfPresent(imageConfig, applicableOpenShiftNamespace, imageStreamTag);
+            client.imageStreamTags().inNamespace(applicableOpenShiftNamespace).createOrReplace(imageStreamTags.toArray(new ImageStreamTag[0]));
+            log.info("Tags [%s] set to %s", String.join(",", additionalTagsToCreate), imageName.getNameWithoutTag());
+        }
     }
 
     // == Utility methods ==========================
