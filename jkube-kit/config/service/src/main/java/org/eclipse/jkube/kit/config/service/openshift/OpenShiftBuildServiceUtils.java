@@ -21,6 +21,8 @@ import io.fabric8.openshift.api.model.BuildOutput;
 import io.fabric8.openshift.api.model.BuildOutputBuilder;
 import io.fabric8.openshift.api.model.BuildStrategy;
 import io.fabric8.openshift.api.model.BuildStrategyBuilder;
+import io.fabric8.openshift.api.model.ImageStreamTag;
+import io.fabric8.openshift.api.model.ImageStreamTagBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.common.util.IoUtil;
@@ -37,10 +39,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDockerfile;
 import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamName;
@@ -180,6 +184,46 @@ public class OpenShiftBuildServiceUtils {
       buildConfig.setSpec(spec);
     }
     return spec;
+  }
+
+  protected static List<ImageStreamTag> createAdditionalTagsIfPresent(ImageConfiguration imageConfiguration, String namespace, ImageStreamTag imageStreamTag) {
+    List<ImageStreamTag> imageStreamTags = new ArrayList<>();
+    ImageName imageName = new ImageName(imageConfiguration.getName());
+    for (String tag : getAdditionalTagsToCreate(imageConfiguration)) {
+      imageStreamTags.add(createNewImageStreamTag(resolveImageStreamName(imageName) + ":" + tag, namespace, imageStreamTag));
+    }
+
+    return imageStreamTags;
+  }
+
+  protected static List<String> getAdditionalTagsToCreate(ImageConfiguration imageConfiguration) {
+    if (imageConfiguration != null &&
+        imageConfiguration.getBuildConfiguration() != null &&
+        imageConfiguration.getBuildConfiguration().getTags() != null) {
+      ImageName imageName = new ImageName(imageConfiguration.getName());
+      return imageConfiguration.getBuildConfiguration().getTags().stream()
+          .filter(t -> !t.equals(imageName.getTag()))
+          .collect(Collectors.toList());
+    }
+    return Collections.emptyList();
+  }
+
+  protected static ImageStreamTag createNewImageStreamTag(String name, String namespace, ImageStreamTag orignalImageStreamTag) {
+    return new ImageStreamTagBuilder()
+        .withNewMetadata()
+        .withLabels(orignalImageStreamTag.getMetadata().getLabels())
+        .withAnnotations(orignalImageStreamTag.getMetadata().getAnnotations())
+        .withName(name)
+        .withNamespace(namespace)
+        .endMetadata()
+        .withNewTag()
+        .withNewFrom()
+        .withKind(DOCKER_IMAGE)
+        .withName(orignalImageStreamTag.getImage().getDockerImageReference())
+        .endFrom()
+        .endTag()
+        .withGeneration(0L)
+        .build();
   }
 
   private static String getMapValueWithDefault(Map<String, String> map, JKubeBuildStrategy.SourceStrategy strategy, String defaultValue) {

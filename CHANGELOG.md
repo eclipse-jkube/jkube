@@ -23,6 +23,7 @@ Usage:
 ### 1.9.0-SNAPSHOT
 * Fix #777: `k8s:build` with Dockerfile throws `Connection reset by peer` error on old docker daemons
 * Fix #1279: Remove redundant log messages regarding plugin modes
+* Fix #1411: Add support for adding additional ImageStreamTags in OpenShift S2I builds
 * Fix #1438: Add configuration option in ServiceAccountEnricher to skip creating ServiceAccounts
 * Fix #1464: Bump Fabric8 Kubernetes Client to 6.0.0
 * Fix #1468: Add startup probe in QuarkusHealthCheckEnricher

@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.fabric8.openshift.api.model.ImageStreamTagBuilder;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
@@ -190,7 +191,7 @@ public class OpenshiftBuildServiceIntegrationTest {
   @Test
   public void testSuccessfulBuild() throws Exception {
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
+    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -206,7 +207,7 @@ public class OpenshiftBuildServiceIntegrationTest {
   public void build_withAssembly_shouldSucceed() throws Exception {
     // Given
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
+    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
     image.setBuild(BuildConfiguration.builder()
         .from(projectName)
         .assembly(AssemblyConfiguration.builder()
@@ -252,7 +253,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .build());
     image.getBuildConfiguration().initAndValidate();
     final WebServerEventCollector collector = prepareMockServer(withBuildServiceConfig(defaultConfig.build()),
-        true, false, false);
+        true, false, false, false);
     // When
     new OpenshiftBuildService(jKubeServiceHub).build(image);
     // Then
@@ -263,7 +264,7 @@ public class OpenshiftBuildServiceIntegrationTest {
   public void testSuccessfulBuildNoS2iSuffix() throws Exception {
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.s2iBuildNameSuffix(null).build());
     final WebServerEventCollector collector = prepareMockServer(
-        config, true, false, false);
+        config, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -282,7 +283,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .s2iBuildNameSuffix("-docker")
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(mockedResourceConfig).build());
-    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false);
+    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -302,7 +303,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .resourceConfig(mockedResourceConfig).build());
     image.setName("docker.io/registry/component1/component2/name:tag");
     final WebServerEventCollector collector = prepareMockServer("component1-component2-name",
-        dockerConfig, true, false, false);
+        dockerConfig, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -320,7 +321,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(mockedResourceConfig)
         .build());
-    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false);
+    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -339,7 +340,7 @@ public class OpenshiftBuildServiceIntegrationTest {
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(mockedResourceConfig)
         .build());
-    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false);
+    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false, false);
 
     OpenshiftBuildService service = new OpenshiftBuildService(jKubeServiceHub);
     Map<String,String> fromExt = ImmutableMap.of("name", "app:1.2-1",
@@ -364,7 +365,7 @@ public class OpenshiftBuildServiceIntegrationTest {
   @Test
   public void testSuccessfulBuildSecret() throws Exception {
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfigSecret.build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
+    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -388,7 +389,7 @@ public class OpenshiftBuildServiceIntegrationTest {
   @Test
   public void testSuccessfulSecondBuild() throws Exception {
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, true, true);
+    final WebServerEventCollector collector = prepareMockServer(config, true, true, true, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -404,7 +405,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     when(mockedResourceConfig.getOpenshiftBuildConfig()).thenReturn(OpenshiftBuildConfig.builder().limits(limitsMap).build());
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfig
         .resourceConfig(mockedResourceConfig).build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
+    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -428,7 +429,7 @@ public class OpenshiftBuildServiceIntegrationTest {
   @Test
   public void testSuccessfulDockerImageOutputBuild() throws Exception {
     final BuildServiceConfig config = withBuildServiceConfig(dockerImageConfig.build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
+    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -443,7 +444,7 @@ public class OpenshiftBuildServiceIntegrationTest {
   @Test
   public void testSuccessfulDockerImageOutputBuildSecret() throws Exception {
     final BuildServiceConfig config = withBuildServiceConfig(dockerImageConfigSecret.build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false);
+    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -455,13 +456,27 @@ public class OpenshiftBuildServiceIntegrationTest {
     assertFalse(containsRequest("imagestreams"));
   }
 
-  private WebServerEventCollector prepareMockServer(
-      BuildServiceConfig config, boolean success, boolean buildConfigExists, boolean imageStreamExists) {
-    return prepareMockServer(projectName, config, success, buildConfigExists, imageStreamExists);
+  @Test
+  public void build_withAdditionalTags_shouldCreateNewImageStreamTags() throws Exception {
+    // Given
+    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, true);
+    image.setBuild(image.getBuild().toBuilder()
+            .tag("t1")
+        .build());
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+    // Then
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed", "imagestreamtag-get", "imagestreamtag-create");
   }
 
   private WebServerEventCollector prepareMockServer(
-      String resourceName, BuildServiceConfig config, boolean success, boolean buildConfigExists, boolean imageStreamExists) {
+      BuildServiceConfig config, boolean success, boolean buildConfigExists, boolean imageStreamExists, boolean additionalImageStreamTagCreated) {
+    return prepareMockServer(projectName, config, success, buildConfigExists, imageStreamExists, additionalImageStreamTagCreated);
+  }
+
+  private WebServerEventCollector prepareMockServer(
+      String resourceName, BuildServiceConfig config, boolean success, boolean buildConfigExists, boolean imageStreamExists, boolean additionalImageStreamTagCreated) {
     WebServerEventCollector collector = new WebServerEventCollector();
 
     final long buildDelay = 50L;
@@ -581,6 +596,19 @@ public class OpenshiftBuildServiceIntegrationTest {
         .waitFor(buildDelay)
         .andEmit(new WatchEvent(build, "MODIFIED"))
         .done().always();
+
+    if (additionalImageStreamTagCreated) {
+      mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreamtags/" + resourceName + ":latest")
+          .andReply(collector.record("imagestreamtag-get").andReturn(200, new ImageStreamTagBuilder().withNewMetadata().withName(resourceName + ":latest").endMetadata()
+              .withNewImage()
+              .withDockerImageReference("foo-registry.openshift.svc:5000/test/myapp@sha256:1234")
+              .endImage()
+              .build()))
+          .once();
+      mockServer.expect().post().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreamtags")
+          .andReply(collector.record("imagestreamtag-create").andReturn(200, new ImageStreamTagBuilder().withNewMetadata().withName(resourceName + ":t1").endMetadata().build()))
+          .once();
+    }
 
     return collector;
   }
