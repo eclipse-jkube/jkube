@@ -12,24 +12,21 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 package org.eclipse.jkube.kit.config.image;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 public class ImageConfigurationTest {
 
     @Test
-    public void testBuilder(@Mocked BuildConfiguration mockJKubeBuildConfiguration) {
+    public void testBuilder() {
         // Given
-        new Expectations() {{
-            mockJKubeBuildConfiguration.getUser();
-            result = "super-user";
-        }};
+        BuildConfiguration mockJKubeBuildConfiguration = mock(BuildConfiguration.class);
+        when(mockJKubeBuildConfiguration.getUser()).thenReturn("super-user");
         // When
         final ImageConfiguration result = ImageConfiguration.builder()
                 .name("1337")

@@ -22,8 +22,6 @@ import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +32,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
@@ -181,14 +181,10 @@ public class BuildConfigurationTest {
   }
 
   @Test
-  public void testBuilder(@Mocked AssemblyConfiguration mockAssemblyConfiguration) {
+  public void testBuilder() {
+    AssemblyConfiguration mockAssemblyConfiguration = mock(AssemblyConfiguration.class);
     // Given
-    // @formatter:off
-    new Expectations() {{
-      mockAssemblyConfiguration.getName();
-      result = "1337";
-    }};
-    // @formatter:on
+    when(mockAssemblyConfiguration.getName()).thenReturn("1337");
     // When
     final BuildConfiguration result = BuildConfiguration.builder()
         .assembly(mockAssemblyConfiguration)
