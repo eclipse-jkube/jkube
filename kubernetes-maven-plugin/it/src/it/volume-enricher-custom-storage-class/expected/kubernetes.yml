@@ -38,8 +38,6 @@ items:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    annotations:
-      volume.beta.kubernetes.io/storage-class: cheese
     labels:
       app: volume-enricher-custom-storage-class
       provider: jkube
@@ -47,6 +45,7 @@ items:
       group: org.eclipse.jkube
     name: jkube-docker-registry-storage
   spec:
+    storageClassName: cheese
     accessModes:
     - ReadWriteOnce
     resources:
