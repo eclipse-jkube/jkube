@@ -16,20 +16,14 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
-
-import org.apache.maven.model.Build;
-import org.apache.maven.model.Developer;
-import org.apache.maven.model.DistributionManagement;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Site;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -42,66 +36,72 @@ import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.MavenArtifactRepository;
 import org.apache.maven.execution.MavenSession;
-
+import org.apache.maven.model.Build;
+import org.apache.maven.model.Developer;
+import org.apache.maven.model.DistributionManagement;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.Site;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+class MavenUtilTest {
 
-@RunWith(MockitoJUnitRunner.class)
-public class MavenUtilTest {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-  @Mock
+  @TempDir
+  Path temporaryFolder;
+
   private KitLogger log;
-  @Mock
-  MavenProject mavenProject;
-  @Mock
-  BuildPluginManager pluginManager;
-  @Mock
-  MavenSession session;
+  private MavenProject mavenProject;
+  private BuildPluginManager pluginManager;
 
-  @Test
-  public void testJKubeProjectConversion() throws DependencyResolutionRequiredException {
-    MavenProject mavenProject = getMavenProject();
-
-    JavaProject project = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, getMavenSession());
-    assertEquals("testProject", project.getName());
-    assertEquals("org.eclipse.jkube", project.getGroupId());
-    assertEquals("test-project", project.getArtifactId());
-    assertEquals("0.1.0", project.getVersion());
-    assertEquals("test description", project.getDescription());
-    assertEquals("target", project.getOutputDirectory().getName());
-    assertEquals(".", project.getBuildDirectory().getName());
-    assertEquals("https://www.eclipse.org/jkube/", project.getDocumentationUrl());
-    assertEquals(1, mavenProject.getCompileClasspathElements().size());
-    assertEquals("./target", mavenProject.getCompileClasspathElements().get(0));
-    assertEquals("bar", project.getProperties().get("foo"));
-    assertEquals("https://projects.eclipse.org/projects/ecd.jkube", project.getUrl());
-    assertEquals(Collections.singletonList(org.eclipse.jkube.kit.common.Maintainer.builder()
-        .name("Dev1")
-        .email("dev1@eclipse.org")
-        .build()), project.getMaintainers());
+  @BeforeEach
+  void setUp() {
+    mavenProject = mock(MavenProject.class);
+    pluginManager = mock(BuildPluginManager.class);
+    log = mock(KitLogger.class);
   }
 
   @Test
-  public void testGetDependencies() {
+  void testJKubeProjectConversion() throws DependencyResolutionRequiredException {
+    mavenProject = getMavenProject();
+
+    JavaProject project = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, getMavenSession());
+    assertThat(project.getName()).isEqualTo("testProject");
+    assertThat(project.getGroupId()).isEqualTo("org.eclipse.jkube");
+    assertThat(project.getArtifactId()).isEqualTo("test-project");
+    assertThat(project.getVersion()).isEqualTo("0.1.0");
+    assertThat(project.getDescription()).isEqualTo("test description");
+    assertThat(project.getOutputDirectory()).hasName("target");
+    assertThat(project.getBuildDirectory()).hasName(".");
+    assertThat(project.getDocumentationUrl()).isEqualTo("https://www.eclipse.org/jkube/");
+    assertThat(mavenProject.getCompileClasspathElements()).hasSize(1);
+    assertThat(mavenProject.getCompileClasspathElements()).first().isEqualTo("./target");
+    assertThat(project.getProperties()).contains(entry("foo", "bar"));
+    assertThat(project.getUrl()).isEqualTo("https://projects.eclipse.org/projects/ecd.jkube");
+    assertThat(project.getMaintainers()).isEqualTo(
+            Collections.singletonList(org.eclipse.jkube.kit.common.Maintainer.builder()
+                    .name("Dev1")
+                    .email("dev1@eclipse.org")
+                    .build())
+    );
+  }
+
+  @Test
+  void testGetDependencies() {
     // Given
     final org.apache.maven.model.Dependency dep1 = new org.apache.maven.model.Dependency();
     dep1.setGroupId("org.eclipse.jkube");
@@ -120,7 +120,7 @@ public class MavenUtilTest {
   }
 
   @Test
-  public void testGetTransitiveDependencies() {
+  void testGetTransitiveDependencies() {
     // Given
     final Artifact artifact1 = new DefaultArtifact("org.eclipse.jkube", "foo-dependency", "1.33.7",
         "runtime", "jar", "", new DefaultArtifactHandler("jar"));
@@ -138,29 +138,28 @@ public class MavenUtilTest {
   }
 
   @Test
-  public void testLoadedPomFromFile() throws Exception {
-    MavenProject mavenProject = loadMavenProjectFromPom();
+  void testLoadedPomFromFile() throws Exception {
+    mavenProject = loadMavenProjectFromPom();
     JavaProject project = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, getMavenSession());
 
-    assertEquals("Eclipse JKube Maven :: Sample :: Spring Boot Web", project.getName());
-    assertEquals("Minimal Example with Spring Boot", project.getDescription());
-    assertEquals("jkube-maven-sample-spring-boot", project.getArtifactId());
-    assertEquals("org.eclipse.jkube", project.getGroupId());
-    assertEquals("0.1.1-SNAPSHOT", project.getVersion());
+    assertThat(project.getName()).isEqualTo("Eclipse JKube Maven :: Sample :: Spring Boot Web");
+    assertThat(project.getDescription()).isEqualTo("Minimal Example with Spring Boot");
+    assertThat(project.getArtifactId()).isEqualTo("jkube-maven-sample-spring-boot");
+    assertThat(project.getGroupId()).isEqualTo("org.eclipse.jkube");
+    assertThat(project.getVersion()).isEqualTo("0.1.1-SNAPSHOT");
 
     List<Plugin> plugins = MavenUtil.getPlugins(mavenProject);
-    assertEquals(2, plugins.size());
-    assertEquals("org.springframework.boot", plugins.get(0).getGroupId());
-    assertEquals("spring-boot-maven-plugin", plugins.get(0).getArtifactId());
-    assertEquals("org.eclipse.jkube", plugins.get(1).getGroupId());
-    assertEquals("kubernetes-maven-plugin", plugins.get(1).getArtifactId());
-    assertEquals("0.1.0", plugins.get(1).getVersion());
-    assertEquals(3, plugins.get(1).getExecutions().size());
-    assertEquals(Arrays.asList("resource", "build", "helm"), plugins.get(1).getExecutions());
+    assertThat(plugins.get(0).getGroupId()).isEqualTo("org.springframework.boot");
+    assertThat(plugins.get(0).getArtifactId()).isEqualTo("spring-boot-maven-plugin");
+    assertThat(plugins.get(1).getGroupId()).isEqualTo("org.eclipse.jkube");
+    assertThat(plugins.get(1).getArtifactId()).isEqualTo("kubernetes-maven-plugin");
+    assertThat(plugins.get(1).getVersion()).isEqualTo("0.1.0");
+    assertThat(plugins.get(1).getExecutions()).hasSize(3);
+    assertThat(plugins.get(1).getExecutions()).isEqualTo(Arrays.asList("resource", "build", "helm"));
   }
 
   private MavenProject getMavenProject() {
-    MavenProject mavenProject = new MavenProject();
+    mavenProject = new MavenProject();
     File baseDir = new File("test-project-base-dir");
     mavenProject.setFile(baseDir);
     mavenProject.setName("testProject");
@@ -196,8 +195,8 @@ public class MavenUtilTest {
     final FileReader reader = new FileReader(pomfile);
     final Model model = mavenreader.read(reader);
     model.setPomFile(pomfile);
-    model.getBuild().setOutputDirectory(temporaryFolder.newFolder("outputDirectory").getAbsolutePath());
-    model.getBuild().setDirectory(temporaryFolder.newFolder("build").getAbsolutePath());
+    model.getBuild().setOutputDirectory(temporaryFolder.resolve("outputDirectory").toAbsolutePath().toString());
+    model.getBuild().setDirectory(temporaryFolder.resolve("build").toAbsolutePath().toString());
     return new MavenProject(model);
   }
 
@@ -215,11 +214,12 @@ public class MavenUtilTest {
     Properties systemProperties = new Properties();
     systemProperties.put("foo", "bar");
 
-    return new MavenSession(null, settings, localRepository, null, null, Collections.<String> emptyList(), ".",
+    return new MavenSession(null, settings, localRepository, null, null, Collections.emptyList(), ".",
         systemProperties, userProperties, new Date(System.currentTimeMillis()));
   }
+
   @Test
-  public void testCallMavenPluginWithGoal() {
+  void testCallMavenPluginWithGoal() {
     try (MockedConstruction<MojoExecutionService> mojoExecutionServiceMocked = Mockito.mockConstruction(MojoExecutionService.class)) {
       // Given
       MavenProject mavenProject = getMavenProject();
@@ -236,7 +236,7 @@ public class MavenUtilTest {
   }
 
   @Test
-  public void testgetRootProjectFolder() {
+  void testgetRootProjectFolder() {
     // Given
     File projectBaseDir = new File("projectBaseDir");
     when(mavenProject.getBasedir()).thenReturn(projectBaseDir);
@@ -246,7 +246,6 @@ public class MavenUtilTest {
     File rootFolder = MavenUtil.getRootProjectFolder(mavenProject);
 
     // Then
-    assertNotNull(rootFolder);
-    assertEquals("projectBaseDir", rootFolder.getName());
+    assertThat(rootFolder).isNotNull().hasName("projectBaseDir");
   }
 }
