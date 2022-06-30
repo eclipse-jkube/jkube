@@ -21,9 +21,12 @@ import com.google.gson.JsonParser;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplate;
 import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -36,8 +39,9 @@ import org.junit.Test;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.TreeMap;
+import java.util.Properties;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -148,6 +152,57 @@ public class VolumePermissionEnricherTest {
         }
     }
 
+    @Test
+    public void enrich_withPersistentVolumeClaim_shouldAddStorageClassToSpec() {
+        // Given
+        Properties properties = new Properties();
+        properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
+        new Expectations() {{
+            context.getProperties();
+            result = properties;
+        }};
+        VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher(context);
+        KubernetesListBuilder klb = new KubernetesListBuilder();
+        klb.addToItems(createNewPersistentVolumeClaim("pv1"));
+
+        // When
+        volumePermissionEnricher.enrich(PlatformMode.kubernetes, klb);
+
+        // Then
+        assertThat(klb.buildItems())
+            .hasSize(1)
+            .first(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
+            .hasFieldOrPropertyWithValue("spec.storageClassName", "standard")
+            .extracting("metadata.annotations")
+            .asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+            .isNullOrEmpty();
+    }
+
+    @Test
+    public void enrich_withPersistentVolumeClaimAndUseAnnotationEnabled_shouldAddStorageClassAnnotation() {
+        // Given
+        Properties properties = new Properties();
+        properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
+        properties.put("jkube.enricher.jkube-volume-permission.useStorageClassAnnotation", "true");
+        new Expectations() {{
+            context.getProperties();
+            result = properties;
+        }};
+        VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher(context);
+        KubernetesListBuilder klb = new KubernetesListBuilder();
+        klb.addToItems(createNewPersistentVolumeClaim("pv1"));
+
+        // When
+        volumePermissionEnricher.enrich(PlatformMode.kubernetes, klb);
+
+        // Then
+        assertThat(klb.buildItems())
+            .hasSize(1)
+            .first(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
+            .hasFieldOrPropertyWithValue("metadata.annotations", Collections.singletonMap("volume.beta.kubernetes.io/storage-class", "standard"))
+            .hasFieldOrPropertyWithValue("spec.storageClassName", null);
+    }
+
     public PodTemplateBuilder addVolume(PodTemplateBuilder ptb, String vn) {
         ptb = ptb.editTemplate().
             editSpec().
@@ -169,5 +224,12 @@ public class VolumePermissionEnricherTest {
                                   .withNewMetadata().endMetadata()
                                   .withNewSpec().addNewContainer().endContainer().endSpec()
                                 .endTemplate();
+    }
+
+    private PersistentVolumeClaim createNewPersistentVolumeClaim(String name) {
+        return new PersistentVolumeClaimBuilder()
+            .withNewMetadata().withName(name).endMetadata()
+            .withNewSpec().endSpec()
+            .build();
     }
 }

@@ -56,7 +56,8 @@ public class VolumePermissionEnricher extends BaseEnricher {
     enum Config implements Configs.Config {
         IMAGE_NAME("imageName", "busybox"),
         PERMISSION("permission", "777"),
-        DEFAULT_STORAGE_CLASS("defaultStorageClass", null);
+        DEFAULT_STORAGE_CLASS("defaultStorageClass", null),
+        USE_ANNOTATION("useStorageClassAnnotation", "false");
 
         @Getter
         protected String key;
@@ -188,7 +189,11 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 }
                 String storageClass = getConfig(Config.DEFAULT_STORAGE_CLASS);
                 if (StringUtils.isNotBlank(storageClass)) {
-                    pvcBuilder.editMetadata().addToAnnotations(VOLUME_STORAGE_CLASS_ANNOTATION, storageClass).endMetadata();
+                    if (Boolean.parseBoolean(getConfig(Config.USE_ANNOTATION))) {
+                        pvcBuilder.editMetadata().addToAnnotations(VOLUME_STORAGE_CLASS_ANNOTATION, storageClass).endMetadata();
+                    } else {
+                        pvcBuilder.editSpec().withStorageClassName(storageClass).endSpec();
+                    }
                 }
             }
         });
