@@ -22,10 +22,10 @@ import io.fabric8.kubernetes.api.model.PodConditionBuilder;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodStatusBuilder;
 import io.fabric8.kubernetes.client.Watcher;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PortForwardPodWatcherTest {
 
-  @Mocked
+  @Mock
   private KitLogger logger;
   private PortForwardPodWatcher portForwardPodWatcher;
 

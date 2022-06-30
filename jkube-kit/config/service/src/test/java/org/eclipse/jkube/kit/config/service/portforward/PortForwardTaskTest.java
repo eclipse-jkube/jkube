@@ -20,17 +20,20 @@ import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.client.LocalPortForward;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class PortForwardTaskTest {
-  @Mocked
+  @Mock
   private NamespacedKubernetesClient kubernetesClient;
-  @Mocked
+  @Mock
   private LocalPortForward localPortForward;
-  @Mocked
+  @Mock
   private KitLogger logger;
 
   private PortForwardTask portForwardTask;
@@ -42,16 +45,13 @@ class PortForwardTaskTest {
   }
 
   @Test
-  void run(@Mocked CountDownLatch cdl) throws Exception {
+  void run() throws Exception {
+    CountDownLatch cdl = mock(CountDownLatch.class);
     // When
     portForwardTask.run();
     // Then
-    // @formatter:off
-    new Verifications() {{
-      cdl.await(); times = 1;
-      localPortForward.close(); times = 1;
-    }};
-    // @formatter:on
+    verify(cdl,times(1)).await();
+    verify(localPortForward,times(1)).close();
   }
 
   @Test
@@ -59,10 +59,6 @@ class PortForwardTaskTest {
     // When
     portForwardTask.close();
     // Then
-    // @formatter:off
-    new Verifications() {{
-      localPortForward.close(); times = 1;
-    }};
-    // @formatter:on
+    verify(localPortForward,times(1)).close();
   }
 }

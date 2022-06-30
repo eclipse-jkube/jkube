@@ -23,23 +23,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.fabric8.kubernetes.client.dsl.internal.BaseOperation;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
-import io.fabric8.openshift.api.model.ImageStreamList;
 import io.fabric8.openshift.api.model.TagEvent;
 import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.mockito.Mock;
+
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
@@ -49,16 +49,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings({"unchecked", "rawtypes", "unused"})
 class ImageStreamServiceTest {
 
-    @Mocked
+    @Mock
     OpenShiftClient client;
 
-    @Mocked
-    MixedOperation<ImageStream, ImageStreamList, Resource<ImageStream>> imageStreamsOp;
+    @Mock
+    BaseOperation imageStreamsOp;
 
-    @Mocked
+    @Mock
     Resource resource;
 
-    @Mocked
+    @Mock
     KitLogger log;
 
     @Test
@@ -124,11 +124,9 @@ class ImageStreamServiceTest {
     }
 
     private void setupClientMock(final ImageStream lookedUpIs, final String namespace, final String name) {
-        new Expectations() {{
-            client.imageStreams(); result = imageStreamsOp;
-            imageStreamsOp.inNamespace(namespace).withName(name); result = resource;
-            resource.get(); result = lookedUpIs;
-        }};
+        when(client.imageStreams()).thenReturn(imageStreamsOp);
+        when(imageStreamsOp.inNamespace(namespace).withName(name)).thenReturn(resource);
+        when(resource.get()).thenReturn(lookedUpIs);
     }
 
     private ImageStream lookupImageStream(String sha) {

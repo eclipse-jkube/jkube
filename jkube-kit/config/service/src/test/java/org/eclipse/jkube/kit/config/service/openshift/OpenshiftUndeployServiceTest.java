@@ -41,40 +41,38 @@ import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.TagReferenceBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"AccessStaticViaInstance", "unused"})
 class OpenshiftUndeployServiceTest {
 
   @TempDir
   File temporaryFolder;
-  @Mocked
+  @Mock
   private KitLogger logger;
-  @Mocked
+  @Mock
   private JKubeServiceHub jKubeServiceHub;
-  @Mocked
+  @Mock
   private KubernetesClient kubernetesClient;
-  @Mocked
+  @Mock
   private OpenShiftClient openShiftClient;
-  @Mocked
+  @Mock
   private KubernetesHelper kubernetesHelper;
   private OpenshiftUndeployService openshiftUndeployService;
 
   @BeforeEach
   void setUp() {
     openshiftUndeployService = new OpenshiftUndeployService(jKubeServiceHub, logger);
-    // @formatter:off
-    new Expectations() {{
-      jKubeServiceHub.getClient().adapt(OpenShiftClient.class); result = openShiftClient;
-      openShiftClient.isSupported(); result = true;
-    }};
-    // @formatter:on
+    when(jKubeServiceHub.getClient().adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
   }
 
   @AfterEach
@@ -83,40 +81,20 @@ class OpenshiftUndeployServiceTest {
   }
 
   private void withLoadedEntities(HasMetadata... entities) throws Exception {
-    // @formatter:off
-    new Expectations() {{
-      kubernetesHelper.loadResources((File)any); result = Arrays.asList(entities);
-    }};
-    // @formatter:on
+    when(kubernetesHelper.loadResources((File)any())).thenReturn(Arrays.asList(entities));
   }
 
   private void with(Build build, BuildConfig buildConfig) {
-    // @formatter:off
-    new Expectations() {{
-      openShiftClient.builds().inNamespace(null).list();
-      result = new BuildListBuilder().withItems(build).build();
-      openShiftClient.buildConfigs().inNamespace(null).list();
-      result = new BuildConfigListBuilder().withItems(buildConfig).build();
-    }};
-    // @formatter:on
+    when(openShiftClient.builds().inNamespace(null).list()).thenReturn(new BuildListBuilder().withItems(build).build());
+    when(openShiftClient.buildConfigs().inNamespace(null).list()).thenReturn(new BuildConfigListBuilder().withItems(buildConfig).build());
   }
 
   private void assertDeleted(HasMetadata entity) {
-    // @formatter:off
-    new Verifications() {{
-      jKubeServiceHub.getClient().resource(entity).inNamespace(null)
-          .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
-      times = 1;
-    }};
-    // @formatter:on
+    verify(jKubeServiceHub,times(1)).getClient().resource(entity).inNamespace(null) .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
   }
 
   private void assertDeleteCount(int totalDeletions) {
-    // @formatter:off
-    new Verifications() {{
-      kubernetesHelper.getKind((HasMetadata)any); times = totalDeletions;
-    }};
-    // @formatter:on
+    verify(kubernetesHelper,times(totalDeletions)).getKind((HasMetadata)any());
   }
 
   @Test
@@ -124,12 +102,7 @@ class OpenshiftUndeployServiceTest {
     // Given
     final Pod entity = new Pod();
     withLoadedEntities(entity);
-    // @formatter:off
-    new Expectations() {{
-      jKubeServiceHub.getClient().adapt(OpenShiftClient.class); result = openShiftClient;
-      openShiftClient.isSupported(); result = false;
-    }};
-    // @formatter:on
+    when(jKubeServiceHub.getClient().adapt(OpenShiftClient.class)).thenReturn(null);
     // When
     openshiftUndeployService.undeploy(null, ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then

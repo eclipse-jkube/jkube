@@ -14,23 +14,20 @@
 package org.eclipse.jkube.kit.config.service;
 
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.jupiter.api.Test;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 class PortForwardServicePortOrderTest {
-    @Mocked
-    private NamespacedKubernetesClient kubernetesClient;
+  private NamespacedKubernetesClient kubernetesClient;
 
-    @Test
-    void portsSpecifiedInCorrectOrderPortForward() {
-        // When
-        PortForwardService.forwardPortAsync(kubernetesClient, "foo-pod", 8080, 312323);
+  @Test
+  void portsSpecifiedInCorrectOrderPortForward() {
+    // When
+    PortForwardService.forwardPortAsync(kubernetesClient, "foo-pod", 8080, 312323);
 
-        // Then
-        new Verifications() {{
-            kubernetesClient.pods().withName("foo-pod").portForward(8080, 312323);
-            times = 1;
-        }};
-    }
+    // Then
+    verify(kubernetesClient,times(1)).pods().withName("foo-pod").portForward(8080, 312323);
+  }
 }

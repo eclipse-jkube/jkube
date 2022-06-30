@@ -35,20 +35,25 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Service;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "AccessStaticViaInstance", "unused"})
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@SuppressWarnings({"AccessStaticViaInstance", "unused"})
 class KubernetesUndeployServiceTest {
-  @Mocked
+
+  @Mock
   private KitLogger logger;
-  @Mocked
+  @Mock
   private JKubeServiceHub jKubeServiceHub;
-  @Mocked
+  @Mock
   private KubernetesHelper kubernetesHelper;
   private KubernetesUndeployService kubernetesUndeployService;
 
@@ -64,49 +69,35 @@ class KubernetesUndeployServiceTest {
     // When
     kubernetesUndeployService.undeploy(null, ResourceConfig.builder().build(), nonexistent, null);
     // Then
-    // @formatter:off
-    new Verifications() {{
-      logger.warn("No such generated manifests found for this project, ignoring."); times = 1;
-    }};
-    // @formatter:on
+    verify(logger,times(1)).warn("No such generated manifests found for this project, ignoring.");
   }
 
   @Test
-  void undeploy_withManifest_shouldDeleteAllEntities(@Mocked File file) throws Exception {
+  void undeploy_withManifest_shouldDeleteAllEntities() throws Exception {
+    File file = mock(File.class);
     // Given
     final ResourceConfig resourceConfig = ResourceConfig.builder().namespace("default").build();
     final Namespace namespace = new NamespaceBuilder().withNewMetadata().withName("default").endMetadata().build();
     final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").endMetadata().build();
     final Service service = new Service();
-    // @formatter:off
-    new Expectations() {{
-      file.exists(); result = true;
-      file.isFile(); result = true;
-      kubernetesHelper.loadResources(file); result = Arrays.asList(namespace, pod, service);
-    }};
-    // @formatter:on
+    when(file.exists()).thenReturn(true);
+    when(file.isFile()).thenReturn(true);
+    when(kubernetesHelper.loadResources(file)).thenReturn(Arrays.asList(namespace,pod,service));
     // When
     kubernetesUndeployService.undeploy(null, resourceConfig, file);
     // Then
-    // @formatter:off
-    new Verifications() {{
-      kubernetesHelper.getKind((HasMetadata)any); times = 3;
-      jKubeServiceHub.getClient().resource(pod).inNamespace("default")
-          .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
-      times = 1;
-      jKubeServiceHub.getClient().resource(service).inNamespace("default")
-          .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
-      times = 1;
-      jKubeServiceHub.getClient().resource(namespace).inNamespace("default")
-              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
-      times = 1;
-    }};
-    // @formatter:on
+    verify(kubernetesHelper,times(3)).getKind((HasMetadata) any());
+    verify(jKubeServiceHub,times(1)).getClient().resource(pod).inNamespace("default")
+            .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+    verify(jKubeServiceHub,times(1)).getClient().resource(service).inNamespace("default")
+            .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+    verify(jKubeServiceHub,times(1)).getClient().resource(namespace).inNamespace("default")
+            .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
   }
 
   @Test
-  void undeploy_withManifestAndCustomResources_shouldDeleteAllEntities(@TempDir File temporaryFolder,
-      @Mocked ResourceConfig resourceConfig) throws Exception {
+  void undeploy_withManifestAndCustomResources_shouldDeleteAllEntities(@TempDir File temporaryFolder) throws Exception {
+    ResourceConfig resourceConfig = mock(ResourceConfig.class);
     // Given
     final File manifest = File.createTempFile("temp", ".yml", temporaryFolder);
     final File crManifest = File.createTempFile("temp-cr", ".yml", temporaryFolder);
@@ -124,58 +115,37 @@ class KubernetesUndeployServiceTest {
         .withName("crds")
         .withSingularName("crd")
         .build();
-    // @formatter:off
-    new Expectations() {{
-      kubernetesHelper.loadResources(manifest); result = Arrays.asList(service, customResource);
-      kubernetesHelper.getFullyQualifiedApiGroupWithKind(customResource);
-      result = crdId;
-    }};
-    // @formatter:on
+    when(kubernetesHelper.loadResources(manifest)).thenReturn(Arrays.asList(service, customResource));
+    when(kubernetesHelper.getFullyQualifiedApiGroupWithKind(customResource)).thenReturn(crdId);
     // When
     kubernetesUndeployService.undeploy(null, resourceConfig, manifest);
     // Then
-    // @formatter:off
-    new Verifications() {{
-      jKubeServiceHub.getClient().genericKubernetesResources("org.eclipse.jkube/v1alpha1", "Crd").inNamespace(null).withName("my-cr").delete();
-      times = 1;
-    }};
-    // @formatter:on
+    verify(jKubeServiceHub,times(1)).getClient().genericKubernetesResources("org.eclipse.jkube/v1alpha1", "Crd").inNamespace(null).withName("my-cr").delete();
   }
 
   @Test
-  void undeploy_withManifest_shouldDeleteEntitiesInMultipleNamespaces(@Mocked File file) throws Exception {
+  void undeploy_withManifest_shouldDeleteEntitiesInMultipleNamespaces() throws Exception {
+    File file = mock(File.class);
     // Given
     final ResourceConfig resourceConfig = ResourceConfig.builder().build();
     final ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("ns1").endMetadata().build();
     final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").withNamespace("ns2").endMetadata().build();
     final Service service = new Service();
-    // @formatter:off
-    new Expectations() {{
-      file.exists(); result = true;
-      file.isFile(); result = true;
-      kubernetesHelper.loadResources(file); result = Arrays.asList(configMap, pod, service);
-      kubernetesHelper.getNamespace(configMap); result = "ns1";
-      kubernetesHelper.getNamespace(pod); result = "ns2";
-      KubernetesHelper.getDefaultNamespace(); result = "default";
-    }};
-    // @formatter:on
+    when(file.isFile()).thenReturn(true);
+    when(file.exists()).thenReturn(true);
+    when(kubernetesHelper.loadResources(file)).thenReturn(Arrays.asList(configMap, pod, service));
+    when(kubernetesHelper.getNamespace(configMap)).thenReturn("ns1");
+    when(kubernetesHelper.getNamespace(pod)).thenReturn("ns2");
+    when(kubernetesHelper.getDefaultNamespace()).thenReturn("default");
     // When
     kubernetesUndeployService.undeploy(null, resourceConfig, file);
     // Then
-    // @formatter:off
-    new Verifications() {{
-      kubernetesHelper.getKind((HasMetadata)any); times = 3;
-      jKubeServiceHub.getClient().resource(pod).inNamespace("ns2")
-              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
-      times = 1;
-      jKubeServiceHub.getClient().resource(service).inNamespace("default")
-              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
-      times = 1;
-      jKubeServiceHub.getClient().resource(configMap).inNamespace("ns1")
-              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
-      times = 1;
-    }};
-    // @formatter:on
+    verify(kubernetesHelper,times(3)).getKind((HasMetadata)any());
+    verify(jKubeServiceHub,times(1)).getClient().resource(pod).inNamespace("ns2")
+            .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+    verify(jKubeServiceHub,times(1)).getClient().resource(service).inNamespace("default")
+            .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+    verify(jKubeServiceHub,times(1)).getClient().resource(configMap).inNamespace("ns1")
+            .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
   }
-
 }

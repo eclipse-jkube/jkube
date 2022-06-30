@@ -30,10 +30,10 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.PatchService;
-import mockit.Mocked;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import java.util.Collections;
 
@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 @EnableKubernetesMockClient
 class PatchServiceTest {
-    @Mocked
+    @Mock
     private KitLogger log;
 
     KubernetesMockServer mockServer;

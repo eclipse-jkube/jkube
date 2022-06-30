@@ -18,21 +18,22 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.doDeleteAndWait;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class KubernetesClientUtilTest {
 
-  @Mocked
+  @Mock
   private KubernetesClient kubernetesClient;
 
   @Test
@@ -46,11 +47,7 @@ class KubernetesClientUtilTest {
     // When
     doDeleteAndWait(kubernetesClient, resource, "namespace",  2L);
     // Then
-    // @formatter:off
-    new Verifications(){{
-      kubernetesClient.genericKubernetesResources("org.eclipse.jkube/v1beta1", "JKubeCustomResource").inNamespace("namespace").withName("name").delete(); times = 1;
-    }};
-    // @formatter:on
+    verify(kubernetesClient,times(1)).genericKubernetesResources("org.eclipse.jkube/v1beta1", "JKubeCustomResource");
   }
 
   @Test

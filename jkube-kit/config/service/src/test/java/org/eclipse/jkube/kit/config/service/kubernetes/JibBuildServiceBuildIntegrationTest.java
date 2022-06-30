@@ -34,9 +34,6 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.AbstractFileAssert;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,13 +42,16 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import org.mockito.Mock;
 
-@SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
+import static org.mockito.Mockito.when;
+
+@SuppressWarnings({"unused"})
 class JibBuildServiceBuildIntegrationTest {
 
-  @Mocked
+  @Mock
   private JKubeServiceHub hub;
-  @Mocked
+  @Mock
   private KitLogger log;
   private File projectRoot;
   private File targetDirectory;
@@ -77,12 +77,8 @@ class JibBuildServiceBuildIntegrationTest {
             .build())
         .registryConfig(RegistryConfig.builder().settings(Collections.emptyList()).build())
         .build();
-    // @formatter:off
-    new Expectations() {{
-      hub.getConfiguration(); result = configuration;
-      hub.getLog(); result = log;
-    }};
-    // @formatter:on
+    when(hub.getConfiguration()).thenReturn(configuration);
+    when(hub.getLog()).thenReturn(log);
     jibBuildService = new JibBuildService(hub);
   }
 

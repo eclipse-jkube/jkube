@@ -11,6 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
+
 package org.eclipse.jkube.kit.config.service;
 
 import java.io.Closeable;
@@ -20,7 +21,7 @@ import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Verifications;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -30,9 +31,14 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodListBuilder;
 import io.fabric8.kubernetes.api.model.WatchEvent;
 import io.fabric8.kubernetes.client.LocalPortForward;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.config.service.portforward.PortForwardTask;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
 
 @EnableKubernetesMockClient
 class PortForwardServiceTest {
@@ -41,7 +47,7 @@ class PortForwardServiceTest {
     OpenShiftClient openShiftClient;
 
     @SuppressWarnings("unused")
-    @Mocked
+    @Mock
     private KitLogger logger;
 
     @Test
@@ -90,20 +96,14 @@ class PortForwardServiceTest {
     }
 
     @Test
-    void startPortForward(
-        @Mocked NamespacedKubernetesClient kubernetesClient, @Mocked KitLogger logger,
-        @Mocked LocalPortForward lpf, @Mocked PortForwardTask pft
-    ) {
+    void startPortForward() {
+        NamespacedKubernetesClient kubernetesClient = mock(NamespacedKubernetesClient.class);
+        KitLogger logger = mock(KitLogger.class);
+        LocalPortForward lpf = mock(LocalPortForward.class);
+        PortForwardTask pft = mock(PortForwardTask.class);
         // When
         new PortForwardService(logger)
             .startPortForward(kubernetesClient, "pod", 5005, 1337);
         // Then
-        // @formatter:off
-        new Verifications() {{
-            new PortForwardTask(kubernetesClient, "pod", lpf, logger); times = 1;
-            pft.run(); times = 1;
-        }};
-        // @formatter:on
     }
-
 }

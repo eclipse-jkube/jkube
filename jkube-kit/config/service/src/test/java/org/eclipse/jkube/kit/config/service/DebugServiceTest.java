@@ -27,8 +27,6 @@ import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
-import mockit.Expectations;
-import mockit.Verifications;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -44,31 +42,36 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpecBuilder;
-import mockit.Mocked;
-import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.config.service.portforward.PortForwardPodWatcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.assertj.core.groups.Tuple;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unused")
 class DebugServiceTest {
 
-  @Mocked
+  @Mock
   private KitLogger logger;
 
-  @Mocked
+  @Mock
   private NamespacedKubernetesClient kubernetesClient;
 
-  @Mocked
+  @Mock
   private PortForwardService portForwardService;
 
-  @Mocked
+  @Mock
   private ApplyService applyService;
 
-  @Mocked
+  @Mock
   private PortForwardPodWatcher portForwardPodWatcher;
 
   private DebugService debugService;
@@ -177,16 +180,12 @@ class DebugServiceTest {
     // When
     debugService.debug("namespace", "file.name", Collections.emptySet(), null, false, logger);
     // Then
-    // @formatter:off
-    new Verifications() {{
-      logger.error("Unable to proceed with Debug. No application resource found running in the cluster");
-      times = 1;
-    }};
-    // @formatter:on
+    verify(logger,times(1)).error("Unable to proceed with Debug. No application resource found running in the cluster");
   }
 
   @Test
-  void debugWithApplicableEntities(@Mocked CountDownLatch cdl) {
+  void debugWithApplicableEntities() {
+    CountDownLatch cdl = mock(CountDownLatch.class);
     // Given
     final Deployment deployment = mockDebugDeployment(cdl);
     // When
@@ -198,7 +197,8 @@ class DebugServiceTest {
   }
 
   @Test
-  void debugWithApplicableEntitiesAndSuspend(@Mocked CountDownLatch cdl) {
+  void debugWithApplicableEntitiesAndSuspend() {
+    CountDownLatch cdl = mock(CountDownLatch.class);
     // Given
     final Deployment deployment = mockDebugDeployment(cdl);
     // When
@@ -209,28 +209,17 @@ class DebugServiceTest {
     verifyDebugCompletedSuccessfully(deployment, 31337, true);
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   private Deployment mockDebugDeployment(CountDownLatch cdl) {
     final Deployment deployment = initDeployment();
-    // @formatter:off
-    new Expectations() {{
-      applyService.isAlreadyApplied(deployment); result = true;
-      portForwardPodWatcher.getPodReadyLatch(); result = cdl;
-      cdl.getCount(); result = 1L;
-    }};
-    // @formatter:on
+    when(applyService.isAlreadyApplied(deployment)).thenReturn(true);
+    when(portForwardPodWatcher.getPodReadyLatch()).thenReturn(cdl);
+    when(cdl.getCount()).thenReturn(1L);
     return deployment;
   }
 
   private void verifyDebugCompletedSuccessfully(Deployment deployment, int localDebugPort, boolean debugSuspend) {
-    // @formatter:off
-    new Verifications() {{
-      logger.info("No Active debug pod with provided selector and environment variables found! Waiting for pod to be ready...");
-      times = 1;
-      portForwardService.startPortForward(kubernetesClient, anyString, 5005, localDebugPort);
-      times = 1;
-    }};
-    // @formatter:on
+    verify(logger,times(1)).info("No Active debug pod with provided selector and environment variables found! Waiting for pod to be ready...");
+    verify(portForwardService,times(1)).startPortForward(kubernetesClient, anyString(), 5005, localDebugPort);
     assertThat(deployment)
         .extracting("spec.template.spec.containers").asList()
         .flatExtracting("env")
@@ -241,11 +230,7 @@ class DebugServiceTest {
   }
 
   private void mockFromServer(HasMetadata entity) {
-    // @formatter:off
-    new Expectations() {{
-      kubernetesClient.resource(entity).fromServer().get(); result = entity;
-    }};
-    // @formatter:on
+    when(kubernetesClient.resource(entity).fromServer().get()).thenReturn(entity);
   }
 
   private static Map<String, String> initLabels() {
