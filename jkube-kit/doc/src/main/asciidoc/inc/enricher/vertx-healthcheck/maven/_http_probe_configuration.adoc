@@ -1,0 +1,21 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+    <config>
+        <jkube-healthcheck-vertx>
+            <initialDelay>3</initialDelay>
+            <period>3</period>
+            <liveness>
+                <port>8081</port>
+                <path>/ping</path>
+                <scheme>HTTPS</scheme>
+                <headers>
+                    <X-Custom-Header>Awesome</X-Custom-Header>
+                </headers>
+            </liveness>
+            <readiness>
+                <!-- disable the readiness probe -->
+                <port>-1</port>
+            </readiness>
+        </jkube-healthcheck-vertx>
+    </config>
+----
