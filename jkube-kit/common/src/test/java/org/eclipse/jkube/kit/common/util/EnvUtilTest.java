@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import org.junit.Ignore;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.loadTimestamp;
@@ -74,6 +74,7 @@ public class EnvUtilTest {
     public void testExtractLargerVersionWhenBothNull(){
         assertThat(EnvUtil.extractLargerVersion(null,null)).isNull();
     }
+
     @Test
     public void testExtractLargerVersionWhenBIsNull() {
         //Given
@@ -83,6 +84,7 @@ public class EnvUtilTest {
         //Then
         assertThat(versionA).isEqualTo(result);
     }
+
     @Test
     public void testExtractLargerVersionWhenAIsNull() {
         //Given
@@ -100,6 +102,37 @@ public class EnvUtilTest {
         String result = EnvUtil.extractLargerVersion("4.0.0.1","4.0.0");
         //Then
         assertThat(result).isEqualTo("4.0.0.1");
+    }
+
+    @Test
+    public void extractLargerVersion_whenBothInvalid_thenReturnsNull() {
+        //Given
+        String versionA = "asdw4.0.2";
+        String versionB = "3.1.1.0{0.1}";
+        //When & Then
+        assertThat(EnvUtil.extractLargerVersion(versionA, versionB)).isNull();
+    }
+
+    @Test
+    public void extractLargerVersion_whenAIsInvalid_shouldReturnB() {
+        //Given
+        String versionA = "3.a.b.c";
+        String versionB = "4.0.2";
+        // When
+        String result = EnvUtil.extractLargerVersion(versionA, versionB);
+        // Then
+        assertThat(result).isEqualTo("4.0.2");
+    }
+
+    @Test
+    public void extractLargerVersion_whenBIsInvalid_shouldReturnA() {
+        //Given
+        String versionA = "4.0.2";
+        String versionB = "2.a.b.{c}";
+        // When
+        String result = EnvUtil.extractLargerVersion(versionA, versionB);
+        //Then
+        assertThat(result).isEqualTo("4.0.2");
     }
 
     @Test
@@ -133,19 +166,6 @@ public class EnvUtilTest {
         boolean result3 = EnvUtil.greaterOrEqualsVersion(versionB,versionA);
         //Then
         assertThat(result3).isFalse();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    @Ignore
-// TODO: Remove when implementation is fixed
-    public void testGreaterOrEqualsVersionCornerCase() {
-        //Given
-        String versionA = "asdw4.0.2";
-        String versionB = "3.1.1.0{0.1}";
-        //When
-        String result = EnvUtil.extractLargerVersion(versionA, versionB);
-        //Then
-        fail("Exception should have thrown");
     }
 
     @Test
