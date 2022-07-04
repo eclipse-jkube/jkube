@@ -28,33 +28,12 @@ endif::[]
 
 The minimal configuration to add health checks is the following:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-      <plugin>
-        <groupId>org.eclipse.jkube</groupId>
-        <artifactId>{plugin}</artifactId>
-        <version>{version}</version>
-        <executions>
-          <execution>
-            <id>jkube</id>
-            <goals>
-              <goal>resource</goal>
-              <goal>helm</goal>
-              <goal>build</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <enricher>
-            <config>
-              <jkube-healthcheck-vertx>
-                  <path>/health</path>
-              </jkube-healthcheck-vertx>
-            </config>
-          </enricher>
-        </configuration>
-      </plugin>
-----
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_minimal_configuration.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_minimal_configuration.adoc[]
+endif::[]
 
 It configures the readiness and liveness health checks using HTTP requests on the port `8080` (default port) and on the
 path `/health`. The defaults are:
@@ -65,141 +44,69 @@ path `/health`. The defaults are:
 
 the previous configuration can also be given use project's properties:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+[source,properties,indent=0,subs="verbatim,quotes,attributes"]
 ----
-    <properties>
-        <vertx.health.path>/health</vertx.health.path>
-    </properties>
+vertx.health.path = /health
 ----
 
 ===== Configuring differently the readiness and liveness health checks
 
 You can provide two different configuration for the readiness and liveness checks:
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_different_readiness_liveness.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_different_readiness_liveness.adoc[]
+endif::[]
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-      <plugin>
-        <groupId>org.eclipse.jkube</groupId>
-        <artifactId>{plugin}</artifactId>
-        <version>{version}</version>
-        <executions>
-          <execution>
-            <id>jkube</id>
-            <goals>
-              <goal>resource</goal>
-              <goal>helm</goal>
-              <goal>build</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <enricher>
-            <config>
-              <jkube-healthcheck-vertx>
-                  <readiness>
-                    <path>/ready</path>
-                  </readiness>
-                  <liveness>
-                    <path>/health</path>
-                  </liveness>
-              </jkube-healthcheck-vertx>
-            </config>
-          </enricher>
-        </configuration>
-      </plugin>
-----
 
 You can also use the `readiness` and `liveness` chunks in user properties:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+[source,properties,indent=0,subs="verbatim,quotes,attributes"]
 ----
-    <properties>
-        <vertx.health.readiness.path>/ready</vertx.health.readiness.path>
-        <vertx.health.liveness.path>/ready</vertx.health.liveness.path>
-    </properties>
+vertx.health.readiness.path = /ready
+vertx.health.liveness.path = /ready
 ----
 
 Shared (generic) configuration can be set outside of the specific configuration. For instance, to use the port 8081:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-      <plugin>
-        <groupId>org.eclipse.jkube</groupId>
-        <artifactId>{plugin}</artifactId>
-        <version>{version}</version>
-        <executions>
-          <execution>
-            <id>jkube</id>
-            <goals>
-              <goal>resource</goal>
-              <goal>helm</goal>
-              <goal>build</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <enricher>
-            <config>
-              <jkube-healthcheck-vertx>
-                  <port>8081</port>
-                  <readiness>
-                    <path>/ready</path>
-                  </readiness>
-                  <liveness>
-                    <path>/health</path>
-                  </liveness>
-              </jkube-healthcheck-vertx>
-            </config>
-          </enricher>
-        </configuration>
-      </plugin>
-----
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_shared_configuration.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_shared_configuration.adoc[]
+endif::[]
 
 Or:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+[source,properties,indent=0,subs="verbatim,quotes,attributes"]
 ----
-    <properties>
-        <vertx.health.port>8081</vertx.health.port>
-        <vertx.health.readiness.path>/ready</vertx.health.readiness.path>
-        <vertx.health.liveness.path>/ready</vertx.health.liveness.path>
-    </properties>
+vertx.health.port = 8081
+vertx.health.readiness.path = /ready
+vertx.health.liveness.path = /ready
 ----
 
 ===== Configuration Structure
 
 The configuration is structured as follows
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-    <config>
-        <jkube-healthcheck-vertx>
-            <!-- Generic configuration, applied to both liveness and readiness -->
-            <path>/both</path>
-            <liveness>
-                <!-- Specific configuration for the liveness probe -->
-                <port-name>ping</port-name>
-            </liveness>
-            <readiness>
-                <!-- Specific configuration for the readiness probe -->
-                <port-name>ready</port-name>
-            </readiness>
-        </jkube-healthcheck-vertx>
-    </config>
-----
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_configuration_structure.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_configuration_structure.adoc[]
+endif::[]
 
 The same structure is used in project's properties:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+[source,properties,indent=0,subs="verbatim,quotes,attributes"]
 ----
-  <properties>
-    <!-- Generic configuration given as vertx.health.$attribute -->
-    <vertx.health.path>/both</vertx.health.path>
-    <!-- Specific liveness configuration given as vertx.health.liveness.$attribute -->
-    <vertx.health.liveness.port-name>ping</vertx.health.liveness.port-name>
-    <!-- Specific readiness configuration given as vertx.health.readiness.$attribute -->
-    <vertx.health.readiness.port-name>ready</vertx.health.readiness.port-name>
-  </properties>
+# Generic configuration given as vertx.health.$attribute
+vertx.health.path = /both
+# Specific liveness configuration given as vertx.health.liveness.$attribute
+vertx.health.liveness.port-name = ping
+# Specific readiness configuration given as vertx.health.readiness.$attribute
+vertx.health.readiness.port-name = ready
 ----
 
 **Important**: Project's plugin configuration override the project's properties.
@@ -314,28 +221,12 @@ When using HTTP `GET` requests to determine readiness or liveness, several aspec
 |===
 
 Here is an example of HTTP probe configuration:
-
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-    <config>
-        <jkube-healthcheck-vertx>
-            <initialDelay>3</initialDelay>
-            <period>3</period>
-            <liveness>
-                <port>8081</port>
-                <path>/ping</path>
-                <scheme>HTTPS</scheme>
-                <headers>
-                    <X-Custom-Header>Awesome</X-Custom-Header>
-                </headers>
-            </liveness>
-            <readiness>
-                <!-- disable the readiness probe -->
-                <port>-1</port>
-            </readiness>
-        </jkube-healthcheck-vertx>
-    </config>
-----
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_http_probe_configuration.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_http_probe_configuration.adoc[]
+endif::[]
 
 ===== TCP specific probe configuration
 
@@ -362,51 +253,23 @@ You can also configure the probes to just open a socket on a specific port. The 
 |===
 
 For example:
-
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-    <config>
-        <jkube-healthcheck-vertx>
-            <initialDelay>3</initialDelay>
-            <period>3</period>
-            <liveness>
-                <type>tcp</type>
-                <port>8081</port>
-            </liveness>
-            <readiness>
-                <!-- use HTTP Get probe -->
-                <path>/ping</path>
-                <port>8080</port>
-            </readiness>
-        </jkube-healthcheck-vertx>
-    </config>
-----
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_tcp_probe_configuration.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_tcp_probe_configuration.adoc[]
+endif::[]
 
 ===== Exec probe configuration
 
 You can also configure the probes to execute a command. If the command succeeds, it returns 0, and Kubernetes consider the pod to be alive and healthy. If the command returns a non-zero value, Kubernetes kills the pod and restarts it. To use a command, you must set the `type` attribute to `exec`:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-    <config>
-        <jkube-healthcheck-vertx>
-            <initialDelay>3</initialDelay>
-            <period>3</period>
-            <liveness>
-                <type>exec</type>
-                <command>
-                    <cmd>cat</cmd>
-                    <cmd>/tmp/healthy</cmd>
-                </command>
-            </liveness>
-            <readiness>
-                <-- use HTTP Get probe -->
-                <path>/ping</path>
-                <port>8080</port>
-            </readiness>
-        </jkube-healthcheck-vertx>
-    </config>
-----
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_exec_probe_configuration.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_exec_probe_configuration.adoc[]
+endif::[]
 
 As you can see in the snippet above the command is passed using the `command` attribute. This attribute cannot be
 configured using project's properties. An empty command disables the check.
@@ -420,10 +283,10 @@ You can disable the checks by setting:
 
 In the first case, you can use project's properties to disable them:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+.Disables `tcp` and `http` probes
+[source,properties,indent=0,subs="verbatim,quotes,attributes"]
 ----
-    <!-- Disables `tcp` and `http` probes -->
-    <vertx.health.port>-1</vertx.health.port>
+vertx.health.port = -1
 ----
 
 For `http` probes, an empty or not set `path` also disable the probe.

@@ -241,7 +241,6 @@ endif::[]
 
 Specific enrichers provide resource manifest enhancement for a certain tech stack that they detect.
 
-
 include::enricher/openliberty-healthcheck/_jkube_healthcheck_openliberty.adoc[]
 
 include::enricher/spring-boot-healthcheck/_jkube_healthcheck_spring_boot.adoc[]
@@ -252,6 +251,8 @@ include::enricher/quarkus-healthcheck/_jkube_healthcheck_quarkus.adoc[]
 
 include::enricher/_jkube_healthcheck_micronaut.adoc[]
 
+include::enricher/vertx-healthcheck/_jkube_healthcheck_vertx.adoc[]
+
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
@@ -259,7 +260,6 @@ ifeval::["{plugin-type}" == "maven"]
 
 include::enricher/_jkube_healthcheck_karaf.adoc[]
 
-include::enricher/_jkube_healthcheck_vertx.adoc[]
 
 include::enricher/_jkube_healthcheck_webapp.adoc[]
 
