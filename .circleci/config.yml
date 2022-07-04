@@ -34,14 +34,20 @@ jobs:
         - ~/.m2
 
   build:
-    machine:
-      image: ubuntu-2004:202201-02
+    docker:
+      - image: cimg/openjdk:8.0
     steps:
     - checkout
     - restore_cache:
         key: maven-build-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run:
         command: |
+          if [[ `javac -version 2>&1` == *"1.8.0"* ]]; then
+            echo "Java 8 Present."
+          else
+            echo "Java 8 Not Present."
+            exit 1
+          fi
           # Run maven build
           ./mvnw clean install
     - save_cache:
