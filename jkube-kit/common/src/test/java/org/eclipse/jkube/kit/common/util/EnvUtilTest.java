@@ -22,14 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-
-import org.eclipse.jkube.kit.common.SystemMock;
-
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
@@ -175,7 +171,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testRemoveEmptyEntrieWhenNotNull(){
+    public void testRemoveEmptyEntriesWhenNotNull(){
         //Given
         List<String>  string1 = new ArrayList<>();
         string1.add(" set ");
@@ -396,31 +392,46 @@ public class EnvUtilTest {
 
     @Test
     public  void testIsWindowsFalse(){
-        //Given
-        new SystemMock().put("os.name", "random");
-        //When
-        boolean result= EnvUtil.isWindows();
-        //Then
-        assertThat(result).isFalse();
+        String oldOsName = System.getProperty("os.name");
+        try {
+          //Given
+          System.setProperty("os.name", "random");
+          // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
+          //When
+          boolean result = EnvUtil.isWindows();
+          //Then
+          assertThat(result).isFalse();
+        } finally {
+          System.setProperty("os.name", oldOsName);
+        }
     }
 
     @Test
     public  void testIsWindows(){
+      String oldOsName = System.getProperty("os.name");
+      try {
         //Given
-        new SystemMock().put("os.name", "windows");
+        System.setProperty("os.name", "windows");
+        // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
         //When
-        boolean result= EnvUtil.isWindows();
+        boolean result = EnvUtil.isWindows();
         //Then
         assertThat(result).isTrue();
+      } finally {
+        System.setProperty("os.name", oldOsName);
+      }
     }
 
     @Test
     public void testSystemPropertyRead() {
         System.setProperty("testProperty", "testPropertyValue");
-        String propertyValue =
-                EnvUtil.getEnvVarOrSystemProperty("testProperty", "defaultValue");
-        assertThat(propertyValue).isEqualTo("testPropertyValue");
-        System.clearProperty("testProperty");
+        try {
+          String propertyValue =
+              EnvUtil.getEnvVarOrSystemProperty("testProperty", "defaultValue");
+          assertThat(propertyValue).isEqualTo("testPropertyValue");
+        } finally {
+          System.clearProperty("testProperty");
+        }
     }
 
     @Test

@@ -13,12 +13,8 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.SystemMock;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,8 +26,9 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class JKubeProjectUtilTest {
 
   @Rule
@@ -46,17 +43,14 @@ public class JKubeProjectUtilTest {
   }
 
   @Test
-  public void hasDependencyWithGroupIdWithDependency(@Mocked JavaProject project) {
+  public void hasDependencyWithGroupIdWithDependency() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getDependencies(); result = Arrays.asList(
-          Dependency.builder().groupId("io.dep").build(),
-          Dependency.builder().groupId("io.dep").artifactId("artifact").version("1.3.37").build(),
-          Dependency.builder().groupId("io.other").artifactId("artifact").version("1.3.37").build()
-        );
-    }};
-    // @formatter:on
+    final JavaProject project = mock(JavaProject.class);
+    when(project.getDependencies()).thenReturn(Arrays.asList(
+            Dependency.builder().groupId("io.dep").build(),
+            Dependency.builder().groupId("io.dep").artifactId("artifact").version("1.3.37").build(),
+            Dependency.builder().groupId("io.other").artifactId("artifact").version("1.3.37").build()
+    ));
     // When
     final boolean result = JKubeProjectUtil.hasDependencyWithGroupId(project, "io.dep");
     // Then
@@ -64,17 +58,14 @@ public class JKubeProjectUtilTest {
   }
 
   @Test
-  public void hasDependencyWithGroupIdWithNoDependency(@Mocked JavaProject project) {
+  public void hasDependencyWithGroupIdWithNoDependency() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getDependencies(); result = Arrays.asList(
-          Dependency.builder().groupId("io.dep").build(),
-          Dependency.builder().groupId("io.dep").artifactId("artifact").version("1.3.37").build(),
-          Dependency.builder().groupId("io.other").artifactId("artifact").version("1.3.37").build()
-      );
-    }};
-    // @formatter:on
+    final JavaProject project = mock(JavaProject.class);
+    when(project.getDependencies()).thenReturn(Arrays.asList(
+            Dependency.builder().groupId("io.dep").build(),
+            Dependency.builder().groupId("io.dep").artifactId("artifact").version("1.3.37").build(),
+            Dependency.builder().groupId("io.other").artifactId("artifact").version("1.3.37").build()
+    ));
     // When
     final boolean result = JKubeProjectUtil.hasDependencyWithGroupId(project, "io.nothere");
     // Then
@@ -177,14 +168,19 @@ public class JKubeProjectUtilTest {
   @Test
   public void getProperty_whenSystemPropertyPresent_returnsSystemProperty() {
     // Given
-    new SystemMock().put("jkube.testProperty", "true");
-    JavaProject javaProject = JavaProject.builder().build();
+    try {
+      System.setProperty("jkube.testProperty", "true");
+      // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
+      JavaProject javaProject = JavaProject.builder().build();
 
-    // When
-    String result = JKubeProjectUtil.getProperty("jkube.testProperty", javaProject);
+      // When
+      String result = JKubeProjectUtil.getProperty("jkube.testProperty", javaProject);
 
-    // Then
-    assertThat(result).isEqualTo("true");
+      // Then
+      assertThat(result).isEqualTo("true");
+    } finally {
+      System.clearProperty("jkube.testProperty");
+    }
   }
 
   @Test

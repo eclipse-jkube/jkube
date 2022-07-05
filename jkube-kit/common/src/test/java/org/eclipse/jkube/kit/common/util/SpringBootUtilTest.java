@@ -13,14 +13,17 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import mockit.Expectations;
-import mockit.Mocked;
+
+
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,10 +36,16 @@ import java.util.Properties;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class SpringBootUtilTest {
+
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Mock
+    JavaProject mavenProject;
+
 
     @Test
     public void testGetSpringBootApplicationProperties() throws IOException {
@@ -61,17 +70,14 @@ public class SpringBootUtilTest {
     }
 
     @Test
-    public void testGetSpringBootDevToolsVersion(@Mocked JavaProject maven_project) {
+    public void testGetSpringBootDevToolsVersion() {
 
         //Given
         Dependency p = Dependency.builder().groupId("org.springframework.boot").version("1.6.3").build();
-        new Expectations() {{
-            maven_project.getDependencies();
-            result= Collections.singletonList(p);
-        }};
+        when(mavenProject.getDependencies()).thenReturn(Collections.singletonList(p));
 
         //when
-        Optional<String> result = SpringBootUtil.getSpringBootDevToolsVersion(maven_project);
+        Optional<String> result = SpringBootUtil.getSpringBootDevToolsVersion(mavenProject);
 
         //Then
         assertTrue(result.isPresent());
@@ -81,17 +87,14 @@ public class SpringBootUtilTest {
 
 
     @Test
-    public void testGetSpringBootVersion(@Mocked JavaProject maven_project) {
+    public void testGetSpringBootVersion() {
 
         //Given
         Dependency p = Dependency.builder().groupId("org.springframework.boot").version("1.6.3").build();
-        new Expectations() {{
-            maven_project.getDependencies();
-            result= Collections.singletonList(p);
-        }};
+        when(mavenProject.getDependencies()).thenReturn(Collections.singletonList(p));
 
         //when
-        Optional<String> result = SpringBootUtil.getSpringBootVersion(maven_project);
+        Optional<String> result = SpringBootUtil.getSpringBootVersion(mavenProject);
 
         //Then
         assertTrue(result.isPresent());
@@ -100,18 +103,15 @@ public class SpringBootUtilTest {
     }
 
     @Test
-    public void testGetSpringBootActiveProfileWhenNotNull(@Mocked JavaProject project) {
+    public void testGetSpringBootActiveProfileWhenNotNull() {
 
         //Given
         Properties p = new Properties();
         p.put("spring.profiles.active","spring-boot");
-        new Expectations() {{
-            project.getProperties();
-            result=p;
-        }};
+        when(mavenProject.getProperties()).thenReturn(p);
 
         // When
-        String result = SpringBootUtil.getSpringBootActiveProfile(project);
+        String result = SpringBootUtil.getSpringBootActiveProfile(mavenProject);
 
         //Then
         assertEquals("spring-boot",result);

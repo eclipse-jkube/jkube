@@ -23,48 +23,49 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import io.fabric8.kubernetes.api.model.ServiceList;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import org.eclipse.jkube.kit.common.KitLogger;
-
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
-import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Namespace;
-import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Template;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.Before;
 import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 
 public class KubernetesHelperTest {
 
@@ -285,64 +286,59 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void testGetServiceExposeUrlReturnsUrlFromAnnotation(@Mocked KubernetesClient kubernetesClient, @Mocked Resource<Service> svcResource) throws InterruptedException {
+    public void testGetServiceExposeUrlReturnsUrlFromAnnotation() throws InterruptedException {
         // Given
         Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
         Set<HasMetadata> entities = new HashSet<>();
         entities.add(svc);
-        new Expectations() {{
-            kubernetesClient.services().inNamespace("ns1").withName("svc1");
-            result = svcResource;
-            svcResource.get();
-            result = new ServiceBuilder()
-                    .withNewMetadata()
-                    .withName("svc1")
-                    .addToAnnotations("exposeUrl", "http://example.com")
-                    .endMetadata()
-                    .build();
-        }};
+        ServiceResource svcResource = mock(ServiceResource.class,RETURNS_DEEP_STUBS);
+        KubernetesClient kubernetesClient = mock(KubernetesClient.class);
+        NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> svcNonNamespaceOp = mock(NonNamespaceOperation.class, RETURNS_DEEP_STUBS);
+        MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class, RETURNS_DEEP_STUBS);
+        when(kubernetesClient.services()).thenReturn(svcMixedOp);
+        when(svcMixedOp.inNamespace("ns1")).thenReturn(svcNonNamespaceOp);
+        when(svcNonNamespaceOp.withName("svc1")).thenReturn((ServiceResource<Service>) svcResource);
+        when(svcResource.get()).thenReturn( new ServiceBuilder()
+                .withNewMetadata()
+                .withName("svc1")
+                .addToAnnotations("exposeUrl", "http://example.com")
+                .endMetadata()
+                .build());
 
         // When
         String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, "ns1", entities, 3, "exposeUrl");
 
         // Then
         assertEquals("http://example.com", result);
-        new Verifications() {{
-            kubernetesClient.services().inNamespace("ns1").withName("svc1");
-            times = 1;
-            svcResource.get();
-            times = 1;
-        }};
+        verify(kubernetesClient, times(1)).services();
+        verify(svcResource,times(1)).get();
     }
 
     @Test
-    public void testGetServiceExposeUrlReturnsNull(@Mocked KubernetesClient kubernetesClient, @Mocked Resource<Service> svcResource) throws InterruptedException {
+    public void testGetServiceExposeUrlReturnsNull() throws InterruptedException {
         // Given
         Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
         Set<HasMetadata> entities = new HashSet<>();
         entities.add(svc);
-        new Expectations() {{
-            kubernetesClient.services().inNamespace("ns1").withName("svc1");
-            result = svcResource;
-            svcResource.get();
-            result = new ServiceBuilder()
-                    .withNewMetadata()
-                    .withName("svc1")
-                    .endMetadata()
-                    .build();
-        }};
+        ServiceResource svcResource = mock(ServiceResource.class,RETURNS_DEEP_STUBS);
+        KubernetesClient kubernetesClient = mock(KubernetesClient.class);
+        NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> svcNonNamespaceOp = mock(NonNamespaceOperation.class, RETURNS_DEEP_STUBS);
+        MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class, RETURNS_DEEP_STUBS);
+        when(kubernetesClient.services()).thenReturn(svcMixedOp);
+        when(svcMixedOp.inNamespace("ns1")).thenReturn(svcNonNamespaceOp);
+        when(svcNonNamespaceOp.withName("svc1")).thenReturn((ServiceResource<Service>) svcResource);        when(svcResource.get()).thenReturn(new ServiceBuilder()
+                .withNewMetadata()
+                .withName("svc1")
+                .endMetadata()
+                .build());
 
         // When
         String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, "ns1", entities, 1, "exposeUrl");
 
         // Then
         assertNull(result);
-        new Verifications() {{
-            kubernetesClient.services().inNamespace("ns1").withName("svc1");
-            times = 1;
-            svcResource.get();
-            times = 1;
-        }};
+        verify(kubernetesClient, times(1)).services();
+        verify(svcResource,times(1)).get();
     }
 
     @Test
