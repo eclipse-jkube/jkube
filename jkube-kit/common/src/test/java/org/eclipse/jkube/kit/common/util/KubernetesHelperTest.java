@@ -67,7 +67,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
-
 public class KubernetesHelperTest {
 
     private KitLogger logger;

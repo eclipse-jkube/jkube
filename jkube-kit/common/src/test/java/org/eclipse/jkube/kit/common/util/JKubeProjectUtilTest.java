@@ -13,18 +13,12 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-
-
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,18 +26,13 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
-@RunWith(MockitoJUnitRunner.class)
 public class JKubeProjectUtilTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
-  @InjectMocks
-  JKubeProjectUtil projectUtil;
-  @Mock
-  JavaProject project;
 
   @Test
   public void hasDependencyWithGroupIdWithNulls() {
@@ -56,6 +45,7 @@ public class JKubeProjectUtilTest {
   @Test
   public void hasDependencyWithGroupIdWithDependency() {
     // Given
+    final JavaProject project = mock(JavaProject.class);
     when(project.getDependencies()).thenReturn(Arrays.asList(
             Dependency.builder().groupId("io.dep").build(),
             Dependency.builder().groupId("io.dep").artifactId("artifact").version("1.3.37").build(),
@@ -70,6 +60,7 @@ public class JKubeProjectUtilTest {
   @Test
   public void hasDependencyWithGroupIdWithNoDependency() {
     // Given
+    final JavaProject project = mock(JavaProject.class);
     when(project.getDependencies()).thenReturn(Arrays.asList(
             Dependency.builder().groupId("io.dep").build(),
             Dependency.builder().groupId("io.dep").artifactId("artifact").version("1.3.37").build(),
