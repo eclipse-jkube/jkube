@@ -27,14 +27,14 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.AssertionsForClassTypes.entry;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -44,16 +44,19 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  */
+@RunWith(MockitoJUnitRunner.class)
 public class BaseGeneratorTest {
 
-  @Mocked
+  @Mock
   private GeneratorContext ctx;
 
-  @Mocked
+  @Mock
   private JavaProject project;
 
   private Properties properties;
@@ -66,12 +69,9 @@ public class BaseGeneratorTest {
   public void setUp() {
     properties = new Properties();
     config = new ProcessorConfig();
-    // @formatter:off
-    new Expectations() {{
-        ctx.getProject().getProperties(); result = properties;
-        ctx.getConfig(); result = config;
-    }};
-    // @formatter:on
+    when(ctx.getProject()).thenReturn(project);
+    when(project.getProperties()).thenReturn(properties);
+    when(ctx.getConfig()).thenReturn(config);
   }
 
   @After
@@ -292,18 +292,12 @@ public class BaseGeneratorTest {
   }
 
   @Test
-  public void shouldAddDefaultImage(@Mocked final ImageConfiguration ic1, @Mocked final ImageConfiguration ic2,
-      @Mocked final BuildConfiguration bc) {
-    new Expectations() {
-      {
-        ic1.getBuildConfiguration();
-        result = bc;
-        minTimes = 0;
-        ic2.getBuildConfiguration();
-        result = null;
-        minTimes = 0;
-      }
-    };
+  public void shouldAddDefaultImage() {
+    ImageConfiguration ic1 = mock(ImageConfiguration.class);
+    ImageConfiguration ic2 = mock(ImageConfiguration.class);
+    BuildConfiguration bc = mock(BuildConfiguration.class);
+    when(ic1.getBuildConfiguration()).thenReturn(bc);
+    when(ic2.getBuildConfiguration()).thenReturn(null);
     BaseGenerator generator = createGenerator(null);
     assertTrue(generator.shouldAddGeneratedImageConfiguration(Collections.emptyList()));
     assertFalse(generator.shouldAddGeneratedImageConfiguration(Arrays.asList(ic1, ic2)));
@@ -317,15 +311,8 @@ public class BaseGeneratorTest {
     File projectBaseDir = folder.newFolder("test-project-dir");
     File dockerFile = new File(projectBaseDir, "Dockerfile");
     boolean isTestDockerfileCreated = dockerFile.createNewFile();
-    new Expectations() {
-      {
-        ctx.getProject();
-        result = project;
-        project.getBaseDirectory();
-        result = projectBaseDir;
-      }
-    };
-
+    when(ctx.getProject()).thenReturn(project);
+    when(project.getBaseDirectory()).thenReturn(projectBaseDir);
     // When
     BaseGenerator generator = createGenerator(null);
 
@@ -337,10 +324,7 @@ public class BaseGeneratorTest {
   @Test
   public void shouldAddGeneratedImageConfiguration_whenAddEnabledViaConfig_shouldReturnTrue() {
     // Given
-    new Expectations() {{
-      ctx.getProject();
-      result = project;
-    }};
+    when(ctx.getProject()).thenReturn(project);
     properties.put("jkube.generator.test-generator.add", "true");
     BaseGenerator generator = createGenerator(null);
 
@@ -355,10 +339,7 @@ public class BaseGeneratorTest {
   @Test
   public void shouldAddGeneratedImageConfiguration_whenAddEnabledViaProperty_shouldReturnTrue() {
     // Given
-    new Expectations() {{
-      ctx.getProject();
-      result = project;
-    }};
+    when(ctx.getProject()).thenReturn(project);
     properties.put("jkube.generator.add", "true");
     BaseGenerator generator = createGenerator(null);
 
@@ -371,14 +352,8 @@ public class BaseGeneratorTest {
 
   @Test
   public void addLatestTagIfSnapshot() {
-    new Expectations() {
-      {
-        ctx.getProject();
-        result = project;
-        project.getVersion();
-        result = "1.2-SNAPSHOT";
-      }
-    };
+    when(ctx.getProject()).thenReturn(project);
+    when(project.getVersion()).thenReturn("1.2-SNAPSHOT");
     BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     BaseGenerator generator = createGenerator(null);
     generator.addLatestTagIfSnapshot(builder);
@@ -390,10 +365,7 @@ public class BaseGeneratorTest {
 
   @Test
   public void addTagsFromConfig() {
-    new Expectations() {{
-        ctx.getProject();
-        result = project;
-    }};
+    when(ctx.getProject()).thenReturn(project);
     BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     properties.put("jkube.generator.test-generator.tags", " tag-1, tag-2 , other-tag");
     BaseGenerator generator = createGenerator(null);
@@ -406,10 +378,7 @@ public class BaseGeneratorTest {
 
   @Test
   public void addTagsFromProperty() {
-    new Expectations() {{
-      ctx.getProject();
-      result = project;
-    }};
+    when(ctx.getProject()).thenReturn(project);
     BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     properties.put("jkube.generator.tags", " tag-1, tag-2 , other-tag");
     BaseGenerator generator = createGenerator(null);
@@ -421,19 +390,11 @@ public class BaseGeneratorTest {
   }
 
   public void inKubernetes() {
-    // @formatter:off
-    new Expectations() {{
-      ctx.getRuntimeMode(); result = RuntimeMode.KUBERNETES;
-    }};
-    // @formatter:on
+    when(ctx.getRuntimeMode()).thenReturn(RuntimeMode.KUBERNETES);
   }
 
   public void inOpenShift() {
-    // @formatter:off
-    new Expectations() {{
-      ctx.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-    }};
-    // @formatter:on
+    when(ctx.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
   }
 
   private class TestBaseGenerator extends BaseGenerator {

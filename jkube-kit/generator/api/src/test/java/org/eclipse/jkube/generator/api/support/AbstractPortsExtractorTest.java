@@ -19,21 +19,26 @@ import org.eclipse.jkube.generator.api.PortsExtractor;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+@RunWith(MockitoJUnitRunner.class)
 public class AbstractPortsExtractorTest {
 
-    @Mocked
+    @Mock
     JavaProject project;
 
-    @Mocked
+    @Mock
     PrefixedLogger logger;
 
     @Test
@@ -100,10 +105,9 @@ public class AbstractPortsExtractorTest {
 
     @Test
     public void testConfigFileDoesNotExist() {
+        logger = mock(PrefixedLogger.class);
         final String nonExistingFile = "/bla/blub/lalala/config.yml";
-        new Expectations() {{
-            logger.warn(anyString, withEqual(FileUtil.getAbsolutePath(nonExistingFile)));
-        }};
+        doNothing().when(logger).warn(anyString(), eq(FileUtil.getAbsolutePath(nonExistingFile)));
         System.setProperty("vertx.config.test", nonExistingFile);
         try {
             Map<String, Integer> map = extractFromFile("vertx.config.test", null);

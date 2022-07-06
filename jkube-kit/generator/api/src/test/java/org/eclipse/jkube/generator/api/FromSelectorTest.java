@@ -21,8 +21,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import mockit.Mocked;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.s2i;
 import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.docker;
@@ -31,13 +31,13 @@ import static org.junit.Assert.assertEquals;
 
 public class FromSelectorTest {
 
-  @Mocked
+  @Mock
   JavaProject project;
 
-  @Mocked
+  @Mock
   Plugin plugin;
 
-  @Mocked
+  @Mock
   KitLogger logger;
 
   @Test
