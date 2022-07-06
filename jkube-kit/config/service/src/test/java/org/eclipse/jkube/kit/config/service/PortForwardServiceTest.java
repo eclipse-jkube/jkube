@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -38,6 +37,7 @@ import org.mockito.MockedConstruction;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @EnableKubernetesMockClient
@@ -46,10 +46,9 @@ class PortForwardServiceTest {
     KubernetesMockServer mockServer;
     OpenShiftClient openShiftClient;
 
-    @SuppressWarnings("unused")
     @Mock
     private KitLogger logger;
-
+    private MockedConstruction<PortForwardTask> portForwardTaskMockedConstruction;
     @Test
     void simpleScenario() throws Exception {
         // Cannot test more complex scenarios due to errors in mockwebserver
@@ -105,5 +104,7 @@ class PortForwardServiceTest {
         new PortForwardService(logger)
             .startPortForward(kubernetesClient, "pod", 5005, 1337);
         // Then
+        portForwardTaskMockedConstruction = mockConstruction(PortForwardTask.class,(mock, ctx) ->
+                verify(mock,times(1)).run());
     }
 }

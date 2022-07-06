@@ -58,7 +58,6 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unused")
 class DebugServiceTest {
-
   @Mock
   private KitLogger logger;
 
@@ -73,7 +72,7 @@ class DebugServiceTest {
 
   @Mock
   private PortForwardPodWatcher portForwardPodWatcher;
-
+  @Mock
   private DebugService debugService;
 
   @BeforeEach

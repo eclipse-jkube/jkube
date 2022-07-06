@@ -52,24 +52,42 @@ import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
+<<<<<<< HEAD
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+=======
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+>>>>>>> 341499c2 (JMockit to Mockito)
 
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
+<<<<<<< HEAD
 import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableKubernetesMockClient
 class ApplyServiceTest {
+=======
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+@RunWith(MockitoJUnitRunner.class)
+public class ApplyServiceTest {
+>>>>>>> 341499c2 (JMockit to Mockito)
 
     private KitLogger log;
 
     KubernetesMockServer mockServer;
     OpenShiftClient client;
 
-    private ApplyService applyService;
+   @Mock
+   private ApplyService applyService;
 
     @BeforeEach
     void setUp() {

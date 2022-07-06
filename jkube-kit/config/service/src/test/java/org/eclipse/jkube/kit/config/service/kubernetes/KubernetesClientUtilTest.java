@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.doDeleteAndWait;
@@ -32,13 +31,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class KubernetesClientUtilTest {
-
-  @Mock
   private KubernetesClient kubernetesClient;
 
   @Test
   void doDeleteAndWait_withExistingResource_shouldDeleteAndReachWaitLimit() {
     // Given
+    kubernetesClient = mock(KubernetesClient.class);
     GenericKubernetesResource resource = new GenericKubernetesResourceBuilder()
         .withApiVersion("org.eclipse.jkube/v1beta1")
         .withKind("JKubeCustomResource")

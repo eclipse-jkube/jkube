@@ -18,19 +18,19 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import java.util.concurrent.CountDownLatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class PortForwardMonitorTest {
 
-  @Mock
   private KitLogger logger;
 
   @Test
   void eventReceivedDoesNothing() {
+    logger = mock(KitLogger.class);
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -42,6 +42,7 @@ class PortForwardMonitorTest {
 
   @Test
   void eventReceivedForDeletionCloses() {
+    logger = mock(KitLogger.class);
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -53,6 +54,7 @@ class PortForwardMonitorTest {
 
   @Test
   void eventReceivedForDeletedPodCloses() {
+    logger = mock(KitLogger.class);
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -65,6 +67,7 @@ class PortForwardMonitorTest {
 
   @Test
   void closeCountsDown() {
+    logger = mock(KitLogger.class);
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -75,6 +78,7 @@ class PortForwardMonitorTest {
 
   @Test
   void closeWithExceptionCountsDown() {
+    logger = mock(KitLogger.class);
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When

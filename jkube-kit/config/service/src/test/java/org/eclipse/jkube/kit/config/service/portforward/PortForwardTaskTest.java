@@ -35,7 +35,6 @@ class PortForwardTaskTest {
   private LocalPortForward localPortForward;
   @Mock
   private KitLogger logger;
-
   private PortForwardTask portForwardTask;
 
   @BeforeEach

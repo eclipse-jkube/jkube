@@ -39,10 +39,10 @@ import org.assertj.core.api.AbstractFileAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import org.mockito.Mock;
 
 import static org.mockito.Mockito.when;
 
@@ -56,6 +56,7 @@ class JibBuildServiceBuildIntegrationTest {
   private File projectRoot;
   private File targetDirectory;
   private ImageConfiguration imageConfiguration;
+  @Mock
   private JibBuildService jibBuildService;
 
   @BeforeEach
