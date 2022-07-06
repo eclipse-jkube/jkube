@@ -13,28 +13,29 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"unused", "java:S3599", "java:S1171"})
+
 public class OpenshiftUndeployMojoTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
-  @Mocked
   private JKubeServiceHub mockServiceHub;
   private File kubernetesManifestFile;
   private File openShiftManifestFile;
@@ -46,24 +47,22 @@ public class OpenshiftUndeployMojoTest {
     kubernetesManifestFile = temporaryFolder.newFile();
     openShiftManifestFile = temporaryFolder.newFile();
     openShiftISManifestFile = temporaryFolder.newFile();
-    // @formatter:off
     undeployMojo = new OpenshiftUndeployMojo() {{
       kubernetesManifest = kubernetesManifestFile;
       openshiftManifest = openShiftManifestFile;
       openshiftImageStreamManifest = openShiftISManifestFile;
       jkubeServiceHub = mockServiceHub;
     }};
-    // @formatter:on
   }
 
   @Test
   public void getManifestsToUndeploy() {
+    KubernetesClient client= mock(KubernetesClient.class);
+    mockServiceHub=mock(JKubeServiceHub.class);
+    undeployMojo = mock(OpenshiftUndeployMojo.class);
     // Given
-    // @formatter:off
-    new Expectations() {{
-      mockServiceHub.getClient().isAdaptable(OpenShiftClient.class); result = true;
-    }};
-    // @formatter:on
+    when(mockServiceHub.getClient()).thenReturn(client);
+    when(client.isAdaptable(OpenShiftClient.class)).thenReturn(true);
     // When
     final List<File> result = undeployMojo.getManifestsToUndeploy();
     // Then
