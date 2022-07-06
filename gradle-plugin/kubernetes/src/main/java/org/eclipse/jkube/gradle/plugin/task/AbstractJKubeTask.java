@@ -94,6 +94,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
           .images(resolvedImages)
           .resources(kubernetesExtension.resources)
           .log(kitLogger)
+          .jKubeBuildStrategy(kubernetesExtension.getBuildStrategyOrDefault())
           .build();
       final List<String> extraClasspathElements = kubernetesExtension.getUseProjectClassPathOrDefault() ?
           kubernetesExtension.javaProject.getCompileClassPathElements() : Collections.emptyList();
