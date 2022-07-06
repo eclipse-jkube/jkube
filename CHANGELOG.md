@@ -29,6 +29,7 @@ Usage:
 * Fix #1464: Bump Fabric8 Kubernetes Client to 6.0.0
 * Fix #1468: Add startup probe in QuarkusHealthCheckEnricher
 * Fix #1473: Add OpenLibertyHealthCheckEnricher to automatically add health checks in OpenLiberty projects
+* Fix #1532: ImageChangeTriggerEnricher shouldn't generate ImageChange triggers for JIB build strategy
 * Fix #1537: Registry not set up in `oc:build`
 * Fix #1619: Add `jkube.imagePullPolicy` configuration property to configure pull policy in all enrichers
 * Fix #1654: images with missing build configuration should not be built

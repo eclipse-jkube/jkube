@@ -23,6 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -113,18 +114,19 @@ public class ImageChangeTriggerEnricher extends BaseEnricher {
     private Boolean isImageChangeTriggerNeeded(String containerName) {
         String containersFromConfig = Configs.asString(getConfig(Config.CONTAINERS));
         Boolean enrichAll = getValueFromConfig(ENRICH_ALL_WITH_IMAGE_TRIGGERS, false);
+        JKubeBuildStrategy buildStrategy = getContext().getBuildStrategy();
 
-        if(enrichAll) {
+        if (Boolean.TRUE.equals(enrichAll)) {
             return true;
         }
 
-        if(!(getProcessingInstructionViaKey(FABRIC8_GENERATED_CONTAINERS).contains(containerName)  ||
-                getProcessingInstructionViaKey(NEED_IMAGECHANGE_TRIGGERS).contains(containerName) ||
-                Arrays.asList(containersFromConfig.split(",")).contains(containerName))) {
+        if (buildStrategy != null && buildStrategy.equals(JKubeBuildStrategy.jib)) {
             return false;
         }
 
-        return true;
+        return getProcessingInstructionViaKey(FABRIC8_GENERATED_CONTAINERS).contains(containerName) ||
+            getProcessingInstructionViaKey(NEED_IMAGECHANGE_TRIGGERS).contains(containerName) ||
+            Arrays.asList(containersFromConfig.split(",")).contains(containerName);
     }
 
     private List<Container> trimImagesInContainers(PodTemplateSpec template) {
