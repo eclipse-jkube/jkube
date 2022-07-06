@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.cloud.tools.jib.api.Jib;
-import com.google.cloud.tools.jib.api.RegistryImage;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -44,17 +42,14 @@ import com.google.cloud.tools.jib.api.buildplan.Port;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.MockedStatic;
+import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
-import static org.mockito.Answers.RETURNS_DEEP_STUBS;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Answers.RETURNS_SELF;
+import static org.mockito.Mockito.mockConstructionWithAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class JibServiceUtilTest {
 
@@ -82,14 +77,11 @@ public class JibServiceUtilTest {
 
     @Test
     public void testContainerFromImageConfiguration()  throws Exception {
-        try (MockedStatic<Jib> jibMockedStatic = mockStatic(Jib.class)) {
+          try (MockedConstruction<JibContainerBuilder> ignore = mockConstructionWithAnswer(JibContainerBuilder.class, RETURNS_SELF)) {
             // Given
-            JibContainerBuilder jibContainerBuilder = mock(JibContainerBuilder.class, RETURNS_DEEP_STUBS);
-            jibMockedStatic.when(() -> Jib.from((RegistryImage) any())).thenReturn(jibContainerBuilder);
-            when(jibContainerBuilder.setFormat(ImageFormat.Docker)).thenReturn(jibContainerBuilder);
             ImageConfiguration imageConfiguration = getSampleImageConfiguration();
             // When
-            containerFromImageConfiguration(imageConfiguration, null);
+            JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(imageConfiguration, null);
             // Then
             verify(jibContainerBuilder, times(1)).addLabel("foo", "bar");
             verify(jibContainerBuilder, times(1)).setEntrypoint(Arrays.asList("java", "-jar", "foo.jar"));
