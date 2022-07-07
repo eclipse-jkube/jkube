@@ -18,6 +18,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.junit.Before;
@@ -58,6 +59,7 @@ public class OpenShiftBuildServiceTest {
     //  @formatter:off
     imageConfiguration = ImageConfiguration.builder()
         .name("foo/bar:latest")
+        .registry("harbor.xyz.local")
         .build(BuildConfiguration.builder()
             .from("baseimage:latest")
             .build())
@@ -119,5 +121,37 @@ public class OpenShiftBuildServiceTest {
     // Then
     verify(mockedArchiveService, times(0))
         .createDockerBuildArchive(any(), any(), any());
+  }
+
+  @Test
+  public void getApplicableImageConfiguration_withRegistryInImageConfigurationAndDockerImageBuildOutput_shouldAppendRegistryToImageName() {
+    // Given
+    when(jKubeServiceHub.getBuildServiceConfig()).thenReturn(BuildServiceConfig.builder()
+            .buildOutputKind("DockerImage")
+        .build());
+    OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
+
+    // When
+    ImageConfiguration applicableImageConfig = openshiftBuildService.getApplicableImageConfiguration(imageConfiguration);
+
+    // Then
+    assertThat(applicableImageConfig)
+        .hasFieldOrPropertyWithValue("name", "harbor.xyz.local/foo/bar:latest");
+  }
+
+  @Test
+  public void getApplicableImageConfiguration_withRegistryInImageConfiguration_shouldNotAppendRegistryToImageName() {
+    // Given
+    when(jKubeServiceHub.getBuildServiceConfig()).thenReturn(BuildServiceConfig.builder()
+        .buildOutputKind("ImageStreamTag")
+        .build());
+    OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
+
+    // When
+    ImageConfiguration applicableImageConfig = openshiftBuildService.getApplicableImageConfiguration(imageConfiguration);
+
+    // Then
+    assertThat(applicableImageConfig)
+        .hasFieldOrPropertyWithValue("name", "foo/bar:latest");
   }
 }

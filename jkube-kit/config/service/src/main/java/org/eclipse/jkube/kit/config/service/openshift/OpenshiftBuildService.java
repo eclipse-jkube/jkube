@@ -126,14 +126,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         initClient();
         String buildName = null;
         try {
-            final ImageConfiguration.ImageConfigurationBuilder applicableImageConfigBuilder = imageConfig.toBuilder();
-            if (imageConfig.getBuildConfiguration() != null && !imageConfig.getBuildConfiguration().isDockerFileMode()
-                && imageConfig.getBuildConfiguration().getAssembly() != null) {
-                applicableImageConfigBuilder.build(imageConfig.getBuild().toBuilder().assembly(
-                    imageConfig.getBuildConfiguration().getAssembly().getFlattenedClone(jKubeServiceHub.getConfiguration()))
-                    .build());
-            }
-            final ImageConfiguration applicableImageConfig = applicableImageConfigBuilder.build();
+            final ImageConfiguration applicableImageConfig = getApplicableImageConfiguration(imageConfig);
             ImageName imageName = new ImageName(applicableImageConfig.getName());
 
             File dockerTar = createBuildArchive(jKubeServiceHub, applicableImageConfig);
@@ -226,6 +219,23 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
             // Create afresh
             return createBuildConfig(builder, buildName, buildStrategyResource, buildOutput);
         }
+    }
+
+    ImageConfiguration getApplicableImageConfiguration(ImageConfiguration imageConfig) {
+        final ImageConfiguration.ImageConfigurationBuilder applicableImageConfigBuilder = imageConfig.toBuilder();
+        if (imageConfig.getBuildConfiguration() != null && !imageConfig.getBuildConfiguration().isDockerFileMode()
+            && imageConfig.getBuildConfiguration().getAssembly() != null) {
+            applicableImageConfigBuilder.build(imageConfig.getBuild().toBuilder().assembly(
+                    imageConfig.getBuildConfiguration().getAssembly().getFlattenedClone(jKubeServiceHub.getConfiguration()))
+                .build());
+        }
+        if (buildServiceConfig.getBuildOutputKind() != null && buildServiceConfig.getBuildOutputKind().equals(DOCKER_IMAGE)) {
+            String applicableRegistry = EnvUtil.firstRegistryOf(
+                new ImageName(imageConfig.getName()).getRegistry(),
+                imageConfig.getRegistry());
+            applicableImageConfigBuilder.name(new ImageName(imageConfig.getName()).getFullName(applicableRegistry));
+        }
+        return applicableImageConfigBuilder.build();
     }
 
     private void initClient() {
