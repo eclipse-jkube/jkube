@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -105,7 +106,7 @@ public class MicronautHealthCheckEnricherTest {
   public void createWithDeploymentAndPluginAndNoHealth() {
     // Given
     klb.addToItems(emptyDeployment());
-    withMicronautMavenPlugin();
+    withMicronautPlugin();
     // When
     micronautHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
     // Then
@@ -127,7 +128,7 @@ public class MicronautHealthCheckEnricherTest {
     // Given
     klb.addToItems(emptyDeployment());
     withHealthEnabled();
-    withMicronautMavenPlugin();
+    withMicronautPlugin();
     // When
     micronautHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
     // Then
@@ -150,7 +151,7 @@ public class MicronautHealthCheckEnricherTest {
     // Given
     klb.addToItems(emptyDeployment());
     withHealthEnabled();
-    withMicronautMavenPlugin();
+    withMicronautPlugin();
     // @formatter:off
     new Expectations() {{
       context.getConfiguration().getImages(); result = Arrays.asList(
@@ -184,10 +185,10 @@ public class MicronautHealthCheckEnricherTest {
     }};
     // @formatter:on
   }
-  private void withMicronautMavenPlugin() {
+  private void withMicronautPlugin() {
     // @formatter:off
     new Expectations() {{
-      context.hasPlugin("io.micronaut.build", "micronaut-maven-plugin"); result = true;
+      micronautUtils.hasMicronautPlugin((JavaProject) any); result = true;
       context.getProject().getCompileClassPathElements(); result = Collections.emptyList();
       context.getProject().getOutputDirectory().getAbsolutePath(); result = "";
     }};

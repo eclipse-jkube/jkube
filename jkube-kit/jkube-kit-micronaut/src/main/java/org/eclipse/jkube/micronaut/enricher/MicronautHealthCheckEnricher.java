@@ -29,6 +29,7 @@ import lombok.Getter;
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
 import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
 import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
+import static org.eclipse.jkube.micronaut.MicronautUtils.hasMicronautPlugin;
 import static org.eclipse.jkube.micronaut.MicronautUtils.isHealthEnabled;
 
 public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
@@ -73,7 +74,7 @@ public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
   }
 
   private boolean isApplicable() {
-    if (!getContext().hasPlugin("io.micronaut.build", "micronaut-maven-plugin")) {
+    if (!hasMicronautPlugin(getContext().getProject())){
       return false;
     }
     return isHealthEnabled(getMicronautConfiguration(getClassLoader(getContext().getProject())));
