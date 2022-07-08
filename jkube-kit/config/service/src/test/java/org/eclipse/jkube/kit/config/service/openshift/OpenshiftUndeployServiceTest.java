@@ -45,43 +45,52 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"AccessStaticViaInstance", "unused"})
+@SuppressWarnings({"unused"})
 class OpenshiftUndeployServiceTest {
 
   @TempDir
   File temporaryFolder;
   @Mock
   private KitLogger logger;
-  @Mock
+
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private JKubeServiceHub jKubeServiceHub;
   @Mock
   private KubernetesClient kubernetesClient;
-  @Mock
-  private OpenShiftClient openShiftClient;
-  @Mock
-  private KubernetesHelper kubernetesHelper;
+  OpenShiftClient openShiftClient;
+
+  private MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic;
+
   private OpenshiftUndeployService openshiftUndeployService;
 
   @BeforeEach
   void setUp() {
-    openshiftUndeployService = new OpenshiftUndeployService(jKubeServiceHub, logger);
+    openShiftClient = mock(OpenShiftClient.class,RETURNS_DEEP_STUBS);
+    kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
     when(jKubeServiceHub.getClient().adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
+    openshiftUndeployService = new OpenshiftUndeployService(jKubeServiceHub, new KitLogger.SilentLogger());
   }
 
   @AfterEach
   void tearDown() {
     openshiftUndeployService = null;
+    kubernetesHelperMockedStatic.close();
   }
 
-  private void withLoadedEntities(HasMetadata... entities) throws Exception {
-    when(kubernetesHelper.loadResources((File)any())).thenReturn(Arrays.asList(entities));
+  private void withLoadedEntities(HasMetadata... entities) {
+    kubernetesHelperMockedStatic.when(() -> KubernetesHelper.loadResources(any())).thenReturn(Arrays.asList(entities));
   }
 
   private void with(Build build, BuildConfig buildConfig) {
@@ -94,7 +103,7 @@ class OpenshiftUndeployServiceTest {
   }
 
   private void assertDeleteCount(int totalDeletions) {
-    verify(kubernetesHelper,times(totalDeletions)).getKind((HasMetadata)any());
+    kubernetesHelperMockedStatic.verify(()-> KubernetesHelper.getKind(any()),times(totalDeletions));
   }
 
   @Test
