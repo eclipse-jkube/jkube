@@ -32,21 +32,21 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
+
 public class MicronautHealthCheckEnricherTest {
 
-  @Mocked
   private JKubeEnricherContext context;
-
-  @Mocked
   private MicronautUtils micronautUtils;
 
   private Properties properties;
@@ -56,18 +56,16 @@ public class MicronautHealthCheckEnricherTest {
 
   @Before
   public void setUp() {
+    context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+    micronautUtils = mock(MicronautUtils.class,RETURNS_DEEP_STUBS);
     properties = new Properties();
     processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
     klb.addToItems(new ServiceBuilder()
         .withNewMetadata().withName("make-it-real").endMetadata()
         .build());
-    // @formatter:off
-    new Expectations() {{
-      context.getProperties(); result = properties;
-      context.getConfiguration().getProcessorConfig(); result = processorConfig;
-    }};
-    // @formatter:on
+    when(context.getProperties()).thenReturn(properties);
+    when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
     micronautHealthCheckEnricher = new MicronautHealthCheckEnricher(context);
   }
 
@@ -151,14 +149,10 @@ public class MicronautHealthCheckEnricherTest {
     klb.addToItems(emptyDeployment());
     withHealthEnabled();
     withMicronautMavenPlugin();
-    // @formatter:off
-    new Expectations() {{
-      context.getConfiguration().getImages(); result = Arrays.asList(
-          ImageConfiguration.builder().build(BuildConfiguration.builder().port("1337").build()).build(),
-          ImageConfiguration.builder().build(BuildConfiguration.builder().port("8082").build()).build()
-      );
-    }};
-    // @formatter:on
+    when(context.getConfiguration().getImages()).thenReturn(Arrays.asList(
+            ImageConfiguration.builder().build(BuildConfiguration.builder().port("1337").build()).build(),
+            ImageConfiguration.builder().build(BuildConfiguration.builder().port("8082").build()).build()
+    ));
     // When
     micronautHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
     // Then
@@ -178,20 +172,12 @@ public class MicronautHealthCheckEnricherTest {
 
   @SuppressWarnings({"AccessStaticViaInstance", "ConstantConditions"})
   private void withHealthEnabled() {
-    // @formatter:off
-    new Expectations() {{
-      micronautUtils.isHealthEnabled((Properties)any); result = true;
-    }};
-    // @formatter:on
+    when(micronautUtils.isHealthEnabled(any())).thenReturn(true);
   }
   private void withMicronautMavenPlugin() {
-    // @formatter:off
-    new Expectations() {{
-      context.hasPlugin("io.micronaut.build", "micronaut-maven-plugin"); result = true;
-      context.getProject().getCompileClassPathElements(); result = Collections.emptyList();
-      context.getProject().getOutputDirectory().getAbsolutePath(); result = "";
-    }};
-    // @formatter:on
+    when(context.hasPlugin("io.micronaut.build", "micronaut-maven-plugin")).thenReturn(true);
+    when(context.getProject().getCompileClassPathElements()).thenReturn(Collections.emptyList());
+    when(context.getProject().getOutputDirectory().getAbsolutePath()).thenReturn("");
   }
 
   private static DeploymentBuilder emptyDeployment() {
