@@ -13,7 +13,8 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
-import org.junit.Assert;
+
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 /**
@@ -128,7 +129,7 @@ public class HealthCheckConfigTest {
                 .startPeriod("30s")
                 .cmd(Arguments.builder().shell("echo a").build())
                 .build();
-        Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
+        Assertions.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
     }
 
     @Test
