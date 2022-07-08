@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,9 +58,8 @@ public class OpenshiftUndeployMojoTest {
 
   @Test
   public void getManifestsToUndeploy() {
-    KubernetesClient client= mock(KubernetesClient.class);
+    KubernetesClient client= mock(KubernetesClient.class,RETURNS_DEEP_STUBS);
     mockServiceHub=mock(JKubeServiceHub.class);
-    undeployMojo = mock(OpenshiftUndeployMojo.class);
     // Given
     when(mockServiceHub.getClient()).thenReturn(client);
     when(client.isAdaptable(OpenShiftClient.class)).thenReturn(true);
