@@ -17,16 +17,15 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.BuildBuilder;
 import io.fabric8.openshift.api.model.BuildConfig;
@@ -49,6 +48,7 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 
+import static io.fabric8.kubernetes.api.model.DeletionPropagation.BACKGROUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -67,12 +67,9 @@ class OpenshiftUndeployServiceTest {
 
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private JKubeServiceHub jKubeServiceHub;
-  @Mock
-  private KubernetesClient kubernetesClient;
-  OpenShiftClient openShiftClient;
 
+  private OpenShiftClient openShiftClient;
   private MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic;
-
   private OpenshiftUndeployService openshiftUndeployService;
 
   @BeforeEach
@@ -80,6 +77,10 @@ class OpenshiftUndeployServiceTest {
     openShiftClient = mock(OpenShiftClient.class,RETURNS_DEEP_STUBS);
     kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
     when(jKubeServiceHub.getClient().adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
+    final JKubeServiceHub jKubeServiceHub = mock(JKubeServiceHub.class);
+    openShiftClient = mock(OpenShiftClient.class, RETURNS_DEEP_STUBS);
+    when(jKubeServiceHub.getClient()).thenReturn(openShiftClient);
+    kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
     openshiftUndeployService = new OpenshiftUndeployService(jKubeServiceHub, new KitLogger.SilentLogger());
   }
 
@@ -94,16 +95,23 @@ class OpenshiftUndeployServiceTest {
   }
 
   private void with(Build build, BuildConfig buildConfig) {
-    when(openShiftClient.builds().inNamespace(null).list()).thenReturn(new BuildListBuilder().withItems(build).build());
-    when(openShiftClient.buildConfigs().inNamespace(null).list()).thenReturn(new BuildConfigListBuilder().withItems(buildConfig).build());
+    when(openShiftClient.builds().inNamespace(any()))
+        .thenReturn(mock(MixedOperation.class, RETURNS_DEEP_STUBS));
+    when(openShiftClient.builds().inNamespace(null).list())
+        .thenReturn(new BuildListBuilder().withItems(build).build());
+    when(openShiftClient.buildConfigs().inNamespace(any()))
+        .thenReturn(mock(MixedOperation.class, RETURNS_DEEP_STUBS));
+    when(openShiftClient.buildConfigs().inNamespace(null).list())
+        .thenReturn(new BuildConfigListBuilder().withItems(buildConfig).build());
   }
 
   private void assertDeleted(HasMetadata entity) {
-    verify(jKubeServiceHub,times(1)).getClient().resource(entity).inNamespace(null) .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+    verify(openShiftClient.resource(entity).inNamespace(null).withPropagationPolicy(BACKGROUND),
+        times(1)).delete();
   }
 
   private void assertDeleteCount(int totalDeletions) {
-    kubernetesHelperMockedStatic.verify(()-> KubernetesHelper.getKind(any()),times(totalDeletions));
+    kubernetesHelperMockedStatic.verify(()-> KubernetesHelper.getKind(any()), times(totalDeletions));
   }
 
   @Test
@@ -111,7 +119,6 @@ class OpenshiftUndeployServiceTest {
     // Given
     final Pod entity = new Pod();
     withLoadedEntities(entity);
-    when(jKubeServiceHub.getClient().adapt(OpenShiftClient.class)).thenReturn(null);
     // When
     openshiftUndeployService.undeploy(null, ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then

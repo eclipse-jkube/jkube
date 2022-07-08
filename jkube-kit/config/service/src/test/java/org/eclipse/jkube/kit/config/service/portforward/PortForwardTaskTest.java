@@ -23,8 +23,10 @@ import io.fabric8.kubernetes.client.LocalPortForward;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -45,16 +47,19 @@ class PortForwardTaskTest {
 
   @Test
   void run() throws Exception {
-    CountDownLatch cdl = mock(CountDownLatch.class);
-    // When
-    portForwardTask.run();
-    // Then
-    verify(cdl,times(1)).await();
-    verify(localPortForward,times(1)).close();
+    try (MockedConstruction<CountDownLatch> mc = mockConstruction(CountDownLatch.class)) {
+      // Given
+      // When
+      // Then
+      assertThat(mc.constructed()).hasSize(1);
+      verify(mc.constructed().iterator().next(), times(1)).await();
+      verify(localPortForward, times(1)).close();
+    }
   }
 
   @Test
-  void close() throws IOException {
+  public void close() throws IOException {
+    // Given
     // When
     portForwardTask.close();
     // Then
