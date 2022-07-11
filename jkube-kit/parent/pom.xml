@@ -125,11 +125,18 @@
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-common</artifactId>
         <version>${project.version}</version>
+        <type>jar</type>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-common</artifactId>
+        <version>${project.version}</version>
+        <type>test-jar</type>
       </dependency>
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-kit-common-test</artifactId>
+        <artifactId>jkube-kit-common-it</artifactId>
         <version>${project.version}</version>
         <scope>test</scope>
       </dependency>

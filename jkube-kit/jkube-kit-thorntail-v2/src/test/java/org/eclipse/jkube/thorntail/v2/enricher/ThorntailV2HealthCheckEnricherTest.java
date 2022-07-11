@@ -17,7 +17,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.common.SystemMock;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -116,21 +115,24 @@ public class ThorntailV2HealthCheckEnricherTest {
   @Test
   public void createWithThorntailSpecificPropertiesInKubernetes() {
     // Given
-    new SystemMock().put("thorntail.http.port", "1337");
-    final ThorntailV2HealthCheckEnricher thorntailV2HealthCheckEnricher = new ThorntailV2HealthCheckEnricher(context);
-    // When
-    new ThorntailV2HealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
-    // Then
-    assertThat(klb.build().getItems())
-        .hasSize(1)
-        .extracting("spec", DeploymentSpec.class)
-        .extracting("template", PodTemplateSpec.class)
-        .extracting("spec", PodSpec.class)
-        .flatExtracting(PodSpec::getContainers)
-        .extracting(
-            "livenessProbe.initialDelaySeconds", "livenessProbe.httpGet.scheme", "livenessProbe.httpGet.path",
-            "readinessProbe.initialDelaySeconds", "readinessProbe.httpGet.scheme", "readinessProbe.httpGet.path", "readinessProbe.httpGet.port.intVal")
-        .containsExactly(tuple(180, "HTTP", "/health", 10, "HTTP", "/health", 1337));
+    System.setProperty("thorntail.http.port", "1337");
+    try {
+      // When
+      new ThorntailV2HealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+      // Then
+      assertThat(klb.build().getItems())
+          .hasSize(1)
+          .extracting("spec", DeploymentSpec.class)
+          .extracting("template", PodTemplateSpec.class)
+          .extracting("spec", PodSpec.class)
+          .flatExtracting(PodSpec::getContainers)
+          .extracting(
+              "livenessProbe.initialDelaySeconds", "livenessProbe.httpGet.scheme", "livenessProbe.httpGet.path",
+              "readinessProbe.initialDelaySeconds", "readinessProbe.httpGet.scheme", "readinessProbe.httpGet.path", "readinessProbe.httpGet.port.intVal")
+          .containsExactly(tuple(180, "HTTP", "/health", 10, "HTTP", "/health", 1337));
+    } finally {
+      System.clearProperty("thorntail.http.port");
+    }
   }
 
   @Test
