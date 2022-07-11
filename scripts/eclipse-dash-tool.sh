@@ -19,13 +19,15 @@ BASEDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$BASEDIR/common.sh"
 
 REPOSITORY="https://repo.eclipse.org/content/repositories/dash-licenses/org/eclipse/dash/org.eclipse.dash.licenses/0.0.1-SNAPSHOT"
-DEPENDENCY_LIST="$PROJECT_ROOT/target/dependencies.txt"
-TOOL_JAR="$PROJECT_ROOT/target/eclipse-dash.jar"
+TARGET_DIR="$PROJECT_ROOT/target"
+DEPENDENCY_LIST="$TARGET_DIR/dependencies.txt"
+TOOL_JAR="$TARGET_DIR/eclipse-dash.jar"
 
 function downloadTool() {
   if [[ ! -f "$TOOL_JAR" ]]
   then
     echo "Downloading eclipse-dash.jar"
+    mkdir -p "$TARGET_DIR"
     version=$(curl -s "$REPOSITORY/maven-metadata.xml" | xpath -q -e "/metadata/versioning/snapshotVersions/snapshotVersion[extension='jar']/value/text()")
     curl "$REPOSITORY/org.eclipse.dash.licenses-${version}.jar" -o "$TOOL_JAR"
   fi
