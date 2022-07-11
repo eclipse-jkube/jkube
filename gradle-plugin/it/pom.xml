@@ -51,7 +51,7 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-kit-common-test</artifactId>
+        <artifactId>jkube-kit-common-it</artifactId>
       </dependency>
       <dependency>
         <groupId>com.consol.citrus</groupId>
