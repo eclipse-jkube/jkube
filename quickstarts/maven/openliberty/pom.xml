@@ -31,15 +31,15 @@
     </description>
 
     <properties>
-        <version.openliberty>19.0.0.9</version.openliberty>
+        <version.openliberty>22.0.0.7</version.openliberty>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <jkube.version>${project.version}</jkube.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.arquillian-cube>1.18.2</version.arquillian-cube>
-        <version.junit>4.13.1</version.junit>
-        <version.resteasy>3.6.2.Final</version.resteasy>
-        <version.restassured>4.1.1</version.restassured>
+        <version.junit>4.13.2</version.junit>
+        <version.resteasy>4.7.5.Final</version.resteasy>
+        <version.restassured>4.5.1</version.restassured>
         <http.port>9080</http.port>
         <https.port>9443</https.port>
     </properties>
