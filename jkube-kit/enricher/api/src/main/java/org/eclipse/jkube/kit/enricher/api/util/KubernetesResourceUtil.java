@@ -409,7 +409,7 @@ public class KubernetesResourceUtil {
 
     public static void validateKubernetesMasterUrl(URL masterUrl) {
         if (masterUrl == null || StringUtils.isBlank(masterUrl.toString())) {
-            throw new IllegalStateException("Cannot find Kubernetes master URL. Have you started a cluster via `mvn jkube:cluster-start` or connected to a remote cluster via `kubectl`?");
+            throw new IllegalStateException("Cannot find Kubernetes master URL. Are you sure if you're connected to a remote cluster via `kubectl`?");
         }
     }
 
@@ -419,7 +419,7 @@ public class KubernetesResourceUtil {
             logger.error( "Could not connect to kubernetes cluster!");
             logger.error( "Connection error: %s", cause);
 
-            String message = "Could not connect to kubernetes cluster. Have you started a cluster via `mvn jkube:cluster-start` or connected to a remote cluster via `kubectl`? Error: " + cause;
+            String message = "Could not connect to kubernetes cluster. Are you sure if you're connected to a remote cluster via `kubectl`? Error: " + cause;
             throw new IllegalStateException(message, e);
         } else {
             throw new IllegalStateException(e.getMessage(), e);

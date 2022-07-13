@@ -50,9 +50,7 @@ public class JKubeServiceHub implements Closeable {
     private final DockerServiceHub dockerServiceHub;
     @Getter
     private final BuildServiceConfig buildServiceConfig;
-    @Getter
     private KubernetesClient client;
-    @Getter
     private ClusterAccess clusterAccess;
     @Getter
     @Setter
@@ -65,6 +63,8 @@ public class JKubeServiceHub implements Closeable {
     private LazyBuilder<MigrateService> migrateService;
     private LazyBuilder<DebugService> debugService;
     private LazyBuilder<HelmService> helmService;
+    private LazyBuilder<ClusterAccess> clusterAccessLazyBuilder;
+    private LazyBuilder<KubernetesClient> kubernetesClientLazyBuilder;
     private final boolean offline;
 
     @Builder
@@ -134,29 +134,35 @@ public class JKubeServiceHub implements Closeable {
         return helmService.get();
     }
 
+    public KubernetesClient getClient() {
+        return kubernetesClientLazyBuilder.get();
+    }
+
+    public ClusterAccess getClusterAccess() {
+        return clusterAccessLazyBuilder.get();
+    }
+
     private void initClusterAccessAndLazyBuilders() {
-        if (!offline) {
-            if (clusterAccess == null) {
-                clusterAccess = new ClusterAccess(log,
-                        ClusterConfiguration.from(System.getProperties(), configuration.getProject().getProperties()).build());
-            }
-            this.client = clusterAccess.createDefaultClient();
-        }
+        clusterAccessLazyBuilder = new LazyBuilder<>(this::createClusterAccessIfNullOtherwiseGetExisting);
+        kubernetesClientLazyBuilder = new LazyBuilder<>(() -> {
+            client = getClusterAccess().createDefaultClient();
+            return client;
+        });
         buildServiceManager = new LazyBuilder<>(() -> new BuildServiceManager(this));
         applyService = new LazyBuilder<>(() -> {
-            validateIfConnectedToCluster();
+            getClient();
             return new ApplyService(client, log);
         });
         portForwardService = new LazyBuilder<>(() -> {
-            validateIfConnectedToCluster();
+            getClient();
             return new PortForwardService(log);
         });
         debugService = new LazyBuilder<>(() -> {
-            validateIfConnectedToCluster();
+            getClient();
             return new DebugService(log, client, portForwardService.get(), applyService.get());
         });
         undeployService = new LazyBuilder<>(() -> {
-            validateIfConnectedToCluster();
+            getClient();
             if (platformMode == RuntimeMode.OPENSHIFT && isOpenShift(client)) {
                 return new OpenshiftUndeployService(this, log);
             }
@@ -166,10 +172,23 @@ public class JKubeServiceHub implements Closeable {
         helmService = new LazyBuilder<>(() -> new HelmService(getConfiguration(), log));
     }
 
-    private void validateIfConnectedToCluster() {
-        if (client == null) {
+    private ClusterAccess createClusterAccessIfNullOtherwiseGetExisting() {
+        if (offline) {
             throw new IllegalArgumentException("Connection to Cluster required. Please check if offline mode is set to false");
         }
+        if (clusterAccess == null) {
+            clusterAccess = new ClusterAccess(log,
+                ClusterConfiguration.from(System.getProperties(), configuration.getProject().getProperties()).build());
+            return clusterAccess;
+        }
+        return clusterAccess;
     }
 
+    KubernetesClient getActualClient() {
+        return client;
+    }
+
+    ClusterAccess getActualClusterAccess() {
+        return clusterAccess;
+    }
 }

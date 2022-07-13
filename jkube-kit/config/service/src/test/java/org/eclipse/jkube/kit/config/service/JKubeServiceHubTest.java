@@ -16,8 +16,11 @@ package org.eclipse.jkube.kit.config.service;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.MigrateService;
+import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
@@ -26,13 +29,16 @@ import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.eclipse.jkube.kit.resource.helm.HelmService;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"unused"})
@@ -178,6 +184,34 @@ public class JKubeServiceHubTest {
   }
 
   @Test
+  public void testGetHelmService() {
+    // When
+    final HelmService helmService = jKubeServiceHubBuilder.build().getHelmService();
+    // Then
+    assertThat(helmService).isNotNull();
+  }
+
+  @Test
+  public void testGetMigrateService() {
+    // When
+    final MigrateService migrateService = jKubeServiceHubBuilder.build().getMigrateService();
+    // Then
+    assertThat(migrateService).isNotNull();
+  }
+
+  @Test
+  public void testGetResourceService() {
+    // Given
+    JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.resourceService(new LazyBuilder<>(() -> mock(ResourceService.class))).build();
+
+    // When
+    final ResourceService resourceService = jKubeServiceHub.getResourceService();
+
+    // Then
+    assertThat(resourceService).isNotNull();
+  }
+
+  @Test
   public void testBasicInitWithOffline() {
     // Given + When
     try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
@@ -185,6 +219,39 @@ public class JKubeServiceHubTest {
       assertThat(jKubeServiceHub)
           .isNotNull()
           .hasFieldOrPropertyWithValue("client", null);
+    }
+  }
+
+  @Test
+  public void testKubernetesClientIsInitializedLazily() {
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.platformMode(RuntimeMode.KUBERNETES).build()) {
+      // Given
+      assertThat(jKubeServiceHub.getActualClient())
+          .isNull();
+
+      // When
+      jKubeServiceHub.getClient();
+
+      // Then
+      assertThat(jKubeServiceHub.getActualClient())
+          .isNotNull();
+    }
+  }
+
+  @Test
+  public void testClusterAccessIsInitializedLazily() {
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.platformMode(RuntimeMode.KUBERNETES).clusterAccess(null).build();
+         MockedConstruction<ClusterAccess> clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class)) {
+      // Given
+      assertThat(jKubeServiceHub.getActualClusterAccess())
+          .isNull();
+
+      // When
+      jKubeServiceHub.getClusterAccess();
+
+      // Then
+      assertThat(jKubeServiceHub.getActualClusterAccess())
+          .isNotNull();
     }
   }
 
