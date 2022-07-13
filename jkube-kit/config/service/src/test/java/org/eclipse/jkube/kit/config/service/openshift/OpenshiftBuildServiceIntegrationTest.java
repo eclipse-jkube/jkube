@@ -142,7 +142,7 @@ public class OpenshiftBuildServiceIntegrationTest {
     when(mockedResourceConfig.getNamespace()).thenReturn("ns1");
 
     jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
-    when(jKubeServiceHub.getClusterAccess().createDefaultClient()).thenReturn(mockServer.getOpenshiftClient());
+    when(jKubeServiceHub.getClient()).thenReturn(mockServer.getOpenshiftClient());
     when(jKubeServiceHub.getLog()).thenReturn(logger);
     when(jKubeServiceHub.getDockerServiceHub().getArchiveService())
         .thenReturn(new ArchiveService(AssemblyManager.getInstance(), logger));
