@@ -24,31 +24,29 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class WatcherManagerTest {
 
-  @Mocked
   JKubeServiceHub jKubeServiceHub;
 
-  @Mocked
   KitLogger logger;
 
   private WatcherContext watcherContext;
 
   @Before
   public void setUp() throws Exception {
-    // @formatter:off
-    new Expectations() {{
-      jKubeServiceHub.getClusterAccess().isOpenShift(); result = false;
-    }};
-    // @formatter:on
+    jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
+    logger = mock(KitLogger.class);
+    when(jKubeServiceHub.getClusterAccess().isOpenShift()).thenReturn(false);
     final ProcessorConfig processorConfig = new ProcessorConfig();
     processorConfig.setIncludes(Collections.singletonList("fake-watcher"));
     watcherContext = WatcherContext.builder()
@@ -69,11 +67,7 @@ public class WatcherManagerTest {
         .hasSize(1)
         .extracting(ImageConfiguration::getName)
         .contains("processed-by-test");
-    // @formatter:off
-    new Verifications() {{
-      logger.info("Running watcher %s", "fake-watcher"); times = 1;
-    }};
-    // @formatter:on
+    verify(logger,times(1)).info("Running watcher %s", "fake-watcher");
   }
 
   // Loaded from META-INF/jkube/watcher-default
