@@ -51,11 +51,9 @@ import static org.mockito.Mockito.when;
 /**
  * @author roland
  */
-@RunWith(MockitoJUnitRunner.class)
+
 public class BaseGeneratorTest {
   private GeneratorContext ctx;
-
-  @Mock
   private JavaProject project;
 
   private Properties properties;
@@ -67,6 +65,7 @@ public class BaseGeneratorTest {
   @Before
   public void setUp() {
     ctx = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
+    project = mock(JavaProject.class);
     properties = new Properties();
     config = new ProcessorConfig();
     when(ctx.getProject().getProperties()).thenReturn(properties);
