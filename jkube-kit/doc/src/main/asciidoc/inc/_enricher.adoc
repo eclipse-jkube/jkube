@@ -72,6 +72,9 @@ by other enrichers, {plugin-configuration-type} configuration or fragment.
 | <<jkube-ingress>>
 | Create a default Ingress if missing or configured from {plugin-configuration-type} configuration
 
+| <<jkube-imagepullpolicy>>
+| Overrides ImagePullPolicy in controller resources provided `jkube.imagePullPolicy` property is set.
+
 | <<jkube-metadata>>
 | Add labels/annotations to generated Kubernetes resources
 
@@ -167,6 +170,8 @@ include::enricher/git/_jkube_git.adoc[]
 include::enricher/image/_jkube_image.adoc[]
 
 include::enricher/ingress/_jkube_ingress.adoc[]
+
+include::enricher/imagepullpolicy/_jkube_imagepullpolicy.adoc[]
 
 include::enricher/metadata/_jkube_metadata.adoc[]
 

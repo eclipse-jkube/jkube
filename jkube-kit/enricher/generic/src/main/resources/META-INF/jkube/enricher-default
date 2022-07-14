@@ -103,3 +103,6 @@ org.eclipse.jkube.enricher.generic.IngressEnricher
 org.eclipse.jkube.enricher.generic.ContainerEnvJavaOptionsMergeEnricher
 
 org.eclipse.jkube.enricher.generic.ReplicaCountEnricher
+
+# Set ImagePullPolicy on a Controller's container
+org.eclipse.jkube.enricher.generic.ImagePullPolicyEnricher
