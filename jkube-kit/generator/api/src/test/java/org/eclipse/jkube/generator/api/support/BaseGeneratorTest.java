@@ -44,6 +44,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,8 +53,6 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class BaseGeneratorTest {
-
-  @Mock
   private GeneratorContext ctx;
 
   @Mock
@@ -67,10 +66,10 @@ public class BaseGeneratorTest {
 
   @Before
   public void setUp() {
+    ctx = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
     properties = new Properties();
     config = new ProcessorConfig();
-    when(ctx.getProject()).thenReturn(project);
-    when(project.getProperties()).thenReturn(properties);
+    when(ctx.getProject().getProperties()).thenReturn(properties);
     when(ctx.getConfig()).thenReturn(config);
   }
 
