@@ -33,9 +33,17 @@ import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.internal.matchers.InstanceOf;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class HelmServiceTest {
 
@@ -59,36 +67,35 @@ public class HelmServiceTest {
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   @Test(expected = IOException.class)
-  public void prepareSourceDirValidWithNoYamls(@Mocked File file) throws Exception {
+  public void prepareSourceDirValidWithNoYamls() throws Exception {
+    File file = mock(File.class);
     // Given
-    // @formatter:off
-    new Expectations() {{
-      file.isDirectory();result = true;
-    }};
-    // @formatter:on
+    when(file.isDirectory()).thenReturn(true);
     // When
     HelmService.prepareSourceDir(helmConfig.build(), HelmConfig.HelmType.OPENSHIFT);
   }
 
   @Test
-  public void createChartYaml(@Mocked File outputDir, @Mocked ResourceUtil resourceUtil) throws Exception {
+  public void createChartYaml() throws Exception {
+    File outputDir = mock(File.class);
+    ResourceUtil resourceUtil1 = mock(ResourceUtil.class);
     // Given
     helmConfig.chart("Chart Name").version("1337");
     // When
     HelmService.createChartYaml(helmConfig.build(), outputDir);
     // Then
-    new Verifications() {{
-      Chart chart;
-      ResourceUtil.save(withNotNull(), chart = withCapture(), ResourceFileType.yaml);
-      assertThat(chart)
-          .hasFieldOrPropertyWithValue("apiVersion", "v1")
-          .hasFieldOrPropertyWithValue("name", "Chart Name")
-          .hasFieldOrPropertyWithValue("version", "1337");
-    }};
+    ArgumentCaptor<Chart> argumentCaptor = ArgumentCaptor.forClass(Chart.class);
+    verify(resourceUtil1).save(notNull(), argumentCaptor.capture(), ResourceFileType.yaml);
+    assertThat(argumentCaptor.capture())
+            .hasFieldOrPropertyWithValue("apiVersion", "v1")
+            .hasFieldOrPropertyWithValue("name", "Chart Name")
+            .hasFieldOrPropertyWithValue("version", "1337");
   }
 
   @Test
-  public void createChartYamlWithDependencies(@Mocked File outputDir, @Mocked ResourceUtil resourceUtil) throws Exception {
+  public void createChartYamlWithDependencies() throws Exception {
+    File outputDir = mock(File.class);
+    ResourceUtil resourceUtil = mock(ResourceUtil.class);
     // Given
     HelmDependency helmDependency = new HelmDependency()
         .toBuilder()
@@ -101,21 +108,20 @@ public class HelmServiceTest {
     // When
     HelmService.createChartYaml(helmConfig.build(), outputDir);
     // Then
-    new Verifications() {{
-      Chart chart;
-      ResourceUtil.save(withNotNull(), chart = withCapture(), ResourceFileType.yaml);
-      assertThat(chart)
-          .hasFieldOrPropertyWithValue("apiVersion", "v1")
-          .hasFieldOrPropertyWithValue("name", "Chart Name")
-          .hasFieldOrPropertyWithValue("version", "1337")
-          .hasFieldOrPropertyWithValue("dependencies",
-              Collections.singletonList(helmDependency));
-    }};
+    ArgumentCaptor<Chart> argumentCaptor = ArgumentCaptor.forClass(Chart.class);
+    verify(resourceUtil).save(notNull(), argumentCaptor.capture(), ResourceFileType.yaml);
+    assertThat(argumentCaptor.capture())
+            .hasFieldOrPropertyWithValue("apiVersion", "v1")
+            .hasFieldOrPropertyWithValue("name", "Chart Name")
+            .hasFieldOrPropertyWithValue("version", "1337")
+            .hasFieldOrPropertyWithValue("dependencies",
+                    Collections.singletonList(helmDependency));
   }
 
   @Test
-  public void uploadChart_withValidRepository_shouldUpload(@Mocked HelmUploader helmUploader)
+  public void uploadChart_withValidRepository_shouldUpload()
       throws IOException, BadUploadException {
+    HelmUploader helmUploader = mock(HelmUploader.class);
     //Given
     final HelmRepository helmRepository = completeValidRepository().name("stable-repo").build();
     helmConfig
@@ -132,6 +138,7 @@ public class HelmServiceTest {
       helmUploader.uploadSingle(withInstanceOf(File.class), helmRepository);
     }};
     // @formatter:on
+    doNothing().when(helmUploader).uploadSingle(new File.class,helmRepository);
     // When
     helmService.uploadHelmChart(helmConfig.build());
     // Then

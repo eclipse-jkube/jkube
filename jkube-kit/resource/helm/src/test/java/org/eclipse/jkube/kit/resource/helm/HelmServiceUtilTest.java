@@ -28,14 +28,15 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class HelmServiceUtilTest {
@@ -204,15 +205,13 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void findIconUrl_fromProvidedFile_returnsValidUrl(@Mocked ResourceUtil resourceUtil, @Mocked HasMetadata listEntry) throws IOException {
+  public void findIconUrl_fromProvidedFile_returnsValidUrl() throws IOException {
+    ResourceUtil resourceUtil = mock(ResourceUtil.class,RETURNS_DEEP_STUBS);
+    HasMetadata listEntry = mock(HasMetadata.class,RETURNS_DEEP_STUBS);
     // Given
     manifest.createNewFile();
-    new Expectations() {{
-      ResourceUtil.load(manifest, KubernetesResource.class);
-      result = new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null);
-      listEntry.getMetadata().getAnnotations();
-      result = Collections.singletonMap("jkube.io/iconUrl", "https://my-icon");
-    }};
+    when(resourceUtil.load(manifest,KubernetesResource.class)).thenReturn(new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null));
+    when(listEntry.getMetadata().getAnnotations()).thenReturn(Collections.singletonMap("jkube.io/iconUrl", "https://my-icon"));
     // When
     String url = HelmServiceUtil.findIconURL(manifest);
     // Then
@@ -220,14 +219,11 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void findTemplatesFromProvidedFile(
-    @Mocked ResourceUtil resourceUtil, @Mocked Template template) throws Exception {
-
+  public void findTemplatesFromProvidedFile() throws Exception {
+    ResourceUtil resourceUtil = mock(ResourceUtil.class);
+    Template template = mock(Template.class);
     // Given
-    new Expectations() {{
-      ResourceUtil.load(manifest, KubernetesResource.class);
-      result = template;
-    }};
+    when(resourceUtil.load(manifest, KubernetesResource.class)).thenReturn(template);
     // When
     List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
     // Then
