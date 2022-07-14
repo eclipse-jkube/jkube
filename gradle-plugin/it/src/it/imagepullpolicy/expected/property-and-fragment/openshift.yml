@@ -49,7 +49,7 @@ items:
               fieldRef:
                 fieldPath: metadata.namespace
           image: repository/imagepullpolicy:latest
-          imagePullPolicy: Always-fragment
+          imagePullPolicy: Always-property
           name: repository-imagepullpolicy
           securityContext:
             privileged: false
