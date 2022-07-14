@@ -27,6 +27,7 @@ Usage:
 * Fix #1468: Add startup probe in QuarkusHealthCheckEnricher
 * Fix #1473: Add OpenLibertyHealthCheckEnricher to automatically add health checks in OpenLiberty projects
 * Fix #1537: Registry not set up in `oc:build`
+* Fix #1654: images with missing build configuration should not be built
 
 
 ### 1.8.0 (2022-05-24)
