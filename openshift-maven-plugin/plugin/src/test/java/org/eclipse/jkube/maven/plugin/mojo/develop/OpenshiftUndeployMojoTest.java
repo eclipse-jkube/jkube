@@ -21,7 +21,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +34,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
+@RunWith(MockitoJUnitRunner.class)
 public class OpenshiftUndeployMojoTest {
 
   @Rule
@@ -45,6 +47,7 @@ public class OpenshiftUndeployMojoTest {
 
   @Before
   public void setUp() throws IOException {
+    mockServiceHub=mock(JKubeServiceHub.class,RETURNS_DEEP_STUBS);
     kubernetesManifestFile = temporaryFolder.newFile();
     openShiftManifestFile = temporaryFolder.newFile();
     openShiftISManifestFile = temporaryFolder.newFile();
@@ -58,11 +61,8 @@ public class OpenshiftUndeployMojoTest {
 
   @Test
   public void getManifestsToUndeploy() {
-    KubernetesClient client= mock(KubernetesClient.class,RETURNS_DEEP_STUBS);
-    mockServiceHub=mock(JKubeServiceHub.class);
     // Given
-    when(mockServiceHub.getClient()).thenReturn(client);
-    when(client.isAdaptable(OpenShiftClient.class)).thenReturn(true);
+    when(mockServiceHub.getClient().isAdaptable(OpenShiftClient.class)).thenReturn(true);
     // When
     final List<File> result = undeployMojo.getManifestsToUndeploy();
     // Then
