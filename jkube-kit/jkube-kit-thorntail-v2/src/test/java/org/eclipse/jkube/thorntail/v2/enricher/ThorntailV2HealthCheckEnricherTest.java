@@ -27,17 +27,16 @@ import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ThorntailV2HealthCheckEnricherTest {
-
-  @Mocked
   private JKubeEnricherContext context;
 
   private Properties properties;
@@ -46,6 +45,7 @@ public class ThorntailV2HealthCheckEnricherTest {
 
   @Before
   public void setUp() {
+    context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     properties = new Properties();
     processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
@@ -64,14 +64,11 @@ public class ThorntailV2HealthCheckEnricherTest {
           .endTemplate()
         .endSpec()
         .build());
-    new Expectations() {{
-      context.getProperties(); result = properties;
-      context.getConfiguration().getProcessorConfig(); result = processorConfig;
-      context.hasDependency("io.thorntail", "monitor"); result = true;
-      context.getProjectClassLoaders(); result =
-          new ProjectClassLoaders(new URLClassLoader(new URL[0], ThorntailV2HealthCheckEnricherTest.class.getClassLoader()));
-    }};
-    // @formatter:on
+    when(context.getProperties()).thenReturn(properties);
+    when(context
+            .getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
+    when(context.hasDependency("io.thorntail", "monitor")).thenReturn(true);
+    when(context.getProjectClassLoaders()).thenReturn( new ProjectClassLoaders(new URLClassLoader(new URL[0], ThorntailV2HealthCheckEnricherTest.class.getClassLoader())));
   }
 
   @Test
@@ -138,12 +135,7 @@ public class ThorntailV2HealthCheckEnricherTest {
   @Test
   public void createWithNoThorntailDependency() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      context.hasDependency("io.thorntail", "monitor"); result = false;
-      context.getProjectClassLoaders(); minTimes = 0;
-    }};
-    // @formatter:on
+    when(context.hasDependency("io.thorntail", "monitor")).thenReturn(false);
     // When
     new ThorntailV2HealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
