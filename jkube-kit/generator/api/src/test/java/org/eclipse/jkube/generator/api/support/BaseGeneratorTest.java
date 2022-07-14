@@ -68,7 +68,9 @@ public class BaseGeneratorTest {
     project = mock(JavaProject.class);
     properties = new Properties();
     config = new ProcessorConfig();
-    when(ctx.getProject().getProperties()).thenReturn(properties);
+
+    when(project.getProperties()).thenReturn(properties);
+    when(ctx.getProject()).thenReturn(project);
     when(ctx.getConfig()).thenReturn(config);
   }
 
