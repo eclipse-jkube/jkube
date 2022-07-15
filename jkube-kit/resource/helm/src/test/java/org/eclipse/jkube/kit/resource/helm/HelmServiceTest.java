@@ -25,10 +25,6 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 import org.junit.After;
 import org.junit.Before;
@@ -40,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -94,7 +91,7 @@ public class HelmServiceTest {
 
   @Test
   public void createChartYamlWithDependencies() throws Exception {
-    File outputDir = mock(File.class);
+    File outputDir = mock(File.class,RETURNS_DEEP_STUBS);
     ResourceUtil resourceUtil = mock(ResourceUtil.class);
     // Given
     HelmDependency helmDependency = new HelmDependency()
@@ -133,22 +130,15 @@ public class HelmServiceTest {
         .tarballOutputDir("target")
         .snapshotRepository(HelmRepository.builder().name("Snapshot-Repo").build())
         .stableRepository(helmRepository);
-    // @formatter:off
-    new Expectations() {{
-      helmUploader.uploadSingle(withInstanceOf(File.class), helmRepository);
-    }};
-    // @formatter:on
-    doNothing().when(helmUploader).uploadSingle(new File.class,helmRepository);
+    doNothing().when(helmUploader).uploadSingle(any(),helmRepository);
     // When
     helmService.uploadHelmChart(helmConfig.build());
     // Then
-    new Verifications() {{
-      String fileName = "chartName-1337-helm.tar.gz";
-      File file;
-      helmUploader.uploadSingle(file = withCapture(), helmRepository);
-      assertThat(file)
-          .hasName(fileName);
-    }};
+    ArgumentCaptor<File> argumentCaptor = ArgumentCaptor.forClass(File.class);
+    verify(helmUploader).uploadSingle(argumentCaptor.capture(), helmRepository);
+    String fileName = "chartName-1337-helm.tar.gz";
+    assertThat(argumentCaptor.capture())
+            .hasName(fileName);
   }
 
   @Test

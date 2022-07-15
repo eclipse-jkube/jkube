@@ -220,7 +220,7 @@ public class HelmServiceUtilTest {
 
   @Test
   public void findTemplatesFromProvidedFile() throws Exception {
-    ResourceUtil resourceUtil = mock(ResourceUtil.class);
+    ResourceUtil resourceUtil = mock(ResourceUtil.class,RETURNS_DEEP_STUBS);
     Template template = mock(Template.class);
     // Given
     when(resourceUtil.load(manifest, KubernetesResource.class)).thenReturn(template);
