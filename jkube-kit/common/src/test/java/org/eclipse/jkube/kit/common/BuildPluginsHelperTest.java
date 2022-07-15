@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.common;
 
-import org.eclipse.jkube.kit.common.util.ClassUtil;
+import org.eclipse.jkube.kit.api.JKubeBuildPlugin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,54 +21,100 @@ import org.mockito.MockedStatic;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.util.Collections;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 
 import static org.eclipse.jkube.kit.common.assertj.FileAssertions.assertThat;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class BuildPluginsHelperTest {
   private JavaProject javaProject;
   private KitLogger kitLogger;
+  private ServiceLoader<JKubeBuildPlugin> mockedServiceLoader;
+  private Iterator<JKubeBuildPlugin> jKubeBuildPluginIterator;
   @TempDir
-  File temporaryFolder;
+  private File temporaryFolder;
 
   @BeforeEach
   public void setup() {
     javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
     kitLogger = mock(KitLogger.class, RETURNS_DEEP_STUBS);
+    mockedServiceLoader = mock(ServiceLoader.class);
+    jKubeBuildPluginIterator = mock(Iterator.class);
+    when(mockedServiceLoader.iterator()).thenReturn(jKubeBuildPluginIterator);
   }
 
   @Test
-  void executeBuildPlugins_whenNoDescriptor_shouldDoNothing() {
+  void executeBuildPlugins_whenServiceLoaderReturnsNoImplementation_shouldDoNothing() throws IOException {
     // Given
-    try (MockedStatic<ClassUtil> classUtilMockedStatic = mockStatic(ClassUtil.class)) {
-      classUtilMockedStatic.when(() -> ClassUtil.getResourcesInContextClassloader("META-INF/maven/org.eclipse.jkube/jkube-plugin"))
-          .thenReturn(Collections.emptyEnumeration());
+    when(javaProject.getBuildDirectory()).thenReturn(temporaryFolder);
+
+    // When
+    BuildPluginsHelper.executeBuildPlugins(javaProject, kitLogger);
+
+    // Then
+    assertThat(temporaryFolder).fileTree().contains("docker-extra");
+  }
+
+  @Test
+  void executeBuildPlugins_whenServiceLoaderReturnsValidImplementation_thenShouldCopyFilesInDockerExtraDir() throws IOException {
+    try (MockedStatic<ServiceLoader> serviceLoaderMockedStatic = mockStatic(ServiceLoader.class)) {
+      when(jKubeBuildPluginIterator.hasNext()).thenReturn(true).thenReturn(false);
+      when(jKubeBuildPluginIterator.next()).thenReturn(new TestJKubePlugin());
+      serviceLoaderMockedStatic.when(() -> ServiceLoader.load(any(), (ClassLoader) any()))
+          .thenReturn(mockedServiceLoader).thenCallRealMethod();
+      // Given
+      when(javaProject.getBuildDirectory()).thenReturn(temporaryFolder);
+
       // When
       BuildPluginsHelper.executeBuildPlugins(javaProject, kitLogger);
 
       // Then
-      assertThat(temporaryFolder).isEmptyDirectory();
+      assertThat(temporaryFolder).fileTree().contains("docker-extra", "docker-extra/test-file");
     }
   }
 
-
   @Test
-  void executeBuildPlugins_withDescriptor_shouldDoNothing() throws IOException {
-    // Given
-    try (MockedStatic<ClassUtil> classUtilMockedStatic = mockStatic(ClassUtil.class)) {
+  void executeBuildPlugins_whenLoadedImplThrowsException_thenLogMessage() throws IOException {
+    try (MockedStatic<ServiceLoader> serviceLoaderMockedStatic = mockStatic(ServiceLoader.class)) {
+      JKubeBuildPlugin mockedJKubeBuildPlugin = mock(JKubeBuildPlugin.class);
+      IOException expectedThrownIOException = new IOException("I/O failure");
+      when(mockedJKubeBuildPlugin.getName()).thenReturn("MockedJKubeBuildPlugin");
+      doThrow(expectedThrownIOException).when(mockedJKubeBuildPlugin).addExtraFiles(any());
+      when(jKubeBuildPluginIterator.hasNext()).thenReturn(true).thenReturn(false);
+      when(jKubeBuildPluginIterator.next()).thenReturn(mockedJKubeBuildPlugin);
+      serviceLoaderMockedStatic.when(() -> ServiceLoader.load(any(), (ClassLoader) any()))
+          .thenReturn(mockedServiceLoader).thenCallRealMethod();
+      // Given
       when(javaProject.getBuildDirectory()).thenReturn(temporaryFolder);
-      classUtilMockedStatic.when(() -> ClassUtil.getResourcesInContextClassloader("META-INF/maven/org.eclipse.jkube/jkube-plugin"))
-          .thenReturn(Collections.enumeration(Collections.singletonList(new URL("jar:file:/tmp/run-java-sh-1.3.8.jar!/META-INF/maven/org.eclipse.jkube/jkube-plugin"))));
+
       // When
       BuildPluginsHelper.executeBuildPlugins(javaProject, kitLogger);
 
       // Then
-      assertThat(temporaryFolder).fileTree().contains("docker-extra");
+      verify(kitLogger, times(1)).verbose("Failure while extracting files from %s, %s", "MockedJKubeBuildPlugin", expectedThrownIOException);
+    }
+  }
+
+  private static class TestJKubePlugin implements JKubeBuildPlugin {
+    @Override
+    public void addExtraFiles(File targetDir) throws IOException {
+      File newFileToCreate = new File(targetDir, "test-file");
+      if (!newFileToCreate.createNewFile()) {
+        throw new IOException("Failure in creating file");
+      }
+    }
+
+    @Override
+    public String getName() {
+      return getClass().getName();
     }
   }
 }
