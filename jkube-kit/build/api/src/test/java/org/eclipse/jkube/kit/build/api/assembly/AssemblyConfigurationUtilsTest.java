@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.createDockerFileBuilder;
@@ -39,19 +40,16 @@ import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtil
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
 
-@RunWith(MockitoJUnitRunner.class)
+
 public class AssemblyConfigurationUtilsTest {
-  @Mock
+
   BuildConfiguration buildConfiguration;
-  @Mock
   Assembly assembly;
-  @Mock
   AssemblyFile file;
-  @Mock
   AssemblyFileSet fileSet;
   @Test
   public void getAssemblyConfigurationOrCreateDefaultNoConfigurationShouldReturnDefault() {
-
+    buildConfiguration =mock(BuildConfiguration.class);
     // Given
     when(buildConfiguration.getAssembly()).thenReturn(null);
     // When
@@ -65,7 +63,7 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultWithConfigurationShouldReturnConfiguration() {
-
+    buildConfiguration =mock(BuildConfiguration.class);
     // Given
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
     when(buildConfiguration.getAssembly()).thenReturn(configuration);
@@ -98,7 +96,8 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFileSetsNotNullShouldReturnFileSets() {
-
+    assembly = mock(Assembly.class);
+    fileSet = mock(AssemblyFileSet.class);
     // Given
     when(assembly.getFileSets()).thenReturn(Collections.singletonList(fileSet));
     when(fileSet.getDirectory()).thenReturn(new File("1337"));
@@ -131,7 +130,8 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFilesNotNullShouldReturnFiles() {
-
+    file =  mock(AssemblyFile.class);
+    assembly = mock(Assembly.class);
     // Given
     when(assembly.getFiles()).thenReturn(Collections.singletonList(file));
     when(file.getSource()).thenReturn(new File("1337"));

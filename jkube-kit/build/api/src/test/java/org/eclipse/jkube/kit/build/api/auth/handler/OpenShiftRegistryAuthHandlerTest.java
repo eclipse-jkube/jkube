@@ -42,7 +42,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author roland
  */
-@RunWith(MockitoJUnitRunner.class)
 public class OpenShiftRegistryAuthHandlerTest {
 
   @Rule
