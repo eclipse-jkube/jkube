@@ -13,22 +13,15 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import org.eclipse.jkube.kit.api.JKubeBuildPlugin;
+
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
-
-import static org.eclipse.jkube.kit.common.util.ClassUtil.getResourcesInContextClassloader;
+import java.util.ServiceLoader;
 
 public class BuildPluginsHelper {
   private BuildPluginsHelper() { }
 
-  public static final String JKUBE_PLUGIN_DESCRIPTOR = "META-INF/maven/org.eclipse.jkube/jkube-plugin";
   public static final String JKUBE_EXTRA_DIR = "docker-extra";
 
   /**
@@ -38,56 +31,32 @@ public class BuildPluginsHelper {
    * @param log logger
    */
   public static void executeBuildPlugins(JavaProject project, KitLogger log) {
-    try {
-      Enumeration<URL> dmpPlugins = getResourcesInContextClassloader(JKUBE_PLUGIN_DESCRIPTOR);
-      while (dmpPlugins.hasMoreElements()) {
-        URL dmpPlugin = dmpPlugins.nextElement();
-        File outputDir = getAndEnsureOutputDirectory(project);
-        processDmpPluginDescription(dmpPlugin, outputDir, log);
-      }
-    } catch (IOException e) {
-      log.error("Cannot load jkube-plugins from %s", JKUBE_PLUGIN_DESCRIPTOR);
-    }
+    File outputDir = getAndEnsureOutputDirectory(project);
+    processDmpPluginDescription(outputDir, log);
   }
 
   private static File getAndEnsureOutputDirectory(JavaProject project) {
     File outputDir = new File(project.getBuildDirectory(), JKUBE_EXTRA_DIR);
-    if (!outputDir.exists()) {
-      outputDir.mkdirs();
+    if (!outputDir.exists() && !outputDir.mkdirs()) {
+      throw new IllegalStateException("Unable to create directory " + outputDir.getAbsolutePath());
     }
     return outputDir;
   }
 
-  private static void processDmpPluginDescription(URL pluginDesc, File outputDir, KitLogger log) throws IOException {
-    String line = null;
-    try (LineNumberReader reader =
-             new LineNumberReader(new InputStreamReader(pluginDesc.openStream(), StandardCharsets.UTF_8))) {
-      line = reader.readLine();
-      while (line != null) {
-        if (line.matches("^\\s*#")) {
-          // Skip comments
-          continue;
-        }
-        callBuildPlugin(outputDir, line, log);
-        line = reader.readLine();
-      }
-    } catch (ClassNotFoundException e) {
-      // Not declared as dependency, so just ignoring ...
-    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-      log.verbose("Found jkube-plugin %s but could not be called : %s",
-          line,
-          e.getMessage());
+  private static void processDmpPluginDescription(File outputDir, KitLogger log) {
+    ServiceLoader<JKubeBuildPlugin> jKubeBuildPluginProvider = ServiceLoader.load(JKubeBuildPlugin.class,
+        Thread.currentThread().getContextClassLoader());
+    for (JKubeBuildPlugin jKubeBuildPlugin : jKubeBuildPluginProvider) {
+      callBuildPlugin(jKubeBuildPlugin, outputDir, log);
     }
   }
 
-  private static void callBuildPlugin(File outputDir, String buildPluginClass, KitLogger log) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    Class buildPlugin = Class.forName(buildPluginClass);
+  private static void callBuildPlugin(JKubeBuildPlugin jKubeBuildPlugin, File outputDir, KitLogger log) {
     try {
-      Method method = buildPlugin.getMethod("addExtraFiles", File.class);
-      method.invoke(null, outputDir);
-      log.info("Extra files from %s extracted", buildPluginClass);
-    } catch (NoSuchMethodException exp) {
-      log.verbose("Build plugin %s does not support 'addExtraFiles' method", buildPluginClass);
+      jKubeBuildPlugin.addExtraFiles(outputDir);
+      log.info("Extra files from %s extracted", jKubeBuildPlugin.getName());
+    } catch (IOException exception) {
+      log.verbose("Failure while extracting files from %s, %s", jKubeBuildPlugin.getName(), exception);
     }
   }
 }

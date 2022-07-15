@@ -60,10 +60,6 @@ public class ClassUtil {
         return ret;
     }
 
-    public static Enumeration<URL> getResourcesInContextClassloader(String resource) throws IOException {
-        return Thread.currentThread().getContextClassLoader().getResources(resource);
-    }
-
     private static ClassLoader[] mergeClassLoaders(List<ClassLoader> additionalClassLoaders) {
         ClassLoader[] classLoaders;
 

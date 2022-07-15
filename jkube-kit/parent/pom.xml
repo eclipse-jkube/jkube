@@ -123,6 +123,12 @@
       <!-- == Internal modules ==================================== -->
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-api</artifactId>
+        <version>${project.version}</version>
+        <type>jar</type>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-common</artifactId>
         <version>${project.version}</version>
         <type>jar</type>
