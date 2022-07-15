@@ -13,42 +13,18 @@
  */
 package org.eclipse.jkube.kit.config.image;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Parameterized.class)
-public class ImageNameFullNameParseTest {
+class ImageNameFullNameParseTest {
 
-  @Parameterized.Parameter
-  public String testName;
-
-  @Parameterized.Parameter(1)
-  public String providedFullName;
-
-  @Parameterized.Parameter(2)
-  public String expectedFullName;
-
-  @Parameterized.Parameter(3)
-  public String registry;
-
-  @Parameterized.Parameter(4)
-  public String user;
-
-  @Parameterized.Parameter(5)
-  public String repository;
-
-  @Parameterized.Parameter(6)
-  public String tag;
-
-  @Parameterized.Parameter(7)
-  public String digest;
-
-  @Parameterized.Parameters(name = "{index}: {0}")
-  public static Object[][] data() {
-    return new Object[][] {
+  public static Stream<Object[]> data() {
+    return Stream.of(
+     new Object[][] {
         {"Repo and Name", "eclipse/eclipse_jkube",
             "eclipse/eclipse_jkube:latest", null, "eclipse", "eclipse/eclipse_jkube", "latest", null},
         {"Repo and Name with special characters", "valid.name-with__separators/eclipse_jkube",
@@ -73,11 +49,13 @@ public class ImageNameFullNameParseTest {
             "long.registry.example.com:8080/valid.name--with__separators/eclipse_jkube:very--special__tag.2.A",
             "long.registry.example.com:8080",
             "valid.name--with__separators", "valid.name--with__separators/eclipse_jkube", "very--special__tag.2.A", null},
-    };
+    });
   }
 
-  @Test
-  public void fullNameParse() {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("data")
+  void fullNameParse(String testName, String providedFullName, String expectedFullName, String registry, String user,
+                     String repository, String tag, String digest) {
     final ImageName result = new ImageName(providedFullName);
     assertThat(result)
         .extracting(

@@ -13,16 +13,14 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
-import org.junit.Test;
-
-import java.util.Arrays;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ArgumentsTest {
+class ArgumentsTest {
 
     @Test
-    public void testShellArgWithSpaceEscape() {
+    void testShellArgWithSpaceEscape() {
       String[] testSubject = { "java", "-jar", "$HOME/name with space.jar" };
       Arguments arg = Arguments.builder().shell("java -jar $HOME/name\\ with\\ space.jar").build();
       assertThat(arg.asStrings()).containsExactly(testSubject);
