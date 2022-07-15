@@ -34,7 +34,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+
 public class OpenshiftUndeployMojoTest {
 
   @Rule
