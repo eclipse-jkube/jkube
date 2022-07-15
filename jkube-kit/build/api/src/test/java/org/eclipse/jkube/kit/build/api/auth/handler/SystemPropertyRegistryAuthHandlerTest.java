@@ -32,20 +32,20 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author roland
  */
-@RunWith(MockitoJUnitRunner.class)
 public class SystemPropertyRegistryAuthHandlerTest {
 
-  @Mock
   KitLogger log;
 
   SystemPropertyRegistryAuthHandler handler;
 
   @Before
   public void setup() {
+    log = mock(KitLogger.class);
     RegistryAuthConfig registryAuthConfig = RegistryAuthConfig.builder()
         .skipExtendedAuthentication(false)
         .propertyPrefix("jkube.docker")
