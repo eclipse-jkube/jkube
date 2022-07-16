@@ -28,6 +28,7 @@ import org.junit.rules.TemporaryFolder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -72,11 +73,11 @@ public class HelmUploaderTest {
 
   @Test
   public void uploadSingle_withServerErrorAndErrorStream_shouldThrowException() throws IOException {
-    HelmRepository helmRepository = mock(HelmRepository.class);
+    HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
     HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
     // Given
     File file = temporaryFolder.newFile("test.tmp");
-    when(helmRepository.getType().createConnection((File) any(), helmRepository)).thenReturn(httpURLConnection);
+    when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(500);
     when(httpURLConnection.getErrorStream()).thenReturn(new ByteArrayInputStream("Server error in ES".getBytes()));
     when(httpURLConnection.getInputStream()).thenReturn(new ByteArrayInputStream("Server error in IS".getBytes()));
@@ -92,14 +93,11 @@ public class HelmUploaderTest {
 
   @Test
   public void uploadSingle_withServerErrorAndInputStream_shouldThrowException() throws IOException {
-    HelmRepository helmRepository = mock(HelmRepository.class,RETURNS_DEEP_STUBS);
-    HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
-    HelmRepository.HelmRepoType repoType = mock(HelmRepository.HelmRepoType.class);
     // Given
+    HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
+    HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
     File file = temporaryFolder.newFile("test.tmp");
-    //when(helmRepository.getType().createConnection((File) any(), helmRepository)).thenReturn(httpURLConnection);
-    when(helmRepository.getType()).thenReturn(repoType);
-    when(repoType.createConnection((File) any(), helmRepository)).thenReturn(httpURLConnection);
+    when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(500);
     when(httpURLConnection.getErrorStream()).thenReturn(null);
     when(httpURLConnection.getInputStream()).thenReturn(new ByteArrayInputStream("Server error in IS".getBytes()));
@@ -114,11 +112,11 @@ public class HelmUploaderTest {
 
   @Test
   public void uploadSingle_withServerError_shouldThrowException() throws IOException {
-    HelmRepository helmRepository = mock(HelmRepository.class);
-    HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
     // Given
+    HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
+    HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
     File file = temporaryFolder.newFile("test.tmp");
-    when(helmRepository.getType().createConnection((File) any(), helmRepository)).thenReturn(httpURLConnection);
+    when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(500);
     when(httpURLConnection.getErrorStream()).thenReturn(null);
     when(httpURLConnection.getInputStream()).thenReturn(null);
@@ -133,16 +131,16 @@ public class HelmUploaderTest {
 
   @Test
   public void uploadSingle_withCreatedStatus_shouldDisconnect()throws IOException, BadUploadException {
-    HelmRepository helmRepository = mock(HelmRepository.class);
-    HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
     // Given
+    HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
+    HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
     File file = temporaryFolder.newFile("test.tmp");
-    when(helmRepository.getType().createConnection((File)any(), helmRepository)).thenReturn(httpURLConnection);
+    when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(201);
     when(httpURLConnection.getInputStream()).thenReturn(null);
     // When
     helmUploader.uploadSingle(file, helmRepository);
     // Then
-    verify(httpURLConnection,times(1)).disconnect();
+    verify(httpURLConnection, times(1)).disconnect();
   }
 }

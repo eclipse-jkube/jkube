@@ -32,10 +32,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -206,30 +208,34 @@ public class HelmServiceUtilTest {
 
   @Test
   public void findIconUrl_fromProvidedFile_returnsValidUrl() throws IOException {
-    ResourceUtil resourceUtil = mock(ResourceUtil.class,RETURNS_DEEP_STUBS);
-    HasMetadata listEntry = mock(HasMetadata.class,RETURNS_DEEP_STUBS);
-    // Given
-    manifest.createNewFile();
-    when(resourceUtil.load(manifest,KubernetesResource.class)).thenReturn(new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null));
-    when(listEntry.getMetadata().getAnnotations()).thenReturn(Collections.singletonMap("jkube.io/iconUrl", "https://my-icon"));
-    // When
-    String url = HelmServiceUtil.findIconURL(manifest);
-    // Then
-    assertThat(url).isEqualTo("https://my-icon");
+    try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
+      // Given
+      HasMetadata listEntry = mock(HasMetadata.class,RETURNS_DEEP_STUBS);
+      resourceUtilMockedStatic.when(() -> ResourceUtil.load(manifest, KubernetesResource.class))
+          .thenReturn(new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null));
+      manifest.createNewFile();
+      when(listEntry.getMetadata().getAnnotations()).thenReturn(Collections.singletonMap("jkube.io/iconUrl", "https://my-icon"));
+      // When
+      String url = HelmServiceUtil.findIconURL(manifest);
+      // Then
+      assertThat(url).isEqualTo("https://my-icon");
+    }
   }
 
   @Test
   public void findTemplatesFromProvidedFile() throws Exception {
-    ResourceUtil resourceUtil = mock(ResourceUtil.class,RETURNS_DEEP_STUBS);
-    Template template = mock(Template.class);
-    // Given
-    when(resourceUtil.load(manifest, KubernetesResource.class)).thenReturn(template);
-    // When
-    List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
-    // Then
-    assertThat(templateList)
-      .hasSize(1)
-      .contains(template);
+    try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
+      Template template = mock(Template.class);
+      resourceUtilMockedStatic.when(() -> ResourceUtil.load(manifest, KubernetesResource.class))
+          .thenReturn(template);
+      // Given
+      // When
+      List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
+      // Then
+      assertThat(templateList)
+          .hasSize(1)
+          .contains(template);
+    }
   }
 
 }
