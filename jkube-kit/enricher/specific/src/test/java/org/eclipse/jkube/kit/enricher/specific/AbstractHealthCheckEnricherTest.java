@@ -24,7 +24,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -33,6 +33,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests that the enrichment is performed on the right containers.
@@ -41,8 +42,12 @@ import static org.junit.Assert.*;
  */
 public class AbstractHealthCheckEnricherTest {
 
-    @Mocked
     KitLogger log;
+
+    @Before
+    public void setUp() throws Exception {
+        log = mock(KitLogger.class);
+    }
 
     @Test
     public void enrichSingleContainer() {

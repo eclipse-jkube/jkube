@@ -20,8 +20,6 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import mockit.Expectations;
-import mockit.Mocked;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +28,9 @@ import javax.validation.constraints.Null;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ServiceDiscoveryEnricherTest {
 
@@ -42,7 +43,6 @@ public class ServiceDiscoveryEnricherTest {
     private static final String discoveryVersion = "v1337";
 
     @SuppressWarnings("unused")
-    @Mocked
     private JKubeEnricherContext context;
 
     private ServiceDiscoveryEnricher enricher;
@@ -53,6 +53,7 @@ public class ServiceDiscoveryEnricherTest {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Before
     public void setUp() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("path", path);
         configMap.put("port", port);
@@ -64,12 +65,7 @@ public class ServiceDiscoveryEnricherTest {
         ProcessorConfig processorConfig = new ProcessorConfig(
             null, null, Collections.singletonMap("jkube-service-discovery", configMap)
         );
-
-        // Setup mock behaviour
-        new Expectations() {{
-            context.getConfiguration().getProcessorConfig(); result = processorConfig;
-        }};
-
+        when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
         enricher = new ServiceDiscoveryEnricher(context);
         builder = new ServiceBuilder();
     }

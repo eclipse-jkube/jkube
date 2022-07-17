@@ -21,25 +21,26 @@ import java.util.function.BiFunction;
 
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 public class WebAppHealthCheckEnricherTest {
 
-    @Mocked
     private JKubeEnricherContext context;
-
+    @Before
+    public void setUp() {
+        context = mock(JKubeEnricherContext.class);
+    }
     private void setupExpectations(Map<String, Object> config) {
-        new Expectations() {{
-            context.hasPlugin("org.apache.maven.plugins", "maven-war-plugin");
-            result = true;
-
-            Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
-            configBuilder.pluginConfigLookup(getProjectLookup(config));
-        }};
+        when(context.hasPlugin("org.apache.maven.plugins", "maven-war-plugin")).thenReturn(true);
+        Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
+        configBuilder.pluginConfigLookup(getProjectLookup(config));
     }
 
     @Test
@@ -47,38 +48,41 @@ public class WebAppHealthCheckEnricherTest {
 
         // given
 
-        WebAppHealthCheckEnricher enricher = new WebAppHealthCheckEnricher(context);
-        setupExpectations(new HashMap<>());
+        try (MockedConstruction<WebAppHealthCheckEnricher> helmUploaderMockedConstruction = mockConstruction(WebAppHealthCheckEnricher.class)){
+            WebAppHealthCheckEnricher enricher = new WebAppHealthCheckEnricher(context);
+            setupExpectations(new HashMap<>());
+            // when
 
-        // when
+            Probe probeLiveness = enricher.getLivenessProbe();
+            Probe probeReadiness = enricher.getReadinessProbe();
 
-        Probe probeLiveness = enricher.getLivenessProbe();
-        Probe probeReadiness = enricher.getReadinessProbe();
+            // then
+            assertThat(probeLiveness).isNull();
+            assertThat(probeReadiness).isNull();
+        }
 
-        // then
-        assertThat(probeLiveness).isNull();
-        assertThat(probeReadiness).isNull();
     }
 
     @Test
     public void enrichmentWithDefaultsIfPath() {
 
         // given
+        try (MockedConstruction<WebAppHealthCheckEnricher> helmUploaderMockedConstruction = mockConstruction(WebAppHealthCheckEnricher.class)) {
+            final Map<String, Object> config = createFakeConfig(
+                    "<path>/health</path>");
+            setupExpectations(config);
 
-        final Map<String, Object> config = createFakeConfig(
-            "<path>/health</path>");
-        setupExpectations(config);
+            WebAppHealthCheckEnricher enricher = new WebAppHealthCheckEnricher(context);
 
-        WebAppHealthCheckEnricher enricher = new WebAppHealthCheckEnricher(context);
+            // when
 
-        // when
+            Probe probeLiveness = enricher.getLivenessProbe();
+            Probe probeReadiness = enricher.getReadinessProbe();
 
-        Probe probeLiveness = enricher.getLivenessProbe();
-        Probe probeReadiness = enricher.getReadinessProbe();
-
-        // then
-        assertThat(probeLiveness).isNull();
-        assertThat(probeReadiness).isNull();
+            // then
+            assertThat(probeLiveness).isNull();
+            assertThat(probeReadiness).isNull();
+        }
     }
 
     private BiFunction<String, String, Optional<Map<String, Object>>> getProjectLookup(Map<String, Object> config) {
