@@ -51,7 +51,7 @@ public class JKubeEnricherContextTest {
 
     // Then
     assertThat(jKubeEnricherContext)
-        .hasFieldOrPropertyWithValue("jKubeBuildStrategy", JKubeBuildStrategy.jib)
+        .hasFieldOrPropertyWithValue("configuration.jKubeBuildStrategy", JKubeBuildStrategy.jib)
         .hasFieldOrPropertyWithValue("settings", Collections.singletonList(RegistryServerConfiguration.builder().id("test").username("xyz").password("secret").build()))
         .hasFieldOrPropertyWithValue("processingInstructions", Collections.singletonMap("foo", "bar"))
         .hasFieldOrPropertyWithValue("images", Collections.singletonList(ImageConfiguration.builder().name("foo:latest").build()))
@@ -161,7 +161,7 @@ public class JKubeEnricherContextTest {
         .build();
 
     // When
-    JKubeBuildStrategy jKubeBuildStrategy = jKubeEnricherContext.getBuildStrategy();
+    JKubeBuildStrategy jKubeBuildStrategy = jKubeEnricherContext.getConfiguration().getJKubeBuildStrategy();
 
     // Then
     assertThat(jKubeBuildStrategy).isEqualTo(JKubeBuildStrategy.docker);

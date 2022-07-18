@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
@@ -66,17 +67,21 @@ public class Configuration {
      */
     private ProcessorConfig processorConfig;
 
+    private JKubeBuildStrategy jKubeBuildStrategy;
+
     @Builder(toBuilder = true)
     public Configuration(
         @Singular List<ImageConfiguration> images, ResourceConfig resource,
         BiFunction<String, String, Optional<Map<String, Object>>> pluginConfigLookup,
-        Function<String, Optional<Map<String, Object>>> secretConfigLookup, ProcessorConfig processorConfig) {
+        Function<String, Optional<Map<String, Object>>> secretConfigLookup, ProcessorConfig processorConfig,
+        JKubeBuildStrategy jKubeBuildStrategy) {
 
         this.images = images;
         this.resource = resource;
         this.pluginConfigLookup = pluginConfigLookup;
         this.secretConfigLookup = secretConfigLookup;
         this.processorConfig = processorConfig;
+        this.jKubeBuildStrategy = jKubeBuildStrategy;
     }
 
     /**

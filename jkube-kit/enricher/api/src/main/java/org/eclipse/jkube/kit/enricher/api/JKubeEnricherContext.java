@@ -71,6 +71,7 @@ public class JKubeEnricherContext implements EnricherContext {
     @Getter(AccessLevel.NONE)
     private ProcessorConfig processorConfig;
     private HandlerHub handlerHub;
+    @Getter(AccessLevel.NONE)
     private JKubeBuildStrategy jKubeBuildStrategy;
 
 
@@ -87,11 +88,11 @@ public class JKubeEnricherContext implements EnricherContext {
         this.images = images;
         this.processorConfig = processorConfig;
         this.handlerHub = new HandlerHub(getGav(), getProperties());
-        this.jKubeBuildStrategy = jKubeBuildStrategy;
         this.configuration = Configuration.builder()
             .images(images)
             .resource(resources)
             .processorConfig(processorConfig)
+            .jKubeBuildStrategy(jKubeBuildStrategy)
             .pluginConfigLookup(
                 (system, id) -> {
                     if (!"maven".equals(system)) {
@@ -172,11 +173,6 @@ public class JKubeEnricherContext implements EnricherContext {
     @Override
     public String getProperty(String key) {
         return project.getProperties() != null ? project.getProperties().getProperty(key) : null;
-    }
-
-    @Override
-    public JKubeBuildStrategy getBuildStrategy() {
-        return jKubeBuildStrategy;
     }
 
     //Method used in MOJO

@@ -155,7 +155,7 @@ public class ImageChangeTriggerEnricherTest {
     new Expectations() {{
       context.getProperties();
       result = properties;
-      context.getBuildStrategy();
+      context.getConfiguration().getJKubeBuildStrategy();
       result = JKubeBuildStrategy.jib;
     }};
     ImageChangeTriggerEnricher imageChangeTriggerEnricher = new ImageChangeTriggerEnricher(context);
