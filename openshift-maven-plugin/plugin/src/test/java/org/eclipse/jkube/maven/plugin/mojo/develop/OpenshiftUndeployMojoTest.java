@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -21,9 +20,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 
 public class OpenshiftUndeployMojoTest {
 
@@ -47,7 +42,7 @@ public class OpenshiftUndeployMojoTest {
 
   @Before
   public void setUp() throws IOException {
-    mockServiceHub=mock(JKubeServiceHub.class,RETURNS_DEEP_STUBS);
+    mockServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     kubernetesManifestFile = temporaryFolder.newFile();
     openShiftManifestFile = temporaryFolder.newFile();
     openShiftISManifestFile = temporaryFolder.newFile();
