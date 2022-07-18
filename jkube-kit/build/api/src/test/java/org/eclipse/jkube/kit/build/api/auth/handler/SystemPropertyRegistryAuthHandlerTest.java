@@ -26,10 +26,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -45,7 +41,7 @@ public class SystemPropertyRegistryAuthHandlerTest {
 
   @Before
   public void setup() {
-    log = mock(KitLogger.class);
+    log = new KitLogger.SilentLogger();
     RegistryAuthConfig registryAuthConfig = RegistryAuthConfig.builder()
         .skipExtendedAuthentication(false)
         .propertyPrefix("jkube.docker")

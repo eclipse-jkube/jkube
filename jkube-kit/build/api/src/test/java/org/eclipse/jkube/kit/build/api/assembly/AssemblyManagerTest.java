@@ -36,9 +36,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 public class AssemblyManagerTest {
-  KitLogger logger;
-  JKubeConfiguration configuration;
-  JavaProject project;
+  private KitLogger logger;
+  private JKubeConfiguration configuration;
+  private JavaProject project;
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 

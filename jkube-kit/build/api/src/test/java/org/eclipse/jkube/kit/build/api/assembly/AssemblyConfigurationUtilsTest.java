@@ -28,10 +28,6 @@ import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,17 +39,17 @@ import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtil
 
 public class AssemblyConfigurationUtilsTest {
 
-  BuildConfiguration buildConfiguration;
-  Assembly assembly;
+  private BuildConfiguration mockedBuildConfiguration;
+  private Assembly assembly;
   AssemblyFile file;
   AssemblyFileSet fileSet;
   @Test
   public void getAssemblyConfigurationOrCreateDefaultNoConfigurationShouldReturnDefault() {
-    buildConfiguration =mock(BuildConfiguration.class);
+    mockedBuildConfiguration = mock(BuildConfiguration.class);
     // Given
-    when(buildConfiguration.getAssembly()).thenReturn(null);
+    when(mockedBuildConfiguration.getAssembly()).thenReturn(null);
     // When
-    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(mockedBuildConfiguration);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("name", "maven")
@@ -63,12 +59,12 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultWithConfigurationShouldReturnConfiguration() {
-    buildConfiguration =mock(BuildConfiguration.class);
+    mockedBuildConfiguration = mock(BuildConfiguration.class);
     // Given
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
-    when(buildConfiguration.getAssembly()).thenReturn(configuration);
+    when(mockedBuildConfiguration.getAssembly()).thenReturn(configuration);
     // When
-    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(mockedBuildConfiguration);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("name", "ImageName")

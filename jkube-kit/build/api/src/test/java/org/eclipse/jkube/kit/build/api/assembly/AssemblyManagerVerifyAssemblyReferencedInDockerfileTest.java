@@ -29,6 +29,7 @@ import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
@@ -39,7 +40,7 @@ public class AssemblyManagerVerifyAssemblyReferencedInDockerfileTest {
     KitLogger logger;
     @Before
     public void setUp(){
-        logger=mock(KitLogger.class);
+        logger=spy(KitLogger.SilentLogger.class);
     }
     @Parameterized.Parameters(name = "{0}: verifyDockerFile({1})={2}")
     public static Collection<Object[]> data() {

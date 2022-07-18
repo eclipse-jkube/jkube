@@ -23,11 +23,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -40,10 +37,12 @@ import static org.mockito.Mockito.mock;
 public class FromConfigRegistryAuthHandlerTest {
 
   private KitLogger log;
-
+  @Before
+  public void setUp() throws Exception {
+    log = mock(KitLogger.class);
+  }
   @Test
   public void testFromPluginConfiguration() throws IOException {
-    log = mock(KitLogger.class);
     FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(setupAuthConfigFactoryWithConfigData(), log);
 
     AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s);
@@ -70,7 +69,6 @@ public class FromConfigRegistryAuthHandlerTest {
 
   @Test
   public void testFromPluginConfigurationPull() {
-    log = mock(KitLogger.class);
     FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(
         setupAuthConfigFactoryWithConfigDataForKind(RegistryAuthConfig.Kind.PULL), log);
 
@@ -80,7 +78,6 @@ public class FromConfigRegistryAuthHandlerTest {
 
   @Test
   public void testFromPluginConfigurationFailed() {
-    log = mock(KitLogger.class);
     FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(
         RegistryAuthConfig.builder().putDefaultConfig(RegistryAuth.USERNAME, "admin").build(), log);
 
@@ -90,7 +87,6 @@ public class FromConfigRegistryAuthHandlerTest {
   }
 
   private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
-    log = mock(KitLogger.class);
     JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())),
         JsonObject.class);
     assertEquals(username, params.get("username").getAsString());
