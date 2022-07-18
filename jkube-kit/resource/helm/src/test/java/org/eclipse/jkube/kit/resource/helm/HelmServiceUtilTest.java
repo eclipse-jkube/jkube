@@ -225,10 +225,10 @@ public class HelmServiceUtilTest {
   @Test
   public void findTemplatesFromProvidedFile() throws Exception {
     try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
+      // Given
       Template template = mock(Template.class);
       resourceUtilMockedStatic.when(() -> ResourceUtil.load(manifest, KubernetesResource.class))
           .thenReturn(template);
-      // Given
       // When
       List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
       // Then
