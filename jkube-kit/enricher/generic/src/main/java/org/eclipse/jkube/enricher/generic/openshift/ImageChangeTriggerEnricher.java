@@ -114,7 +114,7 @@ public class ImageChangeTriggerEnricher extends BaseEnricher {
     private Boolean isImageChangeTriggerNeeded(String containerName) {
         String containersFromConfig = Configs.asString(getConfig(Config.CONTAINERS));
         Boolean enrichAll = getValueFromConfig(ENRICH_ALL_WITH_IMAGE_TRIGGERS, false);
-        JKubeBuildStrategy buildStrategy = getContext().getBuildStrategy();
+        JKubeBuildStrategy buildStrategy = getContext().getConfiguration().getJKubeBuildStrategy();
 
         if (Boolean.TRUE.equals(enrichAll)) {
             return true;
