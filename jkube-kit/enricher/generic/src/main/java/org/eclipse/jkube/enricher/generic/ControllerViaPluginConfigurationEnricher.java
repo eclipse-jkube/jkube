@@ -76,7 +76,7 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
         ResourceConfig xmlResourceConfig = getConfiguration().getResource();
         final ResourceConfig config = ResourceConfig.builder()
                 .controllerName(name)
-                .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, getConfig(Config.PULL_POLICY)))
+                .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, Config.PULL_POLICY))
                 .replicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
                 .build();
 

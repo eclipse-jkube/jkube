@@ -158,10 +158,10 @@ public class BaseEnricher implements Enricher {
      * XML config.
      *
      * @param resourceConfig resource config from plugin configuration
-     * @param imagePullPolicyFromEnricherConfig ImagePullPolicy resolved from Enricher's configuration
+     * @param enricherConfig Enricher specific configuration for ImagePullPolicy
      * @return string as image pull policy
      */
-    protected String getImagePullPolicy(ResourceConfig resourceConfig, String imagePullPolicyFromEnricherConfig) {
+    protected String getImagePullPolicy(ResourceConfig resourceConfig, Configs.Config enricherConfig) {
         String imagePullPolicyFromProperty = getValueFromConfig(JKUBE_ENFORCED_IMAGE_PULL_POLICY, null);
         if (StringUtils.isNotBlank(imagePullPolicyFromProperty)) {
             return imagePullPolicyFromProperty;
@@ -169,6 +169,7 @@ public class BaseEnricher implements Enricher {
         if (resourceConfig != null && StringUtils.isNotBlank(resourceConfig.getImagePullPolicy())) {
             return resourceConfig.getImagePullPolicy();
         }
+        final String imagePullPolicyFromEnricherConfig = enricherConfig != null ? getConfig(enricherConfig) : null;
         if (StringUtils.isNotBlank(imagePullPolicyFromEnricherConfig)) {
             return imagePullPolicyFromEnricherConfig;
         }
