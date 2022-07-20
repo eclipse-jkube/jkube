@@ -14,16 +14,16 @@
 package org.eclipse.jkube.kit.config.access;
 
 import io.fabric8.kubernetes.client.Config;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ClusterConfigurationTest {
+class ClusterConfigurationTest {
 
   @Test
-  public void should_load_configuration_from_properties() {
+  void should_load_configuration_from_properties() {
     // Given
     final Properties properties = new Properties();
     properties.put("jkube.username", "user name");
@@ -34,13 +34,14 @@ public class ClusterConfigurationTest {
     // When
     final Config config = ClusterConfiguration.from(properties).build().getConfig();
     // Then
-    assertThat(config.getUsername()).isEqualTo("user name");
-    assertThat(config.getPassword()).isEqualTo("the pa$$w*rd");
-    assertThat(config.getMasterUrl()).isEqualTo("https://example.com/");
+    assertThat(config).isNotNull()
+            .hasFieldOrPropertyWithValue("username", "user name")
+            .hasFieldOrPropertyWithValue("password", "the pa$$w*rd")
+            .hasFieldOrPropertyWithValue("masterUrl", "https://example.com/");
   }
 
   @Test
-  public void should_load_configuration_from_multiple_properties() {
+  void should_load_configuration_from_multiple_properties() {
     // Given
     final Properties props1 = new Properties();
     props1.put("jkube.namespace", "not-the-default");
@@ -56,15 +57,16 @@ public class ClusterConfigurationTest {
     // When
     final Config config = ClusterConfiguration.from(props1, props2, props3).build().getConfig();
     // Then
-    assertThat(config.getApiVersion()).isEqualTo("v1337");
-    assertThat(config.getClientKeyPassphrase()).isEqualTo("notchanged");
-    assertThat(config.getNamespace()).isEqualTo("not-the-default");
-    assertThat(config.getUsername()).isEqualTo("user name");
-    assertThat(config.getPassword()).isEqualTo("the pa$$w*rd");
+    assertThat(config).isNotNull()
+            .hasFieldOrPropertyWithValue("apiVersion", "v1337")
+            .hasFieldOrPropertyWithValue("clientKeyPassphrase", "notchanged")
+            .hasFieldOrPropertyWithValue("namespace", "not-the-default")
+            .hasFieldOrPropertyWithValue("username", "user name")
+            .hasFieldOrPropertyWithValue("password", "the pa$$w*rd");
   }
 
   @Test
-  public void should_load_configuration_from_properties_with_initial() {
+  void should_load_configuration_from_properties_with_initial() {
     // Given
     final ClusterConfiguration original = ClusterConfiguration.builder()
         .username("won't make it").password("the pa$$w*rd").build();
@@ -73,11 +75,13 @@ public class ClusterConfigurationTest {
     // When
     final Config config = ClusterConfiguration.from(original, properties).build().getConfig();
     // Then
-    assertThat(config.getUsername()).isEqualTo("user name");
-    assertThat(config.getPassword()).isEqualTo("the pa$$w*rd");
+    assertThat(config).isNotNull()
+            .hasFieldOrPropertyWithValue("username","user name")
+            .hasFieldOrPropertyWithValue("password","the pa$$w*rd");
   }
+
   @Test
-  public void should_load_configuration_from_empty_array() {
+  void should_load_configuration_from_empty_array() {
     // When
     final Config config = ClusterConfiguration.from().build().getConfig();
     // Then
