@@ -105,7 +105,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
         .orElse(ResourceConfig.builder().build());
     ResourceConfig config = ResourceConfig.toBuilder(providedResourceConfig)
         .controllerName(getControllerName(providedResourceConfig, name))
-        .imagePullPolicy(getImagePullPolicy(providedResourceConfig, getConfig(Config.PULL_POLICY)))
+        .imagePullPolicy(getImagePullPolicy(providedResourceConfig, Config.PULL_POLICY))
         .replicas(getReplicaCount(builder, providedResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
         .restartPolicy(providedResourceConfig.getRestartPolicy())
         .build();
