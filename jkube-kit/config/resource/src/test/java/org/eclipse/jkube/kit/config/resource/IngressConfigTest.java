@@ -15,18 +15,18 @@ package org.eclipse.jkube.kit.config.resource;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class IngressConfigTest {
+class IngressConfigTest {
   /**
    * Verifies that deserialization works for raw deserialization (Maven-Plexus).
    */
   @Test
-  public void rawDeserialization() throws IOException {
+  void rawDeserialization() throws IOException {
     // Given
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(MapperFeature.USE_ANNOTATIONS, false);

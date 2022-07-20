@@ -14,11 +14,6 @@
 package org.eclipse.jkube.kit.config.resource;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.junit.Test;
-
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,13 +25,22 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.jkube.kit.common.Configs;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SuppressWarnings("unused")
-public class ProcessorConfigTest {
+@SuppressWarnings({"unused", "rawtypes", "unchecked"})
+class ProcessorConfigTest {
 
   @AllArgsConstructor
-  public enum TestConfig implements Configs.Config {
+  enum TestConfig implements Configs.Config {
     ONE("one", "configDefaultForOne"),
     TWO("two", "configDefaultForTwo"),
     NO_DEFAULT("three", null);
@@ -48,8 +52,7 @@ public class ProcessorConfigTest {
   }
 
   @Test
-  @SuppressWarnings("rawtypes")
-  public void setProcessorConfigShouldReplaceExistingProcessorConfig() {
+  void setProcessorConfigShouldReplaceExistingProcessorConfig() {
     // Given
     final Map<String, TreeMap> newConfig = Collections.singletonMap("configRef", new TreeMap<>(Collections.singletonMap("key", "value")));
     final ProcessorConfig processorConfig = new ProcessorConfig();
@@ -58,13 +61,13 @@ public class ProcessorConfigTest {
     processorConfig.setConfig(newConfig);
     // Then
     assertThat(processorConfig.getConfig()).containsOnlyKeys("configRef");
-    assertThat(processorConfig.getConfig().get("configRef")).containsEntry("key", "value");
-    assertThat(processorConfig.getConfig().get("configRef")).doesNotContainEntry("existingKey", "existingRef");
+    assertThat(processorConfig.getConfig().get("configRef"))
+            .containsEntry("key", "value")
+            .doesNotContainEntry("existingKey", "existingRef");
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void cloneProcessorConfig() {
+  void cloneProcessorConfig() {
     // Given
     final ProcessorConfig initial = new ProcessorConfig();
     initial.getIncludes().add("one-include");
@@ -74,12 +77,11 @@ public class ProcessorConfigTest {
     // When
     final ProcessorConfig result = ProcessorConfig.cloneProcessorConfig(initial);
     // Then
-    assertThat(result).isNotSameAs(initial).isEqualTo(initial).isEqualToComparingFieldByField(initial);
+    assertThat(result).isNotSameAs(initial).usingRecursiveComparison().isEqualTo(initial);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void cloneProcessorConfigWithNestedMaps() {
+  void cloneProcessorConfigWithNestedMaps() {
     // Given
     final ProcessorConfig initial = new ProcessorConfig();
     initial.getIncludes().add("one-include");
@@ -92,11 +94,11 @@ public class ProcessorConfigTest {
     // When
     final ProcessorConfig result = ProcessorConfig.cloneProcessorConfig(initial);
     // Then
-    assertThat(result).isNotSameAs(initial).isEqualTo(initial).isEqualToComparingFieldByField(initial);
+    assertThat(result).isNotSameAs(initial).usingRecursiveComparison().isEqualTo(initial);
   }
 
   @Test
-  public void getValueWithValueInAllShouldReturnValueInProcessorConfig() {
+  void getValueWithValueInAllShouldReturnValueInProcessorConfig() {
     // Given
     final ProcessorConfig config = new ProcessorConfig();
     config.getConfig().put("name", Collections.singletonMap("one", "oneInConfig"));
@@ -110,65 +112,32 @@ public class ProcessorConfigTest {
     assertThat(result).isEqualTo("oneInConfig");
   }
 
-  @Test
-  public void getValueWithValueInPropertiesAndDefaultValAndDefaultConfigShouldReturnValueInProperties() {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("getValueTestData")
+  void getValue(String testDesc, String propertyKey, TestConfig testConfig, String defaultValue, String expected) {
     // Given
     final ProcessorConfig config = new ProcessorConfig();
     config.getConfig().put("name", Collections.singletonMap("two", "twoInConfig"));
     final Properties properties = new Properties();
-    properties.put("prefix.name.one", "oneInProp");
+    properties.put(propertyKey, "oneInProp");
     // When
     final String result = ProcessorConfig.getConfigValue(
-        config, "name", "prefix", properties, TestConfig.ONE, "defaultValueOne");
+            config, "name", "prefix", properties, testConfig, defaultValue);
     // Then
-    assertThat(result).isEqualTo("oneInProp");
+    assertThat(result).isEqualTo(expected);
+  }
+
+  public static Stream<Arguments> getValueTestData() {
+    return Stream.of(
+            Arguments.of("With value in Properties and DefaultVal and DefaultConfig should return value in Properties", "prefix.name.one", TestConfig.ONE, "defaultValueOne", "oneInProp"),
+            Arguments.of("With value in DefaultVal and DefaultConfig should return value in DefaultVal", "prefix.other-name.one", TestConfig.ONE, "defaultValueOne", "defaultValueOne"),
+            Arguments.of("With no value and ConfigDefault should return value in ConfigDefault", "prefix.other-name.one", TestConfig.ONE, null, "configDefaultForOne"),
+            Arguments.of("With no value should return Null", "prefix.other-name.one", TestConfig.NO_DEFAULT, null, null)
+    );
   }
 
   @Test
-  public void getValueWithValueInDefaultValAndDefaultConfigShouldReturnValueInDefaultVal() {
-    // Given
-    final ProcessorConfig config = new ProcessorConfig();
-    config.getConfig().put("name", Collections.singletonMap("two", "twoInConfig"));
-    final Properties properties = new Properties();
-    properties.put("prefix.other-name.one", "oneInProp");
-    // When
-    final String result = ProcessorConfig.getConfigValue(
-        config, "name", "prefix", properties, TestConfig.ONE, "defaultValueOne");
-    // Then
-    assertThat(result).isEqualTo("defaultValueOne");
-  }
-
-  @Test
-  public void getValueWithNoValueAndConfigDefaultShouldReturnValueInConfigDefault() {
-    // Given
-    final ProcessorConfig config = new ProcessorConfig();
-    config.getConfig().put("name", Collections.singletonMap("two", "twoInConfig"));
-    final Properties properties = new Properties();
-    properties.put("prefix.other-name.one", "oneInProp");
-    // When
-    final String result = ProcessorConfig.getConfigValue(
-        config, "name", "prefix", properties, TestConfig.ONE, null);
-    // Then
-    assertThat(result).isEqualTo("configDefaultForOne");
-  }
-
-  @Test
-  public void getValueWithNoValueShouldReturnNull() {
-    // Given
-    final ProcessorConfig config = new ProcessorConfig();
-    config.getConfig().put("name", Collections.singletonMap("two", "twoInConfig"));
-    final Properties properties = new Properties();
-    properties.put("prefix.other-name.one", "oneInProp");
-    // When
-    final String result = ProcessorConfig.getConfigValue(
-        config, "name", "prefix", properties, TestConfig.NO_DEFAULT, null);
-    // Then
-    assertThat(result).isNull();
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void mergeProcessorConfigsShouldMergeAccordingToPrioritiesDescribedInJavaDoc() {
+  void mergeProcessorConfigsShouldMergeAccordingToPrioritiesDescribedInJavaDoc() {
     // Given
     // n.b. Include order must be preserved
     final ProcessorConfig highPriority = new ProcessorConfig(
