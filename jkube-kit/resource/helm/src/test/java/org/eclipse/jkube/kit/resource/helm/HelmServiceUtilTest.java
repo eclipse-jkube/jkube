@@ -28,14 +28,17 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class HelmServiceUtilTest {
@@ -204,36 +207,35 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void findIconUrl_fromProvidedFile_returnsValidUrl(@Mocked ResourceUtil resourceUtil, @Mocked HasMetadata listEntry) throws IOException {
-    // Given
-    manifest.createNewFile();
-    new Expectations() {{
-      ResourceUtil.load(manifest, KubernetesResource.class);
-      result = new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null);
-      listEntry.getMetadata().getAnnotations();
-      result = Collections.singletonMap("jkube.io/iconUrl", "https://my-icon");
-    }};
-    // When
-    String url = HelmServiceUtil.findIconURL(manifest);
-    // Then
-    assertThat(url).isEqualTo("https://my-icon");
+  public void findIconUrl_fromProvidedFile_returnsValidUrl() throws IOException {
+    try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
+      // Given
+      HasMetadata listEntry = mock(HasMetadata.class,RETURNS_DEEP_STUBS);
+      resourceUtilMockedStatic.when(() -> ResourceUtil.load(manifest, KubernetesResource.class))
+          .thenReturn(new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null));
+      manifest.createNewFile();
+      when(listEntry.getMetadata().getAnnotations()).thenReturn(Collections.singletonMap("jkube.io/iconUrl", "https://my-icon"));
+      // When
+      String url = HelmServiceUtil.findIconURL(manifest);
+      // Then
+      assertThat(url).isEqualTo("https://my-icon");
+    }
   }
 
   @Test
-  public void findTemplatesFromProvidedFile(
-    @Mocked ResourceUtil resourceUtil, @Mocked Template template) throws Exception {
-
-    // Given
-    new Expectations() {{
-      ResourceUtil.load(manifest, KubernetesResource.class);
-      result = template;
-    }};
-    // When
-    List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
-    // Then
-    assertThat(templateList)
-      .hasSize(1)
-      .contains(template);
+  public void findTemplatesFromProvidedFile() throws Exception {
+    try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
+      // Given
+      Template template = mock(Template.class);
+      resourceUtilMockedStatic.when(() -> ResourceUtil.load(manifest, KubernetesResource.class))
+          .thenReturn(template);
+      // When
+      List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
+      // Then
+      assertThat(templateList)
+          .hasSize(1)
+          .contains(template);
+    }
   }
 
 }
