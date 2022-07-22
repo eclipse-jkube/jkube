@@ -632,7 +632,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         if (!additionalTagsToCreate.isEmpty()) {
             ImageStreamTag imageStreamTag = client.imageStreamTags().inNamespace(applicableOpenShiftNamespace).withName(resolveImageStreamTagName(imageName)).get();
             List<ImageStreamTag> imageStreamTags = createAdditionalTagsIfPresent(imageConfig, applicableOpenShiftNamespace, imageStreamTag);
-            client.imageStreamTags().inNamespace(applicableOpenShiftNamespace).createOrReplace(imageStreamTags.toArray(new ImageStreamTag[0]));
+            client.resourceList(imageStreamTags.toArray(new ImageStreamTag[0])).inNamespace(applicableOpenShiftNamespace).createOrReplace();
             log.info("Tags [%s] set to %s", String.join(",", additionalTagsToCreate), imageName.getNameWithoutTag());
         }
     }
