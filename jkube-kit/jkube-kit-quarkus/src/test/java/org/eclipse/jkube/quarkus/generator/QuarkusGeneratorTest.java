@@ -209,7 +209,7 @@ public class QuarkusGeneratorTest {
     // When
     final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
     // Then
-    assertBuildFrom(resultImages, "registry.access.redhat.com/ubi8/ubi-minimal:8.1");
+    assertBuildFrom(resultImages, "registry.access.redhat.com/ubi8/ubi-minimal:8.6");
   }
 
   @Test

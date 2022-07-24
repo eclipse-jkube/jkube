@@ -33,7 +33,7 @@ Usage:
 * Fix #1537: Registry not set up in `oc:build`
 * Fix #1619: Add `jkube.imagePullPolicy` configuration property to configure pull policy in all enrichers
 * Fix #1654: images with missing build configuration should not be built
-
+* Fix #1670: Bump Quarkus native base image to ubi-minimal:8.6
 
 _**Note**_:
 - Enricher configuration `jkube.enricher.jkube-controller.pullPolicy` has been marked as deprecated, use `jkube.imagePullPolicy` property instead.
