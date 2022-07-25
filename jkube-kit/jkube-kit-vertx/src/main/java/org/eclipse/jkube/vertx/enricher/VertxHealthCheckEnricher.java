@@ -63,7 +63,10 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     private static final String VERTX_HEALTH = "vertx.health.";
     private static final Function<? super String, String> TRIM = input -> input == null ? null : input.trim();
-    protected static final String[] JKUBE_PLUGINS = {"kubernetes-maven-plugin", "openshift-maven-plugin"};
+    protected static final String[] JKUBE_PLUGINS = { "kubernetes-maven-plugin", "openshift-maven-plugin",
+        "org.eclipse.jkube.kubernetes.gradle.plugin", "org.eclipse.jkube.openshift.gradle.plugin",
+        "org.eclipse.jkube.gradle.plugin.KubernetesPlugin", "org.eclipse.jkube.gradle.plugin.OpenShiftPlugin"
+    };
 
     public static final String ERROR_MESSAGE = "Location of %s should return a String but found %s with value %s";
 
@@ -341,7 +344,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     private Optional<Map<String, Object>> getMavenPluginConfiguration() {
         for(String pluginId : JKUBE_PLUGINS) {
-            Optional<Map<String, Object>> configuration = getContext().getConfiguration().getPluginConfiguration("maven", pluginId);
+            Optional<Map<String, Object>> configuration = getContext().getConfiguration().getPluginConfiguration(pluginId);
             if(configuration.isPresent()) {
                 return configuration;
             }
