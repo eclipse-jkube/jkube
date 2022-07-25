@@ -76,6 +76,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   private void init() {
     kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
+    kubernetesExtension.javaProject.setPlugins(GradleUtil.getPluginWithKubernetesExtensionConfigured(kubernetesExtension.javaProject.getPlugins(), kubernetesExtension.javaProject.getGradlePlugins(), kubernetesExtension));
     kitLogger = createLogger(null);
     logOutputSpecFactory = new LogOutputSpecFactory(isAnsiEnabled(), kubernetesExtension.getLogStdoutOrDefault(),
         kubernetesExtension.getLogDateOrNull());

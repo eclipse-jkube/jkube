@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -56,7 +56,7 @@ public class VertxHealthCheckEnricherTest {
             context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
             result = true;
             context.getConfiguration().getProcessorConfig(); result = processorConfig; minTimes = 0;
-            context.getConfiguration().getPluginConfiguration(anyString, anyString); result = Optional.of(config);
+            context.getConfiguration().getPluginConfiguration(anyString); result = Optional.of(config);
             context.getConfiguration().getPluginConfigLookup(); result = getProjectLookup(config); minTimes = 0;
         }};
         // @formatter:on
@@ -187,11 +187,8 @@ public class VertxHealthCheckEnricherTest {
         assertThat(probe.getHttpGet().getPath()).isEqualTo( "/health");
     }
 
-    private BiFunction<String, String, Optional<Map<String, Object>>> getProjectLookup(Map<String, Object> config) {
-        return (s,i) -> {
-            assertThat(s).isEqualTo("maven");
-            return Optional.ofNullable(config);
-        };
+    private Function<String, Optional<Map<String, Object>>> getProjectLookup(Map<String, Object> config) {
+        return i -> Optional.ofNullable(config);
     }
 
     @Test

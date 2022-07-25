@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
@@ -55,6 +57,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 public class GradleUtil {
 
+  public static final String JKUBE_GRADLE_GROUP_PREFIX = "org.eclipse.jkube";
   private static final Path DEFAULT_CLASSES_DIR = Paths.get("classes", "java", "main");
 
   private GradleUtil() {}
@@ -93,6 +96,33 @@ public class GradleUtil {
         .artifact(artifact)
         .buildPackageDirectory(artifact != null ? artifact.getParentFile() : null)
         .build();
+  }
+
+  public static List<Plugin> getPluginWithKubernetesExtensionConfigured(List<Plugin> plugins, List<String> legacyPlugins, KubernetesExtension kubernetesExtension) {
+    List<Plugin> updatedPlugins = new ArrayList<>();
+    for (Plugin p : plugins) {
+      if (p.getGroupId().contains(JKUBE_GRADLE_GROUP_PREFIX)) {
+        p.setConfiguration(createPluginConfigurationMap(kubernetesExtension));
+      }
+      updatedPlugins.add(p);
+    }
+
+    for (String legacyPlugin : legacyPlugins) {
+      if (legacyPlugin.contains(JKUBE_GRADLE_GROUP_PREFIX)) {
+        updatedPlugins.add(Plugin.builder()
+                .groupId(JKUBE_GRADLE_GROUP_PREFIX)
+                .artifactId(legacyPlugin)
+                .configuration(createPluginConfigurationMap(kubernetesExtension))
+            .build());
+      }
+    }
+    return updatedPlugins;
+  }
+
+  private static Map<String, Object> createPluginConfigurationMap(KubernetesExtension kubernetesExtension) {
+    Map<String, Object> configurationMap = new HashMap<>();
+    configurationMap.put("enricher", Serialization.jsonMapper().convertValue(kubernetesExtension.enricher, Map.class));
+    return configurationMap;
   }
 
   private static Properties extractProperties(Project gradleProject) {
