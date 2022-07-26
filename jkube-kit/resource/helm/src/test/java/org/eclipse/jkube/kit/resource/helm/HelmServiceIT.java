@@ -34,29 +34,25 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.openshift.api.model.ParameterBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class HelmServiceIT {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class HelmServiceIT {
 
   private ObjectMapper mapper;
   private HelmService helmService;
   private HelmConfig helmConfig;
   private File helmOutputDir;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws Exception {
     mapper = new ObjectMapper(new YAMLFactory());
     helmService = new HelmService(new JKubeConfiguration(), new KitLogger.SilentLogger());
-    helmOutputDir = temporaryFolder.newFolder("helm-output");
+    helmOutputDir = Files.createDirectory(temporaryFolder.resolve("helm-output")).toFile();
     helmConfig = new HelmConfig();
     helmConfig.setSourceDir(new File(HelmServiceIT.class.getResource("/it/sources").toURI()).getAbsolutePath());
     helmConfig.setOutputDir(helmOutputDir.getAbsolutePath());
@@ -65,7 +61,7 @@ public class HelmServiceIT {
   }
 
   @Test
-  public void generateHelmChartsTest() throws Exception {
+  void generateHelmChartsTest() throws Exception {
     // Given
     helmConfig.setChart("ITChart");
     helmConfig.setVersion("1.33.7");
@@ -114,7 +110,7 @@ public class HelmServiceIT {
   }
 
   @Test
-  public void generateHelmChartsTest_withInvalidParameters_throwsException() {
+  void generateHelmChartsTest_withInvalidParameters_throwsException() {
     // Given
     helmConfig.setTypes(Collections.singletonList(HelmConfig.HelmType.KUBERNETES));
     helmConfig.setParameters(Collections.singletonList(new ParameterBuilder()
@@ -125,6 +121,8 @@ public class HelmServiceIT {
     // Then
     assertThat(result).hasMessageStartingWith("Helm parameters must be declared with a valid name:");
   }
+
+  @SuppressWarnings("unchecked")
   private void assertYamls() throws Exception {
     final Path expectations = new File(HelmServiceIT.class.getResource("/it/expected").toURI()).toPath();
     final Path generatedYamls = helmOutputDir.toPath();

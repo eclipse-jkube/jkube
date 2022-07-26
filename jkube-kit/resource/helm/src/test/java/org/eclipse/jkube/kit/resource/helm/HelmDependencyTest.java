@@ -13,14 +13,14 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-
-public class HelmDependencyTest {
+class HelmDependencyTest {
 
   @Test
-  public void equalsAndHashCodeTest() {
+  void equalsAndHashCodeTest() {
 
     // Given
     HelmDependency helmDependency = HelmDependency
@@ -47,7 +47,7 @@ public class HelmDependencyTest {
   }
 
   @Test
-  public void emptyConstructorTest() {
+  void emptyConstructorTest() {
 
     // Given
     HelmDependency helmDependency = new HelmDependency();

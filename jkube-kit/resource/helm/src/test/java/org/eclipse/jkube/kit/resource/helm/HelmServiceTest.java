@@ -27,15 +27,15 @@ import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.notNull;
@@ -46,37 +46,42 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class HelmServiceTest {
+class HelmServiceTest {
 
   private HelmConfig.HelmConfigBuilder helmConfig;
   private JKubeConfiguration jKubeConfiguration;
   private HelmService helmService;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     helmConfig = HelmConfig.builder();
     jKubeConfiguration = JKubeConfiguration.builder()
         .registryConfig(RegistryConfig.builder().settings(new ArrayList<>()).build()).build();
     helmService = new HelmService(jKubeConfiguration, new KitLogger.SilentLogger());
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     helmService = null;
     helmConfig = null;
   }
 
-  @Test(expected = IOException.class)
-  public void prepareSourceDirValidWithNoYamls() throws Exception {
+  @Test
+  void prepareSourceDirValid_withNonExistentDirectory_shouldThrowException() {
     File file = mock(File.class);
     // Given
     when(file.isDirectory()).thenReturn(true);
     // When
-    HelmService.prepareSourceDir(helmConfig.build(), HelmConfig.HelmType.OPENSHIFT);
+    IOException result = assertThrows(IOException.class,
+            () -> HelmService.prepareSourceDir(helmConfig.build(), HelmType.OPENSHIFT));
+    // Then
+    assertThat(result).isNotNull()
+            .hasMessageStartingWith("Chart source directory ")
+            .hasMessageEndingWith("you need run 'mvn kubernetes:resource' before.");
   }
 
   @Test
-  public void createChartYaml() throws Exception {
+  void createChartYaml() throws Exception {
     try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
       File outputDir = Files.createTempDirectory("chart-output").toFile();
       // Given
@@ -94,7 +99,7 @@ public class HelmServiceTest {
   }
 
   @Test
-  public void createChartYamlWithDependencies() throws Exception {
+  void createChartYamlWithDependencies() throws Exception {
     try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
       // Given
       File outputDir = Files.createTempDirectory("chart-outputdir").toFile();
@@ -121,7 +126,7 @@ public class HelmServiceTest {
   }
 
   @Test
-  public void uploadChart_withValidRepository_shouldUpload()
+  void uploadChart_withValidRepository_shouldUpload()
       throws IOException, BadUploadException {
     try (MockedConstruction<HelmUploader> helmUploaderMockedConstruction = mockConstruction(HelmUploader.class,
         (mock, ctx) -> doNothing().when(mock).uploadSingle(any(File.class), any()))) {
@@ -150,7 +155,7 @@ public class HelmServiceTest {
   }
 
   @Test
-  public void uploadHelmChart_withInvalidRepositoryConfiguration_shouldFail() {
+  void uploadHelmChart_withInvalidRepositoryConfiguration_shouldFail() {
     // Given
     final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
         .snapshotRepository(HelmRepository.builder().name("INVALID").build())
@@ -163,7 +168,7 @@ public class HelmServiceTest {
   }
 
   @Test
-  public void uploadHelmChart_withMissingRepositoryConfiguration_shouldFail() {
+  void uploadHelmChart_withMissingRepositoryConfiguration_shouldFail() {
     // Given
     final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT").build();
     // When
@@ -174,7 +179,7 @@ public class HelmServiceTest {
   }
 
   @Test
-  public void uploadHelmChart_withServerConfigurationWithoutUsername_shouldFail() {
+  void uploadHelmChart_withServerConfigurationWithoutUsername_shouldFail() {
     // Given
     final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
         .snapshotRepository(completeValidRepository().username(null).build()).build();
@@ -188,7 +193,7 @@ public class HelmServiceTest {
   }
 
   @Test
-  public void uploadHelmChart_withServerConfigurationWithoutPassword_shouldFail() {
+  void uploadHelmChart_withServerConfigurationWithoutPassword_shouldFail() {
     // Given
     final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
         .snapshotRepository(completeValidRepository().password(null).build()).build();
@@ -203,7 +208,7 @@ public class HelmServiceTest {
 
 
   @Test
-  public void uploadHelmChart_withMissingServerConfiguration_shouldFail() {
+  void uploadHelmChart_withMissingServerConfiguration_shouldFail() {
     // Given
     final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
         .snapshotRepository(completeValidRepository().username(null).build()).build();
