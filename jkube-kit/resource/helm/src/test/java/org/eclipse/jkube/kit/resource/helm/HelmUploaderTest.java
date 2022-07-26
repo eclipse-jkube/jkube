@@ -19,14 +19,13 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -35,29 +34,29 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class HelmUploaderTest {
+class HelmUploaderTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  File temporaryFolder;
 
-  KitLogger kitLogger;
+  private KitLogger kitLogger;
 
-  HelmUploader helmUploader;
+  private HelmUploader helmUploader;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     kitLogger = mock(KitLogger.class);
     helmUploader = new HelmUploader(kitLogger);
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     kitLogger = null;
     helmUploader = null;
   }
 
   @Test
-  public void uploadSingle_withMissingType_shouldThrowException() {
+  void uploadSingle_withMissingType_shouldThrowException() {
     HelmRepository helmRepository = mock(HelmRepository.class);
     // Given
     File file = new File("test");
@@ -72,11 +71,11 @@ public class HelmUploaderTest {
   }
 
   @Test
-  public void uploadSingle_withServerErrorAndErrorStream_shouldThrowException() throws IOException {
+  void uploadSingle_withServerErrorAndErrorStream_shouldThrowException() throws IOException {
     HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
     HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
     // Given
-    File file = temporaryFolder.newFile("test.tmp");
+    File file = File.createTempFile("test", "tmp", temporaryFolder);
     when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(500);
     when(httpURLConnection.getErrorStream()).thenReturn(new ByteArrayInputStream("Server error in ES".getBytes()));
@@ -92,11 +91,11 @@ public class HelmUploaderTest {
   }
 
   @Test
-  public void uploadSingle_withServerErrorAndInputStream_shouldThrowException() throws IOException {
+  void uploadSingle_withServerErrorAndInputStream_shouldThrowException() throws IOException {
     // Given
     HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
     HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
-    File file = temporaryFolder.newFile("test.tmp");
+    File file = File.createTempFile("test", "tmp", temporaryFolder);
     when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(500);
     when(httpURLConnection.getErrorStream()).thenReturn(null);
@@ -111,11 +110,11 @@ public class HelmUploaderTest {
   }
 
   @Test
-  public void uploadSingle_withServerError_shouldThrowException() throws IOException {
+  void uploadSingle_withServerError_shouldThrowException() throws IOException {
     // Given
     HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
     HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
-    File file = temporaryFolder.newFile("test.tmp");
+    File file = File.createTempFile("test", "tmp", temporaryFolder);
     when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(500);
     when(httpURLConnection.getErrorStream()).thenReturn(null);
@@ -130,11 +129,11 @@ public class HelmUploaderTest {
   }
 
   @Test
-  public void uploadSingle_withCreatedStatus_shouldDisconnect()throws IOException, BadUploadException {
+  void uploadSingle_withCreatedStatus_shouldDisconnect()throws IOException, BadUploadException {
     // Given
     HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
     HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
-    File file = temporaryFolder.newFile("test.tmp");
+    File file = File.createTempFile("test", "tmp", temporaryFolder);
     when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(201);
     when(httpURLConnection.getInputStream()).thenReturn(null);
