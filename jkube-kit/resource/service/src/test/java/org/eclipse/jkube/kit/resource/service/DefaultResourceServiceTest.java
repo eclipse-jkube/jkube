@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.resource.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,24 +35,19 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultResourceServiceTest {
+@SuppressWarnings("unused")
+class DefaultResourceServiceTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-  @SuppressWarnings("unused")
   @Mocked
   private EnricherManager enricherManager;
-  @SuppressWarnings("unused")
   @Mocked
   private KitLogger kitLogger;
-  @SuppressWarnings("unused")
   @Mocked
   private ResourceConfig resourceConfig;
   @Mocked
@@ -60,22 +57,22 @@ public class DefaultResourceServiceTest {
   private ResourceServiceConfig resourceServiceConfig;
   private DefaultResourceService defaultResourceService;
 
-  @Before
-  public void init() throws IOException {
-    targetDir = temporaryFolder.newFolder("target");
+  @BeforeEach
+  void init(@TempDir Path temporaryFolder) throws IOException {
+    targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     resourceServiceConfig = ResourceServiceConfig.builder()
         .interpolateTemplateParameters(true)
         .targetDir(targetDir)
         .project(project)
         .resourceFileType(ResourceFileType.yaml)
-        .resourceDirs(Collections.singletonList(temporaryFolder.newFolder("resources")))
+        .resourceDirs(Collections.singletonList(Files.createDirectory(temporaryFolder.resolve("resources")).toFile()))
         .resourceConfig(resourceConfig)
         .build();
     defaultResourceService = new DefaultResourceService(resourceServiceConfig);
   }
 
   @Test
-  public void generateResourcesWithNoResourcesShouldReturnEmpty() throws IOException {
+  void generateResourcesWithNoResourcesShouldReturnEmpty() throws IOException {
     // When
     final KubernetesList result = defaultResourceService
         .generateResources(PlatformMode.kubernetes, enricherManager, kitLogger);
@@ -84,7 +81,7 @@ public class DefaultResourceServiceTest {
   }
 
   @Test
-  public void generateResources_withResources_shouldReturnKubernetesResourceList() throws IOException {
+  void generateResources_withResources_shouldReturnKubernetesResourceList() throws IOException {
     // Given
     File resourceDir1 = new File(Objects.requireNonNull(getClass().getResource("/jkube/common")).getFile());
     File resourceDir2 = new File(Objects.requireNonNull(getClass().getResource("/jkube/dev")).getFile());
@@ -113,7 +110,7 @@ public class DefaultResourceServiceTest {
 
   @SuppressWarnings("AccessStaticViaInstance")
   @Test
-  public void writeResources(@Mocked WriteUtil writeUtil, @Mocked TemplateUtil templateUtil) throws IOException {
+  void writeResources(@Mocked WriteUtil writeUtil, @Mocked TemplateUtil templateUtil) throws IOException {
     // When
     defaultResourceService.writeResources(null, ResourceClassifier.KUBERNETES, kitLogger);
     // Then
