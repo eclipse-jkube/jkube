@@ -43,7 +43,13 @@ class OpenLibertyIT {
         .contains("jkube-healthcheck-openliberty: Adding liveness probe on port 9080")
         .contains("jkube-healthcheck-openliberty: Adding startup probe on port 9080")
         .contains("jkube-service-discovery: Using first mentioned service port '9080' ")
-        .contains("jkube-revision-history: Adding revision history limit to 2");
+        .contains("jkube-revision-history: Adding revision history limit to 2")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/openliberty-deployment.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/openliberty-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+        .contains("SUCCESS");
   }
 
   @Test
@@ -63,6 +69,13 @@ class OpenLibertyIT {
         .contains("jkube-healthcheck-openliberty: Adding liveness probe on port 9080")
         .contains("jkube-healthcheck-openliberty: Adding startup probe on port 9080")
         .contains("jkube-service-discovery: Using first mentioned service port '9080' ")
-        .contains("jkube-revision-history: Adding revision history limit to 2");
+        .contains("jkube-revision-history: Adding revision history limit to 2")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/openliberty-deploymentconfig.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/openliberty-route.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/openliberty-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
   }
 }

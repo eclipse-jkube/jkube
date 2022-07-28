@@ -28,6 +28,7 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
@@ -112,9 +113,11 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                 context);
 
         } catch (KubernetesClientException ex) {
-            KubernetesResourceUtil.handleKubernetesClientException(ex, this.log);
+            KubernetesResourceUtil.handleKubernetesClientException(ex, this.log, summaryEnabled);
         } catch (Exception ex) {
-            throw new MojoExecutionException("An error has occurred while while trying to watch the resources", ex);
+            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled,
+                ex.getMessage(),
+                () -> new MojoExecutionException("An error has occurred while while trying to watch the resources", ex));
         }
     }
 

@@ -17,8 +17,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Properties;
 
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.MojoExecution;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -52,6 +55,8 @@ class DebugMojoTest {
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private File kubernetesManifestFile;
   private MavenProject mavenProject;
+  private MavenSession mavenSession;
+  private MojoExecution mockedMojoExecution;
 
   private DebugMojo debugMojo;
 
@@ -66,10 +71,16 @@ class DebugMojoTest {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class);
     kubernetesManifestFile = Files.createFile(temporaryFolder.resolve("kubernetes.yml")).toFile();
     mavenProject = mock(MavenProject.class);
+    mavenSession = mock(MavenSession.class);
+    mockedMojoExecution = mock(MojoExecution.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
+    when(mavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:debug"));
+    when(mockedMojoExecution.getGoal()).thenReturn("k8s:debug");
     // @formatter:off
     debugMojo = new DebugMojo() { {
       project = mavenProject;
+      session = mavenSession;
+      mojoExecution = mockedMojoExecution;
       settings = mock(Settings.class);
       kubernetesManifest = kubernetesManifestFile;
     }};

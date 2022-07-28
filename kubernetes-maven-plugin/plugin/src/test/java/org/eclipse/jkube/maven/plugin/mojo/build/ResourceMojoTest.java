@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -49,6 +50,7 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.inOrder;
@@ -72,10 +74,12 @@ class ResourceMojoTest {
     ImageConfigResolver mockedImageConfigResolver = mock(ImageConfigResolver.class, RETURNS_DEEP_STUBS);
     Properties properties = new Properties();
     MavenProject mockedMavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
+    MavenSession mockedMavenSession = mock(MavenSession.class);
     mockedResourceService = mock(ResourceService.class, RETURNS_DEEP_STUBS);
     MojoExecution mockedMojoExecution = mock(MojoExecution.class, RETURNS_DEEP_STUBS);
     MojoDescriptor mockedMojoDescriptor = mock(MojoDescriptor.class, RETURNS_DEEP_STUBS);
     when(mockedMojoExecution.getMojoDescriptor()).thenReturn(mockedMojoDescriptor);
+    when(mockedMojoExecution.getGoal()).thenReturn("k8s:resource");
     when(mockedMojoDescriptor.getFullGoalName()).thenReturn("k8s:resource");
     defaultEnricherManagerMockedConstruction = mockConstruction(DefaultEnricherManager.class);
     JavaProject javaProject = JavaProject.builder()
@@ -99,6 +103,7 @@ class ResourceMojoTest {
     this.resourceMojo.images = Collections.singletonList(imageConfiguration);
     this.resourceMojo.project = mockedMavenProject;
     this.resourceMojo.settings = mock(Settings.class, RETURNS_DEEP_STUBS);
+    this.resourceMojo.session = mockedMavenSession;
     this.resourceMojo.jkubeServiceHub = mockedJKubeServiceHub;
     this.resourceMojo.log = mock(KitLogger.class, RETURNS_DEEP_STUBS);
     this.resourceMojo.skipResourceValidation = true;
@@ -110,6 +115,7 @@ class ResourceMojoTest {
     resourceMojo.mojoExecution = mockedMojoExecution;
 
     when(mockedMavenProject.getProperties()).thenReturn(properties);
+    when(mockedMavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:resource"));
     when(mockedJKubeServiceHub.getConfiguration().getProject()).thenReturn(javaProject);
     when(mockedJKubeServiceHub.getConfiguration().getBasedir()).thenReturn(temporaryFolder.toFile());
     when(mockedJKubeServiceHub.getResourceService()).thenReturn(mockedResourceService);

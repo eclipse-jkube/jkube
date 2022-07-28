@@ -22,6 +22,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
@@ -187,13 +188,12 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
             applyEntities(kubernetes, manifest.getName(), entities);
             log.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShift() ? "oc" : "kubectl");
         } catch (KubernetesClientException e) {
-            KubernetesResourceUtil.handleKubernetesClientException(e, this.log);
+            KubernetesResourceUtil.handleKubernetesClientException(e, this.log, summaryEnabled);
         } catch(InterruptedException ex) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
-            throw new MojoExecutionException(e.getMessage(), e);
+            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, e.getMessage(), () -> new MojoExecutionException(e.getMessage(), e));
         }
-
     }
 
     protected void applyEntities(final KubernetesClient kubernetes, String fileName, final Collection<HasMetadata> entities) throws InterruptedException {

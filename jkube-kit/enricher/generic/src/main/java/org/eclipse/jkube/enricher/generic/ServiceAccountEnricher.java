@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
@@ -68,6 +69,7 @@ public class ServiceAccountEnricher extends BaseEnricher {
     private List<ServiceAccount> createServiceAccountFromResourceConfig(ResourceConfig resourceConfig) {
         List<ServiceAccount> serviceAccounts = new ArrayList<>();
         if(resourceConfig != null && resourceConfig.getServiceAccounts() != null && !Boolean.parseBoolean(getConfig(Config.SKIP_CREATE))) {
+            SummaryUtil.addToEnrichers(getName());
             for(ServiceAccountConfig serviceAccountConfig : resourceConfig.getServiceAccounts()) {
                 if(serviceAccountConfig.getName() != null) {
                     serviceAccounts.add(createServiceAccount(serviceAccountConfig.getName()));
@@ -88,6 +90,7 @@ public class ServiceAccountEnricher extends BaseEnricher {
                     serviceAccounts.add(createServiceAccount(serviceAccountName));
                 }
                 if(deploymentToSaPair.containsKey(deploymentBuilder.buildMetadata().getName())) {
+                    SummaryUtil.addToEnrichers(getName());
                     deploymentBuilder.editSpec()
                         .editTemplate()
                         .editSpec()

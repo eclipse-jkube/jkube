@@ -391,4 +391,9 @@ public class TestKubernetesExtension extends KubernetesExtension {
   public Property<String> getWatchContainerNamePattern() {
     return new DefaultProperty<>(String.class);
   }
+
+  @Override
+  public Property<Boolean> getSummaryEnabled() {
+    return new DefaultProperty<>(Boolean.class);
+  }
 }

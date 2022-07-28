@@ -14,9 +14,11 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
 
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.execution.MavenSession;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.resource.helm.BadUploadException;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -25,7 +27,6 @@ import org.eclipse.jkube.kit.resource.helm.HelmRepository.HelmRepoType;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -53,16 +54,22 @@ class HelmPushMojoTest {
 
   @TempDir
   private Path projectDir;
+  private MavenSession mavenSession;
+  private MojoExecution mojoExecution;
+
   private HelmPushMojo helmPushMojo;
 
   @BeforeEach
   void setUp() throws Exception {
     helmPushMojo = new HelmPushMojo();
+    mavenSession = mock(MavenSession.class);
+    mojoExecution = mock(MojoExecution.class);
     helmPushMojo.helm = new HelmConfig();
     helmPushMojo.project = new MavenProject();
+    helmPushMojo.session = mavenSession;
     helmPushMojo.settings = new Settings();
     helmPushMojo.securityDispatcher = mock(SecDispatcher.class);
-    helmPushMojo.mojoExecution = new MojoExecution(new MojoDescriptor());
+    helmPushMojo.mojoExecution = mojoExecution;
     helmPushMojo.project.getBuild()
       .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
     helmPushMojo.project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
@@ -101,6 +108,8 @@ class HelmPushMojoTest {
       (mock, ctx) -> doThrow(new BadUploadException("Error uploading helm chart")).when(mock).uploadHelmChart(any())
     )) {
       // Given
+      when(mavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:helm-push"));
+      when(mojoExecution.getGoal()).thenReturn("k8s:helm-push");
       helmPushMojo.helm.setStableRepository(completeValidRepository());
       helmPushMojo.project.setVersion("1337");
       // When & Then
@@ -121,6 +130,8 @@ class HelmPushMojoTest {
       helmPushMojo.project.getProperties().put("jkube.helm.snapshotRepository.username", "propsUser");
       helmPushMojo.project.getProperties().put("jkube.helm.snapshotRepository.password", "propS3cret");
       helmPushMojo.project.setVersion("1337-SNAPSHOT");
+      when(mavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:helm-push"));
+      when(mojoExecution.getGoal()).thenReturn("k8s:helm-push");
       // When
       helmPushMojo.execute();
       // Then
@@ -142,6 +153,8 @@ class HelmPushMojoTest {
       helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
       helmPushMojo.project.getProperties().put("jkube.helm.snapshotRepository.password", "propS3cret");
       helmPushMojo.project.setVersion("1337-SNAPSHOT");
+      when(mavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:helm-push"));
+      when(mojoExecution.getGoal()).thenReturn("k8s:helm-push");
       // When
       helmPushMojo.execute();
       // Then
@@ -162,6 +175,8 @@ class HelmPushMojoTest {
       // Given
       helmPushMojo.settings.addServer(completeValidServer());
       helmPushMojo.project.setVersion("1337-SNAPSHOT");
+      when(mavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:helm-push"));
+      when(mojoExecution.getGoal()).thenReturn("k8s:helm-push");
       // When
       helmPushMojo.execute();
       // Then
@@ -177,6 +192,8 @@ class HelmPushMojoTest {
   void execute_withSkip_shouldSkipExecution() throws Exception {
     try (MockedConstruction<HelmService> helmServiceMockedConstruction = mockConstruction(HelmService.class)) {
       // Given
+      when(mavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:helm-push"));
+      when(mojoExecution.getGoal()).thenReturn("k8s:helm-push");
       helmPushMojo.skip = true;
       // When
       helmPushMojo.execute();

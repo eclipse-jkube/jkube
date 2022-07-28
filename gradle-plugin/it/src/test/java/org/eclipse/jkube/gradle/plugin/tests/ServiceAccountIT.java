@@ -59,7 +59,11 @@ class ServiceAccountIT {
     assertThat(result).extracting(BuildResult::getOutput).asString()
         .contains("Using resource templates from")
         .contains("Adding revision history limit to 2")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+        .contains("SUCCESS");
   }
 
   @ParameterizedTest(name = "resource task on project = {0} with {1}")
@@ -78,6 +82,10 @@ class ServiceAccountIT {
         .contains("Using resource templates from")
         .contains("Converting Deployment to DeploymentConfig")
         .contains("Adding revision history limit to 2")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
   }
 }

@@ -19,6 +19,7 @@ import javax.validation.ConstraintViolationException;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
@@ -92,7 +93,9 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
         validateIfRequired(resourceClassifierDir, resourceClassifier);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to generate kubernetes descriptor", e);
+      SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(),
+          e.getMessage(),
+          () -> new IllegalStateException("Failed to generate kubernetes descriptor", e));
     }
   }
 

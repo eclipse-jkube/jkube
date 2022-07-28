@@ -39,6 +39,12 @@ class GroovyDSLImageIT {
       .contains("Adding a default Deployment")
       .contains("Adding revision history limit to 2")
       .contains("Using first mentioned service port")
-      .contains("validating");
+      .contains("validating")
+      .contains("SUMMARY")
+      .contains("Generated resources:")
+      .contains("build/classes/java/main/META-INF/jkube/kubernetes/groovy-dsl-image-deployment.yml")
+      .contains("build/classes/java/main/META-INF/jkube/kubernetes/groovy-dsl-image-service.yml")
+      .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+      .contains("SUCCESS");
   }
 }

@@ -47,4 +47,5 @@ include::{kitdoc-path}/inc/plugins/_jkube_plugins.adoc[]
 
 include::inc/_kind-filename-type-mapping.adoc[]
 
+include::{kitdoc-path}/inc/_summary.adoc[]
 

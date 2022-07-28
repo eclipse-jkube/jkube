@@ -58,7 +58,12 @@ class RevisionHistoryIT {
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to ")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/revisionhistory-deployment.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+        .contains("SUCCESS");
   }
 
   @ParameterizedTest(name = "k8sResource {0} configured limit = {1}")
@@ -78,6 +83,11 @@ class RevisionHistoryIT {
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to ")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/revisionhistory-deploymentconfig.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
   }
 }

@@ -16,6 +16,7 @@ package org.eclipse.jkube.gradle.plugin.task;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -44,7 +45,9 @@ public class KubernetesPushTask extends AbstractJKubeTask {
       jKubeServiceHub.getBuildService()
           .push(resolvedImages, kubernetesExtension.getPushRetriesOrDefault(), initRegistryConfig(), kubernetesExtension.getSkipTagOrDefault());
     } catch (JKubeServiceException e) {
-      throw new IllegalStateException("Error in pushing image: " + e.getMessage(), e);
+      SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(),
+          e.getMessage(),
+          () -> new IllegalStateException("Error in pushing image: " + e.getMessage(), e));
     }
   }
 

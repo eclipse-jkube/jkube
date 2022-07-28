@@ -61,7 +61,13 @@ class ProjectLabelIT {
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/project-label-deployment.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/project-label-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+        .contains("SUCCESS");
   }
 
   @ParameterizedTest(name = "k8sResource {0} configured project-label ")
@@ -81,6 +87,13 @@ class ProjectLabelIT {
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/project-label-deploymentconfig.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/project-label-route.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/project-label-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
   }
 }

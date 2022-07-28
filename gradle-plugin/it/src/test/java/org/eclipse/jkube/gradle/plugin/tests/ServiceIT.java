@@ -40,7 +40,14 @@ class ServiceIT {
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/service-deployment.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/svc1-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/svc2-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+        .contains("SUCCESS");
   }
 
   @Test
@@ -56,6 +63,14 @@ class ServiceIT {
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/service-deploymentconfig.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/svc1-route.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/svc1-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/svc2-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
   }
 }

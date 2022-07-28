@@ -18,6 +18,7 @@ import java.util.Objects;
 
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -50,7 +51,11 @@ public class DockerBuildService extends AbstractImageBuildService {
 
     @Override
     public boolean isApplicable() {
-        return runtimeMode == RuntimeMode.KUBERNETES;
+        if (runtimeMode == RuntimeMode.KUBERNETES) {
+            SummaryUtil.setBuildStrategy("Local Docker");
+            return true;
+        }
+        return false;
     }
 
     @Override

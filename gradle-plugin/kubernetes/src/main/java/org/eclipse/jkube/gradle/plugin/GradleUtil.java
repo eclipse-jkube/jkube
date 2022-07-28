@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -102,6 +103,19 @@ public class GradleUtil {
         acc.put(e.getKey(), e.getValue());
         return acc;
       }, (acc, e) -> acc);
+  }
+
+  public static String getLastExecutingTask(Project gradleProject, Map<String, Integer> taskPrioritiesMap) {
+    List<String> tasks = gradleProject.getGradle().getStartParameter().getTaskNames().stream()
+        .filter(taskPrioritiesMap::containsKey)
+        .sorted(Comparator.comparing(taskPrioritiesMap::get))
+        .collect(Collectors.toList());
+
+    if (tasks == null || tasks.isEmpty()) {
+      return null;
+    }
+
+    return tasks.get(tasks.size() - 1);
   }
 
   private static List<Dependency> extractDependencies(Project gradleProject) {

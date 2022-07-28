@@ -32,6 +32,7 @@ import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.common.util.validator.ResourceValidator;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
@@ -219,7 +220,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
                 projectHelper.attachArtifact(project, this.resourceFileType.getArtifactType(), resourceClassifier.getValue(), artifact);
             }
         } catch (IOException e) {
-            throw new MojoExecutionException("Failed to generate kubernetes descriptor", e);
+            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, e.getMessage(), () -> new MojoExecutionException("Failed to generate kubernetes descriptor", e));
         }
     }
 

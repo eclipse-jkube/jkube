@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.common.util.ValidationUtil;
 import org.eclipse.jkube.kit.config.resource.EnricherManager;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -74,6 +75,7 @@ public class DefaultResourceService implements ResourceService {
       interpolateTemplateVariables(resources, file);
     }
 
+    SummaryUtil.setAggregateResourceFile(file);
     return file;
   }
 

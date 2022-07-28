@@ -42,7 +42,14 @@ class SpringBootWithFragmentIT {
         .contains("jkube-healthcheck-spring-boot: Adding readiness probe on port 8080")
         .contains("jkube-healthcheck-spring-boot: Adding liveness probe on port 8080")
         .contains("jkube-service-discovery: Using first mentioned service port '8080' ")
-        .contains("jkube-revision-history: Adding revision history limit to 2");
+        .contains("jkube-revision-history: Adding revision history limit to 2")
+        .contains("SUMMARY")
+        .contains("Generators applied: [spring-boot]")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/spring-boot-with-fragment-deployment.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/spring-boot-with-fragment-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+        .contains("SUCCESS");
   }
 
   @Test
@@ -61,6 +68,14 @@ class SpringBootWithFragmentIT {
         .contains("jkube-healthcheck-spring-boot: Adding readiness probe on port 8080")
         .contains("jkube-healthcheck-spring-boot: Adding liveness probe on port 8080")
         .contains("jkube-service-discovery: Using first mentioned service port '8080' ")
-        .contains("jkube-revision-history: Adding revision history limit to 2");
+        .contains("jkube-revision-history: Adding revision history limit to 2")
+        .contains("SUMMARY")
+        .contains("Generators applied: [spring-boot]")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/spring-boot-with-fragment-deploymentconfig.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/spring-boot-with-fragment-route.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/spring-boot-with-fragment-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
   }
 }

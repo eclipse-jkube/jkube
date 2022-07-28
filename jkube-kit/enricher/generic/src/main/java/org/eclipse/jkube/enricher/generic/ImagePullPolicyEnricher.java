@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
@@ -30,6 +31,7 @@ public class ImagePullPolicyEnricher extends BaseEnricher {
   public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
     String imagePullPolicy = getValueFromConfig(JKUBE_ENFORCED_IMAGE_PULL_POLICY, null);
     if (StringUtils.isNotBlank(imagePullPolicy)) {
+      SummaryUtil.addToEnrichers(getName());
       builder.accept(new TypedVisitor<ContainerBuilder>() {
         @Override
         public void visit(ContainerBuilder containerBuilder) {

@@ -112,6 +112,13 @@ class KubernetesBuildTaskTest {
   void runTask_withImageConfigurationAndBuildError_shouldThrowException() {
     // Given
     isBuildError = true;
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSummaryEnabled() {
+        return new DefaultProperty<>(Boolean.class).value(false);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesBuildTask buildTask = new KubernetesBuildTask(KubernetesExtension.class);
     // When & Then
     assertThatExceptionOfType(GradleException.class)

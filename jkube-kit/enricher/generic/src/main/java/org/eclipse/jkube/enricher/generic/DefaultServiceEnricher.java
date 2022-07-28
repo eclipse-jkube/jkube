@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.ServiceSpec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -127,6 +128,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
 
         final ResourceConfig xmlConfig = getConfiguration().getResource();
+        SummaryUtil.addToEnrichers(getName());
         if (Optional.ofNullable(xmlConfig).map(ResourceConfig::getServices).map(c -> !c.isEmpty()).orElse(false)) {
             // Add Services configured via XML
             addServices(builder, xmlConfig.getServices());

@@ -40,7 +40,13 @@ class DockerfileSimpleIT {
       .contains("Adding a default Deployment")
       .contains("Adding revision history limit to 2")
       .contains("Using first mentioned service port")
-      .contains("validating");
+      .contains("validating")
+      .contains("SUMMARY")
+      .contains("Generated resources:")
+      .contains("build/classes/java/main/META-INF/jkube/kubernetes/dockerfile-simple-deployment.yml")
+      .contains("build/classes/java/main/META-INF/jkube/kubernetes/dockerfile-simple-service.yml")
+      .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+      .contains("SUCCESS");
   }
 
   @Test
@@ -56,6 +62,13 @@ class DockerfileSimpleIT {
       .contains("Converting Deployment to DeploymentConfig")
       .contains("Adding revision history limit to 2")
       .contains("Using first mentioned service port")
-      .contains("validating");
+      .contains("validating")
+      .contains("SUMMARY")
+      .contains("Generated resources:")
+      .contains("build/classes/java/main/META-INF/jkube/openshift/dockerfile-simple-deploymentconfig.yml")
+      .contains("build/classes/java/main/META-INF/jkube/openshift/dockerfile-simple-route.yml")
+      .contains("build/classes/java/main/META-INF/jkube/openshift/dockerfile-simple-service.yml")
+      .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+      .contains("SUCCESS");
   }
 }

@@ -272,6 +272,13 @@ public class MavenUtil {
         return answer;
     }
 
+    public static String getLastExecutingGoal(MavenSession session, String logPrefix) {
+        List<String> goals = session.getGoals().stream()
+            .filter(g -> g.startsWith(logPrefix))
+            .collect(Collectors.toList());
+        return goals.isEmpty() ? null : goals.get(goals.size() - 1).substring(logPrefix.length());
+    }
+
     private static File getArtifactFileFromArtifactMap(MavenProject mavenProject, org.apache.maven.model.Dependency dependency) {
         Artifact artifact = mavenProject.getArtifactMap().get(dependency.getGroupId() + ":" + dependency.getArtifactId());
         if (artifact != null) {

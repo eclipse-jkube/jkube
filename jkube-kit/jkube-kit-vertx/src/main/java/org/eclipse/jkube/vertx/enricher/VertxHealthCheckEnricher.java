@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.ProbeFluent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 
@@ -127,6 +128,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
         if (!isApplicable()) {
             return null;
         }
+        SummaryUtil.addToEnrichers(getName());
         // We don't allow to set the HOST, because it should rather be configured in the HTTP header (Host header)
         // cf. https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
         String type = getStringValue(Config.TYPE, readiness).orElse("http").toUpperCase();

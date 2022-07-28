@@ -14,6 +14,7 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 import javax.inject.Inject;
@@ -41,7 +42,9 @@ public class KubernetesHelmPushTask extends AbstractJKubeTask {
       jKubeServiceHub.getHelmService().uploadHelmChart(helm);
     } catch (Exception exp) {
       kitLogger.error("Error performing helm push", exp);
-      throw new IllegalStateException(exp.getMessage(), exp);
+      SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(),
+          exp.getMessage(),
+          () -> new IllegalStateException(exp.getMessage(), exp));
     }
   }
 }

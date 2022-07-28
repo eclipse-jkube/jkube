@@ -21,6 +21,8 @@ import java.util.Arrays;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -61,6 +63,12 @@ class HelmMojoTest {
 
   @TempDir
   private Path projectDir;
+  private MavenProject mavenProject;
+  private MojoExecution mojoExecution;
+  private MavenSession mavenSession;
+  private JKubeServiceHub jKubeServiceHub;
+  private HelmService helmService;
+
   private HelmMojo helmMojo;
   private MockedStatic<ResourceUtil> resourceUtilMockedStatic;
 
@@ -134,7 +142,7 @@ class HelmMojoTest {
   @Test
   void executeInternal_withNoConfigGenerateThrowsException_shouldRethrowWithMojoExecutionException() {
     try (MockedConstruction<HelmService> helmServiceMockedConstruction = mockConstruction(HelmService.class,
-      (mock, ctx) -> doThrow(new IOException("Exception is thrown")).when(mock).generateHelmCharts(any())
+        (mock, ctx) -> doThrow(new IOException("Exception is thrown")).when(mock).generateHelmCharts(any())
     )) {
       // When & Then
       assertThatExceptionOfType(MojoExecutionException.class)

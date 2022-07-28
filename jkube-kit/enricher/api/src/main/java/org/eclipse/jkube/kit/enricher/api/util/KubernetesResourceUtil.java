@@ -52,6 +52,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MapUtil;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
@@ -412,16 +413,16 @@ public class KubernetesResourceUtil {
         }
     }
 
-    public static void handleKubernetesClientException(KubernetesClientException e, KitLogger logger) {
+    public static void handleKubernetesClientException(KubernetesClientException e, KitLogger logger, boolean summaryEnabled) {
         Throwable cause = e.getCause();
         if (cause instanceof UnknownHostException) {
             logger.error( "Could not connect to kubernetes cluster!");
             logger.error( "Connection error: %s", cause);
 
             String message = "Could not connect to kubernetes cluster. Are you sure if you're connected to a remote cluster via `kubectl`? Error: " + cause;
-            throw new IllegalStateException(message, e);
+            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, message, () -> new IllegalStateException(message, e));
         } else {
-            throw new IllegalStateException(e.getMessage(), e);
+            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, e.getMessage(), () -> new IllegalStateException(e.getMessage(), e));
         }
     }
 

@@ -26,6 +26,7 @@ import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.RegistryConfig;
@@ -70,7 +71,11 @@ public class JibBuildService extends AbstractImageBuildService {
 
     @Override
     public boolean isApplicable() {
-        return buildServiceConfig.getJKubeBuildStrategy() == JKubeBuildStrategy.jib;
+        if (buildServiceConfig.getJKubeBuildStrategy() == JKubeBuildStrategy.jib) {
+            SummaryUtil.setBuildStrategy("Local Jib");
+            return true;
+        }
+        return false;
     }
 
     @Override

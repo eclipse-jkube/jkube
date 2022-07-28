@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.common.util.ThorntailUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
@@ -68,6 +69,7 @@ public class ThorntailV2HealthCheckEnricher extends AbstractHealthCheckEnricher 
 
         if (getContext().hasDependency(IO_THORNTAIL, "monitor")
                 || getContext().hasDependency(IO_THORNTAIL, "microprofile-health")) {
+            SummaryUtil.addToEnrichers(getName());
             Integer port = getPort();
             // scheme must be in upper case in k8s
             String scheme = getScheme().toUpperCase();

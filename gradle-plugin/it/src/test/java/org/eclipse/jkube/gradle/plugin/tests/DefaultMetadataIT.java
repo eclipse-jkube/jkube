@@ -39,7 +39,14 @@ class DefaultMetadataIT {
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
         .contains("Using first mentioned service port")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/metadata-deployment.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/metadata-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/test-serviceaccount-serviceaccount.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+        .contains("SUCCESS");
   }
 
   @Test
@@ -56,7 +63,15 @@ class DefaultMetadataIT {
         .contains("Adding a default ReplicaSet")
         .contains("Adding revision history limit to 2")
         .contains("Using first mentioned service port")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/metadata-deployment.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/metadata-replicaset.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/metadata-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/test-serviceaccount-serviceaccount.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+        .contains("SUCCESS");
   }
 
   @Test
@@ -71,6 +86,14 @@ class DefaultMetadataIT {
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
         .contains("Using first mentioned service port")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/metadata-deploymentconfig.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/metadata-route.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/metadata-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/test-serviceaccount-serviceaccount.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
   }
 }

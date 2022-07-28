@@ -34,6 +34,7 @@ import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.RegistryConfig;
@@ -151,6 +152,8 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
 
                 // Create a file with generated image streams
                 addImageStreamToFile(getImageStreamFile(), imageName, client);
+                SummaryUtil.setBaseImageNameImageSummary(imageConfig.getName(), imageConfig.getBuildConfiguration().getFrom());
+                SummaryUtil.setImageStreamUsedImageSummary(imageConfig.getName(), resolveImageStreamName(imageName));
 
                 createAdditionalTags(imageConfig, imageName);
             } else {
@@ -206,6 +209,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
 
         // Fetch existing build config
         BuildConfig buildConfig = client.buildConfigs().inNamespace(applicableOpenShiftNamespace).withName(buildName).get();
+        SummaryUtil.setOpenShiftBuildConfigName(buildName);
         if (buildConfig != null) {
             // lets verify the BC
             BuildConfigSpec spec = OpenShiftBuildServiceUtils.getBuildConfigSpec(buildConfig);

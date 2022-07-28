@@ -27,6 +27,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.provider.Property;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
@@ -88,7 +90,14 @@ class KubernetesWatchTaskTest {
   @Test
   void runTask_withNoManifest_shouldThrowException() {
     // Given
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSummaryEnabled() {
+        return new DefaultProperty<>(Boolean.class).value(false);
+      }
+    };
     extension.isFailOnNoKubernetesJson = true;
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesWatchTask watchTask = new KubernetesWatchTask(KubernetesExtension.class);
     // When & Then
     assertThatIllegalStateException()

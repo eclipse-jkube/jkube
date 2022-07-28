@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 
@@ -89,6 +90,9 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     @Parameter(property = "jkube.namespace")
     public String namespace;
 
+    @Parameter(property = "jkube.summaryEnabled", defaultValue = "true")
+    public boolean summaryEnabled;
+
     @Parameter
     protected ClusterConfiguration access;
 
@@ -114,7 +118,13 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
             }
             executeInternal();
         } catch (DependencyResolutionRequiredException e) {
-            throw new MojoFailureException(e.getMessage());
+            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, e.getMessage(), () -> new MojoFailureException(e.getMessage()));
+        } finally {
+            String lastExecutingGoal = MavenUtil.getLastExecutingGoal(session, getLogPrefix().trim());
+            if (lastExecutingGoal != null && lastExecutingGoal.equals(mojoExecution.getGoal())) {
+                SummaryUtil.printSummary(javaProject.getBaseDirectory(), summaryEnabled);
+                SummaryUtil.clear();
+            }
         }
     }
 
@@ -124,6 +134,8 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         jkubeServiceHub = initJKubeServiceHubBuilder(javaProject).build();
         resources = updateResourceConfigNamespace(namespace, resources);
+        SummaryUtil.initSummary(javaProject.getBuildDirectory(), log);
+        SummaryUtil.setSuccessful(true);
     }
 
     protected boolean shouldSkip() {

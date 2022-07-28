@@ -52,7 +52,13 @@ class RouteIT {
         .contains("Using resource templates from")
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to ")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/route-deploymentconfig.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/route-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
     assertThat(gradleRunner.resolveDefaultOpenShiftResourceDir().listFiles())
         .hasSize(expectedGeneratedFiles);
   }

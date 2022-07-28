@@ -18,6 +18,7 @@ import java.util.List;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
@@ -53,6 +54,7 @@ public class GeneratorManager {
       log.verbose(" - %s", generator.getName());
       if (generator.isApplicable(ret)) {
         log.info("Running generator %s", generator.getName());
+        SummaryUtil.addToGenerators(generator.getName());
         ret = generator.customize(ret, prePackagePhase);
       }
     }

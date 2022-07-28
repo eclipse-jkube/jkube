@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.ConfigMapEntry;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -62,6 +63,7 @@ public class ConfigMapEnricher extends BaseEnricher {
                 final Map<String, String> annotations = element.buildMetadata().getAnnotations();
                 if (annotations != null) {
                     try {
+                        SummaryUtil.addToEnrichers(getName());
                         addConfigMapFromAnnotations(annotations, element);
                     } catch (IOException e) {
                         throw new IllegalArgumentException(e);
@@ -111,6 +113,7 @@ public class ConfigMapEnricher extends BaseEnricher {
 
             if ((configMap.getData() != null && !configMap.getData().isEmpty())
                     || (configMap.getBinaryData() != null && !configMap.getBinaryData().isEmpty())) {
+                SummaryUtil.addToEnrichers(getName());
                 builder.addToConfigMapItems(configMap);
             }
         } catch (IOException e) {

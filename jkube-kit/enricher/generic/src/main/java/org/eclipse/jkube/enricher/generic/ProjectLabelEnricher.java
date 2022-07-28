@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.MapUtil;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -83,6 +84,7 @@ public class ProjectLabelEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
+        SummaryUtil.addToEnrichers(getName());
         builder.accept(new TypedVisitor<ServiceBuilder>() {
             @Override
             public void visit(ServiceBuilder serviceBuilder) {

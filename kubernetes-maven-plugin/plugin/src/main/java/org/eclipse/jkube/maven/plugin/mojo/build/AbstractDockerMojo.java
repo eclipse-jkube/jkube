@@ -24,6 +24,7 @@ import java.util.Optional;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.kit.build.core.GavLabel;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
@@ -387,6 +388,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(property = "jkube.offline", defaultValue = "false")
     protected boolean offline;
 
+    @Parameter(property = "jkube.summaryEnabled", defaultValue = "true")
+    public boolean summaryEnabled;
+
     protected JavaProject javaProject;
 
     @Override
@@ -448,17 +452,24 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                     .offline(offline)
                     .build();
                 resolvedImages = ConfigHelper.initImageConfiguration(apiVersion, getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), images, imageConfigResolver, log, filter, this, jkubeServiceHub.getConfiguration());
+                SummaryUtil.initSummary(javaProject.getBuildDirectory(), log);
+                SummaryUtil.setSuccessful(true);
                 executeInternal();
             } catch (IOException | DependencyResolutionRequiredException exp) {
                 logException(exp);
-                throw new MojoExecutionException(exp.getMessage());
+                SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, exp.getMessage(), () -> new MojoExecutionException(exp.getMessage()));
             } catch (MojoExecutionException exp) {
                 logException(exp);
-                throw exp;
+                SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, exp.getMessage(), () -> exp);
             } finally {
                 Optional.ofNullable(jkubeServiceHub).ifPresent(JKubeServiceHub::close);
             }
         } finally {
+            String lastExecutingGoal = MavenUtil.getLastExecutingGoal(session, getLogPrefix().trim());
+            if (lastExecutingGoal != null && lastExecutingGoal.equals(mojoExecution.getGoal())) {
+                SummaryUtil.printSummary(javaProject.getBaseDirectory(), summaryEnabled);
+                SummaryUtil.clear();
+            }
             Ansi.setEnabled(ansiRestore);
         }
     }

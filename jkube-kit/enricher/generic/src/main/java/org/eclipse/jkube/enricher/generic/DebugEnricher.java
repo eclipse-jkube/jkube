@@ -31,6 +31,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -68,6 +69,7 @@ public class DebugEnricher extends BaseEnricher {
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
         if (isDebugEnabled()) {
+            SummaryUtil.addToEnrichers(getName());
             int count = 0;
             List<HasMetadata> items = builder.buildItems();
             if (items != null) {

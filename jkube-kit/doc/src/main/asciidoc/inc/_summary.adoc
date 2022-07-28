@@ -1,0 +1,15 @@
+[[summary]]
+= Summary
+
+{plugin} can print a brief summary of the task it performed in order to give better idea of what's going on to the user. At the moment, most of the build related actions (build, push, resource, apply etc.) print summary. It can be disabled with `jkube.summaryEnabled` property.
+
+.Summary configuration
+[cols="2,6"]
+|===
+| Property | Description
+
+| `jkube.summaryEnabled`
+| Whether summary should be printed or not.
+
+Defaults to `true`
+|===

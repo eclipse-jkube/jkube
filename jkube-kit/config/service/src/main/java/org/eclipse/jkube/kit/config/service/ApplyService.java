@@ -31,10 +31,12 @@ import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.summary.KubernetesResourceSummary;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
 
@@ -80,6 +82,8 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimGroup;
+import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimVersion;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getKind;
@@ -238,6 +242,7 @@ public class ApplyService {
         }
         kubernetesClient.genericKubernetesResources(genericKubernetesResource.getApiVersion(), genericKubernetesResource.getKind()).inNamespace(applyNamespace).withName(name)
             .createOrReplace(genericKubernetesResource);
+        addToAppliedResourcesSummary(genericKubernetesResource, applyNamespace);
         log.info("Created Custom Resource: %s %s/%s", apiGroupWithKind, applyNamespace, name);
     }
 
@@ -265,6 +270,7 @@ public class ApplyService {
                     } else {
                         try {
                             Object answer = openShiftClient.oAuthClients().withName(id).replace(entity);
+                            addToAppliedResourcesSummary(entity, null);
                             log.info("Updated OAuthClient result: %s", answer);
                         } catch (Exception e) {
                             onApplyError("Failed to update OAuthClient from " + sourceName + ". " + e + ". " + entity, e);
@@ -285,6 +291,7 @@ public class ApplyService {
         if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             try {
                 asOpenShiftClient().oAuthClients().resource(entity).create();
+                addToAppliedResourcesSummary(entity, null);
             } catch (Exception e) {
                 onApplyError("Failed to create OAuthClient from " + sourceName + ". " + e + ". " + entity, e);
             }
@@ -327,6 +334,7 @@ public class ApplyService {
                         log.info("Updating a Template from %s", sourceName);
                         try {
                             Object answer = openShiftClient.templates().inNamespace(currentNamespace).withName(id).replace(entity);
+                            addToAppliedResourcesSummary(entity, currentNamespace);
                             log.info("Updated Template: " + answer);
                         } catch (Exception e) {
                             onApplyError("Failed to update Template from " + sourceName + ". " + e + ". " + entity, e);
@@ -353,6 +361,7 @@ public class ApplyService {
             try {
                 final Template answer = asOpenShiftClient().templates().inNamespace(namespace).create(entity);
                 logGeneratedEntity("Created Template: ", namespace, entity, answer);
+                addToAppliedResourcesSummary(answer, namespace);
             } catch (Exception e) {
                 onApplyError("Failed to Template entity from " + sourceName + ". " + e + ". " + entity, e);
             }
@@ -382,6 +391,7 @@ public class ApplyService {
                     log.info("Updating a ServiceAccount from " + sourceName);
                     try {
                         Object answer = kubernetesClient.serviceAccounts().inNamespace(currentNamespace).withName(id).replace(serviceAccount);
+                        addToAppliedResourcesSummary(serviceAccount, currentNamespace);
                         logGeneratedEntity("Updated ServiceAccount: ", currentNamespace, serviceAccount, answer);
                     } catch (Exception e) {
                         onApplyError("Failed to update ServiceAccount from " + sourceName + ". " + e + ". " + serviceAccount, e);
@@ -402,6 +412,7 @@ public class ApplyService {
                 (serviceAccount));
         try {
             Object answer = kubernetesClient.serviceAccounts().inNamespace(namespace).create(serviceAccount);
+            addToAppliedResourcesSummary(serviceAccount, namespace);
             logGeneratedEntity("Created ServiceAccount: ", namespace, serviceAccount, answer);
         } catch (Exception e) {
             onApplyError("Failed to create ServiceAccount from " + sourceName + ". " + e + ". " + serviceAccount, e);
@@ -480,6 +491,7 @@ public class ApplyService {
         log.info("Creating a Custom Resource Definition from " + sourceName + " name " + getName(entity));
         try {
             CustomResourceDefinition answer = kubernetesClient.apiextensions().v1().customResourceDefinitions().create(entity);
+            addToAppliedResourcesSummary(answer, null);
             log.info("Created Custom Resource Definition result: %s", answer.getMetadata().getName());
         } catch (Exception e) {
             onApplyError("Failed to create Custom Resource Definition from " + sourceName + ". " + e + ". " + entity, e);
@@ -497,6 +509,7 @@ public class ApplyService {
         try {
             Object answer;
             answer = kubernetesClient.persistentVolumeClaims().inNamespace(namespace).create(entity);
+            addToAppliedResourcesSummary(entity, namespace);
             logGeneratedEntity("Created PersistentVolumeClaim: ", namespace, entity, answer);
         } catch (Exception e) {
             onApplyError("Failed to create PersistentVolumeClaim from " + sourceName + ". " + e + ". " + entity, e);
@@ -540,6 +553,7 @@ public class ApplyService {
         try {
             Object answer = kubernetesClient.secrets().inNamespace(namespace).create(secret);
             logGeneratedEntity("Created Secret: ", namespace, secret, answer);
+            addToAppliedResourcesSummary(secret, namespace);
         } catch (Exception e) {
             onApplyError("Failed to create Secret from " + sourceName + ". " + e + ". " + secret, e);
         }
@@ -654,6 +668,7 @@ public class ApplyService {
                         "host: " + entity.getSpec().getHost() :
                         "No Spec !"));
                 asOpenShiftClient().routes().inNamespace(namespace).resource(entity).create();
+                addToAppliedResourcesSummary(entity, namespace);
             } catch (Exception e) {
                 onApplyError("Failed to create Route from " + sourceName + ". " + e + ". " + entity, e);
             }
@@ -695,6 +710,7 @@ public class ApplyService {
         if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             try {
                 asOpenShiftClient().buildConfigs().inNamespace(namespace).resource(entity).create();
+                addToAppliedResourcesSummary(entity, namespace);
             } catch (Exception e) {
                 onApplyError("Failed to create BuildConfig from " + sourceName + ". " + e, e);
             }
@@ -724,6 +740,7 @@ public class ApplyService {
                         metadata.setNamespace(currentNamespace);
                         metadata.setResourceVersion(resourceVersion);
                         Object answer = kubernetesClient.rbac().roleBindings().inNamespace(currentNamespace).withName(id).replace(entity);
+                        addToAppliedResourcesSummary(entity, currentNamespace);
                         logGeneratedEntity("Updated RoleBinding: ", currentNamespace, entity, answer);
                     } catch (Exception e) {
                         onApplyError("Failed to update RoleBinding from " + sourceName + ". " + e + ". " + entity, e);
@@ -743,6 +760,7 @@ public class ApplyService {
         try {
             log.info("Creating RoleBinding from " + sourceName + " namespace " + namespace + " name " + getName(entity));
             kubernetesClient.rbac().roleBindings().inNamespace(namespace).create(entity);
+            addToAppliedResourcesSummary(entity, namespace);
         } catch (Exception e) {
             onApplyError("Failed to create RoleBinding from " + sourceName + ". " + e, e);
         }
@@ -760,8 +778,10 @@ public class ApplyService {
                 if (old == null) {
                     log.info("Creating " + kind + " " + name + " from " + sourceName);
                     resource.create(entity);
+                    addToAppliedResourcesSummary(entity, currentNamespace);
                 } else {
                     log.info("Updating " + kind + " " + name + " from " + sourceName);
+                    addToAppliedResourcesSummary(entity, currentNamespace);
                     copyAllImageStreamTags(entity, old);
                     entity = patchService.compareAndPatchEntity(currentNamespace, entity, old);
                     openShiftClient.resource(entity).inNamespace(currentNamespace).createOrReplace();
@@ -878,6 +898,7 @@ public class ApplyService {
                     log.info("Updating " + kind + " from " + sourceName);
                     try {
                         Object answer = resources.inNamespace(currentNamespace).withName(id).replace(resource);
+                        addToAppliedResourcesSummary(resource, currentNamespace);
                         logGeneratedEntity("Updated " + kind + ": ", currentNamespace, resource, answer);
                     } catch (Exception e) {
                         onApplyError("Failed to update " + kind + " from " + sourceName + ". " + e + ". " + resource, e);
@@ -898,6 +919,7 @@ public class ApplyService {
         log.info("Creating a " + kind + " from " + sourceName + " namespace " + namespace + " name " + getName(resource));
         try {
             Object answer = resources.inNamespace(namespace).create(resource);
+            addToAppliedResourcesSummary(resource, namespace);
             logGeneratedEntity("Created " + kind + ": ", namespace, resource, answer);
         } catch (Exception e) {
             onApplyError("Failed to create " + kind + " from " + sourceName + ". " + e + ". " + resource, e);
@@ -909,6 +931,7 @@ public class ApplyService {
         log.info("Updating %s from %s", kind, sourceName);
         try {
             Object answer = patchService.compareAndPatchEntity(namespace, newEntity, oldEntity);
+            addToAppliedResourcesSummary(newEntity, namespace);
             logGeneratedEntity("Updated " + kind + ": ", namespace, newEntity, answer);
         } catch (Exception e) {
             onApplyError("Failed to update " + kind + " from " + sourceName + ". " + e + ". " + newEntity, e);
@@ -919,6 +942,7 @@ public class ApplyService {
         log.info("Creating a Service from " + sourceName + " namespace " + namespace + " name " + getName(service));
         try {
             Object answer = kubernetesClient.services().inNamespace(namespace).create(service);
+            addToAppliedResourcesSummary(service, namespace);
             logGeneratedEntity("Created Service: ", namespace, service, answer);
         } catch (Exception e) {
             onApplyError("Failed to create Service from " + sourceName + ". " + e + ". " + service, e);
@@ -1089,6 +1113,7 @@ public class ApplyService {
                     log.info("Updating ReplicationController from " + sourceName + " namespace " + currentNamespace + " name " + getName(replicationController));
                     try {
                         Object answer = patchService.compareAndPatchEntity(currentNamespace, replicationController, old);
+                        addToAppliedResourcesSummary(replicationController, currentNamespace);
                         logGeneratedEntity("Updated replicationController: ", currentNamespace, replicationController, answer);
 
                         if (deletePodsOnReplicationControllerUpdate) {
@@ -1176,6 +1201,7 @@ public class ApplyService {
             if(exception.getStatus().getCode().equals(HttpURLConnection.HTTP_CONFLICT)) {
                 Job old = kubernetesClient.batch().v1().jobs().inNamespace(currentNamespace).withName(id).get();
                 Job updatedJob = patchService.compareAndPatchEntity(currentNamespace, job, old);
+                addToAppliedResourcesSummary(updatedJob, currentNamespace);
                 log.info("Updated Job: " + updatedJob.getMetadata().getName());
                 return;
             }
@@ -1341,6 +1367,7 @@ public class ApplyService {
     public void applyEntities(String fileName, Collection<HasMetadata> entities, KitLogger serviceLogger,
                                  long serviceUrlWaitTimeSeconds) {
 
+        SummaryUtil.setAppliedClusterUrl(kubernetesClient.getMasterUrl().toString());
         applyStandardEntities(fileName, getK8sListWithNamespaceFirst(entities));
     }
 
@@ -1359,6 +1386,16 @@ public class ApplyService {
                 apply(entity, fileName);
             }
         }
+    }
+
+    private void addToAppliedResourcesSummary(HasMetadata h, String applicableNamespace) {
+        SummaryUtil.addAppliedKubernetesResource(KubernetesResourceSummary.builder()
+                .group(trimGroup(h.getApiVersion()))
+                .version(trimVersion(h.getApiVersion()))
+                .namespace(applicableNamespace)
+                .resourceName(KubernetesHelper.getName(h))
+                .kind(h.getKind())
+            .build());
     }
 
     public static List<HasMetadata> getK8sListWithNamespaceFirst(Collection<HasMetadata> k8sList) {

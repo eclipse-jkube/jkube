@@ -19,6 +19,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -59,6 +60,7 @@ public class ContainerEnvJavaOptionsMergeEnricher extends BaseEnricher {
   @Override
   public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
     if (!asBoolean(getConfig(Config.DISABLE)) && hasImageConfiguration()) {
+      SummaryUtil.addToEnrichers(getName());
       builder.accept(new ContainerEnvJavaOptionsMergeVisitor(getImages()));
     }
   }

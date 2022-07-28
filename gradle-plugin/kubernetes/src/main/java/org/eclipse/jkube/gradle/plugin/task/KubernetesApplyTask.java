@@ -22,6 +22,7 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
@@ -62,13 +63,15 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
       kitLogger.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up",
           clusterAccess.isOpenShift() ? "oc" : "kubectl");
     } catch (KubernetesClientException e) {
-      KubernetesResourceUtil.handleKubernetesClientException(e, kitLogger);
+      KubernetesResourceUtil.handleKubernetesClientException(e, kitLogger, kubernetesExtension.getSummaryEnabledOrDefault());
     } catch (IOException ioException) {
       kitLogger.error("Error in loading Kubernetes Manifests ", ioException);
-      throw new IllegalStateException(ioException);
+      SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(), ioException.getMessage(), () -> new IllegalStateException(ioException));
     } catch (InterruptedException interruptedException) {
       Thread.currentThread().interrupt();
-      throw new IllegalStateException(interruptedException.getMessage(), interruptedException);
+      SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(),
+          interruptedException.getMessage(),
+          () -> new IllegalStateException(interruptedException.getMessage(), interruptedException));
     }
   }
 

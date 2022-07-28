@@ -30,6 +30,7 @@ import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigReso
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
@@ -72,6 +73,11 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         return;
     }
     run();
+    String lastExecutingTask = GradleUtil.getLastExecutingTask(getProject(), getTaskPrioritiesMap());
+    if (lastExecutingTask != null && lastExecutingTask.equals(getName())) {
+      SummaryUtil.printSummary(kubernetesExtension.javaProject.getBaseDirectory(), kubernetesExtension.getSummaryEnabledOrDefault());
+      SummaryUtil.clear();
+    }
   }
 
   private void init() {
@@ -83,6 +89,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);
     ImageConfigResolver imageConfigResolver = new ImageConfigResolver();
+    SummaryUtil.initSummary(kubernetesExtension.javaProject.getBuildDirectory(), kitLogger);
+    SummaryUtil.setSuccessful(true);
     try {
       resolvedImages = resolveImages(imageConfigResolver);
       final JKubeEnricherContext context = JKubeEnricherContext.builder()

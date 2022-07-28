@@ -26,7 +26,9 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.summary.KubernetesResourceSummary;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.UndeployService;
@@ -34,6 +36,8 @@ import org.eclipse.jkube.kit.config.service.UndeployService;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 
+import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimGroup;
+import static io.fabric8.kubernetes.client.utils.ApiVersionUtil.trimVersion;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.loadResources;
 import static org.eclipse.jkube.kit.config.service.ApplyService.getK8sListWithNamespaceFirst;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
@@ -63,6 +67,7 @@ public class KubernetesUndeployService implements UndeployService {
       logger.warn("No such generated manifests found for this project, ignoring.");
       return;
     }
+    SummaryUtil.setUndeployedClusterUrl(jKubeServiceHub.getClient().getMasterUrl().toString());
     List<HasMetadata> undeployEntities = getK8sListWithNamespaceFirst(entities);
     Collections.reverse(undeployEntities);
     undeployCustomResources(resourceConfig.getNamespace(), fallbackNamespace, undeployEntities);
@@ -87,6 +92,7 @@ public class KubernetesUndeployService implements UndeployService {
           .inNamespace(undeployNamespace)
           .withPropagationPolicy(DeletionPropagation.BACKGROUND)
           .delete();
+      addToUndeployedResourcesSummary(undeployNamespace, resource);
     };
   }
 
@@ -114,6 +120,16 @@ public class KubernetesUndeployService implements UndeployService {
     } catch (Exception exception) {
       logger.error("Unable to undeploy %s %s/%s", apiVersionAndKind, namespace, name);
     }
+  }
+
+  private void addToUndeployedResourcesSummary(String namespace, HasMetadata h) {
+    SummaryUtil.addDeletedKubernetesResource(KubernetesResourceSummary.builder()
+        .group(trimGroup(h.getApiVersion()))
+        .version(trimVersion(h.getApiVersion()))
+        .namespace(namespace)
+        .resourceName(KubernetesHelper.getName(h))
+        .kind(h.getKind())
+        .build());
   }
 
   protected JKubeServiceHub getjKubeServiceHub() {

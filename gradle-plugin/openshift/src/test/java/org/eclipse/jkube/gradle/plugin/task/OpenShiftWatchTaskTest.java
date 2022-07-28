@@ -23,6 +23,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.provider.Property;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
@@ -73,6 +75,13 @@ class OpenShiftWatchTaskTest {
   @Test
   void runTask_withNoManifest_shouldThrowException() {
     // Given
+    extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSummaryEnabled() {
+        return new DefaultProperty<>(Boolean.class).value(false);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     extension.isFailOnNoKubernetesJson = true;
     final OpenShiftWatchTask watchTask = new OpenShiftWatchTask(OpenShiftExtension.class);
     // When & Then

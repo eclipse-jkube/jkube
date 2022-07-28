@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.common.util.GitUtil;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.OpenShiftAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -65,6 +66,7 @@ public class GitEnricher extends BaseEnricher {
                         log.warn("Could not detect any git remote");
                     }
 
+                    SummaryUtil.addToEnrichers(getName());
                     annotations.putAll(getAnnotations(platformMode, gitRemoteUrl, repository.getBranch(), GitUtil.getGitCommitId(repository), useDeprecatedAnnotationPrefix));
                 }
                 return annotations;

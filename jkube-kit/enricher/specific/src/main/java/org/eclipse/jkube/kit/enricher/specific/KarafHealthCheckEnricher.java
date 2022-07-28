@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import java.util.List;
@@ -91,6 +92,7 @@ public class KarafHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
                 for (String featureValue : features) {
                     if ("jkube-karaf-checks".equals(featureValue)) {
+                        SummaryUtil.addToEnrichers(getName());
                         return new ProbeBuilder().withNewHttpGet().withNewPort(DEFAULT_HEALTH_CHECK_PORT).withPath(path).endHttpGet()
                                 .withSuccessThreshold(getSuccessThreshold())
                                 .withFailureThreshold(getFailureThreshold())
@@ -101,6 +103,7 @@ public class KarafHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
                 String featureValue = (String) feature;
                 if ("jkube-karaf-checks".equals(featureValue)) {
+                    SummaryUtil.addToEnrichers(getName());
                     return new ProbeBuilder().withNewHttpGet().withNewPort(DEFAULT_HEALTH_CHECK_PORT).withPath(path).endHttpGet()
                             .withSuccessThreshold(getSuccessThreshold())
                             .withFailureThreshold(getFailureThreshold())

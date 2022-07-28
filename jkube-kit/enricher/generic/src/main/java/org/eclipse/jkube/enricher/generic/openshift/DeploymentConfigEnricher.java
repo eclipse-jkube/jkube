@@ -27,6 +27,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
 import io.fabric8.openshift.api.model.DeploymentStrategy;
 import io.fabric8.openshift.api.model.DeploymentStrategyBuilder;
 import org.eclipse.jkube.enricher.generic.DefaultControllerEnricher;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.EnricherConfig;
@@ -51,6 +52,7 @@ public class DeploymentConfigEnricher extends BaseEnricher {
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
         if (isApplicable(platformMode)) {
             for(HasMetadata item : builder.buildItems()) {
+                SummaryUtil.addToEnrichers(getName());
                 if(item instanceof Deployment) {
                     DeploymentConfig deploymentConfig = convertFromAppsV1Deployment(item);
                     removeItemFromKubernetesBuilder(builder, item);

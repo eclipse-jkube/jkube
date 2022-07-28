@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -88,6 +89,7 @@ public class DependencyEnricher extends BaseEnricher {
                 File file = artifact.getFile();
                 try {
                     URI uri = new URI("jar:" + file.toURI() + "!/" + dependencyYaml);
+                    SummaryUtil.addToEnrichers(getName());
                     artifactSet.add(uri);
                 } catch (URISyntaxException e) {
                     getLog().debug("Failed to create URL for %s: %s", file, e);

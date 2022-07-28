@@ -40,6 +40,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigFluent;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecFluent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
@@ -205,6 +206,7 @@ public class ImageEnricher extends BaseEnricher {
                 if (containers == null) {
                     containers = new ArrayList<>();
                 }
+                SummaryUtil.addToEnrichers(getName());
                 mergeImageConfigurationWithContainerSpec(containers);
                 podSpec.withContainers(containers).endSpec();
             }

@@ -15,6 +15,7 @@ package org.eclipse.jkube.enricher.generic;
 
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -50,6 +51,7 @@ public class NameEnricher extends BaseEnricher {
   public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
     final String configuredName = getConfig(Config.NAME);
     final String defaultName = JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId());
+    SummaryUtil.addToEnrichers(getName());
     builder.accept(new TypedVisitor<ObjectMetaBuilder>() {
       @Override
       public void visit(ObjectMetaBuilder resource) {

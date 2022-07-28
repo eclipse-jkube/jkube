@@ -20,6 +20,7 @@ import javax.inject.Inject;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -50,7 +51,9 @@ public class KubernetesLogTask extends AbstractJKubeTask {
           null,
           true);
     } catch (IOException exception) {
-      throw new GradleException("Failure in getting logs", exception);
+      SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(),
+          exception.getMessage(),
+          () -> new GradleException("Failure in getting logs", exception));
     }
   }
 

@@ -43,7 +43,17 @@ class ConfigMapIT {
         .contains("jkube-healthcheck-spring-boot: Adding readiness probe on port 8080")
         .contains("jkube-healthcheck-spring-boot: Adding liveness probe on port 8080")
         .contains("jkube-service-discovery: Using first mentioned service port '8080' ")
-        .contains("jkube-revision-history: Adding revision history limit to 2");
+        .contains("jkube-revision-history: Adding revision history limit to 2")
+        .contains("SUMMARY")
+        .contains("Generators applied: [spring-boot]")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/configmap-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/configmap-deployment.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/jkube-annotation-directory-configmap.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/jkube-annotation-file-configmap.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/jkube-gradle-sample-config-map-configmap.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+        .contains("SUCCESS");
   }
 
   @Test
@@ -63,6 +73,17 @@ class ConfigMapIT {
         .contains("jkube-healthcheck-spring-boot: Adding readiness probe on port 8080")
         .contains("jkube-healthcheck-spring-boot: Adding liveness probe on port 8080")
         .contains("jkube-service-discovery: Using first mentioned service port '8080' ")
-        .contains("jkube-revision-history: Adding revision history limit to 2");
+        .contains("jkube-revision-history: Adding revision history limit to 2")
+        .contains("SUMMARY")
+        .contains("Generators applied: [spring-boot]")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/configmap-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/configmap-route.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/jkube-annotation-directory-configmap.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/jkube-annotation-file-configmap.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/jkube-gradle-sample-config-map-configmap.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/configmap-deploymentconfig.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
   }
 }

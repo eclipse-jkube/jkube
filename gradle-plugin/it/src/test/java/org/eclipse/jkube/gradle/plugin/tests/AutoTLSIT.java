@@ -39,6 +39,13 @@ class AutoTLSIT {
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
         .contains("Using first mentioned service port")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/autotls-service.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/autotls-route.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/autotls-deploymentconfig.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
   }
 }

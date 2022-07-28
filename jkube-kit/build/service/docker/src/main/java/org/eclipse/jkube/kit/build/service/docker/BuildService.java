@@ -35,6 +35,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -146,6 +147,7 @@ public class BuildService {
             throw new IllegalStateException("Failure in building image, unable to find image built with name " + imageName);
         }
         log.info("%s: Built image %s", imageConfig.getDescription(), newImageId);
+        SummaryUtil.setImageShaImageSummary(imageName, newImageId);
 
         if (oldImageId != null && !oldImageId.equals(newImageId)) {
             try {
@@ -264,6 +266,7 @@ public class BuildService {
         }
         for (String fromImage : fromImages) {
             if (fromImage != null && !AssemblyManager.SCRATCH_IMAGE.equals(fromImage)) {
+                SummaryUtil.setBaseImageNameImageSummary(imageConfig.getName(), fromImage);
                 registryService.pullImageWithPolicy(fromImage, imagePullManager, configuration.getRegistryConfig(), buildConfig);
             }
         }

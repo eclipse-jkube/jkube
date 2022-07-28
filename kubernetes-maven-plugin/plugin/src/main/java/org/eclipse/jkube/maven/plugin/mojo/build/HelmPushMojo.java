@@ -17,6 +17,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
 
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmPushConfig;
@@ -38,7 +39,7 @@ public class HelmPushMojo extends HelmMojo {
       jkubeServiceHub.getHelmService().uploadHelmChart(helm);
     } catch (Exception exp) {
       getKitLogger().error("Error performing helm push", exp);
-      throw new MojoExecutionException(exp.getMessage(), exp);
+      SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, exp.getMessage(), () -> new MojoExecutionException(exp.getMessage(), exp));
     }
   }
 

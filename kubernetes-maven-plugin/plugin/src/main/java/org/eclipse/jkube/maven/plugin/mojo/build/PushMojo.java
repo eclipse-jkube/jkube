@@ -18,6 +18,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 
 /**
  * Uploads the built Docker images to a Docker registry
@@ -58,7 +59,7 @@ public class PushMojo extends AbstractDockerMojo {
         try {
             jkubeServiceHub.getBuildService().push(getResolvedImages(), retries, getRegistryConfig(pushRegistry), skipTag);
         } catch (Exception ex) {
-            throw new MojoExecutionException(ex.getMessage(), ex);
+            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, ex.getMessage(), () -> new MojoExecutionException(ex.getMessage(), ex));
         }
     }
 }

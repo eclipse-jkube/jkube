@@ -40,6 +40,7 @@ include::inc/_access.adoc[]
 
 include::inc/_registry.adoc[]
 include::inc/_authentication.adoc[]
+include::{kitdoc-path}/inc/_summary.adoc[]
 include::inc/_volumes.adoc[]
 include::inc/_integrations.adoc[]
 

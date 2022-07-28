@@ -23,6 +23,8 @@ import org.gradle.api.GradleException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.provider.Property;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -61,6 +63,13 @@ class KubernetesLogTaskTest {
   @Test
   void runTask_withNoManifestAndFailure_shouldThrowException() {
     // Given
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSummaryEnabled() {
+        return new DefaultProperty<>(Boolean.class).value(false);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     extension.isFailOnNoKubernetesJson = true;
     final KubernetesLogTask kubernetesLogTask = new KubernetesLogTask(KubernetesExtension.class);
     // When & Then
@@ -74,6 +83,13 @@ class KubernetesLogTaskTest {
     try (MockedStatic<KubernetesHelper> mockStatic = Mockito.mockStatic(KubernetesHelper.class)) {
       // Given
       mockStatic.when(() -> KubernetesHelper.loadResources(any())).thenThrow(new IOException("IO error with logs"));
+      extension = new TestKubernetesExtension() {
+        @Override
+        public Property<Boolean> getSummaryEnabled() {
+          return new DefaultProperty<>(Boolean.class).value(false);
+        }
+      };
+      when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
       KubernetesLogTask kubernetesLogTask = new KubernetesLogTask(KubernetesExtension.class);
       // When & Then
       assertThatExceptionOfType(GradleException.class)

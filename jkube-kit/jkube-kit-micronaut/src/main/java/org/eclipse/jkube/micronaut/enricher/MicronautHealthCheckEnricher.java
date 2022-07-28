@@ -16,6 +16,7 @@ package org.eclipse.jkube.micronaut.enricher;
 import java.util.Collections;
 
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -85,6 +86,7 @@ public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
       return null;
     }
 
+    SummaryUtil.addToEnrichers(getName());
     final String firstImagePort = getImages().stream().findFirst()
         .map(ImageConfiguration::getBuild).map(BuildConfiguration::getPorts)
         .orElse(Collections.emptyList()).stream()

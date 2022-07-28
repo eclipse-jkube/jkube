@@ -25,6 +25,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -99,6 +100,7 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
 
                 boolean forceModifyNamespace = Boolean.parseBoolean(getConfig(Config.FORCE));
                 if (StringUtils.isBlank(metaBuilder.getNamespace()) || forceModifyNamespace) {
+                    SummaryUtil.addToEnrichers(getName());
                     metaBuilder.withNamespace(getNamespaceName()).build();
                 }
             }
@@ -145,6 +147,7 @@ public class DefaultNamespaceEnricher extends BaseEnricher {
     private void addNamespaceToBuilder(PlatformMode platformMode, String newNamespaceToCreate, KubernetesListBuilder builder, String type) {
         HasMetadata namespaceOrProject = getNamespaceOrProject(platformMode, type, newNamespaceToCreate);
         if (namespaceOrProject != null) {
+            SummaryUtil.addToEnrichers(getName());
             builder.addToItems(namespaceOrProject);
         }
     }

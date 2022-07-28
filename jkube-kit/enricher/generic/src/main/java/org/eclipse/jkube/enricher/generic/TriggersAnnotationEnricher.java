@@ -34,6 +34,7 @@ import io.fabric8.openshift.api.model.ImageChangeTriggerBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -146,6 +147,7 @@ public class TriggersAnnotationEnricher extends BaseEnricher {
                             .build();
 
                     trigger.setAdditionalProperty("fieldPath", "spec.template.spec.containers[?(@.name==\"" + containerName + "\")].image");
+                    SummaryUtil.addToEnrichers(getName());
                     triggerList.add(trigger);
                 }
             }

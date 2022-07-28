@@ -23,6 +23,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
@@ -68,9 +69,11 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
             resources,
             context);
       } catch (KubernetesClientException kubernetesClientException) {
-        KubernetesResourceUtil.handleKubernetesClientException(kubernetesClientException, kitLogger);
+        KubernetesResourceUtil.handleKubernetesClientException(kubernetesClientException, kitLogger, kubernetesExtension.getSummaryEnabledOrDefault());
       } catch (Exception ioException) {
-        throw new IllegalStateException("An error has occurred while while trying to watch the resources", ioException);
+        SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(),
+            ioException.getMessage(),
+            () -> new IllegalStateException("An error has occurred while while trying to watch the resources", ioException));
       }
     }
   }

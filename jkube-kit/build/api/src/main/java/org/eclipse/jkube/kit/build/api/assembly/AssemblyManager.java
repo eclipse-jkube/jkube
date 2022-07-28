@@ -43,6 +43,7 @@ import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
@@ -109,6 +110,7 @@ public class AssemblyManager {
 
         try {
             if (buildConfig.isDockerFileMode()) {
+                SummaryUtil.setDockerFileImageSummary(imageName, buildConfig.getDockerFileFile().getAbsolutePath());
                 createDockerTarArchiveForDockerFile(buildConfig, assemblyConfig, configuration, buildDirs, log, archiveCustomizers);
             } else {
                 createAssemblyArchive(assemblyConfig, configuration, buildDirs, buildConfig.getCompression(), layers);
@@ -472,5 +474,4 @@ public class AssemblyManager {
         }
         return includes;
     }
-
 }

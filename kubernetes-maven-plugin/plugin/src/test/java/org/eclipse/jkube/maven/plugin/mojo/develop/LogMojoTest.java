@@ -15,10 +15,14 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Properties;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.MojoExecution;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.PodLogService;
@@ -52,7 +56,8 @@ class LogMojoTest {
   private MockedConstruction<PodLogService> podLogServiceMockedConstruction;
   private File kubernetesManifestFile;
   private MavenProject mavenProject;
-
+  private MavenSession mockedMavenSession;
+  private MojoExecution mockedMojoExecution;
   private LogMojo logMojo;
 
   @BeforeEach
@@ -67,10 +72,16 @@ class LogMojoTest {
     podLogServiceMockedConstruction = mockConstruction(PodLogService.class);
     kubernetesManifestFile = File.createTempFile("kubernetes", ".yml", temporaryFolder);
     mavenProject = mock(MavenProject.class);
+    mockedMavenSession = mock(MavenSession.class);
+    mockedMojoExecution = mock(MojoExecution.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
+    when(mockedMavenSession.getGoals()).thenReturn(Arrays.asList("k8s:log", "k8s:apply"));
+    when(mockedMojoExecution.getGoal()).thenReturn("k8s:log");
     // @formatter:off
     logMojo = new LogMojo() { {
       project = mavenProject;
+      session = mockedMavenSession;
+      mojoExecution = mockedMojoExecution;
       settings = mock(Settings.class);
       kubernetesManifest = kubernetesManifestFile;
     }};

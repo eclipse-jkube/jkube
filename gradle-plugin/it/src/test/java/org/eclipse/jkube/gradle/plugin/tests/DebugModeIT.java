@@ -40,7 +40,12 @@ class DebugModeIT {
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
         .contains("Enabling debug on")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes/debug-mode-deployment.yml")
+        .contains("build/classes/java/main/META-INF/jkube/kubernetes.yml")
+        .contains("SUCCESS");
   }
 
   @Test
@@ -55,6 +60,11 @@ class DebugModeIT {
         .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
         .contains("Enabling debug on")
-        .contains("validating");
+        .contains("validating")
+        .contains("SUMMARY")
+        .contains("Generated resources:")
+        .contains("build/classes/java/main/META-INF/jkube/openshift/debug-mode-deploymentconfig.yml")
+        .contains("build/classes/java/main/META-INF/jkube/openshift.yml")
+        .contains("SUCCESS");
   }
 }

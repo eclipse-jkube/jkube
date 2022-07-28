@@ -35,6 +35,7 @@ import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.Arguments;
@@ -117,6 +118,7 @@ public class JibServiceUtil {
 
     public static JibContainerBuilder containerFromImageConfiguration(
         ImageConfiguration imageConfiguration, Credential pullRegistryCredential) throws InvalidImageReferenceException {
+        SummaryUtil.setBaseImageNameImageSummary(imageConfiguration.getName(), imageConfiguration.getBuildConfiguration().getFrom());
         final JibContainerBuilder containerBuilder = Jib.from(getRegistryImage(getBaseImage(imageConfiguration), pullRegistryCredential))
                 .setFormat(ImageFormat.Docker);
         return populateContainerBuilderFromImageConfiguration(containerBuilder, imageConfiguration);
@@ -129,6 +131,8 @@ public class JibServiceUtil {
         } else {
             imageName = new ImageName(imageConfiguration.getName());
         }
+        SummaryUtil.setPushRegistry(Optional.ofNullable(imageName.getRegistry())
+            .orElse("docker.io"));
         return imageName.getFullName();
     }
 

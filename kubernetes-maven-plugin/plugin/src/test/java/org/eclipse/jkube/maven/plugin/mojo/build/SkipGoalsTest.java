@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecution;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,8 @@ import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+
+import java.util.Collections;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
@@ -35,6 +38,9 @@ class SkipGoalsTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private MojoExecution mojoExecution;
+
+    @Mock
+    private MavenSession mavenSession;
 
     @Spy
     @InjectMocks
@@ -82,6 +88,7 @@ class SkipGoalsTest {
       doNothing().when(applyMojo).init();
       doNothing().when(applyMojo).executeInternal();
       when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:apply");
+      when(mavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:apply"));
     }
 
     @Test
