@@ -61,7 +61,8 @@ public class KarafHealthCheckEnricher extends AbstractHealthCheckEnricher {
     //
     private Probe discoverKarafProbe(String path, int initialDelay) {
 
-        final Optional<Map<String, Object>> configurationValues = getContext().getConfiguration().getPluginConfiguration("karaf-maven-plugin");
+        // TODO, If Gradle features are added, this won't work
+        final Optional<Map<String, Object>> configurationValues = getContext().getConfiguration().getPluginConfiguration("maven", "karaf-maven-plugin");
 
         if (!configurationValues.isPresent()) {
             return null;

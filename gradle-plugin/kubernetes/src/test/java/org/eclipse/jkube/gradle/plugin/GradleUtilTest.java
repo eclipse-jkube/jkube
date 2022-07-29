@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 
-import org.eclipse.jkube.kit.common.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -54,7 +53,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.eclipse.jkube.gradle.plugin.GradleUtil.canBeResolved;
 import static org.eclipse.jkube.gradle.plugin.GradleUtil.convertGradleProject;
-import static org.eclipse.jkube.gradle.plugin.GradleUtil.getPluginWithKubernetesExtensionConfigured;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -324,65 +322,7 @@ public class GradleUtilTest {
     assertThat(result).isTrue();
   }
 
-  @Test
-  public void getPluginWithKubernetesExtensionConfigured_whenPluginWithJKubeGroup_shouldSetConfiguration() {
-    // Given
-    final KubernetesExtension kubernetesExtension = new TestKubernetesExtension();
-    List<Plugin> plugins = Collections.singletonList(Plugin.builder()
-            .groupId("org.eclipse.jkube.testing")
-            .artifactId("org.eclipse.jkube.testing.gradle.plugin")
-            .version("1.0.0")
-        .build());
-
-    // When
-    List<Plugin> updatedPlugins = getPluginWithKubernetesExtensionConfigured(plugins, Collections.emptyList(), kubernetesExtension);
-
-    // Then
-    assertThat(updatedPlugins)
-        .hasSize(1)
-        .first()
-        .extracting(Plugin::getConfiguration)
-        .isNotNull();
-  }
-
-  @Test
-  public void getPluginWithKubernetesExtensionConfigured_whenNoPluginWithJKubeGroup_shouldNotSetConfiguration() {
-    // Given
-    final KubernetesExtension kubernetesExtension = new TestKubernetesExtension();
-    List<Plugin> plugins = Collections.singletonList(Plugin.builder()
-        .groupId("org.example.testing")
-        .artifactId("org.example.testing.gradle.plugin")
-        .version("1.0.0")
-        .build());
-
-    // When
-    List<Plugin> updatedPlugins = getPluginWithKubernetesExtensionConfigured(plugins, Collections.emptyList(), kubernetesExtension);
-
-    // Then
-    assertThat(updatedPlugins)
-        .hasSize(1)
-        .first()
-        .extracting(Plugin::getConfiguration)
-        .isNull();
-  }
-
-  @Test
-  public void getPluginWithKubernetesExtensionConfigured_whenJKubeGradlePluginPresent_shouldAddOpinionatedPluginWithConfiguration() {
-    // Given
-    final KubernetesExtension kubernetesExtension = new TestKubernetesExtension();
-
-    // When
-    List<Plugin> updatedPlugins = getPluginWithKubernetesExtensionConfigured(Collections.emptyList(), Collections.singletonList("org.eclipse.jkube.kubernetes.gradle.plugin.KubernetesPlugin"), kubernetesExtension);
-
-    // Then
-    assertThat(updatedPlugins)
-        .hasSize(1)
-        .first()
-        .extracting(Plugin::getConfiguration)
-        .isNotNull();
-  }
-
-    private static Function<String[], Configuration> configurationDependencyMock() {
+  private static Function<String[], Configuration> configurationDependencyMock() {
     return s -> {
       final Configuration c = mock(Configuration.class, RETURNS_DEEP_STUBS);
       when(c.getName()).thenReturn(s[0]);

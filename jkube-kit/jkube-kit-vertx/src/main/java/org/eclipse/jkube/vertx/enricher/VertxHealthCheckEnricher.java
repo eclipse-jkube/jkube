@@ -31,9 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.hasDependencyWithGroupId;
-
 
 /**
  * Configures the health checks for a Vert.x project. Unlike other enricher this enricher extract the configuration from
@@ -54,8 +55,8 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
     private static final String ENRICHER_NAME = "jkube-healthcheck-vertx";
     private static final String READINESS = "readiness";
     private static final String LIVENESS = "liveness";
-    static final String VERTX_MAVEN_PLUGIN_GROUP = "io.reactiverse";
-    static final String VERTX_MAVEN_PLUGIN_ARTIFACT = "vertx-maven-plugin";
+    private static final String VERTX_MAVEN_PLUGIN_GROUP = "io.reactiverse";
+    private static final String VERTX_MAVEN_PLUGIN_ARTIFACT = "vertx-maven-plugin";
     static final String VERTX_GROUPID = "io.vertx";
 
     private static final int DEFAULT_MANAGEMENT_PORT = 8080;
@@ -309,42 +310,33 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
             } else {
                 throw new IllegalArgumentException(String.format(
                     ERROR_MESSAGE,
-                Arrays.toString(keys), input.getClass(), input.toString()));
+                Arrays.toString(keys), input.getClass(), input));
             }
         });
     }
 
-    // Can't use ProcessorConfig since regular Plexus deserialization won't get fields with nested properties (e.g. readiness)
     private Optional<Object> getElement(String... path) {
-        final Optional<Map<String, Object>> configuration = getMavenPluginConfiguration();
-
-        if (!configuration.isPresent()) {
-            return Optional.empty();
-        }
-
-
-        String[] roots = new String[]{"enricher", "config", ENRICHER_NAME};
-        List<String> absolute = new ArrayList<>();
-        absolute.addAll(Arrays.asList(roots));
-        absolute.addAll(Arrays.asList(path));
-        Object root = configuration.get();
-        for (String key : absolute) {
-
-            if (root instanceof Map) {
-                Map<String, Object> rootMap = (Map<String, Object>) root;
-                root = rootMap.get(key);
-                if (root == null) {
+        // Can't use ProcessorConfig from Maven since regular Plexus deserialization won't get fields with nested properties (e.g. readiness)
+        Object currentRoot  = getFromPluginConfiguration()
+            .filter(map -> !map.isEmpty())
+            // Gradle does support valid ProcessorConfig usage
+            .orElse(Collections.singletonMap("enricher", Collections.singletonMap("config",
+                getContext().getConfiguration().getProcessorConfig().getConfig())));
+        for (String key : Stream.concat(Stream.of("enricher", "config", ENRICHER_NAME),
+            Stream.of(path)).collect(Collectors.toList())) {
+            if (currentRoot instanceof Map) {
+                currentRoot = ((Map<String, Object>) currentRoot).get(key);
+                if (currentRoot == null) {
                     return Optional.empty();
                 }
             }
-
         }
-        return Optional.of(root);
+        return Optional.of(currentRoot);
     }
 
-    private Optional<Map<String, Object>> getMavenPluginConfiguration() {
+    private Optional<Map<String, Object>> getFromPluginConfiguration() {
         for(String pluginId : JKUBE_PLUGINS) {
-            Optional<Map<String, Object>> configuration = getContext().getConfiguration().getPluginConfiguration(pluginId);
+            Optional<Map<String, Object>> configuration = getContext().getConfiguration().getPluginConfiguration("maven", pluginId);
             if(configuration.isPresent()) {
                 return configuration;
             }
