@@ -34,28 +34,32 @@ public class VertxIT {
   @Rule
   public final ITGradleRunner gradleRunner = new ITGradleRunner();
 
-  @Parameterized.Parameters(name = "resource task with {0}  ")
+  @Parameterized.Parameters(name = "resource task with {0} generates deployment with liveness and readiness probes")
   public static Collection<Object[]> data() {
     return Arrays.asList(
-        new Object[] { new String[] { "-PconfigMode=enricherConfig" }},
+        new Object[] {"DSL configured probes", new String[] { "-PconfigMode=enricherConfig" }},
 
-        new Object[] { new String[] { "-Pvertx.health.liveness.port=8888",
-                                      "-Pvertx.health.liveness.path=/health/live",
-                                      "-Pvertx.health.liveness.scheme=HTTPS",
-                                      "-Pvertx.health.initialDelay=3",
-                                      "-Pvertx.health.period=3",
-                                      "-Pvertx.health.readiness.port=8888",
-                                      "-Pvertx.health.readiness.path=/health/ready",
-                                      "-Pvertx.health.readiness.scheme=HTTPS" }
+        new Object[] { "Property configured probes", new String[] {
+            "-Pvertx.health.liveness.port=8888",
+            "-Pvertx.health.liveness.path=/health/live",
+            "-Pvertx.health.liveness.scheme=HTTPS",
+            "-Pvertx.health.initialDelay=3",
+            "-Pvertx.health.period=3",
+            "-Pvertx.health.readiness.port=8888",
+            "-Pvertx.health.readiness.path=/health/ready",
+            "-Pvertx.health.readiness.scheme=HTTPS" }
         }
     );
   }
 
   @Parameterized.Parameter
+  public String testDescription;
+
+  @Parameterized.Parameter(1)
   public String[] arguments;
 
   @Test
-  public void k8sResource_whenRun_generatesK8sManifests() throws IOException, ParseException {
+  public void k8sResource_whenRun_generatesK8sManifestsWithProbes() throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("build");
@@ -78,7 +82,7 @@ public class VertxIT {
   }
 
   @Test
-  public void ocResource_whenRun_generatesOpenShiftManifests() throws IOException, ParseException {
+  public void ocResource_whenRun_generatesOpenShiftManifestsWithProbes() throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("build");

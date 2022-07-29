@@ -94,12 +94,15 @@ public class JKubeEnricherContext implements EnricherContext {
             .processorConfig(processorConfig)
             .jKubeBuildStrategy(jKubeBuildStrategy)
             .pluginConfigLookup(
-                id -> {
+                (system, id) -> {
+                    if (!"maven".equals(system)) {
+                        return Optional.empty();
+                    }
                     final Plugin plugin = JKubeProjectUtil.getPlugin(this.project, id);
                     if (plugin == null) {
                         return Optional.empty();
                     }
-                    return Optional.of(plugin.getConfiguration());
+                    return Optional.ofNullable(plugin.getConfiguration());
                 })
             .secretConfigLookup(
                 id -> {

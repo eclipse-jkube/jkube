@@ -27,6 +27,7 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 
@@ -54,7 +55,7 @@ public class Configuration {
     /**
      * Lookup plugin project configuration.
      */
-    private Function<String, Optional<Map<String,Object>>> pluginConfigLookup;
+    private BiFunction<String, String, Optional<Map<String,Object>>> pluginConfigLookup;
 
     /**
      * Lookup secret configuration.
@@ -71,9 +72,9 @@ public class Configuration {
     @Builder(toBuilder = true)
     public Configuration(
         @Singular List<ImageConfiguration> images, ResourceConfig resource,
-        Function<String, Optional<Map<String, Object>>> pluginConfigLookup,
-        Function<String, Optional<Map<String, Object>>> secretConfigLookup,
-        ProcessorConfig processorConfig, JKubeBuildStrategy jKubeBuildStrategy) {
+        BiFunction<String, String, Optional<Map<String, Object>>> pluginConfigLookup,
+        Function<String, Optional<Map<String, Object>>> secretConfigLookup, ProcessorConfig processorConfig,
+        JKubeBuildStrategy jKubeBuildStrategy) {
 
         this.images = images;
         this.resource = resource;
@@ -88,11 +89,12 @@ public class Configuration {
      * it returns a Map of Objects where an Object can be a
      * simple type, List or another Map.
      *
+     * @param system the underlying build platform (e.g. "maven")
      * @param id which plugin configuration to pick
      * @return configuration map specific to this id
      */
-    public Optional<Map<String, Object>> getPluginConfiguration(String id) {
-        return pluginConfigLookup.apply(id);
+    public Optional<Map<String, Object>> getPluginConfiguration(String system, String id) {
+        return pluginConfigLookup.apply(system, id);
     }
 
     /**

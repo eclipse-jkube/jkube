@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.Probe;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
@@ -81,8 +81,9 @@ public class WebAppHealthCheckEnricherTest {
         assertThat(probeReadiness).isNull();
     }
 
-    private Function<String, Optional<Map<String, Object>>> getProjectLookup(Map<String, Object> config) {
-        return i -> {
+    private BiFunction<String, String, Optional<Map<String, Object>>> getProjectLookup(Map<String, Object> config) {
+        return (s,i) -> {
+            assertThat(s).isEqualTo("maven");
             assertThat(i).isEqualTo("org.eclipse.jkube:jkube-maven-plugin");
             return Optional.ofNullable(config);
         };
