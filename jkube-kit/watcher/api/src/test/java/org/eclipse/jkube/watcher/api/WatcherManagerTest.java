@@ -24,8 +24,8 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -34,17 +34,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class WatcherManagerTest {
+class WatcherManagerTest {
 
-  JKubeServiceHub jKubeServiceHub;
-
-  KitLogger logger;
+  private KitLogger logger;
 
   private WatcherContext watcherContext;
 
-  @Before
-  public void setUp() throws Exception {
-    jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
+  @BeforeEach
+  void setUp() {
+    JKubeServiceHub jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     logger = mock(KitLogger.class);
     when(jKubeServiceHub.getClusterAccess().isOpenShift()).thenReturn(false);
     final ProcessorConfig processorConfig = new ProcessorConfig();
@@ -57,7 +55,7 @@ public class WatcherManagerTest {
   }
 
   @Test
-  public void watch_withTestWatcher_shouldMutateImages() throws Exception {
+  void watch_withTestWatcher_shouldMutateImages() throws Exception {
     // Given
     final List<ImageConfiguration> images = Collections.singletonList(new ImageConfiguration());
     // When
