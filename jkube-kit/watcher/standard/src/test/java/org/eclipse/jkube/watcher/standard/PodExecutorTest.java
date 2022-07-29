@@ -33,15 +33,15 @@ import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @SuppressWarnings("unused")
-public class PodExecutorTest {
+class PodExecutorTest {
 
   @Mocked
   private ClusterAccess clusterAccess;
@@ -52,8 +52,8 @@ public class PodExecutorTest {
 
   private PodExecutor podExecutor;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     // @formatter:off
     new Expectations() {{
       clusterAccess.getNamespace(); result = "default";
@@ -65,7 +65,7 @@ public class PodExecutorTest {
   }
 
   @Test
-  public void executeCommandInPodKubernetesError() {
+  void executeCommandInPodKubernetesError() {
     // Given
     // @formatter:off
     new Expectations() {{
@@ -80,7 +80,7 @@ public class PodExecutorTest {
   }
 
   @Test
-  public void executeCommandInPodTimeout() {
+  void executeCommandInPodTimeout() {
     // When
     final WatchException result = assertThrows(WatchException.class,
         () -> podExecutor.executeCommandInPod(Collections.emptySet(), "sh"));
@@ -89,7 +89,7 @@ public class PodExecutorTest {
   }
 
   @Test
-  public void executeCommandInPodSocketError() {
+  void executeCommandInPodSocketError() {
     // Given
     listenableCloseWithCode(1337);
     // When
@@ -100,7 +100,7 @@ public class PodExecutorTest {
   }
 
   @Test
-  public void executeCommandInPodCommandFailure() {
+  void executeCommandInPodCommandFailure() {
     // Given
     listenableCloseWithCode(1000);
     withErrorChannelResponse("{\"message\": \"Deserialized JSON message\"}");
@@ -112,7 +112,7 @@ public class PodExecutorTest {
   }
 
   @Test
-  public void executeCommandInPodCommandSuccess() throws Exception {
+  void executeCommandInPodCommandSuccess() throws Exception {
     // Given
     listenableCloseWithCode(1000);
     withErrorChannelResponse("{\"status\": \"Success\"}");
