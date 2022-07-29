@@ -13,17 +13,18 @@
  */
 package org.eclipse.jkube.watcher.standard;
 
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ExecListenerLatchTest {
+class ExecListenerLatchTest {
 
   @Test
-  public void onOpenWithConsumer() {
+  void onOpenWithConsumer() {
     // Given
     final AtomicBoolean consumed = new AtomicBoolean(false);
     final ExecListenerLatch ell = new ExecListenerLatch(() -> consumed.set(true));
@@ -34,7 +35,7 @@ public class ExecListenerLatchTest {
   }
 
   @Test
-  public void onCloseShouldSetCodeAndReason() throws InterruptedException {
+  void onCloseShouldSetCodeAndReason() {
     // Given
     final ExecListenerLatch ell = new ExecListenerLatch();
     // When
@@ -46,7 +47,7 @@ public class ExecListenerLatchTest {
   }
 
   @Test
-  public void onCloseShouldCountDown() throws InterruptedException {
+  void onCloseShouldCountDown() throws InterruptedException {
     // Given
     final ExecListenerLatch ell = new ExecListenerLatch();
     // When
@@ -56,7 +57,7 @@ public class ExecListenerLatchTest {
   }
 
   @Test
-  public void onFailureShouldCountDown() throws InterruptedException {
+  void onFailureShouldCountDown() throws InterruptedException {
     // Given
     final ExecListenerLatch ell = new ExecListenerLatch();
     // When
