@@ -114,7 +114,7 @@
     <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
     <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
 
-    <jib-core.version>0.20.0</jib-core.version>
+    <jib-core.version>0.21.0</jib-core.version>
   </properties>
 
   <dependencyManagement>
