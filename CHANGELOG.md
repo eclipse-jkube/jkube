@@ -35,6 +35,7 @@ Usage:
 * Fix #1649: VertxHealthCheckEnricher nested enricher configuration does not work for Gradle Plugins
 * Fix #1654: images with missing build configuration should not be built
 * Fix #1670: Bump Quarkus native base image to ubi-minimal:8.6
+* Fix #1679: Bump jib-core to 0.21.0
 
 _**Note**_:
 - Enricher configuration `jkube.enricher.jkube-controller.pullPolicy` has been marked as deprecated, use `jkube.imagePullPolicy` property instead.
