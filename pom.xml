@@ -95,7 +95,7 @@
     <version.json-smart>2.4.8</version.json-smart> <!-- Transitive dependency  required by citrus -->
     <version.junit5>5.8.2</version.junit5>
     <version.junit>4.13.2</version.junit>
-    <version.assertj-core>3.18.0</version.assertj-core>
+    <version.assertj-core>3.23.1</version.assertj-core>
     <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
     <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
