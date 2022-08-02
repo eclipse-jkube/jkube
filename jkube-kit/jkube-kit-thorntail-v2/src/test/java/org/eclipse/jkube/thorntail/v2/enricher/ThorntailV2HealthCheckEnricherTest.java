@@ -27,8 +27,8 @@ import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -36,18 +36,16 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ThorntailV2HealthCheckEnricherTest {
+class ThorntailV2HealthCheckEnricherTest {
   private JKubeEnricherContext context;
-
   private Properties properties;
-  private ProcessorConfig processorConfig;
   private KubernetesListBuilder klb;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     properties = new Properties();
-    processorConfig = new ProcessorConfig();
+    ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
     // @formatter:off
     klb.addToItems(new DeploymentBuilder()
@@ -65,14 +63,13 @@ public class ThorntailV2HealthCheckEnricherTest {
         .endSpec()
         .build());
     when(context.getProperties()).thenReturn(properties);
-    when(context
-            .getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
+    when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
     when(context.hasDependency("io.thorntail", "monitor")).thenReturn(true);
     when(context.getProjectClassLoaders()).thenReturn( new ProjectClassLoaders(new URLClassLoader(new URL[0], ThorntailV2HealthCheckEnricherTest.class.getClassLoader())));
   }
 
   @Test
-  public void createWithDefaultsInKubernetes() {
+  void createWithDefaultsInKubernetes() {
     // When
     new ThorntailV2HealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
@@ -89,7 +86,7 @@ public class ThorntailV2HealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithCustomValuesInKubernetes() {
+  void createWithCustomValuesInKubernetes() {
     // Given
     properties.put("jkube.enricher.jkube-healthcheck-thorntail-v2.scheme", "HTTPS");
     properties.put("jkube.enricher.jkube-healthcheck-thorntail-v2.port", "8082");
@@ -110,7 +107,7 @@ public class ThorntailV2HealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithThorntailSpecificPropertiesInKubernetes() {
+  void createWithThorntailSpecificPropertiesInKubernetes() {
     // Given
     System.setProperty("thorntail.http.port", "1337");
     try {
@@ -133,7 +130,7 @@ public class ThorntailV2HealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithNoThorntailDependency() {
+  void createWithNoThorntailDependency() {
     // Given
     when(context.hasDependency("io.thorntail", "monitor")).thenReturn(false);
     // When
