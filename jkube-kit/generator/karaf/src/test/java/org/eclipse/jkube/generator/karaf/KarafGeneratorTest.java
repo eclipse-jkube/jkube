@@ -30,23 +30,23 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
 
-public class KarafGeneratorTest {
+@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
+class KarafGeneratorTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  File temporaryFolder;
   @Mocked
   private GeneratorContext generatorContext;
 
   @Test
-  public void isApplicableHasKarafMavenPluginShouldReturnTrue(@Mocked Plugin plugin) {
+  void isApplicableHasKarafMavenPluginShouldReturnTrue(@Mocked Plugin plugin) {
     // Given
     // @formatter:off
     new Expectations() {{
@@ -66,7 +66,7 @@ public class KarafGeneratorTest {
   }
 
   @Test
-  public void isApplicableHasNotKarafMavenPluginShouldReturnFalse(@Mocked Plugin plugin) {
+  void isApplicableHasNotKarafMavenPluginShouldReturnFalse(@Mocked Plugin plugin) {
     // Given
     // @formatter:off
     new Expectations() {{
@@ -86,7 +86,7 @@ public class KarafGeneratorTest {
   }
 
   @Test
-  public void customizeWithKarafMavenPluginShouldAddImageConfiguration(@Mocked Plugin plugin) {
+  void customizeWithKarafMavenPluginShouldAddImageConfiguration(@Mocked Plugin plugin) {
     // Given
     final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
     // @formatter:off
@@ -94,7 +94,7 @@ public class KarafGeneratorTest {
       plugin.getGroupId(); result = "org.apache.karaf.tooling"; minTimes = 0;
       plugin.getArtifactId(); result = "karaf-maven-plugin"; minTimes = 0;
       generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin); minTimes = 0;
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
+      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder;
       generatorContext.getProject().getVersion(); result = "1.33.7-SNAPSHOT";
       generatorContext.getConfig(); result = new ProcessorConfig();
     }};
@@ -126,12 +126,12 @@ public class KarafGeneratorTest {
         .extracting("directory", "outputDirectory", "directoryMode", "fileMode")
         .containsExactly(
             tuple(
-                new File(temporaryFolder.getRoot(), "assembly"),
+                new File(temporaryFolder, "assembly"),
                 new File("karaf"),
                 "0775",
                 null),
             tuple(
-                temporaryFolder.getRoot().toPath().resolve("assembly").resolve("bin").toFile(),
+                temporaryFolder.toPath().resolve("assembly").resolve("bin").toFile(),
                 new File("karaf", "bin"),
                 "0775",
                 "0777")
@@ -139,7 +139,7 @@ public class KarafGeneratorTest {
   }
 
   @Test
-  public void customizeWithKarafMavenPluginAndCustomConfigShouldAddImageConfiguration(@Mocked Plugin plugin) {
+  void customizeWithKarafMavenPluginAndCustomConfigShouldAddImageConfiguration(@Mocked Plugin plugin) {
     // Given
     final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
     Properties props = new Properties();
@@ -147,7 +147,7 @@ public class KarafGeneratorTest {
     props.put("jkube.generator.karaf.webPort", "8080");
     // @formatter:off
     new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
+      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder;
       generatorContext.getProject().getVersion(); result = "1.33.7-SNAPSHOT";
       generatorContext.getProject().getProperties(); result = props;
     }};
@@ -156,9 +156,11 @@ public class KarafGeneratorTest {
     final List<ImageConfiguration> result = new KarafGenerator(generatorContext)
         .customize(originalImageConfigurations, false);
     // Then
-    assertThat(result).hasSize(1);
-    final ImageConfiguration imageConfiguration = result.iterator().next();
-    assertThat(imageConfiguration.getBuildConfiguration().getPorts()).contains("8080", "8778");
-    assertThat(imageConfiguration.getBuildConfiguration().getEnv()).containsEntry("DEPLOYMENTS_DIR","/other-dir");
+    assertThat(result).singleElement()
+            .extracting(ImageConfiguration::getBuildConfiguration)
+            .hasFieldOrPropertyWithValue("ports", Arrays.asList("8080", "8778"))
+            .extracting(BuildConfiguration::getEnv)
+            .asInstanceOf(InstanceOfAssertFactories.MAP)
+            .containsEntry("DEPLOYMENTS_DIR", "/other-dir");
   }
 }
