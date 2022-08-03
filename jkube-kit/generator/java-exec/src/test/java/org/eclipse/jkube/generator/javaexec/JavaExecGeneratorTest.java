@@ -27,22 +27,22 @@ import org.eclipse.jkube.kit.common.Plugin;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
-public class JavaExecGeneratorTest {
+class JavaExecGeneratorTest {
 
   @Mocked
   private GeneratorContext generatorContext;
   private List<Plugin> plugins;
   private Properties properties;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     properties = new Properties();
     plugins = new ArrayList<>();
     // @formatter:off
@@ -54,7 +54,7 @@ public class JavaExecGeneratorTest {
   }
 
   @Test
-  public void isApplicableWithDefaultsShouldReturnFalse() {
+  void isApplicableWithDefaultsShouldReturnFalse() {
     // When
     final boolean result = new JavaExecGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
@@ -62,7 +62,7 @@ public class JavaExecGeneratorTest {
   }
 
   @Test
-  public void isApplicableWithConfiguredMainClassShouldReturnTrue() {
+  void isApplicableWithConfiguredMainClassShouldReturnTrue() {
     // Given
     properties.put("jkube.generator.java-exec.mainClass", "com.example.main");
     // When
@@ -72,7 +72,7 @@ public class JavaExecGeneratorTest {
   }
 
   @Test
-  public void isApplicableWithExecPluginShouldReturnTrue() {
+  void isApplicableWithExecPluginShouldReturnTrue() {
     // Given
     plugins.add(Plugin.builder().groupId("org.apache.maven.plugins").artifactId("maven-shade-plugin").build());
     // When
@@ -82,7 +82,7 @@ public class JavaExecGeneratorTest {
   }
 
   @Test
-  public void createAssemblyWithNoFatJarShouldAddDefaultFileSets() {
+  void createAssemblyWithNoFatJarShouldAddDefaultFileSets() {
     // When
     final AssemblyConfiguration result = new JavaExecGenerator(generatorContext).createAssembly();
     // Then
@@ -95,7 +95,7 @@ public class JavaExecGeneratorTest {
   }
 
   @Test
-  public void createAssemblyWithFatJarShouldAddDefaultFileSetsAndFatJar(
+  void createAssemblyWithFatJarShouldAddDefaultFileSetsAndFatJar(
       @Mocked FatJarDetector fatJarDetector, @Mocked FatJarDetector.Result fjResult) {
     // Given
     // @formatter:off
