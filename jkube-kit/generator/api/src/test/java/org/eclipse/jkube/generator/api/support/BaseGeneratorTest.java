@@ -349,7 +349,7 @@ public class BaseGeneratorTest {
     BuildConfiguration config = builder.build();
     List<String> tags = config.getTags();
     assertThat(1).isEqualTo(tags.size());
-    assertThat(tags.get(0).endsWith("latest")).isTrue();
+    assertThat(tags.get(0)).endsWith("latest");
   }
 
   @Test
