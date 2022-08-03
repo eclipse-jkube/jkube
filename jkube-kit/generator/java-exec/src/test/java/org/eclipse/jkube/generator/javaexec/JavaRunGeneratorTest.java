@@ -29,20 +29,22 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import mockit.Expectations;
 import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
  */
-public class JavaRunGeneratorTest {
+
+@SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
+class JavaRunGeneratorTest {
 
   @Mocked
   GeneratorContext ctx;
 
   @Test
-  public void fromSelector() throws IOException {
+  void fromSelector() throws IOException {
     final List<TestCase> testCases = Arrays.asList(
         new TestCase("3.1.123", false, RuntimeMode.KUBERNETES, null, "java.upstream.docker"),
         new TestCase("3.1.redhat-101", true, RuntimeMode.KUBERNETES, null, "java.upstream.docker"),
@@ -58,7 +60,7 @@ public class JavaRunGeneratorTest {
       final GeneratorContext context = ctx;
       FromSelector selector = new FromSelector.Default(context, "java");
       String from = selector.getFrom();
-      assertEquals(imageProps.getProperty(tc.expectedFrom), from);
+      assertThat(from).isEqualTo(imageProps.getProperty(tc.expectedFrom));
     }
   }
 

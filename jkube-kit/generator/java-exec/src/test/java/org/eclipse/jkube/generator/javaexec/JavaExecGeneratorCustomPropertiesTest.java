@@ -23,22 +23,21 @@ import java.util.Properties;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class JavaExecGeneratorCustomPropertiesTest {
+class JavaExecGeneratorCustomPropertiesTest {
 
   private GeneratorContext generatorContext;
   private Properties projectProperties;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     generatorContext = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
     projectProperties = new Properties();
     when(generatorContext.getProject().getProperties()).thenReturn(projectProperties);
@@ -46,7 +45,7 @@ public class JavaExecGeneratorCustomPropertiesTest {
   }
 
   @Test
-  public void customizeWithOverriddenPropertiesShouldAddImageConfiguration() {
+  void customizeWithOverriddenPropertiesShouldAddImageConfiguration() {
     // Given
     final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
     projectProperties.put("jkube.generator.java-exec.mainClass", "com.example.Main");
@@ -58,9 +57,7 @@ public class JavaExecGeneratorCustomPropertiesTest {
     final List<ImageConfiguration> result = new JavaExecGenerator(generatorContext)
         .customize(originalImageConfigurations, false);
     // Then
-    assertThat(result)
-        .hasSize(1)
-        .first()
+    assertThat(result).singleElement()
         .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
         .hasFieldOrPropertyWithValue("alias", "java-exec")
         .extracting(ImageConfiguration::getBuildConfiguration)
@@ -76,7 +73,7 @@ public class JavaExecGeneratorCustomPropertiesTest {
   }
 
   @Test
-  public void customize_withDisabledJolokia_shouldRemovePortAndAddEnv() {
+  void customize_withDisabledJolokia_shouldRemovePortAndAddEnv() {
     // Given
     projectProperties.put("jkube.generator.java-exec.jolokiaPort", "0");
     projectProperties.put("jkube.generator.java-exec.mainClass", "com.example.Main");
@@ -92,7 +89,7 @@ public class JavaExecGeneratorCustomPropertiesTest {
   }
 
   @Test
-  public void customize_withDisabledPrometheus_shouldRemovePortAndAddEnv() {
+  void customize_withDisabledPrometheus_shouldRemovePortAndAddEnv() {
     // Given
     projectProperties.put("jkube.generator.java-exec.prometheusPort", "0");
     projectProperties.put("jkube.generator.java-exec.mainClass", "com.example.Main");
