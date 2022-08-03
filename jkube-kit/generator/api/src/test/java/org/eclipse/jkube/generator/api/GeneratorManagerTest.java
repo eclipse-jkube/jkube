@@ -26,18 +26,19 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-@RunWith(MockitoJUnitRunner.class)
+
 public class GeneratorManagerTest {
 
-  @Mock
   KitLogger logger;
 
   private GeneratorContext generatorContext;
 
   @Before
   public void setUp() throws Exception {
+    logger = spy(new KitLogger.SilentLogger());
     final ProcessorConfig processorConfig = new ProcessorConfig();
     processorConfig.setIncludes(Collections.singletonList("fake-generator"));
     generatorContext = GeneratorContext.builder()

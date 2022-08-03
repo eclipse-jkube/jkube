@@ -31,13 +31,10 @@ import static org.junit.Assert.assertEquals;
 
 public class FromSelectorTest {
 
-  @Mock
   JavaProject project;
 
-  @Mock
   Plugin plugin;
 
-  @Mock
   KitLogger logger;
 
   @Test

@@ -15,10 +15,13 @@ package org.eclipse.jkube.generator.api.support;
 
 import java.util.Map;
 
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.PortsExtractor;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -32,14 +35,17 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-@RunWith(MockitoJUnitRunner.class)
+
 public class AbstractPortsExtractorTest {
 
-    @Mock
     JavaProject project;
-
-    @Mock
     PrefixedLogger logger;
+
+    @Before
+    public void setUp() throws Exception {
+        project = mock(JavaProject.class);
+        logger = mock(PrefixedLogger.class);
+    }
 
     @Test
     public void testReadConfigFromFile() {
