@@ -12,7 +12,7 @@ For simple `Dockerfile` mode, your project's current directory is provided as do
 If you want to copy some files from your current directory(`build/libs/docker-file-simple.jar` in this case), you need
 to prefix project directory contents with default assembly name(i.e `maven`). So your `Dockerfile` would look like this:
 ```Dockerfile
-FROM quay.io/jkube/jkube-java:0.0.13
+FROM quay.io/jkube/jkube-java:0.0.16
 ENV JAVA_APP_DIR=/deployments
 EXPOSE 8080 8778 9779
 COPY maven/build/libs/docker-file-simple-0.0.1-SNAPSHOT.jar /deployments/
@@ -25,10 +25,10 @@ docker-file-simple : $ gradle build k8sBUild
 > Task :k8sBuild
 k8s: Cannot access cluster for detecting mode: Unknown host kubernetes.default.svc: Name or service not known
 k8s: Building Docker image in Kubernetes mode
-k8s: Pulling from jkube/jkube-java-binary-s2i
+k8s: Pulling from jkube/jkube-java
 k8s: Digest: sha256:dd5c9f44a86e19438662d293e180acc8d864887cf19c165c1b24ae703b16c2d4
-k8s: Status: Image is up to date for quay.io/jkube/jkube-java:0.0.13
-k8s: Pulled quay.io/jkube/jkube-java:0.0.13 in 3 seconds
+k8s: Status: Image is up to date for quay.io/jkube/jkube-java:0.0.16
+k8s: Pulled quay.io/jkube/jkube-java:0.0.16 in 3 seconds
 k8s: [helloworld/docker-file-simple:latest]: Created docker-build.tar in 94 milliseconds
 k8s: [helloworld/docker-file-simple:latest]: Built image sha256:4b6b1
 

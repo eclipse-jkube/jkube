@@ -100,7 +100,7 @@ If the project is already JakartaEE compliant, it is recommanded to set the weba
 
 To keep using Tomcat 9, set the properties:
 
-* `jkube.generator.webapp.from` to `quay.io/jkube/jkube-tomcat9:0.0.15`
+* `jkube.generator.webapp.from` to `quay.io/jkube/jkube-tomcat9:0.0.16`
 * `jkube.generator.webapp.cmd` to `/usr/local/s2i/run`
 ifdef::doc-openshift[]
 * `jkube.generator.webapp.supportsS2iBuild` to `true`

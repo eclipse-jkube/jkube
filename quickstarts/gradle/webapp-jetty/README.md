@@ -32,12 +32,12 @@ $ ./gradlew build k8sBuild
 
 > Task :k8sBuild
 k8s: Running generator webapp [6s]
-k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.13 as base image for webapp
+k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.16 as base image for webapp
 k8s: Building container image in Kubernetes mode
 k8s: Pulling from jkube/jkube-jetty9
 k8s: Digest: sha256:d0e6872a95a82fb80fef8e5a653baae3e4866812dc739f9fc8012514f3a52327
-k8s: Status: Downloaded newer image for quay.io/jkube/jkube-jetty9:0.0.13
-k8s: Pulled quay.io/jkube/jkube-jetty9:0.0.13 in 15 seconds 
+k8s: Status: Downloaded newer image for quay.io/jkube/jkube-jetty9:0.0.16
+k8s: Pulled quay.io/jkube/jkube-jetty9:0.0.16 in 15 seconds 
 k8s: [kubernetes/webapp-jetty:latest] "webapp": Created docker-build.tar in 41 milliseconds
 k8s: [kubernetes/webapp-jetty:latest] "webapp": Built image sha256:d0d52
 k8s: [kubernetes/webapp-jetty:latest] "webapp": Tag with latest
@@ -55,7 +55,7 @@ kubernetes/webapp-jetty                                 latest     d0d528ec103e 
 $ ./gradlew k8sResource -Djkube.domain=$(minikube ip).nip.io
 > Task :k8sResource
 k8s: Running generator webapp
-k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.13 as base image for webapp
+k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.16 as base image for webapp
 k8s: Using resource templates from /home/sunix/github/eclipse/jkube/quickstarts/gradle/webapp-jetty/src/main/jkube
 k8s: jkube-controller: Adding a default Deployment
 k8s: jkube-service: Adding a default service 'webapp-jetty' with ports [8080]
@@ -84,7 +84,7 @@ webapp-jetty-deployment.yml  webapp-jetty-ingress.yml  webapp-jetty-service.yml
 
 > Task :k8sApply
 k8s: Running generator webapp
-k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.13 as base image for webapp
+k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.16 as base image for webapp
 k8s: Using Kubernetes at https://192.168.99.120:8443/ in namespace null with manifest /home/sunix/github/eclipse/jkube/quickstarts/gradle/webapp-jetty/build/classes/java/main/META-INF/jkube/kubernetes.yml 
 k8s: Creating a Service from kubernetes.yml namespace default name webapp-jetty
 k8s: Created Service: build/jkube/applyJson/default/service-webapp-jetty.json
