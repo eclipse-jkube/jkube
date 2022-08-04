@@ -32,9 +32,22 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <version.quarkus>1.7.2.Final</version.quarkus>
+    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+    <version.quarkus>2.11.1.Final</version.quarkus>
     <jkube.build.pullSecret>12819530-ocp42-exposed-env-pull-secret-pull-secret</jkube.build.pullSecret>
   </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>${quarkus.platform.artifact-id}</artifactId>
+        <version>${version.quarkus}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -96,7 +109,7 @@
                 <assembly>
                   <mode>dir</mode>
                   <targetDir>/deployments</targetDir>
-                  <inline>
+                    <layers>
                     <id>customized-quarkus</id>
                     <files>
                       <file>
@@ -110,7 +123,7 @@
                         <outputDirectory>lib</outputDirectory>
                       </fileSet>
                     </fileSets>
-                  </inline>
+                    </layers>
                 </assembly>
                 <ports>8080</ports>
                 <user>185</user>
