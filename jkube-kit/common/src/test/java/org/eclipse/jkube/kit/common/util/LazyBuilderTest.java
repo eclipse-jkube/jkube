@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -68,5 +70,30 @@ class LazyBuilderTest {
     assertThat(count.get()).isEqualTo(2);
     assertThat(result).isEqualTo(10);
     assertThat(concurrentResult.get(100, TimeUnit.MILLISECONDS)).isEqualTo(1);
+  }
+
+
+  @Nested
+  @DisplayName("hasInstance")
+  class HasInstance {
+
+    @Test
+    @DisplayName("with get never called should return false")
+    void noGetShouldReturnFalse() {
+      // When
+      final LazyBuilder<Boolean> builder = new LazyBuilder<>(() -> true);
+      // Then
+      assertThat(builder).returns(false, LazyBuilder::hasInstance);
+    }
+
+    @Test
+    @DisplayName("with get called should return true")
+    void withGetShouldReturnTrue() {
+      // When
+      final LazyBuilder<Boolean> builder = new LazyBuilder<>(() -> true);
+      builder.get();
+      // Then
+      assertThat(builder).returns(true, LazyBuilder::hasInstance);
+    }
   }
 }

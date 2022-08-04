@@ -245,7 +245,6 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
     }
 
     private void initClient() {
-        ClusterAccess clusterAccess = jKubeServiceHub.getClusterAccess();
         KubernetesClient k8sClient = jKubeServiceHub.getClient();
         if (!isOpenShift(k8sClient)) {
             throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
@@ -254,7 +253,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         if (buildServiceConfig.getResourceConfig() != null && buildServiceConfig.getResourceConfig().getNamespace() != null) {
             applicableOpenShiftNamespace = buildServiceConfig.getResourceConfig().getNamespace();
         } else {
-            applicableOpenShiftNamespace = clusterAccess.getNamespace();
+            applicableOpenShiftNamespace = jKubeServiceHub.getClusterAccess().getNamespace();
         }
     }
 
