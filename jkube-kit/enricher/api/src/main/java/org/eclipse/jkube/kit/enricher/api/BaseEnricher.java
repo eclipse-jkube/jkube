@@ -176,6 +176,17 @@ public class BaseEnricher implements Enricher {
         return JKUBE_DEFAULT_IMAGE_PULL_POLICY;
     }
 
+    protected boolean getCreateExternalUrls() {
+        final String propertyValue = getContext().getProperty(CREATE_EXTERNAL_URLS);
+        if (StringUtils.isNotBlank(propertyValue)) {
+            return Boolean.parseBoolean(propertyValue);
+        }
+        if (getConfiguration().getResource().getCreateExternalUrls() != null) {
+            return getConfiguration().getResource().getCreateExternalUrls();
+        }
+        return false;
+    }
+
     /**
      * This method just makes sure that the replica count provided in XML config
      * overrides the default option; and resource fragments are always given
