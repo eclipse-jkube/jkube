@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+        https://www.eclipse.org/legal/epl-2.0/
+    SPDX-License-Identifier: EPL-2.0
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+-->
+<project>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.eclipse.jkube</groupId>
+    <artifactId>jkube-maven-sample-zero-config-jitpack</artifactId>
+    <version>1.6.0</version>
+    <name>Eclipse JKube :: Quickstarts :: Maven :: Zero-Config (Jitpack)</name>
+    <packaging>jar</packaging>
+
+    <description>How to use Eclipse JKube from Jitpack</description>
+
+    <properties>
+        <jkube.version>${project.version}</jkube.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <profiles>
+        <profile>
+            <id>kubernetes</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.eclipse.jkube</groupId>
+                        <artifactId>kubernetes-maven-plugin</artifactId>
+                        <version>master-SNAPSHOT</version>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>openshift</id>
+            <build>
+                <plugins>
+                    <plugin>
+                            <groupId>com.github.eclipse.jkube</groupId>
+                            <artifactId>openshift-maven-plugin</artifactId>
+                            <version>master-SNAPSHOT</version>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
