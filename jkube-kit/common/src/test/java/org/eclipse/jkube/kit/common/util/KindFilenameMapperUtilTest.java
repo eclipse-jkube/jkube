@@ -25,22 +25,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class KindFilenameMapperUtilTest {
     private static final String MAPPING_PROPERTIES = "Pod=pd, pod";
 
-    private static final String VALID_TABLE = "cols=2*,options=\"header\"]" + System.lineSeparator()
-            + "|===" + System.lineSeparator()
-            + "|Kind" + System.lineSeparator()
-            + "|Filename Type" + System.lineSeparator()
-            + System.lineSeparator()
-            + "|BuildConfig" + System.lineSeparator()
-            + "a|`bc`, `buildconfig`" + System.lineSeparator()
-            + System.lineSeparator()
-            + "|ClusterRole" + System.lineSeparator()
-            + "a|`cr`, `crole`, `clusterrole`" + System.lineSeparator()
-            + System.lineSeparator()
-            + "|ConfigMap" + System.lineSeparator()
-            + "a|`cm`, `configmap`" + System.lineSeparator()
-            + System.lineSeparator()
-            + "|CronJob" + System.lineSeparator()
-            + "a|`cj`, `cronjob`" + System.lineSeparator()
+    private static final String VALID_TABLE = "cols=2*,options=\"header\"]\n"
+            + "|===\n"
+            + "|Kind\n"
+            + "|Filename Type\n\n"
+            + "|BuildConfig\n"
+            + "a|`bc`, `buildconfig`\n\n"
+            + "|ClusterRole\n"
+            + "a|`cr`, `crole`, `clusterrole`\n\n"
+            + "|ConfigMap\n"
+            + "a|`cm`, `configmap`\n\n"
+            + "|CronJob\n"
+            + "a|`cj`, `cronjob`\n"
             + "|===";
 
     @Test
