@@ -69,49 +69,6 @@ public class IngressEnricherTest {
     }
 
     @Test
-    public void testCreateShouldNotCreateAnyIngress() {
-        // Given
-        Service providedService = initTestService().build();
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(providedService);
-
-        // When
-        ingressEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
-        // Then
-        assertThat(kubernetesListBuilder)
-            .extracting(KubernetesListBuilder::buildItems).asList()
-            .hasSize(1)
-            .containsExactly(providedService);
-    }
-
-    @Test
-    public void testCreateWithExternalUrlsSetTrue() {
-        // Given
-        // @formatter:off
-        new Expectations() {{
-            // Enable creation of Ingress for Service of type LoadBalancer
-            context.getProperty("jkube.createExternalUrls");
-            result = "true";
-        }};
-        // @formatter:on
-
-        Service providedService = initTestService().build();
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(providedService);
-
-        // When
-        ingressEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
-        // Then
-        assertThat(kubernetesListBuilder)
-            .extracting(KubernetesListBuilder::buildItems).asList()
-            .hasSize(2)
-            .element(1).asInstanceOf(InstanceOfAssertFactories.type(Ingress.class))
-            .hasFieldOrPropertyWithValue("metadata.name", providedService.getMetadata().getName())
-            .hasFieldOrPropertyWithValue("spec.defaultBackend.service.name", providedService.getMetadata().getName())
-            .hasFieldOrPropertyWithValue("spec.defaultBackend.service.port.number", providedService.getSpec().getPorts().get(0).getTargetPort().getIntVal());
-    }
-
-    @Test
     public void testCreateIngressFromXMLConfigWithConfiguredServiceName() {
         // Given
         ResourceConfig resourceConfig = ResourceConfig.builder()
@@ -192,76 +149,23 @@ public class IngressEnricherTest {
     }
 
     @Test
-    public void testCreateIngressFromResourceFragmentShouldNotAddIngressNameMatchesServiceName() {
-        // Given
-        // @formatter:off
-        new Expectations() {{
-            // Enable creation of Ingress for Service of type LoadBalancer
-            context.getProperty(CREATE_EXTERNAL_URLS);
-            result = "true";
-        }};
-        // @formatter:on
-
-        Service providedService = initTestService().build();
-        Ingress providedIngress = initTestIngressFragment().build();
-        assertThat(providedService.getMetadata().getName())
-            .overridingErrorMessage("If the provided ingress name doesn't match the Service name, a new ingress will be added too")
-            .isEqualTo(providedIngress.getMetadata().getName());
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(providedService, providedIngress);
-
-        // When
-        ingressEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
-        // Then
-        assertThat(kubernetesListBuilder)
-            .extracting(KubernetesListBuilder::buildItems).asList()
-            .hasSize(2)
-            .element(1).asInstanceOf(InstanceOfAssertFactories.type(Ingress.class))
-            .isEqualTo(providedIngress)
-            .isNotSameAs(providedIngress);
-    }
-
-    @Test
-    public void testShouldCreateExternalURLForServiceWithLoadBalancer() {
-      assertThat(IngressEnricher.shouldCreateExternalURLForService(initTestService(), logger))
-          .isTrue();
-    }
-
-    @Test
-    public void testShouldCreateExternalURLForServiceWithClusterIP() {
-      assertThat(IngressEnricher.shouldCreateExternalURLForService(initTestService().editSpec()
-          .withType("ClusterIP")
-          .endSpec(), logger))
-              .isTrue();
-    }
-
-    @Test
-    public void testShouldCreateExternalURLForServiceWithMultiplePorts() {
-      assertThat(IngressEnricher.shouldCreateExternalURLForService(initTestService().editSpec()
-          .addNewPort()
-          .withName("p2")
-          .withProtocol("TCP")
-          .withPort(9090)
-          .endPort()
-          .endSpec(), logger))
-              .isFalse();
-    }
-
-    @Test
     public void testGetRouteDomainNoConfig() {
-        assertThat(ingressEnricher.getRouteDomain(ResourceConfig.builder().build()))
-        .isNull();
+        assertThat(ingressEnricher.getRouteDomain()).isNull();
     }
 
     @Test
     public void testGetRouteDomainFromResourceConfig() {
         // Given
-        ResourceConfig resourceConfig = ResourceConfig.builder()
-                .routeDomain("org.eclipse.jkube")
-                .build();
+        // @formatter:off
+        new Expectations() {{
+            context.getConfiguration().getResource();
+            result = ResourceConfig.builder()
+              .routeDomain("org.eclipse.jkube")
+              .build();
+        }};
 
         // When
-        String result = ingressEnricher.getRouteDomain(resourceConfig);
+        String result = ingressEnricher.getRouteDomain();
 
         // Then
         assertThat(result).isEqualTo("org.eclipse.jkube");
@@ -278,7 +182,7 @@ public class IngressEnricherTest {
         // @formatter:on
 
         // When
-        String result = ingressEnricher.getRouteDomain(ResourceConfig.builder().build());
+        String result = ingressEnricher.getRouteDomain();
 
         // Then
         assertThat(result).isEqualTo("org.eclipse.jkube.property");
@@ -370,28 +274,6 @@ public class IngressEnricherTest {
             .extracting("spec.rules").asList()
             .extracting("host")
             .containsExactly("test.192.168.39.25.nip.io");
-    }
-
-    @Test
-    public void testNoIngressGeneratedWhenNetworkingV1IngressFragmentPresent() {
-        // Given
-        new Expectations() {{
-            context.getProperty("jkube.createExternalUrls");
-            result = "true";
-        }};
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
-        kubernetesListBuilder.addToItems(initTestService().build());
-        kubernetesListBuilder.addToItems(networkingV1IngressFragment().build());
-
-        // When
-        ingressEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
-        // Then
-        assertThat(kubernetesListBuilder)
-            .extracting(KubernetesListBuilder::buildItems).asList()
-            .hasSize(2)
-            .element(1)
-            .isInstanceOf(io.fabric8.kubernetes.api.model.networking.v1.Ingress.class);
     }
 
     private IngressBuilder initTestIngressFragment() {

@@ -55,38 +55,6 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testCreateWithDefaultsInOpenShiftShouldAddRoute() {
-        // Given
-        mockJKubeEnricherContext();
-        klb.addToItems(getMockServiceBuilder().build());
-        // When
-        new RouteEnricher(context).create(PlatformMode.openshift, klb);
-        // Then
-        assertThat(klb.build().getItems())
-            .hasSize(2)
-            .extracting("kind")
-            .containsExactly("Service", "Route");
-        assertThat(klb.build().getItems().get(1))
-            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-            .contains("test-svc", "test-svc", "Service", "test-svc", 8080);
-    }
-
-    @Test
-    public void testCreateWithDefaultsInKubernetesShouldNotAddRoute() {
-        // Given
-        mockJKubeEnricherContextPropertiesNotCalled();
-        mockJKubeEnricherContextProcessorConfigNotCalled();
-        klb.addToItems(getMockServiceBuilder().build());
-        // When
-        new RouteEnricher(context).create(PlatformMode.kubernetes, klb);
-        // Then
-        assertThat(klb.build().getItems())
-            .hasSize(1)
-            .extracting("kind")
-            .containsExactly("Service");
-    }
-
-    @Test
     public void testCreateWithGenerateExtraPropertyInOpenShiftShouldNotAddRoute() {
         // Given
         mockJKubeEnricherContext();

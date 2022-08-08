@@ -371,24 +371,6 @@ public class KubernetesResourceUtilTest {
   }
 
   @Test
-  public void isExposedService_withExposeLabel_shouldReturnTrue() {
-    assertThat(KubernetesResourceUtil.isExposedService(new ObjectMetaBuilder()
-        .addToLabels("expose", "true").build())).isTrue();
-  }
-
-  @Test
-  public void isExposedService_withExposeUrlLabel_shouldReturnTrue() {
-    assertThat(KubernetesResourceUtil.isExposedService(new ObjectMetaBuilder()
-        .addToLabels("jkube.io/exposeUrl", "true").build())).isTrue();
-  }
-
-  @Test
-  public void isExposedService_withOtherLabel_shouldReturnFalse() {
-    assertThat(KubernetesResourceUtil.isExposedService(new ObjectMetaBuilder()
-        .addToLabels("other", "true").build())).isFalse();
-  }
-
-  @Test
   public void getNameWithSuffix_withKnownMapping_shouldReturnKnownMapping() {
     assertThat(getNameWithSuffix("name", "Pod")).isEqualTo("name-pod");
   }

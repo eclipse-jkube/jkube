@@ -38,6 +38,7 @@ import org.eclipse.jkube.kit.config.resource.ServiceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.enricher.api.ServiceExposer;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -94,8 +95,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         // Whether allow headless services.
         HEADLESS("headless", Boolean.FALSE.toString()),
 
-        // Whether expose the service as ingress. Needs an 'exposeController'
-        // running
+        // Forces a service to be exposed regardless of being a web port or not (See ServiceExposer#canExposeService)
         EXPOSE("expose", Boolean.FALSE.toString()),
 
         // Type of the service (LoadBalancer, NodePort, ClusterIP, ...)
@@ -284,7 +284,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
     private Map<String, String> extractLabels() {
         Map<String, String> labels = new HashMap<>();
         if (Configs.asBoolean(getConfig(Config.EXPOSE))) {
-            labels.put("expose", "true");
+            labels.put(ServiceExposer.EXPOSE_LABEL, "true");
         }
         return labels;
     }

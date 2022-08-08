@@ -11,10 +11,9 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.enricher.generic;
+package org.eclipse.jkube.enricher.generic.ingress;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
@@ -39,10 +38,9 @@ public class NetworkingV1IngressGeneratorTest {
     public void testGenerate() {
         // Given
         ServiceBuilder testSvcBuilder = initTestService();
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(testSvcBuilder);
 
         // When
-        Ingress ingress = NetworkingV1IngressGenerator.generate(kubernetesListBuilder, testSvcBuilder, "org.eclipse.jkube", null, Collections.emptyList(), Collections.emptyList(), logger);
+        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, "org.eclipse.jkube", null, Collections.emptyList(), Collections.emptyList());
 
         // Then
         assertThat(ingress)
@@ -60,10 +58,9 @@ public class NetworkingV1IngressGeneratorTest {
     public void testGenerateNoHostOrRouteDomainConfigured() {
         // Given
         ServiceBuilder testSvcBuilder = initTestService();
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(testSvcBuilder);
 
         // When
-        Ingress ingress = NetworkingV1IngressGenerator.generate(kubernetesListBuilder, testSvcBuilder, null, null, Collections.emptyList(), Collections.emptyList(), logger);
+        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, null, null, Collections.emptyList(), Collections.emptyList());
 
         // Then
         assertThat(ingress).isNotNull().hasFieldOrPropertyWithValue("metadata.name", "test-svc");
@@ -76,7 +73,6 @@ public class NetworkingV1IngressGeneratorTest {
     public void testGenerateWithXMLConfig() {
         // Given
         ServiceBuilder testSvcBuilder = initTestService();
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(testSvcBuilder);
         IngressRuleConfig ingressRuleConfig = IngressRuleConfig.builder()
                 .host("foo.bar.com")
                 .path(IngressRulePathConfig.builder()
@@ -97,7 +93,7 @@ public class NetworkingV1IngressGeneratorTest {
                 .build();
 
         // When
-        Ingress ingress = NetworkingV1IngressGenerator.generate(kubernetesListBuilder, testSvcBuilder, "org.eclipse.jkube", null, Collections.singletonList(ingressRuleConfig), Collections.singletonList(ingressTlsConfig), logger);
+        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, "org.eclipse.jkube", null, Collections.singletonList(ingressRuleConfig), Collections.singletonList(ingressTlsConfig));
 
         // Then
         assertThat(ingress)
@@ -105,19 +101,6 @@ public class NetworkingV1IngressGeneratorTest {
                 .extracting("spec.rules").asList()
                 .hasSize(1).element(0)
                 .hasFieldOrPropertyWithValue("host", "foo.bar.com");
-    }
-
-    @Test
-    public void testGenerateWithNullServiceMetadata() {
-        // Given
-        ServiceBuilder serviceBuilder = new ServiceBuilder().withMetadata(null);
-        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(serviceBuilder);
-
-        // When
-        Ingress ingress = NetworkingV1IngressGenerator.generate(kubernetesListBuilder, serviceBuilder, "org.eclipse.jkube", null, Collections.emptyList(), Collections.emptyList(), logger);
-
-        // Then
-        assertThat(ingress).isNull();
     }
 
     private ServiceBuilder initTestService() {

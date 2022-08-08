@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.enricher.generic;
+package org.eclipse.jkube.enricher.generic.ingress;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.TypedLocalObjectReferenceBuilder;

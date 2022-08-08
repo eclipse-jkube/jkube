@@ -13,14 +13,10 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.openshift.api.model.RouteSpec;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -31,28 +27,25 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.api.model.RoutePort;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.enricher.api.ServiceExposer;
 
 import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeMetadata;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeSimpleFields;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeLabel;
 
 /**
  * Enricher which generates a Route for each exposed Service
  */
-public class RouteEnricher extends BaseEnricher {
+public class RouteEnricher extends BaseEnricher implements ServiceExposer {
 
     private static final String GENERATE_ROUTE_PROPERTY = "jkube.openshift.generateRoute";
-    public static final String EXPOSE_LABEL = "expose";
 
     @AllArgsConstructor
     private enum Config implements Configs.Config {
@@ -82,8 +75,7 @@ public class RouteEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, final KubernetesListBuilder listBuilder) {
-        ResourceConfig resourceConfig = getConfiguration().getResource();
-
+        final ResourceConfig resourceConfig = getConfiguration().getResource();
         if (resourceConfig != null && resourceConfig.getRouteDomain() != null) {
             routeDomainPostfix = resourceConfig.getRouteDomain();
         }
@@ -100,22 +92,25 @@ public class RouteEnricher extends BaseEnricher {
     }
 
     private void addRoute(KubernetesListBuilder listBuilder, ServiceBuilder serviceBuilder) {
-        ObjectMeta serviceMetadata = serviceBuilder.buildMetadata();
-
-        if (serviceMetadata != null && StringUtils.isNotBlank(serviceMetadata.getName())
-                && hasExactlyOneServicePort(serviceBuilder, serviceMetadata.getName())) {
-            String name = serviceMetadata.getName();
-            updateRouteDomainPostFixBasedOnServiceName(name);
+        final String serviceName = serviceBuilder.editOrNewMetadata().getName();
+        if (StringUtils.isNotBlank(serviceName) && canExposeService(serviceBuilder)) {
+            if (!getCreateExternalUrls() && !isExposedWithLabel(serviceBuilder) && !hasWebPorts(serviceBuilder)) {
+                getLog().debug(
+                  "Skipping Route creation for service %s as it has no web ports and jkube.createExternalUrls is false",
+                  serviceName);
+                return;
+            }
+            updateRouteDomainPostFixBasedOnServiceName(serviceName);
             Route opinionatedRoute = createOpinionatedRouteFromService(serviceBuilder, routeDomainPostfix,
                     getConfig(Config.TLS_TERMINATION, "edge"),
                     getConfig(Config.TLS_INSECURE_EDGE_TERMINATION_POLICY, "Allow"),
                     isRouteWithTLS());
             if (opinionatedRoute != null) {
-                int routeFromFragmentIndex = getRouteIndexWithName(listBuilder, name);
+                int routeFromFragmentIndex = getRouteIndexWithName(listBuilder, serviceName);
                 if (routeFromFragmentIndex >= 0) { // Merge fragment with Opinionated Route
                     Route routeFragment = (Route) listBuilder.buildItems().get(routeFromFragmentIndex);
                     Route mergedRoute = mergeRoute(routeFragment, opinionatedRoute);
-                    removeItemFromKubernetesBuilder(listBuilder, listBuilder.getItems().get(routeFromFragmentIndex));
+                    removeItemFromKubernetesBuilder(listBuilder, listBuilder.buildItems().get(routeFromFragmentIndex));
                     listBuilder.addToItems(mergedRoute);
                 } else { // No fragment provided. Use Opinionated Route.
                     listBuilder.addToItems(opinionatedRoute);
@@ -140,37 +135,6 @@ public class RouteEnricher extends BaseEnricher {
         ret += ".";
         ret += FileUtil.stripPrefix(routeDomainPostfix, ".");
         return ret;
-    }
-
-    private Set<Integer> getPorts(ServiceBuilder service) {
-        Set<Integer> answer = new HashSet<>();
-        if (service != null) {
-            ServiceSpec spec = getOrCreateSpec(service);
-            for (ServicePort port : spec.getPorts()) {
-                answer.add(port.getPort());
-            }
-        }
-        return answer;
-    }
-
-    public static ServiceSpec getOrCreateSpec(ServiceBuilder entity) {
-        ServiceSpec spec = entity.buildSpec();
-        if (spec == null) {
-            spec = new ServiceSpec();
-            entity.editOrNewSpec().endSpec();
-        }
-        return spec;
-    }
-
-    private boolean hasExactlyOneServicePort(ServiceBuilder service, String id) {
-        Set<Integer> ports = getPorts(service);
-        if (ports.size() != 1) {
-            log.info("Not generating route for service " + id + " as only single port services are supported. Has ports: " +
-                    ports);
-            return false;
-        } else {
-            return true;
-        }
     }
 
     private void updateRouteDomainPostFixBasedOnServiceName(String serviceName) {
@@ -224,7 +188,7 @@ public class RouteEnricher extends BaseEnricher {
     static int getRouteIndexWithName(final KubernetesListBuilder listBuilder, final String name) {
         int routeInListIndex = -1;
         for (int index = 0; index < listBuilder.buildItems().size(); index++) {
-            HasMetadata item = listBuilder.getItems().get(index);
+            HasMetadata item = listBuilder.buildItems().get(index);
             if (item != null &&
                     item.getMetadata() != null &&
                     item.getMetadata().getName().equals(name) &&
@@ -262,9 +226,6 @@ public class RouteEnricher extends BaseEnricher {
 
                 handleTlsTermination(routeBuilder, tlsTermination, edgeTerminationPolicy, isRouteWithTls);
 
-                // removing `expose : true` label from metadata.
-                removeLabel(routeBuilder.buildMetadata(), EXPOSE_LABEL, "true");
-                removeLabel(routeBuilder.buildMetadata(), JKubeAnnotations.SERVICE_EXPOSE_URL.value(), "true");
                 routeBuilder.withNewMetadataLike(routeBuilder.buildMetadata());
                 return routeBuilder.build();
             }

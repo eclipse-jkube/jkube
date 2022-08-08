@@ -19,10 +19,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -43,15 +41,11 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,12 +53,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"unchecked"})
 class KubernetesHelperTest {
 
     private KitLogger logger;
@@ -209,35 +198,6 @@ class KubernetesHelperTest {
         // Then
         assertThat(statusCode1).isTrue();
         assertThat(KubernetesHelper.getEnvVar(envVarList, "FOO", "defaultValue")).isEqualTo("defaultValue");
-    }
-
-    @Test
-    void testIsExposedServiceReturnsTrue() {
-        // Given
-        Service service = new ServiceBuilder()
-                .withNewMetadata()
-                .addToLabels("expose", "true")
-                .withName("svc1")
-                .endMetadata()
-                .build();
-
-        // When
-        boolean result = KubernetesHelper.isExposeService(service);
-
-        // Then
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    void testIsExposedServiceReturnsFalse() {
-        // Given
-        Service service = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
-
-        // When
-        boolean result = KubernetesHelper.isExposeService(service);
-
-        // Then
-        assertThat(result).isFalse();
     }
 
     @Test
