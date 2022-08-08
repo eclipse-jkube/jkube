@@ -23,7 +23,6 @@ metadata:
     app: "${name}"
     version: "${version}"
     group: "org.eclipse.jkube.devops.apps"
-    expose: "true"
   name: "jkube-docker-registry"
 spec:
   ports:

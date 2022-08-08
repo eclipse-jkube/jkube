@@ -28,7 +28,6 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
@@ -48,9 +47,6 @@ import org.eclipse.jkube.watcher.api.WatcherContext;
 import com.google.common.io.Closeables;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
@@ -59,18 +55,6 @@ import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getSpringBootPlug
 public class SpringBootWatcher extends BaseWatcher {
 
     private final PortForwardService portForwardService;
-
-    @AllArgsConstructor
-    private enum Config implements Configs.Config {
-
-        // The time to wait for the service to be exposed (by the expose controller)
-        SERVICE_URL_WAIT_TIME_SECONDS("serviceUrlWaitTimeSeconds", "5");
-
-        @Getter
-        protected String key;
-        @Getter
-        protected String defaultValue;
-    }
 
     public SpringBootWatcher(WatcherContext watcherContext) {
         super(watcherContext, "spring-boot");

@@ -11,10 +11,8 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.enricher.generic;
+package org.eclipse.jkube.enricher.generic.ingress;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.HTTPIngressPath;
 import io.fabric8.kubernetes.api.model.networking.v1.HTTPIngressPathBuilder;
@@ -33,41 +31,26 @@ import io.fabric8.kubernetes.api.model.networking.v1.IngressTLS;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressTLSBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.ServiceBackendPortBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
 import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
 
 import java.util.List;
-import java.util.Objects;
 
 import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
-import static org.eclipse.jkube.enricher.generic.IngressEnricher.getIngressMetadata;
-import static org.eclipse.jkube.enricher.generic.IngressEnricher.hasIngress;
-import static org.eclipse.jkube.enricher.generic.IngressEnricher.resolveIngressHost;
-import static org.eclipse.jkube.enricher.generic.IngressEnricher.shouldCreateExternalURLForService;
 
 public class NetworkingV1IngressGenerator {
     private NetworkingV1IngressGenerator() { }
 
-    protected static Ingress generate(KubernetesListBuilder listBuilder, ServiceBuilder serviceBuilder, String routeDomainPostfix, String host, List<IngressRuleConfig> ingressRuleConfigs, List<IngressTlsConfig> ingressTlsConfigs, KitLogger log) {
-        ObjectMeta serviceMetadata = serviceBuilder.buildMetadata();
-        if (serviceMetadata == null) {
-            log.info("No Metadata for service! ");
-        }
-        if (shouldCreateExternalURLForService(serviceBuilder, log)) {
-            Objects.requireNonNull(serviceMetadata);
-            String serviceName = serviceMetadata.getName();
-            if (!hasIngress(listBuilder, serviceName)) {
-                Integer servicePort = getPortToExpose(serviceBuilder);
-                if (servicePort != null) {
-                    return new IngressBuilder()
-                            .withMetadata(getIngressMetadata(serviceMetadata))
-                            .withSpec(getIngressSpec(routeDomainPostfix, host, serviceName, servicePort, ingressRuleConfigs, ingressTlsConfigs))
-                            .build();
-                }
-            }
+    public static Ingress generate(ServiceBuilder serviceBuilder, String routeDomainPostfix, String host, List<IngressRuleConfig> ingressRuleConfigs, List<IngressTlsConfig> ingressTlsConfigs) {
+        Integer servicePort = getPortToExpose(serviceBuilder);
+        if (servicePort != null) {
+            return new IngressBuilder()
+                    .withNewMetadataLike(serviceBuilder.buildMetadata()).endMetadata()
+                    .withSpec(getIngressSpec(routeDomainPostfix, host, serviceBuilder.editOrNewMetadata().getName(), servicePort, ingressRuleConfigs, ingressTlsConfigs))
+                    .build();
         }
         return null;
     }
@@ -175,5 +158,12 @@ public class NetworkingV1IngressGenerator {
             ingressServiceBackendBuilder.withPort(new ServiceBackendPortBuilder().withNumber(servicePort).build());
         }
         return ingressServiceBackendBuilder.build();
+    }
+
+    static String resolveIngressHost(String serviceName, String routeDomainPostfix, String host) {
+        if (host != null) {
+            return host;
+        }
+        return serviceName + "." + FileUtil.stripPrefix(routeDomainPostfix, ".");
     }
 }

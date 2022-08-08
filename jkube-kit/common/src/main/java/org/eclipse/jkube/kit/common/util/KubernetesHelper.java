@@ -40,7 +40,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HTTPHeader;
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -64,7 +63,6 @@ import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -90,7 +88,6 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author roland
- * @since 23.05.17
  */
 public class KubernetesHelper {
     protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
@@ -754,11 +751,6 @@ public class KubernetesHelper {
             return newestPod.getMetadata().getName();
         }
         return null;
-    }
-
-    public static boolean isExposeService(Service service) {
-        String expose = KubernetesHelper.getLabels(service).get("expose");
-        return expose != null && expose.equalsIgnoreCase("true");
     }
 
     public static String getAnnotationValue(HasMetadata item, String annotationKey) {
