@@ -36,6 +36,7 @@ import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -70,13 +71,15 @@ public class JKubeEnricherContext implements EnricherContext {
     @Getter(AccessLevel.NONE)
     private ProcessorConfig processorConfig;
     private HandlerHub handlerHub;
+    @Getter(AccessLevel.NONE)
+    private JKubeBuildStrategy jKubeBuildStrategy;
 
 
     @Builder(toBuilder = true)
     public JKubeEnricherContext(
         @Singular  List<RegistryServerConfiguration> settings, @Singular Map<String, String> processingInstructions,
         JavaProject project, KitLogger log,
-        ResourceConfig resources, @Singular List<ImageConfiguration> images, ProcessorConfig processorConfig) {
+        ResourceConfig resources, @Singular List<ImageConfiguration> images, ProcessorConfig processorConfig, JKubeBuildStrategy jKubeBuildStrategy) {
         this.settings = settings;
         this.processingInstructions = processingInstructions;
         this.project = project;
@@ -89,6 +92,7 @@ public class JKubeEnricherContext implements EnricherContext {
             .images(images)
             .resource(resources)
             .processorConfig(processorConfig)
+            .jKubeBuildStrategy(jKubeBuildStrategy)
             .pluginConfigLookup(
                 (system, id) -> {
                     if (!"maven".equals(system)) {
@@ -98,7 +102,7 @@ public class JKubeEnricherContext implements EnricherContext {
                     if (plugin == null) {
                         return Optional.empty();
                     }
-                    return Optional.of(plugin.getConfiguration());
+                    return Optional.ofNullable(plugin.getConfiguration());
                 })
             .secretConfigLookup(
                 id -> {

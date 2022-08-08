@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.resource.helm;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -28,28 +30,27 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class HelmServiceUtilTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class HelmServiceUtilTest {
 
   private File manifest;
   private File templateDir;
   private JavaProject javaProject;
 
-  @Before
-  public void setUp() throws Exception {
-    final File baseDir = temporaryFolder.newFolder("test-project");
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws Exception {
+    final File baseDir = Files.createDirectory(temporaryFolder.resolve("test-project")).toFile();
     final File buildDir = new File(baseDir, "target");
     manifest = buildDir.toPath().resolve("classes").resolve("META-INF").resolve("jkube")
         .resolve("kubernetes.yml").toFile();
@@ -72,7 +73,7 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void initHelmConfig_withNoConfig_shouldInitConfigWithDefaultValues() throws IOException {
+  void initHelmConfig_withNoConfig_shouldInitConfigWithDefaultValues() throws IOException {
     // When
     final HelmConfig result = HelmServiceUtil
         .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, null)
@@ -98,7 +99,7 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void initHelmConfig_withOriginalConfig_shouldInitConfigWithoutOverriding() throws IOException {
+  void initHelmConfig_withOriginalConfig_shouldInitConfigWithoutOverriding() throws IOException {
     // Given
     final HelmConfig original = HelmConfig.builder()
         .chart("Original Name")
@@ -127,7 +128,7 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void initHelmConfig_withTypeProperty_shouldInitConfigWithForSpecifiedTypes() throws IOException {
+  void initHelmConfig_withTypeProperty_shouldInitConfigWithForSpecifiedTypes() throws IOException {
     // Given
     javaProject.getProperties().put("jkube.helm.type", "Openshift,KuBernetEs");
     // When
@@ -146,7 +147,7 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void initHelmPushConfig_withValidProperties_shouldInitHelmConfigWithConfiguredProperties() {
+  void initHelmPushConfig_withValidProperties_shouldInitHelmConfigWithConfiguredProperties() {
     // Given
     HelmConfig helm = new HelmConfig();
     javaProject.getProperties().put("jkube.helm.snapshotRepository.name", "props repo");
@@ -167,7 +168,7 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void initHelmPushConfig_withValidConfigurationAndProperties_thenPropertiesShouldTakePrecedence() {
+  void initHelmPushConfig_withValidConfigurationAndProperties_thenPropertiesShouldTakePrecedence() {
     // Given
     HelmConfig helm = new HelmConfig();
     helm.setSnapshotRepository(HelmRepository.builder()
@@ -190,7 +191,7 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void resolveFromPropertyOrDefaultPropertyHasPrecedenceOverConfiguration() {
+  void resolveFromPropertyOrDefaultPropertyHasPrecedenceOverConfiguration() {
     // Given
     javaProject.getProperties().put("jkube.helm.property", "Overrides Current Value");
     javaProject.getProperties().put("jkube.helm.otherProperty", "Ignored");
@@ -204,36 +205,35 @@ public class HelmServiceUtilTest {
   }
 
   @Test
-  public void findIconUrl_fromProvidedFile_returnsValidUrl(@Mocked ResourceUtil resourceUtil, @Mocked HasMetadata listEntry) throws IOException {
-    // Given
-    manifest.createNewFile();
-    new Expectations() {{
-      ResourceUtil.load(manifest, KubernetesResource.class);
-      result = new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null);
-      listEntry.getMetadata().getAnnotations();
-      result = Collections.singletonMap("jkube.io/iconUrl", "https://my-icon");
-    }};
-    // When
-    String url = HelmServiceUtil.findIconURL(manifest);
-    // Then
-    assertThat(url).isEqualTo("https://my-icon");
+  void findIconUrl_fromProvidedFile_returnsValidUrl() throws IOException {
+    try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
+      // Given
+      HasMetadata listEntry = mock(HasMetadata.class,RETURNS_DEEP_STUBS);
+      resourceUtilMockedStatic.when(() -> ResourceUtil.load(manifest, KubernetesResource.class))
+          .thenReturn(new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null));
+      manifest.createNewFile();
+      when(listEntry.getMetadata().getAnnotations()).thenReturn(Collections.singletonMap("jkube.io/iconUrl", "https://my-icon"));
+      // When
+      String url = HelmServiceUtil.findIconURL(manifest);
+      // Then
+      assertThat(url).isEqualTo("https://my-icon");
+    }
   }
 
   @Test
-  public void findTemplatesFromProvidedFile(
-    @Mocked ResourceUtil resourceUtil, @Mocked Template template) throws Exception {
-
-    // Given
-    new Expectations() {{
-      ResourceUtil.load(manifest, KubernetesResource.class);
-      result = template;
-    }};
-    // When
-    List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
-    // Then
-    assertThat(templateList)
-      .hasSize(1)
-      .contains(template);
+  void findTemplatesFromProvidedFile() throws Exception {
+    try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
+      // Given
+      Template template = mock(Template.class);
+      resourceUtilMockedStatic.when(() -> ResourceUtil.load(manifest, KubernetesResource.class))
+          .thenReturn(template);
+      // When
+      List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
+      // Then
+      assertThat(templateList)
+          .hasSize(1)
+          .contains(template);
+    }
   }
 
 }

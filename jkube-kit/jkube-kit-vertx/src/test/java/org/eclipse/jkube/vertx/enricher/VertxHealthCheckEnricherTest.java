@@ -17,21 +17,21 @@ import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.client.utils.Serialization;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.Probe;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,37 +45,34 @@ import static org.junit.Assert.fail;
  */
 public class VertxHealthCheckEnricherTest {
 
-    @Mocked
     private JKubeEnricherContext context;
+    private TreeMap<String, String> plexusMavenConfig;
+    private Map<String, Object> jKubePluginConfiguration;
+    private Properties properties;
 
-    private void setupExpectations(Map<String, Object> config, TreeMap<String, String> plexusMavenConfig) {
+    @Before
+    public void setUp() throws Exception {
+        plexusMavenConfig = new TreeMap<>();
+        jKubePluginConfiguration = new HashMap<>();
+        properties = new Properties();
         final ProcessorConfig processorConfig = new ProcessorConfig();
         processorConfig.setConfig(Collections.singletonMap("jkube-healthcheck-vertx", plexusMavenConfig));
-        // @formatter:off
-        new Expectations() {{
-            context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
-            result = true;
-            context.getConfiguration().getProcessorConfig(); result = processorConfig; minTimes = 0;
-            context.getConfiguration().getPluginConfiguration(anyString, anyString); result = Optional.of(config);
-            context.getConfiguration().getPluginConfigLookup(); result = getProjectLookup(config); minTimes = 0;
-        }};
-        // @formatter:on
-    }
-
-    private void setupExpectations(Properties props) {
-        // @formatter:off
-        new Expectations() {{
-            context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
-            result = true;
-
-            context.getProperties(); result = props;
-        }};
-        // @formatter:on
-    }
-
-    private void setupExpectations(Properties props, Map<String, Object> config, TreeMap<String, String> plexusMavenConfig) {
-        setupExpectations(props);
-        setupExpectations(config, plexusMavenConfig);
+        context = JKubeEnricherContext.builder()
+            .log(new KitLogger.SilentLogger())
+            .processorConfig(processorConfig)
+            .project(JavaProject.builder()
+                .properties(properties)
+                .plugin(Plugin.builder()
+                    .groupId("io.reactiverse")
+                    .artifactId("vertx-maven-plugin")
+                    .build())
+                .plugin(Plugin.builder()
+                    .groupId("org.eclipse.jkube")
+                    .artifactId("kubernetes-maven-plugin")
+                    .configuration(jKubePluginConfiguration)
+                    .build())
+                .build())
+            .build();
     }
 
     @Test
@@ -90,11 +87,9 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testDefaultConfiguration_Enabled() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.path", "/ping");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.path", "/ping");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -113,12 +108,10 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testDifferentPathForLivenessAndReadiness() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.path", "/ping");
+        properties.put("vertx.health.readiness.path", "/ready");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.path", "/ping");
-        props.put("vertx.health.readiness.path", "/ready");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -145,30 +138,25 @@ public class VertxHealthCheckEnricherTest {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Object> createFakeConfig(String config) {
-        try {
-            Map<String, Object> healthCheckVertxMap = Serialization.jsonMapper().readValue(config, Map.class);
+    private Map<String, Object> createFakeConfig(String config) throws JsonProcessingException {
+        Map<String, Object> healthCheckVertxMap = Serialization.jsonMapper().readValue(config, Map.class);
 
-            Map<String, Object> enricherConfigMap = new HashMap<>();
-            enricherConfigMap.put("jkube-healthcheck-vertx", healthCheckVertxMap);
+        Map<String, Object> enricherConfigMap = new HashMap<>();
+        enricherConfigMap.put("jkube-healthcheck-vertx", healthCheckVertxMap);
 
-            Map<String, Object> enricherMap = new HashMap<>();
-            enricherMap.put("config", enricherConfigMap);
+        Map<String, Object> enricherMap = new HashMap<>();
+        enricherMap.put("config", enricherConfigMap);
 
-            Map<String, Object> pluginConfigurationMap = new HashMap<>();
-            pluginConfigurationMap.put("enricher", enricherMap);
+        Map<String, Object> pluginConfigurationMap = new HashMap<>();
+        pluginConfigurationMap.put("enricher", enricherMap);
 
-            return pluginConfigurationMap;
-        } catch (JsonProcessingException jsonProcessingException) {
-            jsonProcessingException.printStackTrace();
-        }
-        return null;
+        return pluginConfigurationMap;
     }
 
     @Test
-    public void testWithCustomConfigurationComingFromConf() throws Exception {
+    public void testWithCustomConfigurationComingFromProcessorConf() throws Exception {
         String configString = "{\"path\":\"health\",\"port\":\"1234\",\"scheme\":\"https\"}";
-        setupExpectations(createFakeConfig(configString), createFakeConfigLikeMaven(configString));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(configString));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
@@ -185,49 +173,36 @@ public class VertxHealthCheckEnricherTest {
         assertNull(probe.getHttpGet().getHost());
         assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(1234);
         assertThat(probe.getHttpGet().getPath()).isEqualTo( "/health");
-    }
-
-    private BiFunction<String, String, Optional<Map<String, Object>>> getProjectLookup(Map<String, Object> config) {
-        return (s,i) -> {
-            assertThat(s).isEqualTo("maven");
-            return Optional.ofNullable(config);
-        };
     }
 
     @Test
     public void testWithCustomConfigurationForLivenessAndReadinessComingFromConf() throws Exception {
        final String config =
                 "{\"path\":\"health\",\"port\":\"1234\",\"scheme\":\"https\",\"readiness\":{\"path\":\"/ready\"}}";
-
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+       jKubePluginConfiguration.putAll(createFakeConfig(config));
+       plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
-        Probe probe = enricher.getLivenessProbe();
-        assertNotNull(probe);
-        assertNull(probe.getHttpGet().getHost());
-        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTPS");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(1234);
-        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/health");
-
-        probe = enricher.getReadinessProbe();
-        assertNotNull(probe);
-        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTPS");
-        assertNull(probe.getHttpGet().getHost());
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(1234);
-        assertThat(probe.getHttpGet().getPath()).isEqualTo( "/ready");
+        assertThat(enricher.getLivenessProbe())
+            .hasFieldOrPropertyWithValue("httpGet.host", null)
+            .hasFieldOrPropertyWithValue("httpGet.scheme", "HTTPS")
+            .hasFieldOrPropertyWithValue("httpGet.port.intVal", 1234)
+            .hasFieldOrPropertyWithValue("httpGet.path", "/health");
+        assertThat(enricher.getReadinessProbe())
+            .hasFieldOrPropertyWithValue("httpGet.host", null)
+            .hasFieldOrPropertyWithValue("httpGet.scheme", "HTTPS")
+            .hasFieldOrPropertyWithValue("httpGet.port.intVal", 1234)
+            .hasFieldOrPropertyWithValue("httpGet.path", "/ready");
     }
 
     @Test
     public void testCustomConfiguration() {
+        properties.put("vertx.health.path", "/health");
+        properties.put("vertx.health.port", " 8081 ");
+        properties.put("vertx.health.scheme", " https");
+
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        final Properties props = new Properties();
-        props.put("vertx.health.path", "/health");
-        props.put("vertx.health.port", " 8081 ");
-        props.put("vertx.health.scheme", " https");
-
-        setupExpectations(props);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -247,8 +222,8 @@ public class VertxHealthCheckEnricherTest {
     @Test
     public void testWithHttpHeaders() throws Exception {
         final String config = "{\"path\":\"health\",\"headers\":{\"X-Header\":\"X\",\"Y-Header\":\"Y\"}}";
-
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
@@ -269,11 +244,9 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testDisabledUsingEmptyPath() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.path", "");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.path", "");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -283,12 +256,10 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testDisabledUsingNegativePort() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.port", " -1 ");
+        properties.put("vertx.health.path", " /ping ");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.port", " -1 ");
-        props.put("vertx.health.path", " /ping ");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -298,12 +269,10 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testDisabledUsingInvalidPort() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.port", "not an integer");
+        properties.put("vertx.health.path", " /ping ");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.port", "not an integer");
-        props.put("vertx.health.path", " /ping ");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         try {
             enricher.getLivenessProbe();
@@ -322,12 +291,10 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testDisabledUsingPortName() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.port-name", " health ");
+        properties.put("vertx.health.path", " /ping ");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.port-name", " health ");
-        props.put("vertx.health.path", " /ping ");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertThat(probe.getHttpGet().getPort().getStrVal()).isEqualToIgnoringCase("health");
@@ -338,7 +305,8 @@ public class VertxHealthCheckEnricherTest {
     @Test
     public void testDisabledUsingNegativePortUsingConfiguration() throws Exception {
         final String config = "{\"path\":\"/ping\",\"port\":\"-1\"}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
@@ -350,12 +318,10 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testReadinessDisabled() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.readiness.path", "");
+        properties.put("vertx.health.path", "/ping");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.readiness.path", "");
-        props.put("vertx.health.path", "/ping");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -367,7 +333,8 @@ public class VertxHealthCheckEnricherTest {
     @Test
     public void testReadinessDisabledUsingConfig() throws Exception {
         final String config = "{\"readiness\":{\"path\":\"\"},\"path\":\"/ping\"}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
@@ -380,12 +347,10 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testLivenessDisabledAndReadinessEnabled() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.readiness.path", "/ping");
+        properties.put("vertx.health.path", "");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.readiness.path", "/ping");
-        props.put("vertx.health.path", "");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -398,9 +363,8 @@ public class VertxHealthCheckEnricherTest {
     @Test
     public void testLivenessDisabledAndReadinessEnabledUsingConfig() throws Exception {
         final String config = "{\"readiness\":{\"path\":\"/ping\"},\"path\":\"\"}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
-
-        context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
 
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
@@ -413,13 +377,11 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testTCPSocketUsingUserProperties() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.type", "tcp");
+        properties.put("vertx.health.port", "1234");
+        properties.put("vertx.health.readiness.port", "1235");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.type", "tcp");
-        props.put("vertx.health.port", "1234");
-        props.put("vertx.health.readiness.port", "1235");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -433,7 +395,8 @@ public class VertxHealthCheckEnricherTest {
     public void testTCPSocketUsingConfig() throws Exception {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"tcp\",\"liveness\":{\"port\":\"1234\"},\"readiness\":{\"port\":\"1235\"}}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -445,13 +408,11 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testTCPSocketUsingUserPropertiesAndPortName() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.type", "tcp");
+        properties.put("vertx.health.port-name", "health");
+        properties.put("vertx.health.readiness.port-name", "ready");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.type", "tcp");
-        props.put("vertx.health.port-name", "health");
-        props.put("vertx.health.readiness.port-name", "ready");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -463,9 +424,11 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testTCPSocketUsingConfigAndPortName() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"tcp\",\"liveness\":{\"port-name\":\"health\"},\"readiness\":{\"port-name\":\"ready\"}}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -477,12 +440,10 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testTCPSocketUsingUserPropertiesLivenessDisabled() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.type", "tcp");
+        properties.put("vertx.health.readiness.port", "1235");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.type", "tcp");
-        props.put("vertx.health.readiness.port", "1235");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -493,9 +454,11 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testTCPSocketUsingConfigLivenessDisabled() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"tcp\",\"readiness\":{\"port\":\"1235\"}}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -506,13 +469,11 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testTCPSocketUsingUserPropertiesReadinessDisabled() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.type", "tcp");
+        properties.put("vertx.health.port", "1337");
+        properties.put("vertx.health.readiness.port", "0");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.type", "tcp");
-        props.put("vertx.health.port", "1337");
-        props.put("vertx.health.readiness.port", "0");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertEquals(1337, probe.getTcpSocket().getPort().getIntVal().intValue());
@@ -523,9 +484,11 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testTCPSocketUsingConfigReadinessDisabled() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"tcp\",\"liveness\":{\"port\":\"1235\"},\"readiness\":{\"port\":\"-1\"}}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertEquals(1235, probe.getTcpSocket().getPort().getIntVal().intValue());
@@ -536,25 +499,24 @@ public class VertxHealthCheckEnricherTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testTCPSocketUsingUserPropertiesIllegal() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.type", "tcp");
+        properties.put("vertx.health.port", "1235");
+        properties.put("vertx.health.port-name", "health");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.type", "tcp");
-        props.put("vertx.health.port", "1235");
-        props.put("vertx.health.port-name", "health");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         enricher.getLivenessProbe();
     }
 
     @Test
     public void testTCPSocketUsingConfigIllegal() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"tcp\"," +
                         "\"liveness\":{\"port\":\"1234\",\"port-name\":\"foo\"}," +
                         "\"readiness\":{\"port\":\"1235\",\"port-name\":\"foo\"}}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
 
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         try {
             enricher.getLivenessProbe();
@@ -574,11 +536,9 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testTCPSocketUsingUserPropertiesDisabled() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.type", "tcp");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.type", "tcp");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -588,9 +548,11 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testTCPSocketUsingConfigDisabled() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"tcp\"}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -600,11 +562,13 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testExecUsingConfig() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"exec\"," +
                         "\"command\": {\"arg\":[\"/bin/sh\", \"-c\",\"touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600\"]}" +
                         "}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -616,13 +580,15 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testExecUsingConfigLivenessDisabled() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"exec\"," +
                         "\"readiness\":{" +
                         "\"command\": {\"arg\":[\"/bin/sh\", \"-c\",\"touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600\"]}}," +
                         "\"liveness\":{}" +
                         "}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -633,13 +599,15 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testExecUsingConfigReadinessDisabled() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"exec\"," +
                         "\"liveness\":{" +
                         "\"command\": {\"arg\":[\"/bin/sh\", \"-c\",\"touch /tmp/healthy; sleep 30; rm -rf /tmp/healthy; sleep 600\"]}}," +
                         "\"readiness\":{}" +
                         "}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertThat(probe.getExec().getCommand()).hasSize(3);
@@ -650,11 +618,9 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testExecUsingUserPropertiesDisabled() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.type", "exec");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.type", "exec");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -664,9 +630,11 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testExecUsingConfigDisabled() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"exec\"}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -676,11 +644,9 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testUnknownTypeUsingUserProperties() {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
+        properties.put("vertx.health.type", "not a valid type");
 
-        final Properties props = new Properties();
-        props.put("vertx.health.type", "not a valid type");
-        setupExpectations(props);
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         try {
             enricher.getLivenessProbe();
@@ -700,9 +666,11 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testUnknownTypeUsingConfig() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"not a valid type\"}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         try {
             enricher.getLivenessProbe();
@@ -722,11 +690,7 @@ public class VertxHealthCheckEnricherTest {
     @Test
     public void testNotApplicableProject() {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
-        new Expectations() {{
-            context.hasPlugin(VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_GROUP, VertxHealthCheckEnricher.VERTX_MAVEN_PLUGIN_ARTIFACT);
-            result = false;
-        }};
+        context.getProject().setPlugins(Collections.emptyList());
 
         Probe probe = enricher.getLivenessProbe();
         assertNull(probe);
@@ -736,12 +700,13 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testThatWeCanUSeDifferentTypesForLivenessAndReadiness() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
         final String config = "{\"liveness\":{" +
                         "\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}" +
                         "},\"readiness\":{\"path\":\"/ping\"}}";
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getLivenessProbe();
         assertNotNull(probe);
@@ -753,18 +718,16 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testThatSpecificConfigOverrideGenericUserProperties() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
         final String config = "{\"liveness\":{" +
                         "\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}" +
                         "},\"readiness\":{\"port\":\"1337\"}}";
-
-        Properties properties = new Properties();
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
         properties.put("vertx.health.type", "tcp");
         properties.put("vertx.health.port", "1234");
         properties.put("vertx.health.path", "/path");
-        setupExpectations(properties, createFakeConfig(config), createFakeConfigLikeMaven(config));
 
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();
@@ -781,14 +744,13 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testThatGenericConfigOverrideGenericUserProperties() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
         final String config = "{\"type\":\"exec\",\"command\":{\"arg\":\"ls\"}}";
-        Properties properties = new Properties();
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
         properties.put("vertx.health.type", "tcp");
         properties.put("vertx.health.port", "1234");
 
-        setupExpectations(properties, createFakeConfig(config), createFakeConfigLikeMaven(config));
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();
@@ -805,14 +767,14 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testThatSpecificConfigOverrideSpecificUserProperties() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
         final String config = "{\"liveness\":{\"type\":\"http\",\"path\":\"/ping\"},\"readiness\":{\"port\":\"1337\"}}";
-        Properties properties = new Properties();
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
         properties.put("vertx.health.readiness.type", "tcp");
         properties.put("vertx.health.readiness.port", "1234");
         properties.put("vertx.health.path", "/pong");
-        setupExpectations(properties, createFakeConfig(config), createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();
@@ -829,14 +791,14 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testThatSpecificUserPropertiesOverrideGenericConfig() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
         final String config = "{\"path\":\"/ping\",\"type\":\"http\"}";
-        Properties properties = new Properties();
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
         properties.put("vertx.health.readiness.type", "tcp");
         properties.put("vertx.health.readiness.port", "1234");
         properties.put("vertx.health.port", "1235");
-        setupExpectations(properties, createFakeConfig(config), createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();
@@ -853,13 +815,13 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testThatSpecificConfigOverrideGenericConfig() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
-
         final String config = "{\"liveness\":{\"path\":\"/live\"}," +
                         "\"readiness\":{\"path\":\"/ping\",\"port-name\":\"ready\"}," +
                         "\"path\":\"/health\",\"port-name\":\"health\"}";
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
 
-        setupExpectations(createFakeConfig(config), createFakeConfigLikeMaven(config));
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();
@@ -876,15 +838,16 @@ public class VertxHealthCheckEnricherTest {
 
     @Test
     public void testThatSpecificUserPropertiesOverrideGenericUserProperties() throws Exception {
-        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config =  "{\"path\":\"/ping\",\"type\":\"http\"}";
-        Properties properties = new Properties();
+        jKubePluginConfiguration.putAll(createFakeConfig(config));
+        plexusMavenConfig.putAll(createFakeConfigLikeMaven(config));
         properties.put("vertx.health.readiness.type", "tcp");
         properties.put("vertx.health.readiness.port", "1234");
         properties.put("vertx.health.port", "1235");
         properties.put("vertx.health.liveness.type", "tcp");
         properties.put("vertx.health.liveness.port", "1236");
-        setupExpectations(properties, createFakeConfig(config), createFakeConfigLikeMaven(config));
+
+        VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
 
         Probe probe = enricher.getReadinessProbe();
         assertThat(probe).isNotNull();

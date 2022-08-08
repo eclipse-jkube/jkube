@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.resource.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -27,40 +28,36 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SuppressWarnings({"ConstantConditions", "AccessStaticViaInstance"})
-public class WriteUtilTest {
+@SuppressWarnings({"ConstantConditions", "AccessStaticViaInstance", "unused"})
+class WriteUtilTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-  @SuppressWarnings("unused")
+  @TempDir
+  File temporaryFolder;
   @Mocked
   private KitLogger log;
-  @SuppressWarnings("unused")
   @Mocked
   private ResourceUtil resourceUtil;
 
   private KubernetesListBuilder klb;
   private File resourceFileBase;
 
-  @Before
-  public void initGlobalVariables() throws IOException {
+  @BeforeEach
+  void initGlobalVariables()  {
     klb = new KubernetesListBuilder();
-    resourceFileBase = temporaryFolder.newFolder();
+    resourceFileBase = temporaryFolder;
   }
 
   @Test
-  public void writeResource() throws IOException {
+  void writeResource() throws IOException {
     // Given
-    final File baton = temporaryFolder.newFile();
+    final File baton = File.createTempFile("junit", "ext", temporaryFolder);
     mockResourceUtilSave(baton);
     // When
     final File result = WriteUtil.writeResource(null, null, null);
@@ -69,9 +66,10 @@ public class WriteUtilTest {
   }
 
   @Test
-  public void writeResourceThrowsException() throws IOException {
+  void writeResourceThrowsException() throws IOException {
     // Given
-    final File resource = temporaryFolder.newFolder("resource-base");
+    final File resource =
+            Files.createDirectory(temporaryFolder.toPath().resolve("resource-base")).toFile();
     mockResourceUtilSave(new IOException("Message"));
     // When
     final IOException result = assertThrows(IOException.class,
@@ -85,7 +83,7 @@ public class WriteUtilTest {
   }
 
   @Test
-  public void writeResourcesIndividualAndCompositeWithNoResourcesShouldOnlyWriteComposite() throws IOException {
+  void writeResourcesIndividualAndCompositeWithNoResourcesShouldOnlyWriteComposite() throws IOException {
     // When
     WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
     // Then
@@ -93,7 +91,7 @@ public class WriteUtilTest {
   }
 
   @Test
-  public void writeResourcesIndividualAndCompositeWithResourcesShouldWriteAll() throws IOException {
+  void writeResourcesIndividualAndCompositeWithResourcesShouldWriteAll() throws IOException {
     // Given
     klb.addToItems(
       new ConfigMapBuilder().withNewMetadata().withName("cm-1").endMetadata().build(),
@@ -110,7 +108,7 @@ public class WriteUtilTest {
   }
 
   @Test
-  public void writeResourcesIndividualAndComposite_withResourcesWithSameName_shouldWriteAll() throws IOException {
+  void writeResourcesIndividualAndComposite_withResourcesWithSameName_shouldWriteAll() throws IOException {
     // Given
     klb.addToItems(
         new ConfigMapBuilder().withNewMetadata().withNamespace("default").withName("cm-1").endMetadata().build(),

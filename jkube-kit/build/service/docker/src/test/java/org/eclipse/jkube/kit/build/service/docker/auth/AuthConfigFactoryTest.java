@@ -28,7 +28,6 @@ import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFacto
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.common.SystemMock;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.GsonBuilder;
@@ -81,19 +80,23 @@ public class AuthConfigFactoryTest {
     @Test
     public void testGetAuthConfigFromSystemProperties() throws IOException {
         // Given
-        new SystemMock()
-            .put("jkube.docker.username", "testuser")
-            .put("jkube.docker.password", "testpass");
-        // When
-        AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromSystemProperties(AuthConfigFactory.LookupMode.DEFAULT, s -> s);
-        // Then
-        assertAuthConfig(authConfig, "testuser", "testpass");
+        System.setProperty("jkube.docker.username", "testuser");
+        System.setProperty("jkube.docker.password", "testpass");
+        try {
+            // When
+            AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromSystemProperties(AuthConfigFactory.LookupMode.DEFAULT, s -> s);
+            // Then
+            assertAuthConfig(authConfig, "testuser", "testpass");
+        } finally {
+            System.clearProperty("jkube.docker.username");
+            System.clearProperty("jkube.docker.password");
+        }
     }
 
     @Test
     public void testGetAuthConfigFromOpenShiftConfig() {
         // Given
-        new SystemMock().put("jkube.docker.useOpenShiftAuth", "true");
+        System.setProperty("jkube.docker.useOpenShiftAuth", "true");
         Map<String, Object> authConfigMap = new HashMap<>();
         new MockUp<KubernetesConfigAuthUtil>() {
             @Mock
@@ -104,10 +107,14 @@ public class AuthConfigFactoryTest {
                     .build();
             }
         };
-        // When
-        AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromOpenShiftConfig(AuthConfigFactory.LookupMode.DEFAULT, authConfigMap);
-        // Then
-        assertAuthConfig(authConfig, "test", "sometoken");
+        try {
+            // When
+            AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromOpenShiftConfig(AuthConfigFactory.LookupMode.DEFAULT, authConfigMap);
+            // Then
+            assertAuthConfig(authConfig, "test", "sometoken");
+        } finally {
+            System.clearProperty("jkube.docker.useOpenShiftAuth");
+        }
     }
 
     @Test
@@ -192,14 +199,18 @@ public class AuthConfigFactoryTest {
     @Test
     public void testGetStandardAuthConfigFromProperties(@Mocked KitLogger logger) throws IOException {
         // Given
-        new SystemMock()
-            .put("jkube.docker.username", "testuser")
-            .put("jkube.docker.password", "testpass");
-        // When
-        AuthConfigFactory authConfigFactory = new AuthConfigFactory(logger);
-        AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), Collections.emptyList(), "testuser", "testregistry.io", s -> s);
-        // Then
-        assertAuthConfig(authConfig, "testuser", "testpass");
+        System.setProperty("jkube.docker.username", "testuser");
+        System.setProperty("jkube.docker.password", "testpass");
+        try {
+            // When
+            AuthConfigFactory authConfigFactory = new AuthConfigFactory(logger);
+            AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), Collections.emptyList(), "testuser", "testregistry.io", s -> s);
+            // Then
+            assertAuthConfig(authConfig, "testuser", "testpass");
+        } finally {
+            System.clearProperty("jkube.docker.username");
+            System.clearProperty("jkube.docker.password");
+        }
     }
 
     @Test

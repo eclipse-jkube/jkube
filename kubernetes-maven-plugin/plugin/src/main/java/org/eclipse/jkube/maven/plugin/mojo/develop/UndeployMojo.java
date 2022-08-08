@@ -57,6 +57,9 @@ public class UndeployMojo extends AbstractJKubeMojo implements ManifestProvider 
   @Parameter(property = "jkube.environment")
   private String environment;
 
+  @Parameter(property = "jkube.skip.undeploy", defaultValue = "false")
+  protected boolean skipUndeploy;
+
   @Override
   public File getKubernetesManifest() {
     return kubernetesManifest;
@@ -83,4 +86,8 @@ public class UndeployMojo extends AbstractJKubeMojo implements ManifestProvider 
     return ret;
   }
 
+  @Override
+  protected boolean shouldSkip() {
+    return super.shouldSkip() || skipUndeploy;
+  }
 }

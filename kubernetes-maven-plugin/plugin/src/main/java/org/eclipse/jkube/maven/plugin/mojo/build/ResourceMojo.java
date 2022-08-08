@@ -187,8 +187,8 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
 
     @Override
-    protected boolean canExecute() {
-        return super.canExecute() && !skipResource;
+    protected boolean shouldSkip() {
+        return super.shouldSkip() || skipResource;
     }
 
     @Override
@@ -296,6 +296,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
         throws IOException {
 
         JKubeEnricherContext.JKubeEnricherContextBuilder ctxBuilder = JKubeEnricherContext.builder()
+                .jKubeBuildStrategy(buildStrategy)
                 .project(javaProject)
                 .processorConfig(extractEnricherConfig())
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))

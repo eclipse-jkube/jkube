@@ -13,73 +13,73 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.net.URL;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Checking the behaviour of utility methods.
  */
-public class SpringBootUtilTest {
-
+class SpringBootUtilTest {
 
     @Test
-    public void testYamlToPropertiesParsing() {
+    void testYamlToPropertiesParsing() {
 
         Properties props = YamlUtil.getPropertiesFromYamlResource(SpringBootUtilTest.class.getResource("/util/test-application.yml"));
-        assertNotEquals(0, props.size());
-
-        assertEquals("8081", props.getProperty("management.port"));
-        assertEquals("jdbc:mysql://127.0.0.1:3306", props.getProperty("spring.datasource.url"));
-        assertEquals("value0", props.getProperty("example.nested.items[0].value"));
-        assertEquals("value1", props.getProperty("example.nested.items[1].value"));
-        assertEquals("sub0", props.getProperty("example.nested.items[2].elements[0].element[0].subelement"));
-        assertEquals("sub1", props.getProperty("example.nested.items[2].elements[0].element[1].subelement"));
-        assertEquals("integerKeyElement", props.getProperty("example.1"));
-
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testInvalidFileThrowsException() {
-        YamlUtil.getPropertiesFromYamlResource(SpringBootUtilTest.class.getResource("/util/invalid-application.yml"));
+        assertThat(props).isNotEmpty()
+                .contains(
+                        entry("management.port", "8081"),
+                        entry("spring.datasource.url", "jdbc:mysql://127.0.0.1:3306"),
+                        entry("example.nested.items[0].value", "value0"),
+                        entry("example.nested.items[1].value", "value1"),
+                        entry("example.nested.items[2].elements[0].element[0].subelement", "sub0"),
+                        entry("example.nested.items[2].elements[0].element[1].subelement", "sub1"),
+                        entry("example.1", "integerKeyElement"));
     }
 
     @Test
-    public void testNonExistentYamlToPropertiesParsing() {
+    void testInvalidFileThrowsException() {
+        URL resource = SpringBootUtil.class.getResource("/util/invalid-application.yml");
+        assertThrows(IllegalStateException.class, () -> YamlUtil.getPropertiesFromYamlResource(resource));
+    }
 
+    @Test
+    void testNonExistentYamlToPropertiesParsing() {
         Properties props = YamlUtil.getPropertiesFromYamlResource(SpringBootUtilTest.class.getResource("/this-file-does-not-exist"));
-        assertNotNull(props);
-        assertEquals(0, props.size());
-
+        assertThat(props).isNotNull().isEmpty();
     }
 
     @Test
-    public void testMultipleProfilesParsing() {
+    void testMultipleProfilesParsing() {
         Properties props = SpringBootUtil.getPropertiesFromApplicationYamlResource(null, getClass().getResource("/util/test-application-with-multiple-profiles.yml"));
-        assertTrue(props.size() > 0);
 
-        assertEquals("spring-boot-k8-recipes", props.get("spring.application.name"));
-        assertEquals("false", props.get("management.endpoints.enabled-by-default"));
-        assertEquals("true", props.get("management.endpoint.health.enabled"));
-        assertNull(props.get("cloud.kubernetes.reload.enabled"));
+        assertThat(props).isNotEmpty()
+                .contains(
+                        entry("spring.application.name", "spring-boot-k8-recipes"),
+                        entry("management.endpoints.enabled-by-default", "false"),
+                        entry("management.endpoint.health.enabled", "true"))
+                .doesNotContainEntry("cloud.kubernetes.reload.enabled", null);
 
         props = SpringBootUtil.getPropertiesFromApplicationYamlResource("kubernetes", getClass().getResource("/util/test-application-with-multiple-profiles.yml"));
-        assertEquals("true", props.get("cloud.kubernetes.reload.enabled"));
-        assertNull(props.get("spring.application.name"));
+
+        assertThat(props)
+                .containsEntry("cloud.kubernetes.reload.enabled", "true")
+                .doesNotContain(
+                        entry("cloud.kubernetes.reload.enabled", null),
+                        entry("spring.application.name", null));
     }
 
     @Test
-    public void getSpringBootPluginConfiguration_whenSpringBootMavenPluginPresent_thenReturnsPluginConfiguration() {
+    void getSpringBootPluginConfiguration_whenSpringBootMavenPluginPresent_thenReturnsPluginConfiguration() {
         // Given
         JavaProject javaProject = JavaProject.builder()
             .plugin(Plugin.builder()
@@ -93,12 +93,11 @@ public class SpringBootUtilTest {
         Map<String, Object> configuration = SpringBootUtil.getSpringBootPluginConfiguration(javaProject);
 
         // Then
-        assertNotNull(configuration);
-        assertEquals("ZIP", configuration.get("layout").toString());
+        assertThat(configuration).isNotNull().containsEntry("layout", "ZIP");
     }
 
     @Test
-    public void getSpringBootPluginConfiguration_whenSpringBootGradlePluginPresent_thenReturnsPluginConfiguration() {
+    void getSpringBootPluginConfiguration_whenSpringBootGradlePluginPresent_thenReturnsPluginConfiguration() {
         // Given
         JavaProject javaProject = JavaProject.builder()
             .plugin(Plugin.builder()
@@ -112,8 +111,7 @@ public class SpringBootUtilTest {
         Map<String, Object> configuration = SpringBootUtil.getSpringBootPluginConfiguration(javaProject);
 
         // Then
-        assertNotNull(configuration);
-        assertEquals("com.example.ExampleApplication", configuration.get("mainClass").toString());
+        assertThat(configuration).isNotNull().containsEntry("mainClass", "com.example.ExampleApplication");
     }
 
 }

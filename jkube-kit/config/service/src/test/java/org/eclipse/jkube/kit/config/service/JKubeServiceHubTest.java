@@ -16,8 +16,11 @@ package org.eclipse.jkube.kit.config.service;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.MigrateService;
+import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
@@ -26,46 +29,71 @@ import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.eclipse.jkube.kit.resource.helm.HelmService;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.eclipse.jkube.kit.config.resource.RuntimeMode.KUBERNETES;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"unused"})
 public class JKubeServiceHubTest {
 
   private JKubeServiceHub.JKubeServiceHubBuilder jKubeServiceHubBuilder;
+  private OpenShiftClient openShiftClient;
 
   @Before
   public void setUp() throws Exception {
     final ClusterAccess clusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
-    when(clusterAccess.createDefaultClient()).thenReturn(mock(OpenShiftClient.class, RETURNS_DEEP_STUBS));
+    openShiftClient = mock(OpenShiftClient.class);
+    when(clusterAccess.createDefaultClient()).thenReturn(openShiftClient);
+    when(openShiftClient.adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
     jKubeServiceHubBuilder = JKubeServiceHub.builder()
-        .platformMode(RuntimeMode.KUBERNETES)
+        .platformMode(KUBERNETES)
         .configuration(mock(JKubeConfiguration.class, RETURNS_DEEP_STUBS))
         .clusterAccess(clusterAccess)
-        .log(mock(KitLogger.class))
+        .log(new KitLogger.SilentLogger())
         .dockerServiceHub(mock(DockerServiceHub.class, RETURNS_DEEP_STUBS))
         .offline(false)
         .buildServiceConfig(mock(BuildServiceConfig.class, RETURNS_DEEP_STUBS));
   }
 
-  @Test(expected = NullPointerException.class)
-  public void testMissingClusterAccess() {
-    JKubeServiceHub.builder()
-        .log(mock(KitLogger.class))
-        .build();
+  @Test
+  public void buildWithMissingPlatformModeThrowsException() {
+    // Given
+    jKubeServiceHubBuilder.platformMode(null);
+    // When
+    final NullPointerException result = assertThrows(NullPointerException.class, jKubeServiceHubBuilder::build);
+    // Then
+    assertThat(result).hasMessageContaining("platformMode is a required parameter");
   }
 
-  @Test(expected = NullPointerException.class)
-  public void testMissingKitLogger() {
-    JKubeServiceHub.builder()
-        .clusterAccess(mock(ClusterAccess.class))
-        .build();
+  @Test
+  public void buildWithMissingConfigurationThrowsException() {
+    // Given
+    jKubeServiceHubBuilder.configuration(null);
+    // When
+    final NullPointerException result = assertThrows(NullPointerException.class, jKubeServiceHubBuilder::build);
+    // Then
+    assertThat(result).hasMessageContaining("JKubeConfiguration is required");
+  }
+
+  @Test
+  public void buildWithMissingKitLoggerThrowsException() {
+    // Given
+    jKubeServiceHubBuilder.log(null);
+    // When
+    final NullPointerException result = assertThrows(NullPointerException.class, jKubeServiceHubBuilder::build);
+    // Then
+    assertThat(result).hasMessageContaining("log is a required parameter");
   }
 
   @Test
@@ -76,121 +104,207 @@ public class JKubeServiceHubTest {
       // Then
       assertThat(jKubeServiceHub)
           .isNotNull()
-          .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.KUBERNETES)
+          .hasFieldOrPropertyWithValue("runtimeMode", KUBERNETES)
           .extracting(JKubeServiceHub::getClient)
           .isNotNull();
     }
   }
 
   @Test
-  public void testGetBuildServiceInKubernetes() {
+  public void getBuildServiceInKubernetes() {
     // Given
-    JKubeServiceHub hub = jKubeServiceHubBuilder.build();
-    // When
-    BuildService buildService = hub.getBuildService();
-    // Then
-    assertThat(buildService)
-        .isNotNull()
-        .isInstanceOf(DockerBuildService.class);
-  }
-
-  @Test
-  public void testGetBuildServiceInOpenShift() {
-    // Given
-    JKubeServiceHub hub = jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT)
-            .build();
-    // When
-    BuildService buildService = hub.getBuildService();
-    // Then
-    assertThat(buildService)
-        .isNotNull()
-        .isInstanceOf(OpenshiftBuildService.class);
-  }
-
-  @Test
-  public void testGetJibBuildServiceInKubernetes() {
-    // Given
-    JKubeServiceHub hub = jKubeServiceHubBuilder.build();
-    when(hub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.jib);
-    // When
-    BuildService buildService = hub.getBuildService();
-    // Then
-    assertThat(buildService)
-        .isNotNull()
-        .isInstanceOf(JibBuildService.class);
-  }
-
-  @Test
-  public void testGetUndeployServiceInKubernetes() {
-    // Given
-    JKubeServiceHub hub = jKubeServiceHubBuilder.build();
-    // When
-    final UndeployService result = hub.getUndeployService();
-    // Then
-    assertThat(result)
-        .isNotNull()
-        .isInstanceOf(KubernetesUndeployService.class);
-  }
-
-  @Test
-  public void testGetUndeployServiceInOpenShiftWithInvalidClient() {
-    // Given
-    JKubeServiceHub hub = jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT).build();
-    when(hub.getClient().isAdaptable(OpenShiftClient.class)).thenReturn(false);
-    // When
-    final UndeployService result = hub.getUndeployService();
-    // Then
-    assertThat(result)
-        .isNotNull()
-        .isInstanceOf(KubernetesUndeployService.class);
-  }
-
-  @Test
-  public void testGetUndeployServiceInOpenShiftWithValidClient() {
-    // Given
-    JKubeServiceHub hub = jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT).build();
-    when(hub.getClient().isAdaptable(OpenShiftClient.class)).thenReturn(true);
-    // When
-    final UndeployService result = hub.getUndeployService();
-    // Then
-    assertThat(result)
-        .isNotNull()
-        .isInstanceOf(OpenshiftUndeployService.class);
-  }
-
-  @Test
-  public void testGetPortForwardService() {
-    // When
-    final PortForwardService portForwardService = jKubeServiceHubBuilder.build().getPortForwardService();
-    // Then
-    assertThat(portForwardService).isNotNull();
-  }
-
-  @Test
-  public void testGetDebugService() {
-    // When
-    final DebugService debugService = jKubeServiceHubBuilder.build().getDebugService();
-    // Then
-    assertThat(debugService).isNotNull();
-  }
-
-  @Test
-  public void testBasicInitWithOffline() {
-    // Given + When
-    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      // When
+      BuildService buildService = jKubeServiceHub.getBuildService();
       // Then
-      assertThat(jKubeServiceHub)
+      assertThat(buildService)
           .isNotNull()
-          .hasFieldOrPropertyWithValue("client", null);
+          .isInstanceOf(DockerBuildService.class);
     }
   }
 
   @Test
-  public void testAccessServiceWithNonInitializedClientThrowsException() {
-    // Given + When
-    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.platformMode(RuntimeMode.KUBERNETES).offline(true).build()) {
+  public void getBuildServiceInOpenShift() {
+    // Given
+    jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT);
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      // When
+      BuildService buildService = jKubeServiceHub.getBuildService();
       // Then
-      assertThrows(IllegalArgumentException.class, jKubeServiceHub::getApplyService);
+      assertThat(buildService)
+          .isNotNull()
+          .isInstanceOf(OpenshiftBuildService.class);
     }
+  }
+
+  @Test
+  public void getJibBuildServiceInKubernetes() {
+    // Given
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.jib);
+      // When
+      BuildService buildService = jKubeServiceHub.getBuildService();
+      // Then
+      assertThat(buildService)
+          .isNotNull()
+          .isInstanceOf(JibBuildService.class);
+    }
+  }
+
+  @Test
+  public void getUndeployServiceInKubernetes() {
+    // Given
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      // When
+      final UndeployService result = jKubeServiceHub.getUndeployService();
+      // Then
+      assertThat(result)
+          .isNotNull()
+          .isInstanceOf(KubernetesUndeployService.class);
+    }
+  }
+
+  @Test
+  public void getUndeployServiceInOpenShiftWithInvalidClient() {
+    // Given
+    jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT);
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      when(openShiftClient.isSupported()).thenReturn(true);
+      // When
+      final UndeployService result = jKubeServiceHub.getUndeployService();
+      // Then
+      assertThat(result)
+          .isNotNull()
+          .isInstanceOf(KubernetesUndeployService.class);
+    }
+  }
+
+  @Test
+  public void getUndeployServiceInOpenShiftWithValidClient() {
+    // Given
+    jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT);
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      when(openShiftClient.isSupported()).thenReturn(true);
+      // When
+      final UndeployService result = jKubeServiceHub.getUndeployService();
+      // Then
+      assertThat(result)
+          .isNotNull()
+          .isInstanceOf(OpenshiftUndeployService.class);
+    }
+  }
+
+  @Test
+  public void getPortForwardService() {
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      // When
+      final PortForwardService portForwardService = jKubeServiceHub.getPortForwardService();
+      // Then
+      assertThat(portForwardService).isNotNull();
+    }
+  }
+
+  @Test
+  public void getDebugService() {
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      // When
+      final DebugService debugService = jKubeServiceHub.getDebugService();
+      // Then
+      assertThat(debugService).isNotNull();
+    }
+  }
+
+  @Test
+  public void getHelmService() {
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      // When
+      final HelmService helmService = jKubeServiceHub.getHelmService();
+      // Then
+      assertThat(helmService).isNotNull();
+    }
+  }
+
+  @Test
+  public void getMigrateService() {
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      // When
+      final MigrateService migrateService = jKubeServiceHub.getMigrateService();
+      // Then
+      assertThat(migrateService).isNotNull();
+    }
+  }
+
+  @Test
+  public void getResourceService() {
+    // Given
+    jKubeServiceHubBuilder.resourceService(new LazyBuilder<>(() -> mock(ResourceService.class)));
+    try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      // When
+      final ResourceService resourceService = jKubeServiceHub.getResourceService();
+      // Then
+      assertThat(resourceService).isNotNull();
+    }
+  }
+
+  @Test
+  public void clusterAccessIsNotInitializedIfProvided() {
+    // Given
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build();
+         MockedConstruction<ClusterAccess> clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class)) {
+      assertThat(clusterAccessMockedConstruction.constructed()).asList().isEmpty();
+      // When
+      jKubeServiceHub.getClusterAccess();
+      // Then
+      assertThat(clusterAccessMockedConstruction.constructed()).asList().isEmpty();
+    }
+  }
+
+  @Test
+  public void clusterAccessIsInitializedLazily() {
+    // Given
+    jKubeServiceHubBuilder.clusterAccess(null);
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build();
+         MockedConstruction<ClusterAccess> clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class)) {
+      assertThat(clusterAccessMockedConstruction.constructed()).asList().isEmpty();
+      // When
+      jKubeServiceHub.getClusterAccess();
+      // Then
+      assertThat(clusterAccessMockedConstruction.constructed()).asList().hasSize(1);
+    }
+  }
+
+  @Test
+  public void getClientWithOfflineConnectionIsNotAllowed() {
+    // Given
+    jKubeServiceHubBuilder.offline(true);
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      // When
+      final IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+          jKubeServiceHub::getClient);
+      // Then
+      assertThat(result).hasMessage("Connection to Cluster required. Please check if offline mode is set to false");
+    }
+  }
+
+  @Test
+  public void getApplyServiceWithOfflineThrowsException() {
+    // Given
+    jKubeServiceHubBuilder.offline(true);
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      // When
+      final IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+          jKubeServiceHub::getApplyService);
+      // Then
+      assertThat(result).hasMessage("Connection to Cluster required. Please check if offline mode is set to false");
+    }
+  }
+
+  @Test
+  public void closeClosesInitializedClient() {
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      jKubeServiceHub.getClient();
+    }
+    // Then
+    verify(openShiftClient, times(1)).close();
   }
 }

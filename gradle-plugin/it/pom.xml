@@ -30,6 +30,8 @@
 
     <properties>
         <jkube.kit.version>${project.version}</jkube.kit.version>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
     <dependencies>
@@ -49,11 +51,16 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-kit-common-test</artifactId>
+        <artifactId>jkube-kit-common-it</artifactId>
       </dependency>
       <dependency>
         <groupId>com.consol.citrus</groupId>
-        <artifactId>citrus-core</artifactId>
+        <artifactId>citrus-validation-json</artifactId>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.consol.citrus</groupId>
+        <artifactId>citrus-validation-hamcrest</artifactId>
         <scope>test</scope>
       </dependency>
       <dependency>

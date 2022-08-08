@@ -64,6 +64,7 @@ public class GradleUtilTest {
   public TemporaryFolder folder = new TemporaryFolder();
 
   private Project project;
+
   private JavaPluginConvention javaPlugin;
 
   private List<Configuration> projectConfigurations;
@@ -101,8 +102,7 @@ public class GradleUtilTest {
     assertThat(result.getProperties())
         .isNotEmpty()
         .hasFieldOrPropertyWithValue("object.field1", 1)
-        .hasFieldOrPropertyWithValue("property.1", null)
-        .hasEntrySatisfying("property.1", e -> assertThat(e).isEqualTo("test"));
+        .containsEntry("property.1", "test");
   }
 
   @Test
@@ -116,8 +116,7 @@ public class GradleUtilTest {
 
     // Then
     assertThat(result.getProperties())
-      .hasFieldOrPropertyWithValue("foo.property", null)
-      .hasEntrySatisfying("foo.property", e -> assertThat(e).isEqualTo("somevalue"));
+      .containsEntry("foo.property", "somevalue");
     System.clearProperty("foo.property");
   }
 
@@ -134,8 +133,7 @@ public class GradleUtilTest {
 
     // Then
     assertThat(result.getProperties())
-      .hasFieldOrPropertyWithValue("foo.property", null)
-      .hasEntrySatisfying("foo.property", e -> assertThat(e).isEqualTo("systemvalue"));
+      .containsEntry("foo.property", "systemvalue");
     System.clearProperty("foo.property");
   }
 

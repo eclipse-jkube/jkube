@@ -40,4 +40,13 @@ public class LazyBuilder<T> {
         return result;
     }
 
+    /**
+     * Returns true if the builder was instantiated.
+     *
+     * @return true if an instance was built, false otherwise.
+     */
+    public boolean hasInstance() {
+        return instance.get() != null;
+    }
+
 }

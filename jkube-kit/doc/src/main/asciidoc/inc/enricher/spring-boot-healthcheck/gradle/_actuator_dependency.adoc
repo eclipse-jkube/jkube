@@ -1,0 +1,4 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+----

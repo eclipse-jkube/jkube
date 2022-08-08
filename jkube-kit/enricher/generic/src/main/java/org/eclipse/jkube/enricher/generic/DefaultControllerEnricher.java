@@ -79,7 +79,11 @@ public class DefaultControllerEnricher extends BaseEnricher {
   @AllArgsConstructor
   public enum Config implements Configs.Config {
     NAME("name", null),
-    PULL_POLICY("pullPolicy", "IfNotPresent"),
+    /**
+     * @deprecated in favor of <code>jkube.imagePullPolicy</code> property
+     */
+    @Deprecated
+    PULL_POLICY("pullPolicy", JKUBE_DEFAULT_IMAGE_PULL_POLICY),
     TYPE("type", null),
     REPLICA_COUNT("replicaCount", "1");
 
@@ -101,7 +105,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
         .orElse(ResourceConfig.builder().build());
     ResourceConfig config = ResourceConfig.toBuilder(providedResourceConfig)
         .controllerName(getControllerName(providedResourceConfig, name))
-        .imagePullPolicy(getImagePullPolicy(providedResourceConfig, getConfig(Config.PULL_POLICY)))
+        .imagePullPolicy(getImagePullPolicy(providedResourceConfig, Config.PULL_POLICY))
         .replicas(getReplicaCount(builder, providedResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
         .restartPolicy(providedResourceConfig.getRestartPolicy())
         .build();

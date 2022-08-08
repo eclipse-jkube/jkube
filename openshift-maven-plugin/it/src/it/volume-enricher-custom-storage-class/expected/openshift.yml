@@ -19,10 +19,8 @@ items:
   kind: Service
 - apiVersion: v1
   kind: PersistentVolumeClaim
-  metadata:
-    annotations:
-      volume.beta.kubernetes.io/storage-class: cheese
   spec:
+    storageClassName: cheese
     accessModes:
     - ReadWriteOnce
     resources:

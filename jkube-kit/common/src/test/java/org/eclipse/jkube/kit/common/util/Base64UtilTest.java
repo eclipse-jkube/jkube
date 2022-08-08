@@ -13,17 +13,17 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class Base64UtilTest {
+class Base64UtilTest {
 
     @Test
-    public void testBase64EncodeAndDecode() {
+    void testBase64EncodeAndDecode() {
         String raw = "Send reinforcements";
         String encode = "U2VuZCByZWluZm9yY2VtZW50cw==";
-        assertEquals(encode, Base64Util.encodeToString(raw));
-        assertEquals(raw, Base64Util.decodeToString(encode));
+        assertThat(Base64Util.encodeToString(raw)).isEqualTo(encode);
+        assertThat(Base64Util.decodeToString(encode)).isEqualTo(raw);
     }
 }

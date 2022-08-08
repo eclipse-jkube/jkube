@@ -13,17 +13,22 @@
  */
 package org.eclipse.jkube.kit.config.image;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import java.util.stream.Stream;
 
-public class ImageNameTest {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+class ImageNameTest {
 
     @Test
-    public void simple() {
+    void simple() {
 
         Object[] data = {
                 "jolokia/jolokia_demo",
@@ -68,7 +73,7 @@ public class ImageNameTest {
     }
 
     @Test
-    public void testMultipleSubComponents() {
+    void testMultipleSubComponents() {
         Object[] data = {
                 "org/jolokia/jolokia_demo",
                 r().repository("org/jolokia/jolokia_demo")
@@ -105,51 +110,22 @@ public class ImageNameTest {
         for (int i = 0; i < data.length; i += 2) {
             ImageName name = new ImageName((String) data[i]);
             Res res = (Res) data[i + 1];
-            assertEquals("Registry " + i,res.registry,name.getRegistry());
-            assertEquals("Repository " + i,res.repository,name.getRepository());
-            assertEquals("Tag " + i,res.tag,name.getTag());
-            assertEquals("RepoWithRegistry " + i,res.fullName, name.getNameWithoutTag(null));
-            assertEquals("FullName " + i,res.fullNameWithTag, name.getFullName(null));
-            assertEquals("Simple Name " + i,res.simpleName, name.getSimpleName());
+            assertThat(name.getRegistry()).as("Registry " + i).isEqualTo(res.registry);
+            assertThat(name.getRepository()).as("Repository " + i).isEqualTo(res.repository);
+            assertThat(name.getTag()).as("Tag " + i).isEqualTo(res.tag);
+            assertThat(name.getNameWithoutTag(null)).as("RepoWithRegistry " + i).isEqualTo(res.fullName);
+            assertThat(name.getFullName(null)).as("FullName " + i).isEqualTo(res.fullNameWithTag);
+            assertThat(name.getSimpleName()).as("Simple Name " + i).isEqualTo(res.simpleName);
         }
     }
 
     @Test
-    public void testRegistryNaming() {
-        assertEquals("docker.jolokia.org/jolokia/jolokia_demo:0.18",
-                     new ImageName("jolokia/jolokia_demo:0.18").getFullName("docker.jolokia.org"));
-        assertEquals("docker.jolokia.org/jolokia/jolokia_demo:latest",
-                     new ImageName("jolokia/jolokia_demo").getFullName("docker.jolokia.org"));
-        assertEquals("jolokia/jolokia_demo:latest",
-                     new ImageName("jolokia/jolokia_demo").getFullName(null));
-        assertEquals("docker.jolokia.org/jolokia/jolokia_demo:latest",
-                     new ImageName("docker.jolokia.org/jolokia/jolokia_demo").getFullName("another.registry.org"));
-        assertEquals("docker.jolokia.org/jolokia/jolokia_demo:latest",
-                     new ImageName("docker.jolokia.org/jolokia/jolokia_demo").getFullName(null));
+    void testIllegalFormat() {
+        assertThrows(IllegalArgumentException.class, () -> new ImageName(""));
     }
 
     @Test
-    public void testRegistryNamingExtended() {
-        assertEquals("docker.jolokia.org/org/jolokia/jolokia_demo:0.18",
-                new ImageName("org/jolokia/jolokia_demo:0.18").getFullName("docker.jolokia.org"));
-        assertEquals("docker.jolokia.org/org/jolokia/jolokia_demo:latest",
-                new ImageName("org/jolokia/jolokia_demo").getFullName("docker.jolokia.org"));
-        assertEquals("org/jolokia/jolokia_demo:latest",
-                new ImageName("org/jolokia/jolokia_demo").getFullName(null));
-        assertEquals("docker.jolokia.org/org/jolokia/jolokia_demo:latest",
-                new ImageName("docker.jolokia.org/org/jolokia/jolokia_demo").getFullName("another.registry.org"));
-        assertEquals("docker.jolokia.org/org/jolokia/jolokia_demo:latest",
-                new ImageName("docker.jolokia.org/org/jolokia/jolokia_demo").getFullName(null));
-    }
-
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testIllegalFormat() {
-        new ImageName("");
-    }
-
-    @Test
-    public void namesUsedByDockerTests() {
+    void namesUsedByDockerTests() {
         StringBuilder longTag = new StringBuilder();
         for (int i = 0; i < 130; i++) {
             longTag.append("a");
@@ -163,10 +139,9 @@ public class ImageNameTest {
         };
 
         for (String i : illegal) {
-            try {
-                new ImageName(i);
-                fail(String.format("Name '%s' should fail", i));
-            } catch (IllegalArgumentException exp) { /* expected */}
+            assertThatIllegalArgumentException()
+                    .as("Name '%s' should fail", i)
+                    .isThrownBy(() -> new ImageName(i));
         }
 
         String[] legal = {
@@ -179,7 +154,7 @@ public class ImageNameTest {
     }
 
     @Test
-    public void testImageNameWithUsernameHavingPeriods() {
+    void testImageNameWithUsernameHavingPeriods() {
         // Given
         String name = "roman.gordill/customer-service-cache:latest";
 
@@ -187,15 +162,15 @@ public class ImageNameTest {
         ImageName imageName = new ImageName(name);
 
         // Then
-        assertNotNull(imageName);
-        assertEquals("roman.gordill", imageName.getUser());
-        assertEquals("roman.gordill/customer-service-cache", imageName.getRepository());
-        assertEquals("latest", imageName.getTag());
-        assertNull(imageName.getRegistry());
+        assertThat(imageName).isNotNull();
+        assertThat(imageName.getUser()).isEqualTo("roman.gordill");
+        assertThat(imageName.getRepository()).isEqualTo("roman.gordill/customer-service-cache");
+        assertThat(imageName.getTag()).isEqualTo("latest");
+        assertThat(imageName.getRegistry()).isNull();
     }
 
     @Test
-    public void testImageNameWithNameContainingRegistryAndName() {
+    void testImageNameWithNameContainingRegistryAndName() {
         // Given
         String name = "foo.com:5000/customer-service-cache:latest";
 
@@ -203,11 +178,34 @@ public class ImageNameTest {
         ImageName imageName = new ImageName(name);
 
         // Then
-        assertNotNull(imageName);
-        assertNull(imageName.getUser());
-        assertEquals("foo.com:5000", imageName.getRegistry());
-        assertEquals("customer-service-cache", imageName.getRepository());
-        assertEquals("latest", imageName.getTag());
+        assertThat(imageName).isNotNull();
+        assertThat(imageName.getUser()).isNull();
+        assertThat(imageName.getRegistry()).isEqualTo("foo.com:5000");
+        assertThat(imageName.getRepository()).isEqualTo("customer-service-cache");
+        assertThat(imageName.getTag()).isEqualTo("latest");
+    }
+
+    @DisplayName("getFullName should add registry to image name when valid registry is provided")
+    @ParameterizedTest(name = "With Image  \"{0}\" and Registry  \"{1}\" should Return  \"{2}\"")
+    @MethodSource("registryNamingTestData")
+    void getFullName_whenRegistryProvided_shouldReturnImageNameWithRegistry(String imageName, String registry, String expected) {
+        assertThat(new ImageName(imageName).getFullName(registry)).isEqualTo(expected);
+    }
+
+    public static Stream<Arguments> registryNamingTestData() {
+        return Stream.of(
+                Arguments.arguments("jolokia/jolokia_demo:0.18", "docker.jolokia.org", "docker.jolokia.org/jolokia/jolokia_demo:0.18"),
+                Arguments.arguments("jolokia/jolokia_demo", "docker.jolokia.org", "docker.jolokia.org/jolokia/jolokia_demo:latest"),
+                Arguments.arguments("jolokia/jolokia_demo", null, "jolokia/jolokia_demo:latest"),
+                Arguments.arguments("docker.jolokia.org/jolokia/jolokia_demo", "another.registry.org", "docker.jolokia.org/jolokia/jolokia_demo:latest"),
+                Arguments.arguments("docker.jolokia.org/jolokia/jolokia_demo", null, "docker.jolokia.org/jolokia/jolokia_demo:latest"),
+                Arguments.arguments("org/jolokia/jolokia_demo:0.18", "docker.jolokia.org", "docker.jolokia.org/org/jolokia/jolokia_demo:0.18"),
+                Arguments.arguments("org/jolokia/jolokia_demo", "docker.jolokia.org", "docker.jolokia.org/org/jolokia/jolokia_demo:latest"),
+                Arguments.arguments("org/jolokia/jolokia_demo", null, "org/jolokia/jolokia_demo:latest"),
+                Arguments.arguments("docker.jolokia.org/org/jolokia/jolokia_demo", "another.registry.org", "docker.jolokia.org/org/jolokia/jolokia_demo:latest"),
+                Arguments.arguments("docker.jolokia.org/org/jolokia/jolokia_demo", null, "docker.jolokia.org/org/jolokia/jolokia_demo:latest")
+
+        );
     }
 
     // =======================================================================================

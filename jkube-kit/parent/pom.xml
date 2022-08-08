@@ -34,7 +34,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <version.bouncycastle.bcpkix>1.61</version.bouncycastle.bcpkix>
+    <version.bouncycastle.bcpkix>1.70</version.bouncycastle.bcpkix>
     <version.commons-codec>1.15</version.commons-codec>
     <version.commons-compress>1.21</version.commons-compress>
     <version.commons-lang3>3.11</version.commons-lang3>
@@ -43,23 +43,23 @@
     <version.httpcore>4.4.15</version.httpcore>
     <version.httpclient>4.5.13</version.httpclient>
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
-    <version.jansi>2.3.3</version.jansi>
+    <version.jansi>2.4.0</version.jansi>
     <version.javassist>3.20.0-GA</version.javassist>
+    <!-- Don't upgrade Eclipse JGit to 6.x for Java 8 compatibility -->
     <version.jgit>5.12.0.202106070339-r</version.jgit>
     <version.jnr-unixsocket>0.38.17</version.jnr-unixsocket>
-    <version.json-smart>2.2.1</version.json-smart> <!-- Transitive dependency from com.consol.citrus:citrus-core -->
     <version.jsr305>3.0.2</version.jsr305>
     <version.JUnitParams>1.1.1</version.JUnitParams>
-    <version.kubernetes-client>5.11.2</version.kubernetes-client>
+    <version.kubernetes-client>6.0.0</version.kubernetes-client>
     <version.lombok>1.18.22</version.lombok>
     <version.maven-archiver>3.5.0</version.maven-archiver>
     <version.maven-core>3.6.3</version.maven-core>
-    <version.maven-filtering>3.1.1</version.maven-filtering>
+    <version.maven-filtering>3.3.0</version.maven-filtering>
     <version.maven-plugin-annotations>3.6.0</version.maven-plugin-annotations>
-    <version.mockwebserver>0.1.8</version.mockwebserver>
+    <version.mockwebserver>0.2.2</version.mockwebserver>
     <version.networknt.validator>1.0.53</version.networknt.validator>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
-    <version.plexus-archiver>3.5</version.plexus-archiver>
+    <version.plexus-archiver>3.6.0</version.plexus-archiver>
     <version.plexus-classworlds>2.6.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
     <version.plexus-utils>3.0.24</version.plexus-utils>
@@ -114,7 +114,7 @@
     <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
     <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
 
-    <jib-core.version>0.20.0</jib-core.version>
+    <jib-core.version>0.21.0</jib-core.version>
   </properties>
 
   <dependencyManagement>
@@ -125,11 +125,18 @@
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-common</artifactId>
         <version>${project.version}</version>
+        <type>jar</type>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-common</artifactId>
+        <version>${project.version}</version>
+        <type>test-jar</type>
       </dependency>
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-kit-common-test</artifactId>
+        <artifactId>jkube-kit-common-it</artifactId>
         <version>${project.version}</version>
         <scope>test</scope>
       </dependency>
@@ -310,44 +317,17 @@
       <!-- == libs ====================================== -->
       <dependency>
         <groupId>com.consol.citrus</groupId>
-        <artifactId>citrus-core</artifactId>
-        <version>${version.citrus-core}</version>
+        <artifactId>citrus-validation-json</artifactId>
+        <version>${version.citrus}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.consol.citrus</groupId>
+        <artifactId>citrus-validation-hamcrest</artifactId>
+        <version>${version.citrus}</version>
         <exclusions>
           <exclusion>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-xml</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-json</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-jsr223</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.springframework.retry</groupId>
-            <artifactId>spring-retry</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.springframework.ws</groupId>
-            <artifactId>spring-xml</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>xalan</groupId>
-            <artifactId>xalan</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -680,6 +660,20 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${version.junit}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${version.junit5}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>${version.junit5}</version>
         <scope>test</scope>
       </dependency>
 

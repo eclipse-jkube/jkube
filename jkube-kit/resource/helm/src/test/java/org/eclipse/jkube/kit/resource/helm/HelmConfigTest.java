@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import io.fabric8.openshift.api.model.ParameterBuilder;
 import org.eclipse.jkube.kit.common.Maintainer;
@@ -25,53 +26,51 @@ import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.openshift.api.model.Template;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class HelmConfigTest {
+class HelmConfigTest {
 
   private ObjectMapper objectMapper;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     objectMapper = new ObjectMapper();
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     objectMapper = null;
   }
 
-  @Test
-  public void helmTypeParseStringNullTest() {
+  @DisplayName("Helm type string parse tests")
+  @ParameterizedTest(name = "''{0}'' string should be empty")
+  @MethodSource("parseStringTestData")
+  void parseString(String testDesc, String types){
     // When
-    final List<HelmConfig.HelmType> result = HelmConfig.HelmType.parseString(null);
+    final List<HelmConfig.HelmType> result = HelmConfig.HelmType.parseString(types);
     // Then
     assertThat(result).isEmpty();
   }
 
-  @Test
-  public void helmTypeParseStringEmptyTest() {
-    // When
-    final List<HelmConfig.HelmType> result = HelmConfig.HelmType.parseString(" ");
-    // Then
-    assertThat(result).isEmpty();
+  public static Stream<Arguments> parseStringTestData() {
+    return Stream.of(
+            Arguments.of("null", null),
+            Arguments.of("blank string", " "),
+            Arguments.of("empty strings", ",,  ,   ,, ")
+    );
   }
 
   @Test
-  public void helmTypeParseStringEmptiesTest() {
-    // When
-    final List<HelmConfig.HelmType> result = HelmConfig.HelmType.parseString(",,  ,   ,, ");
-    // Then
-    assertThat(result).isEmpty();
-  }
-
-  @Test
-  public void helmTypeParseStringKubernetesTest() {
+  void helmTypeParseStringKubernetesTest() {
     // When
     final List<HelmConfig.HelmType> result = HelmConfig.HelmType.parseString("kuBerNetes");
     // Then
@@ -79,16 +78,14 @@ public class HelmConfigTest {
     assertThat(result).containsOnly(HelmConfig.HelmType.KUBERNETES);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void helmTypeParseStringKubernetesInvalidTest() {
-    // When
-    HelmConfig.HelmType.parseString("OpenShift,Kuberentes");
-    // Then > throw Exception
-    fail();
+  @Test
+  void helmTypeParseStringKubernetesInvalidTest() {
+    // When & Then
+    assertThrows(IllegalArgumentException.class, () -> HelmConfig.HelmType.parseString("OpenShift,Kuberentes"));
   }
 
   @Test
-  public void deserialize() throws Exception {
+  void deserialize() throws Exception {
     // Given
     final String serializedChart = "{" +
         "\"version\":\"1337\"," +
@@ -144,7 +141,7 @@ public class HelmConfigTest {
   }
 
   @Test
-  public void createHelmConfig() throws IOException {
+  void createHelmConfig() throws IOException {
     // Given
     File file = File.createTempFile("test", ".tmp");
     file.deleteOnExit();
@@ -196,7 +193,7 @@ public class HelmConfigTest {
   }
 
   @Test
-  public void equals() {
+  void equals() {
     // Given
     final HelmConfig helmConfig1 = HelmConfig.builder()
         .version("1337")

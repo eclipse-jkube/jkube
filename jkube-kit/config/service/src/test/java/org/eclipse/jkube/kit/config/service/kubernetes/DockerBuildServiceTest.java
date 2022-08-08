@@ -71,6 +71,18 @@ public class DockerBuildServiceTest {
   }
 
   @Test
+  public void build_withInvalidConfiguration_shouldNotBuildAndTag() throws Exception {
+    // When
+    image.setBuild(null);
+    new DockerBuildService(mockedJKubeServiceHub).build(image);
+    // Then
+    verify(mockedDockerBuildService, times(0))
+        .buildImage(eq(image), any(), any());
+    verify(mockedDockerBuildService, times(0))
+        .tagImage(anyString(), eq(image));
+  }
+
+  @Test
   public void build_withValidConfiguration_shouldBuildAndTag() throws Exception {
     // When
     new DockerBuildService(mockedJKubeServiceHub).build(image);

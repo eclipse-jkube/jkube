@@ -266,21 +266,17 @@ public class KubernetesResourceUtilTest {
 
   @Test
   public void readResourceFragmentsFrom_withValidDirectory_shouldReadAllFragments() throws IOException {
-    // Given
-    ResourceVersioning v = ResourceVersioning.builder()
-        .withCoreVersion("v2")
-        .withExtensionsVersion("extensions/v2")
-        .build();
     // When
     final KubernetesListBuilder result = KubernetesResourceUtil.readResourceFragmentsFrom(
-        kubernetes, v, "pong", new File(fragmentsDir, "complete-directory").listFiles());
+        kubernetes, DEFAULT_RESOURCE_VERSIONING, "pong", new File(fragmentsDir, "complete-directory")
+            .listFiles());
     // Then
     assertThat(result.build().getItems())
         .hasSize(3)
         .extracting("class", "apiVersion", "kind", "metadata.name")
         .containsExactlyInAnyOrder(
-            tuple(Service.class, "v2", "Service", "pong"),
-            tuple(ReplicationController.class, "v2", "ReplicationController", "pong"),
+            tuple(Service.class, "v1", "Service", "pong"),
+            tuple(ReplicationController.class, "v1", "ReplicationController", "pong"),
             tuple(GenericKubernetesResource.class, "jkube/v1", "CustomKind", "custom")
         );
   }

@@ -19,6 +19,9 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
@@ -29,8 +32,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ServiceAccountEnricher extends BaseEnricher {
+    @AllArgsConstructor
+    public enum Config implements Configs.Config {
+        SKIP_CREATE("skipCreate", "false");
+
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
+    }
+
     public ServiceAccountEnricher(JKubeEnricherContext enricherContext) {
         super(enricherContext, "jkube-serviceaccount");
     }
@@ -38,46 +52,56 @@ public class ServiceAccountEnricher extends BaseEnricher {
     @Override
     public void create(PlatformMode mode, KubernetesListBuilder builder) {
         Map<String, String> deploymentToSaPair = new HashMap<>();
-        List<ServiceAccount> serviceAccounts = new ArrayList<>();
 
-        // Check XML config and see if there are any service accounts specified
-        ResourceConfig xmlResourceConfig = getConfiguration().getResource();
-        if(xmlResourceConfig != null && xmlResourceConfig.getServiceAccounts() != null) {
-            for(ServiceAccountConfig serviceAccountConfig : xmlResourceConfig.getServiceAccounts()) {
+        // Check config and see if there are any service accounts specified
+        ResourceConfig resourceConfig = getConfiguration().getResource();
+        if(resourceConfig != null && resourceConfig.getServiceAccounts() != null) {
+            deploymentToSaPair.putAll(resourceConfig.getServiceAccounts()
+                .stream()
+                .filter(sa -> sa.getDeploymentRef() != null)
+                .collect(Collectors.toMap(ServiceAccountConfig::getDeploymentRef, ServiceAccountConfig::getName)));
+        }
+        builder.addAllToServiceAccountItems(createServiceAccountFromResourceConfig(resourceConfig));
+        builder.addAllToServiceAccountItems(createServiceAccountsReferencedInDeployment(builder, deploymentToSaPair));
+    }
+
+    private List<ServiceAccount> createServiceAccountFromResourceConfig(ResourceConfig resourceConfig) {
+        List<ServiceAccount> serviceAccounts = new ArrayList<>();
+        if(resourceConfig != null && resourceConfig.getServiceAccounts() != null && !Boolean.parseBoolean(getConfig(Config.SKIP_CREATE))) {
+            for(ServiceAccountConfig serviceAccountConfig : resourceConfig.getServiceAccounts()) {
                 if(serviceAccountConfig.getName() != null) {
-                    serviceAccounts.add(createServiceAccount(builder, serviceAccountConfig.getName()));
-                }
-                if(serviceAccountConfig.getDeploymentRef() != null) {
-                    deploymentToSaPair.put(serviceAccountConfig.getDeploymentRef(), serviceAccountConfig.getName());
+                    serviceAccounts.add(createServiceAccount(serviceAccountConfig.getName()));
                 }
             }
         }
-
-        // If any service account is referenced in deployment spec, then
-        // create sa on fly.
-        builder.accept(new TypedVisitor<DeploymentBuilder>() {
-           @Override
-           public void visit(DeploymentBuilder deploymentBuilder) {
-               String serviceAccountName = getServiceAccountNameFromSpec(deploymentBuilder);
-               if(serviceAccountName != null && getServiceAccountFromList(builder, serviceAccountName) == null) {
-                   serviceAccounts.add(createServiceAccount(builder, serviceAccountName));
-               }
-               if(deploymentToSaPair.containsKey(deploymentBuilder.buildMetadata().getName())) {
-                   deploymentBuilder.editSpec()
-                           .editTemplate()
-                           .editSpec()
-                           .withServiceAccountName(deploymentToSaPair.get(deploymentBuilder.buildMetadata().getName()))
-                           .endSpec()
-                           .endTemplate()
-                           .endSpec();
-               }
-           }
-        });
-
-        builder.addAllToServiceAccountItems(serviceAccounts);
+        return serviceAccounts;
     }
 
-    private ServiceAccount createServiceAccount(KubernetesListBuilder builder, String serviceAccountName) {
+    private List<ServiceAccount> createServiceAccountsReferencedInDeployment(KubernetesListBuilder builder, Map<String, String> deploymentToSaPair) {
+        List<ServiceAccount> serviceAccounts = new ArrayList<>();
+        builder.accept(new TypedVisitor<DeploymentBuilder>() {
+            @Override
+            public void visit(DeploymentBuilder deploymentBuilder) {
+                String serviceAccountName = getServiceAccountNameFromSpec(deploymentBuilder);
+                if(serviceAccountName != null && getServiceAccountFromList(builder, serviceAccountName) == null
+                    && !Boolean.parseBoolean(getConfig(Config.SKIP_CREATE))) {
+                    serviceAccounts.add(createServiceAccount(serviceAccountName));
+                }
+                if(deploymentToSaPair.containsKey(deploymentBuilder.buildMetadata().getName())) {
+                    deploymentBuilder.editSpec()
+                        .editTemplate()
+                        .editSpec()
+                        .withServiceAccountName(deploymentToSaPair.get(deploymentBuilder.buildMetadata().getName()))
+                        .endSpec()
+                        .endTemplate()
+                        .endSpec();
+                }
+            }
+        });
+        return serviceAccounts;
+    }
+
+    private ServiceAccount createServiceAccount(String serviceAccountName) {
         return new ServiceAccountBuilder()
                 .withNewMetadata().withName(serviceAccountName).endMetadata()
                 .build();

@@ -35,7 +35,6 @@
       <module>doc</module>
       <module>common</module>
       <module>common-maven</module>
-      <module>common-test</module>
       <module>config/image</module>
       <module>config/resource</module>
       <module>config/service</module>
@@ -63,4 +62,15 @@
       <module>jkube-kit-wildfly-jar</module>
   </modules>
 
+  <profiles>
+    <profile>
+      <id>java-11</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+      <modules>
+        <module>common-it</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>

@@ -29,7 +29,9 @@ endif::[]
 | `jkube.enricher.jkube-controller.name`
 
 | *pullPolicy*
-| Image pull policy to use for the container. One of: _IfNotPresent_, _Always_.
+| *Deprecated*: use `jkube.imagePullPolicy` instead.
+
+Image pull policy to use for the container. One of: _IfNotPresent_, _Always_.
 
   Defaults to `IfNotPresent`.
 | `jkube.enricher.jkube-controller.pullPolicy`
@@ -46,4 +48,8 @@ endif::[]
 
   Defaults to `1`.
 | `jkube.enricher.jkube-controller.replicaCount`
+
+|
+| Image pull policy to use for the container. One of: _IfNotPresent_, _Always_.
+| `jkube.imagePullPolicy`
 |===

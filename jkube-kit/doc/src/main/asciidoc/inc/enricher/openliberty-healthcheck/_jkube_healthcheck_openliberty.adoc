@@ -1,0 +1,127 @@
+[[jkube-healthcheck-openliberty]]
+==== jkube-healthcheck-openliberty
+
+This enricher adds kubernetes readiness and liveness and startup probes for OpenLiberty based projects. Note that Kubernetes startup probes are only added in projects using MicroProfile 3.1 and later.
+
+The application should be configured as follows to enable the enricher (i.e. Either `microProfile` or `mpHealth` should be enabled in Liberty Server Configuration file as pointed out in https://www.openliberty.io/docs/latest/reference/feature/mpHealth-4.0.html[OpenLiberty Health Docs])
+
+.server.xml
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+    <featureManager>
+        <feature>mpHealth-4.1</feature>
+    </featureManager>
+----
+
+===== Probe configuration
+
+You can configure the different aspects of the probes.
+
+.OpenLiberty HealthCheck Enricher probe configuration
+[cols="1,5,2"]
+|===
+| Element | Description | Property
+
+| *scheme*
+| Scheme to use for connecting to the host.
+
+  Defaults to `HTTP`.
+| `jkube.enricher.jkube-healthcheck-openliberty.scheme`
+
+| *port*
+| Port number to access the container.
+
+  Defaults to `9080`.
+| `jkube.enricher.jkube-healthcheck-openliberty.port`
+
+| *livenessFailureThreshold*
+| Configures `failureThreshold` field in `.livenessProbe` . Minimum consecutive failures for the probes to be considered failed after having succeeded.
+
+Defaults to `3`.
+| `jkube.enricher.jkube-healthcheck-openliberty.livenessFailureThreshold`
+
+| *livenessSuccessThreshold*
+| Configures `successThreshold` field in `.livenessProbe`. Minimum consecutive successes for the probes to be considered successful after having failed.
+
+  Defaults to `1`.
+| `jkube.enricher.jkube-healthcheck-openliberty.livenessSuccessThreshold`
+
+| *livenessInitialDelay*
+| Configures `initialDelaySeconds` field in `.livenessProbe`. Number of seconds after the container has started before liveness or readiness probes are initiated.
+
+Defaults to `0` seconds.
+| `jkube.enricher.jkube-healthcheck-openliberty.livenessInitialDelay`
+
+| *livenessPeriodSeconds*
+| Configures `periodSeconds` field in `.livenessProbe`. How often (in seconds) to perform the liveness probe.
+
+Defaults to `10`.
+| `jkube.enricher.jkube-healthcheck-openliberty.livenessPeriodSeconds`
+
+| *livenessPath*
+| Path to access on the application server.
+
+Defaults to `/health/live`.
+| `jkube.enricher.jkube-healthcheck-openliberty.livenessPath`
+
+| *readinessFailureThreshold*
+| Configures `failureThreshold` field in `.readinessProbe` . Minimum consecutive failures for the probes to be considered failed after having succeeded.
+
+Defaults to `3`.
+| `jkube.enricher.jkube-healthcheck-openliberty.readinessFailureThreshold`
+
+| *readinessSuccessThreshold*
+| Configures `successThreshold` field in `.readinessProbe`. Minimum consecutive successes for the probes to be considered successful after having failed.
+
+Defaults to `1`.
+| `jkube.enricher.jkube-healthcheck-openliberty.readinessSuccessThreshold`
+
+| *readinessInitialDelay*
+| Configures `initialDelaySeconds` field in `.readinessProbe`. Number of seconds after the container has started before liveness or readiness probes are initiated.
+
+Defaults to `0` seconds.
+| `jkube.enricher.jkube-healthcheck-openliberty.readinessInitialDelay`
+
+| *readinessPeriodSeconds*
+| Configures `periodSeconds` field in `.readinessProbe`. How often (in seconds) to perform the liveness probe.
+
+Defaults to `10`.
+| `jkube.enricher.jkube-healthcheck-openliberty.readinessPeriodSeconds`
+
+| *readinessPath*
+| Path to access on the application server.
+
+Defaults to `/health/ready`.
+| `jkube.enricher.jkube-healthcheck-openliberty.readinessPath`
+
+| *startupFailureThreshold*
+| Configures `failureThreshold` field in `.startupProbe` . Minimum consecutive failures for the probes to be considered failed after having succeeded.
+
+Defaults to `3`.
+| `jkube.enricher.jkube-healthcheck-openliberty.startupFailureThreshold`
+
+| *startupSuccessThreshold*
+| Configures `successThreshold` field in `.startupProbe`. Minimum consecutive successes for the probes to be considered successful after having failed.
+
+Defaults to `1`.
+| `jkube.enricher.jkube-healthcheck-openliberty.startupSuccessThreshold`
+
+| *startupInitialDelay*
+| Configures `initialDelaySeconds` field in `.startupProbe`. Number of seconds after the container has started before liveness or startup probes are initiated.
+
+Defaults to `0` seconds.
+| `jkube.enricher.jkube-healthcheck-openliberty.startupInitialDelay`
+
+| *startupPeriodSeconds*
+| Configures `periodSeconds` field in `.startupProbe`. How often (in seconds) to perform the liveness probe.
+
+Defaults to `10`.
+| `jkube.enricher.jkube-healthcheck-openliberty.startupPeriodSeconds`
+
+| *startupPath*
+| Path to access on the application server.
+
+Defaults to `/health/started`.
+| `jkube.enricher.jkube-healthcheck-openliberty.startupPath`
+|===
+

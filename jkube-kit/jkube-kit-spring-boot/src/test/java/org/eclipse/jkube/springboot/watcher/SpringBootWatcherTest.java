@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
@@ -44,6 +45,9 @@ import static org.junit.Assert.assertTrue;
 public class SpringBootWatcherTest {
     @Mocked
     private PortForwardService portForwardService;
+
+    @Mocked
+    private NamespacedKubernetesClient kubernetesClient;
 
     @Mocked
     private WatcherContext watcherContext;
@@ -105,12 +109,12 @@ public class SpringBootWatcherTest {
         SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 
         // When
-        String portForwardUrl = springBootWatcher.getPortForwardUrl("ns1", resources);
+        String portForwardUrl = springBootWatcher.getPortForwardUrl(kubernetesClient, resources);
 
         // Then
         assertTrue(portForwardUrl.contains("http://localhost:"));
         new Verifications() {{
-            portForwardService.forwardPortAsync((LabelSelector) any, "ns1", 9001, anyInt);
+            portForwardService.forwardPortAsync(kubernetesClient, (LabelSelector) any, 9001, anyInt);
         }};
     }
 

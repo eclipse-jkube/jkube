@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Date;
@@ -27,23 +27,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
-public class BuildReferenceDateUtilTest {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class BuildReferenceDateUtilTest {
+
+  @TempDir
+  File temporaryFolder;
 
   @Test
-  public void testGetBuildReferenceDateWhenFileDoesntExist() throws IOException {
-    assertNotNull(BuildReferenceDateUtil.getBuildReferenceDate("target", "docker"));
+  void testGetBuildReferenceDateWhenFileDoesntExist() throws IOException {
+    assertThat(BuildReferenceDateUtil.getBuildReferenceDate("target", "docker")).isNotNull();
   }
 
   @Test
-  public void testGetBuildReferenceDate() throws IOException {
+  void testGetBuildReferenceDate() throws IOException {
     // Given
-    File buildDirectory = temporaryFolder.newFolder("testGetBuildReferenceDate");
+    File buildDirectory = Files.createDirectories(temporaryFolder.toPath().resolve("testGetBuildReferenceDate")).toFile();
     File buildTimestampFile = new File(buildDirectory, "build.timestamp");
     String timestamp = "1605029866235";
     boolean fileCreated = buildTimestampFile.createNewFile();
@@ -55,13 +53,13 @@ public class BuildReferenceDateUtilTest {
     Date result = BuildReferenceDateUtil.getBuildReferenceDate(buildDirectory.getAbsolutePath(), buildTimestampFile.getName());
 
     // Then
-    assertTrue(fileCreated);
-    assertNotNull(result);
-    assertEquals(Long.parseLong(timestamp), result.getTime());
+    assertThat(fileCreated).isTrue();
+    assertThat(result).isNotNull();
+    assertThat(result.getTime()).isEqualTo(Long.parseLong(timestamp));
   }
 
   @Test
-  public void testGetBuildTimestampFile() {
+  void testGetBuildTimestampFile() {
     // Given
     String projectBuildDirectory = "target" + File.separator + "docker";
     String dockerBuildTimestampFile = "build.timestamp";
@@ -74,9 +72,9 @@ public class BuildReferenceDateUtilTest {
   }
 
   @Test
-  public void testGetBuildTimestampFromPluginContext() throws IOException {
+  void testGetBuildTimestampFromPluginContext() throws IOException {
     // Given
-    File buildDirectory = temporaryFolder.newFolder("testGetBuildTimestampFromPluginContext");
+    File buildDirectory = new File(temporaryFolder, "testGetBuildTimestampFromPluginContext");
     File buildTimestampFile = new File(buildDirectory, "build.timestamp");
     String timestamp = "1605029866235";
     Map<String, Object> pluginContext = new HashMap<>();
@@ -88,14 +86,14 @@ public class BuildReferenceDateUtilTest {
         buildTimestampFile.getName());
 
     // Then
-    assertNotNull(result);
-    assertEquals(Long.parseLong(timestamp), result.getTime());
+    assertThat(result).isNotNull();
+    assertThat(result.getTime()).isEqualTo(Long.parseLong(timestamp));
   }
 
   @Test
-  public void testGetBuildTimestampFromFile() throws IOException {
+  void testGetBuildTimestampFromFile() throws IOException {
     // Given
-    File buildDirectory = temporaryFolder.newFolder("testGetBuildTimestampFromFile");
+    File buildDirectory = Files.createDirectories(temporaryFolder.toPath().resolve("testGetBuildTimestampFromFile")).toFile();
     File buildTimestampFile = new File(buildDirectory, "build.timestamp");
     String timestamp = "1605029866235";
     boolean fileCreated = buildTimestampFile.createNewFile();
@@ -110,8 +108,8 @@ public class BuildReferenceDateUtilTest {
         buildTimestampFile.getName());
 
     // Then
-    assertTrue(fileCreated);
-    assertNotNull(result);
-    assertEquals(Long.parseLong(timestamp), result.getTime());
+    assertThat(fileCreated).isTrue();
+    assertThat(result).isNotNull();
+    assertThat(result.getTime()).isEqualTo(Long.parseLong(timestamp));
   }
 }

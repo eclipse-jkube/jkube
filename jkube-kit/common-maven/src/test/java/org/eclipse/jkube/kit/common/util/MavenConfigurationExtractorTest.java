@@ -20,17 +20,15 @@ import java.util.Map;
 import org.apache.maven.model.Plugin;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
-
-public class MavenConfigurationExtractorTest {
-
+class MavenConfigurationExtractorTest {
 
     @Test
-    public void should_parse_simple_types() {
+    void should_parse_simple_types() {
 
         // Given
         final Plugin fakePlugin = createFakePlugin("<a>a</a><b>b</b>");
@@ -39,12 +37,14 @@ public class MavenConfigurationExtractorTest {
         final Map<String, Object> config = MavenConfigurationExtractor.extract((Xpp3Dom) fakePlugin.getConfiguration());
 
         // Then
-        assertEquals("a", config.get("a"));
-        assertEquals("b", config.get("b"));
+        assertThat(config).contains(
+                entry("a", "a"),
+                entry("b", "b")
+        );
     }
 
     @Test
-    public void should_parse_inner_objects() {
+    void should_parse_inner_objects() {
 
         // Given
         final Plugin fakePlugin = createFakePlugin("<a>"
@@ -57,11 +57,11 @@ public class MavenConfigurationExtractorTest {
         // Then
         final Map<String, Object> expected = new HashMap<>();
         expected.put("b", "b");
-        assertEquals(expected, config.get("a"));
+        assertThat(config).containsEntry("a", expected);
     }
 
     @Test
-    public void should_parse_deep_inner_objects() {
+    void should_parse_deep_inner_objects() {
 
         // Given
         final Plugin fakePlugin = createFakePlugin("<a>"
@@ -86,12 +86,11 @@ public class MavenConfigurationExtractorTest {
         c.put("c", d);
         final Map<String, Object> expected = new HashMap<>();
         expected.put("b", c);
-        assertEquals(expected, config.get("a"));
-
+        assertThat(config).containsEntry("a", expected);
     }
 
     @Test
-    public void should_parse_list_of_elements() {
+    void should_parse_list_of_elements() {
 
         // Given
         final Plugin fakePlugin = createFakePlugin("<a>"
@@ -109,12 +108,11 @@ public class MavenConfigurationExtractorTest {
         final Map<String, Object> expected = new HashMap<>();
         expected.put("b", expectedC);
 
-        assertEquals(expected, config.get("a"));
-
+        assertThat(config).containsEntry("a", expected);
     }
 
     @Test
-    public void should_parse_list_of_mixed_elements() {
+    void should_parse_list_of_mixed_elements() {
 
         // Given
         final Plugin fakePlugin = createFakePlugin("<a>"
@@ -133,8 +131,8 @@ public class MavenConfigurationExtractorTest {
         final Map<String, Object> expected = new HashMap<>();
         expected.put("b", expectedC);
 
-        assertTrue(config.containsKey("a"));
-        assertEquals(expected, config.get("a"));
+        assertThat(config)
+                .containsEntry("a", expected);
     }
 
     private Plugin createFakePlugin(String config) {

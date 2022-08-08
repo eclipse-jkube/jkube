@@ -22,6 +22,16 @@ kubernetes {
             }
         }
     }
+    enricher {
+        config {
+            'jkube-volume-permission' {
+                cpuLimit = '500m'
+                memoryLimit = '128Mi'
+                cpuRequest = '250m'
+                memoryRequest = '64Mi'
+            }
+        }
+    }
 }
 
 openshift {
@@ -31,6 +41,16 @@ openshift {
             name = 'volume-permission:latest'
             build {
                 from = 'quay.io/jkube/jkube-java-11'
+            }
+        }
+    }
+    enricher {
+        config {
+            'jkube-volume-permission' {
+                cpuLimit = '500m'
+                memoryLimit = '128Mi'
+                cpuRequest = '250m'
+                memoryRequest = '64Mi'
             }
         }
     }

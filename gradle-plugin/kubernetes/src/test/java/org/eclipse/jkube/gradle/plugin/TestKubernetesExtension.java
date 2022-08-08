@@ -253,6 +253,11 @@ public class TestKubernetesExtension extends KubernetesExtension {
   }
 
   @Override
+  public Property<Boolean> getSkipUndeploy() {
+    return new DefaultProperty<>(Boolean.class);
+  }
+
+  @Override
   public Property<Boolean> getCreateNewResources() {
     return new DefaultProperty<>(Boolean.class);
   }

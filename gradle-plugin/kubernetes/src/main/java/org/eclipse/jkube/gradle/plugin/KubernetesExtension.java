@@ -193,6 +193,8 @@ public abstract class KubernetesExtension {
 
   public abstract Property<Boolean> getSkipApply();
 
+  public abstract Property<Boolean> getSkipUndeploy();
+
   public abstract Property<Boolean> getCreateNewResources();
 
   public abstract Property<Boolean> getRollingUpgrades();
@@ -467,6 +469,10 @@ public abstract class KubernetesExtension {
 
   public boolean getSkipApplyOrDefault() {
     return getOrDefaultBoolean("jkube.skip.apply", this::getSkipApply, false);
+  }
+
+  public boolean getSkipUndeployOrDefault() {
+    return getOrDefaultBoolean("jkube.skip.undeploy", this::getSkipUndeploy, false);
   }
 
   public boolean getFailOnNoKubernetesJsonOrDefault() {

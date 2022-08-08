@@ -13,23 +13,23 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-
 import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlString;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.splitYamlResource;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class YamlUtilTest {
+class YamlUtilTest {
 
   @Test
-  public void getPropertiesFromYamlStringEmptyStringTest() throws Exception {
+  void getPropertiesFromYamlStringEmptyStringTest() throws Exception {
     // Given
     final String yamlString = "";
     // When
@@ -39,51 +39,49 @@ public class YamlUtilTest {
   }
 
   @Test
-  public void getPropertiesFromYamlStringNullStringTest() throws Exception {
+  void getPropertiesFromYamlStringNullStringTest() throws Exception {
     // When
     final Properties result = getPropertiesFromYamlString(null);
     // Then
     assertThat(result).isNotNull().isEmpty();
   }
 
-  @Test(expected = JsonMappingException.class)
-  public void getPropertiesFromYamlStringInvalidStringTest() throws Exception {
-    // Given
-    final String yamlString = "not\na\nvalid\nyaml";
-    // When
-    getPropertiesFromYamlString(yamlString);
-    // Then
-    fail();
+  @Test
+  void getPropertiesFromYamlStringInvalidStringTest() {
+    assertThrows(JsonMappingException.class, () -> getPropertiesFromYamlString("not\na\nvalid\nyaml"));
   }
 
   @Test
-  public void getPropertiesFromYamlStringValidStringTest() throws Exception {
+  void getPropertiesFromYamlStringValidStringTest() throws Exception {
     // Given
     final String yamlString = "---\ntest: 1\nlist:\n  - name: item 1\n    value: value 1\nstill-test: 1";
     // When
     final Properties result = getPropertiesFromYamlString(yamlString);
     // Then
-    assertThat(result).isNotNull().hasSize(4);
-    assertThat(result.getProperty("test")).isEqualTo("1");
-    assertThat(result.getProperty("list[0].name")).isEqualTo("item 1");
-    assertThat(result.getProperty("list[0].value")).isEqualTo("value 1");
-    assertThat(result.getProperty("still-test")).isEqualTo("1");
+    assertThat(result).isNotNull().hasSize(4)
+            .containsOnly(
+                    entry("test", "1"),
+                    entry("list[0].name", "item 1"),
+                    entry("list[0].value", "value 1"),
+                    entry("still-test", "1")
+            );
   }
 
   // https://bugs.eclipse.org/bugs/show_bug.cgi?id=561261
   @Test
-  public void getPropertiesFromYamlCWE502Test() throws Exception {
+  void getPropertiesFromYamlCWE502Test() throws Exception {
     // Given
     final String yamlString = "maps: !!javax.script.ScriptEngineManager [!!java.net.URLClassLoader [[!!java.net.URL [\\\"http://localhost:9000/\\\"]]]]";
     // When
     final Properties result = getPropertiesFromYamlString(yamlString);
     // Then
-    assertThat(result).isNotNull().hasSize(1);
-    assertThat(result.getProperty("maps[0][0][0][0]")).isEqualTo("\\\"http://localhost:9000/\\\"");
+    assertThat(result).isNotNull()
+            .hasSize(1)
+            .containsOnly(entry("maps[0][0][0][0]", "\\\"http://localhost:9000/\\\""));
   }
 
   @Test
-  public void splitYamlResourceTest() throws Exception {
+  void splitYamlResourceTest() throws Exception {
     // Given
     final URL resource = YamlUtilTest.class.getResource("/util/yaml-list.yml");
     // When

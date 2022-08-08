@@ -13,22 +13,18 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
 
-@RunWith(Parameterized.class)
-public class TemplateUtilTest {
+class TemplateUtilTest {
 
-    @Parameterized.Parameters(name = "{0} is {1}")
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
+    public static Stream<Object[]> data() {
+        return Stream.of(new Object[][]{
                 {"abcd", "abcd"},
                 {"abc{de}f}", "abc{de}f}"},
                 {"abc{{de}f", "abc{{\"{{\"}}de}f"},
@@ -36,17 +32,9 @@ public class TemplateUtilTest {
         });
     }
 
-    private final String input;
-
-    private final String expected;
-
-    public TemplateUtilTest(String input, String expected) {
-        this.input = input;
-        this.expected = expected;
-    }
-
-    @Test
-    public void escapeYamlTemplateTest() {
+    @ParameterizedTest(name = "{0} is {1}")
+    @MethodSource("data")
+    void escapeYamlTemplateTest(String input, String expected) {
         assertThat(escapeYamlTemplate(input)).isEqualTo(expected);
     }
 }

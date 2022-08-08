@@ -16,28 +16,28 @@ package org.eclipse.jkube.kit.resource.helm;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository.HelmRepoType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class HelmRepositoryTest {
+class HelmRepositoryTest {
 
   private ObjectMapper objectMapper;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     objectMapper = new ObjectMapper();
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     objectMapper = null;
   }
 
   @Test
-  public void deserialize() throws Exception {
+  void deserialize() throws Exception {
     // Given
     final String serializedChart = "{" +
         "\"name\":\"repo-name\"," +
@@ -58,7 +58,7 @@ public class HelmRepositoryTest {
   }
 
   @Test
-  public void builder() {
+  void builder() {
     // Given
     final HelmRepository.HelmRepositoryBuilder builder = HelmRepository.builder()
         .name("repo-name")

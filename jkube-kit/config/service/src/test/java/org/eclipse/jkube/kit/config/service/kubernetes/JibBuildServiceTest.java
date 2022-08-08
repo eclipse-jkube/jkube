@@ -213,6 +213,18 @@ public class JibBuildServiceTest {
     }
 
     @Test
+    public void build_withImageMissingBuildConfiguration_shouldNotBuildImage() throws JKubeServiceException {
+        // Given
+        imageConfiguration = ImageConfiguration.builder()
+            .name("test/foo:latest")
+            .build();
+        // When
+        new JibBuildService(mockedServiceHub).build(imageConfiguration);
+        // Then
+        jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.buildContainer(any(), any(), any()), times(0));
+    }
+
+    @Test
     public void build_withImageBuildConfigurationSkipTrue_shouldNotBuildImage() throws JKubeServiceException {
         // Given
         imageConfiguration = ImageConfiguration.builder()

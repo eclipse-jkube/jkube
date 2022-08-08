@@ -24,36 +24,35 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTemplate;
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.interpolateTemplateVariables;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
-@SuppressWarnings({"AccessStaticViaInstance", "ConstantConditions"})
-public class TemplateUtilTest {
+@SuppressWarnings({"AccessStaticViaInstance", "ConstantConditions", "unused"})
+class TemplateUtilTest {
 
-  @SuppressWarnings("unused")
   @Mocked
   private FileUtils fileUtils;
 
   private KubernetesListBuilder klb;
 
-  @Before
-  public void initGlobalVariables() {
+  @BeforeEach
+  void initGlobalVariables() {
     klb = new KubernetesListBuilder();
   }
 
   @Test
-  public void getSingletonTemplateWithNullShouldReturnNull() {
+  void getSingletonTemplateWithNullShouldReturnNull() {
     assertThat(getSingletonTemplate(null)).isNull();
   }
 
   @Test
-  public void getSingletonTemplateWithMultipleItemsShouldReturnNull() {
+  void getSingletonTemplateWithMultipleItemsShouldReturnNull() {
     // Given
     klb.addToItems(new Template(), new Template());
     // When - Then
@@ -61,7 +60,7 @@ public class TemplateUtilTest {
   }
 
   @Test
-  public void getSingletonTemplateWithSingleItemsShouldReturnTemplate() {
+  void getSingletonTemplateWithSingleItemsShouldReturnTemplate() {
     // Given
     klb.addToItems(new TemplateBuilder().withNewMetadata().withName("template").endMetadata().build());
     // When - Then
@@ -70,7 +69,7 @@ public class TemplateUtilTest {
   }
 
   @Test
-  public void interpolateTemplateVariablesWithNoParametersShouldDoNothing() throws IOException {
+  void interpolateTemplateVariablesWithNoParametersShouldDoNothing() throws IOException {
     // When
     interpolateTemplateVariables(klb.build(), null);
     // Then
@@ -78,7 +77,7 @@ public class TemplateUtilTest {
   }
 
   @Test
-  public void interpolateTemplateVariablesWithParametersAndNoPlaceholdersShouldDoNothing() throws IOException {
+  void interpolateTemplateVariablesWithParametersAndNoPlaceholdersShouldDoNothing() throws IOException {
     // Given
     klb.addToItems(new TemplateBuilder()
         .addToParameters(new ParameterBuilder().withName("param1").withValue("value1").build())
@@ -91,7 +90,7 @@ public class TemplateUtilTest {
   }
 
   @Test
-  public void interpolateTemplateVariablesWithParametersAndPlaceholdersShouldReplace() throws IOException {
+  void interpolateTemplateVariablesWithParametersAndPlaceholdersShouldReplace() throws IOException {
     // Given
     klb.addToItems(new TemplateBuilder()
         .addToParameters(new ParameterBuilder().withName("param1").withValue("value1").build())
@@ -104,7 +103,7 @@ public class TemplateUtilTest {
   }
 
   @Test
-  public void interpolateTemplateVariablesWithReadFileException() throws IOException {
+  void interpolateTemplateVariablesWithReadFileException() throws IOException {
     // Given
     klb.addToItems(new TemplateBuilder()
         .addToParameters(new ParameterBuilder().withName("param1").withValue("value1").build())
@@ -122,7 +121,7 @@ public class TemplateUtilTest {
   }
 
   @Test
-  public void interpolateTemplateVariablesWithWriteFileException() throws IOException {
+  void interpolateTemplateVariablesWithWriteFileException() throws IOException {
     // Given
     klb.addToItems(new TemplateBuilder()
         .addToParameters(new ParameterBuilder().withName("param1").withValue("value1").build())

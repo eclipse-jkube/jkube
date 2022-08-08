@@ -13,30 +13,23 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.Test;
 
 public class PortForwardServicePortOrderTest {
     @Mocked
-    private KubernetesClient kubernetesClient;
-
-    @Mocked
-    private KitLogger logger;
+    private NamespacedKubernetesClient kubernetesClient;
 
     @Test
     public void testPortsSpecifiedInCorrectOrderPortForward() {
-        // Given
-        PortForwardService portForwardService = new PortForwardService(kubernetesClient, logger);
-
         // When
-        portForwardService.forwardPortAsync("foo-pod", "foo-ns", 8080, 312323);
+        PortForwardService.forwardPortAsync(kubernetesClient, "foo-pod", 8080, 312323);
 
         // Then
         new Verifications() {{
-            kubernetesClient.pods().inNamespace("foo-ns").withName("foo-pod").portForward(8080, 312323);
+            kubernetesClient.pods().withName("foo-pod").portForward(8080, 312323);
             times = 1;
         }};
     }

@@ -125,7 +125,7 @@ public class WildflyJARHealthCheckEnricher extends AbstractHealthCheckEnricher {
         if (isProbeEnforced()) {
             return true;
         }
-        JavaProject project = ((JKubeEnricherContext) getContext()).getProject();
+        JavaProject project = getContext().getProject();
         Plugin plugin = JKubeProjectUtil.getPlugin(project, BOOTABLE_JAR_GROUP_ID, BOOTABLE_JAR_ARTIFACT_ID);
         if (plugin == null) {
             return false;

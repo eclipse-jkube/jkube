@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.openshift.api.model.ImageStreamTag;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -78,10 +79,13 @@ import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDo
 
 import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
 import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamName;
+import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamTagName;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.computeS2IBuildName;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createAdditionalTagsIfPresent;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildArchive;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildOutput;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildStrategy;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.getAdditionalTagsToCreate;
 
 /**
  * @author nicola
@@ -126,14 +130,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         initClient();
         String buildName = null;
         try {
-            final ImageConfiguration.ImageConfigurationBuilder applicableImageConfigBuilder = imageConfig.toBuilder();
-            if (imageConfig.getBuildConfiguration() != null && !imageConfig.getBuildConfiguration().isDockerFileMode()
-                && imageConfig.getBuildConfiguration().getAssembly() != null) {
-                applicableImageConfigBuilder.build(imageConfig.getBuild().toBuilder().assembly(
-                    imageConfig.getBuildConfiguration().getAssembly().getFlattenedClone(jKubeServiceHub.getConfiguration()))
-                    .build());
-            }
-            final ImageConfiguration applicableImageConfig = applicableImageConfigBuilder.build();
+            final ImageConfiguration applicableImageConfig = getApplicableImageConfiguration(imageConfig);
             ImageName imageName = new ImageName(applicableImageConfig.getName());
 
             File dockerTar = createBuildArchive(jKubeServiceHub, applicableImageConfig);
@@ -156,6 +153,8 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
 
                 // Create a file with generated image streams
                 addImageStreamToFile(getImageStreamFile(), imageName, client);
+
+                createAdditionalTags(imageConfig, imageName);
             } else {
                 applyBuild(buildName, dockerTar, builder);
             }
@@ -228,13 +227,25 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         }
     }
 
-    private void initClient() {
-        ClusterAccess clusterAccess = jKubeServiceHub.getClusterAccess();
-        if (clusterAccess == null) {
-            clusterAccess = new ClusterAccess(log,
-                ClusterConfiguration.from(System.getProperties(), jKubeServiceHub.getConfiguration().getProject().getProperties()).build());
+    ImageConfiguration getApplicableImageConfiguration(ImageConfiguration imageConfig) {
+        final ImageConfiguration.ImageConfigurationBuilder applicableImageConfigBuilder = imageConfig.toBuilder();
+        if (imageConfig.getBuildConfiguration() != null && !imageConfig.getBuildConfiguration().isDockerFileMode()
+            && imageConfig.getBuildConfiguration().getAssembly() != null) {
+            applicableImageConfigBuilder.build(imageConfig.getBuild().toBuilder().assembly(
+                    imageConfig.getBuildConfiguration().getAssembly().getFlattenedClone(jKubeServiceHub.getConfiguration()))
+                .build());
         }
-        KubernetesClient k8sClient = clusterAccess.createDefaultClient();
+        if (buildServiceConfig.getBuildOutputKind() != null && buildServiceConfig.getBuildOutputKind().equals(DOCKER_IMAGE)) {
+            String applicableRegistry = EnvUtil.firstRegistryOf(
+                new ImageName(imageConfig.getName()).getRegistry(),
+                imageConfig.getRegistry());
+            applicableImageConfigBuilder.name(new ImageName(imageConfig.getName()).getFullName(applicableRegistry));
+        }
+        return applicableImageConfigBuilder.build();
+    }
+
+    private void initClient() {
+        KubernetesClient k8sClient = jKubeServiceHub.getClient();
         if (!isOpenShift(k8sClient)) {
             throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
         }
@@ -242,7 +253,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         if (buildServiceConfig.getResourceConfig() != null && buildServiceConfig.getResourceConfig().getNamespace() != null) {
             applicableOpenShiftNamespace = buildServiceConfig.getResourceConfig().getNamespace();
         } else {
-            applicableOpenShiftNamespace = clusterAccess.getNamespace();
+            applicableOpenShiftNamespace = jKubeServiceHub.getClusterAccess().getNamespace();
         }
     }
 
@@ -424,7 +435,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
 
         if (builder.hasItems()) {
             KubernetesList k8sList = builder.build();
-            client.lists().inNamespace(applicableOpenShiftNamespace).create(k8sList);
+            client.resourceList(k8sList).inNamespace(applicableOpenShiftNamespace).create();
         }
     }
 
@@ -609,6 +620,16 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
     private void addImageStreamToFile(File imageStreamFile, ImageName imageName, OpenShiftClient client) throws IOException {
         ImageStreamService imageStreamHandler = new ImageStreamService(client, applicableOpenShiftNamespace, log);
         imageStreamHandler.appendImageStreamResource(imageName, imageStreamFile);
+    }
+
+    private void createAdditionalTags(ImageConfiguration imageConfig, ImageName imageName) {
+        List<String> additionalTagsToCreate = getAdditionalTagsToCreate(imageConfig);
+        if (!additionalTagsToCreate.isEmpty()) {
+            ImageStreamTag imageStreamTag = client.imageStreamTags().inNamespace(applicableOpenShiftNamespace).withName(resolveImageStreamTagName(imageName)).get();
+            List<ImageStreamTag> imageStreamTags = createAdditionalTagsIfPresent(imageConfig, applicableOpenShiftNamespace, imageStreamTag);
+            client.resourceList(imageStreamTags.toArray(new ImageStreamTag[0])).inNamespace(applicableOpenShiftNamespace).createOrReplace();
+            log.info("Tags [%s] set to %s", String.join(",", additionalTagsToCreate), imageName.getNameWithoutTag());
+        }
     }
 
     // == Utility methods ==========================

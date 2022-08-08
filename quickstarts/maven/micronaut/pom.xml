@@ -21,7 +21,7 @@
   <parent>
     <groupId>io.micronaut</groupId>
     <artifactId>micronaut-parent</artifactId>
-    <version>3.0.0</version>
+    <version>3.4.4</version>
   </parent>
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
@@ -38,6 +38,7 @@
     <jkube.version>${project.version}</jkube.version>
     <micronaut.version>${project.parent.version}</micronaut.version>
     <exec.mainClass>org.eclipse.jkube.quickstart.micronaut.custom.Application</exec.mainClass>
+    <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
   </properties>
 
   <dependencies>

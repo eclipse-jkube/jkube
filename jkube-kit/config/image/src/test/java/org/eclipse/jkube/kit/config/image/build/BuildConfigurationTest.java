@@ -17,31 +17,34 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.bzip2;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.none;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  */
-public class BuildConfigurationTest {
+
+class BuildConfigurationTest {
 
   @Test
-  public void emptyConfigurationShouldBeValidNonDockerfileWithDefaults() {
+  void emptyConfigurationShouldBeValidNonDockerfileWithDefaults() {
     BuildConfiguration config = new BuildConfiguration();
     config.validate();
     assertThat(config)
@@ -54,7 +57,7 @@ public class BuildConfigurationTest {
   }
 
   @Test
-  public void dockerFileShouldBeValidDockerfile() {
+  void dockerFileShouldBeValidDockerfile() {
     BuildConfiguration config = BuildConfiguration.builder()
         .dockerFile("src/docker/Dockerfile").build();
     config.validate();
@@ -64,7 +67,7 @@ public class BuildConfigurationTest {
   }
 
   @Test
-  public void contextDirShouldBeValidDockerfile() {
+  void contextDirShouldBeValidDockerfile() {
     BuildConfiguration config = BuildConfiguration.builder()
         .contextDir("src/docker/").build();
     config.validate();
@@ -74,7 +77,7 @@ public class BuildConfigurationTest {
   }
 
   @Test
-  public void contextDirAndDockerFileShouldBeValidDockerfile() {
+  void contextDirAndDockerFileShouldBeValidDockerfile() {
     BuildConfiguration config = BuildConfiguration.builder()
         .contextDir("/tmp/")
         .dockerFile("Docker-file").build();
@@ -87,7 +90,7 @@ public class BuildConfigurationTest {
   }
 
   @Test
-  public void getContextDirWithNoContextAndDockerFileWithNoParent() {
+  void getContextDirWithNoContextAndDockerFileWithNoParent() {
     // Given
     final BuildConfiguration config = BuildConfiguration.builder()
         .dockerFile("Docker-file").build();
@@ -100,7 +103,7 @@ public class BuildConfigurationTest {
   }
 
   @Test
-  public void getContextDirWithNoContextAndDockerFileWithParent() {
+  void getContextDirWithNoContextAndDockerFileWithParent() {
     // Given
     final BuildConfiguration config = BuildConfiguration.builder()
         .dockerFile("parent-dir/Docker-file").build();
@@ -112,19 +115,16 @@ public class BuildConfigurationTest {
     assertThat(result).isEqualTo(new File("parent-dir"));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void dockerFileAndDockerArchiveShouldBeInvalid() {
+  @Test
+  void dockerFileAndDockerArchiveShouldBeInvalid() {
     BuildConfiguration config = BuildConfiguration.builder()
         .dockerArchive("this")
         .dockerFile("that").build();
-
-    config.validate();
-
-    fail("Should have failed.");
+    assertThrows(IllegalArgumentException.class, config::validate, "Should have failed.");
   }
 
   @Test
-  public void dockerArchiveShouldBeValidNonDockerfile() {
+  void dockerArchiveShouldBeValidNonDockerfile() {
     BuildConfiguration config = BuildConfiguration.builder()
         .dockerArchive("docker-archive.tar").build();
     config.validate();
@@ -135,28 +135,24 @@ public class BuildConfigurationTest {
         .hasFieldOrPropertyWithValue("dockerArchive", new File("docker-archive.tar"));
   }
 
-  @Test
-  public void compressionStringGzip() {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("compressionTestData")
+  void compressionTest(String testDesc, String compressionString, ArchiveCompression compression) {
     BuildConfiguration config = BuildConfiguration.builder()
-        .compressionString("gzip").build();
-    assertThat(config.getCompression()).isEqualTo(gzip);
+            .compressionString(compressionString).build();
+    assertThat(config.getCompression()).isEqualTo(compression);
+  }
+
+  public static Stream<Arguments> compressionTestData() {
+    return Stream.of(
+            Arguments.arguments("Compression String Gzip", "gzip", gzip),
+            Arguments.arguments("Compression String None", null, none),
+            Arguments.arguments("Compression String Bzip2", "bzip2", bzip2)
+    );
   }
 
   @Test
-  public void compressionStringNone() {
-    BuildConfiguration config = BuildConfiguration.builder().build();
-    assertThat(config.getCompression()).isEqualTo(none);
-  }
-
-  @Test
-  public void compressionStringBzip2() {
-    BuildConfiguration config = BuildConfiguration.builder()
-        .compressionString("bzip2").build();
-    assertThat(config.getCompression()).isEqualTo(bzip2);
-  }
-
-  @Test
-  public void compressionStringInvalid() {
+  void compressionStringInvalid() {
     final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () -> builder.compressionString("bzip"));
     assertThat(result)
@@ -164,15 +160,22 @@ public class BuildConfigurationTest {
         .hasMessageEndingWith("ArchiveCompression.bzip");
   }
 
-  @Test
-  public void isValidWindowsFileName() {
-    assertFalse(BuildConfiguration.isValidWindowsFileName("/Dockerfile"));
-    assertTrue(BuildConfiguration.isValidWindowsFileName("Dockerfile"));
-    assertFalse(BuildConfiguration.isValidWindowsFileName("Dockerfile/"));
+  @ParameterizedTest(name = "{0} : should be {1}")
+  @MethodSource("isValidWindowsFileNameTestData")
+  void isValidWindowsFileName(String filename, boolean expected) {
+    assertThat(BuildConfiguration.isValidWindowsFileName(filename)).isEqualTo(expected);
+  }
+
+  public static Stream<Arguments> isValidWindowsFileNameTestData() {
+    return Stream.of(
+            Arguments.arguments("/Dockerfile", false),
+            Arguments.arguments("Dockerfile", true),
+            Arguments.arguments("Dockerfile/", false)
+    );
   }
 
   @Test
-  public void cacheFrom() {
+  void cacheFrom() {
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder()
             .addCacheFrom("foo/bar:latest")
             .build();
@@ -181,14 +184,10 @@ public class BuildConfigurationTest {
   }
 
   @Test
-  public void testBuilder(@Mocked AssemblyConfiguration mockAssemblyConfiguration) {
+  void testBuilder() {
+    AssemblyConfiguration mockAssemblyConfiguration = mock(AssemblyConfiguration.class);
     // Given
-    // @formatter:off
-    new Expectations() {{
-      mockAssemblyConfiguration.getName();
-      result = "1337";
-    }};
-    // @formatter:on
+    when(mockAssemblyConfiguration.getName()).thenReturn("1337");
     // When
     final BuildConfiguration result = BuildConfiguration.builder()
         .assembly(mockAssemblyConfiguration)
@@ -201,7 +200,7 @@ public class BuildConfigurationTest {
   }
 
   @Test
-  public void getAssembly_withNoAssembly_shouldReturnNull() {
+  void getAssembly_withNoAssembly_shouldReturnNull() {
     // Given
     final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder()
         .user("test");
@@ -212,7 +211,7 @@ public class BuildConfigurationTest {
   }
 
   @Test
-  public void getAssembly_withAssembly_shouldReturnAssembly() {
+  void getAssembly_withAssembly_shouldReturnAssembly() {
     // Given
     final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder()
         .user("test")
@@ -230,7 +229,7 @@ public class BuildConfigurationTest {
    * Especially designed to catch problems if Enum names are changed.
    */
   @Test
-  public void rawDeserialization() throws IOException {
+  void rawDeserialization() throws IOException {
     // Given
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(MapperFeature.USE_ANNOTATIONS, false);
@@ -273,4 +272,5 @@ public class BuildConfigurationTest {
         .hasFieldOrPropertyWithValue("buildOptions", Collections.singletonMap("NetworkMode", "bridge"))
         .hasFieldOrPropertyWithValue("assembly.name", "the-assembly");
   }
+
 }

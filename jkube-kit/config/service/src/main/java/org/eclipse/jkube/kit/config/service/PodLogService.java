@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
@@ -77,6 +78,12 @@ public class PodLogService {
                                 boolean watchAddedPodsOnly, String onExitOperation, boolean followLog,
                                 Date ignorePodsOlderThan, boolean waitInCurrentThread) {
 
+        final NamespacedKubernetesClient nsKubernetesClient;
+        if (namespace != null) {
+            nsKubernetesClient = kubernetes.adapt(NamespacedKubernetesClient.class).inNamespace(namespace);
+        } else {
+            nsKubernetesClient = kubernetes.adapt(NamespacedKubernetesClient.class);
+        }
         LabelSelector selector = KubernetesHelper.extractPodLabelSelector(entities);
 
         if (selector != null || StringUtils.isNotBlank(context.getPodName())) {
@@ -90,19 +97,19 @@ public class PodLogService {
                 } else {
                     log.warn("Unknown on-exit command: `%s`", onExitOperationLower);
                 }
-                resizeApp(kubernetes, namespace, entities, 1, log);
+                resizeApp(nsKubernetesClient, entities, 1, log);
                 Runtime.getRuntime().addShutdownHook(new Thread("pod log service shutdown hook") {
                     @Override
                     public void run() {
                         if (onExitOperationLower.equals(OPERATION_UNDEPLOY)) {
                             log.info("Undeploying the app:");
-                            deleteEntities(kubernetes, namespace, entities, log);
+                            deleteEntities(nsKubernetesClient, entities, log);
                             if (context.getS2iBuildNameSuffix() != null) {
-                                deleteOpenShiftEntities(kubernetes, namespace, entities, context.getS2iBuildNameSuffix(), log);
+                                deleteOpenShiftEntities(nsKubernetesClient, entities, context.getS2iBuildNameSuffix(), log);
                             }
                         } else if (onExitOperationLower.equals(OPERATION_STOP)) {
                             log.info("Stopping the app:");
-                            resizeApp(kubernetes, namespace, entities, 0, log);
+                            resizeApp(nsKubernetesClient, entities, 0, log);
                         }
                         if (podWatcher != null) {
                             podWatcher.close();
@@ -111,21 +118,21 @@ public class PodLogService {
                     }
                 });
             }
-            waitAndLogPods(kubernetes, namespace, selector, watchAddedPodsOnly, ctrlCMessage, followLog, ignorePodsOlderThan, waitInCurrentThread);
+            waitAndLogPods(nsKubernetesClient, selector, watchAddedPodsOnly, ctrlCMessage, followLog, ignorePodsOlderThan, waitInCurrentThread);
         } else {
             log.warn("No selector detected and no Pod name specified, cannot watch Pods!");
         }
     }
 
-    private void waitAndLogPods(final KubernetesClient kubernetes, final String namespace, LabelSelector selector, final boolean watchAddedPodsOnly, final String ctrlCMessage, final boolean
+    private void waitAndLogPods(final NamespacedKubernetesClient kc, LabelSelector selector, final boolean watchAddedPodsOnly, final String ctrlCMessage, final boolean
             followLog, Date ignorePodsOlderThan, boolean waitInCurrentThread) {
-        final FilterWatchListDeletable<Pod, PodList> pods;
+        final FilterWatchListDeletable<Pod, PodList, PodResource> pods;
         if (StringUtils.isNotBlank(context.getPodName())) {
             log.info("Watching pod with selector %s, and name %s waiting for a running pod...", selector, context.getPodName());
-            pods = kubernetes.pods().inNamespace(namespace).withField("metadata.name", context.getPodName());
+            pods = kc.pods().withField("metadata.name", context.getPodName());
         } else {
             log.info("Watching pods with selector %s waiting for a running pod...", selector);
-            pods =  withSelector(kubernetes.pods().inNamespace(namespace), selector, log);
+            pods =  withSelector(kc.pods(), selector, log);
         }
         Pod latestPod = null;
         boolean runningPod = false;
@@ -152,7 +159,7 @@ public class PodLogService {
         }
         // we may have missed the ADDED event so lets simulate one
         if (latestPod != null) {
-            onPod(Watcher.Action.ADDED, latestPod, kubernetes, namespace, ctrlCMessage, followLog);
+            onPod(Watcher.Action.ADDED, latestPod, kc, ctrlCMessage, followLog);
         }
         if (!watchAddedPodsOnly && !runningPod) {
             log.warn("No pod is running yet. Are you sure you deployed your app using Eclipse JKube apply/deploy mechanism?");
@@ -161,7 +168,7 @@ public class PodLogService {
         podWatcher = pods.watch(new Watcher<Pod>() {
             @Override
             public void eventReceived(Action action, Pod pod) {
-                onPod(action, pod, kubernetes, namespace, ctrlCMessage, followLog);
+                onPod(action, pod, kc, ctrlCMessage, followLog);
             }
 
             @Override
@@ -181,7 +188,7 @@ public class PodLogService {
         }
     }
 
-    private void onPod(Watcher.Action action, Pod pod, KubernetesClient kubernetes, String namespace, String ctrlCMessage, boolean followLog) {
+    private void onPod(Watcher.Action action, Pod pod, NamespacedKubernetesClient kubernetes, String ctrlCMessage, boolean followLog) {
         String name = KubernetesHelper.getName(pod);
         if (action.equals(Watcher.Action.DELETED)) {
             addedPods.remove(name);
@@ -204,17 +211,17 @@ public class PodLogService {
         }
 
         if (watchPod != null && KubernetesHelper.isPodRunning(watchPod)) {
-            watchLogOfPodName(kubernetes, namespace, ctrlCMessage, followLog, watchPod, KubernetesHelper.getName(watchPod));
+            watchLogOfPodName(kubernetes, ctrlCMessage, followLog, watchPod, KubernetesHelper.getName(watchPod));
         }
     }
 
-    private void watchLogOfPodName(KubernetesClient kubernetes, String namespace, String ctrlCMessage, boolean followLog, Pod pod, String name) {
+    private void watchLogOfPodName(NamespacedKubernetesClient kubernetes, String ctrlCMessage, boolean followLog, Pod pod, String name) {
         if (watchingPodName == null || !watchingPodName.equals(name)) {
             if (logWatcher != null) {
                 log.info("Closing log watcher for %s as now watching %s", watchingPodName, name);
                 closeLogWatcher();
             }
-            PodResource<Pod> podResource = kubernetes.pods().inNamespace(namespace).withName(name);
+            PodResource podResource = kubernetes.pods().withName(name);
             List<Container> containers = KubernetesHelper.getContainers(pod);
             String containerName = null;
             if (followLog) {

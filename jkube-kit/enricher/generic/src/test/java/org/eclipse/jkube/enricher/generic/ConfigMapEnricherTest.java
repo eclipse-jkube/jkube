@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import static junit.framework.TestCase.assertNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
@@ -188,7 +187,7 @@ public class ConfigMapEnricherTest {
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
 
         final Map<String, String> data = configMap.getData();
-        assertNull(data);
+        assertThat(data).isNullOrEmpty();
 
         final Map<String, String> binaryData = configMap.getBinaryData();
         assertThat(binaryData).containsEntry("test.bin", "wA==");

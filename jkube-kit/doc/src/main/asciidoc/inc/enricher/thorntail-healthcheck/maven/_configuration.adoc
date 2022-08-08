@@ -1,0 +1,31 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>{plugin}</artifactId>
+        <version>{version}</version>
+        <executions>
+          <execution>
+            <id>jkube</id>
+            <goals>
+              <goal>resource</goal>
+              <goal>helm</goal>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <enricher>
+            <config>
+              <jkube-healthcheck-thorntail>
+                <port>4444</port>
+                <scheme>HTTPS</scheme>
+                <path>health/myapp</path>
+                <failureThreshold>3</failureThreshold>
+                <successThreshold>1</successThreshold>
+              </jkube-healthcheck-thorntail>
+            </config>
+          </enricher>
+        </configuration>
+      </plugin>
+----

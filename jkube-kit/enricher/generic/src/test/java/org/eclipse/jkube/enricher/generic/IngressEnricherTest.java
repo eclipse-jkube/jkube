@@ -399,7 +399,7 @@ public class IngressEnricherTest {
                 .withMetadata(createIngressFragmentMetadata())
                 .withNewSpec()
                 .withTls(new IngressTLSBuilder()
-                        .addNewHost("my.host.com")
+                        .addToHosts("my.host.com")
                         .withSecretName("letsencrypt-pod")
                         .build())
                 .addNewRule()

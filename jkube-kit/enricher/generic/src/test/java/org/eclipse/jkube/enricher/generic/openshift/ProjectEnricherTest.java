@@ -57,7 +57,7 @@ public class ProjectEnricherTest {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder()
             .addToItems(new NamespaceBuilder().withNewMetadata().withName("foo").endMetadata()
-                .withNewSpec().addNewFinalizer("hoo").endSpec());
+                .withNewSpec().addToFinalizers("hoo").endSpec());
         // When
         new ProjectEnricher(context).create(PlatformMode.openshift, klb);
         // Then
@@ -103,3 +103,4 @@ public class ProjectEnricherTest {
             .hasFieldOrPropertyWithValue("metadata.name", null);
     }
 }
+

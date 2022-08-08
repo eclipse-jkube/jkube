@@ -26,11 +26,12 @@ import java.util.Set;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
+import io.fabric8.openshift.api.model.ImageStreamList;
 import io.fabric8.openshift.api.model.TagEvent;
 import io.fabric8.openshift.client.OpenShiftClient;
 import mockit.Expectations;
@@ -38,6 +39,7 @@ import mockit.Mocked;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -52,7 +54,7 @@ public class ImageStreamServiceTest {
     OpenShiftClient client;
 
     @Mocked
-    BaseOperation imageStreamsOp;
+    MixedOperation<ImageStream, ImageStreamList, Resource<ImageStream>> imageStreamsOp;
 
     @Mocked
     Resource resource;
@@ -166,5 +168,29 @@ public class ImageStreamServiceTest {
 
         // THEN
         Assert.assertEquals(first, resultedTag);
+    }
+
+    @Test
+    public void resolveImageStreamTagName_withTagInImageName_shouldReturnImageStreamTagNameSameAsImageName() {
+        // Given
+        ImageName imageName = new ImageName("quay.io/foo/bar:1.0");
+
+        // When
+        String imageStreamTagName = ImageStreamService.resolveImageStreamTagName(imageName);
+
+        // Then
+        assertThat(imageStreamTagName).isEqualTo("bar:1.0");
+    }
+
+    @Test
+    public void resolveImageStreamTagName_withNoTag_shouldReturnImageStreamTagNameSameLatest() {
+        // Given
+        ImageName imageName = new ImageName("quay.io/foo/bar");
+
+        // When
+        String imageStreamTagName = ImageStreamService.resolveImageStreamTagName(imageName);
+
+        // Then
+        assertThat(imageStreamTagName).isEqualTo("bar:latest");
     }
 }
