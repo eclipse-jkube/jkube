@@ -13,8 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.eclipse.jkube.kit.common.SystemMock;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
