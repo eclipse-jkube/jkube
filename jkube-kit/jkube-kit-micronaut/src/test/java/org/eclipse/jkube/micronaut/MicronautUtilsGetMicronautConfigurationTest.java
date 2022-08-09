@@ -15,38 +15,30 @@ package org.eclipse.jkube.micronaut;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Properties;
+import java.util.stream.Stream;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
 
-@RunWith(Parameterized.class)
-public class MicronautUtilsGetMicronautConfigurationTest {
+class MicronautUtilsGetMicronautConfigurationTest {
 
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[]{"properties", "PROPERTIES"},
-        new Object[]{"yaml", "YAML"},
-        new Object[]{"json", "JSON"}
+  public static Stream<Arguments> data() {
+    return Stream.of(
+        Arguments.of("properties", "PROPERTIES"),
+        Arguments.of("yaml", "YAML"),
+        Arguments.of("json", "JSON")
     );
   }
 
-  @Parameterized.Parameter
-  public String directory;
-
-  @Parameterized.Parameter(1)
-  public String nameSuffix;
-
-  @Test
-  public void getMicronautConfigurationFromProperties() {
+  @ParameterizedTest(name = "Micronaut configuration can be read from application.{0} files")
+  @MethodSource("data")
+  void getMicronautConfigurationFromProperties(String directory, String nameSuffix) {
     // Given
     final URLClassLoader ucl = URLClassLoader.newInstance(new URL[] {
         MicronautUtilsGetMicronautConfigurationTest.class.getResource(String.format("/utils-test/port-config/%s/", directory))
