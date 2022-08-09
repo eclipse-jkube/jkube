@@ -17,7 +17,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Properties;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -25,10 +25,10 @@ import static org.eclipse.jkube.micronaut.MicronautUtils.extractPort;
 import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
 import static org.eclipse.jkube.micronaut.MicronautUtils.isHealthEnabled;
 
-public class MicronautUtilsTest {
+class MicronautUtilsTest {
 
   @Test
-  public void extractPortWithPort() {
+  void extractPortWithPort() {
     // Given
     final Properties properties = new Properties();
     properties.put("micronaut.server.port", "1337");
@@ -39,7 +39,7 @@ public class MicronautUtilsTest {
   }
 
   @Test
-  public void extractPortWithNoPort() {
+  void extractPortWithNoPort() {
     // When
     final String result = extractPort(new Properties(), "80");
     // Then
@@ -47,7 +47,7 @@ public class MicronautUtilsTest {
   }
 
   @Test
-  public void isHealthEnabledWithDefaults() {
+  void isHealthEnabledWithDefaults() {
     // When
     final boolean result = isHealthEnabled(new Properties());
     // Then
@@ -55,7 +55,7 @@ public class MicronautUtilsTest {
   }
 
   @Test
-  public void isHealthEnabledWithHealthEnabled() {
+  void isHealthEnabledWithHealthEnabled() {
     // Given
     final Properties properties = new Properties();
     properties.put("endpoints.health.enabled", "tRuE");
@@ -66,7 +66,7 @@ public class MicronautUtilsTest {
   }
 
   @Test
-  public void getMicronautConfigurationPrecedence() {
+  void getMicronautConfigurationPrecedence() {
     // Given
     final URLClassLoader ucl = URLClassLoader.newInstance(new URL[] {
         MicronautUtilsTest.class.getResource("/utils-test/port-config/json/"),
@@ -82,7 +82,7 @@ public class MicronautUtilsTest {
   }
 
   @Test
-  public void getMicronautConfigurationNoConfigFiles() {
+  void getMicronautConfigurationNoConfigFiles() {
     // Given
     final URLClassLoader ucl = URLClassLoader.newInstance(new URL[] {
         MicronautUtilsTest.class.getResource("/")

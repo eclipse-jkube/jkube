@@ -34,19 +34,19 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MicronautHealthCheckEnricherTest {
+class MicronautHealthCheckEnricherTest {
 
   private JKubeEnricherContext context;
   private JavaProject project;
   private KubernetesListBuilder klb;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     project = JavaProject.builder()
         .outputDirectory(new File("target"))
         .build();
@@ -62,7 +62,7 @@ public class MicronautHealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithNoDeployment() {
+  void createWithNoDeployment() {
     // When
     new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
@@ -73,7 +73,7 @@ public class MicronautHealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithDeploymentAndNoPlugin() {
+  void createWithDeploymentAndNoPlugin() {
     // Given
     klb.addToItems(emptyDeployment());
     // When
@@ -92,7 +92,7 @@ public class MicronautHealthCheckEnricherTest {
         .hasFieldOrPropertyWithValue("readinessProbe", null);
   }
   @Test
-  public void createWithDeploymentAndPluginAndNoHealth() {
+  void createWithDeploymentAndPluginAndNoHealth() {
     // Given
     klb.addToItems(emptyDeployment());
     withMicronautMavenPlugin();
@@ -113,7 +113,7 @@ public class MicronautHealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithDeploymentAndPluginAndHealth() throws Exception {
+  void createWithDeploymentAndPluginAndHealth() throws Exception {
     // Given
     klb.addToItems(emptyDeployment());
     withHealthEnabled();
@@ -136,7 +136,7 @@ public class MicronautHealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithDeploymentAndGradlePluginAndHealth() throws Exception {
+  void createWithDeploymentAndGradlePluginAndHealth() throws Exception {
     // Given
     klb.addToItems(emptyDeployment());
     withHealthEnabled();
@@ -159,7 +159,7 @@ public class MicronautHealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithDeploymentAndPluginAndImageConfig() throws Exception {
+  void createWithDeploymentAndPluginAndImageConfig() throws Exception {
     // Given
     klb.addToItems(emptyDeployment());
     withHealthEnabled();
