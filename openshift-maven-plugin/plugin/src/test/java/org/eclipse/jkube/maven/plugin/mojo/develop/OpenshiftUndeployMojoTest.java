@@ -16,10 +16,9 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,22 +29,19 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OpenshiftUndeployMojoTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class OpenshiftUndeployMojoTest {
   private JKubeServiceHub mockServiceHub;
   private File kubernetesManifestFile;
   private File openShiftManifestFile;
   private File openShiftISManifestFile;
   private OpenshiftUndeployMojo undeployMojo;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp(@TempDir File temporaryFolder) throws IOException {
     mockServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
-    kubernetesManifestFile = temporaryFolder.newFile();
-    openShiftManifestFile = temporaryFolder.newFile();
-    openShiftISManifestFile = temporaryFolder.newFile();
+    kubernetesManifestFile = File.createTempFile("junit", "ext", temporaryFolder);
+    openShiftManifestFile = File.createTempFile("junit", "ext", temporaryFolder);
+    openShiftISManifestFile = File.createTempFile("junit", "ext", temporaryFolder);
     // @formatter:off
     undeployMojo = new OpenshiftUndeployMojo() {{
       kubernetesManifest = kubernetesManifestFile;
@@ -57,7 +53,7 @@ public class OpenshiftUndeployMojoTest {
   }
 
   @Test
-  public void getManifestsToUndeploy() {
+  void getManifestsToUndeploy() {
     // Given
     final OpenShiftClient client = mock(OpenShiftClient.class);
     when(mockServiceHub.getClient()).thenReturn(client);
@@ -70,12 +66,12 @@ public class OpenshiftUndeployMojoTest {
   }
 
   @Test
-  public void getRuntimeMode() {
+  void getRuntimeMode() {
     assertThat(undeployMojo.getRuntimeMode()).isEqualTo(RuntimeMode.OPENSHIFT);
   }
 
   @Test
-  public void getLogPrefix() {
+  void getLogPrefix() {
     assertThat(undeployMojo.getLogPrefix()).isEqualTo("oc: ");
   }
 }
