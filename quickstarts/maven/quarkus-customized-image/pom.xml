@@ -110,19 +110,21 @@
                   <mode>dir</mode>
                   <targetDir>/deployments</targetDir>
                     <layers>
-                    <id>customized-quarkus</id>
+                      <layer>
+                        <id>customized-quarkus</id>
                     <files>
                       <file>
-                        <source>target/${project.artifactId}-${project.version}-runner.jar</source>
+                        <source>target/quarkus-app/quarkus-run.jar</source>
                         <outputDirectory>.</outputDirectory>
                       </file>
                     </files>
                     <fileSets>
                       <fileSet>
-                        <directory>${project.basedir}/target/lib</directory>
+                        <directory>${project.basedir}/target/quarkus-app/lib</directory>
                         <outputDirectory>lib</outputDirectory>
                       </fileSet>
                     </fileSets>
+                      </layer>
                     </layers>
                 </assembly>
                 <ports>8080</ports>
