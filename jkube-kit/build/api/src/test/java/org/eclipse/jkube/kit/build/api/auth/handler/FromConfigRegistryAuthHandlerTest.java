@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author roland
@@ -39,7 +40,7 @@ public class FromConfigRegistryAuthHandlerTest {
   private KitLogger log;
   @Before
   public void setUp() throws Exception {
-    log = mock(KitLogger.class);
+    log = spy(new KitLogger.SilentLogger());
   }
   @Test
   public void testFromPluginConfiguration() throws IOException {

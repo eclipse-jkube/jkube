@@ -37,7 +37,7 @@ import static org.mockito.Mockito.mock;
 @RunWith(Parameterized.class)
 public class AssemblyManagerVerifyAssemblyReferencedInDockerfileTest {
 
-    KitLogger logger;
+    private KitLogger logger;
     @Before
     public void setUp(){
         logger=spy(KitLogger.SilentLogger.class);

@@ -39,13 +39,9 @@ import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtil
 
 public class AssemblyConfigurationUtilsTest {
 
-  private BuildConfiguration mockedBuildConfiguration;
-  private Assembly assembly;
-  AssemblyFile file;
-  AssemblyFileSet fileSet;
   @Test
   public void getAssemblyConfigurationOrCreateDefaultNoConfigurationShouldReturnDefault() {
-    mockedBuildConfiguration = mock(BuildConfiguration.class);
+    BuildConfiguration mockedBuildConfiguration = mock(BuildConfiguration.class);
     // Given
     when(mockedBuildConfiguration.getAssembly()).thenReturn(null);
     // When
@@ -59,7 +55,7 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultWithConfigurationShouldReturnConfiguration() {
-    mockedBuildConfiguration = mock(BuildConfiguration.class);
+    BuildConfiguration mockedBuildConfiguration = mock(BuildConfiguration.class);
     // Given
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
     when(mockedBuildConfiguration.getAssembly()).thenReturn(configuration);
@@ -92,8 +88,8 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFileSetsNotNullShouldReturnFileSets() {
-    assembly = mock(Assembly.class);
-    fileSet = mock(AssemblyFileSet.class);
+    Assembly assembly = mock(Assembly.class);
+    AssemblyFileSet fileSet = mock(AssemblyFileSet.class);
     // Given
     when(assembly.getFileSets()).thenReturn(Collections.singletonList(fileSet));
     when(fileSet.getDirectory()).thenReturn(new File("1337"));
@@ -126,8 +122,8 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFilesNotNullShouldReturnFiles() {
-    file =  mock(AssemblyFile.class);
-    assembly = mock(Assembly.class);
+    AssemblyFile file =  mock(AssemblyFile.class);
+    Assembly assembly = mock(Assembly.class);
     // Given
     when(assembly.getFiles()).thenReturn(Collections.singletonList(file));
     when(file.getSource()).thenReturn(new File("1337"));

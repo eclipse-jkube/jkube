@@ -31,6 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
@@ -49,7 +50,7 @@ public class AssemblyManagerTest {
   public void setUp() throws Exception {
     assemblyManager = AssemblyManager.getInstance();
     targetDirectory = temporaryFolder.newFolder("target");
-    logger = mock(KitLogger.class);
+    logger = spy(new KitLogger.SilentLogger());
     configuration = mock(JKubeConfiguration.class);
     project = mock(JavaProject.class);
   }
