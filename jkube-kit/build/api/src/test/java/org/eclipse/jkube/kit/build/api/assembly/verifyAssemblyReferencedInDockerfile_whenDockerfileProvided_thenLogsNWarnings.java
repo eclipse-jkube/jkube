@@ -35,14 +35,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 
 @RunWith(Parameterized.class)
-public class AssemblyManagerVerifyAssemblyReferencedInDockerfileTest {
+public class verifyAssemblyReferencedInDockerfile_whenDockerfileProvided_thenLogsNWarnings {
 
     private KitLogger logger;
     @Before
     public void setUp(){
         logger=spy(KitLogger.SilentLogger.class);
     }
-    @Parameterized.Parameters(name = "{0}: verifyDockerFile({1})={2}")
+    @Parameterized.Parameters(name = "{0}: verifyDockerFile logs {2} warnings for {1}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
                 { "Valid File", "/docker/Dockerfile_assembly_verify_copy_valid.test", 0 },
