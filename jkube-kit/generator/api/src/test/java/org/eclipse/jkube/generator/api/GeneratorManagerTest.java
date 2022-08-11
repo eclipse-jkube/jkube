@@ -20,23 +20,25 @@ import java.util.stream.Collectors;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class GeneratorManagerTest {
 
-  @Mocked
   KitLogger logger;
 
   private GeneratorContext generatorContext;
 
   @Before
   public void setUp() throws Exception {
+    logger = spy(new KitLogger.SilentLogger());
     final ProcessorConfig processorConfig = new ProcessorConfig();
     processorConfig.setIncludes(Collections.singletonList("fake-generator"));
     generatorContext = GeneratorContext.builder()
@@ -58,11 +60,7 @@ public class GeneratorManagerTest {
         .hasSize(1)
         .extracting(ImageConfiguration::getName)
         .contains("processed-by-test");
-    // @formatter:off
-    new Verifications() {{
-      logger.info("Running generator %s", "fake-generator"); times = 1;
-    }};
-    // @formatter:on
+    verify(logger, times(1)).info("Running generator %s", "fake-generator");
   }
 
   // Loaded from META-INF/jkube/generator-default

@@ -21,8 +21,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import mockit.Mocked;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.s2i;
 import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.docker;
@@ -31,14 +31,6 @@ import static org.junit.Assert.assertEquals;
 
 public class FromSelectorTest {
 
-  @Mocked
-  JavaProject project;
-
-  @Mocked
-  Plugin plugin;
-
-  @Mocked
-  KitLogger logger;
 
   @Test
   public void simple() {
@@ -54,9 +46,7 @@ public class FromSelectorTest {
     };
     for (TestCase tc : testCases) {
       GeneratorContext ctx = GeneratorContext.builder()
-          .project(project)
           .config(new ProcessorConfig())
-          .logger(logger)
           .runtimeMode(tc.runtimeMode)
           .strategy(tc.strategy)
           .build();
