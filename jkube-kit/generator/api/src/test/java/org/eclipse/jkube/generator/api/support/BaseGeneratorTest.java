@@ -348,7 +348,7 @@ public class BaseGeneratorTest {
     generator.addLatestTagIfSnapshot(builder);
     BuildConfiguration config = builder.build();
     List<String> tags = config.getTags();
-    assertThat(1).isEqualTo(tags.size());
+    assertThat(tags.size()).isEqualTo(1);
     assertThat(tags.get(0)).endsWith("latest");
   }
 

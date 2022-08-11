@@ -31,11 +31,6 @@ import static org.junit.Assert.assertEquals;
 
 public class FromSelectorTest {
 
-  JavaProject project;
-
-  Plugin plugin;
-
-  KitLogger logger;
 
   @Test
   public void simple() {
@@ -51,9 +46,7 @@ public class FromSelectorTest {
     };
     for (TestCase tc : testCases) {
       GeneratorContext ctx = GeneratorContext.builder()
-          .project(project)
           .config(new ProcessorConfig())
-          .logger(logger)
           .runtimeMode(tc.runtimeMode)
           .strategy(tc.strategy)
           .build();

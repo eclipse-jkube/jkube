@@ -44,7 +44,7 @@ public class AbstractPortsExtractorTest {
     @Before
     public void setUp() throws Exception {
         project = mock(JavaProject.class);
-        logger = mock(PrefixedLogger.class);
+        logger = new PrefixedLogger("test", new KitLogger.SilentLogger());
     }
 
     @Test
@@ -111,9 +111,7 @@ public class AbstractPortsExtractorTest {
 
     @Test
     public void testConfigFileDoesNotExist() {
-        logger = mock(PrefixedLogger.class);
         final String nonExistingFile = "/bla/blub/lalala/config.yml";
-        doNothing().when(logger).warn(anyString(), eq(FileUtil.getAbsolutePath(nonExistingFile)));
         System.setProperty("vertx.config.test", nonExistingFile);
         try {
             Map<String, Integer> map = extractFromFile("vertx.config.test", null);
