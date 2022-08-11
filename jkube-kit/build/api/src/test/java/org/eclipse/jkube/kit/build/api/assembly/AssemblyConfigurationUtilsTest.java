@@ -88,9 +88,9 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFileSetsNotNullShouldReturnFileSets() {
+    // Given
     Assembly assembly = mock(Assembly.class);
     AssemblyFileSet fileSet = mock(AssemblyFileSet.class);
-    // Given
     when(assembly.getFileSets()).thenReturn(Collections.singletonList(fileSet));
     when(fileSet.getDirectory()).thenReturn(new File("1337"));
     // When
@@ -122,9 +122,9 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getJKubeAssemblyFilesNotNullShouldReturnFiles() {
+    // Given
     AssemblyFile file =  mock(AssemblyFile.class);
     Assembly assembly = mock(Assembly.class);
-    // Given
     when(assembly.getFiles()).thenReturn(Collections.singletonList(file));
     when(file.getSource()).thenReturn(new File("1337"));
     // When
