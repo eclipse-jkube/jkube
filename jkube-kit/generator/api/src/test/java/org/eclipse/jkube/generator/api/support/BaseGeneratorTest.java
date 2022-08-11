@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -80,7 +81,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getFromAsConfigured();
     // Then
-    assertThat("fromInConfig").isEqualTo(result);
+    assertThat(result).isEqualTo("fromInConfig");
   }
 
   @Test
@@ -90,7 +91,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getFromAsConfigured();
     // Then
-    assertThat("fromInProperties").isEqualTo(result);
+    assertThat(result).isEqualTo("fromInProperties");
   }
 
   @Test
@@ -101,7 +102,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
     // Then
-    assertThat("nameInConfig").isEqualTo(result);
+    assertThat(result).isEqualTo("nameInConfig");
   }
 
   @Test
@@ -111,7 +112,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
     // Then
-    assertThat("nameInProperties").isEqualTo(result);
+    assertThat(result).isEqualTo("nameInProperties");
   }
 
   @Test
@@ -121,7 +122,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
     // Then
-    assertThat("%g/%a:%l").isEqualTo(result);
+    assertThat(result).isEqualTo("%g/%a:%l");
   }
 
   @Test
@@ -131,7 +132,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
     // Then
-    assertThat("%a:%l").isEqualTo(result);
+    assertThat(result).isEqualTo("%a:%l");
   }
 
   @Test
@@ -143,7 +144,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getRegistry();
     // Then
-    assertThat("registryInConfiguration").isEqualTo(result);
+    assertThat(result).isEqualTo("registryInConfiguration");
   }
 
   @Test
@@ -155,7 +156,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getRegistry();
     // Then
-    assertThat("registryInConfiguration").isEqualTo(result);
+    assertThat(result).isEqualTo("registryInConfiguration");
   }
 
   @Test
@@ -193,7 +194,8 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     // Then
-    assertThat("my/image").isEqualTo(builder.build().getFrom());
+    assertThat(builder.build())
+        .hasFieldOrPropertyWithValue("from", "my/image");
   }
 
   @Test
@@ -204,7 +206,8 @@ public class BaseGeneratorTest {
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     ;
     // Then
-    assertThat("selectorDockerFromUpstream").isEqualTo(builder.build().getFrom());
+    assertThat(builder.build())
+        .hasFieldOrPropertyWithValue("from", "selectorDockerFromUpstream");
   }
 
   @Test
@@ -229,12 +232,14 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     // Then
-    assertThat("image:latest").isEqualTo(builder.build().getFrom());
-    assertThat(builder.build().getFromExt()).contains(
+    assertThat(builder.build())
+        .hasFieldOrPropertyWithValue("from", "image:latest")
+        .extracting(BuildConfiguration::getFromExt, InstanceOfAssertFactories.MAP)
+        .contains(
             entry("kind", "ImageStreamTag"),
             entry("name", "image:latest"),
             entry("namespace", "my")
-    );
+        );
   }
 
   @Test
@@ -246,12 +251,14 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     // Then
-    assertThat("image:tag").isEqualTo(builder.build().getFrom());
-    assertThat(builder.build().getFromExt()).contains(
+    assertThat(builder.build())
+        .hasFieldOrPropertyWithValue("from", "image:tag")
+        .extracting(BuildConfiguration::getFromExt, InstanceOfAssertFactories.MAP)
+        .contains(
             entry("kind", "ImageStreamTag"),
             entry("name", "image:tag"),
             entry("namespace", "my")
-    );
+        );
   }
 
   @Test
@@ -351,9 +358,9 @@ public class BaseGeneratorTest {
     BuildConfiguration config = builder.build();
     List<String> tags = config.getTags();
     assertThat(tags)
-            .hasSize(1)
-            .first()
-            .satisfies(s -> assertThat(s).endsWith("latest"));
+        .singleElement()
+        .asString()
+        .endsWith("latest");
   }
 
   @Test
@@ -390,7 +397,7 @@ public class BaseGeneratorTest {
     when(ctx.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
   }
 
-  private class TestBaseGenerator extends BaseGenerator {
+  private static class TestBaseGenerator extends BaseGenerator {
     public TestBaseGenerator(GeneratorContext context, String name) {
       super(context, name);
     }
@@ -410,7 +417,7 @@ public class BaseGeneratorTest {
     }
   }
 
-  private class TestFromSelector extends FromSelector {
+  private static class TestFromSelector extends FromSelector {
 
     public TestFromSelector(GeneratorContext context) {
       super(context);
