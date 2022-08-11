@@ -15,18 +15,12 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.util.HashMap;
 import java.util.Properties;
-
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.resource.helm.BadUploadException;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository.HelmRepoType;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
-
-import mockit.Delegate;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -41,21 +35,24 @@ import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import org.mockito.AdditionalAnswers;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class HelmPushMojoTest {
 
-  @Mocked
-  private MavenProject mavenProject;
-  @Mocked
-  private Build mavenBuild;
-  @Mocked
-  private HelmService helmService;
-  @Mocked
-  private SecDispatcher secDispatcher;
-  @Mocked
-  private MojoExecution mojoExecution;
-  @Mocked
-  private MojoDescriptor mojoDescriptor;
+  MavenProject mavenProject;
+  Build mavenBuild;
+  HelmService helmService;
+  SecDispatcher secDispatcher;
+  MojoExecution mojoExecution;
+  MojoDescriptor mojoDescriptor;
 
   private Properties mavenProperties;
 
@@ -63,6 +60,12 @@ class HelmPushMojoTest {
 
   @BeforeEach
   void setUp() throws Exception {
+    mavenProject = mock(MavenProject.class);
+    mavenBuild = mock(Build.class);
+    helmService = mock(HelmService.class);
+    secDispatcher = mock(SecDispatcher.class);
+    mojoExecution = mock(MojoExecution.class);
+    mojoDescriptor = mock(MojoDescriptor.class);
     mavenProperties = new Properties();
     helmPushMojo = new HelmPushMojo();
     helmPushMojo.helm = new HelmConfig();
@@ -70,18 +73,13 @@ class HelmPushMojoTest {
     helmPushMojo.settings = new Settings();
     helmPushMojo.securityDispatcher = secDispatcher;
     helmPushMojo.mojoExecution = mojoExecution;
-    // @formatter:off
-    new Expectations(helmPushMojo) {{
-      mavenProject.getProperties(); result = mavenProperties; minTimes = 0;
-      mavenProject.getBuild(); result = mavenBuild; minTimes = 0;
-      mavenBuild.getOutputDirectory(); result = "target/classes"; minTimes = 0;
-      mavenBuild.getDirectory(); result = "target"; minTimes = 0;
-      mojoExecution.getMojoDescriptor(); result = mojoDescriptor; minTimes = 0;
-      mojoDescriptor.getFullGoalName(); result = "k8s:helm-push"; minTimes = 0;
-      secDispatcher.decrypt(anyString);
-      result = new Delegate<String>() {String delegate(String arg) {return arg;}}; minTimes = 0;
-    }};
-    // @formatter:on
+    when(mavenProject.getProperties()).thenReturn(mavenProperties);
+    when(mavenProject.getBuild()).thenReturn(mavenBuild);
+    when(mavenBuild.getOutputDirectory()).thenReturn("target/classes");
+    when(mavenBuild.getDirectory()).thenReturn("target");
+    when(mojoExecution.getMojoDescriptor()).thenReturn(mojoDescriptor);
+    when(mojoDescriptor.getFullGoalName()).thenReturn("k8s:helm-push");
+    when(secDispatcher.decrypt(anyString())).thenReturn(String.valueOf(AdditionalAnswers.returnsFirstArg()));
   }
 
   @AfterEach
@@ -95,11 +93,7 @@ class HelmPushMojoTest {
   void execute_withValidXMLConfig_shouldUpload() throws Exception {
     // Given
     helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
-    // @formatter:off
-    new Expectations() {{
-      mavenProject.getVersion(); result = "1337-SNAPSHOT";
-    }};
-    // @formatter:on
+    when(mavenProject.getVersion()).thenReturn("1337-SNAPSHOT");
     // When
     helmPushMojo.execute();
     // Then
@@ -113,12 +107,8 @@ class HelmPushMojoTest {
   void execute_withValidXMLConfigAndUploadError_shouldFail() throws Exception {
     // Given
     helmPushMojo.helm.setStableRepository(completeValidRepository());
-    // @formatter:off
-    new Expectations() {{
-      mavenProject.getVersion(); result = "1337";
-      helmService.uploadHelmChart(withNotNull());
-      result = new BadUploadException("Error uploading helm chart");
-    }};
+    when(mavenProject.getVersion()).thenReturn("1337");
+    doThrow(new BadUploadException("Error uploading helm chart")).when(helmService).uploadHelmChart(any());
     // When & Then
     assertThatExceptionOfType(MojoExecutionException.class)
             .isThrownBy(() -> helmPushMojo.execute())
@@ -133,11 +123,7 @@ class HelmPushMojoTest {
     mavenProperties.put("jkube.helm.snapshotRepository.url", "http://example.com/url");
     mavenProperties.put("jkube.helm.snapshotRepository.username", "propsUser");
     mavenProperties.put("jkube.helm.snapshotRepository.password", "propS3cret");
-    // @formatter:off
-    new Expectations() {{
-      mavenProject.getVersion(); result = "1337-SNAPSHOT";
-    }};
-    // @formatter:on
+    when(mavenProject.getVersion()).thenReturn("1337-SNAPSHOT");
     // When
     helmPushMojo.execute();
     // Then
@@ -156,11 +142,7 @@ class HelmPushMojoTest {
     // Given
     helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
     mavenProperties.put("jkube.helm.snapshotRepository.password", "propS3cret");
-    // @formatter:off
-    new Expectations() {{
-      mavenProject.getVersion(); result = "1337-SNAPSHOT";
-    }};
-    // @formatter:on
+    when(mavenProject.getVersion()).thenReturn("1337-SNAPSHOT");
     // When
     helmPushMojo.execute();
     // Then
@@ -178,23 +160,14 @@ class HelmPushMojoTest {
   void execute_withValidMavenSettings_shouldUpload() throws Exception {
     // Given
     helmPushMojo.settings.addServer(completeValidServer());
-    // @formatter:off
-    new Expectations() {{
-      mavenProject.getVersion(); result = "1337-SNAPSHOT";
-    }};
-    // @formatter:on
+    when(mavenProject.getVersion()).thenReturn("1337-SNAPSHOT");
     // When
     helmPushMojo.execute();
     // Then
     assertThat(helmPushMojo.jkubeServiceHub.getConfiguration().getRegistryConfig().getSettings()).singleElement()
         .isEqualTo(RegistryServerConfiguration.builder()
             .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build());
-    // @formatter:off
-    new Verifications() {{
-      helmService.uploadHelmChart(helmPushMojo.helm);
-      times = 1;
-    }};
-    // @formatter:on
+    verify(helmService,times(1)).uploadHelmChart(helmPushMojo.helm);
   }
 
   @Test
@@ -204,10 +177,7 @@ class HelmPushMojoTest {
     // When
     helmPushMojo.execute();
     // Then
-    new Verifications() {{
-      helmService.uploadHelmChart(helmPushMojo.helm);
-      times = 0;
-    }};
+    verify(helmService,times(0)).uploadHelmChart(helmPushMojo.helm);
   }
 
   @Test
@@ -221,12 +191,7 @@ class HelmPushMojoTest {
   }
 
   private void assertHelmServiceUpload() throws Exception {
-    // @formatter:off
-    new Verifications() {{
-      helmService.uploadHelmChart(helmPushMojo.helm);
-      times = 1;
-    }};
-    // @formatter:on
+    verify(helmService,times(1)).uploadHelmChart(helmPushMojo.helm);
   }
 
   private static HelmRepository completeValidRepository() {

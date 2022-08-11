@@ -30,9 +30,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.Scm;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -43,33 +40,41 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class HelmMojoTest {
 
-  @Mocked
   private MavenProject mavenProject;
-  @Mocked
   private JKubeServiceHub jKubeServiceHub;
-  @Mocked
   private HelmService helmService;
-
   private HelmMojo helmMojo;
+  private MockedStatic<ResourceUtil> resourceUtilMockedStatic;
 
   @BeforeEach
   void setUp() {
+    resourceUtilMockedStatic = mockStatic(ResourceUtil.class);
+    mavenProject = mock(MavenProject.class,RETURNS_DEEP_STUBS);
+    jKubeServiceHub = mock(JKubeServiceHub.class);
+    helmService = mock(HelmService.class);
     helmMojo = new HelmMojo();
     helmMojo.offline = true;
     helmMojo.project = mavenProject;
     helmMojo.settings = new Settings();
     helmMojo.jkubeServiceHub = jKubeServiceHub;
-    // @formatter:off
-    new Expectations() {{
-      jKubeServiceHub.getHelmService(); result = helmService;
-      mavenProject.getProperties(); result = new Properties();
-      mavenProject.getBuild().getOutputDirectory(); result = "target/classes";
-      mavenProject.getBuild().getDirectory(); result = "target";
-    }};
-    // @formatter:on
+    when(jKubeServiceHub.getHelmService()).thenReturn(helmService);
+    when(mavenProject.getProperties()).thenReturn(new Properties());
+    when(mavenProject.getBuild().getOutputDirectory()).thenReturn("target/classes");
+    when(mavenProject.getBuild().getDirectory()).thenReturn("target");
   }
 
   @AfterEach
@@ -77,28 +82,27 @@ class HelmMojoTest {
     mavenProject = null;
     helmMojo = null;
     helmService = null;
+    resourceUtilMockedStatic.close();
   }
 
   @Test
-  void executeInternal_withNoConfig_shouldInitConfigWithDefaultValuesAndGenerate(
-      @Mocked Scm scm, @Mocked Developer developer) throws Exception {
-
+  void executeInternal_withNoConfig_shouldInitConfigWithDefaultValuesAndGenerate() throws Exception {
+    Scm scm = mock(Scm.class);
+    Developer developer = mock(Developer.class);
     // Given
     assertThat(helmMojo.helm).isNull();
-    // @formatter:off
-    new Expectations() {{
-      mavenProject.getArtifactId(); result = "artifact-id";
-      mavenProject.getVersion(); result = "1337";
-      mavenProject.getDescription(); result = "A description from Maven";
-      mavenProject.getUrl(); result = "https://project.url";
-      mavenProject.getScm(); result = scm;
-      scm.getUrl(); result = "https://scm.url";
-      mavenProject.getDevelopers(); result = Arrays.asList(developer, developer);
-      developer.getName();
-      result = "John"; result = "John"; result = null;
-      developer.getEmail(); result = "john@example.com"; result = null;
-    }};
-    // @formatter:on
+
+    when(mavenProject.getArtifactId()).thenReturn("artifact-id");
+    when(mavenProject.getVersion()).thenReturn("1337");
+    when(mavenProject.getDescription()).thenReturn("A description from Maven");
+    when(mavenProject.getUrl()).thenReturn("https://project.url");
+    when(mavenProject.getScm()).thenReturn(scm);
+    when(scm.getUrl()).thenReturn("https://scm.url");
+    when(mavenProject.getDevelopers()).thenReturn(Arrays.asList(developer, developer));
+    when(developer.getName()).thenReturn("John");
+    //result = "John"; result = null;
+    when(developer.getEmail()).thenReturn("john@example.com");
+    //result = null;
     // When
     helmMojo.execute();
     // Then
@@ -119,38 +123,27 @@ class HelmMojoTest {
         .satisfies(h -> assertThat(h.getTypes()).contains(HelmConfig.HelmType.KUBERNETES))
         .satisfies(h -> assertThat(h.getTarballOutputDir()).endsWith("/target"));
 
-    new Verifications() {{
-      helmService.generateHelmCharts(helmMojo.helm);
-      times = 1;
-    }};
+    verify(helmService,times(1)).generateHelmCharts(helmMojo.helm);
   }
 
   @Test
   void executeInternal_withNoConfigGenerateThrowsException_shouldRethrowWithMojoExecutionException()
       throws Exception {
-
     // Given
-    // @formatter:off
-    new Expectations() {{
-      helmService.generateHelmCharts(withNotNull());
-      result = new IOException("Exception is thrown");
-    }};
-    // formatter:on
+    doThrow(new IOException("Exception is thrown")).when(helmService).generateHelmCharts(any());
     // When & Then
     assertThatExceptionOfType(MojoExecutionException.class)
             .isThrownBy(() -> helmMojo.execute());
   }
 
   @Test
-  void executeInternal_findTemplatesFromProvidedFile(
-      @Mocked File kubernetesTemplate, @Mocked ResourceUtil resourceUtil, @Mocked Template template) throws Exception {
-
+  void executeInternal_findTemplatesFromProvidedFile() throws Exception {
     // Given
+    File kubernetesTemplate = mock(File.class);
     helmMojo.kubernetesTemplate = kubernetesTemplate;
-    new Expectations() {{
-      ResourceUtil.load(kubernetesTemplate, KubernetesResource.class);
-      result = template;
-    }};
+    Template template = mock(Template.class);
+    resourceUtilMockedStatic.when(() -> ResourceUtil.load(kubernetesTemplate, KubernetesResource.class)).thenReturn(template);
+    resourceUtilMockedStatic.when(() -> ResourceUtil.load(kubernetesTemplate, KubernetesResource.class)).thenReturn(template);
     // When
     helmMojo.execute();
     // Then
@@ -158,19 +151,15 @@ class HelmMojoTest {
   }
 
   @Test
-  void executeInternal_findIconUrlFromProvidedFile(
-      @Mocked File kubernetesManifest, @Mocked ResourceUtil resourceUtil, @Mocked HasMetadata listEntry) throws Exception {
-
+  void executeInternalFindIconUrlFromProvidedFile() throws Exception {
     // Given
+    File kubernetesManifest = Mockito.mock(File.class);
+    HasMetadata listEntry = mock(HasMetadata.class);
     helmMojo.kubernetesManifest = kubernetesManifest;
-    new Expectations() {{
-      kubernetesManifest.isFile();
-      result = true;
-      ResourceUtil.load(kubernetesManifest, KubernetesResource.class);
-      result = new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null);
-      listEntry.getMetadata().getAnnotations();
-      result = Collections.singletonMap("jkube.io/iconUrl", "https://my-icon");
-    }};
+    when(kubernetesManifest.isFile()).thenReturn(true);
+    resourceUtilMockedStatic.when(() -> ResourceUtil.load(kubernetesManifest, KubernetesResource.class)).thenReturn(new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null));
+    when(listEntry.getMetadata().getAnnotations()).thenReturn(Collections.singletonMap("jkube.io/iconUrl", "https://my-icon"));
+
     // When
     helmMojo.execute();
     // Then

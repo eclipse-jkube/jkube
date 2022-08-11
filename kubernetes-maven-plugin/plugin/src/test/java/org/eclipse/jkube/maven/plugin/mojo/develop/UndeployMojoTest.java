@@ -24,30 +24,30 @@ import org.apache.maven.plugin.MojoExecution;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unused")
 class UndeployMojoTest {
-  @Mocked
   private JKubeServiceHub jKubeServiceHub;
-  @Mocked
-  private MavenUtil mavenUtil;
-  @Mocked
+  private MockedStatic<MavenUtil> mavenUtilMockedStatic;
   private MavenProject mavenProject;
-  @Mocked
+
   private Settings mavenSettings;
-  @Mocked
+
   private MojoExecution mockedMojoExecution;
   private File mockManifest;
   private File mockResourceDir;
@@ -57,7 +57,11 @@ class UndeployMojoTest {
   void setUp(@TempDir Path temporaryFolder) throws IOException {
     mockManifest = File.createTempFile("junit", "ext", temporaryFolder.toFile());
     mockResourceDir = Files.createDirectory(temporaryFolder.resolve("resources")).toFile();
-    // @formatter:off
+    jKubeServiceHub = mock(JKubeServiceHub.class);
+    mavenUtilMockedStatic = mockStatic(MavenUtil.class);
+    mavenProject = mock(MavenProject.class);
+    mavenSettings = mock(Settings.class);
+    mockedMojoExecution = mock(MojoExecution.class);
     undeployMojo = new UndeployMojo() {{
       resourceDir = mockResourceDir;
       kubernetesManifest = mockManifest;
@@ -66,14 +70,12 @@ class UndeployMojoTest {
       log = new KitLogger.SilentLogger();
       mojoExecution = mockedMojoExecution;
     }};
-    new Expectations() {{
-      mavenProject.getProperties(); result = new Properties();
-    }};
-    // @formatter:on
+    when(mavenProject.getProperties()).thenReturn(new Properties());
   }
 
   @AfterEach
   void tearDown() {
+    mavenUtilMockedStatic.close();
     undeployMojo = null;
   }
 
@@ -89,10 +91,7 @@ class UndeployMojoTest {
   void execute_whenSkipUndeployEnabled_thenUndeployServiceNotCalled() throws Exception {
     // Given
     undeployMojo.skipUndeploy = true;
-    new Expectations() {{
-      mockedMojoExecution.getMojoDescriptor().getFullGoalName(); result = "k8s:undeploy";
-    }};
-
+    when(mockedMojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:undeploy");
     // When
     undeployMojo.execute();
 
@@ -113,20 +112,10 @@ class UndeployMojoTest {
   }
 
   private void assertUndeployServiceUndeployWasCalled() throws Exception {
-    // @formatter:off
-    new Verifications() {{
-      jKubeServiceHub.getUndeployService().undeploy(Collections.singletonList(mockResourceDir), withNotNull(), mockManifest);
-      times = 1;
-    }};
-    // @formatter:on
+    verify(jKubeServiceHub,times(1)).getUndeployService().undeploy(Collections.singletonList(mockResourceDir), any(), mockManifest);
   }
 
   private void assertUndeployServiceUndeployWasNotCalled() {
-    // @formatter:off
-    new Verifications() {{
-      jKubeServiceHub.getUndeployService();
-      times = 0;
-    }};
-    // @formatter:on
+    verify(jKubeServiceHub,times(0)).getUndeployService();
   }
 }
