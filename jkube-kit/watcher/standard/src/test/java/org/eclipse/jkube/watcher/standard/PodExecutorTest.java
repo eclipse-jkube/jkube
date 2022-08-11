@@ -99,29 +99,6 @@ class PodExecutorTest {
     assertThat(result).hasMessage("Command execution socket closed unexpectedly Closed by mock");
   }
 
-  @Test
-  void executeCommandInPodCommandFailure() {
-    // Given
-    listenableCloseWithCode(1000);
-    withErrorChannelResponse("{\"message\": \"Deserialized JSON message\"}");
-    // When
-    final WatchException result = assertThrows(WatchException.class,
-        () -> podExecutor.executeCommandInPod(Collections.emptySet(), "sh"));
-    // Then
-    assertThat(result).hasMessage("Command execution failed: Deserialized JSON message");
-  }
-
-  @Test
-  void executeCommandInPodCommandSuccess() throws Exception {
-    // Given
-    listenableCloseWithCode(1000);
-    withErrorChannelResponse("{\"status\": \"Success\"}");
-    // When
-    podExecutor.executeCommandInPod(Collections.emptySet(), "sh");
-    // Then
-    assertThat(podExecutor.getOutput()).isNotNull();
-  }
-
   private void listenableCloseWithCode(int code) {
     new MockUp<PodOperationsImpl>() {
       @Mock

@@ -13,11 +13,6 @@
  */
 package org.eclipse.jkube.watcher.standard;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 
@@ -34,7 +29,6 @@ import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -104,25 +98,8 @@ class DockerImageWatcherTest {
     // Then
     // @formatter:off
     new Verifications() {{
-      new PodExecutor(watcherContext.getJKubeServiceHub().getClusterAccess(),
-          (InputStream)any, Duration.ofMinutes(1), (Runnable)any); times = 1;
-      podExecutor.executeCommandInPod(null, "sh"); times = 1;
+      new PodExecutor(watcherContext.getJKubeServiceHub().getClusterAccess(), Duration.ofMinutes(1)); times = 1;
     }};
     // @formatter:on
-  }
-
-  @Test
-  void uploadFilesRunnable() throws Exception {
-    // Given
-    final PipedOutputStream pipedOutputStream = new PipedOutputStream();
-    final PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
-    // When
-    DockerImageWatcher.uploadFilesRunnable(
-        new File(DockerImageWatcherTest.class.getResource("/file.txt").toURI().getPath()),
-        pipedOutputStream,
-        watcherContext.getLogger()
-    ).run();
-    assertThat(IOUtils.toString(pipedInputStream, StandardCharsets.UTF_8))
-      .isEqualTo("base64 -d << EOF | tar --no-overwrite-dir -C / -xf - && exit 0 || exit 1\nQSBmaWxl\nEOF\n");
   }
 }
