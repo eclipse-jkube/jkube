@@ -33,7 +33,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -83,7 +82,7 @@ public class DockerHealthCheckEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         KubernetesList list = builder.build();
-        assertEquals(1, list.getItems().size());
+        assertThat(list.getItems()).hasSize(1);
         assertHealthCheckMatching(builder.build().getItems().get(0), "livenessProbe", "/bin/check", 1, 3601, 3);
         assertHealthCheckMatching(builder.build().getItems().get(0), "readinessProbe", "/bin/check", 1, 3601, 3);
     }
@@ -124,7 +123,7 @@ public class DockerHealthCheckEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         KubernetesList list = builder.build();
-        assertEquals(2, list.getItems().size());
+        assertThat(list.getItems()).hasSize(2);
         assertHealthCheckMatching(builder.build().getItems().get(0), "livenessProbe", "/bin/check", 1, 3601, 3);
         assertHealthCheckMatching(builder.build().getItems().get(0), "readinessProbe", "/bin/check", 1, 3601, 3);
         assertHealthCheckMatching(builder.build().getItems().get(1), "livenessProbe", "/xxx/check", 3, 10801, 9);
@@ -150,7 +149,7 @@ public class DockerHealthCheckEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         KubernetesList list = builder.build();
-        assertEquals(1, list.getItems().size());
+        assertThat(list.getItems()).hasSize(1);
         assertNoProbes(list.getItems().get(0));
     }
 
@@ -176,7 +175,7 @@ public class DockerHealthCheckEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         KubernetesList list = builder.build();
-        assertEquals(1, list.getItems().size());
+        assertThat(list.getItems()).hasSize(1);
         assertNoProbes(list.getItems().get(0));
     }
 

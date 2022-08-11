@@ -24,10 +24,9 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.validation.constraints.Null;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -50,7 +49,6 @@ public class ServiceDiscoveryEnricherTest {
     private ServiceBuilder builder;
 
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Before
     public void setUp() {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
@@ -74,7 +72,7 @@ public class ServiceDiscoveryEnricherTest {
     public void testDiscoveryLabel() {
         enricher.addAnnotations(builder);
         String value = builder.buildMetadata().getLabels().get("discovery.3scale.net");
-        assertEquals(discoverable, value);
+        assertThat(value).isEqualTo(discoverable);
     }
 
     @Test
@@ -125,18 +123,15 @@ public class ServiceDiscoveryEnricherTest {
                 .endPort()
                 .endSpec();
 
-        // When
-        NullPointerException npe = assertThrows(NullPointerException.class, () -> enricher.addAnnotations(serviceBuilder));
-
-        // Then
-        assertEquals("Service test-svc .spec.ports[0].port: required value", npe.getMessage());
+        // When + Then
+        assertThatNullPointerException()
+            .isThrownBy(() -> enricher.addAnnotations(serviceBuilder))
+            .withMessage("Service test-svc .spec.ports[0].port: required value");
     }
 
     private void assertAnnotation(String expectedValue, String annotation) {
-        assertEquals(
-            expectedValue,
-            builder.buildMetadata().getAnnotations().get("discovery.3scale.net/" + annotation)
-        );
+        assertThat(builder.buildMetadata().getAnnotations())
+            .containsEntry("discovery.3scale.net/" + annotation, expectedValue);
     }
 
 }
