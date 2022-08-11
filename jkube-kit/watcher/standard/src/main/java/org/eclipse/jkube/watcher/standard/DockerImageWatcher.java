@@ -14,11 +14,7 @@
 package org.eclipse.jkube.watcher.standard;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Date;
@@ -29,7 +25,6 @@ import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchException;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
@@ -53,9 +48,34 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.apache.commons.codec.binary.Base64InputStream;
-import org.apache.commons.io.IOUtils;
 
+/**
+ * This watcher listens for changes in project workspace and redeploys application.
+ *
+ * <p>
+ * On detecting change, it's behavior varies on the value of {@link org.eclipse.jkube.kit.config.image.WatchMode}
+ * </p>
+ * <ul>
+ *   <li>
+ *     build: A new intermediate image is rebuilt.
+ *   </li>
+ *   <li>
+ *     run: Restart container (Since this is coming from Docker Maven Plugin this is applicable to docker container where
+ *          container would be stopped and restarted). In our case, nothing happens.
+ *   </li>
+ *   <li>
+ *     both: A new intermediate image is rebuilt and pod's controller (i.e. Deployment, ReplicaSet etc) is
+ *           updated with new image. A rolling restart is forced after this.
+ *   </li>
+ *   <li>
+ *     copy: Changed files are directly copied into pod. This works well for web applications where war can be copied
+ *           directly into Web application server's(tomcat/jetty) deployment directory.
+ *   </li>
+ *   <li>
+ *     none: No action is taken on detecting changes.
+ *   </li>
+ * </ul>
+ */
 public class DockerImageWatcher extends BaseWatcher {
 
     private static final Duration WAIT_TIMEOUT = Duration.ofSeconds(60);
@@ -188,19 +208,10 @@ public class DockerImageWatcher extends BaseWatcher {
         return null;
     }
 
-    private void copyFileToPod(File fileToUpload, Collection<HasMetadata> resources) throws IOException, WatchException {
+    private void copyFileToPod(File fileToUpload, Collection<HasMetadata> resources) throws WatchException {
         ClusterAccess clusterAccess = getContext().getJKubeServiceHub().getClusterAccess();
-        try (
-            final PipedOutputStream pos = new PipedOutputStream();
-            final PipedInputStream pis = new PipedInputStream(pos)
-        ) {
-            final Runnable filePusher = uploadFilesRunnable(fileToUpload, pos, log);
-            final PodExecutor podExecutor = new PodExecutor(clusterAccess, pis, WAIT_TIMEOUT, filePusher);
-            podExecutor.executeCommandInPod(resources, "sh");
-        } catch(InterruptedException exception) {
-            log.error("Copy files task interrupted");
-            Thread.currentThread().interrupt();
-        }
+        final PodExecutor podExecutor = new PodExecutor(clusterAccess, WAIT_TIMEOUT);
+        podExecutor.uploadFileToPod(resources, fileToUpload);
     }
 
     private boolean updateImageName(HasMetadata entity, PodTemplateSpec template, String imagePrefix, String imageName) {
@@ -220,19 +231,5 @@ public class DockerImageWatcher extends BaseWatcher {
             }
         }
         return answer;
-    }
-
-    static Runnable uploadFilesRunnable(File fileToUpload, PipedOutputStream pos, KitLogger log) {
-        return () -> {
-            try(PrintWriter pw = new PrintWriter(pos, true)) {
-                pw.println("base64 -d << EOF | tar --no-overwrite-dir -C / -xf - && exit 0 || exit 1");
-                IOUtils.copy(new Base64InputStream(new FileInputStream(fileToUpload), true, 0, new byte[]{'\r', '\n'}), pos);
-                pw.println();
-                pw.println("EOF");
-                pw.flush();
-            } catch (IOException e) {
-                log.error("Error uploading files to Pod");
-            }
-        };
     }
 }

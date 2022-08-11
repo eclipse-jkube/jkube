@@ -17,22 +17,10 @@ package org.eclipse.jkube.watcher.standard;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ExecListenerLatchTest {
-
-  @Test
-  void onOpenWithConsumer() {
-    // Given
-    final AtomicBoolean consumed = new AtomicBoolean(false);
-    final ExecListenerLatch ell = new ExecListenerLatch(() -> consumed.set(true));
-    // When
-    ell.onOpen();
-    // Then
-    assertThat(consumed.get()).isTrue();
-  }
 
   @Test
   void onCloseShouldSetCodeAndReason() {
