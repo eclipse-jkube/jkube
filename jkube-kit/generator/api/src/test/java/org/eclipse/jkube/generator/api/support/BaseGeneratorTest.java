@@ -180,8 +180,9 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator").addFrom(builder);
     // Then
-    assertThat(builder.build().getFrom()).isNull();
-    assertThat(builder.build().getFromExt()).isNull();
+    assertThat(builder.build())
+            .hasFieldOrPropertyWithValue("from", null)
+            .hasFieldOrPropertyWithValue("fromExt", null);
   }
 
   @Test
@@ -214,8 +215,9 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator").addFrom(builder);
     // Then
-    assertThat(builder.build().getFrom()).isNull();
-    assertThat(builder.build().getFromExt()).isNull();
+    assertThat(builder.build())
+            .hasFieldOrPropertyWithValue("from", null)
+            .hasFieldOrPropertyWithValue("fromExt", null);
   }
 
   @Test
@@ -348,8 +350,10 @@ public class BaseGeneratorTest {
     generator.addLatestTagIfSnapshot(builder);
     BuildConfiguration config = builder.build();
     List<String> tags = config.getTags();
-    assertThat(tags.size()).isEqualTo(1);
-    assertThat(tags.get(0)).endsWith("latest");
+    assertThat(tags)
+            .hasSize(1)
+            .first()
+            .satisfies(s -> assertThat(s).endsWith("latest"));
   }
 
   @Test
