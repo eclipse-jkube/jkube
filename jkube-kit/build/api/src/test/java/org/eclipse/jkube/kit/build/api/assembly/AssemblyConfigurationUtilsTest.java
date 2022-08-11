@@ -41,8 +41,8 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultNoConfigurationShouldReturnDefault() {
-    BuildConfiguration mockedBuildConfiguration = mock(BuildConfiguration.class);
     // Given
+    BuildConfiguration mockedBuildConfiguration = mock(BuildConfiguration.class);
     when(mockedBuildConfiguration.getAssembly()).thenReturn(null);
     // When
     final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(mockedBuildConfiguration);
@@ -55,8 +55,8 @@ public class AssemblyConfigurationUtilsTest {
 
   @Test
   public void getAssemblyConfigurationOrCreateDefaultWithConfigurationShouldReturnConfiguration() {
-    BuildConfiguration mockedBuildConfiguration = mock(BuildConfiguration.class);
     // Given
+    BuildConfiguration mockedBuildConfiguration = mock(BuildConfiguration.class);
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
     when(mockedBuildConfiguration.getAssembly()).thenReturn(configuration);
     // When
