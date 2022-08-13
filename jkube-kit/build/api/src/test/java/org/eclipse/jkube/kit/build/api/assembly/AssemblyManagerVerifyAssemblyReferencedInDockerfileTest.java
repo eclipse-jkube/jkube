@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 
 @RunWith(Parameterized.class)
-public class verifyAssemblyReferencedInDockerfile_whenDockerfileProvided_thenLogsNWarnings {
+public class AssemblyManagerVerifyAssemblyReferencedInDockerfileTest {
 
     private KitLogger logger;
     @Before
@@ -57,7 +57,7 @@ public class verifyAssemblyReferencedInDockerfile_whenDockerfileProvided_thenLog
     @Parameterized.Parameter(2)
     public Integer expectedLogWarnings;
     @Test
-    public void verifyAssemblyReferencedInDockerfile_logsWarning() throws IOException {
+    public void verifyAssemblyReferencedInDockerfile_whenDockerfileProvided_thenLogsNWarnings() throws IOException {
         BuildConfiguration buildConfig = createBuildConfig();
 
         AssemblyManager.verifyAssemblyReferencedInDockerfile(

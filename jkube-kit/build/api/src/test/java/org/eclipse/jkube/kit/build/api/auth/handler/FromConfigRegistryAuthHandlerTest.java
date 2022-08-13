@@ -40,7 +40,7 @@ public class FromConfigRegistryAuthHandlerTest {
   private KitLogger log;
   @Before
   public void setUp() throws Exception {
-    log = spy(new KitLogger.SilentLogger());
+    log = new KitLogger.SilentLogger();
   }
   @Test
   public void testFromPluginConfiguration() throws IOException {
