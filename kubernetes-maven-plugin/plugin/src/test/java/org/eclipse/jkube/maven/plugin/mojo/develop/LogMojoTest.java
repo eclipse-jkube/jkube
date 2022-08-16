@@ -15,18 +15,14 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Properties;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.junit.After;
