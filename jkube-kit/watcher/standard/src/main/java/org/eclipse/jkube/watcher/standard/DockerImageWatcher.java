@@ -97,7 +97,7 @@ public class DockerImageWatcher extends BaseWatcher {
         WatchContext watchContext = getContext().getWatchContext();
 
         watchContext = watchContext.toBuilder()
-                .imageCustomizer(this::buildImage)
+                .imageCustomizer(this::customizeImageName)
                 .containerRestarter(imageWatcher -> restartContainer(imageWatcher, resources))
                 .containerCommandExecutor(command -> executeCommandInPod(command, resources))
                 .containerCopyTask(f -> copyFileToPod(f, resources))
@@ -111,7 +111,7 @@ public class DockerImageWatcher extends BaseWatcher {
         }
     }
 
-    protected void buildImage(ImageConfiguration imageConfig) {
+    protected void customizeImageName(ImageConfiguration imageConfig) {
         String imageName = imageConfig.getName();
         // lets regenerate the label
         try {
@@ -164,21 +164,21 @@ public class DockerImageWatcher extends BaseWatcher {
             Deployment resource = (Deployment) entity;
             DeploymentSpec spec = resource.getSpec();
             if (spec != null && updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                kubernetes.apps().deployments().inNamespace(namespace).withName(name).replace(resource);
+                kubernetes.apps().deployments().inNamespace(namespace).resource(resource).replace();
                 kubernetes.apps().deployments().inNamespace(namespace).withName(name).rolling().restart();
             }
         } else if (entity instanceof ReplicaSet) {
             ReplicaSet resource = (ReplicaSet) entity;
             ReplicaSetSpec spec = resource.getSpec();
             if (spec != null && updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                kubernetes.apps().replicaSets().inNamespace(namespace).withName(name).replace(resource);
+                kubernetes.apps().replicaSets().inNamespace(namespace).resource(resource).replace();
                 kubernetes.apps().replicaSets().inNamespace(namespace).withName(name).rolling().restart();
             }
         } else if (entity instanceof ReplicationController) {
             ReplicationController resource = (ReplicationController) entity;
             ReplicationControllerSpec spec = resource.getSpec();
             if (spec != null && updateImageName(entity, spec.getTemplate(), imagePrefix, imageName)) {
-                kubernetes.replicationControllers().inNamespace(namespace).withName(name).replace(resource);
+                kubernetes.replicationControllers().inNamespace(namespace).resource(resource).replace();
                 kubernetes.replicationControllers().inNamespace(namespace).withName(name).rolling().restart();
             }
         } else if (entity instanceof DeploymentConfig) {
@@ -189,7 +189,7 @@ public class DockerImageWatcher extends BaseWatcher {
                 if (openshiftClient == null) {
                     log.warn("Ignoring DeploymentConfig %s as not connected to an OpenShift cluster", name);
                 } else {
-                    openshiftClient.deploymentConfigs().inNamespace(namespace).withName(name).replace(resource);
+                    openshiftClient.deploymentConfigs().inNamespace(namespace).resource(resource).replace();
                 }
             }
         }
@@ -211,7 +211,7 @@ public class DockerImageWatcher extends BaseWatcher {
     private void copyFileToPod(File fileToUpload, Collection<HasMetadata> resources) throws WatchException {
         ClusterAccess clusterAccess = getContext().getJKubeServiceHub().getClusterAccess();
         final PodExecutor podExecutor = new PodExecutor(clusterAccess, WAIT_TIMEOUT);
-        podExecutor.uploadFileToPod(resources, fileToUpload);
+        podExecutor.uploadChangedFilesToPod(resources, fileToUpload);
     }
 
     private boolean updateImageName(HasMetadata entity, PodTemplateSpec template, String imagePrefix, String imageName) {

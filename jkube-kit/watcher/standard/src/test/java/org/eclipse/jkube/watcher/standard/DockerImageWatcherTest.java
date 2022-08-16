@@ -14,12 +14,14 @@
 package org.eclipse.jkube.watcher.standard;
 
 import java.io.IOException;
-
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.build.service.docker.watch.CopyFilesTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.ExecTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -37,29 +39,47 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class DockerImageWatcherTest{
-
-  private WatcherContext watcherContext;
+class DockerImageWatcherTest {
   private WatchService watchService;
   private DockerImageWatcher dockerImageWatcher;
 
   @BeforeEach
-  public void setUp(){
-    watcherContext = mock(WatcherContext.class,RETURNS_DEEP_STUBS);
+  public void setUp() {
+    WatcherContext watcherContext = mock(WatcherContext.class, RETURNS_DEEP_STUBS);
+    ClusterAccess mockedClusterAccess = mock(ClusterAccess.class);
     watchService = mock(WatchService.class);
     DockerServiceHub mockedDockerServiceHub = mock(DockerServiceHub.class,RETURNS_DEEP_STUBS);
     dockerImageWatcher = new DockerImageWatcher(watcherContext);
     when(mockedDockerServiceHub.getWatchService()).thenReturn(watchService);
     when(watcherContext.getJKubeServiceHub().getDockerServiceHub()).thenReturn(mockedDockerServiceHub);
     when(watcherContext.getWatchContext()).thenReturn(new WatchContext());
+    when(watcherContext.getBuildContext().getProject()).thenReturn(JavaProject.builder()
+        .groupId("org.example")
+        .artifactId("test")
+        .version("1.0.0-SNAPSHOT").build());
+    when(watcherContext.getJKubeServiceHub().getClusterAccess()).thenReturn(mockedClusterAccess);
   }
 
   @Test
-  void watchShouldInitWatchContext() throws IOException{
+  void customizeImageName_whenImageConfigurationProvided_thenModifiesImageNameForWatch() {
     // Given
-    ArgumentCaptor<WatchContext>watchContextArgumentCaptor=ArgumentCaptor.forClass(WatchContext.class);
+    ImageConfiguration imageConfiguration = ImageConfiguration.builder()
+        .name("foo/example:latest")
+        .build();
+
     // When
-    dockerImageWatcher.watch(null,null,null,null);
+    dockerImageWatcher.customizeImageName(imageConfiguration);
+
+    // Then
+    assertThat(imageConfiguration.getName()).startsWith("foo/example:snapshot-");
+  }
+
+  @Test
+  void watchShouldInitWatchContext() throws IOException {
+    // Given
+    ArgumentCaptor<WatchContext> watchContextArgumentCaptor = ArgumentCaptor.forClass(WatchContext.class);
+    // When
+    dockerImageWatcher.watch(null, null, null, null);
     // Then
     verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any());
     assertThat(watchContextArgumentCaptor.getValue())
@@ -69,8 +89,8 @@ class DockerImageWatcherTest{
   }
 
   @Test
-  void watchExecuteCommandInPodTask() throws Exception{
-    try(MockedConstruction<PodExecutor>podExecutorMockedConstruction=mockConstruction(PodExecutor.class)){
+  void watchExecuteCommandInPodTask() throws Exception {
+    try (MockedConstruction<PodExecutor> podExecutorMockedConstruction = mockConstruction(PodExecutor.class)) {
       // Given
       ArgumentCaptor<WatchContext>watchContextArgumentCaptor=ArgumentCaptor.forClass(WatchContext.class);
       dockerImageWatcher.watch(null,null,null,null);
@@ -85,18 +105,18 @@ class DockerImageWatcherTest{
   }
 
   @Test
-  void watchCopyFileToPod() throws Exception{
-    try(MockedConstruction<PodExecutor> podExecutorMockedConstruction = mockConstruction(PodExecutor.class)){
+  void watchCopyFileToPod() throws Exception {
+    try (MockedConstruction<PodExecutor> podExecutorMockedConstruction = mockConstruction(PodExecutor.class)) {
       // Given
       ArgumentCaptor<WatchContext> watchContextArgumentCaptor = ArgumentCaptor.forClass(WatchContext.class);
       dockerImageWatcher.watch(null,null,null,null);
       verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any());
-      final CopyFilesTask copyFilesTask=watchContextArgumentCaptor.getValue().getContainerCopyTask();
+      final CopyFilesTask copyFilesTask = watchContextArgumentCaptor.getValue().getContainerCopyTask();
       // When
       copyFilesTask.copy(null);
       // Then
       assertThat(podExecutorMockedConstruction.constructed()).hasSize(1);
-      verify(podExecutorMockedConstruction.constructed().get(0)).executeCommandInPod(isNull(),eq("sh"));
+      verify(podExecutorMockedConstruction.constructed().get(0)).uploadChangedFilesToPod(isNull(), any());
     }
   }
 }
