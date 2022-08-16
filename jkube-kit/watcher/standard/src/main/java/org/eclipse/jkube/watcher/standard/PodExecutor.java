@@ -43,10 +43,10 @@ public class PodExecutor {
     this.waitTimeout = waitTimeout;
   }
 
-  void uploadFileToPod(Collection<HasMetadata> resources, File fileToUpload) throws WatchException {
+  void uploadChangedFilesToPod(Collection<HasMetadata> resources, File changedFilesTarball) throws WatchException {
     try (KubernetesClient client = clusterAccess.createDefaultClient()) {
       String namespace = clusterAccess.getNamespace();
-      File changedFilesDir = new File(fileToUpload.getParentFile(), "changed-files");
+      File changedFilesDir = new File(changedFilesTarball.getParentFile(), "changed-files");
       File[] changedFiles = changedFilesDir.listFiles();
       if (changedFiles != null && changedFiles.length > 0) {
         PodResource podResource = client.pods()
