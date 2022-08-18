@@ -18,16 +18,17 @@ import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
 import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class SmallRyeIT {
+class SmallRyeIT {
   @RegisterExtension
   private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  public void k8sResource_whenRun_generatesK8sManifestsWithProbes() throws IOException, ParseException {
+  void k8sResource_whenRun_generatesK8sManifestsWithProbes() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("smallrye-health")
         .withArguments("build", "k8sResource", "--stacktrace")
@@ -46,7 +47,7 @@ public class SmallRyeIT {
   }
 
   @Test
-  public void ocResource_whenRun_generatesOpenShiftManifestsWithProbes() throws IOException, ParseException {
+  void ocResource_whenRun_generatesOpenShiftManifestsWithProbes() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("smallrye-health")
         .withArguments("build", "ocResource", "--stacktrace")
