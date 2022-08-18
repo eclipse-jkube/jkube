@@ -24,36 +24,20 @@
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>jkube-kit-openliberty</artifactId>
-    <name>JKube Kit :: Open Liberty</name>
-
+    <artifactId>jkube-kit-microprofile</artifactId>
+    <name>JKube Kit :: Microprofile</name>
     <dependencies>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-enricher-specific</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-generator-java-exec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-microprofile</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
