@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.10-SNAPSHOT
+* Fix #443: Add health check enricher for SmallRye Health
 * Fix #1684: Podman builds with errors are correctly processed and reported 
 
 ### 1.9.1 (2022-09-14)

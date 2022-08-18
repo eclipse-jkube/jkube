@@ -127,6 +127,12 @@
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-smallrye</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-profiles</artifactId>
         </dependency>
 

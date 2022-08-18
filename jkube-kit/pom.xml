@@ -59,8 +59,10 @@
       <module>jkube-kit-vertx</module>
       <module>jkube-kit-quarkus</module>
       <module>jkube-kit-micronaut</module>
+      <module>jkube-kit-microprofile</module>
       <module>jkube-kit-openliberty</module>
       <module>jkube-kit-wildfly-jar</module>
+      <module>jkube-kit-smallrye</module>
   </modules>
 
   <profiles>
