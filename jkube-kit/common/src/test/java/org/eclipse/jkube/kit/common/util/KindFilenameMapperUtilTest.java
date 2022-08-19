@@ -15,37 +15,25 @@ package org.eclipse.jkube.kit.common.util;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class KindFilenameMapperUtilTest {
-    private static final String MAPPING_PROPERTIES = "Pod=pd, pod";
-
-    private static final String VALID_TABLE = "cols=2*,options=\"header\"]\n"
-            + "|===\n"
-            + "|Kind\n"
-            + "|Filename Type\n\n"
-            + "|BuildConfig\n"
-            + "a|`bc`, `buildconfig`\n\n"
-            + "|ClusterRole\n"
-            + "a|`cr`, `crole`, `clusterrole`\n\n"
-            + "|ConfigMap\n"
-            + "a|`cm`, `configmap`\n\n"
-            + "|CronJob\n"
-            + "a|`cj`, `cronjob`\n"
-            + "|===";
 
     @Test
     public void shouldLoadMappings() {
         // given
-        final AsciiDocParser asciiDocParser = new AsciiDocParser();
-        final Map<String, List<String>> serializedMappings = asciiDocParser.serializeKindFilenameTable(new ByteArrayInputStream(VALID_TABLE.getBytes()));
+        Map<String, List<String>> serializedMappings = new HashMap<String, List<String>>(){{
+            put("BuildConfig", Arrays.asList("bc", "buildconfig"));
+            put("ClusterRole", Arrays.asList("cr", "crole", "clusterrole"));
+            put("ConfigMap", Arrays.asList("cm", "configmap"));
+            put("CronJob", Arrays.asList("cj", "cronjob"));
+        }};
 
-        final PropertiesMappingParser propertiesMappingParser =  new PropertiesMappingParser();
-        final Map<String, List<String>> propertiesMappings = propertiesMappingParser.parse(new ByteArrayInputStream(MAPPING_PROPERTIES.getBytes()));
+        Map<String, List<String>> propertiesMappings = new HashMap<String, List<String>>(){{
+            put("Pod", Arrays.asList("pd", "pod"));
+        }};
 
         // when
         Map<String, List<String>> defaultMappings = KindFilenameMapperUtil.loadMappings();
