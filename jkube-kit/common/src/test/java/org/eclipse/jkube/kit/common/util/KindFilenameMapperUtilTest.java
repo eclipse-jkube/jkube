@@ -15,23 +15,27 @@ package org.eclipse.jkube.kit.common.util;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class KindFilenameMapperUtilTest {
-
     @Test
-    public void shouldLoadMappings() {
+    void shouldLoadMappings() {
         // given
-        Map<String, List<String>> serializedMappings = new HashMap<String, List<String>>(){{
+        // source: test/resources/**/kind-file-type-mappings-default.ascii
+        Map<String, List<String>> serializedMappings = new HashMap<String, List<String>>() {{
             put("BuildConfig", Arrays.asList("bc", "buildconfig"));
             put("ClusterRole", Arrays.asList("cr", "crole", "clusterrole"));
             put("ConfigMap", Arrays.asList("cm", "configmap"));
             put("CronJob", Arrays.asList("cj", "cronjob"));
         }};
 
-        Map<String, List<String>> propertiesMappings = new HashMap<String, List<String>>(){{
+        // source: test/resources/**/kind-file-type-mappings-default.properties
+        Map<String, List<String>> propertiesMappings =  new HashMap<String, List<String>>() {{
             put("Pod", Arrays.asList("pd", "pod"));
         }};
 
