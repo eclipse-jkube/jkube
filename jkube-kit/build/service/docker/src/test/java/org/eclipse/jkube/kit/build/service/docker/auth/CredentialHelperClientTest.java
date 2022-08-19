@@ -18,13 +18,12 @@ import com.google.gson.JsonObject;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class CredentialHelperClientTest {
+class CredentialHelperClientTest {
     private final Gson gson = new Gson();
 
     @Mocked
@@ -36,31 +35,31 @@ public class CredentialHelperClientTest {
 
     private AuthConfig authConfig;
 
-    @Before
-    public void givenCredentialHelperClient() {
+    @BeforeEach
+    void givenCredentialHelperClient() {
         this.credentialHelperClient = new CredentialHelperClient(logger, "desktop");
     }
 
     @Test
-    public void testUsernamePasswordAuthConfig() {
+    void testUsernamePasswordAuthConfig() {
         givenJson("{\"ServerURL\":\"registry.mycompany.com\",\"Username\":\"jane_doe\",\"Secret\":\"not-really\"}");
 
         whenJsonObjectConvertedToAuthConfig();
-        
-        assertEquals("username should match", "jane_doe", this.authConfig.getUsername());
-        assertEquals("password should match", "not-really", this.authConfig.getPassword());
-        assertNull("identityToken should not be set", this.authConfig.getIdentityToken());
+        assertThat(authConfig)
+                .hasFieldOrPropertyWithValue("username", "jane_doe")
+                .hasFieldOrPropertyWithValue("password", "not-really")
+                .hasFieldOrPropertyWithValue("identityToken", null);
     }
 
     @Test
-    public void testTokenAuthConfig() {
+    void testTokenAuthConfig() {
         givenJson("{\"ServerURL\":\"registry.cloud-provider.com\",\"Username\":\"<token>\",\"Secret\":\"gigantic-mess-of-jwt\"}");
 
         whenJsonObjectConvertedToAuthConfig();
-
-        assertNull("username should not be set", this.authConfig.getUsername());
-        assertNull("password should not be set", this.authConfig.getPassword());
-        assertEquals("identity token should match", "gigantic-mess-of-jwt", this.authConfig.getIdentityToken());
+        assertThat(authConfig)
+                .hasFieldOrPropertyWithValue("username", null)
+                .hasFieldOrPropertyWithValue("password", null)
+                .hasFieldOrPropertyWithValue("identityToken", "gigantic-mess-of-jwt");
     }
 
     private void givenJson(String json) {

@@ -19,8 +19,8 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,14 +34,14 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ConfigHelperTest {
+class ConfigHelperTest {
   private ImageConfigResolver imageConfigResolver;
   private KitLogger logger;
   private JavaProject javaProject;
   private JKubeConfiguration jKubeConfiguration;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     imageConfigResolver = mock(ImageConfigResolver.class, RETURNS_DEEP_STUBS);
     logger = new KitLogger.SilentLogger();
     javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
@@ -50,7 +50,7 @@ public class ConfigHelperTest {
   }
 
   @Test
-  public void initImageConfiguration_withSimpleImageConfiguration_shouldReturnImageConfiguration() {
+  void initImageConfiguration_withSimpleImageConfiguration_shouldReturnImageConfiguration() {
     // Given
     ImageConfiguration dummyImageConfiguration = ImageConfiguration.builder()
         .name("foo/bar:latest")
@@ -67,14 +67,13 @@ public class ConfigHelperTest {
     List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), images, imageConfigResolver, logger, null, configs -> configs, jKubeConfiguration);
 
     // Then
-    assertThat(resolvedImages)
-        .isNotNull()
-        .hasSize(1)
-        .element(0).isEqualTo(dummyImageConfiguration);
+    assertThat(resolvedImages).isNotNull()
+        .singleElement()
+        .isEqualTo(dummyImageConfiguration);
   }
 
   @Test
-  public void initImageConfiguration_withSimpleDockerFileInProjectBaseDir_shouldCreateImageConfiguration() {
+  void initImageConfiguration_withSimpleDockerFileInProjectBaseDir_shouldCreateImageConfiguration() {
     List<ImageConfiguration> images = new ArrayList<>();
     File dockerFile = new File(getClass().getResource("/dummy-javaproject/Dockerfile").getFile());
     when(jKubeConfiguration.getBasedir()).thenReturn(dockerFile.getParentFile());
@@ -87,17 +86,15 @@ public class ConfigHelperTest {
     List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), images, imageConfigResolver, logger, null, configs -> configs, jKubeConfiguration);
 
     // Then
-    assertThat(resolvedImages)
-        .isNotNull()
-        .hasSize(1)
-        .element(0)
+    assertThat(resolvedImages).isNotNull()
+        .singleElement()
         .hasFieldOrPropertyWithValue("name", "jkube/test-java-project:latest")
         .hasFieldOrPropertyWithValue("build.dockerFile", dockerFile)
         .hasFieldOrPropertyWithValue("build.ports", Collections.singletonList("8080"));
   }
 
   @Test
-  public void initImageConfiguration_withSimpleDockerFileModeEnabledAndImageConfigurationWithNoBuild_shouldModifyExistingImageConfiguration() {
+  void initImageConfiguration_withSimpleDockerFileModeEnabledAndImageConfigurationWithNoBuild_shouldModifyExistingImageConfiguration() {
     ImageConfiguration dummyImageConfiguration = ImageConfiguration.builder()
         .name("imageconfiguration-no-build:latest")
         .build();
@@ -112,10 +109,8 @@ public class ConfigHelperTest {
     List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), images, imageConfigResolver, logger, null, configs -> configs, jKubeConfiguration);
 
     // Then
-    assertThat(resolvedImages)
-        .isNotNull()
-        .hasSize(1)
-        .element(0)
+    assertThat(resolvedImages).isNotNull()
+        .singleElement()
         .hasFieldOrPropertyWithValue("name", "imageconfiguration-no-build:latest")
         .hasFieldOrPropertyWithValue("build.dockerFile", dockerFile)
         .hasFieldOrPropertyWithValue("build.ports", Collections.singletonList("8080"));

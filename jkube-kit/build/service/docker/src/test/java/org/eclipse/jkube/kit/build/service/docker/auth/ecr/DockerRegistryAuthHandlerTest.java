@@ -30,32 +30,30 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import mockit.Mocked;
-import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.singletonMap;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author roland
  */
-public class DockerRegistryAuthHandlerTest {
+class DockerRegistryAuthHandlerTest {
 
   @Mocked
   private KitLogger log;
 
   private DockerRegistryAuthHandler handler;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     handler = new DockerRegistryAuthHandler(log);
   }
 
   @Test
-  public void testDockerAuthLogin() throws Exception {
+  void testDockerAuthLogin() throws Exception {
     executeWithTempHomeDir(homeDir -> {
       checkDockerAuthLogin(homeDir, "https://index.docker.io/v1/", null);
       checkDockerAuthLogin(homeDir, "localhost:5000", "localhost:5000");
@@ -64,15 +62,15 @@ public class DockerRegistryAuthHandlerTest {
   }
 
   @Test
-  public void testDockerLoginNoConfig() throws IOException {
+  void testDockerLoginNoConfig() throws IOException {
     executeWithTempHomeDir(dir -> {
       AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, "roland", null, s -> s);
-      assertNull(config);
+      assertThat(config).isNull();
     });
   }
 
   @Test
-  public void testDockerLoginFallsBackToAuthWhenCredentialHelperDoesNotMatchDomain() throws IOException {
+  void testDockerLoginFallsBackToAuthWhenCredentialHelperDoesNotMatchDomain() throws IOException {
     executeWithTempHomeDir(homeDir -> {
       writeDockerConfigJson(createDockerConfig(homeDir), null, singletonMap("registry1", "credHelper1-does-not-exist"));
       AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, "roland", "localhost:5000", s -> s);
@@ -81,49 +79,49 @@ public class DockerRegistryAuthHandlerTest {
   }
 
   @Test
-  public void testDockerLoginNoAuthConfigFoundWhenCredentialHelperDoesNotMatchDomainOrAuth() throws IOException {
+  void testDockerLoginNoAuthConfigFoundWhenCredentialHelperDoesNotMatchDomainOrAuth() throws IOException {
     executeWithTempHomeDir(homeDir -> {
       writeDockerConfigJson(createDockerConfig(homeDir), null, singletonMap("registry1", "credHelper1-does-not-exist"));
       AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, "roland", "does-not-exist-either:5000", s -> s);
-      assertNull(config);
+      assertThat(config).isNull();
     });
   }
 
   @Test
-  public void testDockerLoginSelectCredentialHelper() throws IOException {
+  void testDockerLoginSelectCredentialHelper() throws IOException {
     executeWithTempHomeDir(homeDir -> {
       writeDockerConfigJson(createDockerConfig(homeDir), "credsStore-does-not-exist",
           singletonMap("registry1", "credHelper1-does-not-exist"));
       RuntimeException exception = assertThrows(RuntimeException.class,
           () -> handler.create(RegistryAuthConfig.Kind.PUSH, "roland", "registry1", s -> s));
-      Assertions.assertThat(exception).getCause()
+      assertThat(exception).cause()
           .isInstanceOf(IOException.class)
           .hasMessageStartingWith("Failed to start 'docker-credential-credHelper1-does-not-exist version'");
     });
   }
 
   @Test
-  public void testDockerLoginSelectCredentialsStore() throws IOException {
+  void testDockerLoginSelectCredentialsStore() throws IOException {
     executeWithTempHomeDir(homeDir -> {
       writeDockerConfigJson(createDockerConfig(homeDir), "credsStore-does-not-exist",
           singletonMap("registry1", "credHelper1-does-not-exist"));
       RuntimeException exception = assertThrows(RuntimeException.class,
           () -> handler.create(RegistryAuthConfig.Kind.PUSH, "roland", null, s -> s));
-      Assertions.assertThat(exception).getCause()
+      assertThat(exception).cause()
           .isInstanceOf(IOException.class)
           .hasMessageStartingWith("Failed to start 'docker-credential-credsStore-does-not-exist version'");
     });
   }
 
   @Test
-  public void testDockerLoginDefaultToCredentialsStore() throws IOException {
+  void testDockerLoginDefaultToCredentialsStore() throws IOException {
 
     executeWithTempHomeDir(homeDir -> {
       writeDockerConfigJson(createDockerConfig(homeDir), "credsStore-does-not-exist",
           singletonMap("registry1", "credHelper1-does-not-exist"));
       RuntimeException exception = assertThrows(RuntimeException.class,
           () -> handler.create(RegistryAuthConfig.Kind.PUSH, "roland", "registry2", s -> s));
-      Assertions.assertThat(exception).getCause()
+      assertThat(exception).cause()
           .hasCauseInstanceOf(IOException.class)
           .hasMessageStartingWith("Failed to start 'docker-credential-credsStore-does-not-exist version'");
     });
@@ -202,10 +200,11 @@ public class DockerRegistryAuthHandlerTest {
   private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
     JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())),
         JsonObject.class);
-    assertEquals(username, params.get("username").getAsString());
-    assertEquals(password, params.get("password").getAsString());
+    assertThat(params)
+            .returns(username, j -> j.get("username").getAsString())
+            .returns(password, j -> j.get("password").getAsString());
     if (email != null) {
-      assertEquals(email, params.get("email").getAsString());
+      assertThat(params.get("email").getAsString()).isEqualTo(email);
     }
   }
 

@@ -18,80 +18,79 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.jkube.kit.common.JsonFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
  * @since 03/01/17
  */
-public class BuildConfigTest {
+class BuildConfigTest {
 
     @Test
-    public void empty() {
+    void empty() {
         BuildOptions opts = new BuildOptions();
-        assertEquals(0, opts.getOptions().size());
+        assertThat(opts.getOptions()).isEmpty();
     }
 
     @Test
-    public void forcerm() {
-        BuildOptions opts = new BuildOptions().forceRemove(false);
-        assertEquals(0, opts.getOptions().size());
-        opts = new BuildOptions().forceRemove(true);
-        assertEquals("1", opts.getOptions().get("forcerm"));
+    void forcerm() {
+        BuildOptions optsWithoutForcerm = new BuildOptions().forceRemove(false);
+        assertThat(optsWithoutForcerm.getOptions()).isEmpty();
+        BuildOptions optsWithForcerm = new BuildOptions().forceRemove(true);
+        assertThat(optsWithForcerm.getOptions()).containsEntry("forcerm", "1");
     }
 
     @Test
-    public void nocache() {
-        BuildOptions opts = new BuildOptions().noCache(true);
-        assertEquals("1", opts.getOptions().get("nocache"));
-        opts = new BuildOptions().noCache(false);
-        assertEquals("0", opts.getOptions().get("nocache"));
+    void nocache() {
+        BuildOptions optsWithoutCache = new BuildOptions().noCache(true);
+        assertThat(optsWithoutCache.getOptions()).containsEntry("nocache", "1");
+        BuildOptions optsWithCache = new BuildOptions().noCache(false);
+        assertThat(optsWithCache.getOptions()).containsEntry("nocache", "0");
     }
 
     @Test
-    public void dockerfile() {
+    void dockerfile() {
         BuildOptions opts = new BuildOptions().dockerfile("blub");
-        assertEquals("blub", opts.getOptions().get("dockerfile"));
-        opts = new BuildOptions().dockerfile(null);
-        assertEquals(0, opts.getOptions().size());
+        assertThat(opts.getOptions()).containsEntry("dockerfile", "blub");
+        BuildOptions optsWithNullDockerFile = new BuildOptions().dockerfile(null);
+        assertThat(optsWithNullDockerFile.getOptions()).isEmpty();
     }
 
     @Test
-    public void buildArgs() {
+    void buildArgs() {
         Map<String,String> args = Collections.singletonMap("arg1", "blub");
-        BuildOptions opts = new BuildOptions().buildArgs(args);
-        assertEquals(JsonFactory.newJsonObject(args).toString(), opts.getOptions().get("buildargs"));
-        opts = new BuildOptions().buildArgs(null);
-        assertEquals(0, opts.getOptions().size());
-
+        BuildOptions optsWithArgs = new BuildOptions().buildArgs(args);
+        assertThat(optsWithArgs.getOptions()).containsEntry("buildargs", JsonFactory.newJsonObject(args).toString());
+        BuildOptions optsWithNullArgs = new BuildOptions().buildArgs(null);
+        assertThat(optsWithNullArgs.getOptions()).isEmpty();
     }
 
     @Test
-    public void override() {
+    void override() {
         BuildOptions opts = new BuildOptions(Collections.singletonMap("nocache", "1"));
-        assertEquals(1, opts.getOptions().size());
-        assertEquals("1", opts.getOptions().get("nocache"));
+        assertThat(opts.getOptions()).hasSize(1).containsEntry("nocache", "1");
+
         opts.noCache(false);
-        assertEquals("0", opts.getOptions().get("nocache"));
+        assertThat(opts.getOptions()).containsEntry("nocache", "0");
+
         opts.addOption("nocache","1");
-        assertEquals("1", opts.getOptions().get("nocache"));
+        assertThat(opts.getOptions()).containsEntry("nocache", "1");
     }
 
     @Test
-    public void cachefrom() {
+    void cachefrom() {
         BuildOptions opts = new BuildOptions().cacheFrom(Collections.singletonList("foo/bar:latest"));
-        assertEquals("[\"foo/bar:latest\"]", opts.getOptions().get("cachefrom"));
+        assertThat(opts.getOptions()).containsEntry("cachefrom", "[\"foo/bar:latest\"]");
 
         opts.cacheFrom(Arrays.asList("foo/bar:latest", "foo/baz:1.0"));
-        assertEquals("[\"foo/bar:latest\",\"foo/baz:1.0\"]", opts.getOptions().get("cachefrom"));
+        assertThat(opts.getOptions()).containsEntry("cachefrom", "[\"foo/bar:latest\",\"foo/baz:1.0\"]");
 
         opts.cacheFrom(Collections.emptyList());
-        assertNull(opts.getOptions().get("cachefrom"));
+        assertThat(opts.getOptions()).doesNotContainKey("cachefrom");
 
         opts.cacheFrom(null);
-        assertNull(opts.getOptions().get("cachefrom"));
+        assertThat(opts.getOptions()).doesNotContainKey("cachefrom");
     }
 }

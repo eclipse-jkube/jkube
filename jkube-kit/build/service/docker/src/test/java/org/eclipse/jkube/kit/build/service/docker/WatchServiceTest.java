@@ -25,13 +25,12 @@ import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
 
 import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class WatchServiceTest {
+class WatchServiceTest {
     @Mocked
     ArchiveService archiveService;
 
@@ -47,10 +46,10 @@ public class WatchServiceTest {
     @Mocked
     KitLogger logger;
 
-    ImageConfiguration imageConfiguration;
+    private ImageConfiguration imageConfiguration;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         imageConfiguration = ImageConfiguration.builder()
                 .name("test-app")
                 .watch(WatchImageConfiguration.builder()
@@ -60,7 +59,7 @@ public class WatchServiceTest {
     }
 
     @Test
-    public void testRestartContainerAndCallPostGoalRestartDisabled() throws Exception {
+    void testRestartContainerAndCallPostGoalRestartDisabled() throws Exception {
         // Given
         AtomicReference<String> stringAtomicReference = new AtomicReference<>("oldVal");
         String mavenGoalToExecute = "org.apache.maven.plugins:maven-help-plugin:help";
@@ -76,11 +75,11 @@ public class WatchServiceTest {
         watchService.restartContainerAndCallPostGoal(imageWatcher, false);
 
         // Then
-        assertEquals(mavenGoalToExecute, stringAtomicReference.get());
+        assertThat(stringAtomicReference).hasValue(mavenGoalToExecute);
     }
 
     @Test
-    public void testRestartContainerAndCallPostGoalRestartEnabled() throws Exception {
+    void testRestartContainerAndCallPostGoalRestartEnabled() throws Exception {
         // Given
         AtomicBoolean restarted = new AtomicBoolean(false);
         WatchContext watchContext = WatchContext.builder()
@@ -94,11 +93,11 @@ public class WatchServiceTest {
         watchService.restartContainerAndCallPostGoal(imageWatcher, true);
 
         // Then
-        assertTrue(restarted.get());
+        assertThat(restarted).isTrue();
     }
 
     @Test
-    public void testCopyFilesToContainer() throws Exception {
+    void testCopyFilesToContainer() throws Exception {
         // Given
         AtomicBoolean fileCopied = new AtomicBoolean(false);
         WatchContext watchContext = WatchContext.builder()
@@ -114,11 +113,11 @@ public class WatchServiceTest {
         watchService.copyFilesToContainer(fileToCopy, imageWatcher);
 
         // Then
-        assertTrue(fileCopied.get());
+        assertThat(fileCopied).isTrue();
     }
 
     @Test
-    public void testCallPostExec() throws Exception {
+    void testCallPostExec() throws Exception {
         // Given
         AtomicBoolean postExecCommandExecuted = new AtomicBoolean(false);
         WatchContext watchContext = WatchContext.builder()
@@ -136,6 +135,6 @@ public class WatchServiceTest {
         watchService.callPostExec(imageWatcher);
 
         // Then
-        assertTrue(postExecCommandExecuted.get());
+        assertThat(postExecCommandExecuted).isTrue();
     }
 }
