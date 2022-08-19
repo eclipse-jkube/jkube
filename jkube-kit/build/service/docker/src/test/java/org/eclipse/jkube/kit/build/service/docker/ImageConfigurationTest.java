@@ -20,14 +20,14 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ImageConfigurationTest {
+class ImageConfigurationTest {
 
   @Test
-  public void initAndValidateWithBuildAndRun(
+  void initAndValidateWithBuildAndRun(
       @Mocked ConfigHelper.NameFormatter nameFormatter, @Mocked  BuildConfiguration buildConfiguration,
       @Mocked RunImageConfiguration runImageConfiguration) {
 

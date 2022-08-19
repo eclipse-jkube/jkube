@@ -15,31 +15,31 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.fusesource.jansi.Ansi;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
  * @since 07/10/16
  */
-public class AnsiLoggerFacadeTest {
+class AnsiLoggerFacadeTest {
 
     @Test
-    public void emphasize() {
+    void emphasize() {
         TestLog testLog = new TestLog();
         AnsiLoggerFacade logger = new AnsiLoggerFacade(testLog, true, false, false, "T>");
         Ansi ansi = Ansi.ansi();
         logger.info("Yet another [[*]]Test[[*]] %s","emphasis");
-        assertEquals(ansi.a("T>")
+        assertThat(testLog.getMessage()).isEqualTo(
+                ansi.a("T>")
                         .fg(AnsiLoggerFacade.COLOR_INFO)
                         .a("Yet another ")
                         .fgBright(AnsiLoggerFacade.COLOR_EMPHASIS)
                         .a("Test")
                         .fg(AnsiLoggerFacade.COLOR_INFO)
                         .a(" emphasis")
-                        .reset().toString(),
-                testLog.getMessage());
+                        .reset().toString());
     }
 
 

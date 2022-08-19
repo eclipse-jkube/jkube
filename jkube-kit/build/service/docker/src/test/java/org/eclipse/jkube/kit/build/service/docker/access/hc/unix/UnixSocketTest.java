@@ -14,9 +14,9 @@
 package org.eclipse.jkube.kit.build.service.docker.access.hc.unix;
 
 import jnr.unixsocket.UnixSocketChannel;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.io.IOException;
@@ -24,32 +24,34 @@ import java.net.SocketException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 
-public class UnixSocketTest {
+class UnixSocketTest {
     private static final int SO_TIMEOUT = 60;
     private static final boolean KEEP_ALIVE = true;
-
     private MockedStatic<UnixSocketChannel> unixSocketChannel;
-    private UnixSocketChannel socketChannel;
     private jnr.unixsocket.UnixSocket socket;
 
-    @Before
-    public void setUp() {
-        socketChannel = mock(UnixSocketChannel.class);
+    @BeforeEach
+    void setUp() {
+        UnixSocketChannel socketChannel = mock(UnixSocketChannel.class);
         socket = mock(jnr.unixsocket.UnixSocket.class);
         doReturn(socket).when(socketChannel).socket();
         unixSocketChannel = mockStatic(UnixSocketChannel.class);
-        unixSocketChannel.when(() -> UnixSocketChannel.open()).thenReturn(socketChannel);
+        unixSocketChannel.when(UnixSocketChannel::open).thenReturn(socketChannel);
     }
 
-    @After
-    public void close() {
+    @AfterEach
+    void close() {
         unixSocketChannel.close();
     }
 
     @Test
-    public void shouldReturnValuesFromSocket() throws IOException {
+    void shouldReturnValuesFromSocket() throws IOException {
         // GIVEN
         UnixSocket unixSocket = new UnixSocket();
         doReturn(KEEP_ALIVE).when(socket).getKeepAlive();
@@ -65,19 +67,19 @@ public class UnixSocketTest {
     }
 
     @Test
-    public void shouldPassExceptionsFromSocket() throws IOException {
+    void shouldPassExceptionsFromSocket() throws IOException {
         // GIVEN
         UnixSocket unixSocket = new UnixSocket();
         doThrow(new SocketException()).when(socket).getKeepAlive();
         doThrow(new SocketException()).when(socket).getSoTimeout();
 
         // WHEN & THEN
-        assertThatThrownBy(() -> unixSocket.getKeepAlive()).isInstanceOf(SocketException.class);
-        assertThatThrownBy(() -> unixSocket.getSoTimeout()).isInstanceOf(SocketException.class);
+        assertThatThrownBy(unixSocket::getKeepAlive).isInstanceOf(SocketException.class);
+        assertThatThrownBy(unixSocket::getSoTimeout).isInstanceOf(SocketException.class);
     }
 
     @Test
-    public void shouldForwardValuesToSocket() throws IOException {
+    void shouldForwardValuesToSocket() throws IOException {
         // GIVEN
         UnixSocket unixSocket = new UnixSocket();
 

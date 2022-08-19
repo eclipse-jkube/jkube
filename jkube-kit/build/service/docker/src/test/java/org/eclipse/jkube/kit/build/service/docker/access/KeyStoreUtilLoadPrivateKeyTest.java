@@ -13,36 +13,29 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import java.security.PrivateKey;
+import java.util.stream.Stream;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.build.service.docker.access.KeyStoreUtilTest.*;
-import static org.junit.Assert.assertNotNull;
 
-@RunWith(Parameterized.class)
-public class KeyStoreUtilLoadPrivateKeyTest {
-
-  @Parameterized.Parameter
-  public String loadPrivateKeyTestName;
-
-  @Parameterized.Parameter(1)
-  public String privateKeyFile;
-
-  @Parameterized.Parameters(name = "{index}: {0}")
-  public static Object[][] data() {
-    return new Object[][] {
-        { "loadPrivateKeyDefault", "keys/pkcs1.pem" },
-        { "loadPrivateKeyPKCS8", "keys/pkcs8.pem" },
-        { "loadPrivateKeyECDSA", "keys/ecdsa.pem" }
-    };
+class KeyStoreUtilLoadPrivateKeyTest {
+  public static Stream<Arguments> privateKeyFiles() {
+    return Stream.of(
+            Arguments.of("Default", "keys/pkcs1.pem"),
+            Arguments.of("PKCS8", "keys/pkcs8.pem"),
+            Arguments.of("ECDSA", "keys/ecdsa.pem")
+    );
   }
 
-  @Test
-  public void loadPrivateKey() throws Exception {
+  @ParameterizedTest(name = "''{0}'' key should not be null")
+  @MethodSource("privateKeyFiles")
+  void loadPrivateKey(String testDesc, String privateKeyFile) throws Exception {
     PrivateKey privateKey = KeyStoreUtil.loadPrivateKey(getFile(privateKeyFile));
-    assertNotNull(privateKey);
+    assertThat(privateKey).isNotNull();
   }
 }

@@ -29,11 +29,9 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test exchange of local stored credentials for temporary ecr credentials
@@ -41,23 +39,23 @@ import static org.junit.Assert.assertTrue;
  * @author chas
  * @since 2016-12-21
  */
-public class EcrExtendedAuthTest {
+class EcrExtendedAuthTest {
 
     @Mocked
     private KitLogger logger;
 
     @Test
-    public void testIsNotAws() {
-        assertFalse(new EcrExtendedAuth(logger, "jolokia").isAwsRegistry());
+    void testIsNotAws() {
+        assertThat(new EcrExtendedAuth(logger, "jolokia").isAwsRegistry()).isFalse();
     }
 
     @Test
-    public void testIsAws() {
-        assertTrue(new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com").isAwsRegistry());
+    void testIsAws() {
+        assertThat(new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com").isAwsRegistry()).isTrue();
     }
 
     @Test
-    public void testHeaders() {
+    void testHeaders() {
         EcrExtendedAuth eea = new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com");
         AuthConfig localCredentials = AuthConfig.builder()
                 .username("username")
@@ -67,13 +65,14 @@ public class EcrExtendedAuthTest {
             ZonedDateTime.of(2016, 12, 17, 21, 10, 58, 0, ZoneId.of("GMT"))
                 .toInstant());
         HttpPost request = eea.createSignedRequest(localCredentials, signingTime);
-        assertEquals("api.ecr.eu-west-1.amazonaws.com", request.getFirstHeader("host").getValue());
-        assertEquals("20161217T211058Z", request.getFirstHeader("X-Amz-Date").getValue());
-        assertEquals("AWS4-HMAC-SHA256 Credential=username/20161217/eu-west-1/ecr/aws4_request, SignedHeaders=content-type;host;x-amz-target, Signature=2ae11d499499cc951900aac0fbec96009382ba4f735bd14baa375c3e51d50aa9", request.getFirstHeader("Authorization").getValue());
+        assertThat(request)
+                .returns("api.ecr.eu-west-1.amazonaws.com", r -> r.getFirstHeader("host").getValue())
+                .returns("20161217T211058Z", r -> r.getFirstHeader("X-Amz-Date").getValue())
+                .returns("AWS4-HMAC-SHA256 Credential=username/20161217/eu-west-1/ecr/aws4_request, SignedHeaders=content-type;host;x-amz-target, Signature=2ae11d499499cc951900aac0fbec96009382ba4f735bd14baa375c3e51d50aa9", r -> r.getFirstHeader("Authorization").getValue());
     }
 
     @Test
-    public void testClientClosedAndCredentialsDecoded(@Mocked final CloseableHttpClient closeableHttpClient,
+    void testClientClosedAndCredentialsDecoded(@Mocked final CloseableHttpClient closeableHttpClient,
             @Mocked final CloseableHttpResponse closeableHttpResponse,
             @Mocked final StatusLine statusLine)
         throws IOException, IllegalStateException {
@@ -98,8 +97,9 @@ public class EcrExtendedAuthTest {
                 .password("password")
                 .build();
         AuthConfig awsCredentials = eea.extendedAuth(localCredentials);
-        assertEquals("AWS", awsCredentials.getUsername());
-        assertEquals("password", awsCredentials.getPassword());
+        assertThat(awsCredentials)
+                .hasFieldOrPropertyWithValue("username", "AWS")
+                .hasFieldOrPropertyWithValue("password", "password");
 
         new Verifications() {{
              closeableHttpClient.close();

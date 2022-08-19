@@ -23,11 +23,11 @@ import mockit.Verifications;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.message.BasicHeader;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("unused")
-public class HcChunkedResponseHandlerWrapperTest {
+class HcChunkedResponseHandlerWrapperTest {
 
   @Mocked
   private EntityStreamReaderUtil.JsonEntityResponseHandler handler;
@@ -39,28 +39,27 @@ public class HcChunkedResponseHandlerWrapperTest {
   private Header[] headers;
   private HcChunkedResponseHandlerWrapper hcChunkedResponseHandlerWrapper;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     hcChunkedResponseHandlerWrapper = new HcChunkedResponseHandlerWrapper(handler);
-
   }
 
   @Test
-  public void handleResponseWithJsonResponse() throws IOException {
+  void handleResponseWithJsonResponse() throws IOException {
     givenResponseHeaders(new BasicHeader("ConTenT-Type", "application/json; charset=UTF-8"));
     hcChunkedResponseHandlerWrapper.handleResponse(response);
     verifyProcessJsonStream(1);
   }
 
   @Test
-  public void handleResponseWithTextPlainResponse() throws IOException {
+  void handleResponseWithTextPlainResponse() throws IOException {
     givenResponseHeaders(new BasicHeader("Content-Type", "text/plain"));
     hcChunkedResponseHandlerWrapper.handleResponse(response);
     verifyProcessJsonStream(0);
   }
 
   @Test
-  public void handleResponseWithNoContentType() throws IOException {
+  void handleResponseWithNoContentType() throws IOException {
     givenResponseHeaders();
     hcChunkedResponseHandlerWrapper.handleResponse(response);
     verifyProcessJsonStream(0);

@@ -27,13 +27,13 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.assertj.core.groups.Tuple;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings({"rawtypes", "unused"})
-public class ApacheHttpClientDelegateTest {
+class ApacheHttpClientDelegateTest {
 
   @Mocked
   private ClientBuilder clientBuilder;
@@ -42,8 +42,8 @@ public class ApacheHttpClientDelegateTest {
 
   private ApacheHttpClientDelegate apacheHttpClientDelegate;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     // @formatter:off
     new Expectations() {{
       clientBuilder.buildBasicClient(); result = httpClient;
@@ -53,13 +53,13 @@ public class ApacheHttpClientDelegateTest {
   }
 
   @Test
-  public void createBasicClient() {
+  void createBasicClient() {
     final CloseableHttpClient result = apacheHttpClientDelegate.createBasicClient();
     assertThat(result).isNotNull();
   }
 
   @Test
-  public void delete() throws IOException {
+  void delete() throws IOException {
     // Given
     // @formatter:off
     new Expectations() {{
@@ -79,7 +79,7 @@ public class ApacheHttpClientDelegateTest {
   }
 
   @Test
-  public void get() throws IOException {
+  void get() throws IOException {
     // Given
     // @formatter:off
     new Expectations() {{
@@ -102,7 +102,7 @@ public class ApacheHttpClientDelegateTest {
   }
 
   @Test
-  public void postWithStringBody() throws IOException {
+  void postWithStringBody() throws IOException {
     // Given
     // @formatter:off
     new Expectations() {{
@@ -126,7 +126,7 @@ public class ApacheHttpClientDelegateTest {
   }
 
   @Test
-  public void postWithFileBody() throws IOException {
+  void postWithFileBody() throws IOException {
     // Given
     // @formatter:off
     new Expectations() {{

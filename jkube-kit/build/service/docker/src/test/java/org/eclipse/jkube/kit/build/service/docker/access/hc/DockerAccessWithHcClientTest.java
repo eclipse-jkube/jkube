@@ -23,16 +23,15 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.OngoingStubbing;
 
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -45,7 +44,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DockerAccessWithHcClientTest {
+@SuppressWarnings({"unchecked", "unused"})
+class DockerAccessWithHcClientTest {
 
     private static final String BASE_URL = "tcp://1.2.3.4:2375";
 
@@ -65,8 +65,8 @@ public class DockerAccessWithHcClientTest {
     private String filename;
     private ArchiveCompression compression;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         mockDelegate = mock(ApacheHttpClientDelegate.class, RETURNS_DEEP_STUBS);
         client = new DockerAccessWithHcClient("tcp://1.2.3.4:2375", null, 1, new KitLogger.SilentLogger()) {
             @Override
@@ -77,7 +77,7 @@ public class DockerAccessWithHcClientTest {
     }
 
     @Test
-    public void testPushImage_replacementOfExistingOfTheSameTag() throws Exception {
+    void testPushImage_replacementOfExistingOfTheSameTag() throws Exception {
         String image = "test-image";
         String tag = "test-tag";
         String taggedImageName = String.format("%s:%s", image, tag);
@@ -93,7 +93,7 @@ public class DockerAccessWithHcClientTest {
     }
 
     @Test
-    public void testPushImage_imageOfTheSameTagDoesNotExist() throws Exception {
+    void testPushImage_imageOfTheSameTagDoesNotExist() throws Exception {
         String image = "test-image";
         String tag = "test-tag";
         String taggedImageName = String.format("%s:%s", image, tag);
@@ -110,15 +110,16 @@ public class DockerAccessWithHcClientTest {
     }
 
     @Test
-    public void testPushFailes_noRetry() throws Exception {
+    void testPushFails_noRetry() throws Exception {
         givenAnImageName("test");
         givenThePushWillFail(0);
-        DockerAccessException dae = assertThrows(DockerAccessException.class, this::whenPushImage);
-        assertThat(dae).isNotNull();
+        assertThatExceptionOfType(DockerAccessException.class)
+                .isThrownBy(this::whenPushImage)
+                .withMessage("Unable to push 'test' : status code: 500, reason phrase: error");
     }
 
     @Test
-    public void testRetryPush() throws Exception {
+    void testRetryPush() throws Exception {
         givenAnImageName("test");
         givenANumberOfRetries(1);
         givenThePushWillFailAndEventuallySucceed();
@@ -127,16 +128,17 @@ public class DockerAccessWithHcClientTest {
     }
 
     @Test
-    public void testRetriesExceeded() throws Exception {
+    void testRetriesExceeded() throws Exception {
         givenAnImageName("test");
         givenANumberOfRetries(1);
         givenThePushWillFail(1);
-        DockerAccessException dae = assertThrows(DockerAccessException.class, this::whenPushImage);
-        assertThat(dae).isNotNull();
+        assertThatExceptionOfType(DockerAccessException.class)
+                .isThrownBy(this::whenPushImage)
+                .withMessage("Unable to push 'test' : status code: 500, reason phrase: error");
     }
 
     @Test
-    public void testLoadImage() throws IOException {
+    void testLoadImage() throws IOException {
         givenAnImageName("test");
         givenArchiveFile("test.tar");
         whenLoadImage();
@@ -144,16 +146,17 @@ public class DockerAccessWithHcClientTest {
     }
 
     @Test
-    public void testLoadImageFail() throws IOException {
+    void testLoadImageFail() throws IOException {
         givenAnImageName("test");
         givenArchiveFile("test.tar");
         givenThePostWillFail();
-        DockerAccessException dockerAccessException = assertThrows(DockerAccessException.class, () -> client.loadImage(imageName, new File(archiveFile)));
-        assertThat(dockerAccessException).isNotNull();
+        assertThatExceptionOfType(DockerAccessException.class)
+                .isThrownBy(() -> client.loadImage(imageName, new File(archiveFile)))
+                .withMessage("Unable to load test.tar : status code: 500, reason phrase: error");
     }
 
     @Test
-    public void testSaveImage() throws IOException {
+    void testSaveImage() throws IOException {
         givenAnImageName("test");
         givenFilename("test.tar");
         givenCompression(ArchiveCompression.none);
@@ -162,13 +165,14 @@ public class DockerAccessWithHcClientTest {
     }
 
     @Test
-    public void testSaveImageFail() throws IOException {
+    void testSaveImageFail() throws IOException {
         givenAnImageName("test");
         givenFilename("test.tar");
         givenCompression(ArchiveCompression.none);
         givenTheGetWillFail();
-        DockerAccessException dae = assertThrows(DockerAccessException.class, this::whenSaveImage);
-        assertThat(dae).isNotNull();
+        assertThatExceptionOfType(DockerAccessException.class)
+                .isThrownBy(this::whenSaveImage)
+                .withMessage("Unable to save 'test' to 'test.tar' : status code: 500, reason phrase: error");
     }
 
     private void givenRegistry(String registry) {
@@ -195,7 +199,6 @@ public class DockerAccessWithHcClientTest {
         this.compression = compression;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     private void givenThePushWillFailAndEventuallySucceed() throws IOException {
         when(mockDelegate.post(anyString(), isNull(), anyMap(), any(), anyInt()))
             .thenThrow(new HttpResponseException(HTTP_INTERNAL_ERROR, "error"))
@@ -215,13 +218,11 @@ public class DockerAccessWithHcClientTest {
             .thenThrow(new HttpResponseException(HTTP_INTERNAL_ERROR, "error"));
     }
 
-    @SuppressWarnings("unchecked")
     private void givenThatGetWillSucceedWithOk() throws IOException {
         when(mockDelegate.get(anyString(), any(ResponseHandler.class), eq(HTTP_OK), eq(HTTP_NOT_FOUND)))
             .thenReturn(HTTP_OK);
     }
 
-    @SuppressWarnings("unchecked")
     private void givenThatGetWillSucceedWithNotFound() throws IOException {
         when(mockDelegate.get(anyString(), any(ResponseHandler.class), eq(HTTP_OK), eq(HTTP_NOT_FOUND)))
             .thenReturn(HTTP_NOT_FOUND);
@@ -232,7 +233,6 @@ public class DockerAccessWithHcClientTest {
             .thenThrow(new HttpResponseException(HTTP_INTERNAL_ERROR, "error"));
     }
 
-    @SuppressWarnings("unchecked")
     private void givenThatDeleteWillSucceed() throws IOException {
         when(mockDelegate.delete(anyString(), any(ResponseHandler.class), eq(HTTP_OK), eq(HTTP_NOT_FOUND)))
             .thenReturn(new ApacheHttpClientDelegate.HttpBodyAndStatus(HTTP_OK, "foo"));
