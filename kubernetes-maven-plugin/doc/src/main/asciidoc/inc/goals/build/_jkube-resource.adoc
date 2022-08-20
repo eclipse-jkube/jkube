@@ -487,7 +487,9 @@ type: kubernetes.io/dockercfg
 [[ingress-generation]]
 === Ingress Generation
 
-Once you've enabled `jkube.createExternalUrls` property, you should be able to generate an opinionated ingress during {goal-prefix}:resource goal. You can also configure it as per your needs using XML configuration or by providing your own resource fragments.
+When the `{goal-prefix}:resource` goal is run, an `Ingress` will be generated for each `Service` if the `jkube.createExternalUrls` property is enabled.
+
+The generated `Ingress` can be further customized by using an XML configuration, or by providing a YAML resource fragment.
 
 **XML Configuration**
 
@@ -648,7 +650,7 @@ Here are the supported options while providing `<ingressTlsConfigs>` in IngressR
 
 **Ingress Yaml fragment**:
 
-You can create Ingress using yaml fragment also. You would need to place a fragment of yaml in `src/main/jkube` directory like this:
+You can create `Ingress` using YAML fragments too by placing the partial YAML file in the `src/main/jkube` directory. The following snippet contains an `Ingress` fragment example.
 
 .Ingress fragment Example
 
@@ -759,7 +761,15 @@ https://docs.openshift.org/latest/architecture/networking/routes.html[Route] des
 generated along the service if an {cluster} cluster is targeted.
 If you do not want to generate a Route descriptor, you can set the `jkube.openshift.generateRoute` property to `false`.
 
-Note: For automatic Route generation, Service resources need to have `expose: true` or `jkube.io/exposeUrl: true` labels in their metadata. Services with recognized web ports(`80`, `443`, `8080`, `9080`, , `9090`, `9443`) are automatically exposed. If your application is using some other port than these standard ports, You might need to manually set the Service as exposed by configuring ServiceEnricher(either set `jkube.enricher.jkube-service.expose` to `true` or by using XML configuration).
+*Note:*
+Routes will be automatically generated for Services with recognized web ports (`80`, `443`, `8080`, `9080`, , `9090`, `9443`).
+
+If your service exposes any other port and you still want to generate a Route, you can do any of the following:
+
+* Force the route creation by setting the `jkube.createExternalUrls` property to `true`.
+* Force the route creation by using the `expose: true` label in the `Service`:
+** Add the `expose: true` label in a `Service` fragment.
+** Add the `expose: true` label by leveraging the <<jkube-service, JKube Service Enricher>> (`jkube.enricher.jkube-service.expose`).
 
 .Route Generation Configuration
 [cols="1,6,1"]

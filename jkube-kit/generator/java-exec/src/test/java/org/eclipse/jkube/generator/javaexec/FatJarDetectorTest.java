@@ -18,20 +18,16 @@ import java.net.URL;
 import java.nio.file.Paths;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FatJarDetectorTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class FatJarDetectorTest {
 
   @Test
-  public void scanDirectoryDoesntExist() {
-    final File nonExistentDirectory = new File(temporaryFolder.getRoot(), "I-dont-exist");
+  void scanDirectoryDoesntExist(@TempDir File temporaryFolder) {
+    final File nonExistentDirectory = new File(temporaryFolder, "I-dont-exist");
     // When
     FatJarDetector.Result result = new FatJarDetector(nonExistentDirectory).scan();
     // Then
@@ -40,7 +36,7 @@ public class FatJarDetectorTest {
   }
 
   @Test
-  public void scanJarExists() throws Exception {
+  void scanJarExists() throws Exception {
     // Given
     final URL testDirUrl = getClass().getResource("/fatjar-simple");
     // When

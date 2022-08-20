@@ -68,6 +68,7 @@ _**Note**_:
 * Fix #1302: Port volume-permission maven integration tests + docs to gradle 
 * Fix #1303: Add gradle integration test and docs for AutoTLSEnricher
 * Fix #1308: Add documentation for DeploymentConfigEnricher
+* Fix #1309: Remove ExposeEnricher from profiles and documentation
 * Fix #1310: Add documentation + gradle integration test for ImageChangeTriggerEnricher
 * Fix #1311: Add documentation for OpenShift ProjectEnricher
 * Fix #1312: Add documentation + gradle integration test for RouteEnricher

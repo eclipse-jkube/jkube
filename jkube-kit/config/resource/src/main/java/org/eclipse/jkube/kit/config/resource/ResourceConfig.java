@@ -72,8 +72,9 @@ public class ResourceConfig {
   private List<String> customResourceDefinitions;
   @Singular
   private List<ServiceAccountConfig> serviceAccounts;
-  private IngressConfig ingress;
   private OpenshiftBuildConfig openshiftBuildConfig;
+  private Boolean createExternalUrls;
+  private IngressConfig ingress;
   private String routeDomain;
   private String restartPolicy;
 

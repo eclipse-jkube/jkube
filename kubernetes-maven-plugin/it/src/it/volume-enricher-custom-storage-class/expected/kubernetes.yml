@@ -24,7 +24,6 @@ items:
       app: volume-enricher-custom-storage-class
       version: 0.1-SNAPSHOT
       group: org.eclipse.jkube.devops.apps
-      expose: "true"
     name: jkube-docker-registry
   spec:
     ports:

@@ -56,8 +56,6 @@
     - jkube-healthcheck-micronaut
     - jkube-healthcheck-openliberty
 
-    # Route exposure
-    - jkube-openshift-service-expose
     # DeploymentConfigEnricher converts Deployment into DeploymentConfig
     - jkube-openshift-deploymentconfig
     - jkube-openshift-route
@@ -149,5 +147,4 @@
   generator:
     excludes: []
   enricher:
-    excludes:
-      - jkube-openshift-service-expose
+    excludes: []

@@ -26,7 +26,6 @@ items:
         jkube.io/git-branch: "@ignore@"
         keyinservice: valueinservice
       labels:
-        expose: "true"
         keyinall: valueinall
         keyinservice: valueinservice
         app: metadata

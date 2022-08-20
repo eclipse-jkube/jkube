@@ -40,7 +40,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HTTPHeader;
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -64,7 +63,6 @@ import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -82,7 +80,6 @@ import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
-import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
@@ -91,7 +88,6 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author roland
- * @since 23.05.17
  */
 public class KubernetesHelper {
     protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
@@ -755,44 +751,6 @@ public class KubernetesHelper {
             return newestPod.getMetadata().getName();
         }
         return null;
-    }
-
-    public static boolean isExposeService(Service service) {
-        String expose = KubernetesHelper.getLabels(service).get("expose");
-        return expose != null && expose.equalsIgnoreCase("true");
-    }
-
-    public static String getServiceExposeUrl(NamespacedKubernetesClient kubernetes, Collection<HasMetadata> resources, long serviceUrlWaitTimeSeconds, String exposeServiceAnnotationKey) throws InterruptedException {
-        for (HasMetadata entity : resources) {
-            if (entity instanceof Service) {
-                Service service = (Service) entity;
-                String name = KubernetesHelper.getName(service);
-                final Resource<Service> serviceResource = kubernetes.services().withName(name);
-                String url = pollServiceForExposeUrl(serviceUrlWaitTimeSeconds, service, serviceResource, exposeServiceAnnotationKey);
-
-                // let's not wait for other services
-                serviceUrlWaitTimeSeconds = 1;
-                if (StringUtils.isNotBlank(url) && url.startsWith("http")) {
-                    return url;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static String pollServiceForExposeUrl(long serviceUrlWaitTimeSeconds, Service service, Resource<Service> serviceResource, String exposeSvcAnnotationKey) throws InterruptedException {
-        String url = null;
-        // let's wait a little while until there is a service URL in case the exposecontroller is running slow
-        for (int i = 0; i < serviceUrlWaitTimeSeconds; i++) {
-            if (i > 0) {
-                Thread.sleep(1000);
-            }
-            url = KubernetesHelper.getAnnotationValue(serviceResource.get(), exposeSvcAnnotationKey);
-            if (StringUtils.isNotBlank(url) || !KubernetesHelper.isExposeService(service)) {
-                break;
-            }
-        }
-        return url;
     }
 
     public static String getAnnotationValue(HasMetadata item, String annotationKey) {

@@ -40,10 +40,6 @@ import java.util.Properties;
  * @author roland
  */
 public class BaseEnricher implements Enricher {
-
-    private final EnricherConfig config;
-    private final String name;
-    protected EnricherContext enricherContext;
     public static final String FABRIC8_GENERATED_CONTAINERS = "FABRIC8_GENERATED_CONTAINERS";
     public static final String NEED_IMAGECHANGE_TRIGGERS = "IMAGECHANGE_TRIGGER";
     public static final String IMAGE_CHANGE_TRIGGERS = "jkube.openshift.imageChangeTriggers";
@@ -58,6 +54,10 @@ public class BaseEnricher implements Enricher {
     public static final String JKUBE_ENFORCED_REPLICAS = "jkube.replicas";
     public static final String JKUBE_DEFAULT_IMAGE_PULL_POLICY = "IfNotPresent";
     public static final String JKUBE_ENFORCED_IMAGE_PULL_POLICY = "jkube.imagePullPolicy";
+
+    private final EnricherConfig config;
+    private final String name;
+    protected EnricherContext enricherContext;
 
     protected KitLogger log;
 
@@ -79,6 +79,12 @@ public class BaseEnricher implements Enricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) { }
+
+
+    @Override
+    public EnricherContext getContext() {
+        return enricherContext;
+    }
 
     protected KitLogger getLog() {
         return log;
@@ -112,9 +118,6 @@ public class BaseEnricher implements Enricher {
         return defaultVal;
     }
 
-    protected EnricherContext getContext() {
-        return enricherContext;
-    }
 
     /**
      * Returns true if we are in OpenShift S2I binary building mode
@@ -174,6 +177,17 @@ public class BaseEnricher implements Enricher {
             return imagePullPolicyFromEnricherConfig;
         }
         return JKUBE_DEFAULT_IMAGE_PULL_POLICY;
+    }
+
+    protected boolean getCreateExternalUrls() {
+        final String propertyValue = getContext().getProperty(CREATE_EXTERNAL_URLS);
+        if (StringUtils.isNotBlank(propertyValue)) {
+            return Boolean.parseBoolean(propertyValue);
+        }
+        if (getConfiguration().getResource().getCreateExternalUrls() != null) {
+            return getConfiguration().getResource().getCreateExternalUrls();
+        }
+        return false;
     }
 
     /**

@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadataComparator;
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -37,7 +36,6 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -1347,19 +1345,9 @@ public class ApplyService {
     }
 
     public void applyEntities(String fileName, Collection<HasMetadata> entities, KitLogger serviceLogger,
-                                 long serviceUrlWaitTimeSeconds) throws InterruptedException {
+                                 long serviceUrlWaitTimeSeconds) {
 
         applyStandardEntities(fileName, getK8sListWithNamespaceFirst(entities));
-        logExposeServiceUrl(entities, serviceLogger, serviceUrlWaitTimeSeconds);
-    }
-
-    private void logExposeServiceUrl(Collection<HasMetadata> entities, KitLogger serviceLogger, long serviceUrlWaitTimeSeconds) throws InterruptedException {
-        String url = KubernetesHelper.getServiceExposeUrl(
-            kubernetesClient.adapt(NamespacedKubernetesClient.class).inNamespace(applicableNamespace(null, namespace, fallbackNamespace)),
-            entities, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
-        if (url != null) {
-            serviceLogger.info("ExposeController Service URL: %s", url);
-        }
     }
 
     private void applyStandardEntities(String fileName, List<HasMetadata> entities) {

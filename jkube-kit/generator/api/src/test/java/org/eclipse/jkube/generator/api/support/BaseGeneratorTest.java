@@ -27,33 +27,25 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.entry;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  */
+
 public class BaseGeneratorTest {
-
-  @Mocked
   private GeneratorContext ctx;
-
-  @Mocked
   private JavaProject project;
 
   private Properties properties;
@@ -64,14 +56,14 @@ public class BaseGeneratorTest {
 
   @Before
   public void setUp() {
+    ctx = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
+    project = mock(JavaProject.class);
     properties = new Properties();
     config = new ProcessorConfig();
-    // @formatter:off
-    new Expectations() {{
-        ctx.getProject().getProperties(); result = properties;
-        ctx.getConfig(); result = config;
-    }};
-    // @formatter:on
+
+    when(project.getProperties()).thenReturn(properties);
+    when(ctx.getProject()).thenReturn(project);
+    when(ctx.getConfig()).thenReturn(config);
   }
 
   @After
@@ -88,7 +80,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getFromAsConfigured();
     // Then
-    assertEquals("fromInConfig", result);
+    assertThat("fromInConfig").isEqualTo(result);
   }
 
   @Test
@@ -98,7 +90,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getFromAsConfigured();
     // Then
-    assertEquals("fromInProperties", result);
+    assertThat("fromInProperties").isEqualTo(result);
   }
 
   @Test
@@ -109,7 +101,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
     // Then
-    assertEquals("nameInConfig", result);
+    assertThat("nameInConfig").isEqualTo(result);
   }
 
   @Test
@@ -119,7 +111,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
     // Then
-    assertEquals("nameInProperties", result);
+    assertThat("nameInProperties").isEqualTo(result);
   }
 
   @Test
@@ -129,7 +121,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
     // Then
-    assertEquals("%g/%a:%l", result);
+    assertThat("%g/%a:%l").isEqualTo(result);
   }
 
   @Test
@@ -139,7 +131,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
     // Then
-    assertEquals("%a:%l", result);
+    assertThat("%a:%l").isEqualTo(result);
   }
 
   @Test
@@ -151,7 +143,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getRegistry();
     // Then
-    assertEquals("registryInConfiguration", result);
+    assertThat("registryInConfiguration").isEqualTo(result);
   }
 
   @Test
@@ -163,7 +155,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getRegistry();
     // Then
-    assertEquals("registryInConfiguration", result);
+    assertThat("registryInConfiguration").isEqualTo(result);
   }
 
   @Test
@@ -173,7 +165,7 @@ public class BaseGeneratorTest {
     // When
     final String result = new TestBaseGenerator(ctx, "test-generator").getRegistry();
     // Then
-    assertNull(result);
+    assertThat(result).isNull();
   }
 
   public TestBaseGenerator createGenerator(FromSelector fromSelector) {
@@ -188,8 +180,9 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator").addFrom(builder);
     // Then
-    assertNull(builder.build().getFrom());
-    assertNull(builder.build().getFromExt());
+    assertThat(builder.build())
+            .hasFieldOrPropertyWithValue("from", null)
+            .hasFieldOrPropertyWithValue("fromExt", null);
   }
 
   @Test
@@ -200,7 +193,7 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     // Then
-    assertEquals("my/image", builder.build().getFrom());
+    assertThat("my/image").isEqualTo(builder.build().getFrom());
   }
 
   @Test
@@ -211,7 +204,7 @@ public class BaseGeneratorTest {
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     ;
     // Then
-    assertEquals("selectorDockerFromUpstream", builder.build().getFrom());
+    assertThat("selectorDockerFromUpstream").isEqualTo(builder.build().getFrom());
   }
 
   @Test
@@ -222,8 +215,9 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator").addFrom(builder);
     // Then
-    assertNull(builder.build().getFrom());
-    assertNull(builder.build().getFromExt());
+    assertThat(builder.build())
+            .hasFieldOrPropertyWithValue("from", null)
+            .hasFieldOrPropertyWithValue("fromExt", null);
   }
 
   @Test
@@ -235,7 +229,7 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     // Then
-    assertEquals("image:latest", builder.build().getFrom());
+    assertThat("image:latest").isEqualTo(builder.build().getFrom());
     assertThat(builder.build().getFromExt()).contains(
             entry("kind", "ImageStreamTag"),
             entry("name", "image:latest"),
@@ -252,7 +246,7 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     // Then
-    assertEquals("image:tag", builder.build().getFrom());
+    assertThat("image:tag").isEqualTo(builder.build().getFrom());
     assertThat(builder.build().getFromExt()).contains(
             entry("kind", "ImageStreamTag"),
             entry("name", "image:tag"),
@@ -268,7 +262,7 @@ public class BaseGeneratorTest {
     // When
     new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
     // Then
-    assertEquals("selectorIstagFromUpstream", builder.build().getFrom());
+    assertThat("selectorIstagFromUpstream").isEqualTo(builder.build().getFrom());
     assertThat(builder.build().getFromExt()).contains(
             entry("kind", "ImageStreamTag"),
             entry("name", "selectorIstagFromUpstream"),
@@ -283,32 +277,23 @@ public class BaseGeneratorTest {
     final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     final TestBaseGenerator testBaseGenerator = new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx));
     // When
-    final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-      testBaseGenerator.addFrom(builder);
-      fail();
-    });
-    // Then
-    assertThat(ex).hasMessageContaining("Invalid 'fromMode' in generator configuration for 'test-generator'");;
+    assertThatThrownBy(()-> testBaseGenerator.addFrom(builder)).
+            isInstanceOf(IllegalArgumentException.class).
+            hasMessageContaining("Invalid 'fromMode' in generator configuration for 'test-generator'");
   }
 
   @Test
-  public void shouldAddDefaultImage(@Mocked final ImageConfiguration ic1, @Mocked final ImageConfiguration ic2,
-      @Mocked final BuildConfiguration bc) {
-    new Expectations() {
-      {
-        ic1.getBuildConfiguration();
-        result = bc;
-        minTimes = 0;
-        ic2.getBuildConfiguration();
-        result = null;
-        minTimes = 0;
-      }
-    };
+  public void shouldAddDefaultImage() {
+    ImageConfiguration ic1 = mock(ImageConfiguration.class);
+    ImageConfiguration ic2 = mock(ImageConfiguration.class);
+    BuildConfiguration bc = mock(BuildConfiguration.class);
+    when(ic1.getBuildConfiguration()).thenReturn(bc);
+    when(ic2.getBuildConfiguration()).thenReturn(null);
     BaseGenerator generator = createGenerator(null);
-    assertTrue(generator.shouldAddGeneratedImageConfiguration(Collections.emptyList()));
-    assertFalse(generator.shouldAddGeneratedImageConfiguration(Arrays.asList(ic1, ic2)));
-    assertTrue(generator.shouldAddGeneratedImageConfiguration(Collections.singletonList(ic2)));
-    assertFalse(generator.shouldAddGeneratedImageConfiguration(Collections.singletonList(ic1)));
+    assertThat(generator.shouldAddGeneratedImageConfiguration(Collections.emptyList())).isTrue();
+    assertThat(generator.shouldAddGeneratedImageConfiguration(Arrays.asList(ic1, ic2))).isFalse();
+    assertThat(generator.shouldAddGeneratedImageConfiguration(Collections.singletonList(ic2))).isTrue();
+    assertThat(generator.shouldAddGeneratedImageConfiguration(Collections.singletonList(ic1))).isFalse();
   }
 
   @Test
@@ -317,30 +302,20 @@ public class BaseGeneratorTest {
     File projectBaseDir = folder.newFolder("test-project-dir");
     File dockerFile = new File(projectBaseDir, "Dockerfile");
     boolean isTestDockerfileCreated = dockerFile.createNewFile();
-    new Expectations() {
-      {
-        ctx.getProject();
-        result = project;
-        project.getBaseDirectory();
-        result = projectBaseDir;
-      }
-    };
-
+    when(ctx.getProject()).thenReturn(project);
+    when(project.getBaseDirectory()).thenReturn(projectBaseDir);
     // When
     BaseGenerator generator = createGenerator(null);
 
     // Then
-    assertTrue(isTestDockerfileCreated);
-    assertFalse(generator.shouldAddGeneratedImageConfiguration(Collections.emptyList()));
+    assertThat(isTestDockerfileCreated).isTrue();
+    assertThat(generator.shouldAddGeneratedImageConfiguration(Collections.emptyList())).isFalse();
   }
 
   @Test
   public void shouldAddGeneratedImageConfiguration_whenAddEnabledViaConfig_shouldReturnTrue() {
     // Given
-    new Expectations() {{
-      ctx.getProject();
-      result = project;
-    }};
+    when(ctx.getProject()).thenReturn(project);
     properties.put("jkube.generator.test-generator.add", "true");
     BaseGenerator generator = createGenerator(null);
 
@@ -348,17 +323,14 @@ public class BaseGeneratorTest {
     boolean result = generator.shouldAddGeneratedImageConfiguration(createNewImageConfigurationList());
 
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 
 
   @Test
   public void shouldAddGeneratedImageConfiguration_whenAddEnabledViaProperty_shouldReturnTrue() {
     // Given
-    new Expectations() {{
-      ctx.getProject();
-      result = project;
-    }};
+    when(ctx.getProject()).thenReturn(project);
     properties.put("jkube.generator.add", "true");
     BaseGenerator generator = createGenerator(null);
 
@@ -366,34 +338,27 @@ public class BaseGeneratorTest {
     boolean result = generator.shouldAddGeneratedImageConfiguration(createNewImageConfigurationList());
 
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 
   @Test
   public void addLatestTagIfSnapshot() {
-    new Expectations() {
-      {
-        ctx.getProject();
-        result = project;
-        project.getVersion();
-        result = "1.2-SNAPSHOT";
-      }
-    };
+    when(ctx.getProject()).thenReturn(project);
+    when(project.getVersion()).thenReturn("1.2-SNAPSHOT");
     BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     BaseGenerator generator = createGenerator(null);
     generator.addLatestTagIfSnapshot(builder);
     BuildConfiguration config = builder.build();
     List<String> tags = config.getTags();
-    assertEquals(1, tags.size());
-    assertTrue(tags.get(0).endsWith("latest"));
+    assertThat(tags)
+            .hasSize(1)
+            .first()
+            .satisfies(s -> assertThat(s).endsWith("latest"));
   }
 
   @Test
   public void addTagsFromConfig() {
-    new Expectations() {{
-        ctx.getProject();
-        result = project;
-    }};
+    when(ctx.getProject()).thenReturn(project);
     BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     properties.put("jkube.generator.test-generator.tags", " tag-1, tag-2 , other-tag");
     BaseGenerator generator = createGenerator(null);
@@ -406,10 +371,7 @@ public class BaseGeneratorTest {
 
   @Test
   public void addTagsFromProperty() {
-    new Expectations() {{
-      ctx.getProject();
-      result = project;
-    }};
+    when(ctx.getProject()).thenReturn(project);
     BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
     properties.put("jkube.generator.tags", " tag-1, tag-2 , other-tag");
     BaseGenerator generator = createGenerator(null);
@@ -421,19 +383,11 @@ public class BaseGeneratorTest {
   }
 
   public void inKubernetes() {
-    // @formatter:off
-    new Expectations() {{
-      ctx.getRuntimeMode(); result = RuntimeMode.KUBERNETES;
-    }};
-    // @formatter:on
+    when(ctx.getRuntimeMode()).thenReturn(RuntimeMode.KUBERNETES);
   }
 
   public void inOpenShift() {
-    // @formatter:off
-    new Expectations() {{
-      ctx.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-    }};
-    // @formatter:on
+    when(ctx.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
   }
 
   private class TestBaseGenerator extends BaseGenerator {
